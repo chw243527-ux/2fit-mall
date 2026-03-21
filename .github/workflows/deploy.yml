@@ -1,0 +1,48 @@
+name: Build & Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.4'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web
+        run: flutter build web --release --base-href "/2fit-mall/"
+
+      - name: Disable ServiceWorker
+        run: |
+          python3 -c "
+          import re
+          with open('build/web/flutter_bootstrap.js', 'r') as f:
+              content = f.read()
+          new_content = re.sub(r'serviceWorkerSettings:\s*\{[^}]*\}', 'serviceWorkerSettings: null', content)
+          with open('build/web/flutter_bootstrap.js', 'w') as f:
+              f.write(new_content)
+          print('ServiceWorker disabled')
+          "
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          publish_branch: gh-pages
+          force_orphan: true
