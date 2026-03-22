@@ -2662,11 +2662,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Буцаалт/Солилт';
   }}
   String get shippingFeeValue { switch (language) {
-    case AppLanguage.korean:   return '3,000원 (30만원↑ 무료)';
-    case AppLanguage.english:  return '₩3,000 (Free over ₩300,000)';
-    case AppLanguage.japanese: return '3,000ウォン(30万ウォン以上無料)';
-    case AppLanguage.chinese:  return '3,000韩元(满30万免运费)';
-    case AppLanguage.mongolian:return '₩3,000 (₩300,000-аас дээш үнэгүй)';
+    case AppLanguage.korean:   return '4,000원 (30만원↑ 무료, 단체5장↑ 무료)';
+    case AppLanguage.english:  return '₩4,000 (Free over ₩300,000 or group 5+)';
+    case AppLanguage.japanese: return '4,000ウォン(30万以上無料・団体5点以上無料)';
+    case AppLanguage.chinese:  return '4,000韩元(满30万免运费，团体5件以上免运费)';
+    case AppLanguage.mongolian:return '₩4,000 (₩300,000+ үнэгүй, бүлэг 5+ үнэгүй)';
   }}
   String get deliveryDaysValue { switch (language) {
     case AppLanguage.korean:   return '주문 후 5~7일';
@@ -4405,11 +4405,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Хүргэлт';
   }}
   String get basicShippingFeeInfo { switch (language) {
-    case AppLanguage.korean:   return '기본 배송비 3,000원 (30,000원 이상 무료)';
-    case AppLanguage.english:  return 'Basic shipping ₩3,000 (Free over ₩30,000)';
-    case AppLanguage.japanese: return '基本送料3,000ウォン（30,000ウォン以上無料）';
-    case AppLanguage.chinese:  return '基本运费3,000韩元（满30,000免运费）';
-    case AppLanguage.mongolian:return 'Үндсэн хүргэлт ₩3,000 (₩30,000-аас дээш үнэгүй)';
+    case AppLanguage.korean:   return '기본 배송비 4,000원 (30만원 이상 무료)';
+    case AppLanguage.english:  return 'Basic shipping ₩4,000 (Free over ₩300,000)';
+    case AppLanguage.japanese: return '基本送料4,000ウォン（30万ウォン以上無料）';
+    case AppLanguage.chinese:  return '基本运费4,000韩元（满30万免运费）';
+    case AppLanguage.mongolian:return 'Үндсэн хүргэлт ₩4,000 (₩300,000-аас дээш үнэгүй)';
   }}
   String get dispatchLabel { switch (language) {
     case AppLanguage.korean:   return '발송';
@@ -4447,11 +4447,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Солилт/Буцаалт';
   }}
   String get exchangeReturnInfo { switch (language) {
-    case AppLanguage.korean:   return '수령 후 7일 이내 가능 (단순 변심)';
-    case AppLanguage.english:  return 'Available within 7 days of receipt (change of mind)';
-    case AppLanguage.japanese: return '受領後7日以内可能（単純変心）';
-    case AppLanguage.chinese:  return '收货后7天内可申请（单纯变心）';
-    case AppLanguage.mongolian:return 'Хүлээн авсанаас хойш 7 хоногт боломжтой';
+    case AppLanguage.korean:   return '수령 후 7일 이내 가능\n단체커스텀오더: 단순 변심 불가, 제품 하자만 가능';
+    case AppLanguage.english:  return 'Within 7 days of receipt\nGroup custom orders: defects only, no change of mind';
+    case AppLanguage.japanese: return '受領後7日以内可能\n団体カスタム: 不良品のみ、単純変心不可';
+    case AppLanguage.chinese:  return '收货后7天内可申请\n团体定制: 仅限商品缺陷，不接受单纯退货';
+    case AppLanguage.mongolian:return 'Хүлээн авсанаас хойш 7 хоногт боломжтой\nБүлгийн захиалга: зөвхөн дутагдал, санал өөрчлөлт хүлээхгүй';
   }}
   String get groupOrderLabel { switch (language) {
     case AppLanguage.korean:   return '단체주문';
@@ -13201,11 +13201,11 @@ class AppLocalizations {
     default: return '움직임을 방해하지 않는 최적의 위치에 설계\n러닝, 싸이클, 트라이애슬론 등 모든 경기에 적합';
   }}
   String get pocketTile2Title { switch (language) {
-    case AppLanguage.english: return '45° Rear Entry';
-    case AppLanguage.japanese: return '45°後方入口';
-    case AppLanguage.chinese: return '45°后方开口';
-    case AppLanguage.mongolian: return '45° Арын орц';
-    default: return '45° 뒤 방향 입구';
+    case AppLanguage.english: return 'Rear Entry Design';
+    case AppLanguage.japanese: return '後方入口デザイン';
+    case AppLanguage.chinese: return '后方开口设计';
+    case AppLanguage.mongolian: return 'Арын орцны дизайн';
+    default: return '뒤 방향 입구 설계';
   }}
   String get pocketTile2Desc { switch (language) {
     case AppLanguage.english: return '45° diagonal angle design for natural hand reach\nEasy to put in and take out even while running';
@@ -14655,32 +14655,32 @@ class AppLocalizations {
     default: return '착용감이 없는 듯한 초경량 설계\n피부에 닿는 순간 차이를 느낄 수 있습니다';
   }}
   String get feat2Title { switch (language) {
-    case AppLanguage.english: return 'Seamless / Sewn';
-    case AppLanguage.japanese: return 'シームレス (無縫製) / 縫製';
-    case AppLanguage.chinese: return '无缝 / 缝制';
-    case AppLanguage.mongolian: return 'Оёдолгүй / Оёдолтой';
-    default: return '심리스 (무봉제) / 봉제';
+    case AppLanguage.english: return 'Seamless Design [SEAMLESS]';
+    case AppLanguage.japanese: return 'シームレス設計 [SEAMLESS]';
+    case AppLanguage.chinese: return '无缝设计 [SEAMLESS]';
+    case AppLanguage.mongolian: return 'Оёдолгүй дизайн [SEAMLESS]';
+    default: return '심리스 (무봉제) 설계             [SEAMLESS]';
   }}
   String get feat2Desc { switch (language) {
-    case AppLanguage.english: return 'Zero-friction seamless design\nConventional sewn option also available';
-    case AppLanguage.japanese: return '肌摩擦ゼロのシームレス設計\n一般縫製方式も選択可能です';
-    case AppLanguage.chinese: return '零摩擦无缝设计\n也可选择传统缝制方式';
-    case AppLanguage.mongolian: return 'Арьсны үрэлт тэгтэй оёдолгүй загвар\nЭнгийн оёдолтой хувилбарыг ч сонгож болно';
-    default: return '피부 마찰 제로의 심리스(무봉제) 설계\n일반 봉제 방식도 선택 가능합니다';
+    case AppLanguage.english: return 'Made in one piece without seams — Zero friction & skin irritation\nPolyester 92% / Lycra 8% · 4-way stretch\nUltra-soft fit that follows every body movement';
+    case AppLanguage.japanese: return '縫い目なし一枚製造 — 摩擦・肌刺激ゼロ\nポリエステル92% / ライクラ8% · 4方向ストレッチ\n体の動きにそのままついてくる超柔らかいフィット感';
+    case AppLanguage.chinese: return '无缝一体成型 — 摩擦与皮肤刺激为零\n聚酯纤维92% / 莱卡8% · 四向弹力\n极柔软贴合感，随身体动作自然跟随';
+    case AppLanguage.mongolian: return 'Оёдолгүй нэг ширхэгээр үйлдвэрлэсэн — Үрэлт, арьсны цочрол тэг\nПолиэстер 92% / Лайкра 8% · 4 чиглэлийн сунгалт\nБиеийн хөдөлгөөнийг дагасан маш зөөлөн тохирох байдал';
+    default: return '봉제선 없이 한 장으로 제작 — 마찰·피부 자극 완전 제로\n폴리에스터 92% / 라이크라 8% · 4방향 스트레치\n몸의 움직임에 그대로 따라오는 초부드러운 피팅감';
   }}
   String get feat3Title { switch (language) {
-    case AppLanguage.english: return 'A-Type Racerback';
-    case AppLanguage.japanese: return 'Aタイプ レーサーバック';
-    case AppLanguage.chinese: return 'A型背心';
-    case AppLanguage.mongolian: return 'A-Хэлбэрийн рэйсербак';
-    default: return 'A타입 레이서백';
+    case AppLanguage.english: return 'Elite Athlete Performance';
+    case AppLanguage.japanese: return 'エリート選手パフォーマンス';
+    case AppLanguage.chinese: return '精英运动员表现';
+    case AppLanguage.mongolian: return 'Элит тамирчны гүйцэтгэл';
+    default: return '엘리트 선수 퍼포먼스';
   }}
   String get feat3Desc { switch (language) {
-    case AppLanguage.english: return 'A-back design that maximizes movement\nExercise freely without shoulder strain';
-    case AppLanguage.japanese: return '動きを最大化するA型背板デザイン\n肩こりなく自由に運動できます';
-    case AppLanguage.chinese: return '最大化动作范围的A型背部设计\n无肩膀紧绷，自由运动';
-    case AppLanguage.mongolian: return 'Хөдөлгөөнийг нэмэгдүүлэх A хэлбэрийн нуруун загвар\nМөрний татарсан мэдрэмжгүйгээр чөлөөтэй хөдөл';
-    default: return '움직임을 극대화하는 A형 등판 디자인\n어깨 결림 없이 자유롭게 운동하세요';
+    case AppLanguage.english: return 'Certified performance wear for domestic and international competitions\nChosen by professional athletes for maximum performance';
+    case AppLanguage.japanese: return '国内外大会で認証されたパフォーマンスウェア\n最大パフォーマンスのためにプロ選手が選んだ';
+    case AppLanguage.chinese: return '国内外比赛认证运动服\n专业运动员为最佳表现所选择';
+    case AppLanguage.mongolian: return 'Дотоод, гадаадын тэмцээнд баталгаажсан хувцас\nДээд гүйцэтгэлийн төлөө мэргэжлийн тамирчдын сонголт';
+    default: return '국내외 대회 공인 착용 퍼포먼스 웨어\n프로 선수들이 선택한 최고의 경기 의류';
   }}
   String get feat4Title { switch (language) {
     case AppLanguage.english: return 'Elite Athlete Wear';
@@ -14767,11 +14767,11 @@ class AppLocalizations {
     default: return 'A타입';
   }}
   String get singletTypeADesc { switch (language) {
-    case AppLanguage.english: return 'Racerback';
-    case AppLanguage.japanese: return 'レーサーバック';
-    case AppLanguage.chinese: return '竞速背';
-    case AppLanguage.mongolian: return 'Рэйсербак';
-    default: return '레이서백';
+    case AppLanguage.english: return 'Standard Back';
+    case AppLanguage.japanese: return 'スタンダードバック';
+    case AppLanguage.chinese: return '标准背';
+    case AppLanguage.mongolian: return 'Стандарт нуруу';
+    default: return '스탠다드 백';
   }}
   String get singletTypeB { switch (language) {
     case AppLanguage.english: return 'B-Type';

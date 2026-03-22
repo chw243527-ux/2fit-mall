@@ -63,7 +63,7 @@ class CartProvider extends ChangeNotifier {
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
   
   double get subtotal => _items.fold(0, (sum, item) => sum + item.totalPrice);
-  double get shippingFee => subtotal >= 300000 ? 0 : 3000; // 30만원 이상 무료배송
+  double get shippingFee => subtotal >= 300000 ? 0 : 4000; // 30만원 이상 무료배송, 미만 4,000원
   double get total => subtotal + shippingFee;
 
   bool get isEmpty => _items.isEmpty;

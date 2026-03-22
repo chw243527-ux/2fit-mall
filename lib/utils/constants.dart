@@ -25,7 +25,7 @@ class AppConstants {
   static const String freeShippingText = '무료배송';
   static const String standardShippingText = '일반배송';
   static const double freeShippingThreshold = 300000; // 30만원 이상 무료배송
-  static const double standardShippingFee = 3000;     // 기본 배송비 3,000원
+  static const double standardShippingFee = 4000;     // 기본 배송비 4,000원
   
   // Categories
   static const List<String> categories = [
