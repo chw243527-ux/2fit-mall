@@ -8,6 +8,7 @@ import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../products/product_detail_screen.dart';
 import '../admin/admin_screen.dart';
+import '../auth/login_screen.dart';
 import '../orders/group_order_form_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/pc_layout.dart';
@@ -119,7 +120,17 @@ class _MyPageScreenState extends State<MyPageScreen>
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.read<LanguageProvider>().loc.cancel)),
           TextButton(
-            onPressed: () { Navigator.pop(ctx); up.logout(); },
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await AuthService.logout();
+              up.logout();
+              if (ctx.mounted) {
+                Navigator.of(ctx).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
+            },
             child: Text(context.read<LanguageProvider>().loc.mypageLogout, style: const TextStyle(color: Colors.red)),
           ),
         ],
@@ -1590,6 +1601,17 @@ class _MobileMyPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
+      appBar: Navigator.canPop(context)
+          ? AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: const Text('마이페이지', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+            )
+          : null,
       body: SafeArea(
         child: Column(
           children: [

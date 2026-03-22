@@ -11,6 +11,7 @@ import 'mypage/mypage_screen.dart';
 import '../widgets/app_drawer.dart';
 import 'orders/order_guide_screen.dart';
 import 'chat/chat_screen.dart';
+import 'auth/login_screen.dart';
 
 // PC 기준 breakpoint
 const double kPcBreakpoint = 900;
@@ -63,9 +64,24 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final width = MediaQuery.of(context).size.width;
     final isPc = kIsWeb && width >= kPcBreakpoint;
+    final userProvider = context.watch<UserProvider>();
+
+    // 로그아웃 감지: user가 null이 되면 로그인 화면으로 이동
+    if (userProvider.user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+            (route) => false,
+          );
+        }
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     if (isPc) {
       return _PcLayout(
@@ -1193,6 +1209,7 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final cat = widget.cat;
     return Column(

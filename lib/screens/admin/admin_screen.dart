@@ -511,6 +511,13 @@ class _AdminScreenState extends State<AdminScreen>
         foregroundColor: Colors.white,
         elevation: 0,
         toolbarHeight: 50,
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
+        automaticallyImplyLeading: Navigator.canPop(context),
         title: Row(
           children: [
             Container(
