@@ -6457,14 +6457,10 @@ class _RibTableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // 기본 배경
+        // 기본 배경 (단색 – 그라디언트 제거)
         Container(
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF2A2A2A), Color(0xFF1A1A1A)],
-            ),
+            color: Color(0xFF1E1E1E),
           ),
           child: Row(
             children: headers.asMap().entries.map((e) {
@@ -6496,12 +6492,12 @@ class _RibTableHeader extends StatelessWidget {
             }).toList(),
           ),
         ),
-        // 골지 라인 오버레이
+        // 골지 라인 오버레이 (주기 축소)
         Positioned.fill(
           child: CustomPaint(
             painter: _RibPatternPainter(
-              lineColor: Colors.white.withValues(alpha: 0.04),
-              spacing: 5,
+              lineColor: Colors.white.withValues(alpha: 0.06),
+              spacing: 4,
             ),
           ),
         ),
@@ -6531,8 +6527,8 @@ class _RibTableRow extends StatelessWidget {
         ? const Color(0xFF1E1E1E)
         : const Color(0xFF242424);
     final ribColor = isEven
-        ? Colors.white.withValues(alpha: 0.025)
-        : Colors.white.withValues(alpha: 0.02);
+        ? Colors.white.withValues(alpha: 0.05)
+        : Colors.white.withValues(alpha: 0.04);
 
     return Stack(
       children: [

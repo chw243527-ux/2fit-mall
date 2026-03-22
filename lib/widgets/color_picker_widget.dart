@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -8,9 +7,7 @@ import '../utils/app_localizations.dart';
 
 // ══════════════════════════════════════════════════════════════
 // 골지(Rib) 텍스처 페인터
-// 실제 골지 원단 사진 기반: 두꺼운 세로 리브 + 강한 3D 입체감
-// 각 리브 = 왼쪽 밝은면(하이라이트) + 오른쪽 어두운면(그림자)
-// 주기: ~9px (하이라이트 4px + 그림자 3px + 틈새 2px)
+// 얇은 세로 리브 라인만 표현 – 입체감 없음, 주기 최소화
 // ══════════════════════════════════════════════════════════════
 class RibTexturePainter extends CustomPainter {
   final Color baseColor;
@@ -20,78 +17,28 @@ class RibTexturePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final lum = baseColor.computeLuminance();
 
-    // ─── 리브 파라미터 (사진 분석 기반) ───
-    // 실제 사진: 굵은 리브 1개 = 약 9px 주기
-    // 리브 왼쪽 = 밝은 면(평탄+반사), 오른쪽 = 어두운 면(그림자)
-    const ribPeriod  = 9.0;  // 전체 주기
-    const brightW    = 4.0;  // 밝은 면 너비
-    const darkW      = 3.0;  // 어두운 면 너비
-    // 틈 = 9 - 4 - 3 = 2px (베이스 색상 그대로 보임)
+    // ─── 리브 파라미터: 주기 줄이고 입체감 제거 ───
+    const ribPeriod = 4.0;  // 주기 9→4px (촘촘하게)
+    const lineW     = 0.8;  // 라인 두께
 
-    // 밝기에 따른 하이라이트/그림자 강도 조정
-    final highlightAlpha = lum > 0.6
-        ? 0.55   // 밝은 색: 하이라이트 강함
+    // 밝기에 따른 라인 투명도만 조정 (그림자·하이라이트 없음)
+    final lineAlpha = lum > 0.6
+        ? 0.12   // 밝은 색: 연하게
         : lum > 0.3
-            ? 0.45   // 중간 색
-            : 0.35;  // 어두운 색: 하이라이트 상대적 약함
+            ? 0.16   // 중간
+            : 0.22;  // 어두운 색: 조금 진하게
 
-    final shadowAlpha = lum > 0.6
-        ? 0.22   // 밝은 색: 그림자 약하게 (너무 진하면 이상)
-        : lum > 0.3
-            ? 0.38   // 중간 색
-            : 0.55;  // 어두운 색: 그림자 강하게 (입체감)
+    final paint = Paint()
+      ..color = lum > 0.5
+          ? Colors.black.withValues(alpha: lineAlpha)
+          : Colors.white.withValues(alpha: lineAlpha)
+      ..strokeWidth = lineW
+      ..style = PaintingStyle.stroke;
 
-    // ─── 그라디언트 방식으로 각 리브 그리기 ───
-    double x = 0;
-    while (x < size.width) {
-      // ① 밝은 면: LinearGradient (왼쪽 끝 매우 밝음 → 오른쪽으로 페이드)
-      final brightRect = Rect.fromLTWH(x, 0, brightW, size.height);
-      final brightPaint = Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            Colors.white.withValues(alpha: highlightAlpha),
-            Colors.white.withValues(alpha: highlightAlpha * 0.15),
-          ],
-        ).createShader(brightRect);
-      canvas.drawRect(brightRect, brightPaint);
-
-      // ② 어두운 면: LinearGradient (왼쪽 진함 → 오른쪽 페이드)
-      final darkX = x + brightW;
-      if (darkX < size.width) {
-        final darkRect = Rect.fromLTWH(
-            darkX, 0, math.min(darkW, size.width - darkX), size.height);
-        final darkPaint = Paint()
-          ..shader = LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [
-              Colors.black.withValues(alpha: shadowAlpha),
-              Colors.black.withValues(alpha: shadowAlpha * 0.1),
-            ],
-          ).createShader(darkRect);
-        canvas.drawRect(darkRect, darkPaint);
-      }
-
-      x += ribPeriod;
+    // 단순 세로 라인만 반복 (입체 그라디언트 없음)
+    for (double x = 0; x < size.width; x += ribPeriod) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
-
-    // ─── 전체 상단 광택 오버레이 ───
-    // 직물 표면의 전반적인 광택감 (상단 밝음, 하단 약간 어두움)
-    final glossPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          Colors.white.withValues(alpha: lum > 0.5 ? 0.18 : 0.10),
-          Colors.transparent,
-          Colors.black.withValues(alpha: lum > 0.5 ? 0.06 : 0.14),
-        ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-    canvas.drawRect(
-        Rect.fromLTWH(0, 0, size.width, size.height), glossPaint);
   }
 
   @override
