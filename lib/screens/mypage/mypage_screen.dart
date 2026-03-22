@@ -15,7 +15,8 @@ import '../../widgets/pc_layout.dart';
 import '../../widgets/kakao_address_search.dart';
 
 class MyPageScreen extends StatefulWidget {
-  const MyPageScreen({super.key});
+  final VoidCallback? onBack; // 홈(탭0)으로 돌아가는 콜백
+  const MyPageScreen({super.key, this.onBack});
 
   @override
   State<MyPageScreen> createState() => _MyPageScreenState();
@@ -58,6 +59,7 @@ class _MyPageScreenState extends State<MyPageScreen>
     return _MobileMyPage(
       tabController: _tabController,
       userProvider: userProvider,
+      onBack: widget.onBack,
       onShowAdditionalOrder: _showAdditionalOrderSheet,
       onShowColorEdit: _showColorEditSheet,
       onShowProfileEdit: _showProfileEdit,
@@ -1574,6 +1576,7 @@ class _PcSettingItem extends StatelessWidget {
 class _MobileMyPage extends StatelessWidget {
   final TabController tabController;
   final UserProvider userProvider;
+  final VoidCallback? onBack; // 탭0(홈)으로 돌아가기 콜백
   final void Function(OrderModel) onShowAdditionalOrder;
   final void Function(OrderModel) onShowColorEdit;
   final void Function(BuildContext, UserModel) onShowProfileEdit;
@@ -1585,6 +1588,7 @@ class _MobileMyPage extends StatelessWidget {
   const _MobileMyPage({
     required this.tabController,
     required this.userProvider,
+    this.onBack,
     required this.onShowAdditionalOrder,
     required this.onShowColorEdit,
     required this.onShowProfileEdit,
@@ -1601,17 +1605,25 @@ class _MobileMyPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: Navigator.canPop(context)
-          ? AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => Navigator.pop(context),
-              ),
-              title: const Text('마이페이지', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-            )
-          : null,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: onBack != null
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A1A1A)),
+                onPressed: onBack,
+                tooltip: '이전으로',
+              )
+            : Navigator.canPop(context)
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A1A1A)),
+                    onPressed: () => Navigator.pop(context),
+                    tooltip: '이전으로',
+                  )
+                : null,
+        automaticallyImplyLeading: false,
+        title: const Text('마이페이지', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+      ),
       body: SafeArea(
         child: Column(
           children: [

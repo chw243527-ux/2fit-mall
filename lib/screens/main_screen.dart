@@ -105,7 +105,9 @@ class MainScreenState extends State<MainScreen> {
           ),
           const ProductListScreen(),
           const CartScreen(),
-          const MyPageScreen(),
+          MyPageScreen(
+            onBack: () => setState(() => _currentIndex = 0),
+          ),
         ],
       ),
       // bottomNavigationBar 제거 — 로고 클릭으로 홈, 앱바 아이콘으로 이동
@@ -169,7 +171,9 @@ class _PcLayoutState extends State<_PcLayout> {
                 HomeScreen(onNavigate: widget.onTabChanged),
                 const ProductListScreen(),
                 const CartScreen(),
-                const MyPageScreen(),
+                MyPageScreen(
+                  onBack: () => widget.onTabChanged(0),
+                ),
               ],
             ),
           ),
