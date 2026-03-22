@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "fit-mall"
+  },
+  "targets": {
+    "fit-mall": {
+      "hosting": {
+        "production": [
+          "fit-mall"
+        ]
+      }
+    }
+  }
+}

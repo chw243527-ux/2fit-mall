@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "187081765755",
+    "project_id": "fit-mall",
+    "storage_bucket": "fit-mall.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:187081765755:android:90a8ccb9af4b91515d03de",
+        "android_client_info": {
+          "package_name": "com.twofit.twofit_mall"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDu72VZ2IlUI8gxWROsfPJFuC1qORCdkAE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

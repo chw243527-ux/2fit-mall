@@ -1,0 +1,21 @@
+
+# Build outputs (exclude to save space)
+# Flutter/Dart
+# IDE
+# Keep lib/ directory for source code!
+# Logs
+# OS Files
+# Temporary files
+*.iml
+*.log
+*.temp
+*.tmp
+.DS_Store
+.idea/
+.packages
+.pub-cache/
+.pub/
+.vscode/
+/.dart_tool/
+/build/
+Thumbs.db

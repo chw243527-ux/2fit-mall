@@ -1,0 +1,55 @@
+{
+    "name": "2FIT MALL",
+    "short_name": "2FIT",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#111111",
+    "description": "마라톤·육상·단체복 맞춤 제작 전문 2FIT MALL",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "lang": "ko",
+    "scope": "/",
+    "categories": ["shopping", "sports"],
+    "screenshots": [],
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "신상품 보기",
+            "short_name": "신상품",
+            "url": "/?tab=new",
+            "icons": [{"src": "icons/Icon-192.png", "sizes": "192x192"}]
+        },
+        {
+            "name": "단체주문",
+            "short_name": "단체주문",
+            "url": "/?tab=group",
+            "icons": [{"src": "icons/Icon-192.png", "sizes": "192x192"}]
+        }
+    ]
+}
