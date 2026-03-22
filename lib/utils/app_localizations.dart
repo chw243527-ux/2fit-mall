@@ -5679,6 +5679,254 @@ class AppLocalizations {
     }
   }
 
+  // ── signup extended keys ──
+  String get signupPasswordStrengthVeryWeak {
+    switch (language) {
+      case AppLanguage.english: return 'Very Weak';
+      case AppLanguage.japanese: return '非常に弱い';
+      case AppLanguage.chinese: return '非常弱';
+      case AppLanguage.mongolian: return 'Маш сул';
+      case AppLanguage.korean: return '매우 약함';
+    }
+  }
+  String get signupPasswordStrengthWeak {
+    switch (language) {
+      case AppLanguage.english: return 'Weak';
+      case AppLanguage.japanese: return '弱い';
+      case AppLanguage.chinese: return '弱';
+      case AppLanguage.mongolian: return 'Сул';
+      case AppLanguage.korean: return '약함';
+    }
+  }
+  String get signupPasswordStrengthFair {
+    switch (language) {
+      case AppLanguage.english: return 'Fair';
+      case AppLanguage.japanese: return '普通';
+      case AppLanguage.chinese: return '一般';
+      case AppLanguage.mongolian: return 'Дунд';
+      case AppLanguage.korean: return '보통';
+    }
+  }
+  String get signupPasswordStrengthStrong {
+    switch (language) {
+      case AppLanguage.english: return 'Strong';
+      case AppLanguage.japanese: return '強い';
+      case AppLanguage.chinese: return '强';
+      case AppLanguage.mongolian: return 'Хүчтэй';
+      case AppLanguage.korean: return '강함';
+    }
+  }
+  String get signupPasswordStrengthVeryStrong {
+    switch (language) {
+      case AppLanguage.english: return 'Very Strong';
+      case AppLanguage.japanese: return '非常に強い';
+      case AppLanguage.chinese: return '非常强';
+      case AppLanguage.mongolian: return 'Маш хүчтэй';
+      case AppLanguage.korean: return '매우 강함';
+    }
+  }
+  String get signupPasswordStrengthUppercase {
+    switch (language) {
+      case AppLanguage.english: return 'Uppercase letter';
+      case AppLanguage.japanese: return '大文字';
+      case AppLanguage.chinese: return '大写字母';
+      case AppLanguage.mongolian: return 'Том үсэг';
+      case AppLanguage.korean: return '대문자 포함';
+    }
+  }
+  String get signupPasswordStrengthLowercase {
+    switch (language) {
+      case AppLanguage.english: return 'Lowercase letter';
+      case AppLanguage.japanese: return '小文字';
+      case AppLanguage.chinese: return '小写字母';
+      case AppLanguage.mongolian: return 'Жижиг үсэг';
+      case AppLanguage.korean: return '소문자 포함';
+    }
+  }
+  String get signupPasswordStrengthNumber {
+    switch (language) {
+      case AppLanguage.english: return 'Number';
+      case AppLanguage.japanese: return '数字';
+      case AppLanguage.chinese: return '数字';
+      case AppLanguage.mongolian: return 'Тоо';
+      case AppLanguage.korean: return '숫자 포함';
+    }
+  }
+  String get signupPasswordStrengthSpecial {
+    switch (language) {
+      case AppLanguage.english: return 'Special character';
+      case AppLanguage.japanese: return '特殊文字';
+      case AppLanguage.chinese: return '特殊字符';
+      case AppLanguage.mongolian: return 'Тусгай тэмдэгт';
+      case AppLanguage.korean: return '특수문자 포함';
+    }
+  }
+  String get signupPasswordStrength8Chars {
+    switch (language) {
+      case AppLanguage.english: return 'At least 8 characters';
+      case AppLanguage.japanese: return '8文字以上';
+      case AppLanguage.chinese: return '至少8个字符';
+      case AppLanguage.mongolian: return '8-аас дээш тэмдэгт';
+      case AppLanguage.korean: return '8자 이상';
+    }
+  }
+  String get signupInvalidEmail {
+    switch (language) {
+      case AppLanguage.english: return 'Invalid email format';
+      case AppLanguage.japanese: return 'メール形式が正しくありません';
+      case AppLanguage.chinese: return '邮箱格式不正确';
+      case AppLanguage.mongolian: return 'Имэйлийн формат буруу байна';
+      case AppLanguage.korean: return '이메일 형식이 올바르지 않습니다';
+    }
+  }
+  String get signupEmailAvailable {
+    switch (language) {
+      case AppLanguage.english: return 'Email is available';
+      case AppLanguage.japanese: return 'このメールは使用可能です';
+      case AppLanguage.chinese: return '该邮箱可以使用';
+      case AppLanguage.mongolian: return 'Имэйл ашиглах боломжтой';
+      case AppLanguage.korean: return '사용 가능한 이메일입니다';
+    }
+  }
+  String get signupEmailAlreadyUsed {
+    switch (language) {
+      case AppLanguage.english: return 'Email is already in use';
+      case AppLanguage.japanese: return 'このメールは既に使用されています';
+      case AppLanguage.chinese: return '该邮箱已被使用';
+      case AppLanguage.mongolian: return 'Имэйл аль хэдийн ашиглагдсан байна';
+      case AppLanguage.korean: return '이미 사용 중인 이메일입니다';
+    }
+  }
+  String get signupCountrySelect {
+    switch (language) {
+      case AppLanguage.english: return 'Select Country';
+      case AppLanguage.japanese: return '国を選択';
+      case AppLanguage.chinese: return '选择国家';
+      case AppLanguage.mongolian: return 'Улс сонгох';
+      case AppLanguage.korean: return '국가 선택';
+    }
+  }
+  String get signupTermsTitleShort {
+    switch (language) {
+      case AppLanguage.english: return 'Terms';
+      case AppLanguage.japanese: return '規約';
+      case AppLanguage.chinese: return '条款';
+      case AppLanguage.mongolian: return 'Нөхцөл';
+      case AppLanguage.korean: return '약관';
+    }
+  }
+  String signupRateLimitSecondsMsg(int seconds) {
+    switch (language) {
+      case AppLanguage.english: return 'Please wait $seconds seconds';
+      case AppLanguage.japanese: return '$seconds秒後に再試行してください';
+      case AppLanguage.chinese: return '请等待$seconds秒';
+      case AppLanguage.mongolian: return '$seconds секунд хүлээнэ үү';
+      case AppLanguage.korean: return '$seconds초 후에 다시 시도해주세요';
+    }
+  }
+  String get signupPasswordTooWeak {
+    switch (language) {
+      case AppLanguage.english: return 'Password is too weak';
+      case AppLanguage.japanese: return 'パスワードが弱すぎます';
+      case AppLanguage.chinese: return '密码太弱';
+      case AppLanguage.mongolian: return 'Нууц үг хэт сул байна';
+      case AppLanguage.korean: return '비밀번호가 너무 약합니다';
+    }
+  }
+  String get signupEmailCheckFirst {
+    switch (language) {
+      case AppLanguage.english: return 'Please check email availability first';
+      case AppLanguage.japanese: return 'まずメールの使用可否を確認してください';
+      case AppLanguage.chinese: return '请先检查邮箱是否可用';
+      case AppLanguage.mongolian: return 'Эхлээд имэйл шалгана уу';
+      case AppLanguage.korean: return '먼저 이메일 중복 확인을 해주세요';
+    }
+  }
+  String get signupTimeoutError {
+    switch (language) {
+      case AppLanguage.english: return 'Request timed out. Please try again.';
+      case AppLanguage.japanese: return 'タイムアウトしました。もう一度お試しください。';
+      case AppLanguage.chinese: return '请求超时，请重试。';
+      case AppLanguage.mongolian: return 'Хүсэлт цаг хэтэрсэн. Дахин оролдоно уу.';
+      case AppLanguage.korean: return '요청 시간이 초과되었습니다. 다시 시도해주세요.';
+    }
+  }
+  String get signupPasswordSafetyHint {
+    switch (language) {
+      case AppLanguage.english: return 'Use a mix of letters, numbers, and special characters';
+      case AppLanguage.japanese: return '文字・数字・記号を組み合わせてください';
+      case AppLanguage.chinese: return '请结合使用字母、数字和特殊字符';
+      case AppLanguage.mongolian: return 'Үсэг, тоо, тусгай тэмдэгтийг хослуулан ашиглана уу';
+      case AppLanguage.korean: return '문자, 숫자, 특수문자를 조합하여 사용하세요';
+    }
+  }
+  String get signupContinuousAttemptDetected {
+    switch (language) {
+      case AppLanguage.english: return 'Too many attempts detected';
+      case AppLanguage.japanese: return '試行回数が多すぎます';
+      case AppLanguage.chinese: return '检测到频繁尝试';
+      case AppLanguage.mongolian: return 'Олон удаа оролдлого илэрсэн';
+      case AppLanguage.korean: return '연속 시도가 감지되었습니다';
+    }
+  }
+  String signupContinuousAttemptWait(int minutes, int seconds) {
+    final timeStr = minutes > 0 ? '${minutes}분 ${seconds}초' : '${seconds}초';
+    final timeStrEn = minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
+    switch (language) {
+      case AppLanguage.english: return 'Please wait $timeStrEn before trying again';
+      case AppLanguage.japanese: return '$timeStrEn後に再試行してください';
+      case AppLanguage.chinese: return '请等待$timeStrEn后再试';
+      case AppLanguage.mongolian: return '$timeStrEn хүлээгээд дахин оролдоно уу';
+      case AppLanguage.korean: return '$timeStr 후에 다시 시도해주세요';
+    }
+  }
+  String get signupNameEmptyError {
+    switch (language) {
+      case AppLanguage.english: return 'Name is required';
+      case AppLanguage.japanese: return '名前を入力してください';
+      case AppLanguage.chinese: return '请输入姓名';
+      case AppLanguage.mongolian: return 'Нэр оруулах шаардлагатай';
+      case AppLanguage.korean: return '이름을 입력해주세요';
+    }
+  }
+  String get signupNameTooLong {
+    switch (language) {
+      case AppLanguage.english: return 'Name is too long';
+      case AppLanguage.japanese: return '名前が長すぎます';
+      case AppLanguage.chinese: return '名称太长';
+      case AppLanguage.mongolian: return 'Нэр хэт урт байна';
+      case AppLanguage.korean: return '이름이 너무 깁니다';
+    }
+  }
+  String get signupNameFormatError {
+    switch (language) {
+      case AppLanguage.english: return 'Invalid name format';
+      case AppLanguage.japanese: return '名前の形式が正しくありません';
+      case AppLanguage.chinese: return '姓名格式不正确';
+      case AppLanguage.mongolian: return 'Нэрний формат буруу байна';
+      case AppLanguage.korean: return '이름 형식이 올바르지 않습니다';
+    }
+  }
+  String get signupNameSpaceError {
+    switch (language) {
+      case AppLanguage.english: return 'Name cannot start or end with spaces';
+      case AppLanguage.japanese: return '名前の前後にスペースを入れないでください';
+      case AppLanguage.chinese: return '姓名前后不能有空格';
+      case AppLanguage.mongolian: return 'Нэрний эхэн эсвэл төгсгөлд зай байж болохгүй';
+      case AppLanguage.korean: return '이름 앞뒤에 공백이 있으면 안 됩니다';
+    }
+  }
+  String signupRateLimitCountdown(int minutes, int seconds) {
+    final timeStr = minutes > 0 ? '${minutes}분 ${seconds}초' : '${seconds}초';
+    final timeStrEn = minutes > 0 ? '${minutes}m ${seconds}s' : '${seconds}s';
+    switch (language) {
+      case AppLanguage.english: return 'Too many requests. Try again in $timeStrEn.';
+      case AppLanguage.japanese: return 'リクエストが多すぎます。$timeStrEn後にお試しください。';
+      case AppLanguage.chinese: return '请求过多，请$timeStrEn后重试。';
+      case AppLanguage.mongolian: return 'Хэт олон хүсэлт. $timeStrEn хойно дахин оролдоно уу.';
+      case AppLanguage.korean: return '요청이 너무 많습니다. $timeStr 후에 다시 시도해주세요.';
+    }
+  }
 
   // ── category ──
   String get sortNewest {

@@ -50,15 +50,12 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
         foregroundColor: Colors.white,
         elevation: 0,
         toolbarHeight: 48,
-<<<<<<< HEAD
-=======
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
->>>>>>> origin/main
       ),
       body: Column(
         children: [
@@ -101,15 +98,12 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
         backgroundColor: const Color(0xFF6A1B9A),
         foregroundColor: Colors.white,
         elevation: 0,
-<<<<<<< HEAD
-=======
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
->>>>>>> origin/main
       ),
       body: Center(
         child: ConstrainedBox(

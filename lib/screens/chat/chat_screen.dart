@@ -194,10 +194,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendMessage(String text, AppLocalizations loc) {
     if (text.trim().isEmpty) return;
 
-<<<<<<< HEAD
-=======
     final isKorean = loc.language == AppLanguage.korean;
->>>>>>> origin/main
     final user = context.read<UserProvider>().user;
     final userId = user?.id ?? 'guest';
     final userName = user?.name ?? _loc.chatVisitor;

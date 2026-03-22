@@ -23,12 +23,8 @@ class _LoginScreenState extends State<LoginScreen>
   final _pwCtrl = TextEditingController();
   bool _obscurePw = true;
   bool _rememberMe = false;
-<<<<<<< HEAD
-
-=======
   int _logoTapCount = 0;
   DateTime? _lastLogoTap;
->>>>>>> origin/main
 
   late AnimationController _animCtrl;
   late Animation<double> _fadeAnim;
@@ -69,8 +65,6 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-<<<<<<< HEAD
-=======
   // 로고 5번 연속 탭 → 관리자 계정 자동 입력
   void _handleLogoTap() {
     final now = DateTime.now();
@@ -106,7 +100,6 @@ class _LoginScreenState extends State<LoginScreen>
       );
     }
   }
->>>>>>> origin/main
 
   Future<void> _login() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -156,8 +149,6 @@ class _LoginScreenState extends State<LoginScreen>
 
     return Scaffold(
       backgroundColor: Colors.white,
-<<<<<<< HEAD
-=======
       appBar: Navigator.canPop(context)
           ? AppBar(
               backgroundColor: Colors.white,
@@ -168,7 +159,6 @@ class _LoginScreenState extends State<LoginScreen>
               ),
             )
           : null,
->>>>>>> origin/main
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnim,
@@ -186,19 +176,6 @@ class _LoginScreenState extends State<LoginScreen>
                     Center(
                       child: Column(
                         children: [
-<<<<<<< HEAD
-                          Image.asset(
-                            'assets/images/2fit_logo.png',
-                            width: 200,
-                            height: 80,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Text(
-                              '2FiT',
-                              style: TextStyle(
-                                color: Color(0xFF1A1A1A),
-                                fontSize: 32,
-                                fontWeight: FontWeight.w900,
-=======
                           GestureDetector(
                             onTap: _handleLogoTap,
                             child: Image.asset(
@@ -213,7 +190,6 @@ class _LoginScreenState extends State<LoginScreen>
                                   fontSize: 32,
                                   fontWeight: FontWeight.w900,
                                 ),
->>>>>>> origin/main
                               ),
                             ),
                           ),
@@ -421,8 +397,6 @@ class _LoginScreenState extends State<LoginScreen>
                       ],
                     ),
 
-<<<<<<< HEAD
-=======
                     // ── 관리자 계정 힌트 (개발용) ──
                     const SizedBox(height: 24),
                     Container(
@@ -454,7 +428,6 @@ class _LoginScreenState extends State<LoginScreen>
                         ],
                       ),
                     ),
->>>>>>> origin/main
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -485,16 +458,6 @@ class _LoginScreenState extends State<LoginScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-<<<<<<< HEAD
-                  Image.asset(
-                    'assets/images/logo_2fit_white.png',
-                    width: 180,
-                    height: 70,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Text(
-                      '2FiT',
-                      style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900),
-=======
                   GestureDetector(
                     onTap: _handleLogoTap,
                     child: Image.asset(
@@ -506,7 +469,6 @@ class _LoginScreenState extends State<LoginScreen>
                         '2FiT',
                         style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900),
                       ),
->>>>>>> origin/main
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -659,8 +621,6 @@ class _LoginScreenState extends State<LoginScreen>
                                   ),
                                 ],
                               ),
-<<<<<<< HEAD
-=======
                               const SizedBox(height: 24),
                               Container(
                                 padding: const EdgeInsets.all(12),
@@ -676,7 +636,6 @@ class _LoginScreenState extends State<LoginScreen>
                                   ],
                                 ),
                               ),
->>>>>>> origin/main
                               const SizedBox(height: 20),
                             ],
                           ),
@@ -805,8 +764,6 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-<<<<<<< HEAD
-=======
   Widget _hintRow(String email, String pw) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 1),
         child: Row(
@@ -825,7 +782,6 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       );
 
->>>>>>> origin/main
   void _showComingSoon(String provider) {
     if (provider == 'Google') {
       _loginWithGoogle();
@@ -891,8 +847,6 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-<<<<<<< HEAD
-=======
   /// 소셜 로그인 데모 다이얼로그
   void _showSocialLoginDialog(String provider) {
     final isKakao = provider == '카카오';
@@ -1024,7 +978,6 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
->>>>>>> origin/main
   /// 비밀번호 찾기 다이얼로그
   void _showForgotPasswordDialog() {
     final emailCtrl = TextEditingController(text: _emailCtrl.text);

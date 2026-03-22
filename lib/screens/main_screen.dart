@@ -63,10 +63,7 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-=======
     final loc = context.watch<LanguageProvider>().loc;
->>>>>>> origin/main
     final width = MediaQuery.of(context).size.width;
     final isPc = kIsWeb && width >= kPcBreakpoint;
 
@@ -729,10 +726,7 @@ class _SearchBarState extends State<_SearchBar> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-=======
     final loc = context.watch<LanguageProvider>().loc;
->>>>>>> origin/main
     return Container(
       height: 44,
       decoration: BoxDecoration(
@@ -1001,10 +995,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-=======
     final loc = context.watch<LanguageProvider>().loc;
->>>>>>> origin/main
     final notice  = widget.notices[_page];
     final title   = notice.localizedTitle(widget.language);
     final content = notice.localizedContent(widget.language);
@@ -1202,10 +1193,7 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-=======
     final loc = context.watch<LanguageProvider>().loc;
->>>>>>> origin/main
     final cat = widget.cat;
     return Column(
       children: [

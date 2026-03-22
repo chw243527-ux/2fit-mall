@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-<<<<<<< HEAD
-import '../auth/login_screen.dart';
-=======
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
 import '../main_screen.dart';
->>>>>>> origin/main
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,38 +18,13 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
   late Animation<double> _scaleAnim;
-<<<<<<< HEAD
-=======
   late Animation<double> _progressAnim;
->>>>>>> origin/main
   bool _navigated = false;
 
   @override
   void initState() {
     super.initState();
     _animController = AnimationController(
-<<<<<<< HEAD
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-    _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _animController, curve: const Interval(0, 0.5)),
-    );
-    _scaleAnim = Tween<double>(begin: 0.8, end: 1).animate(
-      CurvedAnimation(parent: _animController, curve: Curves.easeOut),
-    );
-    _animController.forward();
-
-    // 첫 프레임 완료 후 타이머 시작 (Navigator context 보장)
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 2000), _goToLogin);
-    });
-  }
-
-  void _goToLogin() {
-    if (!mounted || _navigated) return;
-    _navigated = true;
-=======
       duration: const Duration(milliseconds: 1800),
       vsync: this,
     );
@@ -120,7 +91,6 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _goToLogin() {
     if (!mounted) return;
->>>>>>> origin/main
     Navigator.of(context, rootNavigator: true).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const LoginScreen(),
@@ -141,52 +111,6 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-<<<<<<< HEAD
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _animController,
-          builder: (ctx, child) => Opacity(
-            opacity: _fadeAnim.value,
-            child: Transform.scale(
-              scale: _scaleAnim.value,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'assets/images/logo_2fit_korea.png',
-                    height: 120,
-                    errorBuilder: (_, __, ___) => Image.asset(
-                      'assets/images/logo_2fit.png',
-                      height: 100,
-                      errorBuilder: (_, __, ___2) => const Column(
-                        children: [
-                          Text(
-                            '2FIT',
-                            style: TextStyle(
-                              fontSize: 64,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -2,
-                              color: Color(0xFF1A1A1A),
-                            ),
-                          ),
-                          Text(
-                            'KOREA',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 6,
-                              color: Color(0xFF999999),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-=======
       body: AnimatedBuilder(
         animation: _animController,
         builder: (ctx, _) => Stack(
@@ -270,13 +194,10 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
           ],
->>>>>>> origin/main
         ),
       ),
     );
   }
-<<<<<<< HEAD
-=======
 
   Widget _fallbackLogo() {
     return const Column(
@@ -303,5 +224,4 @@ class _SplashScreenState extends State<SplashScreen>
       ],
     );
   }
->>>>>>> origin/main
 }

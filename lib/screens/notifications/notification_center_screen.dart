@@ -18,15 +18,12 @@ class NotificationCenterScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
-<<<<<<< HEAD
-=======
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
->>>>>>> origin/main
         actions: [
           Consumer<NotificationProvider>(
             builder: (_, provider, __) => provider.unreadCount > 0

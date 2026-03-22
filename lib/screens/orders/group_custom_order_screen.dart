@@ -222,15 +222,12 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
         backgroundColor: const Color(0xFF4A148C),
         foregroundColor: Colors.white,
         elevation: 0,
-<<<<<<< HEAD
-=======
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
->>>>>>> origin/main
         title: Text(loc.groupOrderFormTitle2, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
         centerTitle: true,
       ),

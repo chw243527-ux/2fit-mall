@@ -20,13 +20,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/constants.dart';
 import '../auth/login_screen.dart';
 import '../chat/chat_screen.dart';
-<<<<<<< HEAD
-import 'admin_extra_tabs.dart';
-=======
 import 'package:fl_chart/fl_chart.dart';
 import 'admin_extra_tabs.dart';
 import 'package:csv/csv.dart';
->>>>>>> origin/main
 import 'package:excel/excel.dart' hide Border, BorderStyle;
 import 'dart:typed_data';
 import '../../services/order_excel_service.dart';
@@ -171,11 +167,7 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-<<<<<<< HEAD
-    _tabCtrl = TabController(length: 12, vsync: this);
-=======
     _tabCtrl = TabController(length: 13, vsync: this);
->>>>>>> origin/main
     _loadAdminSettings();
     _prefetchData();
     // 관리자 화면 진입 시 비활성 상품 포함 전체 목록 로드
@@ -265,10 +257,7 @@ class _AdminScreenState extends State<AdminScreen>
       {'icon': Icons.bar_chart_rounded, 'label': '매출통계'},
       {'icon': Icons.warehouse_rounded, 'label': '재고관리'},
       {'icon': Icons.badge_rounded, 'label': '직원관리'},
-<<<<<<< HEAD
-=======
       {'icon': Icons.campaign_rounded, 'label': '공지관리'},
->>>>>>> origin/main
     ];
 
     return Scaffold(
@@ -661,13 +650,10 @@ class _AdminScreenState extends State<AdminScreen>
               ),
               text: '채팅상담',
             ),
-<<<<<<< HEAD
-=======
             const Tab(icon: Icon(Icons.bar_chart_rounded, size: 14), text: '매출통계'),
             const Tab(icon: Icon(Icons.warehouse_rounded, size: 14), text: '재고관리'),
             const Tab(icon: Icon(Icons.badge_rounded, size: 14), text: '직원관리'),
             const Tab(icon: Icon(Icons.campaign_rounded, size: 14), text: '공지관리'),
->>>>>>> origin/main
           ],
         ),
       ),
@@ -698,23 +684,17 @@ class _AdminScreenState extends State<AdminScreen>
         Offstage(offstage: index != 9, child: const AdminSalesStatsTab()),
         Offstage(offstage: index != 10, child: const AdminInventoryTab()),
         Offstage(offstage: index != 11, child: const AdminStaffTab()),
-<<<<<<< HEAD
-=======
         Offstage(offstage: index != 12, child: _buildNoticeManagement()),
->>>>>>> origin/main
       ],
     );
   }
 
   // ══════════════════════════════════════════════
-<<<<<<< HEAD
-=======
   // TAB 13 : 공지사항 관리
   // ══════════════════════════════════════════════
   Widget _buildNoticeManagement() => const _NoticeManagementTab();
 
   // ══════════════════════════════════════════════
->>>>>>> origin/main
   // TAB 1 : 대시보드
   // ══════════════════════════════════════════════
   Widget _buildDashboard() {
@@ -1338,19 +1318,10 @@ class _AdminScreenState extends State<AdminScreen>
           mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         );
         if (!mounted) return;
-<<<<<<< HEAD
-        await SharePlus.instance.share(
-          ShareParams(
-            files: [xFile],
-            subject: '2FIT 주문내역 ${_fmtDateKr(start)} ~ ${_fmtDateKr(end)}',
-            text: '$orderCount건의 주문 내역 엑셀 파일입니다.',
-          ),
-=======
         await Share.shareXFiles(
           [xFile],
           subject: '2FIT 주문내역 ${_fmtDateKr(start)} ~ ${_fmtDateKr(end)}',
           text: '$orderCount건의 주문 내역 엑셀 파일입니다.',
->>>>>>> origin/main
         );
       } catch (e) {
         if (!mounted) return;
@@ -7719,8 +7690,6 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     );
 } // end _ProductFormDialogState
 
-<<<<<<< HEAD
-=======
 
 // ════════════════════════════════════════════════════════
 //  공지사항 관리 탭 (StatefulWidget)
@@ -8248,4 +8217,3 @@ class _NoticeCard extends StatelessWidget {
     );
   }
 }
->>>>>>> origin/main

@@ -152,21 +152,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _passwordStrengthLabel = '';
         _passwordStrengthColor = Colors.grey.shade300;
       } else if (score <= 1) {
-<<<<<<< HEAD
-        _passwordStrengthLabel = '매우 취약';
-        _passwordStrengthColor = Colors.red.shade400;
-      } else if (score == 2) {
-        _passwordStrengthLabel = '취약';
-        _passwordStrengthColor = Colors.orange.shade400;
-      } else if (score == 3) {
-        _passwordStrengthLabel = '보통';
-        _passwordStrengthColor = Colors.amber.shade500;
-      } else if (score == 4) {
-        _passwordStrengthLabel = '강함';
-        _passwordStrengthColor = Colors.lightGreen.shade500;
-      } else {
-        _passwordStrengthLabel = '매우 강함';
-=======
         _passwordStrengthLabel = context.read<LanguageProvider>().loc.signupPasswordStrengthVeryWeak;
         _passwordStrengthColor = Colors.red.shade400;
       } else if (score == 2) {
@@ -180,7 +165,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _passwordStrengthColor = Colors.lightGreen.shade500;
       } else {
         _passwordStrengthLabel = context.read<LanguageProvider>().loc.signupPasswordStrengthVeryStrong;
->>>>>>> origin/main
         _passwordStrengthColor = Colors.green.shade600;
       }
     });
@@ -195,22 +179,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _checkEmailDuplicate() async {
     final email = _emailCtrl.text.trim();
     if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$').hasMatch(email)) {
-<<<<<<< HEAD
-      _showSnack('올바른 이메일 형식을 입력해주세요.');
-=======
       _showSnack(context.read<LanguageProvider>().loc.signupInvalidEmail);
->>>>>>> origin/main
       return;
     }
     setState(() => _emailChecking = true);
     final available = await AuthService.checkEmailAvailable(email);
     if (mounted) {
       setState(() { _emailChecking = false; _emailAvailable = available; });
-<<<<<<< HEAD
-      _showSnack(available ? '사용 가능한 이메일입니다.' : '이미 사용 중인 이메일입니다.',
-=======
       _showSnack(available ? context.read<LanguageProvider>().loc.signupEmailAvailable : context.read<LanguageProvider>().loc.signupEmailAlreadyUsed,
->>>>>>> origin/main
           isSuccess: available);
     }
   }
@@ -229,13 +205,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
               decoration: BoxDecoration(color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 12),
-<<<<<<< HEAD
-          const Text('국가 선택', style: TextStyle(fontSize: 16,
-              fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
-=======
           Builder(builder: (ctx) => Text(ctx.watch<LanguageProvider>().loc.signupCountrySelect, style: const TextStyle(fontSize: 16,
               fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)))),
->>>>>>> origin/main
           const SizedBox(height: 8),
           Expanded(
             child: ListView.builder(
@@ -380,13 +351,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             Container(width: 40, height: 4,
                 decoration: BoxDecoration(color: Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(2))),
-<<<<<<< HEAD
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('이용약관',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A2E))),
-=======
             Padding(
               padding: const EdgeInsets.all(16),
               child: Builder(builder: (bCtx) {
@@ -395,7 +359,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800,
                         color: Color(0xFF1A1A2E)));
               }),
->>>>>>> origin/main
             ),
             const Divider(height: 1),
             Expanded(
@@ -438,11 +401,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     // rate limit 체크
     if (_SignupRateLimit.isBlocked()) {
       final secs = _SignupRateLimit.remainingSeconds();
-<<<<<<< HEAD
-      _showSnack('잠시 후 다시 시도해주세요. (${secs ~/ 60}분 ${secs % 60}초 후)');
-=======
       _showSnack(context.read<LanguageProvider>().loc.signupRateLimitSecondsMsg(secs));
->>>>>>> origin/main
       _startBlockTimer();
       return;
     }
@@ -455,17 +414,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
     final metCount = _passwordChecks.where((c) => c).length;
     if (metCount < 3) {
-<<<<<<< HEAD
-      _showSnack('비밀번호가 너무 취약합니다.');
-      return;
-    }
-    if (_emailAvailable == null) {
-      _showSnack('이메일 중복 확인을 먼저 진행해주세요.');
-      return;
-    }
-    if (_emailAvailable == false) {
-      _showSnack('이미 사용 중인 이메일입니다.');
-=======
       _showSnack(loc.signupPasswordTooWeak);
       return;
     }
@@ -475,7 +423,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
     if (_emailAvailable == false) {
       _showSnack(loc.signupEmailAlreadyUsed);
->>>>>>> origin/main
       return;
     }
 
@@ -496,13 +443,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         phone: phoneWithCode,
       ).timeout(
         const Duration(seconds: 30),
-<<<<<<< HEAD
-        onTimeout: () => const AuthResult(
-            success: false, error: '요청 시간이 초과되었습니다. 네트워크를 확인해주세요.'),
-=======
         onTimeout: () => AuthResult(
             success: false, error: loc.signupTimeoutError),
->>>>>>> origin/main
       );
     } catch (e) {
       result = AuthResult(
@@ -594,13 +536,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             style: const TextStyle(color: Colors.white,
                                 fontSize: 14, fontWeight: FontWeight.w800)),
                         const SizedBox(height: 2),
-<<<<<<< HEAD
-                        const Text('안전한 계정 보호를 위해 강력한 비밀번호를 사용해주세요.',
-                            style: TextStyle(color: Colors.white70, fontSize: 11)),
-=======
                         Text(loc.signupPasswordSafetyHint,
                             style: const TextStyle(color: Colors.white70, fontSize: 11)),
->>>>>>> origin/main
                       ],
                     )),
                   ]),
@@ -621,13 +558,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Icon(Icons.timer_outlined, color: Colors.red.shade400, size: 18),
                       const SizedBox(width: 8),
                       Expanded(child: Text(
-<<<<<<< HEAD
-                        '연속 가입 시도가 감지되었습니다. '
-                        '${_blockRemaining ~/ 60}분 ${_blockRemaining % 60}초 후 다시 시도해주세요.',
-=======
                         '${loc.signupContinuousAttemptDetected} '
                         '${loc.signupContinuousAttemptWait(_blockRemaining ~/ 60, _blockRemaining % 60)}',
->>>>>>> origin/main
                         style: TextStyle(fontSize: 12, color: Colors.red.shade700),
                       )),
                     ]),
@@ -643,18 +575,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   // inputFormatters 제거: 웹 한글 IME 조합 입력 차단 문제 방지
                   // 대신 validator에서만 검증
                   validator: (v) {
-<<<<<<< HEAD
-                    if (v == null || v.trim().isEmpty) return '이름을 입력해주세요.';
-                    if (v.trim().length < 2) return loc.signupNameError;
-                    if (v.trim().length > 20) return '이름은 20자 이하로 입력해주세요.';
-                    // 한글/영문/공백만 허용 (숫자·특수문자·이모지 차단)
-                    if (!RegExp(r'^[가-힣a-zA-Z\s]+$').hasMatch(v.trim())) {
-                      return '이름은 한글 또는 영문만 입력 가능합니다. (숫자·특수문자 불가)';
-                    }
-                    // 연속 공백 불허
-                    if (v.trim().contains(RegExp(r'\s{2,}'))) {
-                      return '공백은 연속으로 입력할 수 없습니다.';
-=======
                     if (v == null || v.trim().isEmpty) return loc.signupNameEmptyError;
                     if (v.trim().length < 2) return loc.signupNameError;
                     if (v.trim().length > 20) return loc.signupNameTooLong;
@@ -665,7 +585,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     // 연속 공백 불허
                     if (v.trim().contains(RegExp(r'\s{2,}'))) {
                       return loc.signupNameSpaceError;
->>>>>>> origin/main
                     }
                     return null;
                   },
@@ -903,11 +822,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ? const SizedBox(width: 22, height: 22,
                             child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                         : _blockRemaining > 0
-<<<<<<< HEAD
-                            ? Text('${_blockRemaining ~/ 60}:${(_blockRemaining % 60).toString().padLeft(2, '0')} 후 가입 가능',
-=======
                             ? Text(loc.signupRateLimitCountdown(_blockRemaining ~/ 60, _blockRemaining % 60),
->>>>>>> origin/main
                                 style: const TextStyle(fontSize: 14, color: Colors.white70))
                             : Text(loc.signupSubmitBtn,
                                 style: const TextStyle(fontSize: 16,
@@ -944,14 +859,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   // ── 비밀번호 강도 표시기 ──
   Widget _buildPasswordStrengthIndicator() {
-<<<<<<< HEAD
-    final checks = [
-      {'label': '8자 이상', 'met': _passwordChecks[0]},
-      {'label': '대문자', 'met': _passwordChecks[1]},
-      {'label': '소문자', 'met': _passwordChecks[2]},
-      {'label': '숫자', 'met': _passwordChecks[3]},
-      {'label': '특수문자', 'met': _passwordChecks[4]},
-=======
     final loc = context.read<LanguageProvider>().loc;
     final checks = [
       {'label': loc.signupPasswordStrength8Chars, 'met': _passwordChecks[0]},
@@ -959,7 +866,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       {'label': loc.signupPasswordStrengthLowercase, 'met': _passwordChecks[2]},
       {'label': loc.signupPasswordStrengthNumber, 'met': _passwordChecks[3]},
       {'label': loc.signupPasswordStrengthSpecial, 'met': _passwordChecks[4]},
->>>>>>> origin/main
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [

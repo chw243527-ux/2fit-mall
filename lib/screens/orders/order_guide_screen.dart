@@ -21,9 +21,6 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
     if (isPcWeb(context)) return _buildPcLayout(context);
     return Scaffold(
       backgroundColor: null,
-<<<<<<< HEAD
-      appBar: AppBar(title: Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderGuideTitle))),
-=======
       appBar: AppBar(
         title: Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderGuideTitle)),
         leading: Navigator.canPop(context)
@@ -33,7 +30,6 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               )
             : null,
       ),
->>>>>>> origin/main
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -59,15 +55,12 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-<<<<<<< HEAD
-=======
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
->>>>>>> origin/main
       ),
       body: Center(
         child: ConstrainedBox(

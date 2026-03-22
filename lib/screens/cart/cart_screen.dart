@@ -246,10 +246,7 @@ class CartScreen extends StatelessWidget {
   );
 
   Widget _buildEmptyCart(BuildContext context) {
-<<<<<<< HEAD
-=======
     final loc = context.watch<LanguageProvider>().loc;
->>>>>>> origin/main
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

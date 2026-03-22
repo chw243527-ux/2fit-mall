@@ -30,15 +30,12 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen> {
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
         elevation: 0,
-<<<<<<< HEAD
-=======
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
->>>>>>> origin/main
         title: Text(
           loc.groupOrderOnlyTitle,
           style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),

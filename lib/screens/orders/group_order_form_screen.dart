@@ -252,15 +252,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         backgroundColor: const Color(0xFF6A1B9A),
         foregroundColor: Colors.white,
         elevation: 0,
-<<<<<<< HEAD
-=======
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
->>>>>>> origin/main
       ),
       body: bodyContent,
       bottomNavigationBar: _countConfirmed ? _buildSubmitBar() : null,
@@ -276,15 +273,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         backgroundColor: const Color(0xFF6A1B9A),
         foregroundColor: Colors.white,
         elevation: 0,
-<<<<<<< HEAD
-=======
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
->>>>>>> origin/main
       ),
       body: Form(
         key: _formKey,
@@ -2197,11 +2191,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
               onRemove: _persons.length > 1
                   ? () => _removePerson(e.key)
                   : null,
-<<<<<<< HEAD
-              sizes: AppConstants.adultSizes,
-=======
               sizes: [...AppConstants.adultSizes, ...AppConstants.juniorSizes],
->>>>>>> origin/main
             );
           }).toList()),
           const SizedBox(height: 12),

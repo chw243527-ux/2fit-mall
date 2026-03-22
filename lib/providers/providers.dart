@@ -50,19 +50,10 @@ class LanguageProvider extends ChangeNotifier {
   }
 }
 
-<<<<<<< HEAD
-// ── 관리자 이메일 목록 (비밀번호는 Firebase Auth에서만 검증) ──
-const _kAdminEmails = [
-  'admin@2fit.co.kr',
-  'admin@2fitkorea.com',
-  'cs@2fitkorea.com',
-  'manager@2fit.co.kr',
-=======
 // ── 관리자 계정 (하드코딩) ──────────────────────────────
 const _kAdminAccounts = [
   {'email': 'admin@2fit.co.kr',   'password': 'admin2fit!',  'name': '관리자'},
   {'email': 'manager@2fit.co.kr', 'password': 'manager2fit', 'name': '매니저'},
->>>>>>> origin/main
 ];
 
 class CartProvider extends ChangeNotifier {
@@ -72,11 +63,7 @@ class CartProvider extends ChangeNotifier {
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
   
   double get subtotal => _items.fold(0, (sum, item) => sum + item.totalPrice);
-<<<<<<< HEAD
-  double get shippingFee => subtotal >= 300000 ? 0 : 3000; // 30만원 이상 무료배송
-=======
   double get shippingFee => subtotal >= 300000 ? 0 : 4000; // 30만원 이상 무료배송, 미만 4,000원
->>>>>>> origin/main
   double get total => subtotal + shippingFee;
 
   bool get isEmpty => _items.isEmpty;
@@ -140,22 +127,11 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-<<<<<<< HEAD
-  /// 이메일+비밀번호 로그인 (Firebase Auth 기반 — AuthService 위임)
-=======
   /// 이메일+비밀번호 로그인 (레거시 호환용 — AuthService로 대체됨)
->>>>>>> origin/main
   Future<bool> loginWithEmail(String email, String password) async {
     _isLoading = true;
     _loginError = null;
     notifyListeners();
-<<<<<<< HEAD
-
-    // Firebase Auth 로그인은 AuthService가 담당
-    // 여기서는 관리자 여부만 이메일로 확인 (비밀번호 검증은 Firebase가 처리)
-    if (email.isNotEmpty && password.length >= 6) {
-      final isAdmin = _kAdminEmails.contains(email.trim().toLowerCase());
-=======
     await Future.delayed(const Duration(milliseconds: 800));
 
     final adminMatch = _kAdminAccounts.firstWhere(
@@ -176,16 +152,11 @@ class UserProvider extends ChangeNotifier {
       return true;
     }
     if (email.isNotEmpty && password.length >= 6) {
->>>>>>> origin/main
       _user = UserModel(
         id: 'user_${DateTime.now().millisecondsSinceEpoch}',
         name: email.split('@').first,
         email: email.trim(),
         phone: '',
-<<<<<<< HEAD
-        isAdmin: isAdmin,
-=======
->>>>>>> origin/main
         createdAt: DateTime.now(),
       );
       _isLoading = false;
@@ -906,24 +877,13 @@ class NoticeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-<<<<<<< HEAD
-=======
   // ── Firestore 저장 (신규 등록 + 수정 공용) ──
->>>>>>> origin/main
   Future<void> saveNotice(NoticeModel notice) async {
     try {
       await FirebaseFirestore.instance
           .collection('notices')
           .doc(notice.id)
           .set(notice.toFirestore(), SetOptions(merge: true));
-<<<<<<< HEAD
-      addNotice(notice);
-      _autoTranslateNotices([notice]);
-    } catch (e) {
-      if (kDebugMode) debugPrint('공지 저장 실패: $e');
-    }
-  }
-=======
       // 로컬 목록 갱신
       final idx = _notices.indexWhere((n) => n.id == notice.id);
       if (idx >= 0) {
@@ -1005,7 +965,6 @@ class NoticeProvider extends ChangeNotifier {
   }
 
   List<NoticeModel> get allNotices => List.unmodifiable(_notices);
->>>>>>> origin/main
 }
 
 // ── 상품 Provider (로컬 데이터 기반) ──────────────────────────────

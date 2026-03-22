@@ -575,13 +575,8 @@ class _PcProfileCard extends StatelessWidget {
       );
     }
 
-<<<<<<< HEAD
-    final tier = _tierLabel(user!.memberTier, loc);
-    final tierColor = _tierColor(user!.memberTier);
-=======
     final tier = _tierLabel(user!.memberTier ?? 'bronze', loc);
     final tierColor = _tierColor(user!.memberTier ?? 'bronze');
->>>>>>> origin/main
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -631,11 +626,7 @@ class _PcProfileCard extends StatelessWidget {
               children: [
                 Icon(Icons.star_rounded, size: 16, color: Colors.amber[300]),
                 const SizedBox(width: 6),
-<<<<<<< HEAD
-                Text('${_fmt(user!.points)} P',
-=======
                 Text('${_fmt(user!.points ?? 0)} P',
->>>>>>> origin/main
                   style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
                 const Spacer(),
                 Text(loc.mypagePointsTotal, style: const TextStyle(color: Colors.white60, fontSize: 11)),
@@ -872,11 +863,7 @@ class _PcOrderCard extends StatelessWidget {
     final statusColor = _statusColor(order.status);
     final isGroup = order.orderType == 'group_custom';
     final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
-<<<<<<< HEAD
-    final canColorEdit = isGroup && isActive && (order.colorEditCount) < 3;
-=======
     final canColorEdit = isGroup && isActive && (order.colorEditCount ?? 0) < 3;
->>>>>>> origin/main
     final canAdditional = isGroup && isActive;
 
     return Container(
@@ -936,11 +923,7 @@ class _PcOrderCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(item.productName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
-<<<<<<< HEAD
-                            Text('${item.size} / ${item.color} / ${item.quantity}개', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-=======
                             Text('${item.size ?? ""} / ${item.color ?? ""} / ${item.quantity}개', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
->>>>>>> origin/main
                           ],
                         ),
                       ),
@@ -960,11 +943,7 @@ class _PcOrderCard extends StatelessWidget {
             color: Colors.grey[50],
             child: Row(
               children: [
-<<<<<<< HEAD
-                Text('${loc.mypagePaymentMethod}: ${order.paymentMethod}',
-=======
                 Text('${loc.mypagePaymentMethod}: ${order.paymentMethod ?? '-'}',
->>>>>>> origin/main
                   style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                 const Spacer(),
                 Text('${loc.mypageOrderTotal}: ', style: TextStyle(fontSize: 13, color: Colors.grey[700])),
@@ -990,11 +969,7 @@ class _PcOrderCard extends StatelessWidget {
                     label: loc.mypageColorGroupEdit,
                     icon: Icons.palette_outlined,
                     color: const Color(0xFF1565C0),
-<<<<<<< HEAD
-                    badge: '${3 - (order.colorEditCount)}',
-=======
                     badge: '${3 - (order.colorEditCount ?? 0)}',
->>>>>>> origin/main
                     onTap: () => onColorEdit(order),
                   ),
                 ],
@@ -1122,29 +1097,17 @@ class _PcPaymentHistoryTab extends StatelessWidget {
                         Row(children: [
                           Icon(Icons.credit_card_rounded, size: 14, color: Colors.grey[500]),
                           const SizedBox(width: 4),
-<<<<<<< HEAD
-                          Text(o.paymentMethod, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
-                          const Spacer(),
-                          Text(_fmtPrice(o.totalAmount), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF00796B))),
-                        ]),
-                        if ((o.shippingFee) > 0) ...[
-=======
                           Text(o.paymentMethod ?? '-', style: TextStyle(fontSize: 13, color: Colors.grey[700])),
                           const Spacer(),
                           Text(_fmtPrice(o.totalAmount), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF00796B))),
                         ]),
                         if ((o.shippingFee ?? 0) > 0) ...[
->>>>>>> origin/main
                           const SizedBox(height: 4),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Text('${loc.mypageShipping}: ', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-<<<<<<< HEAD
-                              Text(_fmtPrice(o.shippingFee.toDouble()), style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-=======
                               Text(_fmtPrice(o.shippingFee.toDouble() ?? 0), style: TextStyle(fontSize: 12, color: Colors.grey[700])),
->>>>>>> origin/main
                             ],
                           ),
                         ],
@@ -1749,11 +1712,7 @@ class _MobileProfileHeader extends StatelessWidget {
             const SizedBox(height: 14),
             Row(
               children: [
-<<<<<<< HEAD
-                Expanded(child: _InfoChip(icon: Icons.star_rounded, label: '${_fmt(user!.points)} P', color: Colors.amber)),
-=======
                 Expanded(child: _InfoChip(icon: Icons.star_rounded, label: '${_fmt(user!.points ?? 0)} P', color: Colors.amber)),
->>>>>>> origin/main
                 const SizedBox(width: 10),
                 Expanded(child: GestureDetector(
                   onTap: () => onShowLogout(context, userProvider),
@@ -1927,11 +1886,7 @@ class _MobileOrderCard extends StatelessWidget {
     final statusColor = _statusColor(order.status);
     final isGroup = order.orderType == 'group_custom';
     final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
-<<<<<<< HEAD
-    final canColorEdit = isGroup && isActive && (order.colorEditCount) < 3;
-=======
     final canColorEdit = isGroup && isActive && (order.colorEditCount ?? 0) < 3;
->>>>>>> origin/main
     final canAdditional = isGroup && isActive;
 
     return Container(
@@ -2009,11 +1964,7 @@ class _MobileOrderCard extends StatelessWidget {
                   if (canColorEdit) Expanded(child: _MobileBtn(
                     label: loc.mypageColorGroupEdit,
                     color: const Color(0xFF1565C0),
-<<<<<<< HEAD
-                    badge: '${3 - (order.colorEditCount)}',
-=======
                     badge: '${3 - (order.colorEditCount ?? 0)}',
->>>>>>> origin/main
                     onTap: () => onColorEdit(order),
                   )),
                 ],
@@ -2133,11 +2084,7 @@ class _MobilePaymentHistoryTab extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(o.id, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-<<<<<<< HEAD
-                    Text(o.paymentMethod, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-=======
                     Text(o.paymentMethod ?? '-', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
->>>>>>> origin/main
                     Text(_fmtDate(o.createdAt), style: TextStyle(fontSize: 11, color: Colors.grey[500])),
                   ],
                 ),
