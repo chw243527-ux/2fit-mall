@@ -1047,8 +1047,8 @@ $productUrl
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), height: 1.2)),
           const SizedBox(height: 10),
 
-          // ── 기성품 상의/싱글렛세트: 색상 안내 인라인 뱃지 배너 ──
-          if (!product.isGroupOnly && (product.category == '상의' || product.category == '세트' || product.subCategory.contains('싱글렛'))) ...[
+          // ── 기성품 타이즈/싱글렛세트: 하의 색상 선택 안내 배너 (해당 카테고리만 표시) ──
+          if (!product.isGroupOnly && _showBottomColorBadge(product)) ...[
             _buildColorInfoBadge(product),
             const SizedBox(height: 12),
           ],
@@ -1181,11 +1181,27 @@ $productUrl
     );
   }
 
+  /// 타이즈 또는 싱글렛세트만 하의 색상 선택 배너 표시
+  bool _showBottomColorBadge(ProductModel p) {
+    final isTaiz = p.category == '하의' ||
+        p.subCategory.contains('타이즈') ||
+        p.name.contains('타이즈');
+    final isSingletSet = p.category == '세트' ||
+        p.subCategory.contains('싱글렛세트') ||
+        p.subCategory.contains('싱글렛 A타입세트');
+    return isTaiz || isSingletSet;
+  }
+
   /// 상품명 아래 기성품 색상 안내 뱃지 (싱글렛세트 / 상의 구분)
   Widget _buildColorInfoBadge(ProductModel product) {
-    final isSingletSet = product.category == '세트' ||
-        product.subCategory.contains('싱글렛세트') ||
-        product.subCategory.contains('싱글렛 A타입세트');
+    // 타이즈와 싱글렛세트 모두 "하의 색상 선택" 표시
+    final isTaiz = product.category == '하의' ||
+        product.subCategory.contains('타이즈') ||
+        product.name.contains('타이즈');
+    final label = isTaiz ? '타이즈' : '기성품';
+    final subtitle = isTaiz
+        ? '색상을 선택하세요 (19가지)'
+        : '상의는 디자인 색상 그대로 제작, 하의 색상은 선택 가능합니다.';
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -1202,9 +1218,7 @@ $productUrl
               color: const Color(0xFF1565C0).withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              isSingletSet ? Icons.palette_rounded : Icons.lock_rounded,
-              size: 16, color: const Color(0xFF1565C0)),
+            child: const Icon(Icons.palette_rounded, size: 16, color: Color(0xFF1565C0)),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -1219,20 +1233,16 @@ $productUrl
                         color: const Color(0xFF1565C0),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text('기성품',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+                      child: Text(label,
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      isSingletSet ? '하의 색상 선택' : '상의 색상 변경 불가',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                    const Text('하의 색상 선택',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
                   ],
                 ),
                 const SizedBox(height: 3),
-                Text(
-                  isSingletSet
-                      ? '상의는 디자인 색상 그대로 제작, 하의 색상은 선택 가능합니다.'
-                      : '디자인 색상 그대로 제작됩니다.',
+                Text(subtitle,
                   style: const TextStyle(fontSize: 11, color: Color(0xFF555555), height: 1.4)),
               ],
             ),
@@ -1562,11 +1572,8 @@ $productUrl
     // 9부 고정 표시 여부: 트레이닝세트
     final showFixedLength9 = isTrainingSet;
 
-    // 기성품 싱글렛(상의): 상의 색상 고정 안내 표시 여부
-    final isSingletTop = !product.isGroupOnly && (
-        product.category == '상의' ||
-        product.category == '세트' ||
-        product.subCategory.contains('싱글렛'));
+    // 타이즈/싱글렛세트: 하의 색상 선택 안내 표시 여부
+    final isSingletTop = !product.isGroupOnly && _showBottomColorBadge(product);
 
     // 싱글렛세트 여부: 상의+하의 세트라서 "하의 색상 선택"으로 표기
     final isSingletSet = product.category == '세트' ||
