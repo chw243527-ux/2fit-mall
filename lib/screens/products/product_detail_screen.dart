@@ -5324,18 +5324,52 @@ class _ReadyMadeOptionSheet extends StatefulWidget {
 class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
 
+  // ─────────────────────────────────────────────
   // 현재 선택 중인 옵션
-  String? _gender;      // '남' / '여'
-  String? _length;      // 기장
-  String? _size;
-  String? _color;
+  // ─────────────────────────────────────────────
+  String? _gender;       // '남' / '여'
+  String? _length;       // 하의 기장
+  String? _topSize;      // 상의 사이즈 (세트 상품)
+  String? _bottomSize;   // 하의 사이즈 (세트 상품)
+  String? _size;         // 단품 사이즈
+  String? _color;        // 하의/단품 색상
   int _qty = 1;
 
   // 장바구니에 담을 옵션 목록
   final List<Map<String, dynamic>> _items = [];
 
-  // 색상 위젯용: 하의류 여부
-  bool get _isBottom =>
+  // ─────────────────────────────────────────────
+  // 상품 타입 판별 getter
+  // ─────────────────────────────────────────────
+
+  /// 싱글렛 A타입 세트: 성별 선택 → 하의기장 고정(남=5부, 여=2.5부, 변경불가)
+  bool get _isSingletATypeSet =>
+      (widget.product.category == '세트' &&
+          ((widget.product.subCategory ?? '').contains('싱글렛 A타입세트') ||
+           (widget.product.subCategory ?? '').contains('싱글렛세트'))) ||
+      (widget.product.subCategory ?? '').contains('싱글렛 A타입세트') ||
+      (widget.product.subCategory ?? '').contains('싱글렛세트') ||
+      (widget.product.category == '세트' && widget.product.name.contains('싱글렛 A타입'));
+
+  /// 타이즈 카테고리: 하의길이 모두 선택 가능
+  bool get _isTaiz =>
+      (widget.product.subCategory ?? '').contains('타이즈') ||
+      widget.product.name.contains('타이즈');
+
+  /// 세트 상품 여부 (상의/하의 사이즈 각각 선택)
+  bool get _isSetProduct =>
+      widget.product.category == '세트' ||
+      (widget.product.subCategory ?? '').contains('세트') ||
+      widget.product.name.contains('세트');
+
+  /// 기성품 싱글렛 (상의 색상 고정, 하의만 색상 선택 가능)
+  bool get _isSingletReadyMade =>
+      (widget.product.category == '상의' ||
+          (widget.product.subCategory ?? '').contains('싱글렛')) &&
+      !_isSetProduct;
+
+  /// 하의류: 색상 선택 시 하의 색상 탭 먼저
+  bool get _isBottomItem =>
       widget.product.category == '하의' ||
       (widget.product.subCategory ?? '').contains('타이즈') ||
       (widget.product.subCategory ?? '').contains('레깅스') ||
@@ -5344,33 +5378,46 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
       (widget.product.subCategory ?? '').contains('숏츠') ||
       widget.product.name.contains('타이즈');
 
-  // 싱글렛 A타입 세트 여부 (성별 선택 → 기장 자동 적용)
-  bool get _isSingletSet =>
-      (widget.product.category == '세트' &&
-          ((widget.product.subCategory ?? '').contains('싱글렛세트') ||
-           (widget.product.subCategory ?? '').contains('싱글렛 A타입세트'))) ||
-      (widget.product.subCategory ?? '').contains('싱글렛세트') ||
-      (widget.product.subCategory ?? '').contains('싱글렛 A타입세트') ||
-      (widget.product.category == '세트' && widget.product.name.contains('싱글렛'));
+  /// 하의길이 선택이 필요한지: 타이즈이거나 싱글렛 A타입 세트
+  bool get _needsLength => _isTaiz || _isSingletATypeSet;
 
-  // 성별 선택은 싱글렛 A타입 세트만
-  bool get _needsGender => _isSingletSet;
+  /// 성별 선택이 필요한지: 싱글렛 A타입 세트만
+  bool get _needsGender => _isSingletATypeSet;
 
-  // 사이즈 목록: 상품 사이즈 우선, 없으면 주니어(110~) or 성인(S~XL)
-  List<String> get _sizes {
+  // ─────────────────────────────────────────────
+  // 사이즈 목록
+  // ─────────────────────────────────────────────
+  /// 공통 기본 사이즈: 상품에 등록된 사이즈 우선, 없으면 성인/주니어 자동 판별
+  List<String> get _defaultSizes {
     final raw = widget.product.sizes;
     if (raw.isNotEmpty) return raw;
-    // 상품명/서브카테고리로 주니어 여부 판별
     final isJunior = widget.product.name.contains('주니어') ||
         widget.product.name.contains('Jr') ||
         (widget.product.subCategory ?? '').contains('주니어');
+    // 성인 S~XL / 주니어 S~XL (요구사항)
     return isJunior ? AppConstants.juniorSizes : AppConstants.adultSizes;
   }
 
+  // ─────────────────────────────────────────────
+  // 헬퍼
+  // ─────────────────────────────────────────────
   String _autoLength(String gender) => gender == '남' ? '5부' : '2.5부';
 
-  bool get _canAddItem =>
-      _size != null && _color != null && (_needsGender ? _length != null : true);
+  /// 현재 선택 가능 여부
+  bool get _canAddItem {
+    // 세트 상품: 상의+하의 사이즈 모두 선택
+    if (_isSetProduct) {
+      final sizeOk = _topSize != null && _bottomSize != null;
+      final colorOk = _color != null;
+      final lengthOk = _needsLength ? _length != null : true;
+      return sizeOk && colorOk && lengthOk;
+    }
+    // 단품
+    final sizeOk = _size != null;
+    final colorOk = _color != null;
+    final lengthOk = _needsLength ? _length != null : true;
+    return sizeOk && colorOk && lengthOk;
+  }
 
   int _totalQty() => _items.fold(0, (s, e) => s + (e['qty'] as int));
   int _totalPrice() => _items.fold(0, (s, e) {
@@ -5392,15 +5439,23 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   void _addCurrentOption() {
     if (!_canAddItem) return;
     setState(() {
+      final sizeLabel = _isSetProduct
+          ? '상의 $_topSize / 하의 $_bottomSize'
+          : _size!;
       _items.add({
-        'size': _size!,
+        'size': sizeLabel,
+        'topSize': _topSize,
+        'bottomSize': _bottomSize,
+        'singleSize': _size,
         'color': _color!,
         'qty': _qty,
         'length': _length ?? '-',
         'gender': _gender ?? '-',
         'extra': widget.calcExtraForColor(_color!),
       });
-      // 옵션 초기화 (새 옵션 선택 준비)
+      // 옵션 초기화 (새 옵션 선택)
+      _topSize = null;
+      _bottomSize = null;
       _size = null;
       _color = null;
       _qty = 1;
@@ -5458,13 +5513,16 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     Navigator.pushNamed(context, '/checkout');
   }
 
+  // ─────────────────────────────────────────────
+  // BUILD
+  // ─────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final sizes = _sizes;
     final lengths = AppConstants.bottomLengths
         .map((m) => m['label'] as String)
         .where((s) => s.isNotEmpty)
         .toList();
+    final sizes = _defaultSizes;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.92,
@@ -5486,7 +5544,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   Center(
                     child: Container(
                       width: 40, height: 4,
-                      decoration: BoxDecoration(color: const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2)),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0E0E0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -5498,7 +5559,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           children: [
                             Text(
                               widget.isBuyNow ? '바로구매 옵션 선택' : '장바구니 옵션 선택',
-                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A)),
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF1A1A1A),
+                              ),
                             ),
                             const SizedBox(height: 2),
                             Text(
@@ -5527,10 +5592,29 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
                 children: [
 
-                  // ════ 성별 선택 (하의류/싱글렛세트만) ════
+                  // ══════════════════════════════
+                  // [1] 싱글렛 A타입 세트: 성별 선택 → 기장 고정
+                  // ══════════════════════════════
                   if (_needsGender) ...[
                     _sectionTitle('성별 선택', required: true),
                     const SizedBox(height: 8),
+                    // 안내 배지
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                      margin: const EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF8E1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(children: [
+                        const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF7A5000)),
+                        const SizedBox(width: 5),
+                        const Text(
+                          '남성 → 5부 자동선택  •  여성 → 2.5부 자동선택',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF7A5000), fontWeight: FontWeight.w600),
+                        ),
+                      ]),
+                    ),
                     Row(
                       children: ['남', '여'].map((g) {
                         final isSel = _gender == g;
@@ -5538,7 +5622,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           child: GestureDetector(
                             onTap: () => setState(() {
                               _gender = g;
-                              _length = _autoLength(g);
+                              _length = _autoLength(g); // 고정
                             }),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 130),
@@ -5568,20 +5652,24 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                       color: isSel ? Colors.white : const Color(0xFF1A1A1A),
                                     ),
                                   ),
-                                  if (isSel) ...[
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        '${_autoLength(g)} 자동선택',
-                                        style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isSel
+                                          ? Colors.white.withValues(alpha: 0.2)
+                                          : const Color(0xFF1A1A2E).withValues(alpha: 0.07),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${_autoLength(g)} 자동선택',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: isSel ? Colors.white : const Color(0xFF1A1A2E),
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ],
                               ),
                             ),
@@ -5589,38 +5677,48 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    // 기장 고정 표시 (변경 불가)
+                    if (_gender != null) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF4CAF50).withValues(alpha: 0.4)),
+                        ),
+                        child: Row(children: [
+                          const Icon(Icons.lock_outline_rounded, size: 15, color: Color(0xFF2E7D32)),
+                          const SizedBox(width: 6),
+                          Text(
+                            '하의 기장: ${_length!} (고정 · 변경 불가)',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF2E7D32),
+                            ),
+                          ),
+                        ]),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ],
 
-                  // ════ 기장 선택 (성별 선택 후 변경 가능) ════
-                  if (_needsGender && _gender != null) ...[
-                    _sectionTitle('하의 기장', required: true),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF8E1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(children: [
-                        const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF7A5000)),
-                        const SizedBox(width: 5),
-                        Text(
-                          '${_gender == '남' ? '남성' : '여성'} 기본값: ${_autoLength(_gender!)} · 다른 기장도 선택 가능',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF7A5000)),
-                        ),
-                      ]),
-                    ),
+                  // ══════════════════════════════
+                  // [2] 타이즈: 하의길이 모두 선택 가능 (성별 선택 없음)
+                  // ══════════════════════════════
+                  if (_isTaiz && !_needsGender) ...[
+                    _sectionTitle('하의 기장 선택', required: true),
+                    const SizedBox(height: 8),
                     Wrap(
                       spacing: 8, runSpacing: 8,
                       children: lengths.map((len) {
                         final isSel = _length == len;
-                        final isAuto = len == _autoLength(_gender!);
                         return GestureDetector(
                           onTap: () => setState(() => _length = len),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                             decoration: BoxDecoration(
                               color: isSel ? const Color(0xFF1A1A2E) : Colors.white,
                               borderRadius: BorderRadius.circular(8),
@@ -5628,35 +5726,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                 color: isSel ? const Color(0xFF1A1A2E) : const Color(0xFFE0E0E0),
                               ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  len,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    color: isSel ? Colors.white : const Color(0xFF1A1A1A),
-                                  ),
-                                ),
-                                if (isAuto) ...[
-                                  const SizedBox(width: 4),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                    decoration: BoxDecoration(
-                                      color: isSel ? Colors.white.withValues(alpha: 0.25) : const Color(0xFF43A047).withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      '추천',
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w700,
-                                        color: isSel ? Colors.white : const Color(0xFF43A047),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                            child: Text(
+                              len,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: isSel ? Colors.white : const Color(0xFF1A1A1A),
+                              ),
                             ),
                           ),
                         );
@@ -5665,44 +5740,154 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     const SizedBox(height: 16),
                   ],
 
-                  // ════ 사이즈 선택 ════
-                  _sectionTitle('사이즈', required: true),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8, runSpacing: 8,
-                    children: sizes.map((s) {
-                      final isSel = _size == s;
-                      return GestureDetector(
-                        onTap: () => setState(() => _size = s),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: isSel ? const Color(0xFF1A1A2E) : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: isSel ? const Color(0xFF1A1A2E) : const Color(0xFFE0E0E0)),
-                          ),
-                          child: Text(
-                            s,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: isSel ? Colors.white : const Color(0xFF1A1A1A),
+                  // ══════════════════════════════
+                  // [3] 사이즈 선택
+                  //   - 세트 상품: 상의/하의 각각
+                  //   - 단품: 공통 사이즈
+                  // ══════════════════════════════
+                  if (_isSetProduct) ...[
+                    // 상의 사이즈
+                    _sectionTitle('상의 사이즈', required: true),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8, runSpacing: 8,
+                      children: sizes.map((s) {
+                        final isSel = _topSize == s;
+                        return GestureDetector(
+                          onTap: () => setState(() => _topSize = s),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSel ? const Color(0xFF1A1A2E) : Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSel ? const Color(0xFF1A1A2E) : const Color(0xFFE0E0E0),
+                              ),
+                            ),
+                            child: Text(
+                              s,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: isSel ? Colors.white : const Color(0xFF1A1A1A),
+                              ),
                             ),
                           ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    // 하의 사이즈
+                    _sectionTitle('하의 사이즈', required: true),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8, runSpacing: 8,
+                      children: sizes.map((s) {
+                        final isSel = _bottomSize == s;
+                        return GestureDetector(
+                          onTap: () => setState(() => _bottomSize = s),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSel ? const Color(0xFF5C6BC0) : Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSel ? const Color(0xFF5C6BC0) : const Color(0xFFE0E0E0),
+                              ),
+                            ),
+                            child: Text(
+                              s,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: isSel ? Colors.white : const Color(0xFF1A1A1A),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                  ] else ...[
+                    // 단품 사이즈
+                    _sectionTitle('사이즈', required: true),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8, runSpacing: 8,
+                      children: sizes.map((s) {
+                        final isSel = _size == s;
+                        return GestureDetector(
+                          onTap: () => setState(() => _size = s),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSel ? const Color(0xFF1A1A2E) : Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: isSel ? const Color(0xFF1A1A2E) : const Color(0xFFE0E0E0),
+                              ),
+                            ),
+                            child: Text(
+                              s,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: isSel ? Colors.white : const Color(0xFF1A1A1A),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // ══════════════════════════════
+                  // [4] 색상 선택
+                  //   - 기성품 싱글렛: 상의 색상 고정(표시만), 하의만 선택
+                  //   - 세트/하의: isBottomCategory=true
+                  //   - 일반: isBottomCategory=false
+                  // ══════════════════════════════
+                  if (_isSingletReadyMade) ...[
+                    // 상의 색상 고정 표시
+                    _sectionTitle('상의 색상', required: false),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE0E0E0)),
+                      ),
+                      child: Row(children: [
+                        const Icon(Icons.lock_outline_rounded, size: 15, color: Color(0xFF888888)),
+                        const SizedBox(width: 7),
+                        const Text(
+                          '디자인 색상 그대로 적용 (변경 불가)',
+                          style: TextStyle(fontSize: 12, color: Color(0xFF666666), fontWeight: FontWeight.w600),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
+                      ]),
+                    ),
+                    const SizedBox(height: 12),
+                    // 하의 색상만 선택
+                    _sectionTitle('하의 색상', required: true),
+                    const SizedBox(height: 6),
+                    _ColorSelectionWidget(
+                      isBottomCategory: true,
+                      selectedColor: _color,
+                      onColorChanged: (c) => setState(() => _color = c),
+                    ),
+                    const SizedBox(height: 16),
+                  ] else ...[
+                    // 일반 색상 선택
+                    _ColorSelectionWidget(
+                      isBottomCategory: _isBottomItem || _isSetProduct,
+                      selectedColor: _color,
+                      onColorChanged: (c) => setState(() => _color = c),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
-                  // ════ 색상 선택 ════
-                  _ColorSelectionWidget(
-                    isBottomCategory: _isBottom || _isSingletSet,
-                    selectedColor: _color,
-                    onColorChanged: (c) => setState(() => _color = c),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ════ 수량 ════
+                  // ══════════════════════════════
+                  // [5] 수량
+                  // ══════════════════════════════
                   Row(
                     children: [
                       _sectionTitle('수량', required: false),
@@ -5720,13 +5905,20 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               child: Container(
                                 width: 36, height: 36,
                                 alignment: Alignment.center,
-                                child: Icon(Icons.remove, size: 16, color: _qty > 1 ? const Color(0xFF1A1A1A) : const Color(0xFFCCCCCC)),
+                                child: Icon(
+                                  Icons.remove,
+                                  size: 16,
+                                  color: _qty > 1 ? const Color(0xFF1A1A1A) : const Color(0xFFCCCCCC),
+                                ),
                               ),
                             ),
                             Container(
                               width: 40, height: 36,
                               alignment: Alignment.center,
-                              child: Text('$_qty', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                              child: Text(
+                                '$_qty',
+                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                              ),
                             ),
                             InkWell(
                               onTap: () => setState(() => _qty++),
@@ -5744,7 +5936,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   ),
                   const SizedBox(height: 16),
 
-                  // ════ 옵션 추가 버튼 ════
+                  // ══════════════════════════════
+                  // [6] 옵션 추가 버튼
+                  // ══════════════════════════════
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -5753,8 +5947,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       icon: const Icon(Icons.add_circle_outline, size: 18),
                       label: Text(
                         _canAddItem
-                            ? '이 옵션 목록에 추가 · $_size · $_color · ${_qty}개'
-                            : '사이즈와 색상을 선택해주세요',
+                            ? _buildAddBtnLabel()
+                            : _buildAddBtnHint(),
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                       style: OutlinedButton.styleFrom(
@@ -5768,7 +5962,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     ),
                   ),
 
-                  // ════ 선택된 옵션 목록 ════
+                  // ══════════════════════════════
+                  // [7] 선택된 옵션 목록
+                  // ══════════════════════════════
                   if (_items.isNotEmpty) ...[
                     const SizedBox(height: 20),
                     Row(
@@ -5777,7 +5973,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         const SizedBox(width: 6),
                         Text(
                           '선택된 옵션 ${_items.length}가지',
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E)),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1A1A2E),
+                          ),
                         ),
                         const Spacer(),
                         Text(
@@ -5807,15 +6007,13 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
+                                  Wrap(
+                                    spacing: 6, runSpacing: 4,
                                     children: [
                                       _optionChip(item['size'] as String, const Color(0xFF1A1A2E)),
-                                      const SizedBox(width: 6),
                                       _optionChip(item['color'] as String, const Color(0xFF43A047)),
-                                      if ((item['length'] as String) != '-') ...[
-                                        const SizedBox(width: 6),
+                                      if ((item['length'] as String) != '-')
                                         _optionChip(item['length'] as String, const Color(0xFF1565C0)),
-                                      ],
                                     ],
                                   ),
                                   const SizedBox(height: 6),
@@ -5842,7 +6040,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               children: [
                                 Text(
                                   '${_fmt(itemTotal)}원',
-                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A)),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF1A1A1A),
+                                  ),
                                 ),
                                 const SizedBox(height: 4),
                                 GestureDetector(
@@ -5916,7 +6118,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           child: SizedBox(
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: widget.isBuyNow ? _proceedToBuyNow : _proceedToBuyNow,
+                              onPressed: _proceedToBuyNow,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF1A1A2E),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -5944,6 +6146,38 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     );
   }
 
+  // ─────────────────────────────────────────────
+  // 추가 버튼 라벨/힌트 빌더
+  // ─────────────────────────────────────────────
+  String _buildAddBtnLabel() {
+    final parts = <String>[];
+    if (_isSetProduct) {
+      if (_topSize != null) parts.add('상의 $_topSize');
+      if (_bottomSize != null) parts.add('하의 $_bottomSize');
+    } else if (_size != null) {
+      parts.add(_size!);
+    }
+    if (_color != null) parts.add(_color!);
+    if (_length != null && _length != '-') parts.add(_length!);
+    parts.add('${_qty}개');
+    return '이 옵션 추가 · ${parts.join(' · ')}';
+  }
+
+  String _buildAddBtnHint() {
+    if (_isSetProduct) {
+      if (_topSize == null) return '상의 사이즈를 선택해주세요';
+      if (_bottomSize == null) return '하의 사이즈를 선택해주세요';
+    } else if (_size == null) {
+      return '사이즈를 선택해주세요';
+    }
+    if (_color == null) return '색상을 선택해주세요';
+    if (_needsLength && _length == null) return '하의 기장을 선택해주세요';
+    return '옵션을 선택해주세요';
+  }
+
+  // ─────────────────────────────────────────────
+  // UI 헬퍼
+  // ─────────────────────────────────────────────
   Widget _sectionTitle(String title, {bool required = false}) {
     return Row(
       children: [

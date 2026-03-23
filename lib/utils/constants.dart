@@ -43,8 +43,10 @@ class AppConstants {
   ];
   
   // Size Options
-  static const List<String> adultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
-  static const List<String> juniorSizes = ['110', '120', '130', '140', '150', '160'];
+  // 성인 사이즈: S~XL (기본 범위, 요구사항: S부터 XL까지)
+  static const List<String> adultSizes = ['S', 'M', 'L', 'XL'];
+  // 주니어 사이즈: S~XL (요구사항: 주니어 s부터 xl까지)
+  static const List<String> juniorSizes = ['S', 'M', 'L', 'XL'];
   
   // Color Options
   static const Map<String, int> colorOptions = {
