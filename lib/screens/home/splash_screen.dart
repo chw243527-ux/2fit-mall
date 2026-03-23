@@ -124,30 +124,39 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // 아이콘
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.asset(
-                          'assets/images/app_icon.png',
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => Image.asset(
-                            'assets/images/logo_2fit_korea.png',
-                            height: 100,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___2) => _fallbackLogo(),
-                          ),
-                        ),
+                      // 아이콘 – 화면 크기에 맞춰 최대한 크게
+                      LayoutBuilder(
+                        builder: (ctx, constraints) {
+                          final size = MediaQuery.of(ctx).size;
+                          // 화면 짧은 쪽의 65% 사용 (최소 200, 최대 340)
+                          final iconSize = (size.shortestSide * 0.65)
+                              .clamp(200.0, 340.0);
+                          return ClipRRect(
+                            borderRadius: BorderRadius.circular(iconSize * 0.18),
+                            child: Image.asset(
+                              'assets/images/app_icon.png',
+                              width: iconSize,
+                              height: iconSize,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Image.asset(
+                                'assets/images/logo_2fit_korea.png',
+                                width: iconSize,
+                                height: iconSize,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___2) => _fallbackLogo(),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       // 태그라인
                       const Text(
                         'SPORTS & FITNESS',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          letterSpacing: 4,
+                          letterSpacing: 5,
                           color: Color(0xFF999999),
                         ),
                       ),

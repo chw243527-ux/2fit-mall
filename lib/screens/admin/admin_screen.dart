@@ -3651,87 +3651,244 @@ class _AdminScreenState extends State<AdminScreen>
 
   void _showEditBannerDialog(int index, Map<String, dynamic> b) {
     final titleCtrl = TextEditingController(text: b['title'] as String);
+    Uint8List? pickedBytes;
+    bool isUploading = false;
+    final existingUrl = (b['imageUrl'] ?? '') as String;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('배너 편집', style: TextStyle(fontWeight: FontWeight.w800)),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(
-            controller: titleCtrl,
-            decoration: InputDecoration(
-              labelText: '배너 제목',
-              filled: true, fillColor: const Color(0xFFF5F5F5),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12))),
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
-            onPressed: () {
-              if (titleCtrl.text.trim().isEmpty) return;
-              setState(() => _bannerItems[index]['title'] = titleCtrl.text.trim());
-              Navigator.pop(ctx);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('배너가 수정되었습니다'), backgroundColor: Color(0xFF1A1A2E)));
-              }
-            },
-            child: const Text('저장', style: TextStyle(color: Colors.white))),
-        ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlg) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('배너 편집', style: TextStyle(fontWeight: FontWeight.w800)),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              TextField(
+                controller: titleCtrl,
+                decoration: InputDecoration(
+                  labelText: '배너 제목',
+                  filled: true, fillColor: const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12))),
+              const SizedBox(height: 14),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('배너 이미지', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: isUploading ? null : () async {
+                  final picker = ImagePicker();
+                  final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85, maxWidth: 1400);
+                  if (file == null) return;
+                  final bytes = await file.readAsBytes();
+                  setDlg(() => pickedBytes = bytes);
+                },
+                child: Container(
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F7FA),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(9),
+                    child: pickedBytes != null
+                        ? Stack(children: [
+                            Image.memory(pickedBytes!, width: double.infinity, height: 140, fit: BoxFit.cover),
+                            Positioned(
+                              top: 6, right: 6,
+                              child: GestureDetector(
+                                onTap: () => setDlg(() => pickedBytes = null),
+                                child: Container(
+                                  width: 24, height: 24,
+                                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
+                                  child: const Icon(Icons.close, color: Colors.white, size: 14),
+                                ),
+                              ),
+                            ),
+                          ])
+                        : existingUrl.isNotEmpty
+                            ? Stack(children: [
+                                Image.network(existingUrl, width: double.infinity, height: 140, fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 40, color: Color(0xFFCCCCCC))),
+                                Positioned(
+                                  bottom: 0, left: 0, right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
+                                    color: Colors.black38,
+                                    child: const Text('탭하여 이미지 교체', textAlign: TextAlign.center,
+                                        style: TextStyle(color: Colors.white, fontSize: 11)),
+                                  ),
+                                ),
+                              ])
+                            : const Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_photo_alternate_rounded, size: 36, color: Color(0xFFBBBBBB)),
+                                  SizedBox(height: 6),
+                                  Text('탭하여 이미지 선택', style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+                                ],
+                              ),
+                  ),
+                ),
+              ),
+            ]),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
+              onPressed: isUploading ? null : () async {
+                if (titleCtrl.text.trim().isEmpty) return;
+                String? newUrl;
+                if (pickedBytes != null) {
+                  setDlg(() => isUploading = true);
+                  newUrl = await StorageService.uploadBannerImage(
+                    bannerId: 'banner_${index}_${DateTime.now().millisecondsSinceEpoch}',
+                    imageBytes: pickedBytes!,
+                  );
+                }
+                setState(() {
+                  _bannerItems[index]['title'] = titleCtrl.text.trim();
+                  if (newUrl != null) _bannerItems[index]['imageUrl'] = newUrl;
+                });
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('배너가 수정되었습니다'), backgroundColor: Color(0xFF1A1A2E)));
+                }
+              },
+              child: isUploading
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('저장', style: TextStyle(color: Colors.white))),
+          ],
+        ),
       ),
     );
   }
 
   void _showAddBannerDialog() {
-    final urlCtrl   = TextEditingController();
     final titleCtrl = TextEditingController();
+    final urlCtrl   = TextEditingController();
+    Uint8List? pickedBytes;
+    bool isUploading = false;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('배너 추가', style: TextStyle(fontWeight: FontWeight.w800)),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(
-            controller: titleCtrl,
-            decoration: InputDecoration(
-              hintText: '배너 제목',
-              filled: true, fillColor: const Color(0xFFF5F5F5),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12))),
-          const SizedBox(height: 10),
-          TextField(
-            controller: urlCtrl,
-            decoration: InputDecoration(
-              hintText: '이미지 URL (https://...)',
-              filled: true, fillColor: const Color(0xFFF5F5F5),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12))),
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
-            onPressed: () {
-              if (titleCtrl.text.trim().isEmpty) return;
-              setState(() {
-                _bannerItems.add({
-                  'title': titleCtrl.text.trim(),
-                  'tag': 'NEW',
-                  'active': true,
-                  'order': _bannerItems.length + 1,
-                  'imageUrl': urlCtrl.text.trim(),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDlg) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('배너 추가', style: TextStyle(fontWeight: FontWeight.w800)),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              TextField(
+                controller: titleCtrl,
+                decoration: InputDecoration(
+                  hintText: '배너 제목',
+                  filled: true, fillColor: const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12))),
+              const SizedBox(height: 12),
+              // ── 이미지 업로드 영역 ──
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('배너 이미지', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+              ),
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: isUploading ? null : () async {
+                  final picker = ImagePicker();
+                  final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85, maxWidth: 1400);
+                  if (file == null) return;
+                  final bytes = await file.readAsBytes();
+                  setDlg(() { pickedBytes = bytes; urlCtrl.clear(); });
+                },
+                child: Container(
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F7FA),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(9),
+                    child: pickedBytes != null
+                        ? Stack(children: [
+                            Image.memory(pickedBytes!, width: double.infinity, height: 140, fit: BoxFit.cover),
+                            Positioned(
+                              top: 6, right: 6,
+                              child: GestureDetector(
+                                onTap: () => setDlg(() => pickedBytes = null),
+                                child: Container(
+                                  width: 24, height: 24,
+                                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
+                                  child: const Icon(Icons.close, color: Colors.white, size: 14),
+                                ),
+                              ),
+                            ),
+                          ])
+                        : const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_photo_alternate_rounded, size: 36, color: Color(0xFFBBBBBB)),
+                              SizedBox(height: 6),
+                              Text('탭하여 이미지 선택', style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+                              SizedBox(height: 2),
+                              Text('또는 아래 URL 직접 입력', style: TextStyle(fontSize: 11, color: Color(0xFFBBBBBB))),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // URL 직접 입력 (선택)
+              TextField(
+                controller: urlCtrl,
+                enabled: pickedBytes == null,
+                decoration: InputDecoration(
+                  hintText: 'URL 직접 입력 (이미지 선택 시 무시됨)',
+                  hintStyle: const TextStyle(fontSize: 11, color: Color(0xFFBBBBBB)),
+                  filled: true, fillColor: pickedBytes != null ? const Color(0xFFEEEEEE) : const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12))),
+            ]),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
+              onPressed: isUploading ? null : () async {
+                if (titleCtrl.text.trim().isEmpty) return;
+                String imageUrl = urlCtrl.text.trim();
+                if (pickedBytes != null) {
+                  setDlg(() => isUploading = true);
+                  final uploaded = await StorageService.uploadBannerImage(
+                    bannerId: 'banner_new_${DateTime.now().millisecondsSinceEpoch}',
+                    imageBytes: pickedBytes!,
+                  );
+                  imageUrl = uploaded ?? '';
+                }
+                setState(() {
+                  _bannerItems.add({
+                    'title': titleCtrl.text.trim(),
+                    'tag': 'NEW',
+                    'active': true,
+                    'order': _bannerItems.length + 1,
+                    'imageUrl': imageUrl,
+                  });
                 });
-              });
-              Navigator.pop(ctx);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('배너가 추가되었습니다'), backgroundColor: Color(0xFF1A1A2E)));
-              }
-            },
-            child: const Text('추가', style: TextStyle(color: Colors.white))),
-        ],
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('배너가 추가되었습니다'), backgroundColor: Color(0xFF1A1A2E)));
+                }
+              },
+              child: isUploading
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('추가', style: TextStyle(color: Colors.white))),
+          ],
+        ),
       ),
     );
   }
@@ -5029,6 +5186,7 @@ class _AdminScreenState extends State<AdminScreen>
                             sectionKey: key,
                             sectionLabel: sec['label'] as String,
                             sectionTitle: sec['title'] as String,
+                            sectionDescription: (sec['description'] as String?) ?? '',
                             icon: sec['icon'] as IconData,
                             images: imgs,
                             product: selectedProduct,
@@ -5061,48 +5219,137 @@ class _AdminScreenState extends State<AdminScreen>
   // 섹션 추가 다이얼로그
   void _showAddSectionDialog() {
     final titleCtrl = TextEditingController();
+    final descCtrl  = TextEditingController();
+    Uint8List? pickedImageBytes;
+    bool isUploading = false;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('섹션 추가', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleCtrl,
-              decoration: InputDecoration(
-                labelText: '섹션 이름',
-                hintText: '예: 착용 이미지, 색상 안내...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('섹션 추가', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── 섹션 이름 ──
+                TextField(
+                  controller: titleCtrl,
+                  decoration: InputDecoration(
+                    labelText: '섹션 이름 *',
+                    hintText: '예: 착용 이미지, 색상 안내...',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // ── 섹션 설명 ──
+                TextField(
+                  controller: descCtrl,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: '섹션 설명 (선택)',
+                    hintText: '이 섹션에 대한 간단한 설명을 입력하세요',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                // ── 대표 이미지 업로드 ──
+                const Text('대표 이미지 (선택)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: isUploading ? null : () async {
+                    final picker = ImagePicker();
+                    final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85, maxWidth: 1200, maxHeight: 1200);
+                    if (file == null) return;
+                    final bytes = await file.readAsBytes();
+                    setDialogState(() => pickedImageBytes = bytes);
+                  },
+                  child: Container(
+                    height: 130,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F7FA),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+                    ),
+                    child: pickedImageBytes != null
+                        ? Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(9),
+                                child: Image.memory(pickedImageBytes!, width: double.infinity, height: 130, fit: BoxFit.cover),
+                              ),
+                              Positioned(
+                                top: 6, right: 6,
+                                child: GestureDetector(
+                                  onTap: () => setDialogState(() => pickedImageBytes = null),
+                                  child: Container(
+                                    width: 24, height: 24,
+                                    decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
+                                    child: const Icon(Icons.close, color: Colors.white, size: 14),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_photo_alternate_rounded, size: 36, color: Color(0xFFBBBBBB)),
+                              SizedBox(height: 6),
+                              Text('탭하여 이미지 선택', style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            ElevatedButton(
+              onPressed: isUploading ? null : () async {
+                final title = titleCtrl.text.trim();
+                if (title.isEmpty) return;
+                final newKey = 'custom_${DateTime.now().millisecondsSinceEpoch}';
+                final desc  = descCtrl.text.trim();
+
+                String? imageUrl;
+                if (pickedImageBytes != null) {
+                  setDialogState(() => isUploading = true);
+                  imageUrl = await StorageService.uploadBannerImage(
+                    bannerId: 'section_thumb_$newKey',
+                    imageBytes: pickedImageBytes!,
+                  );
+                }
+
+                setState(() {
+                  _customSections.add({
+                    'key': newKey,
+                    'label': '섹션 ${_customSections.length + 1}',
+                    'title': title,
+                    'description': desc,
+                    'icon': Icons.image_rounded,
+                    if (imageUrl != null) 'thumbUrl': imageUrl,
+                  });
+                });
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('섹션 "$title" 이 추가되었습니다'), backgroundColor: const Color(0xFF1A1A2E)),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E), foregroundColor: Colors.white),
+              child: isUploading
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('추가'),
             ),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
-          ElevatedButton(
-            onPressed: () {
-              final title = titleCtrl.text.trim();
-              if (title.isEmpty) return;
-              final newKey = 'custom_${DateTime.now().millisecondsSinceEpoch}';
-              setState(() {
-                _customSections.add({
-                  'key': newKey,
-                  'label': '섹션 ${_customSections.length + 1}',
-                  'title': title,
-                  'icon': Icons.image_rounded,
-                });
-              });
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('섹션 "$title" 이 추가되었습니다'), backgroundColor: const Color(0xFF1A1A2E)),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E), foregroundColor: Colors.white),
-            child: const Text('추가'),
-          ),
-        ],
       ),
     );
   }
@@ -6255,6 +6502,7 @@ class _AdminSectionCard extends StatefulWidget {
   final String sectionKey;
   final String sectionLabel;
   final String sectionTitle;
+  final String sectionDescription;
   final IconData icon;
   final List<String> images;
   final ProductModel product;
@@ -6264,6 +6512,7 @@ class _AdminSectionCard extends StatefulWidget {
     required this.sectionKey,
     required this.sectionLabel,
     required this.sectionTitle,
+    this.sectionDescription = '',
     required this.icon,
     required this.images,
     required this.product,
@@ -6465,6 +6714,20 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                             color: _expanded ? Colors.white : const Color(0xFF1A1A1A),
                           ),
                         ),
+                        if (widget.sectionDescription.isNotEmpty) ...[
+                          const SizedBox(height: 1),
+                          Text(
+                            widget.sectionDescription,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: _expanded
+                                  ? Colors.white.withValues(alpha: 0.55)
+                                  : const Color(0xFF888888),
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 2),
                         Text(
                           hasImages ? '이미지 ${imgs.length}장 등록됨' : '이미지 없음 (기본 UI 표시)',
