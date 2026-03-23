@@ -4,6 +4,7 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../utils/app_localizations.dart';
 import '../../utils/constants.dart';
+import '../../widgets/color_picker_widget.dart';
 import '../../widgets/pc_layout.dart';
 
 // ══════════════════════════════════════════════════════════════
@@ -67,10 +68,8 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   @override
   void initState() {
     super.initState();
-    final colors = widget.product.colors;
-    if (colors.isNotEmpty) {
-      _selectedColor = colors.first;
-    }
+    // 팔레트의 첫 번째 색상(K 블랙)으로 기본값 설정
+    _selectedColor = AppColorPalette.registeredColors.first['name'] as String;
     if (_needsBottomLength) {
       _selectedBottomLength = AppConstants.bottomLengths.first['label'];
     }
@@ -414,56 +413,101 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   // 색상 선택
   // ══════════════════════════════════════════════════════════════
   Widget _buildColorSection() {
-    final colors = widget.product.colors;
-    if (colors.isEmpty) {
-      return Text(loc.customNoColorInfo, style: const TextStyle(color: Color(0xFF888888)));
-    }
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: colors.map((c) {
-        final selected = _selectedColor == c;
-        final colorHex = AppConstants.colorOptions[c];
-        final colorVal = colorHex != null ? Color(colorHex) : const Color(0xFF888888);
-        return GestureDetector(
-          onTap: () => setState(() => _selectedColor = c),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: selected ? const Color(0xFF6A1B9A) : Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: selected ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD),
-                width: selected ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+    const palette = AppColorPalette.registeredColors;
+    final freeColors = AppConstants.freeColors;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 선택된 색상 표시
+        if (_selectedColor != null) ...[
+          Builder(builder: (_) {
+            final found = palette.firstWhere(
+              (c) => c['name'] == _selectedColor,
+              orElse: () => <String, dynamic>{},
+            );
+            if (found.isEmpty) return const SizedBox.shrink();
+            final isFree = freeColors.contains(_selectedColor);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(children: [
+                Text(loc.selectedLabel,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                const SizedBox(width: 6),
                 Container(
-                  width: 14, height: 14,
+                  width: 16, height: 16,
                   decoration: BoxDecoration(
-                    color: colorVal,
+                    color: Color(found['hex'] as int),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1.5),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 2)],
+                    border: Border.all(color: const Color(0xFFCCCCCC), width: 0.8),
                   ),
                 ),
                 const SizedBox(width: 6),
+                Text(_selectedColor!,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                const SizedBox(width: 6),
                 Text(
-                  c,
+                  isFree ? '기본색상' : '+20,000원',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: selected ? Colors.white : const Color(0xFF333333),
+                    color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFCC0000),
                   ),
                 ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+              ]),
+            );
+          }),
+        ],
+        // 색상 팔레트 그리드
+        Wrap(
+          spacing: 8,
+          runSpacing: 10,
+          children: palette.map((c) {
+            final name = c['name'] as String;
+            final hex  = c['hex'] as int;
+            final code = c['code'] as String;
+            final sel  = _selectedColor == name;
+            final isFree = freeColors.contains(name);
+            return GestureDetector(
+              onTap: () => setState(() => _selectedColor = name),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  RibColorSwatch(
+                    color: Color(hex),
+                    size: 40,
+                    isSelected: sel,
+                    accentColor: const Color(0xFF6A1B9A),
+                    isLight: Color(hex).computeLuminance() > 0.5,
+                    child: sel
+                        ? Icon(Icons.check_rounded,
+                            size: 18,
+                            color: Color(hex).computeLuminance() > 0.5
+                                ? const Color(0xFF333333)
+                                : Colors.white)
+                        : null,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    code,
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: sel ? FontWeight.w800 : FontWeight.w400,
+                      color: sel ? const Color(0xFF6A1B9A) : const Color(0xFF666666),
+                    ),
+                  ),
+                  if (!isFree)
+                    const Text('+₩',
+                        style: TextStyle(fontSize: 8, color: Color(0xFFCC0000))),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 4),
+        Text(loc.productColorExtraFull,
+            style: const TextStyle(fontSize: 10, color: Color(0xFF999999))),
+      ],
     );
   }
 

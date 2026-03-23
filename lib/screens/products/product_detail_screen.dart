@@ -36,13 +36,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 상품 선택 ──
   String? _selectedSize;
-  String? _selectedColor;
   String? _selectedBottomLength;
-  int _quantity = 1;
-
-  // ── 색상 추가금액 (K/PP 기본 0원, 나머지 20,000원) ──
-  double get _colorExtraPrice =>
-      AppConstants.freeColors.contains(_selectedColor) ? 0 : AppConstants.extraColorPrice.toDouble();
 
   // ── 싱글렛/싱글렛세트 전용 ──
   String _singletGender = '남'; // '남' or '여'
@@ -62,9 +56,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     super.initState();
     _tabCtrl = TabController(length: 3, vsync: this);
     _sectionImages = Map<String, List<String>>.from(widget.product.sectionImages);
-    // 컬러는 항상 첫 번째 값으로 자동 설정 (컬러 탭 없음)
-    final colors = widget.product.colors;
-    _selectedColor = colors.isNotEmpty ? colors.first : '기본';
     // 성별 기본값: 남성 → 하의 5부 자동 설정
     _singletGender = '남';
     _selectedBottomLength = '5부';
@@ -137,8 +128,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               _buildSliverHeader(product),
               SliverToBoxAdapter(child: _buildThumbnailBar(product)),
               SliverToBoxAdapter(child: _buildBasicInfo(product)),
-              // 색상 선택(19가지)만 인라인 표시 — 사이즈/수량/성별은 하단 버튼 탭 시 시트에서 선택
-              SliverToBoxAdapter(child: _buildSizeSection(product)),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
@@ -369,12 +358,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           _buildPurchaseTypeSection(product),
           // 사이즈/수량/구매버튼: 단체주문 전용이 아닐 때만 표시
           if (!product.isGroupOnly) ...[
-            // 사이즈 선택
-            _buildSizeSection(product),
-            const SizedBox(height: 16),
-            // 수량
-            _buildQuantitySection(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 8),
           ],
           // 구매 버튼
           if (product.isGroupOnly) ...[
@@ -1386,182 +1370,6 @@ $productUrl
       ),
     );
   }
-
-  Widget _buildSizeSection(ProductModel product) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── 색상 선택 (19가지) ──
-          const Divider(),
-          const SizedBox(height: 12),
-          _buildColorSection(),
-        ],
-      ),
-    );
-  }
-
-  // ── 색상 선택 섹션 (19가지, K/PP 외 +2만원) ──
-  Widget _buildColorSection() {
-    const palette = AppColorPalette.registeredColors;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(loc.colorSelectLabel,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: const Color(0xFFFFB74D), width: 0.8),
-              ),
-              child: Text(loc.productColorExtraNote,
-                  style: const TextStyle(fontSize: 10, color: Color(0xFFE65100), fontWeight: FontWeight.w700)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        // 선택된 색상 표시
-        if (_selectedColor != null) ...[
-          Row(
-            children: [
-              Text(loc.selectedLabel, style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
-              const SizedBox(width: 6),
-              Builder(builder: (_) {
-                final match = palette.firstWhere(
-                  (c) => c['name'] == _selectedColor,
-                  orElse: () => palette.first,
-                );
-                final isFree = AppConstants.freeColors.contains(_selectedColor);
-                return Row(children: [
-                  Container(
-                    width: 16, height: 16,
-                    decoration: BoxDecoration(
-                      color: Color(match['hex'] as int),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFCCCCCC), width: 0.8),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(_selectedColor!,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                  const SizedBox(width: 6),
-                  Text(
-                    isFree ? '기본색상' : '+20,000원',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFCC0000),
-                    ),
-                  ),
-                ]);
-              }),
-            ],
-          ),
-          const SizedBox(height: 10),
-        ],
-        // 색상 팔레트 그리드
-        Wrap(
-          spacing: 8,
-          runSpacing: 10,
-          children: palette.map((c) {
-            final name = c['name'] as String;
-            final hex  = c['hex'] as int;
-            final code = c['code'] as String;
-            final sel  = _selectedColor == name;
-            final isFree = AppConstants.freeColors.contains(name);
-            return GestureDetector(
-              onTap: () => setState(() => _selectedColor = name),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  RibColorSwatch(
-                    color: Color(hex),
-                    size: 40,
-                    isSelected: sel,
-                    accentColor: const Color(0xFF1A1A1A),
-                    isLight: Color(hex).computeLuminance() > 0.5,
-                    child: sel
-                        ? Icon(Icons.check_rounded,
-                            size: 18,
-                            color: Color(hex).computeLuminance() > 0.5
-                                ? const Color(0xFF333333)
-                                : Colors.white)
-                        : null,
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    code,
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: sel ? FontWeight.w800 : FontWeight.w400,
-                      color: sel ? const Color(0xFF1A1A1A) : const Color(0xFF666666),
-                    ),
-                  ),
-                  if (!isFree)
-                    const Text('+₩', style: TextStyle(fontSize: 8, color: Color(0xFFCC0000))),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 4),
-        Text(loc.productColorExtraFull,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF999999))),
-        const SizedBox(height: 12),
-      ],
-    );
-  }
-  Widget _buildQuantitySection() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Divider(),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(loc.quantityLabel, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-              Row(
-                children: [
-                  _qBtn(Icons.remove, () {
-                    if (_quantity > 1) setState(() => _quantity--);
-                  }),
-                  SizedBox(
-                    width: 44,
-                    child: Center(
-                      child: Text('$_quantity',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                    ),
-                  ),
-                  _qBtn(Icons.add, () => setState(() => _quantity++)),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _qBtn(IconData icon, VoidCallback onTap) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFDDDDDD)),
-              borderRadius: BorderRadius.circular(8)),
-          child: Icon(icon, size: 16),
-        ),
-      );
 
   // ═══════════════════════════════════════
   // 구매 방식 선택 (인라인 섹션)
@@ -3506,9 +3314,6 @@ $productUrl
   // 하단 바
   // ═══════════════════════════════════════════════════════════
   Widget _buildBottomBar(ProductModel product) {
-    // 추가금액 포함 실시간 총액
-    final unitPrice = product.price + _colorExtraPrice;
-    final totalAmt = (unitPrice * _quantity).toInt();
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
       decoration: BoxDecoration(
@@ -3521,33 +3326,6 @@ $productUrl
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 추가금액 있을 때만 가격 요약 표시
-          if (_colorExtraPrice > 0) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              margin: const EdgeInsets.only(bottom: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF8E1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFFCC02), width: 0.8),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.palette_rounded, size: 13, color: Color(0xFFE65100)),
-                      const SizedBox(width: 4),
-                      Text('${product.price.toInt().toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (m) => "${m[1]},")}원 + 색상 ${_colorExtraPrice.toInt().toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (m) => "${m[1]},")}원',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFFE65100))),
-                    ],
-                  ),
-                  Text('${loc.totalAmount} ${totalAmt.toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (m) => "${m[1]},")}원 × $_quantity',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
-                ],
-              ),
-            ),
-          ],
           if (product.isGroupOnly) ...[
             // ── 단체주문 전용: 단체주문 버튼만 ──
             SizedBox(
@@ -3974,21 +3752,6 @@ $productUrl
   // ─── 기성품 직접 결제 진행 ─────────────────────────────────────
   void _directProceedToCheckout(ProductModel product) {
     _showBuyNowSheet(product);
-  }
-
-  // ─── 체크아웃 진행 ────────────────────────────────────────────
-  // ignore: unused_element
-  void _proceedToCheckout(ProductModel product, String bottomLength) {
-    if (_selectedSize == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.selectSizeFirstMsg)),
-      );
-      return;
-    }
-    final color = _selectedColor ?? (product.colors.isNotEmpty ? product.colors.first : '기본');
-    final extra = AppConstants.freeColors.contains(color) ? 0.0 : AppConstants.extraColorPrice.toDouble();
-    context.read<CartProvider>().addItem(product, _selectedSize!, color, quantity: _quantity, extraPrice: extra);
-    Navigator.pushNamed(context, '/checkout', arguments: bottomLength);
   }
 
   // ─── 단체주문 안내 시트 표시 ───

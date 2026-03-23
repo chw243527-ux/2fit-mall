@@ -1337,13 +1337,112 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   }
 
   // ── 색상 선택 ──
+  // ── 색상 선택 (상세페이지와 동일 스타일) ──
   Widget _buildColorSection() {
-    // 싱글렛세트 여부 판단 (세트 카테고리 + 싱글렛세트 서브카테고리, 구버전 포함)
     final isSingletSet = widget.product != null &&
         ((widget.product!.category == '세트' &&
                 widget.product!.subCategory.contains('싱글렛세트')) ||
             widget.product!.category.contains('싱글렛세트') ||
             widget.product!.subCategory.contains('싱글렛세트'));
+
+    const palette = AppColorPalette.registeredColors;
+    final freeColors = AppConstants.freeColors;
+
+    Widget colorGrid(String? selectedName, void Function(String name, Color color) onTap) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 선택된 색상 표시
+          if (selectedName != null) ...[
+            Builder(builder: (_) {
+              final found = palette.firstWhere(
+                (c) => c['name'] == selectedName,
+                orElse: () => <String, dynamic>{},
+              );
+              if (found.isEmpty) return const SizedBox.shrink();
+              final isFree = freeColors.contains(selectedName);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(children: [
+                  Text(loc.selectedLabel,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 16, height: 16,
+                    decoration: BoxDecoration(
+                      color: Color(found['hex'] as int),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFFCCCCCC), width: 0.8),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(selectedName,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  const SizedBox(width: 6),
+                  Text(
+                    isFree ? '기본색상' : '+20,000원',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFCC0000),
+                    ),
+                  ),
+                ]),
+              );
+            }),
+          ],
+          // 색상 팔레트 그리드
+          Wrap(
+            spacing: 8,
+            runSpacing: 10,
+            children: palette.map((c) {
+              final name = c['name'] as String;
+              final hex  = c['hex'] as int;
+              final code = c['code'] as String;
+              final sel  = selectedName == name;
+              final isFree = freeColors.contains(name);
+              return GestureDetector(
+                onTap: () => onTap(name, Color(hex)),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RibColorSwatch(
+                      color: Color(hex),
+                      size: 40,
+                      isSelected: sel,
+                      accentColor: const Color(0xFF6A1B9A),
+                      isLight: Color(hex).computeLuminance() > 0.5,
+                      child: sel
+                          ? Icon(Icons.check_rounded,
+                              size: 18,
+                              color: Color(hex).computeLuminance() > 0.5
+                                  ? const Color(0xFF333333)
+                                  : Colors.white)
+                          : null,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      code,
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: sel ? FontWeight.w800 : FontWeight.w400,
+                        color: sel ? const Color(0xFF6A1B9A) : const Color(0xFF666666),
+                      ),
+                    ),
+                    if (!isFree)
+                      const Text('+₩',
+                          style: TextStyle(fontSize: 8, color: Color(0xFFCC0000))),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 4),
+          Text(loc.productColorExtraFull,
+              style: const TextStyle(fontSize: 10, color: Color(0xFF999999))),
+        ],
+      );
+    }
 
     return Container(
       margin: const EdgeInsets.only(top: 2),
@@ -1353,7 +1452,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader('🎨 ${loc.colorSelect}', required: true),
-          const SizedBox(height: 12),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFFFFB74D), width: 0.8),
+            ),
+            child: Text(loc.productColorExtraNote,
+                style: const TextStyle(fontSize: 10, color: Color(0xFFE65100), fontWeight: FontWeight.w700)),
+          ),
+          const SizedBox(height: 14),
 
           // 싱글렛세트: 상·하의 색상 분리 옵션
           if (isSingletSet) ...[
@@ -1367,14 +1477,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.palette_rounded, size: 16, color: Color(0xFF6A1B9A)),
-                      const SizedBox(width: 6),
-                      Text(context.watch<LanguageProvider>().loc.groupFormSingletColorTitle,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
-                    ],
-                  ),
+                  Row(children: [
+                    const Icon(Icons.palette_rounded, size: 16, color: Color(0xFF6A1B9A)),
+                    const SizedBox(width: 6),
+                    Text(context.watch<LanguageProvider>().loc.groupFormSingletColorTitle,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
+                  ]),
                   const SizedBox(height: 8),
                   Text(context.watch<LanguageProvider>().loc.groupFormSingletColorDesc,
                       style: const TextStyle(fontSize: 11, color: Color(0xFF666666))),
@@ -1387,34 +1495,32 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                         _bottomColor = null;
                       }
                     }),
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: _useSeparateBottomColor,
-                          onChanged: (v) => setState(() {
-                            _useSeparateBottomColor = v ?? false;
-                            if (!_useSeparateBottomColor) {
-                              _bottomColorName = null;
-                              _bottomColor = null;
-                            }
-                          }),
-                          activeColor: const Color(0xFF6A1B9A),
-                          visualDensity: VisualDensity.compact,
+                    child: Row(children: [
+                      Checkbox(
+                        value: _useSeparateBottomColor,
+                        onChanged: (v) => setState(() {
+                          _useSeparateBottomColor = v ?? false;
+                          if (!_useSeparateBottomColor) {
+                            _bottomColorName = null;
+                            _bottomColor = null;
+                          }
+                        }),
+                        activeColor: const Color(0xFF6A1B9A),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      Text(context.watch<LanguageProvider>().loc.groupFormColorSplitLabel,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6A1B9A),
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        Text(context.watch<LanguageProvider>().loc.groupFormColorSplitLabel,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF6A1B9A),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(context.watch<LanguageProvider>().loc.groupFormPhantomChart,
-                              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700)),
-                        ),
-                      ],
-                    ),
+                        child: Text(context.watch<LanguageProvider>().loc.groupFormPhantomChart,
+                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700)),
+                      ),
+                    ]),
                   ),
                 ],
               ),
@@ -1422,27 +1528,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
             const SizedBox(height: 14),
           ],
 
-          // 메인 컬러 선택 (상의 컬러 or 전체 컬러) - InlineColorChart 사용
-          InlineColorChart(
-            label: isSingletSet
+          // 메인 컬러 (상의 or 전체)
+          Text(
+            isSingletSet
                 ? (_useSeparateBottomColor ? loc.topColorLabel : loc.fullColorLabel)
                 : loc.mainColorLabel,
-            selectedColorName: _mainColorName,
-            selectedColor: _mainColor,
-            accentColor: const Color(0xFF6A1B9A),
-            required: true,
-            onColorSelected: (name, color) {
-              setState(() {
-                _mainColorName = name;
-                _mainColor = color;
-              });
-            },
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
           ),
+          const SizedBox(height: 10),
+          colorGrid(_mainColorName, (name, color) {
+            setState(() { _mainColorName = name; _mainColor = color; });
+          }),
 
-          // 싱글렛세트: 하의 컬러 분리 선택
+          // 싱글렛세트: 하의 색상 분리
           if (isSingletSet && _useSeparateBottomColor) ...[
-            const SizedBox(height: 14),
-            // 하의 기장 자동적용 안내
+            const SizedBox(height: 18),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
@@ -1450,35 +1550,23 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.25)),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF6A1B9A)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      loc.bottomAutoLengthNotice,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A)),
-                    ),
-                  ),
-                ],
-              ),
+              child: Row(children: [
+                const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF6A1B9A)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(loc.bottomAutoLengthNotice,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))),
+                ),
+              ]),
             ),
             const SizedBox(height: 10),
-            InlineColorChart(
-              label: context.watch<LanguageProvider>().loc.groupFormBottomColorLabel,
-              selectedColorName: _bottomColorName,
-              selectedColor: _bottomColor,
-              accentColor: const Color(0xFF6A1B9A),
-              required: true,
-              onColorSelected: (name, color) {
-                setState(() {
-                  _bottomColorName = name;
-                  _bottomColor = color;
-                });
-              },
-            ),
+            Text(context.watch<LanguageProvider>().loc.groupFormBottomColorLabel,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
-            // 팬텀차트 미리보기
+            colorGrid(_bottomColorName, (name, color) {
+              setState(() { _bottomColorName = name; _bottomColor = color; });
+            }),
+            const SizedBox(height: 10),
             if (_mainColorName != null || _bottomColorName != null)
               _buildSingletSetColorPreview(),
           ],
@@ -1486,6 +1574,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
       ),
     );
   }
+
 
   // ── 싱글렛세트 색상 팬텀차트 미리보기 ──
   Widget _buildSingletSetColorPreview() {
