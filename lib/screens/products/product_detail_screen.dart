@@ -137,9 +137,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               _buildSliverHeader(product),
               SliverToBoxAdapter(child: _buildThumbnailBar(product)),
               SliverToBoxAdapter(child: _buildBasicInfo(product)),
-              SliverToBoxAdapter(child: _buildPurchaseTypeSection(product)),
-              SliverToBoxAdapter(child: _buildSizeSection(product)),
-              SliverToBoxAdapter(child: _buildQuantitySection()),
+              // 인라인 옵션(성별/색상/사이즈/수량) 제거 → 하단 버튼 탭 시 시트에서 선택
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
