@@ -137,7 +137,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               _buildSliverHeader(product),
               SliverToBoxAdapter(child: _buildThumbnailBar(product)),
               SliverToBoxAdapter(child: _buildBasicInfo(product)),
-              // 인라인 옵션(성별/색상/사이즈/수량) 제거 → 하단 버튼 탭 시 시트에서 선택
+              // 색상 선택(19가지)만 인라인 표시 — 사이즈/수량/성별은 하단 버튼 탭 시 시트에서 선택
+              SliverToBoxAdapter(child: _buildSizeSection(product)),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
