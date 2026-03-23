@@ -5510,16 +5510,19 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   /// 현재 선택 가능 여부
   bool get _canAddItem {
+    // 색상 선택이 필요한지: 싱글렛 A타입 세트 또는 타이즈만
+    final needsColor = _isSingletATypeSet || _isTaiz;
+
     // 세트 상품: 상의+하의 사이즈 모두 선택
     if (_isSetProduct) {
       final sizeOk = _topSize != null && _bottomSize != null;
-      final colorOk = _color != null;
+      final colorOk = needsColor ? _color != null : true;
       final lengthOk = _needsLength ? _length != null : true;
       return sizeOk && colorOk && lengthOk;
     }
     // 단품
     final sizeOk = _size != null;
-    final colorOk = _color != null;
+    final colorOk = needsColor ? _color != null : true;
     final lengthOk = _needsLength ? _length != null : true;
     return sizeOk && colorOk && lengthOk;
   }
@@ -5543,6 +5546,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   void _addCurrentOption() {
     if (!_canAddItem) return;
+    final needsColor = _isSingletATypeSet || _isTaiz;
+    final colorValue = needsColor ? (_color ?? '-') : '-';
     setState(() {
       final sizeLabel = _isSetProduct
           ? '상의 $_topSize / 하의 $_bottomSize'
@@ -5552,11 +5557,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
         'topSize': _topSize,
         'bottomSize': _bottomSize,
         'singleSize': _size,
-        'color': _color!,
+        'color': colorValue,
         'qty': _qty,
         'length': _length ?? '-',
         'gender': _gender ?? '-',
-        'extra': widget.calcExtraForColor(_color!),
+        'extra': needsColor ? widget.calcExtraForColor(colorValue) : 0,
       });
       // 옵션 초기화 (새 옵션 선택)
       _topSize = null;
@@ -5946,44 +5951,14 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
                   // ══════════════════════════════
                   // [4] 색상 선택
-                  //   - 기성품 싱글렛: 상의 색상 고정(표시만), 하의만 선택
-                  //   - 세트/하의: isBottomCategory=true
-                  //   - 일반: isBottomCategory=false
+                  //   - 싱글렛 A타입 세트 / 타이즈만 색상 선택 표시
+                  //   - 상의, 그 외 카테고리는 색상 선택 없음
                   // ══════════════════════════════
-                  if (_isSingletReadyMade) ...[
-                    // 상의 색상 고정 표시
-                    _sectionTitle('상의 색상', required: false),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE0E0E0)),
-                      ),
-                      child: Row(children: [
-                        const Icon(Icons.lock_outline_rounded, size: 15, color: Color(0xFF888888)),
-                        const SizedBox(width: 7),
-                        const Text(
-                          '디자인 색상 그대로 적용 (변경 불가)',
-                          style: TextStyle(fontSize: 12, color: Color(0xFF666666), fontWeight: FontWeight.w600),
-                        ),
-                      ]),
-                    ),
-                    const SizedBox(height: 12),
-                    // 하의 색상만 선택
+                  if (_isSingletATypeSet || _isTaiz) ...[
                     _sectionTitle('하의 색상', required: true),
                     const SizedBox(height: 6),
                     _ColorSelectionWidget(
                       isBottomCategory: true,
-                      selectedColor: _color,
-                      onColorChanged: (c) => setState(() => _color = c),
-                    ),
-                    const SizedBox(height: 16),
-                  ] else ...[
-                    // 일반 색상 선택
-                    _ColorSelectionWidget(
-                      isBottomCategory: _isBottomItem || _isSetProduct,
                       selectedColor: _color,
                       onColorChanged: (c) => setState(() => _color = c),
                     ),
@@ -6275,7 +6250,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     } else if (_size == null) {
       return '사이즈를 선택해주세요';
     }
-    if (_color == null) return '색상을 선택해주세요';
+    // 색상 선택은 싱글렛 A타입 세트 / 타이즈만 필요
+    if ((_isSingletATypeSet || _isTaiz) && _color == null) return '하의 색상을 선택해주세요';
     if (_needsLength && _length == null) return '하의 기장을 선택해주세요';
     return '옵션을 선택해주세요';
   }
