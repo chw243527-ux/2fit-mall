@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../utils/theme.dart';
 import '../../providers/providers.dart';
 import '../../services/auth_service.dart';
+import '../../services/analytics_service.dart';
 import '../../widgets/pc_layout.dart';
 import '../main_screen.dart';
 import 'signup_screen.dart';
@@ -116,6 +117,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (!mounted) return;
     if (result.success && result.user != null) {
       userProv.login(result.user!);
+      AnalyticsService.logLogin(method: 'email');
       // 로그인 상태 유지 처리
       if (_rememberMe) {
         await AuthService.saveRememberMe(_emailCtrl.text.trim());

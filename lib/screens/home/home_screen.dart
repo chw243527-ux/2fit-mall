@@ -13,6 +13,7 @@ import '../products/product_list_screen.dart';
 import '../products/product_detail_screen.dart';
 import '../products/category_detail_screen.dart';
 import '../admin/admin_screen.dart';
+import '../../services/analytics_service.dart';
 import '../chat/chat_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../notifications/notification_center_screen.dart';
@@ -3947,6 +3948,9 @@ class _HomeScreenState extends State<HomeScreen>
                         horizontal: 16, vertical: 14),
                   ),
                   onSubmitted: (v) {
+                    if (v.trim().isNotEmpty) {
+                      AnalyticsService.logSearch(v.trim());
+                    }
                     Navigator.pop(ctx);
                     Navigator.push(
                       context,

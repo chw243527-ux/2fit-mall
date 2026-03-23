@@ -5,9 +5,20 @@
     "display": "standalone",
     "background_color": "#1A1A2E",
     "theme_color": "#1A1A2E",
-    "description": "2FIT MALL - 피트니스 패션 쇼핑몰",
+    "description": "2FIT MALL - 최고의 피트니스 스포츠웨어 쇼핑몰. 단체맞춤, 기성품 구매 가능.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "lang": "ko",
+    "categories": ["shopping", "sports", "fitness"],
+    "screenshots": [
+        {
+            "src": "og-image.png",
+            "sizes": "1200x630",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "2FIT MALL 메인 화면"
+        }
+    ],
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -30,6 +41,22 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "상품 둘러보기",
+            "short_name": "상품",
+            "description": "2FIT MALL 상품 목록 보기",
+            "url": "/#/products",
+            "icons": [{"src": "icons/Icon-192.png", "sizes": "192x192"}]
+        },
+        {
+            "name": "단체맞춤 주문",
+            "short_name": "단체주문",
+            "description": "단체 맞춤 주문하기",
+            "url": "/#/group-order",
+            "icons": [{"src": "icons/Icon-192.png", "sizes": "192x192"}]
         }
     ]
 }
