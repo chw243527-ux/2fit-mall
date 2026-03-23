@@ -20,6 +20,8 @@ import 'screens/orders/order_guide_screen.dart';
 import 'screens/orders/group_custom_order_screen.dart';
 import 'models/models.dart';
 import 'screens/chat/chat_screen.dart';
+import 'screens/policy/privacy_policy_screen.dart';
+import 'screens/policy/terms_of_service_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -140,6 +142,16 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
             case '/chat':
               return MaterialPageRoute(
                 builder: (_) => const ChatScreen(),
+                settings: settings,
+              );
+            case '/privacy-policy':
+              return MaterialPageRoute(
+                builder: (_) => const PrivacyPolicyScreen(),
+                settings: settings,
+              );
+            case '/terms-of-service':
+              return MaterialPageRoute(
+                builder: (_) => const TermsOfServiceScreen(),
                 settings: settings,
               );
             default:

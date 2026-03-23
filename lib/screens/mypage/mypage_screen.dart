@@ -1474,6 +1474,22 @@ class _PcSettingsTab extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
+                _PcSettingSection(
+                  title: '약관 및 정책',
+                  items: [
+                    _PcSettingItem(
+                      icon: Icons.privacy_tip_outlined,
+                      title: '개인정보처리방침',
+                      onTap: () => Navigator.pushNamed(context, '/privacy-policy'),
+                    ),
+                    _PcSettingItem(
+                      icon: Icons.description_outlined,
+                      title: '이용약관',
+                      onTap: () => Navigator.pushNamed(context, '/terms-of-service'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
                 if (user != null)
                   _PcSettingSection(
                     title: loc.mypageSecuritySection,
@@ -2413,6 +2429,19 @@ class _MobileSettingsTab extends StatelessWidget {
           _MobileSettingItem(icon: Icons.language_rounded, title: loc.mypageLanguageSetting,
             trailing: _LanguageDropdown()),
           const _MobileSettingItem(icon: Icons.info_outline_rounded, title: '앱 정보', subtitle: 'v1.0.0'),
+        ]),
+        const SizedBox(height: 16),
+        _MobileSettingGroup(title: '약관 및 정책', items: [
+          _MobileSettingItem(
+            icon: Icons.privacy_tip_outlined,
+            title: '개인정보처리방침',
+            onTap: () => Navigator.pushNamed(context, '/privacy-policy'),
+          ),
+          _MobileSettingItem(
+            icon: Icons.description_outlined,
+            title: '이용약관',
+            onTap: () => Navigator.pushNamed(context, '/terms-of-service'),
+          ),
         ]),
         if (user != null) ...[          const SizedBox(height: 16),
           _MobileSettingGroup(title: loc.mypageSecuritySection, items: [
