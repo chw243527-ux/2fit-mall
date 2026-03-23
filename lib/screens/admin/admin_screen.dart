@@ -19,6 +19,7 @@ import '../../services/translation_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/constants.dart';
 import '../auth/login_screen.dart';
+import '../home/home_screen.dart';
 import '../chat/chat_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'admin_extra_tabs.dart';
@@ -389,12 +390,38 @@ class _AdminScreenState extends State<AdminScreen>
                     },
                   ),
                 ),
-                // 알림 + 로그아웃
+                // 알림 + 뒤로가기 + 로그아웃
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06)))),
-                  child: Row(
+                  child: Column(
                     children: [
+                      // 홈으로 뒤로가기 버튼
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton.icon(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                            backgroundColor: Colors.white.withValues(alpha: 0.06),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 14, color: Colors.white70),
+                          label: const Text('홈으로 돌아가기', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                          onPressed: () {
+                            if (Navigator.canPop(context)) {
+                              Navigator.pop(context);
+                            } else {
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(builder: (_) => const HomeScreen()),
+                                (r) => false,
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
                       Expanded(
                         child: StreamBuilder<List<AdminNotification>>(
                           stream: AdminNotificationStore.stream,
@@ -455,6 +482,8 @@ class _AdminScreenState extends State<AdminScreen>
                         },
                         tooltip: '로그아웃',
                       ),
+                    ],
+                  ),
                     ],
                   ),
                 ),
@@ -7086,6 +7115,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   bool _isUploading = false;
   String _uploadStatus = '';
   String _uploadError = '';
+  bool _isSaving = false;
   // ── 토글
   bool _isNew = false;
   bool _isSale = false;
@@ -7215,12 +7245,26 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         setState(() { _isUploading = false; _uploadStatus = ''; });
         return;
       }
+
+      // ① 즉시 base64 미리보기 추가 (업로드 전에 바로 화면에 표시)
+      final previews = <String>[];
+      for (final f in files) {
+        final bytes = await f.readAsBytes();
+        final b64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        previews.add(b64);
+      }
+      if (!mounted) return;
+      setState(() {
+        _images = [..._images, ...previews];
+        _uploadStatus = 'Firebase 업로드 중... (0/${files.length})';
+      });
+
+      // ② 백그라운드에서 Firebase Storage 업로드 후 URL 교체
       final productId = widget.existing?.id ?? 'p_${DateTime.now().millisecondsSinceEpoch}';
-      final newImgs = List<String>.from(_images);
       int success = 0;
       for (int i = 0; i < files.length; i++) {
         if (!mounted) break;
-        setState(() => _uploadStatus = '업로드 중... (${i + 1}/${files.length})');
+        setState(() => _uploadStatus = 'Firebase 업로드 중... (${i + 1}/${files.length})');
         try {
           final bytes = await files[i].readAsBytes();
           final url = await StorageService.uploadProductImage(
@@ -7228,8 +7272,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
             bytes: bytes,
             fileName: '${DateTime.now().millisecondsSinceEpoch}_$i.jpg',
           );
-          if (url.isNotEmpty) {
-            newImgs.add(url);
+          if (url.isNotEmpty && mounted) {
+            // base64 미리보기를 실제 URL로 교체
+            final previewIdx = _images.indexOf(previews[i]);
+            if (previewIdx >= 0) {
+              setState(() => _images[previewIdx] = url);
+            }
             success++;
           }
         } catch (e) {
@@ -7237,26 +7285,19 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         }
       }
       if (!mounted) return;
-      if (success > 0) {
-        setState(() {
-          _images = newImgs;
-          _isUploading = false;
-          _uploadStatus = '';
-          _uploadError = '';
-        });
-      } else {
-        setState(() {
-          _isUploading = false;
-          _uploadStatus = '';
-          _uploadError = '업로드 실패: Firebase Storage 업로드를 확인하세요.\nURL 직접 입력을 사용해주세요.';
-        });
-      }
+      setState(() {
+        _isUploading = false;
+        _uploadStatus = '';
+        _uploadError = success == 0
+            ? '업로드 실패: Firebase Storage를 확인하세요.\n미리보기는 로컬 이미지로 표시됩니다.'
+            : '';
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isUploading = false;
         _uploadStatus = '';
-        _uploadError = '오류: $e\n\nURL 직접 입력을 사용하거나 Firebase Storage CORS 설정을 확인해주세요.';
+        _uploadError = '오류: $e';
       });
     }
   }
@@ -7332,8 +7373,30 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       nameTranslations: translations,
       descriptionTranslations: descTranslations,
     );
-    if (mounted) Navigator.pop(context);
-    await widget.onSaved(product, _isEdit);
+    if (mounted) setState(() => _isSaving = true);
+    try {
+      await widget.onSaved(product, _isEdit);
+      if (!mounted) return;
+      setState(() { _isSaving = false; });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Row(children: [
+          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+          const SizedBox(width: 8),
+          Text(_isEdit ? '${product.name} 수정 완료!' : '${product.name} 등록 완료!'),
+        ]),
+        backgroundColor: const Color(0xFF2E7D32),
+        duration: const Duration(seconds: 2),
+      ));
+      // 수정 모드면 폼 유지, 신규 등록이면 닫기
+      if (!_isEdit) Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _isSaving = false; });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('저장 실패: $e'),
+        backgroundColor: Colors.red,
+      ));
+    }
   }
 
   @override
@@ -7913,9 +7976,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: _save,
-                child: Text(_isEdit ? '수정 저장' : '상품 등록',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                onPressed: _isSaving ? null : _save,
+                child: _isSaving
+                    ? const SizedBox(height: 20, width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text(_isEdit ? '수정 저장' : '상품 등록',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
               )),
             ]),
           ),
