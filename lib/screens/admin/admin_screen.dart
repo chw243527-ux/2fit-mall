@@ -8162,30 +8162,37 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 final title = titleCtrl.text.trim();
                 final content = contentCtrl.text.trim();
                 if (title.isEmpty || content.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  ScaffoldMessenger.of(ctx).showSnackBar(
                     const SnackBar(content: Text('제목과 내용을 모두 입력해주세요')),
                   );
                   return;
                 }
-                Navigator.pop(ctx);
+                // 수정 시 제목/내용이 변경되면 번역 초기화 (재번역 유도)
+                final titleChanged = existing != null && existing.titleKo != title;
+                final contentChanged = existing != null && existing.contentKo != content;
                 final notice = NoticeModel(
                   id: existing?.id ?? 'notice_${DateTime.now().millisecondsSinceEpoch}',
                   titleKo: title,
                   contentKo: content,
-                  titleTranslations: existing?.titleTranslations ?? const {},
-                  contentTranslations: existing?.contentTranslations ?? const {},
+                  titleTranslations: titleChanged ? const {} : (existing?.titleTranslations ?? const {}),
+                  contentTranslations: contentChanged ? const {} : (existing?.contentTranslations ?? const {}),
                   isActive: isActive,
                   createdAt: existing?.createdAt ?? DateTime.now(),
                 );
+                // provider 참조를 팝업 닫기 전에 미리 가져옴
+                final noticeProvider = context.read<NoticeProvider>();
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                final isEdit = existing != null;
+                Navigator.pop(ctx);
                 try {
-                  await context.read<NoticeProvider>().saveNotice(notice);
+                  await noticeProvider.saveNotice(notice);
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    scaffoldMessenger.showSnackBar(
                       SnackBar(
                         content: Row(children: [
                           const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
                           const SizedBox(width: 8),
-                          Text(existing == null ? '공지사항이 등록되었습니다' : '공지사항이 수정되었습니다'),
+                          Text(isEdit ? '공지사항이 수정되었습니다' : '공지사항이 등록되었습니다'),
                         ]),
                         backgroundColor: const Color(0xFF2E7D32),
                         behavior: SnackBarBehavior.floating,
@@ -8195,7 +8202,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   }
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    scaffoldMessenger.showSnackBar(
                       SnackBar(content: Text('저장 실패: $e'), backgroundColor: Colors.red),
                     );
                   }
