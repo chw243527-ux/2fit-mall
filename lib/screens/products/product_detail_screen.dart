@@ -6481,84 +6481,11 @@ class _ColorSelectionWidget extends StatefulWidget {
 }
 
 class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
-  bool _showCustomInput = false;
-  final TextEditingController _hexController = TextEditingController();
-  Color? _previewColor;
-  String? _hexError;
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
-  AppLanguage get _lang => context.watch<LanguageProvider>().language;
-
-  // 19가지 2FIT 표준 색상 (하의 기준)
-  static const List<Map<String, dynamic>> _palette = [
-    {'name': '블랙', 'nameEn': 'Black', 'hex': 0xFF1A1A1A, 'free': true},
-    {'name': '화이트', 'nameEn': 'White', 'hex': 0xFFF5F5F5, 'free': false},
-    {'name': '챠콜', 'nameEn': 'Charcoal', 'hex': 0xFF3C3C3C, 'free': false},
-    {'name': '라이트그레이', 'nameEn': 'Lt.Gray', 'hex': 0xFFBDBDBD, 'free': false},
-    {'name': '네이비', 'nameEn': 'Navy', 'hex': 0xFF0D1B4F, 'free': false},
-    {'name': '로얄블루', 'nameEn': 'Royal Blue', 'hex': 0xFF1245A8, 'free': false},
-    {'name': '스카이블루', 'nameEn': 'Sky Blue', 'hex': 0xFF3FA9F5, 'free': false},
-    {'name': '민트', 'nameEn': 'Mint', 'hex': 0xFF26C9A0, 'free': false},
-    {'name': '다크그린', 'nameEn': 'D.Green', 'hex': 0xFF1B4332, 'free': false},
-    {'name': '그린', 'nameEn': 'Green', 'hex': 0xFF43A047, 'free': false},
-    {'name': '레드', 'nameEn': 'Red', 'hex': 0xFFCC0000, 'free': false},
-    {'name': '버건디', 'nameEn': 'Burgundy', 'hex': 0xFF6D0E19, 'free': false},
-    {'name': '핑크', 'nameEn': 'Pink', 'hex': 0xFFEE82A2, 'free': false},
-    {'name': '라이트핑크', 'nameEn': 'Lt.Pink', 'hex': 0xFFF8BBD0, 'free': false},
-    {'name': '퍼플(PP)', 'nameEn': 'Purple', 'hex': 0xFF7B1FA2, 'free': true},
-    {'name': '오렌지', 'nameEn': 'Orange', 'hex': 0xFFFF6B35, 'free': false},
-    {'name': '옐로우', 'nameEn': 'Yellow', 'hex': 0xFFFFD600, 'free': false},
-    {'name': '골드', 'nameEn': 'Gold', 'hex': 0xFFD4AF37, 'free': false},
-    {'name': '브라운', 'nameEn': 'Brown', 'hex': 0xFF795548, 'free': false},
-  ];
-
-  // 기본 검정/남색 (기타 카테고리)
-  static const List<Map<String, dynamic>> _defaultColors = [
-    {'name': '블랙', 'nameEn': 'Black', 'hex': 0xFF1A1A1A, 'free': true},
-    {'name': '남색', 'nameEn': 'Navy', 'hex': 0xFF1A237E, 'free': true},
-  ];
-
-  bool _isColorFree(Map<String, dynamic> c) => c['free'] as bool;
-
-  bool get _isCustomSelected =>
-      widget.selectedColor != null &&
-      !_palette.any((c) => c['nameEn'] == widget.selectedColor) &&
-      !_defaultColors.any((c) => c['nameEn'] == widget.selectedColor);
-
-  void _parseHex(String value) {
-    setState(() {
-      _hexError = null;
-      _previewColor = null;
-      final raw = value.trim().replaceAll('#', '').toUpperCase();
-      if (raw.length == 6) {
-        try {
-          final intVal = int.parse('FF$raw', radix: 16);
-          _previewColor = Color(intVal);
-        } catch (_) {
-          _hexError = '올바른 16진수 코드를 입력하세요 (예: 1A237E)';
-        }
-      } else if (raw.isNotEmpty) {
-        _hexError = '6자리 색상코드를 입력하세요';
-      }
-    });
-  }
-
-  void _applyCustomColor() {
-    final raw = _hexController.text.trim().replaceAll('#', '').toUpperCase();
-    if (raw.length == 6 && _previewColor != null) {
-      widget.onColorChanged('#$raw');
-      setState(() => _showCustomInput = false);
-    }
-  }
-
-  @override
-  void dispose() {
-    _hexController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
-    // 상세 페이지와 동일한 AppColorPalette.registeredColors 사용
+    // 상세 페이지 _buildColorSection과 완전히 동일한 팔레트 사용
     const palette = AppColorPalette.registeredColors;
     final freeColors = AppConstants.freeColors;
 
@@ -6568,28 +6495,21 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
         // ── 헤더 ──
         Row(
           children: [
-            Text(loc.colorLabel2, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+            Text(loc.colorLabel2,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
             const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFF4CAF50).withValues(alpha: 0.3)),
+                color: const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0xFFFFB74D), width: 0.8),
               ),
-              child: Text(loc.productKPPFree,
-                  style: const TextStyle(fontSize: 9, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
-            ),
-            const SizedBox(width: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF5722).withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFFFF5722).withValues(alpha: 0.3)),
-              ),
-              child: Text(loc.otherColorFee,
-                  style: const TextStyle(fontSize: 9, color: Color(0xFFD84315), fontWeight: FontWeight.w700)),
+              child: Text(loc.productColorExtraNote,
+                  style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFFE65100),
+                      fontWeight: FontWeight.w700)),
             ),
           ],
         ),
@@ -6609,25 +6529,32 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(children: [
                 Text(loc.selectedLabel,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                    style: const TextStyle(
+                        fontSize: 12, color: Color(0xFF888888))),
                 const SizedBox(width: 6),
                 Container(
-                  width: 16, height: 16,
+                  width: 16,
+                  height: 16,
                   decoration: BoxDecoration(
                     color: Color(found['hex'] as int),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFCCCCCC), width: 0.8),
+                    border:
+                        Border.all(color: const Color(0xFFCCCCCC), width: 0.8),
                   ),
                 ),
                 const SizedBox(width: 6),
-                Text(col, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                Text(col,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700)),
                 const SizedBox(width: 6),
                 Text(
                   isFree ? '기본색상' : '+20,000원',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFCC0000),
+                    color: isFree
+                        ? const Color(0xFF2E7D32)
+                        : const Color(0xFFCC0000),
                   ),
                 ),
               ]),
@@ -6635,15 +6562,15 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
           }),
         ],
 
-        // ── 색상 팔레트 (상세 페이지와 동일 스타일) ──
+        // ── 색상 팔레트 그리드 (상세 페이지와 동일) ──
         Wrap(
           spacing: 8,
           runSpacing: 10,
           children: palette.map((c) {
             final name = c['name'] as String;
-            final hex  = c['hex'] as int;
+            final hex = c['hex'] as int;
             final code = c['code'] as String;
-            final sel  = widget.selectedColor == name;
+            final sel = widget.selectedColor == name;
             final isFree = freeColors.contains(name);
             return GestureDetector(
               onTap: () => widget.onColorChanged(name),
@@ -6670,11 +6597,15 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                     style: TextStyle(
                       fontSize: 9,
                       fontWeight: sel ? FontWeight.w800 : FontWeight.w400,
-                      color: sel ? const Color(0xFF1A1A1A) : const Color(0xFF666666),
+                      color: sel
+                          ? const Color(0xFF1A1A1A)
+                          : const Color(0xFF666666),
                     ),
                   ),
                   if (!isFree)
-                    const Text('+₩', style: TextStyle(fontSize: 8, color: Color(0xFFCC0000))),
+                    const Text('+₩',
+                        style: TextStyle(
+                            fontSize: 8, color: Color(0xFFCC0000))),
                 ],
               ),
             );
@@ -6683,6 +6614,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
         const SizedBox(height: 4),
         Text(loc.productColorExtraFull,
             style: const TextStyle(fontSize: 10, color: Color(0xFF999999))),
+        const SizedBox(height: 12),
       ],
     );
   }
