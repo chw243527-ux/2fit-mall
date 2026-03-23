@@ -6558,7 +6558,9 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = widget.isBottomCategory ? _palette : _defaultColors;
+    // 상세 페이지와 동일한 AppColorPalette.registeredColors 사용
+    const palette = AppColorPalette.registeredColors;
+    final freeColors = AppConstants.freeColors;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -6568,358 +6570,119 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
           children: [
             Text(loc.colorLabel2, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
             const SizedBox(width: 8),
-            if (widget.isBottomCategory)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A1A).withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFF1A1A1A).withValues(alpha: 0.15)),
-                ),
-                child: Text(loc.productColors19, style: const TextStyle(fontSize: 10, color: Color(0xFF333333), fontWeight: FontWeight.w700)),
-              )
-            else
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A237E).withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFF1A237E).withValues(alpha: 0.2)),
-                ),
-                child: Text(loc.blackNavyLabel, style: const TextStyle(fontSize: 10, color: Color(0xFF1A237E), fontWeight: FontWeight.w700)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFF4CAF50).withValues(alpha: 0.3)),
               ),
-            if (widget.isBottomCategory) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFF4CAF50).withValues(alpha: 0.3)),
-                ),
-                child: Text(loc.productKPPFree, style: const TextStyle(fontSize: 9, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
+              child: Text(loc.productKPPFree,
+                  style: const TextStyle(fontSize: 9, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
+            ),
+            const SizedBox(width: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF5722).withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFFF5722).withValues(alpha: 0.3)),
               ),
-              const SizedBox(width: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF5722).withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: const Color(0xFFFF5722).withValues(alpha: 0.3)),
-                ),
-                child: Text(loc.otherColorFee, style: const TextStyle(fontSize: 9, color: Color(0xFFD84315), fontWeight: FontWeight.w700)),
-              ),
-            ],
+              child: Text(loc.otherColorFee,
+                  style: const TextStyle(fontSize: 9, color: Color(0xFFD84315), fontWeight: FontWeight.w700)),
+            ),
           ],
         ),
         const SizedBox(height: 10),
 
-        // ── 골지 텍스처 색상 그리드 ──
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 5,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 10,
-            childAspectRatio: 0.80,
-          ),
-          itemCount: colors.length + (widget.isBottomCategory ? 1 : 0),
-          itemBuilder: (_, idx) {
-            // 마지막 항목: 직접 입력 버튼
-            if (widget.isBottomCategory && idx == colors.length) {
-              return GestureDetector(
-                onTap: () => setState(() => _showCustomInput = !_showCustomInput),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 130),
-                      width: 52, height: 52,
-                      decoration: BoxDecoration(
-                        color: _showCustomInput || _isCustomSelected
-                            ? const Color(0xFF1A1A1A)
-                            : const Color(0xFFF0F0F0),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: _showCustomInput || _isCustomSelected
-                              ? const Color(0xFF1A1A1A)
-                              : const Color(0xFFCCCCCC),
-                          width: _showCustomInput ? 2.5 : 1,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.palette_rounded,
-                        size: 22,
-                        color: _showCustomInput || _isCustomSelected
-                            ? Colors.white
-                            : const Color(0xFF888888),
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(loc.directInputLabel,
-                        style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w700, color: Color(0xFF555555), height: 1.2),
-                        textAlign: TextAlign.center),
-                  ],
+        // ── 선택된 색상 표시 ──
+        if (widget.selectedColor != null) ...[
+          Builder(builder: (_) {
+            final col = widget.selectedColor!;
+            final found = palette.firstWhere(
+              (c) => c['name'] == col,
+              orElse: () => <String, dynamic>{},
+            );
+            if (found.isEmpty) return const SizedBox.shrink();
+            final isFree = freeColors.contains(col);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(children: [
+                Text(loc.selectedLabel,
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                const SizedBox(width: 6),
+                Container(
+                  width: 16, height: 16,
+                  decoration: BoxDecoration(
+                    color: Color(found['hex'] as int),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFCCCCCC), width: 0.8),
+                  ),
                 ),
-              );
-            }
+                const SizedBox(width: 6),
+                Text(col, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                const SizedBox(width: 6),
+                Text(
+                  isFree ? '기본색상' : '+20,000원',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFCC0000),
+                  ),
+                ),
+              ]),
+            );
+          }),
+        ],
 
-            final c = colors[idx];
-            final sel = widget.selectedColor == c['nameEn'];
-            final chipColor = Color(c['hex'] as int);
-            final isFree = _isColorFree(c);
-            final isLight = chipColor.computeLuminance() > 0.5;
+        // ── 색상 팔레트 (상세 페이지와 동일 스타일) ──
+        Wrap(
+          spacing: 8,
+          runSpacing: 10,
+          children: palette.map((c) {
+            final name = c['name'] as String;
+            final hex  = c['hex'] as int;
+            final code = c['code'] as String;
+            final sel  = widget.selectedColor == name;
+            final isFree = freeColors.contains(name);
             return GestureDetector(
-              onTap: () {
-                widget.onColorChanged(c['nameEn'] as String);
-                setState(() => _showCustomInput = false);
-              },
+              onTap: () => widget.onColorChanged(name),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   RibColorSwatch(
-                    color: chipColor,
-                    size: 52,
+                    color: Color(hex),
+                    size: 40,
                     isSelected: sel,
                     accentColor: const Color(0xFF1A1A1A),
-                    isLight: isLight,
+                    isLight: Color(hex).computeLuminance() > 0.5,
                     child: sel
                         ? Icon(Icons.check_rounded,
-                            size: 20,
-                            color: isLight ? Colors.black87 : Colors.white)
+                            size: 18,
+                            color: Color(hex).computeLuminance() > 0.5
+                                ? const Color(0xFF333333)
+                                : Colors.white)
                         : null,
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    c['name'] as String,
+                    code,
                     style: TextStyle(
-                      fontSize: 8,
-                      fontWeight: sel ? FontWeight.w800 : FontWeight.w600,
-                      color: sel ? const Color(0xFF1A1A1A) : const Color(0xFF555555),
-                      height: 1.2,
+                      fontSize: 9,
+                      fontWeight: sel ? FontWeight.w800 : FontWeight.w400,
+                      color: sel ? const Color(0xFF1A1A1A) : const Color(0xFF666666),
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  if (widget.isBottomCategory)
-                    Text(
-                      isFree ? '무료' : '+₩2만',
-                      style: TextStyle(
-                        fontSize: 7.5,
-                        fontWeight: FontWeight.w700,
-                        color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFD84315),
-                      ),
-                    ),
+                  if (!isFree)
+                    const Text('+₩', style: TextStyle(fontSize: 8, color: Color(0xFFCC0000))),
                 ],
               ),
             );
-          },
+          }).toList(),
         ),
-
-        // ── 직접입력 패널 ──
-        if (_showCustomInput && widget.isBottomCategory) ...[
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8F9FA),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE0E0E0)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.palette_outlined, size: 14, color: Color(0xFF666666)),
-                    const SizedBox(width: 6),
-                    Text(loc.colorCodeInput, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
-                    const SizedBox(width: 6),
-                    Text(loc.productHexCodeLabel, style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    // 색상 미리보기 (골지 텍스처)
-                    GestureDetector(
-                      onTap: _previewColor != null ? _applyCustomColor : null,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: SizedBox(
-                          width: 44, height: 44,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              ColoredBox(color: _previewColor ?? const Color(0xFFEEEEEE)),
-                              if (_previewColor != null)
-                                CustomPaint(painter: RibTexturePainter(baseColor: _previewColor!)),
-                              if (_previewColor == null)
-                                const Center(child: Icon(Icons.colorize_rounded, color: Color(0xFFBBBBBB), size: 20)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        controller: _hexController,
-                        onChanged: _parseHex,
-                        maxLength: 7,
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 2),
-                        decoration: InputDecoration(
-                          hintText: '#1A237E',
-                          hintStyle: const TextStyle(color: Color(0xFFBBBBBB), fontWeight: FontWeight.normal),
-                          prefixText: '#',
-                          prefixStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF666666)),
-                          counterText: '',
-                          errorText: _hexError,
-                          errorStyle: const TextStyle(fontSize: 10),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(color: Color(0xFF1A1A1A), width: 1.5),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: _previewColor != null ? _applyCustomColor : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _previewColor ?? const Color(0xFFCCCCCC),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: Text(loc.applyLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                // 안내 문구
-                const Row(
-                  children: [
-                    Icon(Icons.info_outline_rounded, size: 12, color: Color(0xFFD84315)),
-                    SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        '직접 입력 색상은 +₩20,000 추가비용이 발생합니다. 색상 팔레트 참고: colorpicker.me',
-                        style: TextStyle(fontSize: 10, color: Color(0xFFD84315)),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                // 자주 쓰는 색상 빠른 선택
-                Text(loc.frequentColors, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF888888))),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 6, runSpacing: 6,
-                  children: const [
-                    {'hex': '1A1A1A', 'name': '블랙'},
-                    {'hex': 'F5F5F5', 'name': '화이트'},
-                    {'hex': 'CC0000', 'name': '레드'},
-                    {'hex': '1245A8', 'name': '로얄블루'},
-                    {'hex': '43A047', 'name': '그린'},
-                    {'hex': 'FFD600', 'name': '옐로우'},
-                    {'hex': '7B1FA2', 'name': '퍼플'},
-                    {'hex': 'FF6B35', 'name': '오렌지'},
-                  ].map((item) => GestureDetector(
-                    onTap: () {
-                      _hexController.text = item['hex']!;
-                      _parseHex(item['hex']!);
-                    },
-                    child: RibColorSwatch(
-                      color: Color(int.parse('FF${item["hex"]}', radix: 16)),
-                      size: 28,
-                      isLight: Color(int.parse('FF${item["hex"]}', radix: 16)).computeLuminance() > 0.5,
-                    ),
-                  )).toList(),
-                ),
-              ],
-            ),
-          ),
-        ],
-
-        // ── 현재 선택된 색상 표시 ──
-        if (widget.selectedColor != null) ...[
-          const SizedBox(height: 10),
-          Builder(builder: (ctx) {
-            final col = widget.selectedColor!;
-            final isCustom = col.startsWith('#');
-            Color displayColor;
-            String displayName;
-            bool isFree = false;
-            if (isCustom) {
-              try {
-                displayColor = Color(int.parse('FF${col.substring(1)}', radix: 16));
-              } catch (_) {
-                displayColor = Colors.grey;
-              }
-              displayName = '직접 입력: $col';
-              isFree = false;
-            } else {
-              final found = widget.isBottomCategory
-                  ? _palette.firstWhere((c) => c['nameEn'] == col, orElse: () => _defaultColors.firstWhere((c) => c['nameEn'] == col, orElse: () => <String, dynamic>{}))
-                  : _defaultColors.firstWhere((c) => c['nameEn'] == col, orElse: () => <String, dynamic>{});
-              if (found.isEmpty) return const SizedBox.shrink();
-              displayColor = Color(found['hex'] as int);
-              displayName = found['name'] as String;
-              isFree = found['free'] as bool;
-            }
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF0F4FF),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFBBCCFF)),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 18, height: 18,
-                    decoration: BoxDecoration(
-                      color: displayColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                      boxShadow: [BoxShadow(color: displayColor.withValues(alpha: 0.4), blurRadius: 4)],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text('${loc.selectedLabel} $displayName', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
-                  ),
-                  if (widget.isBottomCategory)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isFree ? const Color(0xFF4CAF50).withValues(alpha: 0.15) : const Color(0xFFFF5722).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        isFree ? '무료' : '+₩20,000',
-                        style: TextStyle(
-                          fontSize: 11, fontWeight: FontWeight.w800,
-                          color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFD84315),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            );
-          }),
-        ],
+        const SizedBox(height: 4),
+        Text(loc.productColorExtraFull,
+            style: const TextStyle(fontSize: 10, color: Color(0xFF999999))),
       ],
     );
   }
