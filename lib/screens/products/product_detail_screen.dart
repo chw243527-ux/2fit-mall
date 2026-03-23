@@ -1045,7 +1045,61 @@ $productUrl
           // 상품명
           Text(product.localizedName(_lang),
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), height: 1.2)),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
+
+          // ── 기성품 상의: 색상 안내 인라인 뱃지 배너 ──
+          if (!product.isGroupOnly && (product.category == '상의' || product.subCategory.contains('싱글렛'))) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F8FF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.35), width: 1.5),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1565C0).withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.lock_rounded, size: 16, color: Color(0xFF1565C0)),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1565C0),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text('기성품',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+                            ),
+                            const SizedBox(width: 6),
+                            const Text('상의 색상 변경 불가',
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        const Text('디자인 색상 그대로 제작됩니다. 하의 색상은 선택 가능합니다.',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF555555), height: 1.4)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+
           // 가격 영역
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -1517,115 +1571,163 @@ $productUrl
           const Divider(height: 1),
           const SizedBox(height: 10),
 
-          // ── 기성품 싱글렛(상의): 상의 색상 고정 안내 배너 ──
+          // ── 기성품 싱글렛(상의): 상의 색상 고정 안내 배너 (강조형) ──
           if (isSingletTop) ...[
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0D47A1), Color(0xFF1565C0)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF1565C0).withValues(alpha: 0.25),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: const Color(0xFF1565C0).withValues(alpha: 0.18),
+                    blurRadius: 14,
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(7),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Column(
+                  children: [
+                    // 헤더
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF0D47A1), Color(0xFF1A6ED4)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        child: const Icon(Icons.palette_rounded, size: 16, color: Colors.white),
                       ),
-                      const SizedBox(width: 10),
-                      const Expanded(
-                        child: Text(
-                          '상의 디자인 색상 안내',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: 0.3,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_rounded, size: 18, color: Colors.white),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Text(
+                              '기성품 색상 안내',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
-                        ),
-                        child: const Text(
-                          '기성품',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text('기성품',
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white)),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Column(
-                      children: [
-                        _colorNoticeRow(
-                          Icons.lock_rounded,
-                          '상의 색상',
-                          '디자인 색상 그대로 제작 (변경 불가)',
-                          highlight: true,
-                        ),
-                        const SizedBox(height: 6),
-                        _colorNoticeRow(
-                          Icons.check_circle_rounded,
-                          '하의 색상',
-                          '19가지 색상 중 자유 선택 가능',
-                          highlight: false,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.info_outline_rounded, size: 12, color: Colors.white70),
-                      const SizedBox(width: 5),
-                      Expanded(
-                        child: Text(
-                          '색상 선택은 장바구니 담기 / 바로구매 버튼을 눌러 진행하세요',
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            color: Colors.white.withValues(alpha: 0.8),
-                            height: 1.4,
+                    // 상의 색상 고정 행
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      color: const Color(0xFFFFF3E0),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE65100).withValues(alpha: 0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.lock_rounded, size: 16, color: Color(0xFFE65100)),
                           ),
-                        ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('상의 색상 — 변경 불가',
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFFBF360C))),
+                                const SizedBox(height: 2),
+                                Text('디자인 색상 그대로 제작됩니다',
+                                  style: TextStyle(fontSize: 11, color: const Color(0xFFBF360C).withValues(alpha: 0.8), height: 1.3)),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE65100),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text('고정',
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white)),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    // 구분선
+                    const Divider(height: 1, color: Color(0xFFE0E0E0)),
+                    // 하의 색상 선택 가능 행
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      color: const Color(0xFFE8F5E9),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2E7D32).withValues(alpha: 0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF2E7D32)),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('하의 색상 — 선택 가능',
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFF1B5E20))),
+                                const SizedBox(height: 2),
+                                Text('19가지 색상 중 자유롭게 선택하세요',
+                                  style: TextStyle(fontSize: 11, color: const Color(0xFF1B5E20).withValues(alpha: 0.8), height: 1.3)),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2E7D32),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text('선택',
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // 하단 안내
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                      color: const Color(0xFFF5F5F5),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.touch_app_rounded, size: 13, color: Color(0xFF888888)),
+                          const SizedBox(width: 6),
+                          const Expanded(
+                            child: Text(
+                              '하의 색상 선택은 장바구니 / 바로구매 버튼을 눌러 진행하세요',
+                              style: TextStyle(fontSize: 10.5, color: Color(0xFF666666), height: 1.4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
           ],
 
           // ── 싱글렛 A타입세트: 하의 기장 자동적용 안내 배너 ──
