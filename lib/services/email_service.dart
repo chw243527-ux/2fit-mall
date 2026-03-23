@@ -1,5 +1,7 @@
 // email_service.dart - 이메일 자동 발송 (EmailJS API)
-// EmailJS: https://www.emailjs.com (무료: 월 200건)
+// EmailJS: https://www.emailjs.com (무료: 월 200건, 템플릿 2개)
+// 사용 템플릿: template_order (주문확인), template_status (상태변경)
+// 환영/비밀번호 이메일 → Firebase Authentication 자동 처리
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -8,11 +10,11 @@ import '../models/models.dart';
 
 class EmailService {
   // ── EmailJS 설정 ─────────────────────────────────────
-  // https://dashboard.emailjs.com 에서 발급
-  static const _serviceId = 'service_2fitmall';    // EmailJS Service ID
-  static const _templateOrderId = 'template_order'; // 주문 확인 템플릿
-  static const _templateStatusId = 'template_status'; // 상태 변경 템플릿
-  static const _publicKey = 'S7NAATfTC4cwKqgK7'; // EmailJS 공개 키
+  static const _serviceId = 'service_2fitmall';
+  static const _templateOrderId = 'template_order';   // 주문 확인
+  static const _templateStatusId = 'template_status'; // 상태 변경
+  static const _publicKey = 'S7NAATfTC4cwKqgK7';
+  static const _origin = 'https://2fit-mall.co.kr';   // 실제 도메인
 
   static final _db = FirebaseFirestore.instance;
 
@@ -21,18 +23,12 @@ class EmailService {
     required String templateId,
     required Map<String, dynamic> templateParams,
   }) async {
-    if (_publicKey == 'YOUR_EMAILJS_PUBLIC_KEY') {
-      // 키 미설정 시 Firestore에만 저장
-      if (kDebugMode) debugPrint('📧 EmailJS 키 미설정 → Firestore에 이메일 큐 저장');
-      return _queueEmail(templateId: templateId, params: templateParams);
-    }
-
     try {
       final response = await http.post(
         Uri.parse('https://api.emailjs.com/api/v1.0/email/send'),
         headers: {
           'Content-Type': 'application/json',
-          'origin': 'https://2fit-mall.netlify.app',
+          'origin': _origin,
         },
         body: jsonEncode({
           'service_id': _serviceId,
@@ -49,7 +45,6 @@ class EmailService {
         if (kDebugMode) {
           debugPrint('❌ 이메일 발송 실패: ${response.statusCode} ${response.body}');
         }
-        // 실패 시 큐에 저장 (재시도)
         return _queueEmail(templateId: templateId, params: templateParams);
       }
     } catch (e) {
@@ -58,7 +53,7 @@ class EmailService {
     }
   }
 
-  // ── Firestore 이메일 큐 (EmailJS 미설정 시 저장) ────────
+  // ── Firestore 이메일 큐 (발송 실패 시 저장 → 재시도) ─
   static Future<bool> _queueEmail({
     required String templateId,
     required Map<String, dynamic> params,
@@ -70,6 +65,7 @@ class EmailService {
         'status': 'pending',
         'createdAt': FieldValue.serverTimestamp(),
       });
+      if (kDebugMode) debugPrint('📧 이메일 큐 저장 완료');
       return true;
     } catch (e) {
       if (kDebugMode) debugPrint('이메일 큐 저장 실패: $e');
@@ -82,8 +78,8 @@ class EmailService {
     if (order.userEmail.isEmpty) return false;
 
     final itemList = order.items
-        .map((i) => '• ${i.productName} (${i.size}/${i.color}) × ${i.quantity}개 - ${_fmtPrice(i.price * i.quantity)}원')
-        .join('\n');
+        .map((i) => '${i.productName} (${i.size}/${i.color}) × ${i.quantity}개 - ${_fmtPrice(i.price * i.quantity)}원')
+        .join(', ');
 
     return _sendEmail(
       templateId: _templateOrderId,
@@ -98,7 +94,7 @@ class EmailService {
         'shipping_address': order.userAddress,
         'payment_method': order.paymentMethod,
         'shop_name': '2FIT MALL',
-        'shop_url': 'https://2fit-mall.netlify.app',
+        'shop_url': _origin,
       },
     );
   }
@@ -128,7 +124,7 @@ class EmailService {
         statusMsg = '배송이 시작되었습니다';
         actionMsg = trackingNumber != null
             ? '운송장 번호: $trackingNumber (${courierName ?? '택배사'})'
-            : '배송 시작되었습니다.';
+            : '배송이 시작되었습니다.';
         break;
       case OrderStatus.delivered:
         statusMsg = '배송이 완료되었습니다';
@@ -157,45 +153,8 @@ class EmailService {
         'action_message': actionMsg,
         'tracking_number': trackingNumber ?? '',
         'courier_name': courierName ?? '',
-        'order_url': 'https://2fit-mall.netlify.app',
+        'order_url': _origin,
         'shop_name': '2FIT MALL',
-      },
-    );
-  }
-
-  // ── 회원가입 환영 이메일 ──────────────────────────────
-  static Future<bool> sendWelcomeEmail({
-    required String email,
-    required String name,
-  }) async {
-    if (email.isEmpty) return false;
-    return _sendEmail(
-      templateId: 'template_welcome',
-      templateParams: {
-        'to_email': email,
-        'to_name': name,
-        'shop_name': '2FIT MALL',
-        'shop_url': 'https://2fit-mall.netlify.app',
-        'join_date': DateTime.now().toString().substring(0, 10),
-      },
-    );
-  }
-
-  // ── 비밀번호 재설정 이메일 ────────────────────────────
-  static Future<bool> sendPasswordResetEmail({
-    required String email,
-    required String name,
-    required String resetLink,
-  }) async {
-    if (email.isEmpty) return false;
-    return _sendEmail(
-      templateId: 'template_reset',
-      templateParams: {
-        'to_email': email,
-        'to_name': name,
-        'reset_link': resetLink,
-        'shop_name': '2FIT MALL',
-        'expire_time': '1시간',
       },
     );
   }
