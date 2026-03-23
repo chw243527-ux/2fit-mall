@@ -1047,56 +1047,9 @@ $productUrl
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), height: 1.2)),
           const SizedBox(height: 10),
 
-          // ── 기성품 상의: 색상 안내 인라인 뱃지 배너 ──
-          if (!product.isGroupOnly && (product.category == '상의' || product.subCategory.contains('싱글렛'))) ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F8FF),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.35), width: 1.5),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1565C0).withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.lock_rounded, size: 16, color: Color(0xFF1565C0)),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1565C0),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text('기성품',
-                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
-                            ),
-                            const SizedBox(width: 6),
-                            const Text('상의 색상 변경 불가',
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
-                          ],
-                        ),
-                        const SizedBox(height: 3),
-                        const Text('디자인 색상 그대로 제작됩니다. 하의 색상은 선택 가능합니다.',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF555555), height: 1.4)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          // ── 기성품 상의/싱글렛세트: 색상 안내 인라인 뱃지 배너 ──
+          if (!product.isGroupOnly && (product.category == '상의' || product.category == '세트' || product.subCategory.contains('싱글렛'))) ...[
+            _buildColorInfoBadge(product),
             const SizedBox(height: 12),
           ],
 
@@ -1225,6 +1178,67 @@ $productUrl
           ),
         ),
       ],
+    );
+  }
+
+  /// 상품명 아래 기성품 색상 안내 뱃지 (싱글렛세트 / 상의 구분)
+  Widget _buildColorInfoBadge(ProductModel product) {
+    final isSingletSet = product.category == '세트' ||
+        product.subCategory.contains('싱글렛세트') ||
+        product.subCategory.contains('싱글렛 A타입세트');
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F8FF),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.35), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1565C0).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isSingletSet ? Icons.palette_rounded : Icons.lock_rounded,
+              size: 16, color: const Color(0xFF1565C0)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1565C0),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text('기성품',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      isSingletSet ? '하의 색상 선택' : '상의 색상 변경 불가',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  isSingletSet
+                      ? '상의는 디자인 색상 그대로 제작, 하의 색상은 선택 가능합니다.'
+                      : '디자인 색상 그대로 제작됩니다.',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF555555), height: 1.4)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1551,7 +1565,13 @@ $productUrl
     // 기성품 싱글렛(상의): 상의 색상 고정 안내 표시 여부
     final isSingletTop = !product.isGroupOnly && (
         product.category == '상의' ||
+        product.category == '세트' ||
         product.subCategory.contains('싱글렛'));
+
+    // 싱글렛세트 여부: 상의+하의 세트라서 "하의 색상 선택"으로 표기
+    final isSingletSet = product.category == '세트' ||
+        product.subCategory.contains('싱글렛세트') ||
+        product.subCategory.contains('싱글렛 A타입세트');
 
     // 싱글렛세트 초기 길이 자동 설정 (남=5부, 여=2.5부)
     if (isSingletATypeSet) {
@@ -1603,10 +1623,10 @@ $productUrl
                         children: [
                           const Icon(Icons.info_rounded, size: 18, color: Colors.white),
                           const SizedBox(width: 8),
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              '기성품 색상 안내',
-                              style: TextStyle(
+                              isSingletSet ? '하의 색상 선택 안내' : '기성품 색상 안내',
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w900,
                                 color: Colors.white,
@@ -1689,7 +1709,10 @@ $productUrl
                                 const Text('하의 색상 — 선택 가능',
                                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFF1B5E20))),
                                 const SizedBox(height: 2),
-                                Text('19가지 색상 중 자유롭게 선택하세요',
+                                Text(
+                                  isSingletSet
+                                      ? '19가지 색상 중 하의 색상을 선택하세요'
+                                      : '19가지 색상 중 자유롭게 선택하세요',
                                   style: TextStyle(fontSize: 11, color: const Color(0xFF1B5E20).withValues(alpha: 0.8), height: 1.3)),
                               ],
                             ),
