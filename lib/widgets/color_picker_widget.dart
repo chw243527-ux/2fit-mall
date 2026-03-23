@@ -118,26 +118,27 @@ class RibColorSwatch extends StatelessWidget {
 // 골지 원단칼라 팔레트 (19가지 공식 색상)
 // ══════════════════════════════════════════════════════════════
 class AppColorPalette {
+  // ── 골지 원단 실물 기준 19가지 색상 (섹션5 goljiColors와 완전 동일) ──
   static const List<Map<String, dynamic>> registeredColors = [
-    {'name': 'K (블랙)',       'nameEn': 'K-Black',       'code': 'K',  'hex': 0xFF1A1A1A},
-    {'name': 'PP (퍼플네이비)', 'nameEn': 'PP-PurpleNavy', 'code': 'PP', 'hex': 0xFF1A1A3A},
-    {'name': 'N (네이비)',      'nameEn': 'N-Navy',        'code': 'N',  'hex': 0xFF0D1B3E},
-    {'name': 'W (화이트)',      'nameEn': 'W-White',       'code': 'W',  'hex': 0xFFF2F2F2},
-    {'name': 'G (그레이)',      'nameEn': 'G-Gray',        'code': 'G',  'hex': 0xFFAAAAAA},
-    {'name': 'DG (다크그레이)', 'nameEn': 'DG-DarkGray',   'code': 'DG', 'hex': 0xFF454545},
-    {'name': 'SB (스카이블루)', 'nameEn': 'SB-SkyBlue',    'code': 'SB', 'hex': 0xFFADD8E6},
-    {'name': 'B (블루)',        'nameEn': 'B-Blue',        'code': 'B',  'hex': 0xFF2A52BE},
-    {'name': 'DB (다크블루)',   'nameEn': 'DB-DarkBlue',   'code': 'DB', 'hex': 0xFF3A5068},
-    {'name': 'SP (스모크핑크)', 'nameEn': 'SP-SmokePink',  'code': 'SP', 'hex': 0xFFD4A5A0},
-    {'name': 'LP (라이트핑크)', 'nameEn': 'LP-LightPink',  'code': 'LP', 'hex': 0xFFE8B4BC},
-    {'name': 'IO (아이보리)',   'nameEn': 'IO-Ivory',      'code': 'IO', 'hex': 0xFFD6D0C4},
+    {'name': 'K (블랙)',        'nameEn': 'K-Black',       'code': 'K',  'hex': 0xFF1A1A1A},
+    {'name': 'PP (퍼플네이비)', 'nameEn': 'PP-PurpleNavy', 'code': 'PP', 'hex': 0xFF1B1B3A},
+    {'name': 'N (네이비)',      'nameEn': 'N-Navy',        'code': 'N',  'hex': 0xFF0D1B4F},
+    {'name': 'W (화이트)',      'nameEn': 'W-White',       'code': 'W',  'hex': 0xFFF5F5F5},
+    {'name': 'G (그레이)',      'nameEn': 'G-Gray',        'code': 'G',  'hex': 0xFF9E9E9E},
+    {'name': 'DG (다크그레이)', 'nameEn': 'DG-DarkGray',   'code': 'DG', 'hex': 0xFF424242},
+    {'name': 'SB (스카이블루)', 'nameEn': 'SB-SkyBlue',    'code': 'SB', 'hex': 0xFF90CAF9},
+    {'name': 'B (블루)',        'nameEn': 'B-Blue',        'code': 'B',  'hex': 0xFF1A4DB3},
+    {'name': 'DB (다크블루)',   'nameEn': 'DB-DarkBlue',   'code': 'DB', 'hex': 0xFF2C3D6E},
+    {'name': 'SP (스킨핑크)',   'nameEn': 'SP-SkinPink',   'code': 'SP', 'hex': 0xFFE8C8C0},
+    {'name': 'LP (라이트핑크)', 'nameEn': 'LP-LightPink',  'code': 'LP', 'hex': 0xFFE8A8B0},
+    {'name': 'IO (아이보리)',   'nameEn': 'IO-Ivory',      'code': 'IO', 'hex': 0xFFD4CFC4},
     {'name': 'LG (라이트그레이)','nameEn': 'LG-LightGray', 'code': 'LG', 'hex': 0xFFBDBDBD},
     {'name': 'R (레드)',        'nameEn': 'R-Red',         'code': 'R',  'hex': 0xFFCC1111},
-    {'name': 'ND (뉴다크)',     'nameEn': 'ND-NewDark',    'code': 'ND', 'hex': 0xFF4A5040},
-    {'name': 'BB (틸블루)',     'nameEn': 'BB-TealBlue',   'code': 'BB', 'hex': 0xFF006B6B},
-    {'name': 'FP (형광핑크)',   'nameEn': 'FP-FluoPink',   'code': 'FP', 'hex': 0xFFFF0090},
-    {'name': 'FO (형광오렌지)', 'nameEn': 'FO-FluoOrange', 'code': 'FO', 'hex': 0xFFFF5500},
-    {'name': 'FG (형광그린)',   'nameEn': 'FG-FluoGreen',  'code': 'FG', 'hex': 0xFF99FF00},
+    {'name': 'ND (올리브그린)', 'nameEn': 'ND-OliveGreen', 'code': 'ND', 'hex': 0xFF4A5240},
+    {'name': 'BB (틸블루)',     'nameEn': 'BB-TealBlue',   'code': 'BB', 'hex': 0xFF0F6B7A},
+    {'name': 'FP (형광핑크)',   'nameEn': 'FP-FluoPink',   'code': 'FP', 'hex': 0xFFFF1493},
+    {'name': 'FO (형광오렌지)', 'nameEn': 'FO-FluoOrange', 'code': 'FO', 'hex': 0xFFFF6600},
+    {'name': 'FG (형광그린)',   'nameEn': 'FG-FluoGreen',  'code': 'FG', 'hex': 0xFF88EE00},
   ];
 
   static List<Map<String, dynamic>> get fullPalette => registeredColors;

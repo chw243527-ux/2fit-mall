@@ -899,6 +899,10 @@ class _HomeScreenState extends State<HomeScreen>
             ? '30인 이상 5% · 50인 이상 10% 할인'
             : '5% off 30+ · 10% off 50+ people',
       },
+      {
+        'imageUrl': 'https://www.genspark.ai/api/files/s/szNhns07?cache_control=3600',
+        'btnAction': 0,
+      },
     ];
 
     return Container(
@@ -913,6 +917,24 @@ class _HomeScreenState extends State<HomeScreen>
               itemCount: banners.length,
               itemBuilder: (_, idx) {
                 final b = banners[idx];
+                // 이미지 URL 배너 처리
+                final imageUrl = b['imageUrl'] as String?;
+                if (imageUrl != null && imageUrl.isNotEmpty) {
+                  return GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      loadingBuilder: (_, child, progress) => progress == null
+                          ? child
+                          : Container(color: const Color(0xFF111111),
+                              child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2))),
+                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
+                    ),
+                  );
+                }
                 final bg1 = b['bg1'] as Color;
                 final bg2 = b['bg2'] as Color;
                 final bgMid = b['bgMid'] as Color;
@@ -1150,6 +1172,10 @@ class _HomeScreenState extends State<HomeScreen>
         'image': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1600&auto=format&fit=crop',
         'btnAction': 3,
       },
+      {
+        'imageUrl': 'https://www.genspark.ai/api/files/s/WAuzOubK?cache_control=3600',
+        'btnAction': 0,
+      },
     ];
 
     return Container(
@@ -1317,9 +1343,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             items: banners.asMap().entries.map((e) {
               final b = e.value;
-              final bg1 = b['bg1'] as Color;
-              final bg2 = b['bg2'] as Color;
-              final btnAction = b['btnAction'] as int;
+              final btnAction = b['btnAction'] as int? ?? 0;
               void onShop() {
                 switch (btnAction) {
                   case 3:
@@ -1329,6 +1353,28 @@ class _HomeScreenState extends State<HomeScreen>
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
                 }
               }
+              // 이미지 URL 배너
+              final imageUrl = b['imageUrl'] as String?;
+              if (imageUrl != null && imageUrl.isNotEmpty) {
+                return GestureDetector(
+                  onTap: onShop,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (_, child, progress) => progress == null
+                          ? child
+                          : Container(color: const Color(0xFF111111),
+                              child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2))),
+                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
+                    ),
+                  ),
+                );
+              }
+              final bg1 = b['bg1'] as Color;
+              final bg2 = b['bg2'] as Color;
               return Stack(
                 children: [
                   Positioned.fill(
@@ -3039,6 +3085,10 @@ class _HomeScreenState extends State<HomeScreen>
         'icon': Icons.local_fire_department_rounded,
         'btnAction': 3,
       },
+      {
+        'imageUrl': 'https://www.genspark.ai/api/files/s/szNhns07?cache_control=3600',
+        'btnAction': 0,
+      },
     ];
 
     return Container(
@@ -3085,6 +3135,29 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildBannerItem(Map<String, dynamic> banner, int index, AppLocalizations loc) {
+    // 이미지 URL 배너인 경우
+    final imageUrl = banner['imageUrl'] as String?;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return GestureDetector(
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
+        child: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(color: Colors.black),
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            loadingBuilder: (_, child, progress) => progress == null
+                ? child
+                : Container(color: const Color(0xFF111111),
+                    child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2))),
+            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
+          ),
+        ),
+      );
+    }
+
     final bg1 = banner['bg1'] as Color? ?? const Color(0xFF0D0D0D);
     final bg2 = banner['bg2'] as Color? ?? const Color(0xFF1A1A1A);
     final accent = banner['accent'] as Color? ?? const Color(0xFFE53935);
