@@ -7090,6 +7090,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   bool _isNew = false;
   bool _isSale = false;
   bool _isFreeShip = false;
+  bool _isGroupOnly = false;
   bool _isActive = true;
 
   bool get _isEdit => widget.existing != null;
@@ -7146,6 +7147,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _isNew = e?.isNew ?? false;
     _isSale = e?.isSale ?? false;
     _isFreeShip = e?.isFreeShipping ?? false;
+    _isGroupOnly = e?.isGroupOnly ?? false;
     _isActive = e?.isActive ?? true;
 
     // 기존 상품의 색상 복원
@@ -7323,7 +7325,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       images: images,
       sizes: _sizesCtrl.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
       colors: _selectedColors.toList(),
-      isNew: _isNew, isSale: _isSale, isFreeShipping: _isFreeShip,
+      isNew: _isNew, isSale: _isSale, isFreeShipping: _isFreeShip, isGroupOnly: _isGroupOnly,
       stockCount: int.tryParse(_stockCtrl.text) ?? 100,
       isActive: _isActive,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
@@ -7883,6 +7885,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                   _chip('신상품', _isNew, (v) => setState(() => _isNew = v)),
                   _chip('세일', _isSale, (v) => setState(() => _isSale = v)),
                   _chip('무료배송', _isFreeShip, (v) => setState(() => _isFreeShip = v)),
+                  _chip('단체전용', _isGroupOnly, (v) => setState(() => _isGroupOnly = v), ac: const Color(0xFF6A1B9A)),
                   _chip('활성화', _isActive, (v) => setState(() => _isActive = v), ac: Colors.green),
                 ]),
                 const SizedBox(height: 8),
