@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/models.dart';
 import '../utils/app_localizations.dart';
 import '../services/order_service.dart';
@@ -149,6 +150,8 @@ class UserProvider extends ChangeNotifier {
       );
       _isLoading = false;
       notifyListeners();
+      // 관리자 로그인 시 FCM 토큰 Firestore 등록 → Cloud Functions가 푸시 알림 발송
+      _registerAdminFcmToken();
       return true;
     }
     if (email.isNotEmpty && password.length >= 6) {
@@ -178,6 +181,38 @@ class UserProvider extends ChangeNotifier {
   void logout() {
     _user = null;
     notifyListeners();
+  }
+
+  // 관리자 FCM 토큰 등록 (Cloud Functions 트리거용)
+  Future<void> _registerAdminFcmToken() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+      final settings = await messaging.requestPermission(
+        alert: true, badge: true, sound: true,
+      );
+      if (settings.authorizationStatus != AuthorizationStatus.authorized &&
+          settings.authorizationStatus != AuthorizationStatus.provisional) return;
+
+      String? token;
+      if (kIsWeb) {
+        token = await messaging.getToken(
+          vapidKey: 'BPOVoK3gRuXzSCDkS5jtfKFNV1PV3BXnJJXVlFJhk6KQQMK5zqJ_N3G5zYYsNJT1JoV7tKMvVsZJfS5rqF5o3M',
+        ).catchError((_) => null);
+      } else {
+        token = await messaging.getToken();
+      }
+      if (token == null || token.isEmpty) return;
+
+      // admin_fcm_tokens 컬렉션에 저장 → Cloud Functions가 자동 처리
+      await FirebaseFirestore.instance.collection('admin_fcm_tokens').add({
+        'token': token,
+        'registeredAt': FieldValue.serverTimestamp(),
+        'platform': kIsWeb ? 'web' : 'android',
+      });
+      if (kDebugMode) debugPrint('✅ 관리자 FCM 토큰 등록 완료');
+    } catch (e) {
+      if (kDebugMode) debugPrint('관리자 FCM 토큰 등록 실패: $e');
+    }
   }
 
   Future<void> updateUserProfile({String? name, String? phone}) async {
