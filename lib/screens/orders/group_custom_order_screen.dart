@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
@@ -412,14 +413,47 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   // ══════════════════════════════════════════════════════════════
   // 색상 선택
   // ══════════════════════════════════════════════════════════════
+
+  // HEX 문자열 → Color
+  Color? _parseHexInput(String raw) {
+    final cleaned = raw.replaceAll('#', '').trim();
+    if (cleaned.length == 6) {
+      final val = int.tryParse('FF$cleaned', radix: 16);
+      if (val != null) return Color(val);
+    }
+    return null;
+  }
+
+  // Color → '#RRGGBB'
+  String _colorToHex(Color c) {
+    final r = (c.r * 255).round();
+    final g = (c.g * 255).round();
+    final b = (c.b * 255).round();
+    return '#${r.toRadixString(16).padLeft(2, '0').toUpperCase()}'
+        '${g.toRadixString(16).padLeft(2, '0').toUpperCase()}'
+        '${b.toRadixString(16).padLeft(2, '0').toUpperCase()}';
+  }
+
   Widget _buildColorSection() {
     const palette = AppColorPalette.registeredColors;
     final freeColors = AppConstants.freeColors;
 
+    // 현재 선택된 색상의 HEX 값 계산
+    String selectedHex = '';
+    if (_selectedColor != null) {
+      final found = palette.firstWhere(
+        (c) => c['name'] == _selectedColor,
+        orElse: () => <String, dynamic>{},
+      );
+      if (found.isNotEmpty) {
+        selectedHex = _colorToHex(Color(found['hex'] as int));
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 선택된 색상 표시
+        // ── 선택된 색상 표시 (HEX 포함) ──
         if (_selectedColor != null) ...[
           Builder(builder: (_) {
             final found = palette.firstWhere(
@@ -428,37 +462,66 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             );
             if (found.isEmpty) return const SizedBox.shrink();
             final isFree = freeColors.contains(_selectedColor);
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(children: [
-                Text(loc.selectedLabel,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
-                const SizedBox(width: 6),
-                Container(
-                  width: 16, height: 16,
-                  decoration: BoxDecoration(
-                    color: Color(found['hex'] as int),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFFCCCCCC), width: 0.8),
+            final hexStr = _colorToHex(Color(found['hex'] as int));
+            return GestureDetector(
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: hexStr));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$hexStr 복사됨'),
+                    duration: const Duration(seconds: 1),
+                    backgroundColor: const Color(0xFF6A1B9A),
                   ),
+                );
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3E5F5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.3)),
                 ),
-                const SizedBox(width: 6),
-                Text(_selectedColor!,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                const SizedBox(width: 6),
-                Text(
-                  isFree ? '기본색상' : '+20,000원',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFCC0000),
+                child: Row(children: [
+                  Container(
+                    width: 20, height: 20,
+                    decoration: BoxDecoration(
+                      color: Color(found['hex'] as int),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFFCCCCCC), width: 0.8),
+                    ),
                   ),
-                ),
-              ]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(_selectedColor!,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                        Text(
+                          hexStr,
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w600, letterSpacing: 1.0),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isFree ? '기본색상' : '+20,000원',
+                    style: TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w700,
+                      color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFCC0000),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.copy_rounded, size: 14, color: Color(0xFF6A1B9A)),
+                ]),
+              ),
             );
           }),
         ],
-        // 색상 팔레트 그리드
+
+        // ── 색상 팔레트 그리드 ──
         Wrap(
           spacing: 8,
           runSpacing: 10,
@@ -468,8 +531,19 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             final code = c['code'] as String;
             final sel  = _selectedColor == name;
             final isFree = freeColors.contains(name);
+            final hexStr = _colorToHex(Color(hex));
             return GestureDetector(
               onTap: () => setState(() => _selectedColor = name),
+              onLongPress: () {
+                Clipboard.setData(ClipboardData(text: hexStr));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$name ($hexStr) 복사됨'),
+                    duration: const Duration(seconds: 1),
+                    backgroundColor: const Color(0xFF6A1B9A),
+                  ),
+                );
+              },
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -497,18 +571,126 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                     ),
                   ),
                   if (!isFree)
-                    const Text('+₩',
-                        style: TextStyle(fontSize: 8, color: Color(0xFFCC0000))),
+                    const Text('+₩', style: TextStyle(fontSize: 8, color: Color(0xFFCC0000))),
                 ],
               ),
             );
           }).toList(),
         ),
+
+        const SizedBox(height: 12),
+
+        // ── HEX 직접 입력 ──
+        _buildHexColorInput(selectedHex, (hexCode) {
+          final cleaned = hexCode.replaceAll('#', '');
+          if (cleaned.length == 6) {
+            final val = int.tryParse('FF$cleaned', radix: 16);
+            if (val != null) {
+              // 팔레트에서 가장 가까운 색상 자동 선택
+              final inputColor = Color(val);
+              double minDist = double.infinity;
+              String? closest;
+              for (final c in AppColorPalette.registeredColors) {
+                final pc = Color(c['hex'] as int);
+                final dr = (pc.r - inputColor.r);
+                final dg = (pc.g - inputColor.g);
+                final db = (pc.b - inputColor.b);
+                final dist = dr * dr + dg * dg + db * db;
+                if (dist < minDist) {
+                  minDist = dist;
+                  closest = c['name'] as String;
+                }
+              }
+              if (closest != null) {
+                setState(() => _selectedColor = closest);
+              }
+            }
+          }
+        }),
+
         const SizedBox(height: 4),
         Text(loc.productColorExtraFull,
             style: const TextStyle(fontSize: 10, color: Color(0xFF999999))),
       ],
     );
+  }
+
+  // HEX 직접 입력 위젯
+  Widget _buildHexColorInput(String currentHex, void Function(String) onApply) {
+    final ctrl = TextEditingController(text: currentHex);
+    Color? previewColor = _parseHexInput(currentHex);
+
+    return StatefulBuilder(builder: (ctx, setLocal) {
+      return Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F8F8),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFDDDDDD)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('HEX 색상 직접 입력',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+            const Text('(예: #FF3366)',
+                style: TextStyle(fontSize: 10, color: Color(0xFF999999))),
+            const SizedBox(height: 8),
+            Row(children: [
+              // 미리보기 원
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 32, height: 32,
+                decoration: BoxDecoration(
+                  color: previewColor ?? const Color(0xFFEEEEEE),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFCCCCCC)),
+                ),
+                child: previewColor == null
+                    ? const Center(child: Icon(Icons.palette_outlined, size: 14, color: Color(0xFFAAAAAA)))
+                    : null,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  controller: ctrl,
+                  onChanged: (v) {
+                    setLocal(() {
+                      previewColor = _parseHexInput(v);
+                    });
+                  },
+                  style: const TextStyle(fontSize: 13, fontFamily: 'monospace'),
+                  decoration: InputDecoration(
+                    hintText: '#RRGGBB',
+                    hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: Color(0xFF6A1B9A), width: 1.5)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: previewColor != null
+                    ? () => onApply(ctrl.text)
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6A1B9A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  elevation: 0,
+                ),
+                child: const Text('적용', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+              ),
+            ]),
+          ],
+        ),
+      );
+    });
   }
 
   // ══════════════════════════════════════════════════════════════
@@ -1106,32 +1288,59 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // 이름 필드 (10명 이상이면 필수 표시)
+                // 이름 필드: 10명 이상이면 필수 활성화, 미만이면 비활성(회색)
                 Expanded(
-                  child: TextField(
-                    controller: e.nameCtrl,
-                    onChanged: (_) => setState(() {}),
-                    style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
-                    decoration: InputDecoration(
-                      hintText: widget.nameRequired ? loc.customNameRequiredHint : loc.customNameOptionalHint,
-                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                  child: Stack(
+                    alignment: Alignment.centerRight,
+                    children: [
+                      TextField(
+                        controller: e.nameCtrl,
+                        enabled: widget.nameRequired,  // 10명 이상일 때만 활성화
+                        onChanged: (_) => setState(() {}),
+                        style: TextStyle(
+                          color: widget.nameRequired ? Colors.white : Colors.white.withValues(alpha: 0.4),
+                          fontSize: 14, fontWeight: FontWeight.w600,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: widget.nameRequired
+                              ? loc.customNameRequiredHint
+                              : '10명 이상 시 입력',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withValues(alpha: widget.nameRequired ? 0.6 : 0.35),
+                            fontSize: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
+                          ),
+                          disabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.white, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          isDense: true,
+                          filled: true,
+                          fillColor: widget.nameRequired
+                              ? Colors.white.withValues(alpha: 0.15)
+                              : Colors.white.withValues(alpha: 0.06),
+                        ),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Colors.white, width: 1.5),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      isDense: true,
-                      filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.15),
-                    ),
+                      // 10명 미만일 때 잠금 아이콘 표시
+                      if (!widget.nameRequired)
+                        Positioned(
+                          right: 8,
+                          child: Icon(Icons.lock_outline_rounded,
+                              size: 14, color: Colors.white.withValues(alpha: 0.4)),
+                        ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1162,12 +1371,12 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
-                // ── 섹션 1: 사이즈 선택 ──────────────────────
+                // ── 섹션 1: 사이즈 선택 (상의/하의 나란히) ──
                 _sectionLabel(Icons.straighten_rounded, loc.customSizeSectionLabel, accent),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
 
                 if (widget.isBottomProduct) ...[
-                  // 하의 상품: 하의 사이즈 칩
+                  // 하의 상품: 하의 사이즈만
                   _sizeChipRow(
                     label: loc.groupFormBottomSizeLabel,
                     sizes: widget.availableSizes,
@@ -1176,21 +1385,32 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                     onSelect: (s) => setState(() => e.selectedBottomSize = s),
                   ),
                 ] else ...[
-                  // 상의/세트: 상의 + 하의 사이즈 모두
-                  _sizeChipRow(
-                    label: loc.groupFormTopSizeLabel,
-                    sizes: widget.availableSizes,
-                    selected: e.selectedTopSize,
-                    accent: accent,
-                    onSelect: (s) => setState(() => e.selectedTopSize = s),
-                  ),
-                  const SizedBox(height: 10),
-                  _sizeChipRow(
-                    label: loc.groupFormBottomSizeLabel,
-                    sizes: widget.availableSizes,
-                    selected: e.selectedBottomSize,
-                    accent: accent,
-                    onSelect: (s) => setState(() => e.selectedBottomSize = s),
+                  // 상의/세트: 상의 + 하의 한 줄 나란히
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _sizeChipRow(
+                          label: loc.groupFormTopSizeLabel,
+                          sizes: widget.availableSizes,
+                          selected: e.selectedTopSize,
+                          accent: accent,
+                          onSelect: (s) => setState(() => e.selectedTopSize = s),
+                          compact: true,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _sizeChipRow(
+                          label: loc.groupFormBottomSizeLabel,
+                          sizes: widget.availableSizes,
+                          selected: e.selectedBottomSize,
+                          accent: accent,
+                          onSelect: (s) => setState(() => e.selectedBottomSize = s),
+                          compact: true,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
 
@@ -1374,36 +1594,58 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
     required String? selected,
     required Color accent,
     required ValueChanged<String> onSelect,
+    bool compact = false,
   }) {
+    final hPad = compact ? 8.0 : 14.0;
+    final vPad = compact ? 5.0 : 8.0;
+    final fontSize = compact ? 11.0 : 13.0;
+    final spacing = compact ? 4.0 : 6.0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
-        const SizedBox(height: 6),
+        Row(
+          children: [
+            Text(label,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
+            if (selected != null) ...[
+              const SizedBox(width: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(selected,
+                    style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 5),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: spacing,
+          runSpacing: spacing,
           children: sizes.map((sz) {
             final sel = selected == sz;
             return GestureDetector(
               onTap: () => onSelect(sz),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 120),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
                 decoration: BoxDecoration(
                   color: sel ? accent : const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                   border: Border.all(
                     color: sel ? accent : const Color(0xFFDDDDDD),
-                    width: sel ? 2 : 1,
+                    width: sel ? 1.5 : 1,
                   ),
                 ),
                 child: Text(
                   sz,
                   style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w700,
                     color: sel ? Colors.white : const Color(0xFF444444),
                   ),
                 ),
