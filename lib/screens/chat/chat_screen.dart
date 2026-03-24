@@ -82,6 +82,11 @@ class _ChatScreenState extends State<ChatScreen> {
         if (!mounted) return;
         setState(() {
           _messages.clear();
+          // Firestore 메시지가 없으면 환영 메시지 표시
+          if (firestoreMsgs.isEmpty) {
+            _initializeChat();
+            return;
+          }
           for (final m in firestoreMsgs) {
             _messages.add(ChatMessage(
               text: m.text,
@@ -518,7 +523,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         children: [
                           Expanded(
                             child: _messages.isEmpty
-                                ? Center(child: Text(loc.loading, style: const TextStyle(color: AppColors.textHint)))
+                                ? const Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2))
                                 : ListView.builder(
                                     controller: _scrollController,
                                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -541,7 +546,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     _buildFaqPanel(loc),
                     Expanded(
                       child: _messages.isEmpty
-                          ? Center(child: Text(loc.loading, style: const TextStyle(color: AppColors.textHint)))
+                          ? const Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2))
                           : ListView.builder(
                               controller: _scrollController,
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),

@@ -136,11 +136,16 @@ class ChatService {
         .collection('chats')
         .doc(roomId)
         .collection('messages')
-        .orderBy('createdAt', descending: false)
+        // orderBy 제거 → 인덱스 불필요, 메모리에서 정렬
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => ChatServiceMessage.fromMap(d.id, d.data()))
-            .toList())
+        .map((snap) {
+          final msgs = snap.docs
+              .map((d) => ChatServiceMessage.fromMap(d.id, d.data()))
+              .toList();
+          // 메모리에서 시간순 정렬
+          msgs.sort((a, b) => a.time.compareTo(b.time));
+          return msgs;
+        })
         .handleError((e) {
           if (kDebugMode) debugPrint('watchMessages error: $e');
           return <ChatServiceMessage>[];
