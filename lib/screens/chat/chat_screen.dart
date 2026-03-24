@@ -150,40 +150,43 @@ class _ChatScreenState extends State<ChatScreen> {
     final user = context.read<UserProvider>().user;
     final userId = user?.id ?? 'guest';
     final userName = user?.name ?? _loc.chatVisitor;
+    final displayQuestion = isKorean ? questionText : koreanQuestion;
 
-    // Firestore 전송
     if (_roomId != null) {
+      // Firestore 전송 + 자동답변
       ChatService.sendMessage(
         roomId: _roomId!,
-        text: isKorean ? questionText : koreanQuestion,
-        originalText: isKorean ? questionText : questionText,
+        text: displayQuestion,
+        originalText: questionText,
         senderId: userId,
         senderName: userName,
         isUser: true,
       );
-      // 관리자 자동답변도 Firestore에 저장
-      Future.delayed(const Duration(milliseconds: 900), () {
-        if (_roomId != null) {
-          ChatService.adminReply(roomId: _roomId!, text: answerText);
-        }
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!mounted || _roomId == null) return;
+        ChatService.adminReply(roomId: _roomId!, text: answerText);
       });
     } else {
-      // 폴백: 로컬
+      // 폴백: 로컬 즉시 표시
       setState(() {
         _messages.add(ChatMessage(
-          text: isKorean ? questionText : koreanQuestion,
-          originalText: isKorean ? questionText : questionText,
+          text: displayQuestion,
+          originalText: questionText,
           isUser: true,
           time: DateTime.now(),
         ));
         _isTyping = true;
       });
       _scrollToBottom();
-      Future.delayed(const Duration(milliseconds: 900), () {
+      Future.delayed(const Duration(milliseconds: 800), () {
         if (!mounted) return;
         setState(() {
           _isTyping = false;
-          _messages.add(ChatMessage(text: answerText, isUser: false, time: DateTime.now()));
+          _messages.add(ChatMessage(
+            text: answerText,
+            isUser: false,
+            time: DateTime.now(),
+          ));
         });
         _scrollToBottom();
       });
@@ -215,8 +218,8 @@ class _ChatScreenState extends State<ChatScreen> {
         senderName: userName,
         isUser: true,
       );
-      // 관리자가 직접 답장을 보낼 때까지 "확인 중" 자동 메시지
-      Future.delayed(const Duration(milliseconds: 1200), () {
+      // 자동답변: 메시지 접수 확인
+      Future.delayed(const Duration(milliseconds: 1000), () {
         if (_roomId == null || !mounted) return;
         final autoReply = '${loc.chatAutoReplyMsg}${AppConstants.customerServicePhone}';
         ChatService.adminReply(roomId: _roomId!, text: autoReply);

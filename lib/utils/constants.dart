@@ -7,7 +7,7 @@ class AppConstants {
   
   // Contact
   static const String customerServicePhone = '010-7227-6914';
-  static const String eliteAthletePhone = '010-7227-6914';
+  static const String eliteAthletePhone = '010-4386-3331';
   static const String customerServiceEmail = 'chw243527@gmail.com';
   static const String kakaoTalkId = '@2fitkorea';
   static const String customerServiceHours =
