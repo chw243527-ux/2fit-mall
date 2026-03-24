@@ -798,7 +798,6 @@ class NoticeProvider extends ChangeNotifier {
       final snap = await FirebaseFirestore.instance
           .collection('notices')
           .where('isActive', isEqualTo: true)
-          .orderBy('createdAt', descending: true)
           .get()
           .timeout(const Duration(seconds: 10));
 
@@ -806,6 +805,8 @@ class NoticeProvider extends ChangeNotifier {
         final loaded = snap.docs
             .map((d) => NoticeModel.fromFirestore(d.data(), d.id))
             .toList();
+        // 메모리에서 최신순 정렬 (Firestore 복합 인덱스 불필요)
+        loaded.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         _notices.removeWhere((n) => n.id == 'n001');
         for (final n in loaded) {
           final idx = _notices.indexWhere((e) => e.id == n.id);

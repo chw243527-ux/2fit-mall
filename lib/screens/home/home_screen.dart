@@ -900,7 +900,7 @@ class _HomeScreenState extends State<HomeScreen>
             : '5% off 30+ · 10% off 50+ people',
       },
       {
-        'imageUrl': 'https://www.genspark.ai/api/files/s/I8HoNnqT?cache_control=3600',
+        'assetImage': 'assets/images/banner_custom_fit.jpg',
         'btnAction': 0,
       },
     ];
@@ -917,6 +917,20 @@ class _HomeScreenState extends State<HomeScreen>
               itemCount: banners.length,
               itemBuilder: (_, idx) {
                 final b = banners[idx];
+                // 로컬 asset 이미지 배너 처리
+                final assetImage = b['assetImage'] as String?;
+                if (assetImage != null && assetImage.isNotEmpty) {
+                  return GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
+                    child: Image.asset(
+                      assetImage,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
+                    ),
+                  );
+                }
                 // 이미지 URL 배너 처리
                 final imageUrl = b['imageUrl'] as String?;
                 if (imageUrl != null && imageUrl.isNotEmpty) {
@@ -1173,7 +1187,7 @@ class _HomeScreenState extends State<HomeScreen>
         'btnAction': 3,
       },
       {
-        'imageUrl': 'https://www.genspark.ai/api/files/s/I8HoNnqT?cache_control=3600',
+        'assetImage': 'assets/images/banner_custom_fit.jpg',
         'btnAction': 0,
       },
     ];
@@ -1352,6 +1366,22 @@ class _HomeScreenState extends State<HomeScreen>
                   default:
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
                 }
+              }
+              // 로컬 asset 이미지 배너
+              final assetImage = b['assetImage'] as String?;
+              if (assetImage != null && assetImage.isNotEmpty) {
+                return GestureDetector(
+                  onTap: onShop,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: Image.asset(
+                      assetImage,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
+                    ),
+                  ),
+                );
               }
               // 이미지 URL 배너
               final imageUrl = b['imageUrl'] as String?;
@@ -3086,7 +3116,7 @@ class _HomeScreenState extends State<HomeScreen>
         'btnAction': 3,
       },
       {
-        'imageUrl': 'https://www.genspark.ai/api/files/s/I8HoNnqT?cache_control=3600',
+        'assetImage': 'assets/images/banner_custom_fit.jpg',
         'btnAction': 0,
       },
     ];
@@ -3135,6 +3165,24 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildBannerItem(Map<String, dynamic> banner, int index, AppLocalizations loc) {
+    // 로컬 asset 이미지 배너인 경우
+    final assetImage = banner['assetImage'] as String?;
+    if (assetImage != null && assetImage.isNotEmpty) {
+      return GestureDetector(
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
+        child: Container(
+          width: double.infinity,
+          decoration: const BoxDecoration(color: Colors.black),
+          child: Image.asset(
+            assetImage,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
+          ),
+        ),
+      );
+    }
     // 이미지 URL 배너인 경우
     final imageUrl = banner['imageUrl'] as String?;
     if (imageUrl != null && imageUrl.isNotEmpty) {
