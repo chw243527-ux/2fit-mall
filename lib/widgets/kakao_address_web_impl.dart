@@ -4,9 +4,11 @@
 import 'dart:html' as html;
 import 'dart:ui_web' as ui;
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 
-bool _viewRegistered = false;
+// 뷰타입 등록 카운터 (매번 고유 ID 생성)
+int _viewCounter = 0;
 
 const String _kakaoHtml = '''<!DOCTYPE html>
 <html>
@@ -27,12 +29,14 @@ const String _kakaoHtml = '''<!DOCTYPE html>
     new daum.Postcode({
       oncomplete: function(data) {
         var addr = data.userSelectedType === "R" ? data.roadAddress : data.jibunAddress;
-        window.parent.postMessage(JSON.stringify({
+        var payload = JSON.stringify({
+          type: "KAKAO_ADDRESS",
           address: addr,
           zonecode: data.zonecode,
           roadAddress: data.roadAddress,
           jibunAddress: data.jibunAddress
-        }), "*");
+        });
+        window.parent.postMessage(payload, "*");
       },
       width: "100%",
       height: "100%",
@@ -47,50 +51,55 @@ const String _kakaoHtml = '''<!DOCTYPE html>
 </html>''';
 
 /// iframe postMessage 리스너 등록 + iframe 생성
+/// 매 호출마다 새 iframe + 새 viewType ID를 사용해 확실한 동작 보장
 void registerKakaoIframeListener(void Function(Map<String, dynamic>) onResult) {
-  // iframe 요소 생성
+  _viewCounter++;
+  final viewType = 'kakao-postcode-view-$_viewCounter';
+
+  // 새 iframe 생성
   final iframe = html.IFrameElement()
     ..style.width = '100%'
     ..style.height = '100%'
     ..style.border = 'none'
-    ..setAttribute('sandbox',
-        'allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation')
+    ..setAttribute(
+        'sandbox',
+        'allow-scripts allow-same-origin allow-forms allow-popups')
     ..srcdoc = _kakaoHtml;
 
-  // window.postMessage 리스너
-  html.window.onMessage.listen((event) {
+  // one-shot 리스너: 주소 선택 1회만 콜백 호출
+  StreamSubscription? sub;
+  sub = html.window.onMessage.listen((event) {
     try {
       final raw = event.data?.toString() ?? '';
-      if (raw.startsWith('{') && raw.contains('"address"')) {
+      if (raw.contains('"KAKAO_ADDRESS"') && raw.contains('"address"')) {
         final data = jsonDecode(raw) as Map<String, dynamic>;
         final addr = data['address'] as String? ?? '';
         if (addr.isNotEmpty) {
+          sub?.cancel(); // 리스너 즉시 해제 (중복 방지)
           onResult(data);
         }
       }
     } catch (_) {}
   });
 
-  // HtmlElementView 뷰타입 등록 (최초 1회)
-  if (!_viewRegistered) {
-    _viewRegistered = true;
-    ui.platformViewRegistry.registerViewFactory(
-      'kakao-postcode-view',
-      (_) => iframe,
-    );
-  }
+  // HtmlElementView 뷰타입 등록
+  ui.platformViewRegistry.registerViewFactory(
+    viewType,
+    (_) => iframe,
+  );
+
+  // 현재 활성 viewType을 전역에 저장 (buildKakaoIframeView에서 사용)
+  _activeViewType = viewType;
 }
+
+String _activeViewType = 'kakao-postcode-view-init';
 
 /// HtmlElementView 위젯 반환
 Widget buildKakaoIframeView() {
-  return const HtmlElementView(viewType: 'kakao-postcode-view');
+  return HtmlElementView(viewType: _activeViewType);
 }
 
-/// 하위 호환용 (사용하지 않음)
-Widget buildKakaoWebView(BuildContext context) {
-  return buildKakaoIframeView();
-}
+/// 하위 호환용
+Widget buildKakaoWebView(BuildContext context) => buildKakaoIframeView();
 
-Future<Map<String, String>?> showKakaoAddressPopup() async {
-  return null;
-}
+Future<Map<String, String>?> showKakaoAddressPopup() async => null;

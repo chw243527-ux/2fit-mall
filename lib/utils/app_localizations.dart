@@ -1032,11 +1032,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Утасны лавлагаа';
   }}
   String get chatWeekdayHours { switch (language) {
-    case AppLanguage.korean:   return '평일 09:00 ~ 18:00';
-    case AppLanguage.english:  return 'Weekdays 09:00 ~ 18:00';
-    case AppLanguage.japanese: return '平日 09:00 〜 18:00';
-    case AppLanguage.chinese:  return '工作日 09:00 ~ 18:00';
-    case AppLanguage.mongolian:return 'Ажлын өдрүүд 09:00 ~ 18:00';
+    case AppLanguage.korean:   return '평일 10:00 - 18:00 (점심 12:00-14:00)';
+    case AppLanguage.english:  return 'Weekdays 10:00-18:00 (Lunch 12:00-14:00)';
+    case AppLanguage.japanese: return '平日 10:00-18:00（昼休み 12:00-14:00）';
+    case AppLanguage.chinese:  return '工作日 10:00-18:00（午休12:00-14:00）';
+    case AppLanguage.mongolian:return 'Ажлын өдөр 10:00-18:00';
   }}
   String get chatTranslatedLabel { switch (language) {
     case AppLanguage.korean:   return '원문 보기';
@@ -9511,11 +9511,11 @@ class AppLocalizations {
   }
   String get chatAutoReply {
     switch (language) {
-      case AppLanguage.english: return 'Thank you for your inquiry! Our team will reply soon. Hours: Weekdays 09:00~18:00';
-      case AppLanguage.japanese: return 'お問い合わせありがとうございます！担当者が確認後、すぐに返信いたします。営業時間: 平日09:00~18:00';
+      case AppLanguage.english: return 'Thank you for your inquiry! Our team will reply soon. Hours: Weekdays 10:00-18:00 (Lunch 12:00-14:00)';
+      case AppLanguage.japanese: return 'お問い合わせありがとうございます！担当者が確認後、すぐに返信いたします。営業時間: 平日10:00-18:00（午休12:00-14:00）';
       case AppLanguage.chinese: return '感谢您的咨询！工作人员确认后将尽快回复。营业时间: 平日 09:00~18:00';
       case AppLanguage.mongolian: return 'Асуулгад баярлалаа! Ажилтан баталгаажуулан хариулна. Цаг: Нийт 09:00~18:00';
-      default: return '문의 감사합니다! 담당자가 확인 후 빠르게 답변 드리겠습니다. 운영시간: 평일 09:00~18:00';
+      default: return '문의 감사합니다! 담당자가 확인 후 빠르게 답변 드리겠습니다. 운영시간: 평일 10:00-18:00 (점심 12:00-14:00)';
     }
   }
   String get chatOriginalText {
@@ -11897,19 +11897,19 @@ class AppLocalizations {
   }}
 
   String get chatAutoReplyMsg { switch (language) {
-    case AppLanguage.english: return 'Thank you! Our staff will respond shortly. 😊\n\nHours: Weekdays 09:00~18:00\nSupport: ';
-    case AppLanguage.japanese: return 'お問い合わせありがとうございます！担当者が確認後すぐに回答いたします。😊\n\n営業時間：平日09:00〜18:00\nお問い合わせ：';
-    case AppLanguage.chinese: return '感谢您的咨询！工作人员确认后将尽快回复。😊\n\n营业时间：工作日09:00~18:00\n客服：';
-    case AppLanguage.mongolian: return 'Асуулга тавьсанд баярлалаа! Ажилтан шалгаад хурдан хариулна. 😊\n\nЦаг: Ажлын өдөр 09:00~18:00\nУтас: ';
-    default: return '문의 감사합니다! 담당자가 확인 후 빠르게 답변 드리겠습니다. 😊\n\n운영시간: 평일 09:00~18:00\n고객센터: ';
+    case AppLanguage.english: return 'Thank you! Our staff will respond shortly. 😊\n\nHours: Weekdays 10:00-18:00 (Lunch 12:00-14:00)\nSupport: ';
+    case AppLanguage.japanese: return 'お問い合わせありがとうございます！担当者が確認後すぐに回答いたします。😊\n\n営業時間：平日10:00-18:00（昼休み12:00-14:00）\nお問い合わせ：';
+    case AppLanguage.chinese: return '感谢您的咨询！工作人员确认后将尽快回复。😊\n\n营业时间：工作日10:00-18:00（午休12:00-14:00）\n客服：';
+    case AppLanguage.mongolian: return 'Асуулга тавьсанд баярлалаа! Ажилтан шалгаад хурдан хариулна. 😊\n\nЦаг: Ажлын өдөр 10:00-18:00\nУтас: ';
+    default: return '문의 감사합니다! 담당자가 확인 후 빠르게 답변 드리겠습니다. 😊\n\n운영시간: 평일 10:00-18:00 (점심 12:00-14:00)\n고객센터: ';
   }}
 
   String get chatOfflineMsg { switch (language) {
-    case AppLanguage.english: return 'Hours: Weekdays 09:00~18:00\nSupport: ';
-    case AppLanguage.japanese: return '営業時間：平日09:00〜18:00\nお問い合わせ：';
-    case AppLanguage.chinese: return '营业时间：工作日09:00~18:00\n客服：';
-    case AppLanguage.mongolian: return 'Цаг: Ажлын өдөр 09:00~18:00\nУтас: ';
-    default: return '운영시간: 평일 09:00~18:00\n고객센터: ';
+    case AppLanguage.english: return 'Hours: Weekdays 10:00-18:00 (Lunch 12:00-14:00)\nSupport: ';
+    case AppLanguage.japanese: return '営業時間：平日10:00-18:00（昼休み12:00-14:00）\nお問い合わせ：';
+    case AppLanguage.chinese: return '营业时间：工作日10:00-18:00（午休12:00-14:00）\n客服：';
+    case AppLanguage.mongolian: return 'Цаг: Ажлын өдөр 10:00-18:00\nУтас: ';
+    default: return '운영시간: 평일 10:00-18:00 (점심 12:00-14:00)\n고객센터: ';
   }}
 
   String get wonUnit2 { return '원'; }
@@ -14271,32 +14271,46 @@ class AppLocalizations {
     default: return '모든 옵션 선택';
   }}
   String get printType1Label { switch (language) {
-    case AppLanguage.english: return '① Color Change Only';
-    case AppLanguage.japanese: return '① カラーのみ変更';
-    case AppLanguage.chinese: return '① 仅更改颜色';
-    case AppLanguage.mongolian: return '① Зөвхөн өнгө солих';
-    default: return '① 컬러만 변경';
+    case AppLanguage.english: return '① Color Change Only (Team name unchanged)';
+    case AppLanguage.japanese: return '① カラー変更のみ（団体名変更なし）';
+    case AppLanguage.chinese: return '① 仅更改颜色（不更改团体名）';
+    case AppLanguage.mongolian: return '① Зөвхөн өнгө солих (нэр өөрчлөхгүй)';
+    default: return '① 색상변경 (단체명 변경안함)';
   }}
   String get printType2Label { switch (language) {
-    case AppLanguage.english: return '② Team Name + Color';
-    case AppLanguage.japanese: return '② 団体名 + カラー';
-    case AppLanguage.chinese: return '② 团体名+颜色';
-    case AppLanguage.mongolian: return '② Багийн нэр + Өнгө';
-    default: return '② 단체명 + 컬러';
+    case AppLanguage.english: return '② Team Name Change (Front) Only';
+    case AppLanguage.japanese: return '② 団体名変更（前面）のみ';
+    case AppLanguage.chinese: return '② 仅更改团体名（正面）';
+    case AppLanguage.mongolian: return '② Зөвхөн багийн нэр (урд талд)';
+    default: return '② 단체명변경(전면) (색상변경안함)';
   }}
   String get printType3Label { switch (language) {
-    case AppLanguage.english: return '③ Team Name + Color + Name';
-    case AppLanguage.japanese: return '③ 団体名 + カラー + 名前';
-    case AppLanguage.chinese: return '③ 团体名+颜色+姓名';
-    case AppLanguage.mongolian: return '③ Багийн нэр + Өнгө + Нэр';
-    default: return '③ 단체명 + 컬러 + 이름';
+    case AppLanguage.english: return '③ Team Name (Front) + Color Change';
+    case AppLanguage.japanese: return '③ 団体名（前面）+ カラー変更';
+    case AppLanguage.chinese: return '③ 团体名（正面）+ 颜色变更';
+    case AppLanguage.mongolian: return '③ Багийн нэр (урд) + Өнгө солих';
+    default: return '③ 단체명변경(전면) + 색상변경';
+  }}
+  String get printType4Label { switch (language) {
+    case AppLanguage.english: return '④ Team Name (Front) + Color + Name (Back)';
+    case AppLanguage.japanese: return '④ 団体名（前面）+ カラー + 名前（後面）';
+    case AppLanguage.chinese: return '④ 团体名（正面）+ 颜色 + 姓名（背面）';
+    case AppLanguage.mongolian: return '④ Багийн нэр (урд) + Өнгө + Нэр (ар)';
+    default: return '④ 단체명변경(전면) + 색상변경 + 이름변경(후면)';
   }}
   String get printType3Desc { switch (language) {
-    case AppLanguage.english: return 'Includes individual name print';
-    case AppLanguage.japanese: return '個人名印刷を含む';
-    case AppLanguage.chinese: return '包含个人姓名印刷';
-    case AppLanguage.mongolian: return 'Хувийн нэр хэвлэлтэй';
-    default: return '개인 이름 인쇄 포함';
+    case AppLanguage.english: return 'Same color for top and bottom';
+    case AppLanguage.japanese: return '上下同じカラーに変更';
+    case AppLanguage.chinese: return '上下同色变更';
+    case AppLanguage.mongolian: return 'Дээд доод ижил өнгө';
+    default: return '상의·하의 동일 색상으로 변경';
+  }}
+  String get printType4Desc { switch (language) {
+    case AppLanguage.english: return 'Individual name print on back (10+ items)';
+    case AppLanguage.japanese: return '後面に個人名印刷（10着以上）';
+    case AppLanguage.chinese: return '背面个人姓名印刷（10件以上）';
+    case AppLanguage.mongolian: return 'Ар талд хувийн нэр хэвлэх (10+)';
+    default: return '후면 개인 이름 인쇄 포함 (10장 이상)';
   }}
   String get qtyRequiredToSelect { switch (language) {
     case AppLanguage.english: return 'Enter at least 1 to select';

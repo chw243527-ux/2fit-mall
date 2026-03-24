@@ -36,7 +36,7 @@ class KakaoConfig {
 // ─── 관리자 이메일 ────────────────────────────────────────────
 class AdminConfig {
   // 주문 알림을 받을 관리자 이메일
-  static const adminEmail = 'cs@2fitkorea.com';
+  static const adminEmail = 'chw243527@gmail.com';
 
   // Supabase Edge Function URL (이메일 발송용) — 사용 시 입력
   static const emailEdgeFunctionUrl = '';

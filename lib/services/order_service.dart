@@ -43,6 +43,14 @@ class OrderService {
         if (kDebugMode) debugPrint('주문 확인 이메일 실패 (무시): $e');
         return false;
       });
+
+      // 4) 무통장입금 주문인 경우 관리자에게 별도 알림
+      if (order.paymentMethod == '무통장입금') {
+        EmailService.sendBankTransferAdminAlert(order).catchError((e) {
+          if (kDebugMode) debugPrint('무통장입금 관리자 알림 실패 (무시): $e');
+          return false;
+        });
+      }
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ Firestore 주문 저장 실패 (로컬만 저장됨): $e');
     }

@@ -104,7 +104,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                         fontSize: 15, fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A2E))),
                 const SizedBox(height: 8),
-                const Text('cs@2fitkorea.com',
+                const Text('chw243527@gmail.com',
                     style: TextStyle(
                         fontSize: 14, color: Color(0xFF6C63FF),
                         fontWeight: FontWeight.w600)),

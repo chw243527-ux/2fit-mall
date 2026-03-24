@@ -548,6 +548,8 @@ class AuthService {
   // ── 구글 소셜 로그인 ──────────────────────────────
   static final _googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
+    // 웹 클라이언트 ID (Firebase Console → Authentication → Google → 웹 SDK 구성)
+    clientId: '187081765755-hbucij2qnqaqsgvah5lnqdofb7ma7d1s.apps.googleusercontent.com',
   );
 
   static Future<AuthResult> signInWithGoogle() async {

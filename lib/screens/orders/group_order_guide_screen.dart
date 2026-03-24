@@ -365,53 +365,10 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           ),
           const SizedBox(height: 24),
 
-          // 커스텀 옵션
-          _SectionHeader2('🎨', loc.groupOrderCustomOptionTitle),
+          // 커스텀 옵션 (스크린샷 방식: 4가지 카드)
+          _SectionHeader2('💰', loc.groupOrderCustomOptionTitle),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFA5D6A7)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideCustom1,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideCustom2,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideCustom3,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 수량별 제작 규칙
-          _SectionHeader2('📋', loc.groupOrderGuideQtyRuleTitle),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3F2FD),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFF90CAF9)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(loc.groupOrderGuideQtyRule5,
-                    style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF1565C0))),
-                Text(loc.groupOrderGuideQtyRule10,
-                    style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF1565C0))),
-                const SizedBox(height: 6),
-                Text(loc.groupOrderGuideQtyRule2Items,
-                    style: const TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF555555))),
-              ],
-            ),
-          ),
+          _buildCustomOptionCards(),
           const SizedBox(height: 16),
 
           // 허리밴드 옵션
@@ -518,28 +475,10 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           );}),
           const SizedBox(height: 24),
 
-          // 수량별 할인
+          // 수량별 할인 (스크린샷: 30개 10%, 50개 20%, 100개 별도협의)
           _SectionHeader2('🏷️', loc.groupOrderGuideDiscountTitle),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF3E0),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFFFCC80)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideDiscount1,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideDiscount2,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideDiscount3,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-              ],
-            ),
-          ),
+          _buildDiscountTable(),
           const SizedBox(height: 16),
 
           // 추가 주문 안내
@@ -608,6 +547,12 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
               ],
             ),
           );}),
+          const SizedBox(height: 24),
+
+          // 주문 절차 (스크린샷에서 확인된 5단계)
+          _SectionHeader2('🔄', '주문 절차'),
+          const SizedBox(height: 12),
+          _buildOrderSteps(),
           const SizedBox(height: 24),
 
           // 교환·환불 정책
@@ -776,12 +721,127 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
     );
   }
 
-  // ── 인쇄 타입 카드 ──
+  // ── 커스텀 옵션 카드 (스크린샷 방식) ──
+  Widget _buildCustomOptionCards() {
+    final options = [
+      {
+        'icon': '🎨',
+        'title': '팀 로고/마킹 추가 (5장 이상)',
+        'desc': '팀 로고 파일 첨부 필수 (AI/PDF/PNG)',
+        'badge': '무료',
+        'badgeColor': const Color(0xFF1565C0),
+        'badgeBg': const Color(0xFFE3F2FD),
+      },
+      {
+        'icon': '🖌️',
+        'title': '색상 변경',
+        'desc': '원하는 색상으로 제작 가능',
+        'badge': '무료',
+        'badgeColor': const Color(0xFF2E7D32),
+        'badgeBg': const Color(0xFFE8F5E9),
+      },
+      {
+        'icon': '👗',
+        'title': '허리밴드 색상 변경',
+        'desc': '하의 허리밴드 색상 추가 변경 (형태 변경 불가)',
+        'badge': '+5만원',
+        'badgeColor': const Color(0xFF6A1B9A),
+        'badgeBg': const Color(0xFFF3E5F5),
+      },
+    ];
+
+    return Column(
+      children: options.map((opt) => Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 1))],
+        ),
+        child: Row(
+          children: [
+            Text(opt['icon'] as String, style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(opt['title'] as String,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 3),
+                  Text(opt['desc'] as String,
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: (opt['badgeBg'] as Color),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(opt['badge'] as String,
+                  style: TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w900,
+                      color: opt['badgeColor'] as Color)),
+            ),
+          ],
+        ),
+      )).toList(),
+    );
+  }
+
+  // ── 수량별 할인 테이블 ──
+  Widget _buildDiscountTable() {
+    final rows = [
+      {'qty': '30개 이상', 'discount': '10% 할인', 'color': const Color(0xFF1565C0)},
+      {'qty': '50개 이상', 'discount': '20% 할인', 'color': const Color(0xFF6A1B9A)},
+      {'qty': '100개 이상', 'discount': '별도 협의', 'color': const Color(0xFFC62828)},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFFFCC80)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.discount_rounded, size: 16, color: Color(0xFFE65100)),
+            const SizedBox(width: 6),
+            const Text('대량 주문 할인', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFFE65100))),
+          ]),
+          const SizedBox(height: 10),
+          ...rows.map((r) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(children: [
+              Container(
+                width: 8, height: 8,
+                decoration: BoxDecoration(color: r['color'] as Color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text('${r['qty']}: ', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700))),
+              Text(r['discount'] as String, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: r['color'] as Color)),
+            ]),
+          )),
+        ],
+      ),
+    );
+  }
+
+  // ── 인쇄 타입 카드 (4가지 옵션) ──
   Widget _buildPrintTypeCards() {
     final types = [
-      {'step': '①', 'title': '컬러만 변경', 'cond': '5인↑', 'color': const Color(0xFF1565C0), 'desc': '공통 컬러 선택. 기본 디자인 유지.'},
-      {'step': '②', 'title': '단체명 + 컬러', 'cond': '5인↑', 'color': const Color(0xFF2E7D32), 'desc': '앞면 팀/단체명 인쇄. 폰트·위치 조정 가능.'},
-      {'step': '③', 'title': '단체명 + 컬러 + 개인명', 'cond': '10인↑', 'color': const Color(0xFF6A1B9A), 'desc': '뒷면에 개인 이름 추가 인쇄.'},
+      {'step': '①', 'title': '색상변경 (단체명 변경안함)', 'cond': '5장↑ 무료', 'color': const Color(0xFF1565C0), 'desc': '상의·하의 동일 색상으로 변경'},
+      {'step': '②', 'title': '단체명변경(전면) (색상변경안함)', 'cond': '5장↑ 무료', 'color': const Color(0xFF2E7D32), 'desc': '앞면 팀/단체명 인쇄'},
+      {'step': '③', 'title': '단체명변경(전면) + 색상변경', 'cond': '5장↑ 무료', 'color': const Color(0xFF6A1B9A), 'desc': '단체명 + 상하의 동일 색상 변경'},
+      {'step': '④', 'title': '단체명+색상+이름변경(후면)', 'cond': '10장↑', 'color': const Color(0xFFC62828), 'desc': '전면 단체명+색상 + 후면 개인 이름 인쇄'},
     ];
 
     return Column(
@@ -831,6 +891,64 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           ],
         ),
       )).toList(),
+    );
+  }
+
+  // ── 주문 절차 5단계 ──
+  Widget _buildOrderSteps() {
+    final steps = [
+      {'num': '1', 'title': '주문 서식 작성', 'desc': '수량·사이즈·색상·로고를 입력하고 양식을 제출', 'color': const Color(0xFF1565C0)},
+      {'num': '2', 'title': '결제 완료', 'desc': '담당자 확인 후 결제 안내 및 입금 확인', 'color': const Color(0xFF1565C0)},
+      {'num': '3', 'title': '디자인 확정', 'desc': '시안 검토 및 최종 디자인 확인', 'color': const Color(0xFF1565C0)},
+      {'num': '4', 'title': '제작 진행', 'desc': '14~21영업일 소요 (디자인 변경 포함 시 추가 기간 가능)', 'color': const Color(0xFF1565C0)},
+      {'num': '5', 'title': '배송', 'desc': '완성 후 일괄 발송, 배송 추적 번호 카카오 알림 발송', 'color': const Color(0xFF1565C0)},
+    ];
+
+    return Column(
+      children: steps.asMap().entries.map((entry) {
+        final i = entry.key;
+        final step = entry.value;
+        final isLast = i == steps.length - 1;
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              children: [
+                Container(
+                  width: 32, height: 32,
+                  decoration: BoxDecoration(
+                    color: step['color'] as Color,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(step['num'] as String,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14)),
+                  ),
+                ),
+                if (!isLast)
+                  Container(width: 2, height: 32, color: const Color(0xFFDDDDDD)),
+              ],
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: isLast ? 0 : 8, top: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(step['title'] as String,
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 3),
+                    Text(step['desc'] as String,
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF666666), height: 1.4)),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      }).toList(),
     );
   }
 

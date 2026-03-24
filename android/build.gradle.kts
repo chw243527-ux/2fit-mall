@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 buildscript {
     repositories {
         google()
@@ -10,7 +8,6 @@ buildscript {
     }
 }
 
->>>>>>> origin/main
 allprojects {
     repositories {
         google()

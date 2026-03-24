@@ -3856,9 +3856,11 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                           const SizedBox(height: 20),
                           _footerInfoRow('🏢 주식회사 2FIT Korea'),
-                          _footerInfoRow('📞 010-1234-5678'),
-                          _footerInfoRow('✉ cs@2fitkorea.com'),
+                          _footerInfoRow('📞 010-7227-6914'),
+                          _footerInfoRow('✉ chw243527@gmail.com'),
                           _footerInfoRow('💬 카카오톡 @2fitkorea'),
+                          _footerInfoRow('🕐 평일 10:00 - 18:00 (점심 12:00 - 14:00)'),
+                          _footerInfoRow('🚫 토·일·공휴일 휴무'),
                           const SizedBox(height: 16),
                           Row(
                             children: [

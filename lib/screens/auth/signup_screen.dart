@@ -318,10 +318,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         '• 오류 정정 요청\n'
                         '• 삭제 요청 (회원 탈퇴)\n'
                         '• 처리 정지 요청\n\n'
-                        '문의: cs@2fitkorea.com'),
+                        '문의: chw243527@gmail.com'),
                   _PolicySection(title: '제7조 (개인정보 보호책임자)',
                     content: '• 책임자: 2FIT MALL 운영팀\n'
-                        '• 이메일: cs@2fitkorea.com\n\n'
+                        '• 이메일: chw243527@gmail.com\n\n'
                         '본 방침은 2025년 3월 21일부터 적용됩니다.'),
                 ],
               ),

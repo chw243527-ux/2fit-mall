@@ -2,14 +2,16 @@ class AppConstants {
   // App Info
   static const String appName = '2FIT MALL';
   static const String appVersion = '1.0.2';
-  static const String companyName = '2FIT Korea Co., Ltd.';
+  static const String companyName = '2FIT Korea Co., Ltd.'; // ✏️ 사업자 등록 후 실제 상호로 교체
   static const String copyright = '© 2024 2FIT Korea. All rights reserved.';
   
   // Contact
-  static const String customerServicePhone = '010-1234-5678';
-  static const String eliteAthletePhone = '010-4386-3331';
-  static const String customerServiceEmail = 'cs@2fitkorea.com';
+  static const String customerServicePhone = '010-7227-6914';
+  static const String eliteAthletePhone = '010-7227-6914';
+  static const String customerServiceEmail = 'chw243527@gmail.com';
   static const String kakaoTalkId = '@2fitkorea';
+  static const String customerServiceHours =
+      '평일 10:00 - 18:00 (점심 12:00 - 14:00)\n토요일 · 일요일 · 공휴일 휴무';
   
   // Order Rules
   static const int groupOrderMinCount = 5;

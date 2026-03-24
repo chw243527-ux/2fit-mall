@@ -21,6 +21,7 @@ import 'screens/orders/group_custom_order_screen.dart';
 import 'models/models.dart';
 import 'screens/chat/chat_screen.dart';
 import 'screens/policy/privacy_policy_screen.dart';
+import 'screens/admin/admin_screen.dart';
 import 'screens/policy/terms_of_service_screen.dart';
 
 void main() async {
@@ -152,6 +153,20 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
             case '/terms-of-service':
               return MaterialPageRoute(
                 builder: (_) => const TermsOfServiceScreen(),
+                settings: settings,
+              );
+            case '/admin':
+              // 이메일 링크에서 진입 시 URL 파라미터로 탭 지정
+              // 예: https://2fit-mall.co.kr/#/admin?tab=orders -> 주문관리(탭 1)
+              final args = settings.arguments;
+              int initialTab = 0;
+              if (args is Map<String, dynamic>) {
+                final tab = args['tab'];
+                if (tab == 'orders') initialTab = 1;
+                else if (tab is int) initialTab = tab;
+              }
+              return MaterialPageRoute(
+                builder: (_) => AdminScreen(initialTab: initialTab),
                 settings: settings,
               );
             default:

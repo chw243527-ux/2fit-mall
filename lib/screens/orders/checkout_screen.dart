@@ -6,6 +6,7 @@ import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../services/fcm_service.dart';
+import '../../services/auth_service.dart';
 import '../main_screen.dart';
 import '../../widgets/kakao_address_search.dart';
 import '../../widgets/pc_layout.dart';
@@ -32,6 +33,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _intlStateCtrl   = TextEditingController(); // State/Province
   final _intlZipCtrl     = TextEditingController(); // ZIP/Postal code
   final _intlCountryCtrl = TextEditingController(); // Country
+  final _detailAddressFocusNode = FocusNode(); // 상세주소 자동 포커스용
   bool _isProcessing = false;
   bool _isOverseas = false;   // false=국내, true=해외
   String _zonecode = '';
@@ -47,7 +49,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     final user = Provider.of<UserProvider>(context, listen: false).user;
     if (user != null) {
-      _addressController.text = user.address;
+      // 기본 저장 배송지가 있으면 자동 채우기
+      final defaultAddr = user.addresses.where((a) => a.isDefault).firstOrNull
+          ?? (user.addresses.isNotEmpty ? user.addresses.first : null);
+      if (defaultAddr != null) {
+        _zonecode = defaultAddr.zipCode;
+        _addressController.text = defaultAddr.address1;
+        _detailAddressController.text = defaultAddr.address2;
+      } else if (user.address.isNotEmpty) {
+        _addressController.text = user.address;
+      }
     }
   }
 
@@ -63,6 +74,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _intlStateCtrl.dispose();
     _intlZipCtrl.dispose();
     _intlCountryCtrl.dispose();
+    _detailAddressFocusNode.dispose();
     super.dispose();
   }
 
@@ -268,8 +280,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       setState(() {
         _zonecode = result.zonecode;
         _addressController.text = result.address;
+        // 상세주소 초기화 (새 주소 선택 시 이전 상세주소 제거)
+        _detailAddressController.clear();
       });
-      FocusScope.of(context).nextFocus();
+      // 주소 선택 직후 상세주소 입력란으로 자동 포커스
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          FocusScope.of(context).requestFocus(_detailAddressFocusNode);
+        }
+      });
     }
   }
 
@@ -381,9 +400,54 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // 국내 주소 입력
   Widget _buildDomesticAddress() {
     final hasAddress = _addressController.text.isNotEmpty;
+    final user = context.watch<UserProvider>().user;
+    final savedList = user?.addresses ?? [];
+
     return Column(
       children: [
-        // 카카오 주소 검색 버튼
+        // ── 저장된 배송지 버튼 (1개 이상 있을 때만 표시) ──
+        if (savedList.isNotEmpty) ...[
+          GestureDetector(
+            onTap: () => _showSavedAddressSheet(savedList),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0F4FF),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF0064FF).withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.bookmark_rounded, color: Color(0xFF0064FF), size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '저장된 배송지 ${savedList.length}개',
+                      style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0064FF)),
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right_rounded, color: Color(0xFF0064FF), size: 20),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Text('또는 새 주소 입력',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+              ),
+              const Expanded(child: Divider()),
+            ],
+          ),
+          const SizedBox(height: 8),
+        ],
+
+        // ── 카카오 주소 검색 버튼 ──
         GestureDetector(
           onTap: _searchAddress,
           child: Container(
@@ -418,6 +482,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     color: Color(0xFF1A1A2E))),
+                            if (_detailAddressController.text.isNotEmpty)
+                              Text(_detailAddressController.text,
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Color(0xFF666666))),
                           ],
                         )
                       : Text(loc.checkoutAddressSearch,
@@ -440,9 +508,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
         const SizedBox(height: 10),
-        // 상세주소
+        // ── 상세주소 ──
         TextFormField(
           controller: _detailAddressController,
+          focusNode: _detailAddressFocusNode,
           decoration: InputDecoration(
             hintText: hasAddress ? loc.checkoutDetailAddressHint : loc.checkoutDetailAddressSearch,
             prefixIcon: const Icon(Icons.home_rounded),
@@ -450,10 +519,140 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             filled: true,
             fillColor: hasAddress ? Colors.white : const Color(0xFFF5F5F5),
           ),
+          textInputAction: TextInputAction.done,
           onChanged: (_) => setState(() {}),
         ),
+        // ── 이 주소 저장 버튼 (주소 입력된 경우) ──
+        if (hasAddress) ...[
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: _saveCurrentAddress,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFDDDDDD)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.bookmark_add_outlined,
+                      size: 16, color: Colors.grey.shade600),
+                  const SizedBox(width: 6),
+                  Text('이 주소 저장하기',
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
+  }
+
+  // ── 저장된 배송지 바텀시트 ──
+  void _showSavedAddressSheet(List<AddressModel> savedList) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _SavedAddressSheet(
+        addresses: savedList,
+        onSelect: (addr) {
+          setState(() {
+            _zonecode = addr.zipCode;
+            _addressController.text = addr.address1;
+            _detailAddressController.text = addr.address2;
+          });
+          Navigator.pop(context);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && addr.address2.isEmpty) {
+              FocusScope.of(context).requestFocus(_detailAddressFocusNode);
+            }
+          });
+        },
+        onDelete: (addr) async {
+          final user = context.read<UserProvider>().user;
+          if (user == null) return;
+          final updated = user.addresses.where((a) => a.id != addr.id).toList();
+          context.read<UserProvider>().updateAddresses(updated);
+          await AuthService.updateAddresses(user.email, updated);
+        },
+        onSetDefault: (addr) async {
+          final user = context.read<UserProvider>().user;
+          if (user == null) return;
+          final updated = user.addresses.map((a) {
+            return AddressModel(
+              id: a.id, label: a.label, recipient: a.recipient,
+              phone: a.phone, zipCode: a.zipCode, address1: a.address1,
+              address2: a.address2, isDefault: a.id == addr.id,
+            );
+          }).toList();
+          context.read<UserProvider>().updateAddresses(updated);
+          await AuthService.updateAddresses(user.email, updated);
+        },
+      ),
+    );
+  }
+
+  // ── 현재 입력된 주소 저장 ──
+  Future<void> _saveCurrentAddress() async {
+    final user = context.read<UserProvider>().user;
+    if (user == null) return;
+    final addr1 = _addressController.text.trim();
+    if (addr1.isEmpty) return;
+
+    // 이미 동일 주소가 저장되어 있으면 건너뜀
+    final alreadyExists = user.addresses.any((a) => a.address1 == addr1);
+    if (alreadyExists) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('이미 저장된 주소입니다'),
+            backgroundColor: Color(0xFF666666),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
+    final newAddr = AddressModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      label: '배송지',
+      recipient: user.name,
+      phone: user.phone,
+      zipCode: _zonecode,
+      address1: addr1,
+      address2: _detailAddressController.text.trim(),
+      isDefault: user.addresses.isEmpty,
+    );
+
+    final updated = [...user.addresses, newAddr];
+    context.read<UserProvider>().updateAddresses(updated);
+    await AuthService.updateAddresses(user.email, updated);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.bookmark_added_rounded, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Text('배송지가 저장되었습니다'),
+            ],
+          ),
+          backgroundColor: Color(0xFF1A1A2E),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   // 해외 주소 입력
@@ -1226,21 +1425,39 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final user = Provider.of<UserProvider>(context, listen: false).user;
     final orderId = 'ORD-${DateTime.now().year}${DateTime.now().month.toString().padLeft(2,'0')}${DateTime.now().day.toString().padLeft(2,'0')}-${(DateTime.now().millisecondsSinceEpoch % 100000).toString().padLeft(5,'0')}';
 
-    // 결제 다이얼로그 표시
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => _TossPaymentDialog(
-        orderId: orderId,
-        orderName: widget.cart.items.first.product.name +
-            (widget.cart.items.length > 1
-                ? ' 외 ${widget.cart.items.length - 1}건'
-                : ''),
-        amount: _finalTotal.toInt(),
-        customerName: user?.name ?? loc.buyerLabel,
-        paymentMethod: _selectedPayment,
-      ),
-    );
+    // ─── 결제수단에 따라 다이얼로그 분기 ───────────────────────
+    final orderName = widget.cart.items.first.product.name +
+        (widget.cart.items.length > 1
+            ? ' 외 ${widget.cart.items.length - 1}건'
+            : '');
+
+    bool? result;
+    if (_selectedPayment == '무통장입금') {
+      // 무통장입금 전용 다이얼로그
+      result = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _BankTransferDialog(
+          orderId: orderId,
+          orderName: orderName,
+          amount: _finalTotal.toInt(),
+          customerName: user?.name ?? loc.buyerLabel,
+        ),
+      );
+    } else {
+      // 카드/간편결제 (테스트 다이얼로그)
+      result = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _TossPaymentDialog(
+          orderId: orderId,
+          orderName: orderName,
+          amount: _finalTotal.toInt(),
+          customerName: user?.name ?? loc.buyerLabel,
+          paymentMethod: _selectedPayment,
+        ),
+      );
+    }
 
     if (!mounted) return;
     if (result != true) return;
@@ -2015,6 +2232,408 @@ class _OrderCompleteScreen extends StatelessWidget {
                 style: const TextStyle(fontSize: 13, color: Color(0xFF555555))),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 무통장입금 전용 다이얼로그
+// ══════════════════════════════════════════════════════════════
+class _BankTransferDialog extends StatelessWidget {
+  final String orderId;
+  final String orderName;
+  final int amount;
+  final String customerName;
+
+  const _BankTransferDialog({
+    required this.orderId,
+    required this.orderName,
+    required this.amount,
+    required this.customerName,
+  });
+
+  // ── 🏦 실제 입금 계좌 정보 ── (여기만 수정하면 됩니다)
+  static const String _bankName    = '새마을금고';
+  static const String _accountNo   = '9003-29-9657740';
+  static const String _accountHolder = '최혜원';
+  static const String _depositDeadline = '24시간 이내';
+
+  String get _amtFmt => amount
+      .toString()
+      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── 헤더 ──
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: const BoxDecoration(
+                color: Color(0xFF43A047),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 28, height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.account_balance_rounded, color: Colors.white, size: 16),
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text(
+                      '무통장입금 안내',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context, false),
+                    child: const Icon(Icons.close_rounded, color: Colors.white70, size: 22),
+                  ),
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── 주문 정보 ──
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F9FA),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(orderName,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                            overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 2),
+                        Text(orderId,
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF999999))),
+                        const SizedBox(height: 8),
+                        Text(
+                          '$_amtFmt원',
+                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A2E)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── 입금 계좌 정보 ──
+                  const Text(
+                    '입금 계좌',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF333333)),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FFF0),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF43A047), width: 1.5),
+                    ),
+                    child: Column(
+                      children: [
+                        _infoRow('은행', _bankName, isBold: true),
+                        const SizedBox(height: 8),
+                        _infoRow('계좌번호', _accountNo, isBold: true, highlight: true),
+                        const SizedBox(height: 8),
+                        _infoRow('예금주', _accountHolder),
+                        const SizedBox(height: 8),
+                        _infoRow('입금기한', _depositDeadline),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ── 입금자명 안내 ──
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF8E1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFFFD54F)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFFF57F17)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                '입금 시 주의사항',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFF57F17)),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '• 입금자명을 반드시 "$customerName"으로 입력해 주세요.\n'
+                                '• 입금 확인 후 주문이 처리됩니다 (영업일 기준 1일 이내).\n'
+                                '• 기한 내 미입금 시 주문이 자동 취소됩니다.',
+                                style: const TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.6),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ── 확인 버튼 ──
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF43A047),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        '입금 정보 확인 완료 → 주문하기',
+                        style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('취소', style: TextStyle(color: Color(0xFF999999), fontSize: 13)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value, {bool isBold = false, bool highlight = false}) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 70,
+          child: Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF666666))),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: highlight ? 16 : 13,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
+              color: highlight ? const Color(0xFF1B5E20) : const Color(0xFF1A1A1A),
+              letterSpacing: highlight ? 1.2 : 0,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ════════════════════════════════════════════
+// 저장된 배송지 바텀시트
+// ════════════════════════════════════════════
+class _SavedAddressSheet extends StatefulWidget {
+  final List<AddressModel> addresses;
+  final void Function(AddressModel) onSelect;
+  final void Function(AddressModel) onDelete;
+  final void Function(AddressModel) onSetDefault;
+
+  const _SavedAddressSheet({
+    required this.addresses,
+    required this.onSelect,
+    required this.onDelete,
+    required this.onSetDefault,
+  });
+
+  @override
+  State<_SavedAddressSheet> createState() => _SavedAddressSheetState();
+}
+
+class _SavedAddressSheetState extends State<_SavedAddressSheet> {
+  late List<AddressModel> _list;
+
+  @override
+  void initState() {
+    super.initState();
+    _list = List.from(widget.addresses);
+    _list.sort((a, b) => b.isDefault ? 1 : (a.isDefault ? -1 : 0));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.75,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 12, bottom: 4),
+            width: 40, height: 4,
+            decoration: BoxDecoration(
+              color: const Color(0xFFDDDDDD),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              children: [
+                const Icon(Icons.bookmark_rounded, color: Color(0xFF1A1A2E), size: 20),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text('저장된 배송지',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 22),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          Flexible(
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shrinkWrap: true,
+              itemCount: _list.length,
+              separatorBuilder: (_, __) =>
+                  const Divider(height: 1, color: Color(0xFFF0F0F0)),
+              itemBuilder: (_, i) => _buildAddressItem(_list[i]),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddressItem(AddressModel addr) {
+    return InkWell(
+      onTap: () => widget.onSelect(addr),
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 2, right: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: addr.isDefault
+                    ? const Color(0xFF1A1A2E)
+                    : const Color(0xFFF0F0F0),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                addr.isDefault ? '기본' : addr.label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: addr.isDefault ? Colors.white : const Color(0xFF666666),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (addr.zipCode.isNotEmpty)
+                    Text('[${addr.zipCode}]',
+                        style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF0064FF),
+                            fontWeight: FontWeight.w600)),
+                  Text(addr.address1,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w600)),
+                  if (addr.address2.isNotEmpty)
+                    Text(addr.address2,
+                        style: const TextStyle(
+                            fontSize: 13, color: Color(0xFF666666))),
+                  const SizedBox(height: 4),
+                  Text('${addr.recipient}  ${addr.phone}',
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF999999))),
+                ],
+              ),
+            ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded,
+                  size: 20, color: Color(0xFF999999)),
+              padding: EdgeInsets.zero,
+              itemBuilder: (_) => [
+                if (!addr.isDefault)
+                  const PopupMenuItem(
+                      value: 'default',
+                      child: Row(children: [
+                        Icon(Icons.star_rounded, size: 16, color: Color(0xFF1A1A2E)),
+                        SizedBox(width: 8),
+                        Text('기본 배송지로 설정'),
+                      ])),
+                const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(children: [
+                      Icon(Icons.delete_outline_rounded,
+                          size: 16, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('삭제', style: TextStyle(color: Colors.red)),
+                    ])),
+              ],
+              onSelected: (val) {
+                if (val == 'delete') {
+                  setState(() => _list.removeWhere((a) => a.id == addr.id));
+                  widget.onDelete(addr);
+                } else if (val == 'default') {
+                  setState(() {
+                    for (final a in _list) {
+                      a.isDefault = a.id == addr.id;
+                    }
+                  });
+                  widget.onSetDefault(addr);
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

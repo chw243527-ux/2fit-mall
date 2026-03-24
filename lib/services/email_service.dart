@@ -29,6 +29,7 @@ class EmailService {
         headers: {
           'Content-Type': 'application/json',
           'origin': _origin,
+          'referer': '$_origin/',
         },
         body: jsonEncode({
           'service_id': _serviceId,
@@ -94,7 +95,7 @@ class EmailService {
         'shipping_address': order.userAddress,
         'payment_method': order.paymentMethod,
         'shop_name': '2FIT MALL',
-        'shop_url': _origin,
+        'shop_url': '$_origin/#/admin?tab=orders',
       },
     );
   }
@@ -153,7 +154,7 @@ class EmailService {
         'action_message': actionMsg,
         'tracking_number': trackingNumber ?? '',
         'courier_name': courierName ?? '',
-        'order_url': _origin,
+        'order_url': '$_origin/#/admin?tab=orders',
         'shop_name': '2FIT MALL',
       },
     );
@@ -169,5 +170,37 @@ class EmailService {
       buf.write(s[i]);
     }
     return buf.toString();
+  }
+
+  // ── 무통장입금 주문 관리자 알림 이메일 ────────────────
+  // 무통장입금 주문 발생 시 관리자에게 입금 확인 요청 발송
+  static Future<bool> sendBankTransferAdminAlert(OrderModel order) async {
+    // 관리자 수신 이메일 (constants.dart의 CS 이메일로 발송)
+    const adminEmail = 'chw243527@gmail.com'; // ✏️ 실제 관리자 이메일로 교체
+
+    final itemList = order.items
+        .map((i) => '${i.productName} (${i.size}/${i.color}) × ${i.quantity}개')
+        .join('\n');
+
+    return _sendEmail(
+      templateId: _templateStatusId, // 기존 template_status 재활용
+      templateParams: {
+        'to_email': adminEmail,
+        'to_name': '2FIT MALL 관리자',
+        'order_id': order.id,
+        'order_id_short': order.id.length > 8 ? order.id.substring(0, 8) : order.id,
+        'status': '무통장입금 대기',
+        'status_message': '⚠️ 무통장입금 주문이 접수되었습니다. 입금 확인 후 처리해 주세요.',
+        'action_message':
+            '주문자: ${order.userName} | 연락처: ${order.userPhone}\n'
+            '주문금액: ${_fmtPrice(order.totalAmount)}원\n'
+            '주문상품:\n$itemList\n'
+            '배송지: ${order.userAddress}',
+        'tracking_number': '',
+        'courier_name': '',
+        'order_url': 'https://2fit-mall.co.kr/#/admin?tab=orders',
+        'shop_name': '2FIT MALL',
+      },
+    );
   }
 }

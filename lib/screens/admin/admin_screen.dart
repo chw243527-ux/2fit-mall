@@ -30,7 +30,8 @@ import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
 
 class AdminScreen extends StatefulWidget {
-  const AdminScreen({super.key});
+  final int initialTab;
+  const AdminScreen({super.key, this.initialTab = 0});
 
   @override
   State<AdminScreen> createState() => _AdminScreenState();
@@ -169,6 +170,12 @@ class _AdminScreenState extends State<AdminScreen>
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 13, vsync: this);
+    // initialTab이 지정된 경우 해당 탭으로 이동
+    if (widget.initialTab > 0 && widget.initialTab < 13) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _tabCtrl.animateTo(widget.initialTab);
+      });
+    }
     _loadAdminSettings();
     _prefetchData();
     // 관리자 화면 진입 시 비활성 상품 포함 전체 목록 로드
@@ -1977,6 +1984,9 @@ class _AdminScreenState extends State<AdminScreen>
   Widget _orderCard(OrderModel order) {
     final statusColor = _statusColor(order.status);
     final isSelected = _selectedOrderIds.contains(order.id);
+    final isGroup = order.orderType == 'group' || order.orderType == 'additional';
+    final opts = order.customOptions;
+
     return GestureDetector(
       onTap: () => setState(() {
         if (isSelected) {
@@ -1991,8 +2001,8 @@ class _AdminScreenState extends State<AdminScreen>
         color: isSelected ? const Color(0xFFE8EAF6) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isSelected ? const Color(0xFF3949AB) : const Color(0xFFEEEEEE),
-          width: isSelected ? 1.5 : 1,
+          color: isSelected ? const Color(0xFF3949AB) : isGroup ? const Color(0xFF6A1B9A).withValues(alpha: 0.3) : const Color(0xFFEEEEEE),
+          width: isSelected ? 1.5 : isGroup ? 1.5 : 1,
         ),
         boxShadow: isSelected ? [] : [
           BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2)),
@@ -2005,7 +2015,7 @@ class _AdminScreenState extends State<AdminScreen>
           Container(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFE8EAF6) : const Color(0xFFFAFAFA),
+              color: isSelected ? const Color(0xFFE8EAF6) : isGroup ? const Color(0xFFF3E5F5) : const Color(0xFFFAFAFA),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
               border: const Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
             ),
@@ -2018,15 +2028,16 @@ class _AdminScreenState extends State<AdminScreen>
                   size: 18,
                 ),
                 const SizedBox(width: 8),
-                Text(order.id,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                Expanded(
+                  child: Text(order.id,
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                      overflow: TextOverflow.ellipsis),
+                ),
                 const SizedBox(width: 8),
                 _miniTag(
-                    order.orderType == 'group' ? '단체' : '개인',
-                    order.orderType == 'group'
-                        ? const Color(0xFF6A1B9A)
-                        : const Color(0xFF1565C0)),
-                const Spacer(),
+                    order.orderType == 'additional' ? '추가제작' : (isGroup ? '단체' : '개인'),
+                    order.orderType == 'additional' ? const Color(0xFFC62828) : (isGroup ? const Color(0xFF6A1B9A) : const Color(0xFF1565C0))),
+                const SizedBox(width: 4),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
@@ -2071,6 +2082,24 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   ],
                 ),
+                // 단체주문 요약 정보
+                if (isGroup && opts != null) ...[
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 4,
+                    runSpacing: 4,
+                    children: [
+                      if (opts['teamName'] != null && (opts['teamName'] as String).isNotEmpty)
+                        _miniTag('팀명: ${opts['teamName']}', const Color(0xFF6A1B9A)),
+                      if (opts['totalCount'] != null)
+                        _miniTag('${opts['totalCount']}명', const Color(0xFF1565C0)),
+                      if (opts['printTypeLabel'] != null)
+                        _miniTag(opts['printTypeLabel'] as String, const Color(0xFF2E7D32)),
+                      if (opts['mainColor'] != null && (opts['mainColor'] as String).isNotEmpty)
+                        _miniTag('색상: ${opts['mainColor']}', const Color(0xFFE65100)),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 10),
                 Row(
                   children: [
@@ -2124,6 +2153,29 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                       ),
                     ),
+                    const SizedBox(width: 6),
+                    // 단체주문 상세보기 버튼
+                    if (isGroup)
+                      GestureDetector(
+                        onTap: () => _showGroupOrderDetail(order),
+                        child: Container(
+                          height: 32,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6A1B9A).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.3)),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.groups_rounded, size: 14, color: Color(0xFF6A1B9A)),
+                              SizedBox(width: 4),
+                              Text('팀원 명단', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))),
+                            ],
+                          ),
+                        ),
+                      ),
                     const Spacer(),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -2143,6 +2195,262 @@ class _AdminScreenState extends State<AdminScreen>
       ),
     ),   // AnimatedContainer
     );
+  }
+
+  // ── 단체주문 팀원 명단 상세보기 ──
+  void _showGroupOrderDetail(OrderModel order) {
+    final opts = order.customOptions ?? {};
+    final persons = (opts['persons'] as List<dynamic>?) ?? [];
+
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 560, maxHeight: 700),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 헤더
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF6A1B9A), Color(0xFF4A148C)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.groups_rounded, color: Colors.white, size: 22),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '단체주문 상세: ${opts['teamName'] ?? order.id}',
+                            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                          onPressed: () => Navigator.pop(context),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        _whiteTag('${opts['totalCount'] ?? 0}명'),
+                        if ((opts['printTypeLabel'] ?? '').toString().isNotEmpty)
+                          _whiteTag(opts['printTypeLabel'].toString()),
+                        if ((opts['mainColor'] ?? '').toString().isNotEmpty)
+                          _whiteTag('색상: ${opts['mainColor']}'),
+                        if ((opts['fabricType'] ?? '').toString().isNotEmpty)
+                          _whiteTag(opts['fabricType'].toString()),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // 기본 정보
+              Container(
+                padding: const EdgeInsets.all(14),
+                color: const Color(0xFFF5F5F5),
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 6,
+                  children: [
+                    _infoChip(Icons.person, '담당자', opts['managerName']?.toString() ?? order.userName),
+                    _infoChip(Icons.phone, '연락처', order.userPhone),
+                    _infoChip(Icons.location_on, '배송지', order.userAddress.length > 20 ? '${order.userAddress.substring(0, 20)}...' : order.userAddress),
+                    _infoChip(Icons.male, '남', '${opts['maleCount'] ?? 0}명'),
+                    _infoChip(Icons.female, '여', '${opts['femaleCount'] ?? 0}명'),
+                    if ((opts['waistbandOption'] ?? '').toString().isNotEmpty)
+                      _infoChip(Icons.style, '허리밴드', opts['waistbandOption'].toString()),
+                  ],
+                ),
+              ),
+              // 팀원 명단 테이블
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: persons.isEmpty
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text('팀원 명단 정보가 없습니다.', style: TextStyle(color: Color(0xFF888888))),
+                          ),
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('팀원 명단 (${persons.length}명)',
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                            const SizedBox(height: 10),
+                            // 테이블 헤더
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF1A1A2E),
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+                              ),
+                              child: const Row(
+                                children: [
+                                  SizedBox(width: 30, child: Text('No', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700))),
+                                  Expanded(flex: 2, child: Text('이름', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700))),
+                                  SizedBox(width: 36, child: Text('성별', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700))),
+                                  Expanded(child: Text('상의', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700))),
+                                  Expanded(child: Text('하의', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700))),
+                                ],
+                              ),
+                            ),
+                            ...persons.asMap().entries.map((entry) {
+                              final i = entry.key;
+                              final p = entry.value as Map<String, dynamic>;
+                              final isEven = i % 2 == 0;
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                                color: isEven ? const Color(0xFFF5F5F5) : Colors.white,
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 30,
+                                      child: Text('${p['index'] ?? i + 1}',
+                                          style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(p['name']?.toString() ?? '-',
+                                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                    ),
+                                    SizedBox(
+                                      width: 36,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: p['gender'] == '남' ? const Color(0xFFE3F2FD) : const Color(0xFFFCE4EC),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(p['gender']?.toString() ?? '-',
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w700,
+                                                color: p['gender'] == '남' ? const Color(0xFF1565C0) : const Color(0xFFC62828))),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(p['topSize']?.toString() ?? '-',
+                                          style: const TextStyle(fontSize: 12)),
+                                    ),
+                                    Expanded(
+                                      child: Text(p['bottomSize']?.toString() ?? '-',
+                                          style: const TextStyle(fontSize: 12)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ],
+                        ),
+                ),
+              ),
+              // 하단 버튼
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _exportGroupOrderExcel(order);
+                        },
+                        icon: const Icon(Icons.download_rounded, size: 16),
+                        label: const Text('엑셀 내보내기', style: TextStyle(fontSize: 13)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          foregroundColor: const Color(0xFF00897B),
+                          side: const BorderSide(color: Color(0xFF00897B)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6A1B9A),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text('닫기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _whiteTag(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+      ),
+      child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+    );
+  }
+
+  Widget _infoChip(IconData icon, String label, String value) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 12, color: const Color(0xFF888888)),
+        const SizedBox(width: 3),
+        Text('$label: ', style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
+        Text(value, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
+      ],
+    );
+  }
+
+  // ── 단체주문 개별 엑셀 내보내기 ──
+  Future<void> _exportGroupOrderExcel(OrderModel order) async {
+    try {
+      final bytes = OrderExcelService.generateGroupOrderExcel(order);
+      final teamName = (order.customOptions?['teamName'] as String?)?.replaceAll(' ', '_') ?? order.id;
+      final dateStr = '${order.createdAt.month.toString().padLeft(2,'0')}${order.createdAt.day.toString().padLeft(2,'0')}';
+      final fileName = '단체주문_${teamName}_$dateStr.xlsx';
+      downloadFileWeb(bytes, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$fileName 다운로드 완료'), backgroundColor: const Color(0xFF00897B)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('엑셀 생성 오류: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   // ══════════════════════════════════════════════

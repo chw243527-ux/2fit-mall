@@ -824,14 +824,15 @@ class _AppDrawerState extends State<AppDrawer> {
                 color: Color(0x99FFFFFF),
               ),
             )),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
+            // 전화 / 이메일
             Row(
               children: [
                 Icon(Icons.phone_rounded,
                     size: 14, color: Colors.white.withValues(alpha: 0.4)),
                 const SizedBox(width: 8),
                 Text(
-                  '010-1234-5678',
+                  '010-7227-6914',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -843,16 +844,46 @@ class _AppDrawerState extends State<AppDrawer> {
                     size: 14, color: Colors.white.withValues(alpha: 0.4)),
                 const SizedBox(width: 8),
                 Text(
-                  'cs@2fitkorea.com',
+                  'chw243527@gmail.com',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: Colors.white.withValues(alpha: 0.75),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
+            // CS 운영시간
+            Row(
+              children: [
+                Icon(Icons.access_time_rounded,
+                    size: 14, color: Colors.white.withValues(alpha: 0.4)),
+                const SizedBox(width: 8),
+                Text(
+                  '평일 10:00-18:00  |  토·일·공휴일 휴무',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.white.withValues(alpha: 0.55),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            // 점심시간 안내
+            Row(
+              children: [
+                const SizedBox(width: 22),
+                Text(
+                  '점심시간 12:00-14:00 제외',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.white.withValues(alpha: 0.4),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
           ],
         ),
       ),

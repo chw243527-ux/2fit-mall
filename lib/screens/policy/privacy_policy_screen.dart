@@ -81,12 +81,12 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 '• 오류 정정 요청\n'
                 '• 삭제 요청 (회원 탈퇴)\n'
                 '• 처리 정지 요청\n\n'
-                '문의: cs@2fitkorea.com',
+                '문의: chw243527@gmail.com',
           ),
           _buildSection(
             '제7조 (개인정보 보호책임자)',
             '• 책임자: 2FIT MALL 운영팀\n'
-                '• 이메일: cs@2fitkorea.com\n\n'
+                '• 이메일: chw243527@gmail.com\n\n'
                 '본 방침은 2025년 3월 21일부터 적용됩니다.',
           ),
 
@@ -107,7 +107,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         fontSize: 15, fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A2E))),
                 const SizedBox(height: 8),
-                const Text('cs@2fitkorea.com',
+                const Text('chw243527@gmail.com',
                     style: TextStyle(
                         fontSize: 14, color: Color(0xFF6C63FF),
                         fontWeight: FontWeight.w600)),

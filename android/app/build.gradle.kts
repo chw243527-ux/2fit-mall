@@ -7,10 +7,7 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-<<<<<<< HEAD
-=======
     id("com.google.gms.google-services")
->>>>>>> origin/main
 }
 
 // ── 서명 키 로드 ────────────────────────────────────────────
@@ -70,7 +67,3 @@ dependencies {
 flutter {
     source = "../.."
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/main

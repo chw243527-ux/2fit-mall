@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
 import '../main_screen.dart';
+import '../admin/admin_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -59,6 +61,19 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted || _navigated) return;
     _navigated = true;
 
+    // ── 웹 URL 파라미터 확인 (이메일 링크에서 진입 시 처리)
+    // 예: https://2fit-mall.co.kr/#/admin?tab=orders
+    String? deepLinkTarget;
+    if (kIsWeb) {
+      try {
+        final uri = Uri.base;
+        final fragment = uri.fragment; // '#/admin?tab=orders' → '/admin?tab=orders'
+        if (fragment.startsWith('/admin')) {
+          deepLinkTarget = fragment; // '/admin?tab=orders'
+        }
+      } catch (_) {}
+    }
+
     try {
       // AuthService.restoreSession()으로 Firebase 세션 복구
       final result = await AuthService.restoreSession();
@@ -70,18 +85,39 @@ class _SplashScreenState extends State<SplashScreen>
         }
 
         if (mounted) {
-          Navigator.of(context, rootNavigator: true).pushReplacement(
-            PageRouteBuilder(
-              pageBuilder: (_, __, ___) => const MainScreen(),
-              transitionsBuilder: (_, animation, __, child) =>
-                  FadeTransition(opacity: animation, child: child),
-              transitionDuration: const Duration(milliseconds: 500),
-            ),
-          );
+          // 관리자 딥링크가 있으면 관리자 화면으로 이동
+          if (deepLinkTarget != null && result.user!.isAdmin) {
+            final tabUri = Uri.parse(deepLinkTarget);
+            final tab = tabUri.queryParameters['tab'];
+            int initialTab = 0;
+            if (tab == 'orders') initialTab = 1;
+
+            Navigator.of(context, rootNavigator: true).pushReplacement(
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => AdminScreen(initialTab: initialTab),
+                transitionsBuilder: (_, animation, __, child) =>
+                    FadeTransition(opacity: animation, child: child),
+                transitionDuration: const Duration(milliseconds: 500),
+              ),
+            );
+          } else {
+            Navigator.of(context, rootNavigator: true).pushReplacement(
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => const MainScreen(),
+                transitionsBuilder: (_, animation, __, child) =>
+                    FadeTransition(opacity: animation, child: child),
+                transitionDuration: const Duration(milliseconds: 500),
+              ),
+            );
+          }
         }
       } else {
-        // 세션 없음 → 로그인 화면
-        _goToLogin();
+        // 세션 없음 → 로그인 화면 (딥링크 정보는 로그인 후 처리)
+        if (deepLinkTarget != null) {
+          _goToLoginWithRedirect(deepLinkTarget);
+        } else {
+          _goToLogin();
+        }
       }
     } catch (e) {
       // 오류 발생 시 로그인 화면으로 이동
@@ -91,6 +127,21 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _goToLogin() {
     if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const LoginScreen(),
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
+  }
+
+  /// 딥링크가 있을 때 로그인 화면으로 이동 (로그인 후 리다이렉트 예정)
+  void _goToLoginWithRedirect(String redirectPath) {
+    if (!mounted) return;
+    // 로그인 후 관리자 화면으로 이동하도록 LoginScreen에 redirect 정보 전달
+    // 현재는 단순히 로그인 화면으로 이동 (로그인 후 사용자가 직접 관리자 메뉴 접근)
     Navigator.of(context, rootNavigator: true).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const LoginScreen(),
