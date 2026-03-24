@@ -900,7 +900,7 @@ class _HomeScreenState extends State<HomeScreen>
             : '5% off 30+ · 10% off 50+ people',
       },
       {
-        'imageUrl': 'https://www.genspark.ai/api/files/s/szNhns07?cache_control=3600',
+        'imageUrl': 'https://www.genspark.ai/api/files/s/I8HoNnqT?cache_control=3600',
         'btnAction': 0,
       },
     ];
@@ -1173,7 +1173,7 @@ class _HomeScreenState extends State<HomeScreen>
         'btnAction': 3,
       },
       {
-        'imageUrl': 'https://www.genspark.ai/api/files/s/WAuzOubK?cache_control=3600',
+        'imageUrl': 'https://www.genspark.ai/api/files/s/I8HoNnqT?cache_control=3600',
         'btnAction': 0,
       },
     ];
@@ -3086,7 +3086,7 @@ class _HomeScreenState extends State<HomeScreen>
         'btnAction': 3,
       },
       {
-        'imageUrl': 'https://www.genspark.ai/api/files/s/szNhns07?cache_control=3600',
+        'imageUrl': 'https://www.genspark.ai/api/files/s/I8HoNnqT?cache_control=3600',
         'btnAction': 0,
       },
     ];
