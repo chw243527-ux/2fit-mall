@@ -361,7 +361,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                 Text(p.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
                 const SizedBox(height: 4),
                 Text(
-                  '${_fmt(p.price.toInt())}${loc.customPricePerPerson}',
+                  '${_fmt(p.price.toInt())}${loc.wonUnit}',
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A)),
                 ),
                 if (p.material.isNotEmpty)
@@ -1270,19 +1270,10 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        // 가슴 / 허리
+                        // 허리 / 허벅지 (가슴·엉덩이 제외)
                         Row(
                           children: [
-                            Expanded(child: _measureField(loc.chestLabel, e.chestCtrl, 'cm', Icons.favorite_border_rounded, accent, bgLight)),
-                            const SizedBox(width: 8),
                             Expanded(child: _measureField(loc.waistLabel, e.waistCtrl, 'cm', Icons.straighten_rounded, accent, bgLight)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // 엉덩이 / 허벅지
-                        Row(
-                          children: [
-                            Expanded(child: _measureField(loc.hipLabel, e.hipCtrl, 'cm', Icons.crop_rounded, accent, bgLight)),
                             const SizedBox(width: 8),
                             Expanded(child: _measureField(loc.customThighLabel, e.thighCtrl, 'cm', Icons.accessibility_new_rounded, accent, bgLight)),
                           ],
