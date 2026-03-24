@@ -34,6 +34,16 @@ messaging.onBackgroundMessage(function(payload) {
     actions: [],
   };
 
+  // 채팅 알림인 경우 즉각 반응 + 액션 추가
+  if (payload.data?.type === 'chat') {
+    notificationOptions.requireInteraction = true;
+    notificationOptions.tag = 'chat_' + (payload.data?.roomId || 'general');
+    notificationOptions.actions = [
+      { action: 'view_chat', title: '채팅 확인' },
+      { action: 'close', title: '닫기' },
+    ];
+  }
+
   // 주문 알림인 경우 액션 추가
   if (payload.data?.type === 'order_status') {
     notificationOptions.actions = [
@@ -53,7 +63,9 @@ self.addEventListener('notificationclick', function(event) {
   const data = event.notification.data || {};
 
   let url = '/';
-  if (action === 'view_order' || data.type === 'order_status') {
+  if (action === 'view_chat' || data.type === 'chat') {
+    url = '/#/admin?tab=chat';
+  } else if (action === 'view_order' || data.type === 'order_status') {
     url = '/?tab=mypage';
   } else if (data.type === 'restock') {
     url = '/?product=' + (data.productId || '');
