@@ -874,7 +874,6 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
           entry: _persons[i],
           onRemove: _persons.length > 1 ? () => _removePerson(i) : null,
           isBottomProduct: _isBottomProduct,
-          availableSizes: widget.product.sizes,
           nameRequired: _persons.length >= 10,
           totalCount: _persons.length,
         )),
@@ -1152,18 +1151,16 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
 // ══════════════════════════════════════════════════════════════
 class _PersonEntry {
   int index;
-  String? selectedTopSize;      // 상의 사이즈
-  String? selectedBottomSize;   // 하의 사이즈
   String gender;                // '남' | '여'
   bool useBodyMeasure;
-  final TextEditingController nameCtrl   = TextEditingController();
-  final TextEditingController memoCtrl   = TextEditingController(); // 특이사항
-  final TextEditingController heightCtrl = TextEditingController();
-  final TextEditingController weightCtrl = TextEditingController();
-  final TextEditingController chestCtrl  = TextEditingController(); // 가슴둘레
-  final TextEditingController waistCtrl  = TextEditingController();
-  final TextEditingController hipCtrl    = TextEditingController(); // 엉덩이둘레
-  final TextEditingController thighCtrl  = TextEditingController();
+  final TextEditingController nameCtrl      = TextEditingController();
+  final TextEditingController memoCtrl      = TextEditingController(); // 특이사항
+  final TextEditingController topSizeCtrl   = TextEditingController(); // 상의 사이즈 직접입력
+  final TextEditingController bottomSizeCtrl= TextEditingController(); // 하의 사이즈 직접입력
+  final TextEditingController heightCtrl    = TextEditingController();
+  final TextEditingController weightCtrl    = TextEditingController();
+  final TextEditingController waistCtrl     = TextEditingController();
+  final TextEditingController thighCtrl     = TextEditingController();
 
   _PersonEntry({required this.index})
       : gender = '남',
@@ -1172,11 +1169,11 @@ class _PersonEntry {
   void dispose() {
     nameCtrl.dispose();
     memoCtrl.dispose();
+    topSizeCtrl.dispose();
+    bottomSizeCtrl.dispose();
     heightCtrl.dispose();
     weightCtrl.dispose();
-    chestCtrl.dispose();
     waistCtrl.dispose();
-    hipCtrl.dispose();
     thighCtrl.dispose();
   }
 }
@@ -1188,7 +1185,6 @@ class _PersonRowWidget extends StatefulWidget {
   final _PersonEntry entry;
   final VoidCallback? onRemove;
   final bool isBottomProduct;
-  final List<String> availableSizes;
   final bool nameRequired;    // 10명 이상이면 true
   final int totalCount;       // 전체 인원 수
 
@@ -1197,7 +1193,6 @@ class _PersonRowWidget extends StatefulWidget {
     required this.entry,
     this.onRemove,
     required this.isBottomProduct,
-    required this.availableSizes,
     this.nameRequired = false,
     this.totalCount = 1,
   });
@@ -1338,18 +1333,52 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
 
-                // ── 섹션 1: 사이즈 선택 (상의/하의 나란히) ──
+                // ── 섹션 1: 사이즈 직접 입력 (상의/하의 나란히) ──
                 _sectionLabel(Icons.straighten_rounded, loc.customSizeSectionLabel, accent),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
+
+                // 주니어 사이즈 안내 배너
+                Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF8E1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFFFCC02).withValues(alpha: 0.7)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF7A5000)),
+                          const SizedBox(width: 6),
+                          const Text(
+                            '사이즈 입력 안내',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF7A5000)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
+                      const Text(
+                        '• 성인: S, M, L, XL, 2XL, 3XL',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF7A5000), height: 1.5),
+                      ),
+                      const Text(
+                        '• 주니어: J-S, J-M, J-L, J-XL (앞에 J- 를 붙여주세요)',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF7A5000), height: 1.5),
+                      ),
+                    ],
+                  ),
+                ),
 
                 if (widget.isBottomProduct) ...[
                   // 하의 상품: 하의 사이즈만
-                  _sizeChipRow(
+                  _sizeTextField(
                     label: loc.groupFormBottomSizeLabel,
-                    sizes: widget.availableSizes,
-                    selected: e.selectedBottomSize,
+                    ctrl: e.bottomSizeCtrl,
+                    hint: '예) M, L, J-M',
                     accent: accent,
-                    onSelect: (s) => setState(() => e.selectedBottomSize = s),
                   ),
                 ] else ...[
                   // 상의/세트: 상의 + 하의 한 줄 나란히
@@ -1357,24 +1386,20 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: _sizeChipRow(
+                        child: _sizeTextField(
                           label: loc.groupFormTopSizeLabel,
-                          sizes: widget.availableSizes,
-                          selected: e.selectedTopSize,
+                          ctrl: e.topSizeCtrl,
+                          hint: '예) M, J-M',
                           accent: accent,
-                          onSelect: (s) => setState(() => e.selectedTopSize = s),
-                          compact: true,
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: _sizeChipRow(
+                        child: _sizeTextField(
                           label: loc.groupFormBottomSizeLabel,
-                          sizes: widget.availableSizes,
-                          selected: e.selectedBottomSize,
+                          ctrl: e.bottomSizeCtrl,
+                          hint: '예) L, J-L',
                           accent: accent,
-                          onSelect: (s) => setState(() => e.selectedBottomSize = s),
-                          compact: true,
                         ),
                       ),
                     ],
@@ -1554,71 +1579,53 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
     );
   }
 
-  // ── 사이즈 칩 행 ──
-  Widget _sizeChipRow({
+  // ── 사이즈 직접 입력 필드 ──
+  Widget _sizeTextField({
     required String label,
-    required List<String> sizes,
-    required String? selected,
+    required TextEditingController ctrl,
+    required String hint,
     required Color accent,
-    required ValueChanged<String> onSelect,
-    bool compact = false,
   }) {
-    final hPad = compact ? 8.0 : 14.0;
-    final vPad = compact ? 5.0 : 8.0;
-    final fontSize = compact ? 11.0 : 13.0;
-    final spacing = compact ? 4.0 : 6.0;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(label,
-                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
-            if (selected != null) ...[
-              const SizedBox(width: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: accent,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(selected,
-                    style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
-              ),
-            ],
-          ],
-        ),
+        Text(label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
         const SizedBox(height: 5),
-        Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: sizes.map((sz) {
-            final sel = selected == sz;
-            return GestureDetector(
-              onTap: () => onSelect(sz),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 120),
-                padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
-                decoration: BoxDecoration(
-                  color: sel ? accent : const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: sel ? accent : const Color(0xFFDDDDDD),
-                    width: sel ? 1.5 : 1,
-                  ),
-                ),
-                child: Text(
-                  sz,
-                  style: TextStyle(
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.w700,
-                    color: sel ? Colors.white : const Color(0xFF444444),
-                  ),
-                ),
+        TextField(
+          controller: ctrl,
+          onChanged: (_) => setState(() {}),
+          textCapitalization: TextCapitalization.characters,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: ctrl.text.isNotEmpty ? accent : const Color(0xFF333333),
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB), fontWeight: FontWeight.w400),
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            filled: true,
+            fillColor: ctrl.text.isNotEmpty
+                ? accent.withValues(alpha: 0.06)
+                : const Color(0xFFF8F8F8),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: BorderSide(
+                color: ctrl.text.isNotEmpty ? accent.withValues(alpha: 0.5) : const Color(0xFFDDDDDD),
+                width: ctrl.text.isNotEmpty ? 1.5 : 1,
               ),
-            );
-          }).toList(),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(7),
+              borderSide: BorderSide(color: accent, width: 2),
+            ),
+          ),
         ),
       ],
     );
