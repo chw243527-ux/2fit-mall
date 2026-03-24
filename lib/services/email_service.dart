@@ -172,6 +172,36 @@ class EmailService {
     return buf.toString();
   }
 
+  // ── 채팅 문의 관리자 알림 이메일 ─────────────────────
+  // 고객이 채팅 메시지를 보낼 때마다 관리자 이메일로 즉시 알림
+  static Future<bool> sendChatAlert({
+    required String userName,
+    required String message,
+    required String userId,
+  }) async {
+    const adminEmail = 'chw243527@gmail.com'; // 관리자 이메일
+    const templateId = 'template_chat_alert';  // EmailJS 템플릿 ID
+
+    final now = DateTime.now();
+    final timeStr =
+        '${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')} '
+        '${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}';
+
+    return _sendEmail(
+      templateId: templateId,
+      templateParams: {
+        'to_email': adminEmail,
+        'to_name': '2FIT MALL 관리자',
+        'from_name': userName,
+        'message': message,
+        'chat_time': timeStr,
+        'user_id': userId,
+        'admin_url': 'https://2fit-mall.co.kr/#/admin?tab=chat',
+        'shop_name': '2FIT MALL',
+      },
+    );
+  }
+
   // ── 무통장입금 주문 관리자 알림 이메일 ────────────────
   // 무통장입금 주문 발생 시 관리자에게 입금 확인 요청 발송
   static Future<bool> sendBankTransferAdminAlert(OrderModel order) async {

@@ -7,6 +7,7 @@ import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
 import '../../services/notification_service.dart';
 import '../../services/chat_service.dart';
+import '../../services/email_service.dart';
 
 class ChatMessage {
   final String text;
@@ -197,6 +198,13 @@ class _ChatScreenState extends State<ChatScreen> {
       message: isKorean ? questionText : '$questionText ($koreanQuestion)',
       language: loc.language.code,
     );
+
+    // 관리자 이메일 알림 (FAQ 문의도 알림)
+    EmailService.sendChatAlert(
+      userName: userName,
+      message: displayQuestion,
+      userId: userId,
+    );
   }
 
   void _sendMessage(String text, AppLocalizations loc) {
@@ -253,6 +261,13 @@ class _ChatScreenState extends State<ChatScreen> {
       userName: userName,
       message: text.trim(),
       language: loc.language.code,
+    );
+
+    // 관리자 이메일 알림 발송 (핸드폰으로 수신)
+    EmailService.sendChatAlert(
+      userName: userName,
+      message: text.trim(),
+      userId: userId,
     );
   }
 
