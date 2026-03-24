@@ -905,12 +905,16 @@ class _HomeScreenState extends State<HomeScreen>
       },
     ];
 
+    // 배너 높이를 화면 너비 기준 16:9 비율로 동적 계산
+    final screenWidth = MediaQuery.of(context).size.width;
+    final bannerHeight = screenWidth * 9 / 16;
+
     return Container(
       color: const Color(0xFF111111),
       child: Column(
         children: [
           SizedBox(
-            height: 400,
+            height: bannerHeight,
             child: PageView.builder(
               controller: PageController(),
               onPageChanged: (i) => setState(() => _bannerIndex = i),
@@ -922,12 +926,15 @@ class _HomeScreenState extends State<HomeScreen>
                 if (assetImage != null && assetImage.isNotEmpty) {
                   return GestureDetector(
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
-                    child: Image.asset(
-                      assetImage,
-                      fit: BoxFit.cover,
+                    child: SizedBox(
                       width: double.infinity,
                       height: double.infinity,
-                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
+                      child: Image.asset(
+                        assetImage,
+                        fit: BoxFit.fitWidth,
+                        alignment: Alignment.center,
+                        errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
+                      ),
                     ),
                   );
                 }
@@ -1377,7 +1384,8 @@ class _HomeScreenState extends State<HomeScreen>
                     height: double.infinity,
                     child: Image.asset(
                       assetImage,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fitWidth,
+                      alignment: Alignment.center,
                       errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
                     ),
                   ),
@@ -3121,13 +3129,16 @@ class _HomeScreenState extends State<HomeScreen>
       },
     ];
 
+    // 배너 높이를 화면 너비 기준 16:9 비율로 동적 계산
+    final bannerHeightMobile = MediaQuery.of(context).size.width * 9 / 16;
+
     return Container(
       color: const Color(0xFF111111),
       child: Column(
         children: [
           CarouselSlider(
             options: CarouselOptions(
-              height: 280,
+              height: bannerHeightMobile,
               viewportFraction: 1.0,
               autoPlay: true,
               autoPlayInterval: const Duration(seconds: 4),
@@ -3175,9 +3186,9 @@ class _HomeScreenState extends State<HomeScreen>
           decoration: const BoxDecoration(color: Colors.black),
           child: Image.asset(
             assetImage,
-            fit: BoxFit.cover,
+            fit: BoxFit.fitWidth,
             width: double.infinity,
-            height: double.infinity,
+            alignment: Alignment.center,
             errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
           ),
         ),
