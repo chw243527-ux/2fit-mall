@@ -19,5 +19,4 @@
 /.dart_tool/
 /build/
 Thumbs.db
-.github/
-.github/workflows/
+# .github 워크플로우는 추적 대상 (자동배포용)
