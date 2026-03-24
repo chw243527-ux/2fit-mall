@@ -441,7 +441,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             _selectedColor = name;
             _selectedColorValue = color;
           });
-          Navigator.pop(context);
+          // ColorPickerWidget 내부에서 Navigator.pop을 이미 호출하므로 여기서 중복 호출 금지
         },
       ),
     );
