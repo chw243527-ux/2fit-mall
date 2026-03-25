@@ -866,81 +866,63 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
     );
   }
 
-  // ── 인쇄 타입 카드 (4가지 옵션) – 탭 시 해당 타입으로 주문서 이동 ──
+  // ── 인쇄 타입 카드 (읽기 전용 안내) ──
   Widget _buildPrintTypeCards() {
-    // printTypeId : GroupOrderFormScreen의 _printType 인덱스와 1:1 매핑
     final types = [
-      {'step': '①', 'printTypeId': 0, 'title': '색상변경 (단체명 변경안함)',       'cond': '5장↑ 무료', 'color': const Color(0xFF1565C0), 'desc': '상의·하의 동일 색상으로 변경'},
-      {'step': '②', 'printTypeId': 1, 'title': '단체명변경(전면) (색상변경안함)',  'cond': '5장↑ 무료', 'color': const Color(0xFF2E7D32), 'desc': '앞면 팀/단체명 인쇄'},
-      {'step': '③', 'printTypeId': 2, 'title': '단체명변경(전면) + 색상변경',      'cond': '5장↑ 무료', 'color': const Color(0xFF6A1B9A), 'desc': '단체명 + 상하의 동일 색상 변경'},
-      {'step': '④', 'printTypeId': 3, 'title': '단체명+색상+이름변경(후면)',       'cond': '10장↑',    'color': const Color(0xFFC62828), 'desc': '전면 단체명+색상 + 후면 개인 이름 인쇄'},
+      {'step': '①', 'title': '색상 변경',             'cond': '5명↑ 무료', 'color': const Color(0xFF1565C0), 'desc': '원하는 색상으로 변경 제작 (상·하의 동일 색상 적용)'},
+      {'step': '②', 'title': '전면 (단체명)',          'cond': '5명↑ 무료', 'color': const Color(0xFF2E7D32), 'desc': '전면에 단체명 인쇄'},
+      {'step': '③', 'title': '조합 (전면+색상)',       'cond': '5명↑ 무료', 'color': const Color(0xFF6A1B9A), 'desc': '전면 단체명 + 색상 변경'},
+      {'step': '④', 'title': '조합 + 후면 이름',      'cond': '10명↑',     'color': const Color(0xFFC62828), 'desc': '전면 단체명·색상 + 후면 개인 이름 인쇄'},
     ];
 
     return Column(
       children: types.map((t) {
         final color = t['color'] as Color;
-        final printTypeId = t['printTypeId'] as int;
-        return GestureDetector(
-          onTap: () {
-            // 해당 인쇄타입이 선택된 채로 주문서로 바로 이동
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => GroupOrderFormScreen(
-                  product: widget.product,
-                  initialPrintType: printTypeId,
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 24, height: 24,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                child: Center(child: Text(t['step'] as String,
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white))),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(t['title'] as String,
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(t['cond'] as String,
+                              style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(t['desc'] as String,
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF666666), height: 1.3)),
+                  ],
                 ),
               ),
-            );
-          },
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: color.withValues(alpha: 0.2)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 24, height: 24,
-                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                  child: Center(child: Text(t['step'] as String,
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white))),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(t['title'] as String,
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: color.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(t['cond'] as String,
-                                style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(t['desc'] as String,
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF666666), height: 1.3)),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(Icons.arrow_forward_ios_rounded, size: 13, color: color.withValues(alpha: 0.6)),
-              ],
-            ),
+            ],
           ),
         );
       }).toList(),

@@ -833,10 +833,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   // ════════════════════════════════════════════════════════
   Widget _buildPrintTypeSection() {
     final options = [
-      const _PrintOption(0, '색상 변경',        '원하는 색상으로 변경 제작',                 Icons.palette_rounded,      true),
-      _PrintOption(1, '전면 (단체명)',          '전면에 단체명 인쇄',                       Icons.group_work_rounded,   _canUsePrint1),
-      _PrintOption(2, '조합 (전면+색상)',      '전면 단체명 + 색상 변경',                  Icons.auto_awesome_rounded, _canUsePrint1),
-      _PrintOption(3, '조합 + 후면 이름',     '전면 단체명·색상 + 후면 이름 (10명+)',    Icons.badge_rounded,        _canUsePrint2),
+      const _PrintOption(0, '색상 변경',        '원하는 색상으로 변경 제작 (상·하의 동일 색상 적용)',   Icons.palette_rounded,      true),
+      _PrintOption(1, '전면 (단체명)',          '전면에 단체명 인쇄',                                   Icons.group_work_rounded,   _canUsePrint1),
+      _PrintOption(2, '조합 (전면+색상)',       '전면 단체명 + 색상 변경',                              Icons.auto_awesome_rounded, _canUsePrint1),
+      _PrintOption(3, '조합 + 후면 이름',      '전면 단체명·색상 + 후면 개인 이름 인쇄',               Icons.badge_rounded,        _canUsePrint2),
     ];
 
     return _section(
