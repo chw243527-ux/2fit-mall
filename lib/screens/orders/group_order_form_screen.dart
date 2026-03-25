@@ -280,29 +280,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
       ),
     );
 
-    // 임베드 모드: Scaffold/AppBar 없이 body만 반환 (탭 안에 내장 시 사용)
-    // submitBar는 Stack으로 하단 고정 오버레이
+    // 임베드 모드: AppBar 없는 Scaffold로 반환 (탭 안에 내장 시 사용)
     if (widget.embeddedMode) {
-      return Stack(
-        children: [
-          // 본문: submitBar 높이만큼 하단 패딩 추가
-          Positioned.fill(
-            child: Padding(
-              padding: EdgeInsets.only(
-                bottom: _countConfirmed ? 110 : 0,
-              ),
-              child: bodyContent,
-            ),
-          ),
-          // submitBar: 하단 고정
-          if (_countConfirmed)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: _buildSubmitBar(),
-            ),
-        ],
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: bodyContent,
+        bottomNavigationBar: _countConfirmed ? _buildSubmitBar() : null,
       );
     }
 
