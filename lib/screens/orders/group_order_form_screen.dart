@@ -579,6 +579,22 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
       color: const Color(0xFFF0E6F8),
       child: const Icon(Icons.inventory_2_rounded, color: _purple, size: 28));
 
+  Widget _stageBadge(String label, Color color, bool active) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: active ? color : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: active ? color : Colors.grey.shade300, width: 1.5),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w700,
+              color: active ? Colors.white : Colors.grey.shade400)),
+    );
+  }
+
   // ════════════════════════════════════════════════════════
   // 헤더 배너
   // ════════════════════════════════════════════════════════
@@ -619,23 +635,27 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   // ════════════════════════════════════════════════════════
   // 섹션 1: 수량 (구간 배지 + 다이얼)
   // ════════════════════════════════════════════════════════
-  Widget _buildCountSection() {
-    // 구간 정의
-    final stages = [
-      {'label': '5~9명',  'color': Colors.blue,   'min': 5,  'max': 9},
-      {'label': '10~29명','color': Colors.green,   'min': 10, 'max': 29},
-      {'label': '30~49명','color': Colors.orange,  'min': 30, 'max': 49},
-      {'label': '50명+',  'color': Colors.red,     'min': 50, 'max': 999},
-    ];
 
-    // 현재 단계
-    Color dialColor = Colors.grey.shade400;
-    for (final s in stages) {
-      if (_dialCount >= (s['min'] as int) && _dialCount <= (s['max'] as int)) {
-        dialColor = s['color'] as Color;
-        break;
-      }
-    }
+  // 구간 색상/라벨 헬퍼
+  Color _stageColor() {
+    if (_dialCount >= 50)  return Colors.red;
+    if (_dialCount >= 30)  return Colors.orange;
+    if (_dialCount >= 10)  return Colors.green;
+    if (_dialCount >= 5)   return Colors.blue;
+    return Colors.grey.shade400;
+  }
+
+  String _stageLabel() {
+    if (_dialCount >= 50)  return '50명+';
+    if (_dialCount >= 30)  return '30~49명';
+    if (_dialCount >= 10)  return '10~29명';
+    if (_dialCount >= 5)   return '5~9명';
+    return '';
+  }
+
+  Widget _buildCountSection() {
+    final dialColor  = _stageColor();
+    final stageLabel = _stageLabel();
 
     return _section(
       '주문 수량',
@@ -644,26 +664,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
           // ── 구간 배지 행 ──
-          Row(children: stages.map((s) {
-            final active = _dialCount >= (s['min'] as int) && _dialCount <= (s['max'] as int);
-            final c      = s['color'] as Color;
-            return Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color:  active ? c : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: active ? c : Colors.grey.shade300, width: 1.5),
-                ),
-                child: Text(s['label'] as String,
-                    style: TextStyle(
-                        fontSize: 11, fontWeight: FontWeight.w700,
-                        color: active ? Colors.white : Colors.grey.shade400)),
-              ),
-            );
-          }).toList()),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              _stageBadge('5~9명',   Colors.blue,   _dialCount >= 5  && _dialCount <= 9),
+              const SizedBox(width: 6),
+              _stageBadge('10~29명', Colors.green,  _dialCount >= 10 && _dialCount <= 29),
+              const SizedBox(width: 6),
+              _stageBadge('30~49명', Colors.orange, _dialCount >= 30 && _dialCount <= 49),
+              const SizedBox(width: 6),
+              _stageBadge('50명+',   Colors.red,    _dialCount >= 50),
+            ]),
+          ),
 
           const SizedBox(height: 12),
 
@@ -681,7 +693,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                 Icon(Icons.info_outline_rounded, size: 14, color: Colors.amber.shade700),
                 const SizedBox(width: 6),
                 Text('최소 5명부터 주문 가능합니다',
-                    style: TextStyle(fontSize: 11, color: Colors.amber.shade800, fontWeight: FontWeight.w600)),
+                    style: TextStyle(fontSize: 11, color: Colors.amber.shade800,
+                        fontWeight: FontWeight.w600)),
               ]),
             ),
 
@@ -706,30 +719,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                       style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: dialColor),
                       textAlign: TextAlign.center),
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('명', style: TextStyle(fontSize: 13, color: dialColor.withValues(alpha: 0.7))),
-                    // 현재 단계 라벨
-                    ...(() {
-                      for (final s in stages) {
-                        if (_dialCount >= (s['min'] as int) && _dialCount <= (s['max'] as int)) {
-                          return [
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: (s['color'] as Color).withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(s['label'] as String,
-                                  style: TextStyle(
-                                      fontSize: 10,
-                                      color: s['color'] as Color,
-                                      fontWeight: FontWeight.w800)),
-                            ),
-                          ];
-                        }
-                      }
-                      return <Widget>[];
-                    })(),
+                    Text('명', style: TextStyle(fontSize: 13,
+                        color: dialColor.withValues(alpha: 0.7))),
+                    if (stageLabel.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: dialColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(stageLabel,
+                            style: TextStyle(fontSize: 10, color: dialColor,
+                                fontWeight: FontWeight.w800)),
+                      ),
+                    ],
                   ]),
                 ]),
               ),
