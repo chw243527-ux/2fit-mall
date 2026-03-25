@@ -246,13 +246,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         controller: _scrollCtrl,
         child: Column(
           children: [
-            // 상품 디자인 이미지가 있으면 최상단에 표시
-            _buildProductDesignImageBanner(),
             _buildHeaderBanner(),
             _buildCountInputSection(),
             // 항상 옵션 카드 표시 (5장 미만이면 비활성화 상태)
             _buildPrintTypeSection(),
             if (_countConfirmed) ...[
+              // ① 디자인 이미지 배너: product 있으면 sectionImages['design'] 표시
+              //    product 없으면(직접주문) 커스텀 업로드 카드 표시
+              _buildProductDesignImageBanner(),
               _buildSelectedProductCard(),
               // 단체 정보 카드: 10인 이상 & 단체명 변경 옵션 선택 시
               if (_totalCount >= 10 && _hasTeamName) _buildGroupInfoCard(),
@@ -328,13 +329,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                       controller: _scrollCtrl,
                       child: Column(
                         children: [
-                          // 상품 디자인 이미지가 있으면 최상단에 표시
-                          _buildProductDesignImageBanner(),
                           _buildHeaderBanner(),
                           _buildCountInputSection(),
                           // 항상 옵션 카드 표시 (5장 미만이면 비활성화)
                           _buildPrintTypeSection(),
                           if (_countConfirmed) ...[
+                            // ① 디자인 이미지 배너: product 있으면 sectionImages['design'] 표시
+                            //    product 없으면(직접주문) 커스텀 업로드 카드 표시
+                            _buildProductDesignImageBanner(),
                             _buildSelectedProductCard(),
                             // 단체 정보 카드: 10인 이상 & 단체명 변경 옵션 선택 시
                             if (_totalCount >= 10 && _hasTeamName) _buildGroupInfoCard(),
