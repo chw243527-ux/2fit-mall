@@ -1,5 +1,6 @@
-package com.twofit.twofit_mall
+package com.myapp.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+
