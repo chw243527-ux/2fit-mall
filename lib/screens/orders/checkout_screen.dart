@@ -8,6 +8,7 @@ import '../../models/models.dart';
 import '../../services/fcm_service.dart';
 import '../../services/auth_service.dart';
 import '../main_screen.dart';
+import '../../main.dart' show navigatorKey;
 import '../../widgets/kakao_address_search.dart';
 import '../../widgets/pc_layout.dart';
 
@@ -2111,9 +2112,13 @@ class _OrderCompleteScreen extends StatelessWidget {
                       height: 52,
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).popUntil((r) => r.isFirst);
-                          final ms = context.findAncestorStateOfType<MainScreenState>();
-                          ms?.navigateTo(3);
+                          // MainScreen으로 돌아가서 마이페이지(주문내역) 탭으로
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (_) => const MainScreen(initialIndex: 3),
+                            ),
+                            (route) => false,
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF1A1A2E),
@@ -2133,7 +2138,11 @@ class _OrderCompleteScreen extends StatelessWidget {
                       height: 52,
                       child: OutlinedButton(
                         onPressed: () {
-                          Navigator.of(context).popUntil((r) => r.isFirst);
+                          // 홈으로 이동
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (_) => const MainScreen()),
+                            (route) => false,
+                          );
                         },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFDDDDDD)),

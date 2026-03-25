@@ -261,6 +261,75 @@ class OrderService {
   }
 
   // ────────────────────────────────────────────
+  // 색상/단체명 수정 요청 저장 (마이페이지 → Firestore)
+  // ────────────────────────────────────────────
+  static Future<bool> submitColorNameChangeRequest({
+    required String orderId,
+    String? newColorName,
+    String? newTeamName,
+    String? memo,
+  }) async {
+    try {
+      final updates = <String, dynamic>{
+        'updatedAt': FieldValue.serverTimestamp(),
+        'colorEditRequested': true,
+        'colorEditRequestedAt': FieldValue.serverTimestamp(),
+      };
+      if (newColorName != null) updates['requestedColorName'] = newColorName;
+      if (newTeamName != null && newTeamName.isNotEmpty) {
+        updates['requestedTeamName'] = newTeamName;
+      }
+      if (memo != null && memo.isNotEmpty) updates['colorEditMemo'] = memo;
+
+      // colorEditCount 증가
+      await _db.collection('orders').doc(orderId).update({
+        ...updates,
+        'colorEditCount': FieldValue.increment(1),
+      });
+
+      // Hive 동기화
+      try {
+        final box = await _getBox();
+        final data = box.get(orderId);
+        if (data != null) {
+          final updated = Map<String, dynamic>.from(data as Map);
+          updated['colorEditCount'] = ((updated['colorEditCount'] as int?) ?? 0) + 1;
+          if (newColorName != null) updated['requestedColorName'] = newColorName;
+          await box.put(orderId, updated);
+        }
+      } catch (_) {}
+
+      // ── 관리자 알림 전송 (디자인 수정 요청) ──
+      try {
+        final notifRef = FirebaseFirestore.instance.collection('admin_notifications').doc();
+        final sid = orderId.length > 8 ? orderId.substring(0, 8) : orderId;
+        final changeSummary = [
+          if (newColorName != null) '색상: $newColorName',
+          if (newTeamName != null && newTeamName.isNotEmpty) '단체명: $newTeamName',
+          if (memo != null && memo.isNotEmpty) '메모: $memo',
+        ].join(' / ');
+        await notifRef.set({
+          'id': notifRef.id,
+          'title': '🎨 디자인 수정 요청',
+          'body': '주문 #$sid — $changeSummary',
+          'type': 'design_modify',
+          'orderId': orderId,
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      } catch (e) {
+        if (kDebugMode) debugPrint('관리자 알림 저장 실패: $e');
+      }
+
+      if (kDebugMode) debugPrint('✅ 색상/단체명 변경 요청 저장: $orderId → $newColorName');
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 색상 변경 요청 저장 실패: $e');
+      return false;
+    }
+  }
+
+  // ────────────────────────────────────────────
   // 단체 주문 유틸리티
   // ────────────────────────────────────────────
   static bool canModifyOrder(OrderModel order) {

@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/models.dart';
 import '../utils/app_localizations.dart';
 import '../services/order_service.dart';
+import '../services/email_service.dart';
 import '../services/product_service.dart';
 import '../services/review_service.dart';
 import '../services/wishlist_coupon_service.dart';
@@ -232,6 +233,19 @@ class UserProvider extends ChangeNotifier {
       addresses: _user!.addresses,
     );
     notifyListeners();
+    // Firestore 동기화
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_user!.id)
+          .update({
+        if (name != null) 'name': name,
+        if (phone != null) 'phone': phone,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 프로필 업데이트 실패: $e');
+    }
   }
 
   void updateAddresses(List<AddressModel> addresses) {
@@ -251,6 +265,16 @@ class UserProvider extends ChangeNotifier {
       addresses: addresses,
     );
     notifyListeners();
+    // Firestore 동기화 (비동기, 실패해도 UI 즉시 반영)
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(_user!.id)
+        .update({
+      'addresses': addresses.map((a) => a.toJson()).toList(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    }).catchError(
+      (e) { if (kDebugMode) debugPrint('⚠️ 주소 저장 실패: $e'); },
+    );
   }
 
   void toggleWishlist(String productId) {
@@ -299,71 +323,32 @@ class UserProvider extends ChangeNotifier {
 }
 
 class OrderProvider extends ChangeNotifier {
-  final List<OrderModel> _orders = _generateSampleOrders();
+  final List<OrderModel> _orders = [];
 
   List<OrderModel> get orders => List.unmodifiable(_orders);
   List<OrderModel> get myOrders => _orders.toList();
 
-  static List<OrderModel> _generateSampleOrders() {
-    return [
-      OrderModel(
-        id: 'ORD-001',
-        userId: 'user_001',
-        userName: '김민지',
-        userPhone: '010-1234-5678',
-        userAddress: '서울시 강남구 역삼동 123-45',
-        items: [
-          OrderItem(
-            productId: 'p001',
-            productName: '2FIT 라운드넥 티셔츠',
-            size: 'M',
-            color: 'Black',
-            quantity: 2,
-            price: 35000,
-          ),
-          OrderItem(
-            productId: 'p009',
-            productName: '2FIT 롱 레깅스',
-            size: 'M',
-            color: 'Black',
-            quantity: 1,
-            price: 45000,
-          ),
-        ],
-        totalAmount: 115000,
-        paymentMethod: '카카오페이',
-        status: OrderStatus.delivered,
-        orderType: 'personal',
-        createdAt: DateTime.now().subtract(const Duration(days: 7)),
-      ),
-      OrderModel(
-        id: 'ORD-002',
-        userId: 'user_001',
-        userName: '김민지',
-        userPhone: '010-1234-5678',
-        userAddress: '서울시 강남구 역삼동 123-45',
-        items: [
-          OrderItem(
-            productId: 'p012',
-            productName: '2FIT 크롭탑+숏레깅스 세트',
-            size: 'S',
-            color: 'Navy',
-            quantity: 1,
-            price: 58000,
-          ),
-        ],
-        totalAmount: 58000,
-        paymentMethod: '신용/체크카드',
-        status: OrderStatus.shipped,
-        orderType: 'personal',
-        createdAt: DateTime.now().subtract(const Duration(days: 2)),
-      ),
-    ];
-  }
-
   void addOrder(OrderModel order) {
     _orders.insert(0, order);
     notifyListeners();
+    // Firestore에 저장 + 이메일 발송 (백그라운드)
+    Future(() async {
+      try {
+        await OrderService.saveOrder(order);
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ 주문 저장 실패: $e');
+      }
+      if (order.userEmail.isNotEmpty) {
+        try {
+          if (order.paymentMethod == '무통장입금') {
+            await EmailService.sendBankTransferAdminAlert(order);
+          }
+          await EmailService.sendOrderConfirmEmail(order);
+        } catch (e) {
+          if (kDebugMode) debugPrint('⚠️ 주문 이메일 발송 실패: $e');
+        }
+      }
+    });
   }
 
   List<OrderModel> getUserOrders(String userId) {
@@ -480,36 +465,37 @@ class CouponProvider extends ChangeNotifier {
 
 // ── 포인트 Provider ───────────────────────────────────
 class PointProvider extends ChangeNotifier {
-  final List<PointHistory> _history = _generateSampleHistory();
-  int _totalPoints = 3200;
+  final List<PointHistory> _history = [];
+  int _totalPoints = 0;
 
   int get totalPoints => _totalPoints;
   List<PointHistory> get history => List.unmodifiable(_history);
 
-  static List<PointHistory> _generateSampleHistory() {
-    return [
-      PointHistory(
-        id: 'ph001',
-        type: PointActionType.earn,
-        amount: 1000,
-        description: 'ORD-001 구매 적립',
-        createdAt: DateTime.now().subtract(const Duration(days: 7)),
-      ),
-      PointHistory(
-        id: 'ph002',
-        type: PointActionType.earn,
-        amount: 580,
-        description: 'ORD-002 구매 적립',
-        createdAt: DateTime.now().subtract(const Duration(days: 2)),
-      ),
-      PointHistory(
-        id: 'ph003',
-        type: PointActionType.earn,
-        amount: 1620,
-        description: '리뷰 작성 보너스',
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-    ];
+  /// Firestore에서 포인트 데이터 로드
+  Future<void> loadFromFirestore(String userId) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        _totalPoints = (data['points'] as num?)?.toInt() ?? 0;
+        final historyList = data['pointHistory'] as List<dynamic>? ?? [];
+        _history
+          ..clear()
+          ..addAll(historyList.map((h) => PointHistory(
+            id: h['id'] ?? '',
+            type: h['type'] == 'earn' ? PointActionType.earn : PointActionType.use,
+            amount: (h['amount'] as num?)?.toInt() ?? 0,
+            description: h['description'] ?? '',
+            createdAt: (h['createdAt'] as dynamic)?.toDate() ?? DateTime.now(),
+          )));
+        notifyListeners();
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 포인트 로드 실패: $e');
+    }
   }
 
   void earnPoints(int amount, String description) {
@@ -628,46 +614,39 @@ class NotificationModel {
 }
 
 class NotificationProvider extends ChangeNotifier {
-  final List<NotificationModel> _notifications = _generateSampleNotifications();
+  final List<NotificationModel> _notifications = [];
 
   List<NotificationModel> get notifications =>
       List.unmodifiable(_notifications);
   int get unreadCount =>
       _notifications.where((n) => !n.isRead).length;
 
-  static List<NotificationModel> _generateSampleNotifications() {
-    return [
-      NotificationModel(
-        id: 'n001',
-        title: '주문이 확인되었습니다',
-        body: 'ORD-002 주문이 제작 준비 중입니다.',
-        type: 'order',
-        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      NotificationModel(
-        id: 'n002',
-        title: '신규 상품 입고!',
-        body: '2FIT 여름 시즌 신상품이 입고되었습니다. 지금 확인해보세요!',
-        type: 'promo',
-        createdAt: DateTime.now().subtract(const Duration(hours: 8)),
-      ),
-      NotificationModel(
-        id: 'n003',
-        title: '쿠폰 발급',
-        body: '신규 회원 웰컴 쿠폰이 발급되었습니다. WELCOME2FIT',
-        type: 'promo',
-        isRead: true,
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-      NotificationModel(
-        id: 'n004',
-        title: '포인트 적립',
-        body: '구매 적립 포인트 1,580P가 지급되었습니다.',
-        type: 'info',
-        isRead: true,
-        createdAt: DateTime.now().subtract(const Duration(days: 2)),
-      ),
-    ];
+  /// Firestore에서 알림 로드
+  Future<void> loadFromFirestore(String userId) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('notifications')
+          .where('userId', isEqualTo: userId)
+          .get();
+      final loaded = snapshot.docs.map((doc) {
+        final d = doc.data();
+        return NotificationModel(
+          id: doc.id,
+          title: d['title'] ?? '',
+          body: d['body'] ?? '',
+          type: d['type'] ?? 'info',
+          isRead: d['isRead'] ?? false,
+          createdAt: (d['createdAt'] as dynamic)?.toDate() ?? DateTime.now(),
+        );
+      }).toList();
+      loaded.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _notifications
+        ..clear()
+        ..addAll(loaded);
+      notifyListeners();
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 알림 로드 실패: $e');
+    }
   }
 
   void markAsRead(String id) {

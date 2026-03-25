@@ -11,6 +11,7 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../widgets/pc_layout.dart';
 import '../orders/group_custom_order_screen.dart';
+import '../orders/group_order_guide_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../utils/app_localizations.dart';
 import '../../services/analytics_service.dart';
@@ -1919,7 +1920,8 @@ $productUrl
             );
           }),
 
-          // ── 성별 선택 (항상 표시) ──
+          // ── 성별 선택 (단체주문 전용 상품 제외) ──
+          if (!product.isGroupOnly) ...[
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF0F0F0)),
           const SizedBox(height: 10),
@@ -2025,6 +2027,7 @@ $productUrl
               ),
             ),
           ],
+          ], // end if (!product.isGroupOnly)
         ],
       ),
     );
@@ -4099,6 +4102,17 @@ $productUrl
 
   // ─── 단체주문 안내 시트 표시 ───
   void _showGroupOrderGuide(ProductModel product) {
+    // 단체주문 전용 상품: 바로 단체주문 안내 페이지로 이동
+    if (product.isGroupOnly) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => GroupOrderGuideScreen(product: product),
+        ),
+      );
+      return;
+    }
+    // 일반 상품: 바텀시트로 안내
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

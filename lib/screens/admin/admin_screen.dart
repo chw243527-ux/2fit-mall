@@ -12,6 +12,7 @@ import '../../services/product_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/order_service.dart';
+import '../../services/privacy_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/fcm_service.dart';
 import '../../services/chat_service.dart';
@@ -1304,11 +1305,11 @@ class _AdminScreenState extends State<AdminScreen>
         return;
       }
 
-      // 엑셀 생성
-      final bytes = OrderExcelService.generateExcel(orders, range.start, range.end);
+      // 엑셀 생성 (단체주문 전용 — 이미지 URL 포함)
+      final bytes = await OrderExcelService.generateDailyGroupOrderExcel(orders, range.start, range.end);
       final startStr = '${range.start.month.toString().padLeft(2, '0')}${range.start.day.toString().padLeft(2, '0')}';
       final endStr = '${range.end.month.toString().padLeft(2, '0')}${range.end.day.toString().padLeft(2, '0')}';
-      final fileName = '2FIT_주문_${startStr}_${endStr}.xlsx';
+      final fileName = '2FIT_단체주문마감_${startStr}_${endStr}.xlsx';
 
       await _handleExcelDownload(bytes, fileName, orders.length, range.start, range.end);
     } catch (e) {
@@ -1347,7 +1348,9 @@ class _AdminScreenState extends State<AdminScreen>
           action: SnackBarAction(
             label: '확인',
             textColor: Colors.white70,
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
           ),
         ),
       );
@@ -2431,8 +2434,22 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  // ── 단체주문 개별 엑셀 내보내기 ──
+  // ── 단체주문 개별 엑셀 내보내기 (디자인 이미지 + 모든 필드 포함) ──
   Future<void> _exportGroupOrderExcel(OrderModel order) async {
+    // 로딩 표시
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(children: [
+            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+            SizedBox(width: 12),
+            Text('엑셀 생성 중...'),
+          ]),
+          duration: Duration(seconds: 10),
+          backgroundColor: Color(0xFF4A148C),
+        ),
+      );
+    }
     try {
       final bytes = OrderExcelService.generateGroupOrderExcel(order);
       final teamName = (order.customOptions?['teamName'] as String?)?.replaceAll(' ', '_') ?? order.id;
@@ -2440,12 +2457,22 @@ class _AdminScreenState extends State<AdminScreen>
       final fileName = '단체주문_${teamName}_$dateStr.xlsx';
       downloadFileWeb(bytes, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$fileName 다운로드 완료'), backgroundColor: const Color(0xFF00897B)),
+          SnackBar(
+            content: Row(children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+              const SizedBox(width: 8),
+              Expanded(child: Text('$fileName 다운로드 완료 (디자인이미지·인원사이즈·전체필드 포함)')),
+            ]),
+            backgroundColor: const Color(0xFF00897B),
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('엑셀 생성 오류: $e'), backgroundColor: Colors.red),
         );

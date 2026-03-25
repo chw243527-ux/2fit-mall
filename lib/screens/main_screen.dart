@@ -17,7 +17,8 @@ import 'auth/login_screen.dart';
 const double kPcBreakpoint = 900;
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialIndex;
+  const MainScreen({super.key, this.initialIndex = 0});
 
   @override
   State<MainScreen> createState() => MainScreenState();
@@ -25,7 +26,7 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
-  int _currentIndex = 0;
+  late int _currentIndex;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   void navigateToMyPage() => setState(() => _currentIndex = 3);
@@ -34,6 +35,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
     // 공지사항 팝업 - MainScreen 레벨에서 표시 (가장 안정적)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Firestore에서 공지사항 로드 (번역 없으면 자동 번역)

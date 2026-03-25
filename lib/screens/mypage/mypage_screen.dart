@@ -12,6 +12,7 @@ import '../auth/login_screen.dart';
 import '../orders/group_order_form_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/pc_layout.dart';
+import '../../services/order_service.dart';
 import '../../widgets/kakao_address_search.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -32,6 +33,13 @@ class _MyPageScreenState extends State<MyPageScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
+    // 앱 시작 시 실제 주문 데이터 로드
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<UserProvider>().user;
+      if (user != null) {
+        context.read<OrderProvider>().loadUserOrders(user.id);
+      }
+    });
   }
 
   @override
@@ -2955,14 +2963,54 @@ class _ColorEditSheetState extends State<_ColorEditSheet> {
     super.dispose();
   }
 
-  void _submit() {
+  bool _isSubmitting = false;
+
+  Future<void> _submit() async {
     if (_selectedColorName == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(_loc.selectColor2)),
       );
       return;
     }
-    setState(() => _submitted = true);
+    if (widget.order.remainingColorEdits <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('수정 가능 횟수를 모두 사용했습니다.')),
+      );
+      return;
+    }
+    setState(() => _isSubmitting = true);
+    try {
+      final success = await OrderService.submitColorNameChangeRequest(
+        orderId: widget.order.id,
+        newColorName: _selectedColorName,
+        newTeamName: _teamNameCtrl.text.trim().isNotEmpty ? _teamNameCtrl.text.trim() : null,
+        memo: _memoCtrl.text.trim().isNotEmpty ? _memoCtrl.text.trim() : null,
+      );
+      if (!mounted) return;
+      if (success) {
+        setState(() {
+          _submitted = true;
+          _isSubmitting = false;
+        });
+        // 마이페이지 주문 목록 새로고침
+        final user = context.read<UserProvider>().user;
+        if (user != null) {
+          context.read<OrderProvider>().loadUserOrders(user.id);
+        }
+      } else {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('수정 요청 저장에 실패했습니다. 다시 시도해주세요.'), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('오류: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
@@ -3253,8 +3301,10 @@ class _ColorEditSheetState extends State<_ColorEditSheet> {
                 Expanded(
                   flex: 2,
                   child: ElevatedButton.icon(
-                    onPressed: _submit,
-                    icon: const Icon(Icons.send_rounded, size: 16),
+                    onPressed: _isSubmitting ? null : _submit,
+                    icon: _isSubmitting
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.send_rounded, size: 16),
                     label: Text(_loc.modifyRequest, style: const TextStyle(fontWeight: FontWeight.w800)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: blueColor,
