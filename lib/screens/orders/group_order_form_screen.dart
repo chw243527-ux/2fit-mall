@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../utils/theme.dart';
-import '../../utils/app_localizations.dart';
 import '../../widgets/pc_layout.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
@@ -557,7 +554,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
             Switch(
               value: _changeColor,
               onChanged: (v) => setState(() => _changeColor = v),
-              activeColor: _purple,
+              activeThumbColor: _purple,
             ),
             const SizedBox(width: 8),
             const Text('원하는 색상으로 변경', style: TextStyle(fontSize: 14)),
@@ -667,7 +664,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: _purple,
+          activeThumbColor: _purple,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
       ]),
@@ -922,7 +919,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         Switch(
           value: _exclusive,
           onChanged: (v) => setState(() => _exclusive = v),
-          activeColor: _purple,
+          activeThumbColor: _purple,
         ),
       ]),
     );
