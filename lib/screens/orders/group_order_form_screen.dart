@@ -23,11 +23,13 @@ import '../orders/group_order_guide_screen.dart';
 class GroupOrderFormScreen extends StatefulWidget {
   final ProductModel? product;
   final bool isAdditionalOrder;
+  final int initialPrintType;   // 0=색상변경, 1=전면단체명, 2=전면+색상, 3=후면이름
 
   const GroupOrderFormScreen({
     super.key,
     this.product,
     this.isAdditionalOrder = false,
+    this.initialPrintType = 0,
   });
 
   @override
@@ -55,7 +57,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
 
   // ── 인쇄 타입 ──
   // 0=색상변경만, 1=전면(단체명), 2=전면+색상, 3=전면+색상+후면이름
-  int _printType = 0;
+  late int _printType;
 
   // ── 색상 ──
   String? _mainColorName;
@@ -131,6 +133,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   @override
   void initState() {
     super.initState();
+    _printType = widget.initialPrintType.clamp(0, 3);
     _loadSavedImages();
     for (int i = 0; i < _inputCount; i++) {
       _persons.add(_PersonEntry(index: i));
