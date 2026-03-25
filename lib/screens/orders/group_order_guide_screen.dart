@@ -251,7 +251,12 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
             height: 48,
             child: ElevatedButton.icon(
               onPressed: _agreed
-                  ? () => _tab.animateTo(1)
+                  ? () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => GroupOrderFormScreen(product: widget.product),
+                      ),
+                    )
                   : null,
               icon: const Icon(Icons.edit_outlined, size: 16),
               label: Text(context.watch<LanguageProvider>().loc.groupOrderGuideWriteBtn,
@@ -582,7 +587,14 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           _AgreementSection(
             agreed: _agreed,
             onChanged: (v) => setState(() => _agreed = v ?? false),
-            onNext: _agreed ? () => _tab.animateTo(1) : null,
+            onNext: _agreed
+                ? () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GroupOrderFormScreen(product: widget.product),
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(height: 20),
         ],
