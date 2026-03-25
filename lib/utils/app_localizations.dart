@@ -3556,18 +3556,18 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Хүргэлтийн мэдээлэл';
   }}
   String get groupOrderGuideShipping1 { switch (language) {
-    case AppLanguage.korean:   return '• 단체커스텀 5장 이상: 무료배송';
-    case AppLanguage.english:  return '• Group custom 5+ items: Free shipping';
-    case AppLanguage.japanese: return '• 団体カスタム5枚以上：送料無料';
-    case AppLanguage.chinese:  return '• 团体定制5件以上：免费配送';
-    case AppLanguage.mongolian:return '• Бүлгийн захиалга 5+ ширхэг: үнэгүй хүргэлт';
+    case AppLanguage.korean:   return '• 30만원 이상 구매 시: 무료배송';
+    case AppLanguage.english:  return '• Free shipping for orders over ₩300,000';
+    case AppLanguage.japanese: return '• 30万ウォン以上のご購入：送料無料';
+    case AppLanguage.chinese:  return '• 购买30万韩元以上：免费配送';
+    case AppLanguage.mongolian:return '• 300,000₩-аас дээш захиалгад үнэгүй хүргэлт';
   }}
   String get groupOrderGuideShipping2 { switch (language) {
-    case AppLanguage.korean:   return '• 5장 미만: 배송비 3,000원';
-    case AppLanguage.english:  return '• Under 5 items: ₩3,000 shipping fee';
-    case AppLanguage.japanese: return '• 5枚未満：配送料3,000ウォン';
-    case AppLanguage.chinese:  return '• 5件以下：运费3,000韩元';
-    case AppLanguage.mongolian:return '• 5-аас доош: 3,000₩ хүргэлтийн төлбөр';
+    case AppLanguage.korean:   return '• 30만원 미만: 배송비 별도';
+    case AppLanguage.english:  return '• Under ₩300,000: shipping fee applies';
+    case AppLanguage.japanese: return '• 30万ウォン未満：送料別途';
+    case AppLanguage.chinese:  return '• 30万韩元以下：需支付运费';
+    case AppLanguage.mongolian:return '• 300,000₩-аас доош: хүргэлтийн төлбөр нэмэгдэнэ';
   }}
   String get groupOrderGuideShipping3 { switch (language) {
     case AppLanguage.korean:   return '• 추가 제작 (5장 미만): 배송비 4,000원 추가';

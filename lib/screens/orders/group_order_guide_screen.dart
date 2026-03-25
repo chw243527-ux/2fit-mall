@@ -8,8 +8,7 @@ import '../../widgets/pc_layout.dart';
 
 class GroupOrderGuideScreen extends StatefulWidget {
   final ProductModel? product;
-  final int initialTab; // 0: 주문안내, 1: 주문서식
-  const GroupOrderGuideScreen({super.key, this.product, this.initialTab = 0});
+  const GroupOrderGuideScreen({super.key, this.product});
 
   @override
   State<GroupOrderGuideScreen> createState() => _GroupOrderGuideScreenState();
@@ -25,7 +24,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
   @override
   void initState() {
     super.initState();
-    _tab = TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
+    _tab = TabController(length: 2, vsync: this);
     _tab.addListener(() => setState(() {}));
   }
 
@@ -202,6 +201,13 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          Text(context.watch<LanguageProvider>().loc.groupOrderGuideDiscountTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 10),
+          _pcBenefitRow(context, '✅', '5↑', loc.groupOrderGuideQtyRule5, const Color(0xFF1565C0)),
+          _pcBenefitRow(context, '🏷️', '10↑', loc.groupOrderGuideQtyRule10, const Color(0xFF2E7D32)),
+          _pcBenefitRow(context, '🏆', '30↑', loc.groupOrderBenefit3, const Color(0xFFFF6B35)),
+          _pcBenefitRow(context, '🥇', '50↑', loc.groupOrderBenefit4, const Color(0xFF6A1B9A)),
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 12),
@@ -469,6 +475,12 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           );}),
           const SizedBox(height: 24),
 
+          // 수량별 할인 (스크린샷: 30개 10%, 50개 20%, 100개 별도협의)
+          _SectionHeader2('🏷️', loc.groupOrderGuideDiscountTitle),
+          const SizedBox(height: 12),
+          _buildDiscountTable(),
+          const SizedBox(height: 16),
+
           // 추가 주문 안내
           _SectionHeader2('➕', loc.groupOrderGuideAdditionalTitle),
           const SizedBox(height: 12),
@@ -582,9 +594,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
   // 탭2: 주문 양식
   // ═══════════════════════════════════════════════════
   Widget _buildFormTab(BuildContext context) {
-    // initialTab이 1이면(사이드바 직접 접근) 동의 없이도 바로 Form 진행
-    final canDirectAccess = widget.initialTab == 1;
-    if (!_agreed && !canDirectAccess) {
+    if (!_agreed) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -781,6 +791,47 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           ],
         ),
       )).toList(),
+    );
+  }
+
+  // ── 수량별 할인 테이블 ──
+  Widget _buildDiscountTable() {
+    final rows = [
+      {'qty': '30개 이상', 'discount': '10% 할인', 'color': const Color(0xFF1565C0)},
+      {'qty': '50개 이상', 'discount': '20% 할인', 'color': const Color(0xFF6A1B9A)},
+      {'qty': '100개 이상', 'discount': '별도 협의', 'color': const Color(0xFFC62828)},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFFFCC80)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.discount_rounded, size: 16, color: Color(0xFFE65100)),
+            const SizedBox(width: 6),
+            const Text('대량 주문 할인', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFFE65100))),
+          ]),
+          const SizedBox(height: 10),
+          ...rows.map((r) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(children: [
+              Container(
+                width: 8, height: 8,
+                decoration: BoxDecoration(color: r['color'] as Color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text('${r['qty']}: ', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700))),
+              Text(r['discount'] as String, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: r['color'] as Color)),
+            ]),
+          )),
+        ],
+      ),
     );
   }
 

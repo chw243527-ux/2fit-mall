@@ -383,62 +383,24 @@ class OrderExcelService {
 
       // 디자인 수정 요청 파일 URL (PDF 등)
       final designFileUrl = opts['designFileUrl']?.toString() ?? '';
-      // 커스텀 디자인 이미지 (직접 업로드한 경우 base64, URL 형태로 저장)
-      final customDesignBase64 = opts['customDesignBase64']?.toString() ?? '';
-      // 상품 디자인 이미지 URLs (product.sectionImages['design'])
-      final productDesignUrls = opts['productDesignImageUrls'];
-      final designUrlList = productDesignUrls is List
-          ? productDesignUrls.cast<String>()
-          : <String>[];
       // 참조 이미지 URL (남/여)
       final maleRefUrl = opts['maleRefImageUrl']?.toString() ?? '';
       final femaleRefUrl = opts['femaleRefImageUrl']?.toString() ?? '';
-
-      // 실제 디자인 이미지 URL (우선순위: 상품 섹션이미지 > 직접 업로드 > 디자인 파일)
-      final effectiveDesignUrl = designUrlList.isNotEmpty
-          ? designUrlList.first
-          : (customDesignBase64.isNotEmpty ? '(직접 업로드)' : (designFileUrl.isNotEmpty ? designFileUrl : '-'));
 
       for (final item in order.items) {
         _setCell(imageSheet, imgRowIdx, 0, '$imgNo');
         _setCell(imageSheet, imgRowIdx, 1, _shortId(order.id));
         _setCell(imageSheet, imgRowIdx, 2, teamName);
         _setCell(imageSheet, imgRowIdx, 3, item.productName);
-        // 디자인 이미지 URL
-        final productImgUrl = item.customOptions?['productImageUrl']?.toString() ??
+        // 디자인 이미지 URL (클릭 가능한 링크)
+        final imgUrl = item.customOptions?['productImageUrl']?.toString() ??
             opts['productImageUrl']?.toString() ?? '-';
-        _setCell(imageSheet, imgRowIdx, 4, effectiveDesignUrl);
-        _setCell(imageSheet, imgRowIdx, 5, productImgUrl);
+        _setCell(imageSheet, imgRowIdx, 4, designFileUrl.isNotEmpty ? designFileUrl : '-');
+        _setCell(imageSheet, imgRowIdx, 5, imgUrl);
         _setCell(imageSheet, imgRowIdx, 6, opts['printTypeLabel']?.toString() ?? '-');
 
         imgRowIdx++;
         imgNo++;
-      }
-
-      // 상품 섹션 디자인 이미지가 여러 장일 때 추가 행 출력
-      if (designUrlList.length > 1) {
-        for (int di = 1; di < designUrlList.length; di++) {
-          _setCell(imageSheet, imgRowIdx, 0, '(디자인${di + 1})');
-          _setCell(imageSheet, imgRowIdx, 1, _shortId(order.id));
-          _setCell(imageSheet, imgRowIdx, 2, teamName);
-          _setCell(imageSheet, imgRowIdx, 3, '디자인 이미지 ${di + 1}');
-          _setCell(imageSheet, imgRowIdx, 4, designUrlList[di]);
-          _setCell(imageSheet, imgRowIdx, 5, '-');
-          _setCell(imageSheet, imgRowIdx, 6, '-');
-          imgRowIdx++;
-        }
-      }
-
-      // 직접 업로드된 커스텀 디자인 이미지 알림
-      if (customDesignBase64.isNotEmpty && designUrlList.isEmpty) {
-        _setCell(imageSheet, imgRowIdx, 0, '(커스텀)');
-        _setCell(imageSheet, imgRowIdx, 1, _shortId(order.id));
-        _setCell(imageSheet, imgRowIdx, 2, teamName);
-        _setCell(imageSheet, imgRowIdx, 3, '직접 업로드 디자인');
-        _setCell(imageSheet, imgRowIdx, 4, '주문서에 첨부됨 (앱 확인 필요)');
-        _setCell(imageSheet, imgRowIdx, 5, '-');
-        _setCell(imageSheet, imgRowIdx, 6, '-');
-        imgRowIdx++;
       }
 
       // 남여 참조 이미지
@@ -642,34 +604,13 @@ class OrderExcelService {
     // 이미지 URL 정보
     final productImageUrl = opts['productImageUrl']?.toString() ?? '';
     final designFileUrl = opts['designFileUrl']?.toString() ?? '';
-    final customDesignBase64 = opts['customDesignBase64']?.toString() ?? '';
-    final productDesignUrls = opts['productDesignImageUrls'];
-    final designUrlList = productDesignUrls is List
-        ? productDesignUrls.cast<String>()
-        : <String>[];
     final maleRefUrl = opts['maleRefImageUrl']?.toString() ?? '';
     final femaleRefUrl = opts['femaleRefImageUrl']?.toString() ?? '';
     final bottomColorName = opts['bottomColorName']?.toString() ?? '';
 
     int imgRow = 1;
-    // 상품 디자인 이미지 (product.sectionImages['design']) - 최우선 표시
-    if (designUrlList.isNotEmpty) {
-      for (int di = 0; di < designUrlList.length; di++) {
-        _setCell(summarySheet, imgRow, 0, '[디자인 이미지 ${di + 1}]', style: labelStyle);
-        _setCell(summarySheet, imgRow, 1, designUrlList[di]);
-        _setCell(summarySheet, imgRow, 2, '※ URL을 클릭하거나 복사하여 브라우저에서 확인');
-        imgRow++;
-      }
-    }
-    // 직접 업로드한 커스텀 디자인 이미지
-    if (customDesignBase64.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '[직접 업로드 디자인]', style: labelStyle);
-      _setCell(summarySheet, imgRow, 1, '주문서에 첨부됨 (앱/웹에서 확인)');
-      _setCell(summarySheet, imgRow, 2, '※ 직접 업로드한 디자인 이미지');
-      imgRow++;
-    }
     if (productImageUrl.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '[상세페이지 대표 이미지]', style: labelStyle);
+      _setCell(summarySheet, imgRow, 0, '[상세페이지 디자인 이미지]', style: labelStyle);
       _setCell(summarySheet, imgRow, 1, productImageUrl);
       _setCell(summarySheet, imgRow, 2, '※ URL을 클릭하거나 복사하여 브라우저에서 확인');
       imgRow++;
