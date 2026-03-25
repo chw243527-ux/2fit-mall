@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+
+  <!-- ═══════════════════════════════════════════════
+       ① 기본 SEO 메타태그
+       검색엔진(구글, 네이버, 다음)이 가장 먼저 읽는 태그
+  ═══════════════════════════════════════════════ -->
+  <!-- 검색결과에 표시되는 설명문 (최대 160자 권장) -->
+  <meta name="description" content="2FIT MALL - 피트니스 전문 패션 쇼핑몰. 헬스복, 요가복, 운동복, 단체복 맞춤 제작. 고품질 기능성 스포츠웨어를 합리적인 가격으로 만나보세요.">
+  <!-- 검색 키워드 (구글은 무시하지만 네이버·다음에서 활용) -->
+  <meta name="keywords" content="피트니스패션,헬스복,운동복,요가복,스포츠웨어,단체복제작,체육복,짐웨어,2핏몰,2FIT,2FITMALL,피트니스쇼핑몰,단체운동복">
+  <!-- 검색엔진 크롤링 허용 + 링크 따라가기 허용 -->
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <!-- 제작자/운영자 정보 -->
+  <meta name="author" content="2FIT MALL">
+  <!-- 정식 URL 명시 (중복 페이지 방지) -->
+  <link rel="canonical" href="https://2fit-mall.co.kr/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- ═══════════════════════════════════════════════
+       ② Open Graph 태그 (OG)
+       카카오톡·페이스북·인스타그램 링크 공유 시 미리보기 카드 생성
+       og:image 는 1200×630px 이미지 권장
+  ═══════════════════════════════════════════════ -->
+  <meta property="og:type"        content="website">
+  <meta property="og:site_name"   content="2FIT MALL">
+  <meta property="og:title"       content="2FIT MALL - 피트니스 전문 패션 쇼핑몰">
+  <meta property="og:description" content="헬스복, 요가복, 단체 운동복 맞춤 제작 전문 쇼핑몰. 고품질 기능성 스포츠웨어를 합리적인 가격으로!">
+  <meta property="og:url"         content="https://2fit-mall.co.kr/">
+  <!-- 공유 시 표시되는 대표 이미지 (1200×630px 권장, 절대경로 사용) -->
+  <meta property="og:image"       content="https://2fit-mall.co.kr/icons/og-image.png">
+  <meta property="og:image:width"  content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt"   content="2FIT MALL 피트니스 패션 쇼핑몰">
+  <meta property="og:locale"      content="ko_KR">
+
+  <!-- ═══════════════════════════════════════════════
+       ③ Twitter Card 태그
+       트위터(X) 링크 공유 시 미리보기 카드 생성
+       summary_large_image = 큰 이미지 카드 형식
+  ═══════════════════════════════════════════════ -->
+  <meta name="twitter:card"        content="summary_large_image">
+  <meta name="twitter:title"       content="2FIT MALL - 피트니스 전문 패션 쇼핑몰">
+  <meta name="twitter:description" content="헬스복, 요가복, 단체 운동복 맞춤 제작 전문 쇼핑몰. 고품질 기능성 스포츠웨어!">
+  <meta name="twitter:image"       content="https://2fit-mall.co.kr/icons/og-image.png">
+  <meta name="twitter:image:alt"   content="2FIT MALL 피트니스 패션 쇼핑몰">
+
+  <!-- ═══════════════════════════════════════════════
+       ④ 네이버 서치어드바이저 인증 태그
+       실제 인증코드는 https://searchadvisor.naver.com 에서 발급
+       아래 content 값을 발급받은 코드로 교체하면 됩니다
+  ═══════════════════════════════════════════════ -->
+  <meta name="naver-site-verification" content="9be4ae3362c073af4b28863e78927177e154f88b">
+
+  <!-- ═══════════════════════════════════════════════
+       ⑤ 구글 서치콘솔 인증 태그 (선택)
+       https://search.google.com/search-console 에서 발급
+  ═══════════════════════════════════════════════ -->
+  <meta name="google-site-verification" content="LwnATTgHX3x3mR0W6mg4Zd5rmtTmkuqOhaqYT2z16tY">
+
+  <!-- Google Sign-In -->
+  <meta name="google-signin-client_id" content="187081765755-hbucij2qnqaqsgvah5lnqdofb7ma7d1s.apps.googleusercontent.com">
+
+  <!-- iOS / PWA -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="2FIT MALL">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>2FIT MALL - 피트니스 전문 패션 쇼핑몰</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- ═══════════════════════════════════════════════
+       ⑦ Google Analytics 4 (GA4) 추적 코드
+       - 구글 서치콘솔 소유권 인증용
+       - 방문자 수·유입 경로·행동 분석
+       - 측정 ID: G-JS79F5C56P
+  ═══════════════════════════════════════════════ -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JS79F5C56P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-JS79F5C56P');
+  </script>
+
+  <!-- ═══════════════════════════════════════════════
+       ⑥ JSON-LD 구조화 데이터
+       구글 검색 결과에 '리치 스니펫'(별점·가격·상호 등)이 표시됨
+       https://schema.org/Store 규격 사용
+  ═══════════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Store",
+    "name": "2FIT MALL",
+    "alternateName": "2핏몰",
+    "url": "https://2fit-mall.co.kr",
+    "logo": "https://2fit-mall.co.kr/icons/Icon-512.png",
+    "image": "https://2fit-mall.co.kr/icons/og-image.png",
+    "description": "피트니스 전문 패션 쇼핑몰. 헬스복, 요가복, 운동복, 단체복 맞춤 제작 전문.",
+    "priceRange": "$$",
+    "servesCuisine": null,
+    "telephone": "",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "KR"
+    },
+    "sameAs": [],
+    "hasMap": "",
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+      "opens": "09:00",
+      "closes": "18:00"
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://2fit-mall.co.kr/?search={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #ffffff; }
+    #loading-screen {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #ffffff; z-index: 9999;
+    }
+    .loading-logo {
+      width: 80px; height: 80px;
+      border-radius: 18px;
+      background: #1a1a2e;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .loading-logo span {
+      color: #fff; font-size: 22px; font-weight: 900; letter-spacing: -1px;
+    }
+    .loading-spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #6A1B9A;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- 로딩 화면 -->
+  <div id="loading-screen">
+    <div class="loading-logo"><span>2FIT</span></div>
+    <div class="loading-spinner"></div>
+  </div>
+
+  <script>
+    // SW 및 캐시 완전 제거
+    (function() {
+      try {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(r) { r.unregister(); });
+          });
+        }
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            keys.forEach(function(k) { caches.delete(k); });
+          });
+        }
+      } catch(e) {}
+    })();
+
+    // bfcache(앞뒤로 캐시) 복원 시 새로고침 - Flutter 재초기화
+    window.addEventListener('pageshow', function(e) {
+      if (e.persisted) { window.location.reload(); }
+    });
+
+    // Flutter 첫 프레임 완료 → 로딩화면 제거
+    window.addEventListener('flutter-first-frame', function() {
+      var el = document.getElementById('loading-screen');
+      if (el) {
+        el.style.transition = 'opacity 0.3s';
+        el.style.opacity = '0';
+        setTimeout(function() { if (el.parentNode) el.remove(); }, 300);
+      }
+    });
+  </script>
+
+  <script src="flutter_bootstrap.js" async></script>
+
+  <!-- PWA 홈 화면 추가 배너 -->
+  <script>
+    let deferredPrompt = null;
+    let pwaInstallShown = false;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      
+      // 5초 후 설치 배너 표시 (첫 방문 또는 3일에 한 번)
+      const lastShown = localStorage.getItem('pwa_install_shown');
+      const now = Date.now();
+      const threeDays = 3 * 24 * 60 * 60 * 1000;
+      
+      if (!lastShown || (now - parseInt(lastShown)) > threeDays) {
+        setTimeout(() => {
+          if (!pwaInstallShown && deferredPrompt) {
+            showPwaInstallBanner();
+          }
+        }, 5000);
+      }
+    });
+
+    function showPwaInstallBanner() {
+      if (pwaInstallShown) return;
+      pwaInstallShown = true;
+      localStorage.setItem('pwa_install_shown', Date.now().toString());
+
+      const banner = document.createElement('div');
+      banner.id = 'pwa-install-banner';
+      banner.innerHTML = `
+        <div style="
+          position: fixed;
+          bottom: 80px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #1A1A2E;
+          color: white;
+          border-radius: 16px;
+          padding: 14px 20px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+          z-index: 99999;
+          max-width: 340px;
+          width: calc(100% - 32px);
+          animation: slideUp 0.3s ease;
+        ">
+          <img src="icons/Icon-192.png" style="width:40px;height:40px;border-radius:10px;" alt="2FIT MALL">
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;margin-bottom:2px;">2FIT MALL 앱 추가</div>
+            <div style="font-size:12px;opacity:0.8;">홈 화면에 추가하고 빠르게 쇼핑하세요</div>
+          </div>
+          <button id="pwa-install-btn" style="
+            background:#6C63FF;color:white;border:none;
+            padding:8px 14px;border-radius:8px;
+            font-size:13px;font-weight:700;cursor:pointer;
+            white-space:nowrap;
+          ">추가</button>
+          <button id="pwa-close-btn" style="
+            background:transparent;color:rgba(255,255,255,0.6);
+            border:none;font-size:20px;cursor:pointer;padding:0;
+            line-height:1;
+          ">×</button>
+        </div>
+        <style>
+          @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+          }
+        </style>
+      `;
+      document.body.appendChild(banner);
+
+      document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            console.log('[PWA] 홈 화면에 추가됨');
+          }
+          deferredPrompt = null;
+        }
+        removeBanner();
+      });
+
+      document.getElementById('pwa-close-btn').addEventListener('click', removeBanner);
+
+      // 8초 후 자동 제거
+      setTimeout(removeBanner, 8000);
+    }
+
+    function removeBanner() {
+      const banner = document.getElementById('pwa-install-banner');
+      if (banner) {
+        banner.style.opacity = '0';
+        banner.style.transition = 'opacity 0.3s';
+        setTimeout(() => banner.remove(), 300);
+      }
+    }
+
+    window.addEventListener('appinstalled', () => {
+      console.log('[PWA] 앱이 설치되었습니다');
+      deferredPrompt = null;
+      removeBanner();
+    });
+  </script>
+</body>
+</html>

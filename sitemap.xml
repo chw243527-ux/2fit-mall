@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  sitemap.xml - 검색엔진 색인 지도
+  2FIT MALL (https://2fit-mall.co.kr)
+
+  ▸ 구글 제출: https://search.google.com/search-console
+  ▸ 네이버 제출: https://searchadvisor.naver.com
+  ▸ changefreq 의미:
+      always   : 접속할 때마다 변경
+      hourly   : 매 시간
+      daily    : 매일
+      weekly   : 매주
+      monthly  : 매월
+      yearly   : 매년
+      never    : 변경 없음
+  ▸ priority: 0.0 ~ 1.0 (이 사이트 내 상대적 중요도, 검색 순위에 직접 영향 없음)
+-->
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- ① 메인(홈) 페이지 - 가장 중요 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/</loc>
+    <lastmod>2025-03-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://2fit-mall.co.kr/"/>
+    <image:image>
+      <image:loc>https://2fit-mall.co.kr/icons/og-image.png</image:loc>
+      <image:title>2FIT MALL 메인</image:title>
+    </image:image>
+  </url>
+
+  <!-- ② 상품 목록 페이지 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/#/products</loc>
+    <lastmod>2025-03-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- ③ 카테고리: 상의 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/#/category/top</loc>
+    <lastmod>2025-03-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ④ 카테고리: 하의 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/#/category/bottom</loc>
+    <lastmod>2025-03-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ⑤ 카테고리: 세트 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/#/category/set</loc>
+    <lastmod>2025-03-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ⑥ 단체 주문 안내 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/#/group-order</loc>
+    <lastmod>2025-03-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- ⑦ 장바구니 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/#/cart</loc>
+    <lastmod>2025-03-22</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- ⑧ 로그인 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/#/login</loc>
+    <lastmod>2025-03-22</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>
