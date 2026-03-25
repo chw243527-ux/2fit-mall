@@ -246,6 +246,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         controller: _scrollCtrl,
         child: Column(
           children: [
+            // 상품 디자인 이미지가 있으면 최상단에 표시
+            _buildProductDesignImageBanner(),
             _buildHeaderBanner(),
             _buildCountInputSection(),
             // 항상 옵션 카드 표시 (5장 미만이면 비활성화 상태)
@@ -326,6 +328,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                       controller: _scrollCtrl,
                       child: Column(
                         children: [
+                          // 상품 디자인 이미지가 있으면 최상단에 표시
+                          _buildProductDesignImageBanner(),
                           _buildHeaderBanner(),
                           _buildCountInputSection(),
                           // 항상 옵션 카드 표시 (5장 미만이면 비활성화)
@@ -936,8 +940,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   // ── 선택 상품 디자인 미리보기 카드 ──
   Widget _buildSelectedProductCard() {
     final product = widget.product;
-    // product가 없으면 디자인 업로드 카드 표시 (사이드바에서 직접 접근한 경우)
-    if (product == null) return _buildCustomDesignUploadCard();
+    // product가 없으면 빈 위젯 반환 (디자인 업로드 카드는 최상단에 이미 표시됨)
+    if (product == null) return const SizedBox.shrink();
 
     final images = product.images;
     final hasImages = images.isNotEmpty;
@@ -2614,6 +2618,193 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900)),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ── 상품 디자인 이미지 최상단 배너 (상품의 sectionImages['design'] 이미지) ──
+  Widget _buildProductDesignImageBanner() {
+    final product = widget.product;
+    // 상품이 없는 경우(직접 주문): 커스텀 디자인 업로드 카드를 맨 위에 표시
+    if (product == null) return _buildCustomDesignUploadCard();
+    final designImgs = product.sectionImages['design'] ?? [];
+    if (designImgs.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 섹션 헤더
+          Row(
+            children: [
+              Container(
+                width: 3, height: 16,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A148C),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                '디자인 이미지',
+                style: TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w800,
+                  color: Color(0xFF1A1A1A),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A148C).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '${designImgs.length}장',
+                  style: const TextStyle(
+                    fontSize: 10, color: Color(0xFF4A148C),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // 이미지 가로 스크롤
+          SizedBox(
+            height: 120,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: designImgs.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (_, i) {
+                return GestureDetector(
+                  onTap: () => _showDesignImageLightbox(designImgs, i),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          designImgs[i],
+                          width: 120, height: 120,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 120, height: 120,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEDE7F6),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.broken_image_rounded,
+                                color: Color(0xFF6A1B9A), size: 32),
+                          ),
+                        ),
+                      ),
+                      // 확대 아이콘
+                      Positioned(
+                        right: 4, bottom: 4,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.55),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(Icons.zoom_in_rounded,
+                              color: Colors.white, size: 13),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Divider(height: 1, color: Color(0xFFF0F0F0)),
+        ],
+      ),
+    );
+  }
+
+  // 디자인 이미지 라이트박스
+  void _showDesignImageLightbox(List<String> imgs, int initialIndex) {
+    int _currentIdx = initialIndex;
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.92),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => GestureDetector(
+          onTap: () => Navigator.pop(ctx),
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 닫기 버튼
+                Align(
+                  alignment: Alignment.topRight,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(ctx),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Icon(Icons.close_rounded,
+                          color: Colors.white, size: 20),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // 이미지
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    imgs[_currentIdx],
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 200,
+                      color: const Color(0xFF333333),
+                      child: const Icon(Icons.broken_image_rounded,
+                          color: Colors.white, size: 48),
+                    ),
+                  ),
+                ),
+                if (imgs.length > 1) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: _currentIdx > 0
+                            ? () => setS(() => _currentIdx--)
+                            : null,
+                        icon: const Icon(Icons.chevron_left_rounded,
+                            color: Colors.white, size: 30),
+                        padding: EdgeInsets.zero,
+                      ),
+                      Text(
+                        '${_currentIdx + 1} / ${imgs.length}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                      IconButton(
+                        onPressed: _currentIdx < imgs.length - 1
+                            ? () => setS(() => _currentIdx++)
+                            : null,
+                        icon: const Icon(Icons.chevron_right_rounded,
+                            color: Colors.white, size: 30),
+                        padding: EdgeInsets.zero,
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -4535,6 +4726,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         'maleRefImageUrl': maleRefImageUrl,
         'femaleRefImageUrl': femaleRefImageUrl,
         'designFileUrl': '',  // PDF 업로드 시 채워짐
+        // 직접 업로드한 커스텀 디자인 이미지 (base64)
+        'customDesignBase64': _customDesignBase64 ?? '',
+        // 상품 디자인 이미지 URLs (product.sectionImages['design'])
+        'productDesignImageUrls': widget.product?.sectionImages['design'] ?? [],
       };
 
       final basePrice = widget.product?.price ?? 0;
