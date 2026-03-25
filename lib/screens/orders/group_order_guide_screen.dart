@@ -395,45 +395,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           ),
           const SizedBox(height: 16),
 
-          // 디자인 파일 안내
-          _SectionHeader2('📎', loc.groupOrderGuideDesignFileTitle),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFF81C784)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(loc.groupOrderGuideDesignFile1,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1565C0).withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.attach_file_rounded, size: 16, color: Color(0xFF1565C0)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(loc.groupOrderGuideDesignFile2,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
           // 인쇄 타입
           _SectionHeader2('🖨️', loc.groupOrderPrintTypeTitle),
           const SizedBox(height: 12),
@@ -749,79 +710,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
       ),
       child: Text(text,
           style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
-    );
-  }
-
-  // ── 커스텀 옵션 카드 (스크린샷 방식) ──
-  Widget _buildCustomOptionCards() {
-    final options = [
-      {
-        'icon': '🎨',
-        'title': '팀 로고/마킹 추가 (5장 이상)',
-        'desc': '팀 로고 파일 첨부 필수 (AI/PDF/PNG)',
-        'badge': '무료',
-        'badgeColor': const Color(0xFF1565C0),
-        'badgeBg': const Color(0xFFE3F2FD),
-      },
-      {
-        'icon': '🖌️',
-        'title': '색상 변경',
-        'desc': '원하는 색상으로 제작 가능',
-        'badge': '무료',
-        'badgeColor': const Color(0xFF2E7D32),
-        'badgeBg': const Color(0xFFE8F5E9),
-      },
-      {
-        'icon': '👗',
-        'title': '허리밴드 색상 변경',
-        'desc': '하의 허리밴드 색상 추가 변경 (형태 변경 불가)',
-        'badge': '+5만원',
-        'badgeColor': const Color(0xFF6A1B9A),
-        'badgeBg': const Color(0xFFF3E5F5),
-      },
-    ];
-
-    return Column(
-      children: options.map((opt) => Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 1))],
-        ),
-        child: Row(
-          children: [
-            Text(opt['icon'] as String, style: const TextStyle(fontSize: 24)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(opt['title'] as String,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 3),
-                  Text(opt['desc'] as String,
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: (opt['badgeBg'] as Color),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(opt['badge'] as String,
-                  style: TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w900,
-                      color: opt['badgeColor'] as Color)),
-            ),
-          ],
-        ),
-      )).toList(),
     );
   }
 
