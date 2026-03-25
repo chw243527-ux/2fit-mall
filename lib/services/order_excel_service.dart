@@ -93,6 +93,34 @@ class OrderExcelService {
         createdAt = DateTime.now();
       }
 
+      // customOptions 파싱: top-level persons, groupName, groupCount 병합
+      Map<String, dynamic>? customOptions;
+      final rawOpts = data['customOptions'];
+      if (rawOpts is Map) {
+        customOptions = Map<String, dynamic>.from(rawOpts);
+      } else {
+        customOptions = {};
+      }
+      // persons: customOptions.persons 없으면 top-level persons 병합
+      if ((customOptions['persons'] == null ||
+          (customOptions['persons'] as List?)?.isEmpty == true)) {
+        final topPersons = data['persons'];
+        if (topPersons is List && topPersons.isNotEmpty) {
+          customOptions['persons'] = topPersons;
+        }
+      }
+      // teamName: customOptions에 없으면 groupName 병합
+      if (customOptions['teamName'] == null ||
+          (customOptions['teamName'] as String?)?.isEmpty == true) {
+        final gn = data['groupName'] as String?;
+        if (gn != null && gn.isNotEmpty) customOptions['teamName'] = gn;
+      }
+      // totalCount: customOptions에 없으면 groupCount 병합
+      if (customOptions['totalCount'] == null) {
+        final gc = data['groupCount'];
+        if (gc != null) customOptions['totalCount'] = gc;
+      }
+
       return OrderModel(
         id: docId,
         userId: data['userId'] as String? ?? '',
@@ -106,7 +134,7 @@ class OrderExcelService {
         paymentMethod: data['paymentMethod'] as String? ?? '',
         status: status,
         orderType: data['orderType'] as String? ?? 'personal',
-        customOptions: data['customOptions'] as Map<String, dynamic>?,
+        customOptions: customOptions.isEmpty ? null : customOptions,
         groupName: data['groupName'] as String?,
         groupCount: (data['groupCount'] as num?)?.toInt(),
         createdAt: createdAt,
@@ -529,6 +557,7 @@ class OrderExcelService {
   static Uint8List generateGroupOrderExcel(OrderModel order) {
     final excel = Excel.createExcel();
     final opts = order.customOptions ?? {};
+    // persons: customOptions.persons 또는 top-level 모두 지원
     final persons = (opts['persons'] as List<dynamic>?) ?? [];
 
     final headerStyle = CellStyle(

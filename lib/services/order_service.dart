@@ -438,6 +438,32 @@ class OrderService {
       orElse: () => OrderStatus.pending,
     );
 
+    // customOptions 파싱: top-level customOptions 맵 + persons 필드 통합
+    Map<String, dynamic>? customOptions;
+    final rawOpts = data['customOptions'];
+    if (rawOpts is Map) {
+      customOptions = Map<String, dynamic>.from(rawOpts);
+    } else {
+      customOptions = {};
+    }
+    // persons 필드: customOptions.persons 없으면 top-level persons 병합
+    if ((customOptions['persons'] == null || (customOptions['persons'] as List?)?.isEmpty == true)) {
+      final topPersons = data['persons'];
+      if (topPersons is List && topPersons.isNotEmpty) {
+        customOptions['persons'] = topPersons;
+      }
+    }
+    // groupName, teamName 통합
+    if (customOptions['teamName'] == null || (customOptions['teamName'] as String?)?.isEmpty == true) {
+      final gn = data['groupName'] as String?;
+      if (gn != null && gn.isNotEmpty) customOptions['teamName'] = gn;
+    }
+    // totalCount 통합
+    if (customOptions['totalCount'] == null) {
+      final gc = data['groupCount'];
+      if (gc != null) customOptions['totalCount'] = gc;
+    }
+
     return OrderModel(
       id: data['id'] as String? ?? '',
       userId: data['userId'] as String? ?? '',
@@ -450,20 +476,28 @@ class OrderService {
       shippingFee: (data['shippingFee'] as num?)?.toDouble() ?? 0,
       paymentMethod: data['paymentMethod'] as String? ?? '',
       orderType: data['orderType'] as String? ?? 'personal',
+      customOptions: customOptions.isEmpty ? null : customOptions,
       groupName: data['groupName'] as String?,
-      groupCount: data['groupCount'] as int?,
+      groupCount: (data['groupCount'] as num?)?.toInt(),
       memo: data['memo'] as String?,
       createdAt: createdAt,
+      additionalOrderCount: (data['additionalOrderCount'] as num?)?.toInt() ?? 0,
+      colorEditCount: (data['colorEditCount'] as num?)?.toInt() ?? 0,
       items: (data['items'] as List? ?? []).map((i) {
         final item = Map<String, dynamic>.from(i as Map);
+        Map<String, dynamic>? itemOpts;
+        final rawItemOpts = item['customOptions'];
+        if (rawItemOpts is Map) {
+          itemOpts = Map<String, dynamic>.from(rawItemOpts);
+        }
         return OrderItem(
           productId: item['productId'] as String? ?? '',
           productName: item['productName'] as String? ?? '',
           size: item['size'] as String? ?? '',
           color: item['color'] as String? ?? '',
-          quantity: item['quantity'] as int? ?? 1,
+          quantity: (item['quantity'] as num?)?.toInt() ?? 1,
           price: (item['price'] as num?)?.toDouble() ?? 0,
-          customOptions: item['customOptions'] as Map<String, dynamic>?,
+          customOptions: itemOpts,
         );
       }).toList(),
     );

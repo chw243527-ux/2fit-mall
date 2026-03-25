@@ -59,7 +59,7 @@ class _AdminScreenState extends State<AdminScreen>
   String _memberSearchQuery = '';
   String _productCategoryFilter = '전체';
 
-  static const _orderFilters = ['전체', '주문대기', '주문확인', '제작중', '배송중', '배송완료', '취소'];
+  static const _orderFilters = ['전체', '주문 대기', '주문 확인', '제작/준비 중', '배송 중', '배송 완료', '주문 취소'];
 
   // ── 알림 설정 상태
   String _adminPhone = '';
@@ -139,26 +139,7 @@ class _AdminScreenState extends State<AdminScreen>
   static const _colorCategories = ['전체', '기본색', '포인트색', '시즌색'];
 
   // ── 디자인 수정 요청 상태
-  final List<Map<String, dynamic>> _designRequests = [
-    {
-      'id': 'dr001', 'orderId': 'ORD-2024-001', 'userName': '김민준',
-      'requestType': '색상 변경', 'description': '네이비에서 블랙으로 변경 요청',
-      'status': '대기중', 'createdAt': DateTime.now().subtract(const Duration(hours: 2)),
-      'images': <String>[], 'adminNote': '',
-    },
-    {
-      'id': 'dr002', 'orderId': 'ORD-2024-002', 'userName': '박지현',
-      'requestType': '사이즈 수정', 'description': '허리 사이즈 2cm 줄이기',
-      'status': '처리중', 'createdAt': DateTime.now().subtract(const Duration(days: 1)),
-      'images': <String>[], 'adminNote': '수선팀 전달 완료',
-    },
-    {
-      'id': 'dr003', 'orderId': 'ORD-2024-003', 'userName': 'Battulga',
-      'requestType': '로고 위치', 'description': '로고 위치를 왼쪽 가슴으로',
-      'status': '완료', 'createdAt': DateTime.now().subtract(const Duration(days: 3)),
-      'images': <String>[], 'adminNote': '완료 처리',
-    },
-  ];
+  final List<Map<String, dynamic>> _designRequests = [];
   final Set<String> _selectedDesignRequestIds = {};
   String _designRequestFilter = '전체';
   static const _designRequestStatuses = ['전체', '대기중', '처리중', '완료', '거절'];
@@ -209,6 +190,62 @@ class _AdminScreenState extends State<AdminScreen>
       }).toList();
       setState(() => _cachedMembers = members);
     } catch (_) {}
+
+    // 디자인 수정 요청: Firestore orders에서 colorEditRequested=true인 주문 로드
+    await _loadDesignRequests();
+  }
+
+  Future<void> _loadDesignRequests() async {
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('orders')
+          .where('colorEditRequested', isEqualTo: true)
+          .get();
+      if (!mounted) return;
+      final requests = snap.docs.map((doc) {
+        final d = doc.data();
+        final opts = d['customOptions'] as Map<String, dynamic>? ?? {};
+        final raw = d['colorEditRequestedAt'];
+        DateTime createdAt;
+        if (raw is Timestamp) {
+          createdAt = raw.toDate();
+        } else {
+          final fallback = d['createdAt'];
+          if (fallback is Timestamp) {
+            createdAt = fallback.toDate();
+          } else {
+            createdAt = DateTime.now();
+          }
+        }
+        final newColor = d['newColorName'] as String? ?? opts['newColorName'] as String? ?? '';
+        final newTeamName = d['newTeamName'] as String? ?? '';
+        final memo = d['colorEditMemo'] as String? ?? '';
+        String desc = '';
+        if (newColor.isNotEmpty) desc += '색상: $newColor';
+        if (newTeamName.isNotEmpty) desc += (desc.isNotEmpty ? ' / ' : '') + '팀명: $newTeamName';
+        if (memo.isNotEmpty) desc += (desc.isNotEmpty ? ' / ' : '') + '메모: $memo';
+        return {
+          'id': doc.id,
+          'orderId': doc.id,
+          'userName': d['userName'] as String? ?? '-',
+          'requestType': '색상/팀명 변경',
+          'description': desc.isNotEmpty ? desc : '변경 요청',
+          'status': '대기중',
+          'createdAt': createdAt,
+          'images': <String>[],
+          'adminNote': '',
+        };
+      }).toList();
+      requests.sort((a, b) =>
+          (b['createdAt'] as DateTime).compareTo(a['createdAt'] as DateTime));
+      if (!mounted) return;
+      setState(() {
+        _designRequests.clear();
+        _designRequests.addAll(requests);
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint('디자인 수정 요청 로드 실패: $e');
+    }
   }
 
   Future<void> _loadAdminSettings() async {
@@ -764,8 +801,8 @@ class _AdminScreenState extends State<AdminScreen>
           o.createdAt.month == now.month &&
           o.createdAt.day == now.day).length;
         final monthRevenue = monthOrders.fold<double>(0, (s, o) => s + o.totalAmount);
-        final personalOrders = allOrders.where((o) => o.orderType != 'group').length;
-        final groupOrders = allOrders.where((o) => o.orderType == 'group').length;
+        final personalOrders = allOrders.where((o) => o.orderType == 'personal').length;
+        final groupOrders = allOrders.where((o) => o.orderType == 'group' || o.orderType == 'additional').length;
 
         return Container(
           color: const Color(0xFFF0F2F5),
@@ -821,7 +858,7 @@ class _AdminScreenState extends State<AdminScreen>
                     children: [
                       _orderTypeRow('개인 주문', personalOrders, const Color(0xFF1565C0)),
                       const SizedBox(height: 10),
-                      _orderTypeRow('단체 주문', groupOrders, const Color(0xFF6A1B9A)),
+                      _orderTypeRow('단체/추가제작', groupOrders, const Color(0xFF6A1B9A)),
                       const SizedBox(height: 10),
                       _orderTypeRow('총 주문', allOrders.length, const Color(0xFF00838F)),
                     ],
@@ -4274,21 +4311,10 @@ class _AdminScreenState extends State<AdminScreen>
         onSaved: (product, isEdit) async {
           if (isEdit) {
             await context.read<ProductProvider>().updateProduct(product);
-            if (mounted) {
-              setState(() {});
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text('${product.name} 수정 완료'),
-                backgroundColor: const Color(0xFF1A1A2E)));
-            }
           } else {
             await context.read<ProductProvider>().addProduct(product);
-            if (mounted) {
-              setState(() {});
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text('${product.name} 등록 완료'),
-                backgroundColor: Colors.green));
-            }
           }
+          if (mounted) setState(() {});
         },
       ),
     );
@@ -6476,6 +6502,19 @@ class _AdminScreenState extends State<AdminScreen>
                       ],
                     ),
                   ),
+                  // 새로고침 버튼
+                  IconButton(
+                    onPressed: _loadDesignRequests,
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    tooltip: '새로고침',
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFFF3E5F5),
+                      foregroundColor: const Color(0xFF6A1B9A),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      fixedSize: const Size(34, 34),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
                   // 요청 건수 배지
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -6818,6 +6857,17 @@ class _AdminScreenState extends State<AdminScreen>
     final idx = _designRequests.indexWhere((r) => r['id'] == req['id']);
     if (idx >= 0) {
       setState(() => _designRequests[idx] = {..._designRequests[idx], 'status': newStatus});
+      // 완료/거절 시 Firestore에서 colorEditRequested 플래그 해제
+      if (newStatus == '완료' || newStatus == '거절') {
+        final orderId = req['orderId'] as String? ?? req['id'] as String;
+        FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+          'colorEditRequested': false,
+          'colorEditHandledAt': FieldValue.serverTimestamp(),
+          'colorEditHandledStatus': newStatus,
+        }).catchError((e) {
+          if (kDebugMode) debugPrint('디자인 수정 처리 업데이트 실패: $e');
+        });
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('상태가 "$newStatus"로 변경되었습니다'), backgroundColor: _getDesignStatusColor(newStatus)),
       );
