@@ -370,12 +370,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           ),
           const SizedBox(height: 24),
 
-          // 커스텀 옵션 (스크린샷 방식: 4가지 카드)
-          _SectionHeader2('💰', loc.groupOrderCustomOptionTitle),
-          const SizedBox(height: 12),
-          _buildCustomOptionCards(),
-          const SizedBox(height: 16),
-
           // 허리밴드 옵션
           _SectionHeader2('⚡', loc.groupOrderGuideWaistbandTitle),
           const SizedBox(height: 12),
