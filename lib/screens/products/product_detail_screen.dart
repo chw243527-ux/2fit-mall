@@ -11,6 +11,7 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../widgets/pc_layout.dart';
 import '../orders/group_custom_order_screen.dart';
+import '../orders/group_order_form_screen.dart';
 import '../orders/group_order_guide_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../utils/app_localizations.dart';
@@ -7904,7 +7905,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => GroupCustomOrderScreen(product: widget.product)),
+                                    builder: (_) => GroupOrderFormScreen(product: widget.product)),
                               );
                             }
                           : null,
