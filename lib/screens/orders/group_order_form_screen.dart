@@ -66,6 +66,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
 
   // ── 허리밴드 (선택사항) ──
   // null=선택안함, 'design'=디자인만, 'color'=색상만, 'both'=디자인+색상
+  bool    _waistbandEnabled = false;  // 토글 ON/OFF
   String? _waistbandOption;
   String? _waistbandColorName;
   Color?  _waistbandColor;
@@ -617,14 +618,24 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   // ══════════════════════════════════════════════════════
   Widget _buildCountInputSection() {
     Color stageColor = Colors.grey;
+    String stageLabel = '';
+    Color stageBg = Colors.grey.shade50;
     if (_dialCount >= 5 && _dialCount < 10) {
       stageColor = Colors.blue;
+      stageLabel = '5~9명';
+      stageBg = Colors.blue.shade50;
     } else if (_dialCount >= 10 && _dialCount < 30) {
       stageColor = Colors.green;
+      stageLabel = '10~29명';
+      stageBg = Colors.green.shade50;
     } else if (_dialCount >= 30 && _dialCount < 50) {
       stageColor = Colors.orange;
+      stageLabel = '30~49명';
+      stageBg = Colors.orange.shade50;
     } else if (_dialCount >= 50) {
       stageColor = Colors.red;
+      stageLabel = '50명+';
+      stageBg = Colors.red.shade50;
     }
 
     return _section(
@@ -632,11 +643,42 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
       Padding(
         padding: const EdgeInsets.fromLTRB(16, 4, 16, 14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // 구간 배지 행
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              _stageBadge('5~9명', Colors.blue,   _dialCount >= 5  && _dialCount < 10),
+              const SizedBox(width: 5),
+              _stageBadge('10~29명', Colors.green,  _dialCount >= 10 && _dialCount < 30),
+              const SizedBox(width: 5),
+              _stageBadge('30~49명', Colors.orange, _dialCount >= 30 && _dialCount < 50),
+              const SizedBox(width: 5),
+              _stageBadge('50명+',  Colors.red,    _dialCount >= 50),
+            ]),
+          ),
+          const SizedBox(height: 10),
+          // 최소 인원 안내
+          if (!_isAdditional)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.amber.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.amber.shade200),
+              ),
+              child: Row(children: [
+                Icon(Icons.info_outline_rounded, size: 13, color: Colors.amber.shade700),
+                const SizedBox(width: 5),
+                Text('최소 5명부터 주문 가능합니다',
+                    style: TextStyle(fontSize: 11, color: Colors.amber.shade800, fontWeight: FontWeight.w600)),
+              ]),
+            ),
           // 다이얼
           Container(
             padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
             decoration: BoxDecoration(
-              color: stageColor.withValues(alpha: 0.05),
+              color: stageLabel.isEmpty ? Colors.grey.shade50 : stageBg,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: stageColor.withValues(alpha: 0.3), width: 1.5),
             ),
@@ -648,7 +690,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
               Expanded(child: Column(children: [
                 Text('$_dialCount', style: TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: stageColor),
                     textAlign: TextAlign.center),
-                Text('명', style: TextStyle(fontSize: 12, color: stageColor.withValues(alpha: 0.7))),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Text('명', style: TextStyle(fontSize: 12, color: stageColor.withValues(alpha: 0.7))),
+                  if (stageLabel.isNotEmpty) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: stageColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(stageLabel,
+                          style: TextStyle(fontSize: 10, color: stageColor, fontWeight: FontWeight.w800)),
+                    ),
+                  ],
+                ]),
               ])),
               _DialButton(icon: Icons.add_rounded,
                   onTap: () { if (_dialCount < 200) setState(() => _dialCount++); },
@@ -670,7 +726,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
               style: ElevatedButton.styleFrom(backgroundColor: _purple, foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), elevation: 0),
-              child: Text('$_dialCount명으로 주문서 작성',
+              child: Text('$_dialCount명으로 주문서 작성하기',
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
             ),
           ),
@@ -690,6 +746,22 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         ]),
       ),
       icon: Icons.people_alt_rounded,
+    );
+  }
+
+  Widget _stageBadge(String label, Color color, bool active) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 160),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: active ? color : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: active ? color : Colors.grey.shade300),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w700,
+              color: active ? Colors.white : Colors.grey.shade500)),
     );
   }
 
@@ -912,7 +984,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   }
 
   // ══════════════════════════════════════════════════════
-  // 섹션 6: 색상 선택 (단일 – 상/하의 분리 없음, 작고 깔끔)
+  // 섹션 6: 색상 선택 (인라인 탭형 – 19색/전체팔레트/HEX입력)
   // ══════════════════════════════════════════════════════
   Widget _buildColorSection() {
     return _section(
@@ -920,6 +992,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
       Padding(
         padding: const EdgeInsets.fromLTRB(14, 2, 14, 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // 상·하의 동일 색상 안내 배지
           Row(children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -928,39 +1001,27 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(color: Colors.orange.withValues(alpha: 0.4)),
               ),
-              child: const Text('상·하의 동일 색상 적용',
-                  style: TextStyle(fontSize: 10, color: Colors.orange, fontWeight: FontWeight.w700)),
+              child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.info_outline_rounded, size: 11, color: Colors.orange),
+                SizedBox(width: 4),
+                Text('상·하의 동일 색상 적용',
+                    style: TextStyle(fontSize: 10, color: Colors.orange, fontWeight: FontWeight.w700)),
+              ]),
             ),
           ]),
-          const SizedBox(height: 8),
-          ColorPickerWidget(
+          const SizedBox(height: 10),
+          // 인라인 색상 차트 (19색 / 전체 팔레트 / HEX 입력)
+          InlineColorChart(
+            label: '색상',
             selectedColorName: _mainColorName,
             selectedColor: _mainColor,
             onColorSelected: (name, color) => setState(() {
               _mainColorName = name;
               _mainColor = color;
             }),
+            accentColor: _purple,
+            required: _hasColorChange,
           ),
-          if (_mainColorName != null) ...[
-            const SizedBox(height: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: _purpleLight,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Container(width: 14, height: 14,
-                    decoration: BoxDecoration(color: _mainColor, borderRadius: BorderRadius.circular(3),
-                        border: Border.all(color: Colors.black12))),
-                const SizedBox(width: 6),
-                Text(_mainColorName!,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _purple)),
-                const SizedBox(width: 4),
-                const Icon(Icons.check_circle_rounded, color: _purple, size: 13),
-              ]),
-            ),
-          ],
         ]),
       ),
       icon: Icons.palette_rounded,
@@ -968,58 +1029,111 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   }
 
   // ══════════════════════════════════════════════════════
-  // 섹션 7: 허리밴드 (선택사항 – 디자인/색상/둘다)
+  // 섹션 7: 허리밴드 (토글 ON/OFF + 확장 옵션)
   // ══════════════════════════════════════════════════════
   Widget _buildWaistbandSection() {
     return _section(
-      '허리밴드 옵션 선택 (선택사항)',
+      '허리밴드 변경',
       Padding(
         padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('기본 허리밴드 외 추가 옵션을 선택하세요. (선택 안 하셔도 됩니다)',
-              style: TextStyle(fontSize: 11, color: Colors.black45)),
-          const SizedBox(height: 10),
-          // 옵션 선택 버튼 4개
-          Row(children: [
-            _wbOptionBtn('선택안함', null),
-            const SizedBox(width: 6),
-            _wbOptionBtn('디자인',   'design'),
-            const SizedBox(width: 6),
-            _wbOptionBtn('색상',     'color'),
-            const SizedBox(width: 6),
-            _wbOptionBtn('둘 다',   'both'),
-          ]),
-          // 선택된 옵션 가격 표시
-          if (_waistbandOption != null) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(color: _purpleLight, borderRadius: BorderRadius.circular(8)),
-              child: Row(children: [
-                const Icon(Icons.check_circle_rounded, color: _purple, size: 14),
-                const SizedBox(width: 6),
-                Text(
-                  '${_waistbandOptionLabel(_waistbandOption)} +${_fmt(_waistbandExtra)}원/명',
-                  style: const TextStyle(fontSize: 12, color: _purple, fontWeight: FontWeight.w700),
-                ),
-              ]),
+          // 토글 행
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: _waistbandEnabled ? _purpleLight : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _waistbandEnabled ? _purple.withValues(alpha: 0.4) : Colors.grey.shade200,
+              ),
             ),
-          ],
-          // 색상 변경 옵션일 때 색상 피커
-          if (_waistbandOption == 'color' || _waistbandOption == 'both') ...[
-            const SizedBox(height: 12),
-            const Text('허리밴드 색상',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black54)),
-            const SizedBox(height: 8),
-            ColorPickerWidget(
-              selectedColorName: _waistbandColorName,
-              selectedColor: _waistbandColor,
-              onColorSelected: (name, color) => setState(() {
-                _waistbandColorName = name;
-                _waistbandColor = color;
-              }),
-            ),
-          ],
+            child: Row(children: [
+              Icon(Icons.loop_rounded,
+                  color: _waistbandEnabled ? _purple : Colors.grey.shade400, size: 20),
+              const SizedBox(width: 10),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('허리밴드 변경',
+                    style: TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700,
+                        color: _waistbandEnabled ? Colors.black87 : Colors.grey.shade600)),
+                Text('기본 허리밴드를 원하는 옵션으로 변경합니다',
+                    style: TextStyle(fontSize: 10,
+                        color: _waistbandEnabled ? Colors.black45 : Colors.grey.shade400)),
+              ])),
+              Switch(
+                value: _waistbandEnabled,
+                onChanged: (v) => setState(() {
+                  _waistbandEnabled = v;
+                  if (!v) {
+                    _waistbandOption = null;
+                    _waistbandColorName = null;
+                    _waistbandColor = null;
+                  } else {
+                    _waistbandOption = 'design'; // 기본: 디자인
+                  }
+                }),
+                activeThumbColor: _purple,
+                activeTrackColor: _purple.withValues(alpha: 0.4),
+              ),
+            ]),
+          ),
+          // 확장 영역 (토글 ON일 때)
+          AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            child: _waistbandEnabled
+                ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const SizedBox(height: 14),
+                    const Text('옵션 선택',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black54)),
+                    const SizedBox(height: 8),
+                    // 옵션 버튼 3개 (디자인 / 색상 / 둘 다)
+                    Row(children: [
+                      _wbOptionBtn('디자인',   'design'),
+                      const SizedBox(width: 8),
+                      _wbOptionBtn('색상',     'color'),
+                      const SizedBox(width: 8),
+                      _wbOptionBtn('둘 다',   'both'),
+                    ]),
+                    // 선택된 옵션 가격 표시
+                    if (_waistbandOption != null) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                            color: _purpleLight, borderRadius: BorderRadius.circular(8)),
+                        child: Row(children: [
+                          const Icon(Icons.check_circle_rounded, color: _purple, size: 14),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${_waistbandOptionLabel(_waistbandOption)} +${_fmt(_waistbandExtra)}원/명',
+                            style: const TextStyle(
+                                fontSize: 12, color: _purple, fontWeight: FontWeight.w700),
+                          ),
+                        ]),
+                      ),
+                    ],
+                    // 색상 변경 옵션일 때 색상 인라인 차트
+                    if (_waistbandOption == 'color' || _waistbandOption == 'both') ...[
+                      const SizedBox(height: 14),
+                      const Text('허리밴드 색상',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black54)),
+                      const SizedBox(height: 8),
+                      InlineColorChart(
+                        label: '허리밴드 색상',
+                        selectedColorName: _waistbandColorName,
+                        selectedColor: _waistbandColor,
+                        onColorSelected: (name, color) => setState(() {
+                          _waistbandColorName = name;
+                          _waistbandColor = color;
+                        }),
+                        accentColor: _purple,
+                      ),
+                    ],
+                  ])
+                : const SizedBox.shrink(),
+          ),
         ]),
       ),
       icon: Icons.loop_rounded,
@@ -1042,15 +1156,28 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         onTap: () => setState(() => _waistbandOption = value),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 140),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: sel ? _purple : Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: sel ? _purple : const Color(0xFFDDDDDD)),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: sel ? _purple : const Color(0xFFDDDDDD), width: sel ? 2 : 1),
+            boxShadow: sel ? [
+              BoxShadow(color: _purple.withValues(alpha: 0.2), blurRadius: 6, offset: const Offset(0, 2))
+            ] : [],
           ),
-          child: Text(label, textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
-                  color: sel ? Colors.white : Colors.black54)),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Icon(
+              value == 'design' ? Icons.brush_rounded
+                : value == 'color' ? Icons.palette_rounded
+                : Icons.layers_rounded,
+              size: 16,
+              color: sel ? Colors.white : Colors.grey.shade500,
+            ),
+            const SizedBox(height: 3),
+            Text(label, textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                    color: sel ? Colors.white : Colors.black54)),
+          ]),
         ),
       ),
     );
