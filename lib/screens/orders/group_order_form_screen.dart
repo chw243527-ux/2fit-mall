@@ -832,11 +832,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   // 섹션 2: 인쇄 타입
   // ════════════════════════════════════════════════════════
   Widget _buildPrintTypeSection() {
+    // 주문안내와 동일한 데이터 구조
     final options = [
-      const _PrintOption(0, '색상 변경',        '원하는 색상으로 변경 제작 (상·하의 동일 색상 적용)',   Icons.palette_rounded,      true),
-      _PrintOption(1, '전면 (단체명)',          '전면에 단체명 인쇄',                                   Icons.group_work_rounded,   _canUsePrint1),
-      _PrintOption(2, '조합 (전면+색상)',       '전면 단체명 + 색상 변경',                              Icons.auto_awesome_rounded, _canUsePrint1),
-      _PrintOption(3, '조합 + 후면 이름',      '전면 단체명·색상 + 후면 개인 이름 인쇄',               Icons.badge_rounded,        _canUsePrint2),
+      {'id': 0, 'step': '①', 'title': '색상 변경',        'cond': '5명↑ 무료', 'color': const Color(0xFF1565C0), 'desc': '원하는 색상으로 변경 제작 (상·하의 동일 색상 적용)', 'enabled': true},
+      {'id': 1, 'step': '②', 'title': '전면 (단체명)',     'cond': '5명↑ 무료', 'color': const Color(0xFF2E7D32), 'desc': '전면에 단체명 인쇄',                                'enabled': _canUsePrint1},
+      {'id': 2, 'step': '③', 'title': '조합 (전면+색상)',  'cond': '5명↑ 무료', 'color': const Color(0xFF6A1B9A), 'desc': '전면 단체명 + 색상 변경',                          'enabled': _canUsePrint1},
+      {'id': 3, 'step': '④', 'title': '조합 + 후면 이름', 'cond': '10명↑',     'color': const Color(0xFFC62828), 'desc': '전면 단체명·색상 + 후면 개인 이름 인쇄',           'enabled': _canUsePrint2},
     ];
 
     return _section(
@@ -844,53 +845,72 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
       Padding(
         padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
         child: Column(children: options.map((opt) {
-          final sel = _printType == opt.id;
+          final id      = opt['id']      as int;
+          final enabled = opt['enabled'] as bool;
+          final color   = opt['color']   as Color;
+          final sel     = _printType == id;
+
+          // 비활성일 때 색상을 회색으로
+          final displayColor = enabled ? color : Colors.grey.shade400;
+
           return GestureDetector(
-            onTap: opt.enabled ? () => setState(() => _printType = opt.id) : null,
+            onTap: enabled ? () => setState(() => _printType = id) : null,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
-              margin: const EdgeInsets.only(bottom: 7),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: sel ? _purpleLight : (opt.enabled ? Colors.white : const Color(0xFFF8F8F8)),
-                borderRadius: BorderRadius.circular(12),
+                color: sel
+                    ? color.withValues(alpha: 0.10)
+                    : (enabled ? color.withValues(alpha: 0.05) : const Color(0xFFF5F5F5)),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                    color: sel ? _purple : (opt.enabled ? const Color(0xFFE0E0E0) : const Color(0xFFEEEEEE)),
-                    width: sel ? 2 : 1),
+                  color: sel
+                      ? color
+                      : (enabled ? color.withValues(alpha: 0.2) : Colors.grey.shade300),
+                  width: sel ? 2 : 1,
+                ),
               ),
               child: Row(children: [
+                // ① 원형 번호 배지 (주문안내와 동일)
                 Container(
-                  width: 36, height: 36,
+                  width: 24, height: 24,
                   decoration: BoxDecoration(
-                    color: sel ? _purple : (opt.enabled ? const Color(0xFFF0F0F0) : const Color(0xFFF5F5F5)),
-                    borderRadius: BorderRadius.circular(9),
+                    color: enabled ? color : Colors.grey.shade400,
+                    shape: BoxShape.circle,
                   ),
-                  child: Icon(opt.icon,
-                      color: sel ? Colors.white : (opt.enabled ? _purple : Colors.grey.shade400),
-                      size: 18),
+                  child: Center(child: Text(opt['step'] as String,
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white))),
                 ),
-                const SizedBox(width: 11),
+                const SizedBox(width: 12),
+                // 타이틀 + 조건뱃지 + 설명
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Row(children: [
-                    Text(opt.name,
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
-                            color: opt.enabled ? Colors.black87 : Colors.grey.shade400)),
-                    if (!opt.enabled) ...[
-                      const SizedBox(width: 5),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                        decoration: BoxDecoration(color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(4)),
-                        child: Text(_totalCount < 5 ? '5명+' : '10명+',
-                            style: const TextStyle(fontSize: 9, color: Colors.grey)),
+                    Expanded(
+                      child: Text(opt['title'] as String,
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: displayColor)),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: enabled ? color.withValues(alpha: 0.12) : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                    ],
+                      child: Text(opt['cond'] as String,
+                          style: TextStyle(fontSize: 10, color: displayColor, fontWeight: FontWeight.w700)),
+                    ),
                   ]),
-                  Text(opt.desc,
-                      style: TextStyle(fontSize: 10,
-                          color: opt.enabled ? Colors.black45 : Colors.grey.shade400)),
+                  const SizedBox(height: 2),
+                  Text(opt['desc'] as String,
+                      style: TextStyle(fontSize: 11,
+                          color: enabled ? const Color(0xFF666666) : Colors.grey.shade400,
+                          height: 1.3)),
                 ])),
-                if (sel) const Icon(Icons.check_circle_rounded, color: _purple, size: 20),
+                // 선택 체크 아이콘
+                if (sel) ...[
+                  const SizedBox(width: 8),
+                  Icon(Icons.check_circle_rounded, color: color, size: 20),
+                ],
               ]),
             ),
           );
@@ -2120,14 +2140,4 @@ class _DialButtonState extends State<_DialButton> {
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// 인쇄 옵션 데이터
-// ════════════════════════════════════════════════════════════════
-class _PrintOption {
-  final int     id;
-  final String  name;
-  final String  desc;
-  final IconData icon;
-  final bool    enabled;
-  const _PrintOption(this.id, this.name, this.desc, this.icon, this.enabled);
-}
+
