@@ -239,8 +239,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // PC 웹이면 PC 전용 2컬럼 레이아웃 사용
-    if (isPcWeb(context)) return _buildPcLayout(context);
+    // PC 웹이면 PC 전용 2컬럼 레이아웃 사용 (임베드 모드 제외)
+    if (!widget.embeddedMode && isPcWeb(context)) return _buildPcLayout(context);
 
     // ── 모바일 레이아웃 ──
     final bodyContent = Form(
@@ -280,12 +280,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
       ),
     );
 
-    // 임베드 모드: AppBar 없는 Scaffold로 반환 (탭 안에 내장 시 사용)
+    // 임베드 모드: Scaffold 없이 순수 위젯으로 반환 (탭 안 중첩 Scaffold 방지)
     if (widget.embeddedMode) {
-      return Scaffold(
-        backgroundColor: AppColors.background,
-        body: bodyContent,
-        bottomNavigationBar: _countConfirmed ? _buildSubmitBar() : null,
+      return Column(
+        children: [
+          Expanded(child: bodyContent),
+          if (_countConfirmed) _buildSubmitBar(),
+        ],
       );
     }
 
