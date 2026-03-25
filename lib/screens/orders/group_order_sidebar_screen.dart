@@ -509,6 +509,7 @@ class _GroupOrderSidebarScreenState extends State<GroupOrderSidebarScreen>
   // ══════════════════════════════════════
   Widget _buildFormTab(BuildContext context) {
     if (!_agreed) {
+      // 미동의: 자물쇠 + 주문 안내 보기 버튼
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -543,25 +544,10 @@ class _GroupOrderSidebarScreenState extends State<GroupOrderSidebarScreen>
       );
     }
 
-    // 동의 완료 → GroupOrderFormScreen으로 이동
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => const GroupOrderFormScreen(product: null),
-          ),
-        ).then((_) {
-          if (mounted) {
-            _tab.animateTo(0);
-            setState(() => _agreed = false);
-          }
-        });
-      }
-    });
-
-    return const Center(
-      child: CircularProgressIndicator(color: Color(0xFF6A1B9A)),
+    // 동의 완료: GroupOrderFormScreen을 임베드 모드로 탭 안에 직접 렌더링
+    return const GroupOrderFormScreen(
+      product: null,
+      embeddedMode: true,
     );
   }
 

@@ -25,10 +25,13 @@ class GroupOrderFormScreen extends StatefulWidget {
   final ProductModel? product;
   /// true = 추가제작 모드: 1장부터 모든 옵션 선택 가능
   final bool isAdditionalOrder;
+  /// true = 탭 안에 임베드 모드: Scaffold/AppBar 없이 body만 반환
+  final bool embeddedMode;
   const GroupOrderFormScreen({
     super.key,
     this.product,
     this.isAdditionalOrder = false,
+    this.embeddedMode = false,
   });
 
   @override
@@ -276,6 +279,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         ),
       ),
     );
+
+    // 임베드 모드: Scaffold/AppBar 없이 Column 구조만 반환 (탭 안에 내장 시 사용)
+    if (widget.embeddedMode) {
+      return Column(
+        children: [
+          Expanded(child: bodyContent),
+          if (_countConfirmed) _buildSubmitBar(),
+        ],
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
