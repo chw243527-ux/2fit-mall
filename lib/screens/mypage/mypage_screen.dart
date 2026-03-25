@@ -57,6 +57,7 @@ class _MyPageScreenState extends State<MyPageScreen>
         userProvider: userProvider,
         onShowAdditionalOrder: _showAdditionalOrderSheet,
         onShowColorEdit: _showColorEditSheet,
+        onShowDesignEdit: _showDesignEditSheet,
         onShowProfileEdit: _showProfileEdit,
         onShowAddressManager: _showAddressManager,
         onShowLogout: _showLogoutDialog,
@@ -70,6 +71,7 @@ class _MyPageScreenState extends State<MyPageScreen>
       onBack: widget.onBack,
       onShowAdditionalOrder: _showAdditionalOrderSheet,
       onShowColorEdit: _showColorEditSheet,
+      onShowDesignEdit: _showDesignEditSheet,
       onShowProfileEdit: _showProfileEdit,
       onShowAddressManager: _showAddressManager,
       onShowLogout: _showLogoutDialog,
@@ -93,6 +95,15 @@ class _MyPageScreenState extends State<MyPageScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _ColorEditSheet(order: order),
+    );
+  }
+
+  void _showDesignEditSheet(OrderModel order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _DesignEditSheet(order: order),
     );
   }
 
@@ -347,6 +358,7 @@ class _PcMyPage extends StatelessWidget {
   final UserProvider userProvider;
   final void Function(OrderModel) onShowAdditionalOrder;
   final void Function(OrderModel) onShowColorEdit;
+  final void Function(OrderModel) onShowDesignEdit;
   final void Function(BuildContext, UserModel) onShowProfileEdit;
   final void Function(BuildContext) onShowAddressManager;
   final void Function(BuildContext, UserProvider) onShowLogout;
@@ -358,6 +370,7 @@ class _PcMyPage extends StatelessWidget {
     required this.userProvider,
     required this.onShowAdditionalOrder,
     required this.onShowColorEdit,
+    required this.onShowDesignEdit,
     required this.onShowProfileEdit,
     required this.onShowAddressManager,
     required this.onShowLogout,
@@ -535,7 +548,7 @@ class _PcMyPage extends StatelessWidget {
                         builder: (_, __) {
                           switch (tabController.index) {
                             case 0: return _PcOrderHistoryTab(userProvider: userProvider, loc: loc,
-                                onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit);
+                                onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit, onDesignEdit: onShowDesignEdit);
                             case 1: return _PcPaymentHistoryTab(userProvider: userProvider, loc: loc);
                             case 2: return _PcWishlistTab(userProvider: userProvider, loc: loc);
                             case 3: return _PcCouponTab(userProvider: userProvider, loc: loc);
@@ -827,10 +840,12 @@ class _PcOrderHistoryTab extends StatelessWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
+  final void Function(OrderModel) onDesignEdit;
 
   const _PcOrderHistoryTab({
     required this.userProvider, required this.loc,
     required this.onAdditionalOrder, required this.onColorEdit,
+    required this.onDesignEdit,
   });
 
   @override
@@ -863,6 +878,7 @@ class _PcOrderHistoryTab extends StatelessWidget {
                   order: orders[i], loc: loc,
                   onAdditionalOrder: onAdditionalOrder,
                   onColorEdit: onColorEdit,
+                  onDesignEdit: onDesignEdit,
                 ),
               ),
         ),
@@ -876,8 +892,9 @@ class _PcOrderCard extends StatelessWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
+  final void Function(OrderModel) onDesignEdit;
 
-  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit});
+  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, required this.onDesignEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -973,12 +990,19 @@ class _PcOrderCard extends StatelessWidget {
             ),
           ),
           // 버튼
-          if (isActive)
+          if (isActive && isGroup)
             Container(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  _PcBtn(
+                    label: '디자인 수정',
+                    icon: Icons.design_services_rounded,
+                    color: const Color(0xFF7B1FA2),
+                    onTap: () => onDesignEdit(order),
+                  ),
+                  const SizedBox(width: 8),
                   if (canAdditional) _PcBtn(
                     label: loc.mypageAdditionalProduction,
                     icon: Icons.add_circle_outline_rounded,
@@ -1603,6 +1627,7 @@ class _MobileMyPage extends StatelessWidget {
   final VoidCallback? onBack; // 탭0(홈)으로 돌아가기 콜백
   final void Function(OrderModel) onShowAdditionalOrder;
   final void Function(OrderModel) onShowColorEdit;
+  final void Function(OrderModel) onShowDesignEdit;
   final void Function(BuildContext, UserModel) onShowProfileEdit;
   final void Function(BuildContext) onShowAddressManager;
   final void Function(BuildContext, UserProvider) onShowLogout;
@@ -1615,6 +1640,7 @@ class _MobileMyPage extends StatelessWidget {
     this.onBack,
     required this.onShowAdditionalOrder,
     required this.onShowColorEdit,
+    required this.onShowDesignEdit,
     required this.onShowProfileEdit,
     required this.onShowAddressManager,
     required this.onShowLogout,
@@ -1683,7 +1709,7 @@ class _MobileMyPage extends StatelessWidget {
                 controller: tabController,
                 children: [
                   _MobileOrderHistoryTab(userProvider: userProvider, loc: loc,
-                    onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit),
+                    onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit, onDesignEdit: onShowDesignEdit),
                   _MobilePaymentHistoryTab(userProvider: userProvider, loc: loc),
                   _MobileWishlistTab(userProvider: userProvider, loc: loc),
                   _MobileCouponTab(userProvider: userProvider, loc: loc),
@@ -1899,10 +1925,12 @@ class _MobileOrderHistoryTab extends StatelessWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
+  final void Function(OrderModel) onDesignEdit;
 
   const _MobileOrderHistoryTab({
     required this.userProvider, required this.loc,
     required this.onAdditionalOrder, required this.onColorEdit,
+    required this.onDesignEdit,
   });
 
   @override
@@ -1924,7 +1952,7 @@ class _MobileOrderHistoryTab extends StatelessWidget {
         itemCount: orders.length,
         itemBuilder: (_, i) => _MobileOrderCard(
           order: orders[i], loc: loc,
-          onAdditionalOrder: onAdditionalOrder, onColorEdit: onColorEdit,
+          onAdditionalOrder: onAdditionalOrder, onColorEdit: onColorEdit, onDesignEdit: onDesignEdit,
         ),
       ),
     );
@@ -1936,8 +1964,9 @@ class _MobileOrderCard extends StatelessWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
+  final void Function(OrderModel) onDesignEdit;
 
-  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit});
+  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, required this.onDesignEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -2008,11 +2037,23 @@ class _MobileOrderCard extends StatelessWidget {
             ),
           ),
           // 버튼
-          if (isActive && (canAdditional || canColorEdit))
+          if (isActive && isGroup)
             Container(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Row(
+              child: Column(
                 children: [
+                  Row(
+                    children: [
+                      Expanded(child: _MobileBtn(
+                        label: '디자인 수정',
+                        color: const Color(0xFF7B1FA2),
+                        onTap: () => onDesignEdit(order),
+                      )),
+                    ],
+                  ),
+                  if (canAdditional || canColorEdit) const SizedBox(height: 6),
+                  if (canAdditional || canColorEdit) Row(
+                    children: [
                   if (canAdditional) Expanded(child: _MobileBtn(
                     label: loc.mypageAdditionalProduction,
                     color: const Color(0xFF2E7D32),
@@ -2025,6 +2066,8 @@ class _MobileOrderCard extends StatelessWidget {
                     badge: '${3 - (order.colorEditCount ?? 0)}',
                     onTap: () => onColorEdit(order),
                   )),
+                ],
+              ),
                 ],
               ),
             ),
@@ -3930,6 +3973,186 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════
+// 디자인 수정 요청 바텀시트 (단체커스텀 전용)
+// ════════════════════════════════════════════════
+class _DesignEditSheet extends StatefulWidget {
+  final OrderModel order;
+  const _DesignEditSheet({required this.order});
+
+  @override
+  State<_DesignEditSheet> createState() => _DesignEditSheetState();
+}
+
+class _DesignEditSheetState extends State<_DesignEditSheet> {
+  AppLocalizations get _loc => context.watch<LanguageProvider>().loc;
+  final _memoController = TextEditingController();
+  bool _submitted = false;
+
+  @override
+  void dispose() {
+    _memoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 핸들바
+              Center(
+                child: Container(
+                  width: 40, height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              // 제목
+              Row(
+                children: [
+                  const Icon(Icons.design_services_rounded, color: Color(0xFF7B1FA2), size: 22),
+                  const SizedBox(width: 8),
+                  const Text('디자인 수정 요청',
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                ],
+              ),
+              const SizedBox(height: 6),
+              // 주문 정보
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(top: 8, bottom: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3E5F5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.receipt_long_rounded, size: 16, color: Color(0xFF7B1FA2)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '주문번호: ${widget.order.id}',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF7B1FA2)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 안내 문구
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF8E1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFFCC80)),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded, size: 15, color: Color(0xFFE65100)),
+                        SizedBox(width: 6),
+                        Text('디자인 수정 안내',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE65100))),
+                      ],
+                    ),
+                    SizedBox(height: 6),
+                    Text('• 디자인 확정 이전에만 수정이 가능합니다.',
+                        style: TextStyle(fontSize: 12, color: Color(0xFF555555), height: 1.6)),
+                    Text('• 수정 요청 후 담당자가 확인하여 반영합니다.',
+                        style: TextStyle(fontSize: 12, color: Color(0xFF555555), height: 1.6)),
+                    Text('• 주문확정은 디자인 확정 이후에 진행됩니다.',
+                        style: TextStyle(fontSize: 12, color: Color(0xFFE65100), height: 1.6, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+              // 수정 내용 입력
+              const Text('수정 요청 내용',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _memoController,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  hintText: '수정하고 싶은 내용을 자세히 입력해 주세요.\n(예: 색상 변경, 로고 위치 변경, 이름 수정 등)',
+                  hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.all(14),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (_submitted)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 20),
+                      SizedBox(width: 8),
+                      Text('수정 요청이 접수되었습니다',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF2E7D32))),
+                    ],
+                  ),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    onPressed: _memoController.text.trim().isEmpty ? null : () {
+                      setState(() => _submitted = true);
+                      Future.delayed(const Duration(seconds: 2), () {
+                        if (mounted) Navigator.pop(context);
+                      });
+                    },
+                    icon: const Icon(Icons.send_rounded, size: 18),
+                    label: const Text('수정 요청하기',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B1FA2),
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: const Color(0xFFCCCCCC),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

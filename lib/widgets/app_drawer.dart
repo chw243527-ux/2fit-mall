@@ -5,6 +5,8 @@ import '../providers/providers.dart';
 import '../screens/products/product_list_screen.dart';
 import '../screens/products/category_detail_screen.dart';
 import '../screens/orders/group_order_only_screen.dart';
+import '../screens/orders/group_order_guide_screen.dart';
+import '../screens/orders/group_order_sidebar_screen.dart';
 import '../screens/chat/chat_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/admin/admin_screen.dart';
@@ -172,6 +174,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()));
                   },
                 ),
+                _buildGroupOrderDirectTile(context),
                 _nikeRule(),
                 // ── SUPPORT ──
                 _sectionLabel('SUPPORT'),
@@ -648,6 +651,63 @@ class _AppDrawerState extends State<AppDrawer> {
               size: 16,
               color: Colors.white.withValues(alpha: 0.25),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── 단체주문 바로 주문서식 타일 (사이드바 전용 별도 페이지로 연결) ──
+  Widget _buildGroupOrderDirectTile(BuildContext context) {
+    return InkWell(
+      splashColor: Colors.white.withValues(alpha: 0.04),
+      highlightColor: Colors.white.withValues(alpha: 0.03),
+      onTap: () {
+        Navigator.pop(context);
+        // 사이드바 전용 별도 페이지로 연결 (GroupOrderGuideScreen과 별개)
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const GroupOrderSidebarScreen()),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF6A1B9A), Color(0xFF4A148C)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.edit_document, size: 18, color: Colors.white),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '단체주문 안내 & 주문서식',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    '주문안내 확인 후 주문서식 작성',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Colors.white70),
           ],
         ),
       ),
