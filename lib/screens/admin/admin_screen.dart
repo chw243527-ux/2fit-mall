@@ -2066,7 +2066,7 @@ class _AdminScreenState extends State<AdminScreen>
                     Text(order.userName,
                         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                     const SizedBox(width: 8),
-                    Text(order.userPhone,
+                    Text(PrivacyService.maskPhone(order.userPhone),
                         style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
                   ],
                 ),
@@ -2272,7 +2272,7 @@ class _AdminScreenState extends State<AdminScreen>
                   runSpacing: 6,
                   children: [
                     _infoChip(Icons.person, '담당자', opts['managerName']?.toString() ?? order.userName),
-                    _infoChip(Icons.phone, '연락처', order.userPhone),
+                    _infoChip(Icons.phone, '연락처', PrivacyService.maskPhone(order.userPhone)),
                     _infoChip(Icons.location_on, '배송지', order.userAddress.length > 20 ? '${order.userAddress.substring(0, 20)}...' : order.userAddress),
                     _infoChip(Icons.male, '남', '${opts['maleCount'] ?? 0}명'),
                     _infoChip(Icons.female, '여', '${opts['femaleCount'] ?? 0}명'),
