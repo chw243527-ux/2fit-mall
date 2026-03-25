@@ -626,26 +626,51 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
       );
     }
 
-    // 동의 완료 → 실제 GroupOrderFormScreen으로 이동
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => GroupOrderFormScreen(product: widget.product),
-          ),
-        ).then((_) {
-          // 돌아왔을 때 탭을 다시 0으로
-          if (mounted) {
-            _tab.animateTo(0);
-            setState(() => _agreed = false);
-          }
-        });
-      }
-    });
-
-    return const Center(
-      child: CircularProgressIndicator(color: Color(0xFF6A1B9A)),
+    // 동의 완료 → 버튼 탭 시 GroupOrderFormScreen으로 이동
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_circle_rounded, size: 64, color: Color(0xFF6A1B9A)),
+            const SizedBox(height: 16),
+            const Text(
+              '주문 안내에 동의하셨습니다.\n주문서 작성을 시작해 주세요.',
+              style: TextStyle(fontSize: 15, height: 1.6),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GroupOrderFormScreen(product: widget.product),
+                    ),
+                  ).then((_) {
+                    if (mounted) {
+                      _tab.animateTo(0);
+                      setState(() => _agreed = false);
+                    }
+                  });
+                },
+                icon: const Icon(Icons.edit_note_rounded, size: 20),
+                label: const Text('주문서 작성하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6A1B9A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

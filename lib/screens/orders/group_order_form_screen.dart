@@ -118,6 +118,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
     for (int i = 0; i < _inputCount; i++) {
       _persons.add(_PersonEntry(index: i));
     }
+    // 화면 진입 시 스크롤 맨 위로 강제 이동
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _scrollCtrl.hasClients) {
+        _scrollCtrl.jumpTo(0);
+      }
+    });
   }
 
   @override
