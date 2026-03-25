@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/theme.dart';
 import '../../utils/app_localizations.dart';
 import '../../utils/constants.dart';
@@ -252,8 +251,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
             _buildPrintTypeSection(),
             if (_countConfirmed) ...[
               _buildSelectedProductCard(),
-              // 단체 정보 카드: 10인 이상 & 단체명 변경 옵션 선택 시
-              if (_totalCount >= 10 && _hasTeamName) _buildGroupInfoCard(),
+              if (_totalCount >= 10) _buildGroupInfoCard(),
               _buildFabricTypeSection(),
               // 색상 섹션: 옵션1(색상만), 옵션3(단체명+색상), 옵션4(전체)에서만 표시
               if (_hasColorChange) _buildColorSection(),
@@ -330,8 +328,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                           _buildPrintTypeSection(),
                           if (_countConfirmed) ...[
                             _buildSelectedProductCard(),
-                            // 단체 정보 카드: 10인 이상 & 단체명 변경 옵션 선택 시
-                            if (_totalCount >= 10 && _hasTeamName) _buildGroupInfoCard(),
+                            if (_totalCount >= 10) _buildGroupInfoCard(),
                             _buildFabricTypeSection(),
                             if (_hasColorChange) _buildColorSection(),
                             _buildWaistbandSection(),
@@ -4189,14 +4186,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         };
       }).toList();
 
-      // 상품 이미지 URL (엑셀 삽입용)
-      final productImageUrl = widget.product?.images.isNotEmpty == true
-          ? widget.product!.images.first
-          : '';
-      // 하의 참조 이미지 URL (Firebase Storage 업로드 후 URL 또는 base64)
-      final maleRefImageUrl = _maleRefBase64 != null ? 'data:image/jpeg;base64,${_maleRefBase64!.substring(0, _maleRefBase64!.length.clamp(0, 50))}...' : '';
-      final femaleRefImageUrl = _femaleRefBase64 != null ? 'data:image/jpeg;base64,${_femaleRefBase64!.substring(0, _femaleRefBase64!.length.clamp(0, 50))}...' : '';
-
       final customOptions = {
         'printType': _printType,
         'printTypeLabel': printTypeLabel,
@@ -4208,7 +4197,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
             ? '#${_mainColor!.value.toRadixString(16).padLeft(8, '0').substring(2)}'
             : '',
         'bottomColor': _useSeparateBottomColor ? (_bottomColorName ?? '') : '',
-        'defaultLength': _defaultLength ?? '',
+        'bottomLength': _defaultLength ?? '',
         'fabricType': _fabricType,
         'fabricWeight': _fabricWeight,
         'waistbandOption': _waistbandOption ?? '',
@@ -4223,11 +4212,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
         'memoText': _memoCtrl.text.trim(),
         'isAdditional': _isAdditional,
         'orderType': _isAdditional ? 'additional' : 'group',
-        // 이미지 URL (엑셀 내보내기용)
-        'productImageUrl': productImageUrl,
-        'maleRefImageUrl': maleRefImageUrl,
-        'femaleRefImageUrl': femaleRefImageUrl,
-        'designFileUrl': '',  // PDF 업로드 시 채워짐
       };
 
       final basePrice = widget.product?.price ?? 0;
@@ -4277,24 +4261,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
       );
 
       await OrderService.saveOrder(order);
-
-      // ── 알림 전송 ──
-      try {
-        final notifRef = FirebaseFirestore.instance.collection('admin_notifications').doc();
-        final teamNameStr = _teamNameCtrl.text.trim().isNotEmpty ? _teamNameCtrl.text.trim() : '-';
-        final orderTypeLabel = _isAdditional ? '추가제작주문' : '단체주문';
-        await notifRef.set({
-          'id': notifRef.id,
-          'title': _isAdditional ? '🔄 추가제작 주문 접수' : '👥 새 단체주문 접수',
-          'body': '$orderTypeLabel: $teamNameStr (${_totalCount}명) — ${widget.product?.name ?? '상품'}',
-          'type': _isAdditional ? 'additional_order' : 'group_order',
-          'orderId': orderId,
-          'teamName': teamNameStr,
-          'totalCount': _totalCount,
-          'isRead': false,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      } catch (_) {}
 
       if (!mounted) return;
       Navigator.pop(context); // 로딩 닫기
