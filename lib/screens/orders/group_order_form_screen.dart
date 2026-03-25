@@ -14,6 +14,7 @@ import '../../widgets/color_picker_widget.dart';
 import '../../widgets/kakao_address_search.dart';
 import '../../services/order_service.dart';
 import '../orders/checkout_screen.dart';
+import '../orders/group_order_guide_screen.dart';
 
 // ══════════════════════════════════════════════════════════════
 // 단체 주문 폼 v5  (완전 새로 작성)
@@ -624,9 +625,41 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
             ),
         ]),
         const SizedBox(height: 5),
-        Text(
-          _isAdditional ? '추가 제작: 1장부터 주문 가능합니다.' : '최소 5명 이상 · 제작기간 약 3~4주',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                _isAdditional ? '추가 제작: 1장부터 주문 가능합니다.' : '최소 5명 이상 · 제작기간 약 3~4주',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11),
+              ),
+            ),
+            // 주문안내 확인 버튼
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => GroupOrderGuideScreen(product: widget.product),
+                ),
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 1),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: Colors.white, size: 13),
+                    SizedBox(width: 4),
+                    Text('주문안내 확인',
+                        style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ]),
     );
