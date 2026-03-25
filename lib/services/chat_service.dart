@@ -186,14 +186,21 @@ class ChatService {
         'isRead': false,
       });
       final roomRef = _db.collection('chat_rooms').doc(targetId);
-      batch.set(roomRef, {
+      // 관리자 메시지: unreadCount 0 리셋 (읽음 처리)
+      // 사용자 메시지: unreadCount +1 증가
+      final Map<String, dynamic> roomUpdate = {
         'userId': targetId,
-        'userName': senderName,
         'lastMessage': msg,
         'lastMessageAt': FieldValue.serverTimestamp(),
-        'unreadCount': admin ? FieldValue.increment(0) : FieldValue.increment(1),
         'isActive': true,
-      }, SetOptions(merge: true));
+      };
+      if (admin) {
+        roomUpdate['unreadCount'] = 0; // 관리자가 답변하면 미읽음 초기화
+      } else {
+        roomUpdate['userName'] = senderName;
+        roomUpdate['unreadCount'] = FieldValue.increment(1);
+      }
+      batch.set(roomRef, roomUpdate, SetOptions(merge: true));
       await batch.commit();
     } catch (e) {
       if (kDebugMode) debugPrint('sendMessage error: $e');

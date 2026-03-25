@@ -226,12 +226,14 @@ class _ChatScreenState extends State<ChatScreen> {
         senderName: userName,
         isUser: true,
       );
-      // 자동답변: 메시지 접수 확인
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        if (_roomId == null || !mounted) return;
-        final autoReply = '${loc.chatAutoReplyMsg}${AppConstants.customerServicePhone}';
-        ChatService.adminReply(roomId: _roomId!, text: autoReply);
-      });
+      // 자동접수 안내 (첫 메시지에만 1회 발송)
+      if (_messages.where((m) => m.isUser).length <= 1) {
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (_roomId == null || !mounted) return;
+          final autoReply = '${loc.chatAutoReplyMsg}${AppConstants.customerServicePhone}';
+          ChatService.adminReply(roomId: _roomId!, text: autoReply);
+        });
+      }
     } else {
       // 폴백: 로컬 모드
       setState(() {

@@ -5143,6 +5143,28 @@ class _AdminScreenState extends State<AdminScreen>
   // Firestore 실시간 채팅 상세 화면 (관리자)
   Widget _buildFirestoreChatDetail(String roomId) {
     final replyCtrl = TextEditingController();
+    final scrollCtrl = ScrollController();
+
+    void scrollToBottom() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (scrollCtrl.hasClients) {
+          scrollCtrl.animateTo(
+            scrollCtrl.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+
+    void sendAdminReply() {
+      final text = replyCtrl.text.trim();
+      if (text.isEmpty) return;
+      ChatService.adminReply(roomId: roomId, text: text);
+      replyCtrl.clear();
+      scrollToBottom();
+    }
+
     return StatefulBuilder(
       builder: (context, setDetailState) {
         return Column(
@@ -5208,29 +5230,63 @@ class _AdminScreenState extends State<AdminScreen>
                 stream: ChatService.watchMessages(roomId),
                 builder: (context, snapshot) {
                   final msgs = snapshot.data ?? [];
+                  // 새 메시지 도착 시 자동 스크롤
+                  if (msgs.isNotEmpty) scrollToBottom();
+                  if (msgs.isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.chat_bubble_outline_rounded, size: 40, color: Color(0xFFCCCCCC)),
+                          SizedBox(height: 8),
+                          Text('아직 메시지가 없습니다', style: TextStyle(fontSize: 13, color: Color(0xFF999999))),
+                        ],
+                      ),
+                    );
+                  }
                   return ListView.builder(
+                    controller: scrollCtrl,
                     padding: const EdgeInsets.all(12),
                     itemCount: msgs.length,
                     itemBuilder: (_, i) {
                       final m = msgs[i];
+                      final timeStr =
+                          '${m.time.hour.toString().padLeft(2, '0')}:${m.time.minute.toString().padLeft(2, '0')}';
                       return Align(
                         alignment: m.isUser ? Alignment.centerRight : Alignment.centerLeft,
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
-                          decoration: BoxDecoration(
-                            color: m.isUser ? AppColors.primary : const Color(0xFFF0F0F0),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (!m.isUser)
-                                Text(m.senderName, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
-                              Text(m.text, style: TextStyle(fontSize: 13, color: m.isUser ? Colors.white : AppColors.textPrimary)),
-                            ],
-                          ),
+                        child: Column(
+                          crossAxisAlignment: m.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+                              decoration: BoxDecoration(
+                                color: m.isUser ? AppColors.primary : const Color(0xFFF0F0F0),
+                                borderRadius: BorderRadius.only(
+                                  topLeft: const Radius.circular(14),
+                                  topRight: const Radius.circular(14),
+                                  bottomLeft: m.isUser ? const Radius.circular(14) : const Radius.circular(4),
+                                  bottomRight: m.isUser ? const Radius.circular(4) : const Radius.circular(14),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (!m.isUser)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 3),
+                                      child: Text(m.senderName, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+                                    ),
+                                  Text(m.text, style: TextStyle(fontSize: 13, color: m.isUser ? Colors.white : AppColors.textPrimary)),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8, left: 4, right: 4),
+                              child: Text(timeStr, style: const TextStyle(fontSize: 10, color: AppColors.textHint)),
+                            ),
+                          ],
                         ),
                       );
                     },
@@ -5238,7 +5294,45 @@ class _AdminScreenState extends State<AdminScreen>
                 },
               ),
             ),
-            // 답장 입력
+            // 빠른 답변 템플릿
+            Container(
+              height: 36,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              color: const Color(0xFFF5F5F5),
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  '안녕하세요! 2FIT 고객센터입니다 😊',
+                  '확인 후 빠르게 연락드리겠습니다.',
+                  '단체주문은 최소 5인 이상입니다.',
+                  '제작기간은 약 2~3주 소요됩니다.',
+                  '추가 문의사항이 있으시면 말씀해 주세요!',
+                ].map((tpl) => GestureDetector(
+                  onTap: () {
+                    replyCtrl.text = tpl;
+                    replyCtrl.selection = TextSelection.fromPosition(
+                      TextPosition(offset: tpl.length),
+                    );
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 6, top: 5, bottom: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFDDDDDD)),
+                    ),
+                    child: Center(
+                      child: Text(
+                        tpl.length > 16 ? '${tpl.substring(0, 16)}…' : tpl,
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF666666)),
+                      ),
+                    ),
+                  ),
+                )).toList(),
+              ),
+            ),
+            // 답장 입력 (Enter 전송 지원)
             Container(
               padding: const EdgeInsets.all(12),
               decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: AppColors.border))),
@@ -5248,7 +5342,7 @@ class _AdminScreenState extends State<AdminScreen>
                     child: TextField(
                       controller: replyCtrl,
                       decoration: InputDecoration(
-                        hintText: '답장 입력...',
+                        hintText: '답장 입력... (Enter로 전송)',
                         hintStyle: const TextStyle(fontSize: 13, color: AppColors.textHint),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: AppColors.border)),
                         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: AppColors.border)),
@@ -5258,16 +5352,13 @@ class _AdminScreenState extends State<AdminScreen>
                       ),
                       minLines: 1, maxLines: 3,
                       style: const TextStyle(fontSize: 13),
+                      onSubmitted: (_) => sendAdminReply(),
                     ),
                   ),
                   const SizedBox(width: 8),
                   InkWell(
-                    onTap: () {
-                      final text = replyCtrl.text.trim();
-                      if (text.isEmpty) return;
-                      ChatService.adminReply(roomId: roomId, text: text);
-                      replyCtrl.clear();
-                    },
+                    onTap: sendAdminReply,
+                    borderRadius: BorderRadius.circular(18),
                     child: Container(
                       width: 36, height: 36,
                       decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
