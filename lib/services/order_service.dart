@@ -464,6 +464,28 @@ class OrderService {
       if (gc != null) customOptions['totalCount'] = gc;
     }
 
+    // ── orderType 자동 보정 ──
+    // Firestore에 'personal'로 저장됐더라도 실제 단체주문 특성이 있으면 보정
+    String rawOrderType = data['orderType'] as String? ?? 'personal';
+    if (rawOrderType == 'personal') {
+      // item.size == '단체' 또는 customOptions에 teamName/totalCount가 있으면 단체주문
+      final items = data['items'] as List? ?? [];
+      final hasGroupSize = items.any((i) {
+        final item = i as Map? ?? {};
+        final sz = item['size'] as String? ?? '';
+        return sz == '단체' || sz == 'GROUP';
+      });
+      final hasTeamName = (customOptions?['teamName'] as String?)?.isNotEmpty == true;
+      final hasTotalCount = customOptions?['totalCount'] != null;
+      final hasPersons = (customOptions?['persons'] as List?)?.isNotEmpty == true;
+      if (hasGroupSize || hasTeamName || (hasTotalCount && hasPersons)) {
+        // additional 여부: id에 'ADD' 포함되거나 customOptions에 isAdditional 플래그
+        final isAdditional = (data['id'] as String? ?? '').contains('ADD') ||
+            customOptions?['isAdditional'] == true;
+        rawOrderType = isAdditional ? 'additional' : 'group';
+      }
+    }
+
     return OrderModel(
       id: data['id'] as String? ?? '',
       userId: data['userId'] as String? ?? '',
@@ -475,7 +497,7 @@ class OrderService {
       totalAmount: (data['totalAmount'] as num?)?.toDouble() ?? 0,
       shippingFee: (data['shippingFee'] as num?)?.toDouble() ?? 0,
       paymentMethod: data['paymentMethod'] as String? ?? '',
-      orderType: data['orderType'] as String? ?? 'personal',
+      orderType: rawOrderType,
       customOptions: customOptions.isEmpty ? null : customOptions,
       groupName: data['groupName'] as String?,
       groupCount: (data['groupCount'] as num?)?.toInt(),

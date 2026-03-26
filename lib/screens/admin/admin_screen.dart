@@ -2228,7 +2228,14 @@ class _AdminScreenState extends State<AdminScreen>
   Widget _orderCard(OrderModel order) {
     final statusColor = _statusColor(order.status);
     final isSelected = _selectedOrderIds.contains(order.id);
-    final isGroup = order.orderType == 'group' || order.orderType == 'additional';
+    // orderType 자동 보정: 'personal'이어도 단체주문 특성이 있으면 단체로 처리
+    bool isGroup = order.orderType == 'group' || order.orderType == 'additional';
+    if (!isGroup) {
+      final hasGroupSize = order.items.any((i) => i.size == '단체' || i.size == 'GROUP');
+      final hasTeamName = (order.customOptions?['teamName'] as String?)?.isNotEmpty == true;
+      final hasPersons = (order.customOptions?['persons'] as List?)?.isNotEmpty == true;
+      if (hasGroupSize || hasTeamName || hasPersons) isGroup = true;
+    }
     final opts = order.customOptions;
 
     return GestureDetector(
@@ -2467,7 +2474,14 @@ class _AdminScreenState extends State<AdminScreen>
 
   // ── 주문 상세 보기 다이얼로그 (모든 주문 공통) ──
   void _showOrderDetailDialog(OrderModel order) {
-    final isGroup = order.orderType == 'group' || order.orderType == 'additional';
+    // orderType 자동 보정: 'personal'이어도 단체주문 특성이 있으면 단체로 처리
+    bool isGroup = order.orderType == 'group' || order.orderType == 'additional';
+    if (!isGroup) {
+      final hasGroupSize = order.items.any((i) => i.size == '단체' || i.size == 'GROUP');
+      final hasTeamName = (order.customOptions?['teamName'] as String?)?.isNotEmpty == true;
+      final hasPersons = (order.customOptions?['persons'] as List?)?.isNotEmpty == true;
+      if (hasGroupSize || hasTeamName || hasPersons) isGroup = true;
+    }
     if (isGroup) {
       _showGroupOrderDetail(order);
     } else {
@@ -2553,35 +2567,71 @@ class _AdminScreenState extends State<AdminScreen>
                       const Text('주문 상품',
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
                       const SizedBox(height: 8),
-                      ...order.items.map((item) => Container(
-                        margin: const EdgeInsets.only(bottom: 6),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFEEEEEE)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(item.productName,
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                _miniTag(item.size.isNotEmpty ? item.size : '-', const Color(0xFF1565C0)),
-                                const SizedBox(width: 4),
-                                _miniTag(item.color.isNotEmpty ? item.color : '-', const Color(0xFFE65100)),
-                                const Spacer(),
-                                Text('${item.quantity}개',
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                                Text(' · ${_fmtPrice(item.price * item.quantity)}원',
-                                    style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
-                              ],
-                            ),
-                          ],
-                        ),
-                      )),
+                      ...order.items.map((item) {
+                        // 주문 타입에 따른 올바른 태그 결정
+                        // item.size에 '단체'가 들어있는 것은 레거시 데이터 — orderType으로 판별
+                        final isGroupItem = order.orderType == 'group' ||
+                            order.orderType == 'additional' ||
+                            item.size == '단체' ||
+                            item.size == 'GROUP';
+                        final typeLabel = order.orderType == 'additional'
+                            ? '추가제작'
+                            : isGroupItem
+                                ? '단체'
+                                : '개인';
+                        final typeColor = order.orderType == 'additional'
+                            ? const Color(0xFFC62828)
+                            : isGroupItem
+                                ? const Color(0xFF6A1B9A)
+                                : const Color(0xFF1565C0);
+                        // 표시할 사이즈: '단체'/'GROUP'이면 수량으로 대체
+                        final displaySize = (item.size == '단체' || item.size == 'GROUP')
+                            ? null
+                            : (item.size.isNotEmpty ? item.size : null);
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 6),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8F9FA),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFEEEEEE)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(item.productName,
+                                  style: const TextStyle(
+                                      fontSize: 13, fontWeight: FontWeight.w700)),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  // 주문 타입 배지 (개인/단체/추가제작)
+                                  _miniTag(typeLabel, typeColor),
+                                  const SizedBox(width: 4),
+                                  // 색상
+                                  if (item.color.isNotEmpty)
+                                    _miniTag(item.color, const Color(0xFFE65100)),
+                                  // 사이즈 (개인주문만, '단체' 값 제외)
+                                  if (displaySize != null) ...[
+                                    const SizedBox(width: 4),
+                                    _miniTag(displaySize, const Color(0xFF2E7D32)),
+                                  ],
+                                  const Spacer(),
+                                  Text('${item.quantity}개',
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600)),
+                                  Text(' · ${_fmtPrice(item.price * item.quantity)}원',
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFF888888))),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
                       const SizedBox(height: 12),
                       // 결제 정보
                       _detailSection('결제 정보', [
