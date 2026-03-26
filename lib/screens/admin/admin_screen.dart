@@ -2771,7 +2771,6 @@ class _AdminScreenState extends State<AdminScreen>
 
   // ── 단체주문 개별 엑셀 내보내기 (디자인 이미지 + 모든 필드 포함) ──
   Future<void> _exportGroupOrderExcel(OrderModel order) async {
-    // 로딩 표시
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -2790,19 +2789,33 @@ class _AdminScreenState extends State<AdminScreen>
       final teamName = (order.customOptions?['teamName'] as String?)?.replaceAll(' ', '_') ?? order.id;
       final dateStr = '${order.createdAt.month.toString().padLeft(2,'0')}${order.createdAt.day.toString().padLeft(2,'0')}';
       final fileName = '단체주문_${teamName}_$dateStr.xlsx';
-      downloadFileWeb(bytes, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      if (mounted) {
+      final mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+      if (kIsWeb) {
+        downloadFileWeb(bytes, fileName, mimeType);
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                const SizedBox(width: 8),
+                Expanded(child: Text('$fileName 다운로드 완료 (디자인이미지·인원사이즈·전체필드 포함)')),
+              ]),
+              backgroundColor: const Color(0xFF00897B),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      } else {
+        // 모바일: share_plus로 공유
+        final xFile = XFile.fromData(bytes, name: fileName, mimeType: mimeType);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
-              const SizedBox(width: 8),
-              Expanded(child: Text('$fileName 다운로드 완료 (디자인이미지·인원사이즈·전체필드 포함)')),
-            ]),
-            backgroundColor: const Color(0xFF00897B),
-            duration: const Duration(seconds: 4),
-          ),
+        await Share.shareXFiles(
+          [xFile],
+          subject: '2FIT 단체주문 ${teamName.replaceAll('_', ' ')} 엑셀',
+          text: '단체주문 엑셀 파일입니다. (디자인이미지·인원사이즈·전체필드 포함)',
         );
       }
     } catch (e) {
