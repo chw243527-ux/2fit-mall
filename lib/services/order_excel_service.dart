@@ -289,7 +289,7 @@ class OrderExcelService {
       _setCell(summarySheet, rowIdx, 6, _maskPhone(order.userPhone), style: rowStyle);
       _setCell(summarySheet, rowIdx, 7,
           order.items.map((i) => i.productName).toSet().join(' / '), style: rowStyle);
-      _setCell(summarySheet, rowIdx, 8, colorInfo, style: rowStyle);
+      _setColorCell(summarySheet, rowIdx, 8, colorInfo, baseStyle: rowStyle);
       _setCell(summarySheet, rowIdx, 9,
           opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '-',
           style: rowStyle);
@@ -358,7 +358,7 @@ class OrderExcelService {
         _setCell(sizeSheet, sRowIdx, 7, order.items.isNotEmpty ? order.items.first.size : '-');
         _setCell(sizeSheet, sRowIdx, 8, '-');
         _setCell(sizeSheet, sRowIdx, 9, opts['defaultLength']?.toString() ?? '-');
-        _setCell(sizeSheet, sRowIdx, 10, _extractColorInfo(order));
+        _setColorCell(sizeSheet, sRowIdx, 10, _extractColorInfo(order));
         sRowIdx++;
         sNo++;
         continue;
@@ -396,7 +396,7 @@ class OrderExcelService {
         _setCell(sizeSheet, sRowIdx, 8, p['bottomSize']?.toString().isNotEmpty == true ? p['bottomSize']!.toString() : '-');
         _setCell(sizeSheet, sRowIdx, 9,
             personalLength.isNotEmpty ? personalLength : (defaultLength.isNotEmpty ? defaultLength : '개별'));
-        _setCell(sizeSheet, sRowIdx, 10,
+        _setColorCell(sizeSheet, sRowIdx, 10,
             personColor.isNotEmpty ? personColor : mainColor);
         // 상세 신체 치수 — 입력된 경우만 표시
         _setCell(sizeSheet, sRowIdx, 11, hasDetail && height.isNotEmpty ? height : '', style: hasDetail ? detailStyle : null);
@@ -434,7 +434,7 @@ class OrderExcelService {
         _setCell(sizeSheet, sRowIdx, 7, item.size, style: rowStyle);
         _setCell(sizeSheet, sRowIdx, 8, '-', style: rowStyle);
         _setCell(sizeSheet, sRowIdx, 9, '-', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 10, item.color, style: rowStyle);
+        _setColorCell(sizeSheet, sRowIdx, 10, item.color, baseStyle: rowStyle);
         sRowIdx++;
         sNo++;
       }
@@ -493,7 +493,7 @@ class OrderExcelService {
       _setCell(imageSheet, imgRowIdx, 5,
           opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '-',
           style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 6, colorInfo, style: rowStyle);
+      _setColorCell(imageSheet, imgRowIdx, 6, colorInfo, baseStyle: rowStyle);
       _setCell(imageSheet, imgRowIdx, 7,
           opts['defaultLength']?.toString() ?? '-', style: rowStyle);
       _setCell(imageSheet, imgRowIdx, 8,
@@ -624,7 +624,7 @@ class OrderExcelService {
       _setCell(summarySheet, rowIdx, 4, opts['manager']?.toString() ?? opts['managerName']?.toString() ?? order.userName, style: rowStyle);
       _setCell(summarySheet, rowIdx, 5, _maskPhone(order.userPhone), style: rowStyle);
       _setCell(summarySheet, rowIdx, 6, opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '-', style: rowStyle);
-      _setCell(summarySheet, rowIdx, 7, _extractColorInfo(order), style: rowStyle);
+      _setColorCell(summarySheet, rowIdx, 7, _extractColorInfo(order), baseStyle: rowStyle);
       _setCell(summarySheet, rowIdx, 8, opts['defaultLength']?.toString() ?? '개별선택', style: rowStyle);
       _setCell(summarySheet, rowIdx, 9, opts['waistbandOption']?.toString() ?? opts['waistband']?.toString() ?? '-', style: rowStyle);
       _setCell(summarySheet, rowIdx, 10, opts['totalCount'] ?? order.groupCount ?? '-', style: rowStyle);
@@ -708,7 +708,7 @@ class OrderExcelService {
         _setCell(sizeSheet, sRowIdx, 8, p['bottomSize']?.toString().isNotEmpty == true ? p['bottomSize']!.toString() : '-');
         _setCell(sizeSheet, sRowIdx, 9,
             personalLength.isNotEmpty ? personalLength : (defaultLength.isNotEmpty ? defaultLength : '개별'));
-        _setCell(sizeSheet, sRowIdx, 10,
+        _setColorCell(sizeSheet, sRowIdx, 10,
             personColor.isNotEmpty ? personColor : mainColor);
         // 상세 신체 치수
         _setCell(sizeSheet, sRowIdx, 11, hasDetail && height.isNotEmpty ? height : '', style: hasDetail ? detailStyle : null);
@@ -771,7 +771,7 @@ class OrderExcelService {
       _setCell(imageSheet, imgRowIdx, 3, teamName, style: rowStyle);
       _setCell(imageSheet, imgRowIdx, 4, order.items.map((i) => i.productName).toSet().join(' / '), style: rowStyle);
       _setCell(imageSheet, imgRowIdx, 5, opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '-', style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 6, _extractColorInfo(order), style: rowStyle);
+      _setColorCell(imageSheet, imgRowIdx, 6, _extractColorInfo(order), baseStyle: rowStyle);
       _setCell(imageSheet, imgRowIdx, 7, opts['defaultLength']?.toString() ?? '-', style: rowStyle);
       _setCell(imageSheet, imgRowIdx, 8, opts['waistbandOption']?.toString() ?? opts['waistband']?.toString() ?? '-', style: rowStyle);
       _setCell(imageSheet, imgRowIdx, 9, productImgUrl.isNotEmpty ? productImgUrl : '-', style: rowStyle);
@@ -883,7 +883,7 @@ class OrderExcelService {
           _setCell(summarySheet, rowIdx, 5, isFirst ? order.userAddress : '', style: rowStyle);
           _setCell(summarySheet, rowIdx, 6, item.productName, style: rowStyle);
           _setCell(summarySheet, rowIdx, 7, item.size, style: rowStyle);
-          _setCell(summarySheet, rowIdx, 8, item.color, style: rowStyle);
+          _setColorCell(summarySheet, rowIdx, 8, item.color, baseStyle: rowStyle);
           _setCell(summarySheet, rowIdx, 9, item.quantity, style: rowStyle);
           _setCell(summarySheet, rowIdx, 10, isFirst ? (order.groupName ?? '') : '', style: rowStyle);
           _setCell(summarySheet, rowIdx, 11, isFirst ? (order.groupCount ?? '') : '', style: rowStyle);
@@ -1049,7 +1049,12 @@ class OrderExcelService {
     final startRow = imgRow + 1;
     for (var i = 0; i < infoRows.length; i++) {
       _setCell(summarySheet, startRow + i, 0, infoRows[i][0], style: labelStyle);
-      _setCell(summarySheet, startRow + i, 1, infoRows[i][1]);
+      // 색상 항목은 배경색을 실제 색상으로 표시
+      if (infoRows[i][0] == '색상') {
+        _setColorCell(summarySheet, startRow + i, 1, infoRows[i][1].toString());
+      } else {
+        _setCell(summarySheet, startRow + i, 1, infoRows[i][1]);
+      }
     }
 
     // ── 추가제작 주문인 경우: 기존 주문 정보 별도 섹션 추가 ──
@@ -1154,8 +1159,8 @@ class OrderExcelService {
       _setCell(personSheet, i + 2, 6,
           personalLength.isNotEmpty ? personalLength : (defaultLength.isNotEmpty ? defaultLength : '개별선택'),
           style: rowStyle);
-      _setCell(personSheet, i + 2, 7,
-          personColor.isNotEmpty ? personColor : mainColor, style: rowStyle);
+      _setColorCell(personSheet, i + 2, 7,
+          personColor.isNotEmpty ? personColor : mainColor, baseStyle: rowStyle);
       // 상세 신체 치수
       _setCell(personSheet, i + 2, 8, hasDetail && height.isNotEmpty ? height : '', style: hasDetail ? detailStyle : rowStyle);
       _setCell(personSheet, i + 2, 9, hasDetail && weight.isNotEmpty ? weight : '', style: hasDetail ? detailStyle : rowStyle);
@@ -1268,6 +1273,84 @@ class OrderExcelService {
         ? '${local.substring(0, 2)}***'
         : '${local[0]}***';
     return '$masked@${parts[1]}';
+  }
+
+  // ── 색상 이름 → Hex 변환 맵 ──
+  static const Map<String, String> _colorNameToHex = {
+    '블랙':       '#1A1A1A',
+    '화이트':     '#F5F5F5',
+    '챠콜':       '#3C3C3C',
+    '라이트그레이': '#BDBDBD',
+    '네이비':     '#0D1B4F',
+    '로얄블루':   '#1245A8',
+    '스카이블루':  '#3FA9F5',
+    '민트':       '#26C9A0',
+    '다크그린':   '#1B4332',
+    '그린':       '#43A047',
+    '레드':       '#CC0000',
+    '버건디':     '#6D0E19',
+    '핑크':       '#EE82A2',
+    '라이트핑크': '#F8BBD0',
+    '퍼플':       '#7B1FA2',
+    '오렌지':     '#FF6B35',
+    '옐로우':     '#FFD600',
+    '골드':       '#D4AF37',
+    '카키':       '#7D7C48',
+    '브라운':     '#795548',
+    '베이지':     '#F5E6C8',
+    '아이보리':   '#FFFBEA',
+    '실버':       '#C0C0C0',
+    '형광그린':   '#39FF14',
+    '형광핑크':   '#FF1493',
+    '형광옐로우': '#FFFF00',
+    '네온오렌지': '#FF5F00',
+    '코발트':     '#0047AB',
+    '라벤더':     '#E6CCFF',
+    '피치':       '#FFCBA4',
+  };
+
+  /// 색상 이름에서 hex 코드 추출 (상의:XXX / 하의:XXX 형태 지원)
+  static String? _getColorHex(String colorName) {
+    // 상의/하의 복합 색상에서 첫 번째(상의) 색상 추출
+    final name = colorName.contains('/')
+        ? colorName.split('/').first.replaceAll('상의:', '').trim()
+        : colorName.trim();
+    return _colorNameToHex[name];
+  }
+
+  /// 색상 이름으로 셀 배경색 적용 (텍스트 + 배경 색상 동시 처리)
+  static void _setColorCell(Sheet sheet, int row, int col, String colorText,
+      {CellStyle? baseStyle}) {
+    final hex = _getColorHex(colorText);
+    CellStyle style;
+    if (hex != null) {
+      // 어두운 배경에는 흰 글자, 밝은 배경에는 검은 글자
+      final isLight = _isLightColor(hex);
+      style = CellStyle(
+        backgroundColorHex: ExcelColor.fromHexString(hex),
+        fontColorHex: ExcelColor.fromHexString(isLight ? '#1A1A1A' : '#FFFFFF'),
+        bold: baseStyle?.isBold ?? false,
+        horizontalAlign: baseStyle?.horizontalAlignment ?? HorizontalAlign.Center,
+        fontSize: baseStyle?.fontSize,
+      );
+    } else {
+      style = baseStyle ?? CellStyle(horizontalAlign: HorizontalAlign.Center);
+    }
+    _setCell(sheet, row, col, colorText, style: style);
+  }
+
+  /// 색상이 밝은지 판단 (YIQ 알고리즘)
+  static bool _isLightColor(String hex) {
+    try {
+      final clean = hex.replaceAll('#', '');
+      final r = int.parse(clean.substring(0, 2), radix: 16);
+      final g = int.parse(clean.substring(2, 4), radix: 16);
+      final b = int.parse(clean.substring(4, 6), radix: 16);
+      final yiq = (r * 299 + g * 587 + b * 114) / 1000;
+      return yiq >= 128;
+    } catch (_) {
+      return true;
+    }
   }
 
   // ── 헬퍼 함수들 ──
@@ -1429,7 +1512,12 @@ class OrderExcelService {
       final isM = row[2] == '남성';
       final genderStyle = isM ? maleStyle : femaleStyle;
       for (int c = 0; c < row.length; c++) {
-        _setCell(sz, r + 3, c, row[c], style: c == 2 ? genderStyle : (r.isEven ? evenRowStyle : null));
+        if (c == 6) {
+          // 색상 컬럼: 실제 색상 배경 적용
+          _setColorCell(sz, r + 3, c, row[c]);
+        } else {
+          _setCell(sz, r + 3, c, row[c], style: c == 2 ? genderStyle : (r.isEven ? evenRowStyle : null));
+        }
       }
     }
 
