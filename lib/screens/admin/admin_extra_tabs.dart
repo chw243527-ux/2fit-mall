@@ -177,32 +177,16 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         );
       }
     } else {
+      // 모바일: 임시폴더 저장 후 공유 시트
       try {
-        // 공용 Download 폴더에 직접 저장
-        final dlDir = Directory('/storage/emulated/0/Download');
-        if (!await dlDir.exists()) await dlDir.create(recursive: true);
-        final savedPath = '${dlDir.path}/$fileName';
-        await File(savedPath).writeAsBytes(uint8List, flush: true);
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$fileName';
+        await File(filePath).writeAsBytes(uint8List, flush: true);
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(children: [
-              const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(fileName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
-                    const Text('📂 내 파일 → 다운로드 폴더에서 확인', style: TextStyle(fontSize: 11, color: Colors.white70)),
-                  ],
-                ),
-              ),
-            ]),
-            backgroundColor: const Color(0xFF217346),
-            duration: const Duration(seconds: 6),
-          ),
+        await Share.shareXFiles(
+          [XFile(filePath, mimeType: mimeType, name: fileName)],
+          subject: '2FIT MALL 주문내역 엑셀',
+          text: '공유 시트에서 "내 파일에 저장" 또는 "다운로드"를 선택하세요.\n파일명: $fileName',
         );
       } catch (e) {
         if (mounted) {
@@ -627,31 +611,16 @@ class _AdminInventoryTabState extends State<AdminInventoryTab> {
         );
       }
     } else {
+      // 모바일: 임시폴더 저장 후 공유 시트
       try {
-        final dlDir = Directory('/storage/emulated/0/Download');
-        if (!await dlDir.exists()) await dlDir.create(recursive: true);
-        final savedPath = '${dlDir.path}/$fileNameP';
-        await File(savedPath).writeAsBytes(bytesP, flush: true);
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$fileNameP';
+        await File(filePath).writeAsBytes(bytesP, flush: true);
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(children: [
-              const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(fileNameP, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
-                    const Text('📂 내 파일 → 다운로드 폴더에서 확인', style: TextStyle(fontSize: 11, color: Colors.white70)),
-                  ],
-                ),
-              ),
-            ]),
-            backgroundColor: const Color(0xFF217346),
-            duration: const Duration(seconds: 6),
-          ),
+        await Share.shareXFiles(
+          [XFile(filePath, mimeType: mimeTypeP, name: fileNameP)],
+          subject: '2FIT MALL 상품목록 엑셀',
+          text: '공유 시트에서 "내 파일에 저장" 또는 "다운로드"를 선택하세요.\n파일명: $fileNameP',
         );
       } catch (e) {
         if (mounted) {
