@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_localizations.dart';
@@ -24,12 +25,14 @@ class GroupOrderFormScreen extends StatefulWidget {
   final ProductModel? product;
   final bool isAdditionalOrder;
   final int initialPrintType;   // 0=색상변경, 1=전면단체명, 2=전면+색상, 3=후면이름
+  final int initialCount;       // 주문안내에서 전달받은 수량
 
   const GroupOrderFormScreen({
     super.key,
     this.product,
     this.isAdditionalOrder = false,
     this.initialPrintType = 0,
+    this.initialCount = 5,
   });
 
   @override
@@ -50,7 +53,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   int  _dialCount    = 5;
   int  _inputCount   = 5;
   bool _orderStarted = false;
-  bool get _countConfirmed => _orderStarted;
 
   // ── 인원 목록 ──
   final List<_PersonEntry> _persons = [];
@@ -90,6 +92,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   final _memoCtrl        = TextEditingController();
   String _address        = '';
 
+  // ── 디자인 파일 첨부 ──
+  final List<Map<String, dynamic>> _designFiles = []; // {name, bytes, size}
+
   // ── 독점 디자인 ──
   bool _exclusiveDesign = false;
 
@@ -97,8 +102,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   bool get _isAdditional    => widget.isAdditionalOrder;
   int  get _minQty          => _isAdditional ? 1 : 5;
   int  get _totalCount      => _persons.length;
-  bool get _canUsePrint1    => _isAdditional ? _totalCount >= 1 : _totalCount >= 5;
-  bool get _canUsePrint2    => _isAdditional ? _totalCount >= 1 : _totalCount >= 10;
   bool get _hasColorChange  => _printType == 0 || _printType == 2 || _printType == 3;
   bool get _hasTeamName     => _printType == 1 || _printType == 2 || _printType == 3;
   bool get _hasBackName     => _printType == 3;
@@ -134,11 +137,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   void initState() {
     super.initState();
     _printType = widget.initialPrintType.clamp(0, 3);
-    _loadSavedImages();
-    for (int i = 0; i < _inputCount; i++) {
+    // 주문안내에서 전달받은 수량으로 자동 시작 (더블확인 없음)
+    final initCount = widget.initialCount.clamp(_minQtyInit, 200);
+    _dialCount    = initCount;
+    _inputCount   = initCount;
+    _orderStarted = true;
+    for (int i = 0; i < initCount; i++) {
       _persons.add(_PersonEntry(index: i));
     }
+    _loadSavedImages();
   }
+
+  int get _minQtyInit => widget.isAdditionalOrder ? 1 : 5;
 
   @override
   void dispose() {
@@ -169,19 +179,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
     } else {
       await prefs.setString(key, base64);
     }
-  }
-
-  // ══ 수량 ══
-  void _confirmCount() {
-    final n = _dialCount;
-    if (n < 1) return;
-    setState(() {
-      _inputCount   = n;
-      _orderStarted = true;
-      while (_persons.length < n) { _persons.add(_PersonEntry(index: _persons.length)); }
-      while (_persons.length > n) { _persons.last.dispose(); _persons.removeLast(); }
-      for (int i = 0; i < _persons.length; i++) { _persons[i].index = i; }
-    });
   }
 
   void _addPerson() {
@@ -334,6 +331,35 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   }
 
   // ════════════════════════════════════════════════════════
+  // 공통 폼 컨텐츠 빌더 (모바일/PC 동일)
+  // ════════════════════════════════════════════════════════
+  Widget _buildFormContent() {
+    return Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        controller: _scrollCtrl,
+        child: Column(children: [
+          _buildHeaderBanner(),
+          _buildSelectedProductCard(),
+          if (_totalCount >= 10 && _hasTeamName) _buildGroupInfoCard(),
+          _buildFabricSection(),
+          if (_hasColorChange) _buildColorSection(),
+          _buildWaistbandSection(),
+          _buildLengthSection(),
+          _buildRefImageSection(),
+          _buildDesignFileSection(),
+          _buildPersonListSection(),
+          _buildBasicInfoSection(),
+          _buildMemoSection(),
+          _buildExclusiveSection(),
+          _buildSummarySection(),
+          const SizedBox(height: 32),
+        ]),
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════
   // 모바일 레이아웃
   // ════════════════════════════════════════════════════════
   Widget _buildMobileLayout(BuildContext context) {
@@ -351,38 +377,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                 onPressed: () => Navigator.pop(context))
             : null,
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          controller: _scrollCtrl,
-          child: Column(children: [
-            _buildHeaderBanner(),
-            _buildCountSection(),          // 수량 (구간배지 + 다이얼)
-            _buildPrintTypeSection(),       // 인쇄 타입
-            if (_countConfirmed) ...[
-              _buildSelectedProductCard(), // 선택 상품
-              if (_totalCount >= 10 && _hasTeamName) _buildGroupInfoCard(),
-              _buildFabricSection(),       // 원단
-              if (_hasColorChange) _buildColorSection(), // 인라인 색상차트
-              _buildWaistbandSection(),    // 허리밴드 토글
-              _buildLengthSection(),       // 하의 길이
-              _buildRefImageSection(),     // 참조 이미지
-              _buildPersonListSection(),   // 인원별 사이즈
-              _buildBasicInfoSection(),    // 기본 정보
-              _buildMemoSection(),         // 메모
-              _buildExclusiveSection(),    // 독점 디자인
-              _buildSummarySection(),      // 금액 요약
-              const SizedBox(height: 32),
-            ],
-          ]),
-        ),
-      ),
-      bottomNavigationBar: _countConfirmed ? _buildSubmitBar() : null,
+      body: _buildFormContent(),
+      bottomNavigationBar: _buildSubmitBar(),
     );
   }
 
   // ════════════════════════════════════════════════════════
-  // PC 레이아웃
+  // PC 레이아웃 (모바일과 동일한 단일 컬럼)
   // ════════════════════════════════════════════════════════
   Widget _buildPcLayout(BuildContext context) {
     return Scaffold(
@@ -397,115 +398,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
                 onPressed: () => Navigator.pop(context))
             : null,
       ),
-      body: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Expanded(
-          flex: 3,
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              controller: _scrollCtrl,
-              child: Column(children: [
-                _buildHeaderBanner(),
-                _buildCountSection(),
-                _buildPrintTypeSection(),
-                if (_countConfirmed) ...[
-                  _buildSelectedProductCard(),
-                  if (_totalCount >= 10 && _hasTeamName) _buildGroupInfoCard(),
-                  _buildFabricSection(),
-                  if (_hasColorChange) _buildColorSection(),
-                  _buildWaistbandSection(),
-                  _buildLengthSection(),
-                  _buildRefImageSection(),
-                  _buildPersonListSection(),
-                  _buildBasicInfoSection(),
-                  _buildMemoSection(),
-                  _buildExclusiveSection(),
-                  const SizedBox(height: 32),
-                ],
-              ]),
-            ),
-          ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: _buildFormContent(),
         ),
-        if (_countConfirmed)
-          SizedBox(
-            width: 300,
-            child: SingleChildScrollView(
-              child: Column(children: [
-                const SizedBox(height: 8),
-                _buildPcSummaryPanel(),
-                const SizedBox(height: 16),
-              ]),
-            ),
-          ),
-      ]),
-    );
-  }
-
-  Widget _buildPcSummaryPanel() {
-    return Container(
-      margin: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12)],
       ),
-      child: Column(children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color(0xFF4A148C), _purple],
-                begin: Alignment.topLeft, end: Alignment.bottomRight),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-          ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('주문 요약',
-                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 12),
-            _sumRow('기본가 × $_totalCount명', '${_fmt((_basePrice * _totalCount).toInt())}원'),
-            if (_waistbandExtra > 0)
-              _sumRow('허리밴드 옵션', '+${_fmt(_waistbandExtra * _totalCount)}원'),
-            if (_fabricExtra > 0)
-              _sumRow('원단 추가금', '+${_fmt(_fabricExtra * _totalCount)}원'),
-            _sumRow('배송비', _isFreeShipping ? '무료' : '${_fmt(_shipping.toInt())}원'),
-            const Divider(color: Colors.white30, height: 20),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Text('최종 금액',
-                  style: TextStyle(color: Colors.white70, fontSize: 13)),
-              Text('${_fmt(_finalPrice.toInt())}원',
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
-            ]),
-          ]),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(children: [
-            SizedBox(width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () => _submitOrder(isBuyNow: false),
-                style: OutlinedButton.styleFrom(foregroundColor: _purple,
-                    side: const BorderSide(color: _purple),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                child: const Text('장바구니에 담기',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-              ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => _submitOrder(isBuyNow: true),
-                icon: const Icon(Icons.flash_on_rounded, size: 18),
-                label: const Text('바로 구매',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
-                style: ElevatedButton.styleFrom(backgroundColor: _purple,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    elevation: 0),
-              ),
-            ),
-          ]),
-        ),
-      ]),
+      bottomNavigationBar: _buildSubmitBar(),
     );
   }
 
@@ -583,22 +482,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
       color: const Color(0xFFF0E6F8),
       child: const Icon(Icons.inventory_2_rounded, color: _purple, size: 28));
 
-  Widget _stageBadge(String label, Color color, bool active) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: active ? color : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: active ? color : Colors.grey.shade300, width: 1.5),
-      ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w700,
-              color: active ? Colors.white : Colors.grey.shade400)),
-    );
-  }
-
   // ════════════════════════════════════════════════════════
   // 헤더 배너
   // ════════════════════════════════════════════════════════
@@ -673,253 +556,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   // ════════════════════════════════════════════════════════
 
   // 구간 색상/라벨 헬퍼
-  Color _stageColor() {
-    if (_dialCount >= 50)  return Colors.red;
-    if (_dialCount >= 30)  return Colors.orange;
-    if (_dialCount >= 10)  return Colors.green;
-    if (_dialCount >= 5)   return Colors.blue;
-    return Colors.grey.shade400;
-  }
-
-  String _stageLabel() {
-    if (_dialCount >= 50)  return '50명+';
-    if (_dialCount >= 30)  return '30~49명';
-    if (_dialCount >= 10)  return '10~29명';
-    if (_dialCount >= 5)   return '5~9명';
-    return '';
-  }
-
-  Widget _buildCountSection() {
-    final dialColor  = _stageColor();
-    final stageLabel = _stageLabel();
-
-    return _section(
-      '주문 수량',
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-
-          // ── 구간 배지 행 ──
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(children: [
-              _stageBadge('5~9명',   Colors.blue,   _dialCount >= 5  && _dialCount <= 9),
-              const SizedBox(width: 6),
-              _stageBadge('10~29명', Colors.green,  _dialCount >= 10 && _dialCount <= 29),
-              const SizedBox(width: 6),
-              _stageBadge('30~49명', Colors.orange, _dialCount >= 30 && _dialCount <= 49),
-              const SizedBox(width: 6),
-              _stageBadge('50명+',   Colors.red,    _dialCount >= 50),
-            ]),
-          ),
-
-          const SizedBox(height: 12),
-
-          // ── 최소 인원 안내 ──
-          if (!_isAdditional)
-            Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: Colors.amber.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.shade200),
-              ),
-              child: Row(children: [
-                Icon(Icons.info_outline_rounded, size: 14, color: Colors.amber.shade700),
-                const SizedBox(width: 6),
-                Text('최소 5명부터 주문 가능합니다',
-                    style: TextStyle(fontSize: 11, color: Colors.amber.shade800,
-                        fontWeight: FontWeight.w600)),
-              ]),
-            ),
-
-          // ── 다이얼 ──
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-            decoration: BoxDecoration(
-              color: dialColor.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: dialColor.withValues(alpha: 0.35), width: 1.5),
-            ),
-            child: Row(children: [
-              _DialButton(
-                icon: Icons.remove_rounded,
-                color: _dialCount <= 1 ? Colors.grey.shade300 : dialColor,
-                onTap: () { if (_dialCount > 1) setState(() => _dialCount--); },
-                onLongPress: () { if (_dialCount > 5) setState(() => _dialCount -= 5); },
-              ),
-              Expanded(
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Text('$_dialCount',
-                      style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: dialColor),
-                      textAlign: TextAlign.center),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text('명', style: TextStyle(fontSize: 13,
-                        color: dialColor.withValues(alpha: 0.7))),
-                    if (stageLabel.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: dialColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(stageLabel,
-                            style: TextStyle(fontSize: 10, color: dialColor,
-                                fontWeight: FontWeight.w800)),
-                      ),
-                    ],
-                  ]),
-                ]),
-              ),
-              _DialButton(
-                icon: Icons.add_rounded,
-                color: dialColor,
-                onTap: () { if (_dialCount < 200) setState(() => _dialCount++); },
-                onLongPress: () { if (_dialCount <= 195) setState(() => _dialCount += 5); },
-              ),
-            ]),
-          ),
-
-          const SizedBox(height: 10),
-
-          // ── 빠른 선택 칩 ──
-          Wrap(spacing: 6, runSpacing: 6,
-            children: [5, 10, 15, 20, 30, 50].map((n) =>
-                _chip('$n명', _dialCount == n, () => setState(() => _dialCount = n))
-            ).toList(),
-          ),
-
-          const SizedBox(height: 14),
-
-          // ── 확정 버튼 ──
-          SizedBox(width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _confirmCount,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _purple, foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
-              ),
-              child: Text('$_dialCount명으로 주문서 작성하기',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-            ),
-          ),
-
-          // ── 확정 표시 ──
-          if (_orderStarted) ...[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-              decoration: BoxDecoration(color: _purpleLight, borderRadius: BorderRadius.circular(10)),
-              child: Row(children: [
-                const Icon(Icons.check_circle_rounded, color: _purple, size: 16),
-                const SizedBox(width: 7),
-                Text('$_totalCount명 확정',
-                    style: const TextStyle(color: _purple, fontWeight: FontWeight.w700, fontSize: 13)),
-              ]),
-            ),
-          ],
-        ]),
-      ),
-      icon: Icons.people_alt_rounded,
-    );
-  }
-
-  // ════════════════════════════════════════════════════════
-  // 섹션 2: 인쇄 타입
-  // ════════════════════════════════════════════════════════
-  Widget _buildPrintTypeSection() {
-    // 주문안내와 동일한 데이터 구조
-    final options = [
-      {'id': 0, 'step': '①', 'title': '색상 변경',        'cond': '5명↑ 무료', 'color': const Color(0xFF1565C0), 'desc': '원하는 색상으로 변경 제작 (상·하의 동일 색상 적용)', 'enabled': true},
-      {'id': 1, 'step': '②', 'title': '전면 (단체명)',     'cond': '5명↑ 무료', 'color': const Color(0xFF2E7D32), 'desc': '전면에 단체명 인쇄',                                'enabled': _canUsePrint1},
-      {'id': 2, 'step': '③', 'title': '조합 (전면+색상)',  'cond': '5명↑ 무료', 'color': const Color(0xFF6A1B9A), 'desc': '전면 단체명 + 색상 변경',                          'enabled': _canUsePrint1},
-      {'id': 3, 'step': '④', 'title': '조합 + 후면 이름', 'cond': '10명↑',     'color': const Color(0xFFC62828), 'desc': '전면 단체명·색상 + 후면 개인 이름 인쇄',           'enabled': _canUsePrint2},
-    ];
-
-    return _section(
-      '인쇄 타입',
-      Padding(
-        padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
-        child: Column(children: options.map((opt) {
-          final id      = opt['id']      as int;
-          final enabled = opt['enabled'] as bool;
-          final color   = opt['color']   as Color;
-          final sel     = _printType == id;
-
-          // 비활성일 때 색상을 회색으로
-          final displayColor = enabled ? color : Colors.grey.shade400;
-
-          return GestureDetector(
-            onTap: enabled ? () => setState(() => _printType = id) : null,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: sel
-                    ? color.withValues(alpha: 0.10)
-                    : (enabled ? color.withValues(alpha: 0.05) : const Color(0xFFF5F5F5)),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: sel
-                      ? color
-                      : (enabled ? color.withValues(alpha: 0.2) : Colors.grey.shade300),
-                  width: sel ? 2 : 1,
-                ),
-              ),
-              child: Row(children: [
-                // ① 원형 번호 배지 (주문안내와 동일)
-                Container(
-                  width: 24, height: 24,
-                  decoration: BoxDecoration(
-                    color: enabled ? color : Colors.grey.shade400,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(child: Text(opt['step'] as String,
-                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white))),
-                ),
-                const SizedBox(width: 12),
-                // 타이틀 + 조건뱃지 + 설명
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
-                    Expanded(
-                      child: Text(opt['title'] as String,
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: displayColor)),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: enabled ? color.withValues(alpha: 0.12) : Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(opt['cond'] as String,
-                          style: TextStyle(fontSize: 10, color: displayColor, fontWeight: FontWeight.w700)),
-                    ),
-                  ]),
-                  const SizedBox(height: 2),
-                  Text(opt['desc'] as String,
-                      style: TextStyle(fontSize: 11,
-                          color: enabled ? const Color(0xFF666666) : Colors.grey.shade400,
-                          height: 1.3)),
-                ])),
-                // 선택 체크 아이콘
-                if (sel) ...[
-                  const SizedBox(width: 8),
-                  Icon(Icons.check_circle_rounded, color: color, size: 20),
-                ],
-              ]),
-            ),
-          );
-        }).toList()),
-      ),
-      icon: Icons.print_rounded,
-    );
-  }
-
   // ════════════════════════════════════════════════════════
   // 섹션 3: 선택 상품 카드 (디자인 이미지 포함)
   // ════════════════════════════════════════════════════════
@@ -1399,6 +1035,133 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
     } catch (e) {
       if (mounted) _showSnack('이미지 업로드 오류가 발생했습니다.');
     }
+  }
+
+  // ════════════════════════════════════════════════════════
+  // 섹션 9.5: 디자인 파일 첨부
+  // ════════════════════════════════════════════════════════
+  Future<void> _pickDesignFiles() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: ['ai', 'pdf', 'png', 'jpg', 'jpeg', 'svg', 'eps'],
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+      setState(() {
+        for (final f in result.files) {
+          if (f.bytes != null) {
+            _designFiles.add({
+              'name': f.name,
+              'bytes': f.bytes!,
+              'size': f.size,
+            });
+          }
+        }
+      });
+    } catch (e) {
+      if (mounted) _showSnack('파일 선택 오류가 발생했습니다.');
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024)        return '${bytes}B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)}KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
+  }
+
+  Widget _buildDesignFileSection() {
+    return _section(
+      '디자인 파일 첨부',
+      Padding(
+        padding: const EdgeInsets.fromLTRB(14, 4, 14, 14),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // 안내 문구
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF81C784)),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('• 디자인 변경은 디자인 파일 첨부 시에만 가능합니다',
+                  style: TextStyle(fontSize: 13, height: 1.7)),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1565C0).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
+                ),
+                child: const Row(children: [
+                  Icon(Icons.attach_file_rounded, size: 15, color: Color(0xFF1565C0)),
+                  SizedBox(width: 6),
+                  Text('📎 AI / PDF / PNG 파일 첨부 필수',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                ]),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 12),
+
+          // 첨부된 파일 목록
+          if (_designFiles.isNotEmpty) ...[
+            ..._designFiles.asMap().entries.map((e) {
+              final idx  = e.key;
+              final file = e.value;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                ),
+                child: Row(children: [
+                  const Icon(Icons.insert_drive_file_rounded, size: 20, color: Color(0xFF1565C0)),
+                  const SizedBox(width: 10),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(file['name'] as String,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                        overflow: TextOverflow.ellipsis),
+                    Text(_formatFileSize(file['size'] as int),
+                        style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  ])),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 18, color: Colors.grey),
+                    onPressed: () => setState(() => _designFiles.removeAt(idx)),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ]),
+              );
+            }),
+            const SizedBox(height: 6),
+          ],
+
+          // 파일 선택 버튼
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _pickDesignFiles,
+              icon: const Icon(Icons.upload_file_rounded, size: 18),
+              label: Text(_designFiles.isEmpty ? '파일 선택하기' : '파일 추가하기',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF1565C0),
+                side: const BorderSide(color: Color(0xFF1565C0)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ),
+        ]),
+      ),
+      icon: Icons.attach_file_rounded,
+    );
   }
 
   // ════════════════════════════════════════════════════════
