@@ -1725,8 +1725,7 @@ class _AdminScreenState extends State<AdminScreen>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setD) {
-          // 선택된 날짜 기준으로 필터링
-          List<OrderModel> dateFiltered;
+          // ── 기간 범위 계산 (UI 미리보기용 - 로컬 필터)
           DateTime? filterStart;
           DateTime? filterEnd;
 
@@ -1734,24 +1733,32 @@ class _AdminScreenState extends State<AdminScreen>
             final range = OrderExcelService.getDailyRange();
             filterStart = range.start;
             filterEnd = range.end;
-            dateFiltered = allOrders.where((o) =>
-                !o.createdAt.isBefore(filterStart!) &&
-                o.createdAt.isBefore(filterEnd!)).toList();
           } else if (exportType == '날짜선택') {
             filterStart = DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 13, 0);
             filterEnd = filterStart.add(const Duration(days: 1));
-            dateFiltered = allOrders.where((o) =>
-                !o.createdAt.isBefore(filterStart!) &&
-                o.createdAt.isBefore(filterEnd!)).toList();
+          }
+
+          // 로컬 미리보기 카운트 (Firestore에서 실제 조회는 다운로드 시 진행)
+          int previewCount;
+          if (exportType == '전체') {
+            previewCount = allOrders.length;
+          } else if (filterStart != null && filterEnd != null) {
+            final fS = filterStart;
+            final fE = filterEnd;
+            previewCount = allOrders.where((o) =>
+                !o.createdAt.isBefore(fS) && o.createdAt.isBefore(fE)).length;
           } else {
-            dateFiltered = allOrders;
+            previewCount = 0;
           }
 
           String rangeLabel = '';
           if (exportType == '일일' && filterStart != null && filterEnd != null) {
             rangeLabel = '${_fmtDateKr(filterStart)} ~ ${_fmtDateKr(filterEnd)}';
           } else if (exportType == '날짜선택' && filterStart != null) {
-            rangeLabel = '${selectedDate.month}/${selectedDate.day} 13:00 ~ ${selectedDate.month}/${selectedDate.day + 1} 13:00';
+            final d = selectedDate;
+            rangeLabel = '${d.month}월 ${d.day}일 13:00 ~ ${d.month}월 ${d.day + 1}일 13:00';
+          } else if (exportType == '전체') {
+            rangeLabel = '전체 기간';
           }
 
           return AlertDialog(
@@ -1940,8 +1947,16 @@ class _AdminScreenState extends State<AdminScreen>
                           const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF888888)),
                           const SizedBox(width: 4),
                           Expanded(child: Text(
-                            '${dateFiltered.length}건 · 3개 시트(주문요약/배송목록/상품집계) 엑셀 파일',
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF555555)),
+                            previewCount > 0
+                                ? '$previewCount건 확인됨 · 3개 시트(주문요약/배송목록/상품집계) 엑셀 파일'
+                                : '로딩된 주문 범위 외 · 다운로드 시 Firestore 재조회',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: previewCount > 0
+                                  ? const Color(0xFF555555)
+                                  : const Color(0xFF1565C0),
+                              fontWeight: previewCount == 0 ? FontWeight.w600 : FontWeight.normal,
+                            ),
                           )),
                         ]),
                       ],
@@ -1961,7 +1976,7 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
                 icon: const Icon(Icons.table_chart_rounded, size: 16),
                 label: const Text('엑셀 다운로드', style: TextStyle(fontWeight: FontWeight.w700)),
-                onPressed: dateFiltered.isEmpty ? null : () async {
+                onPressed: () async {
                   Navigator.pop(ctx);
                   // 실제 날짜 범위로 Firestore에서 재조회 후 엑셀 생성
                   showDialog(
@@ -1998,9 +2013,10 @@ class _AdminScreenState extends State<AdminScreen>
                       fEnd = fStart.add(const Duration(days: 1));
                       finalOrders = await OrderExcelService.getOrdersByDateRange(fStart, fEnd);
                     } else {
+                      // 전체 주문: Firestore 전체 재조회
                       fStart = DateTime(2020);
                       fEnd = DateTime.now().add(const Duration(days: 1));
-                      finalOrders = dateFiltered;
+                      finalOrders = await OrderExcelService.getOrdersByDateRange(fStart, fEnd);
                     }
 
                     if (!mounted) return;
@@ -2167,7 +2183,7 @@ class _AdminScreenState extends State<AdminScreen>
                     }
                   }),
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 8, left: 4),
+                    padding: const EdgeInsets.only(right: 6, left: 4),
                     child: Icon(
                       isSelected ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
                       color: isSelected ? const Color(0xFF3949AB) : const Color(0xFFBBBBBB),
@@ -2175,7 +2191,6 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
                 Expanded(
                   child: Text(order.id,
                       style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
@@ -2208,11 +2223,26 @@ class _AdminScreenState extends State<AdminScreen>
                   children: [
                     const Icon(Icons.person_outline, size: 14, color: Color(0xFF888888)),
                     const SizedBox(width: 4),
-                    Text(order.userName,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                    const SizedBox(width: 8),
-                    Text(PrivacyService.maskPhone(order.userPhone),
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              order.userName.isNotEmpty
+                                  ? order.userName
+                                  : (opts?['managerName']?.toString() ?? opts?['manager']?.toString() ?? '주문자 없음'),
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            order.userPhone.isNotEmpty ? PrivacyService.maskPhone(order.userPhone) : '-',
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -2222,7 +2252,9 @@ class _AdminScreenState extends State<AdminScreen>
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        '${order.items.map((i) => i.productName).join(', ')} (${order.items.length}종)',
+                        order.items.isNotEmpty
+                            ? '${order.items.map((i) => i.productName).join(', ')} (${order.items.length}종)'
+                            : (opts?['teamName']?.toString() ?? opts?['productName']?.toString() ?? '상품 정보 없음'),
                         style: const TextStyle(fontSize: 12, color: Color(0xFF666666)),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
