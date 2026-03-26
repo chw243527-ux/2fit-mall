@@ -1081,7 +1081,7 @@ class _InlineColorChartState extends State<InlineColorChart>
           const SizedBox(height: 10),
           // ── 탭 콘텐츠 ──
           SizedBox(
-            height: 230,
+            height: _showAdjust ? 370 : 230,
             child: TabBarView(
               controller: _tabCtrl,
               children: [
@@ -1227,145 +1227,143 @@ class _InlineColorChartState extends State<InlineColorChart>
             1.0, _hue, _sat.clamp(0.0, 1.0), _lit.clamp(0.05, 0.95))
         .toColor();
 
-    return Column(
-      children: [
-        // ── 색상 그리드
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 10,
-              crossAxisSpacing: 3,
-              mainAxisSpacing: 3,
-              childAspectRatio: 1.0,
-            ),
-            itemCount: extended.length,
-            itemBuilder: (_, i) {
-              final color = extended[i];
-              final isLight = color.computeLuminance() > 0.5;
-              final isSel = _showAdjust &&
-                  _baseColor.toARGB32() == color.toARGB32();
-              return GestureDetector(
-                onTap: () =>
-                    _selectBaseColor(color, '커스텀 (#${_colorToHex(color)})'),
-                child: RibColorSwatch(
-                  color: color,
-                  size: 26,
-                  borderRadius: 4,
-                  isSelected: isSel,
-                  accentColor: widget.accentColor,
-                  isLight: isLight,
-                  child: isSel
-                      ? Icon(Icons.check_rounded,
-                          size: 10,
-                          color: isLight ? Colors.black87 : Colors.white)
-                      : null,
-                ),
-              );
-            },
-          ),
-        ),
+    // 그리드 높이: 조절 패널 없으면 230, 있으면 370-140(패널)-6(gap)=224
+    final gridH = _showAdjust ? 224.0 : 228.0;
 
-        // ── HSL 조절 패널 (색 선택 후 표시)
-        if (_showAdjust) ...[
-          const SizedBox(height: 6),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE0E0E0)),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 미리보기 + 적용 버튼
-                Row(
-                  children: [
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color: adjColor,
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                            color: const Color(0xFFCCCCCC)),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '#${_colorToHex(adjColor)}',
-                        style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: _applyHSL,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: widget.accentColor,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text('적용',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700)),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                // 색조
-                _SliderRow(
-                  label: '색조',
-                  value: _hue / 360,
-                  trackGradient: const LinearGradient(colors: [
-                    Color(0xFFFF0000),
-                    Color(0xFFFFFF00),
-                    Color(0xFF00FF00),
-                    Color(0xFF00FFFF),
-                    Color(0xFF0000FF),
-                    Color(0xFFFF00FF),
-                    Color(0xFFFF0000),
-                  ]),
-                  onChanged: (v) =>
-                      setState(() { _hue = v * 360; _applyHSL(); }),
-                ),
-                // 채도
-                _SliderRow(
-                  label: '채도',
-                  value: _sat,
-                  trackGradient: LinearGradient(colors: [
-                    HSLColor.fromAHSL(1.0, _hue, 0.0, _lit).toColor(),
-                    HSLColor.fromAHSL(1.0, _hue, 1.0, _lit).toColor(),
-                  ]),
-                  onChanged: (v) =>
-                      setState(() { _sat = v; _applyHSL(); }),
-                ),
-                // 밝기
-                _SliderRow(
-                  label: '밝기',
-                  value: _lit,
-                  trackGradient: LinearGradient(colors: [
-                    Colors.black,
-                    HSLColor.fromAHSL(1.0, _hue, _sat, 0.5).toColor(),
-                    Colors.white,
-                  ]),
-                  onChanged: (v) =>
-                      setState(() { _lit = v; _applyHSL(); }),
-                ),
-              ],
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── 색상 그리드 (고정 높이)
+          SizedBox(
+            height: gridH,
+            child: GridView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 10,
+                crossAxisSpacing: 3,
+                mainAxisSpacing: 3,
+                childAspectRatio: 1.0,
+              ),
+              itemCount: extended.length,
+              itemBuilder: (_, i) {
+                final color = extended[i];
+                final isLight = color.computeLuminance() > 0.5;
+                final isSel = _showAdjust &&
+                    _baseColor.toARGB32() == color.toARGB32();
+                return GestureDetector(
+                  onTap: () =>
+                      _selectBaseColor(color, '커스텀 (#${_colorToHex(color)})'),
+                  child: RibColorSwatch(
+                    color: color,
+                    size: 26,
+                    borderRadius: 4,
+                    isSelected: isSel,
+                    accentColor: widget.accentColor,
+                    isLight: isLight,
+                    child: isSel
+                        ? Icon(Icons.check_rounded,
+                            size: 10,
+                            color: isLight ? Colors.black87 : Colors.white)
+                        : null,
+                  ),
+                );
+              },
             ),
           ),
+
+          // ── HSL 조절 패널 (색 선택 후 표시)
+          if (_showAdjust) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE0E0E0)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 미리보기 + 적용 버튼
+                  Row(
+                    children: [
+                      Container(
+                        width: 30, height: 30,
+                        decoration: BoxDecoration(
+                          color: adjColor,
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFCCCCCC)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '#${_colorToHex(adjColor)}',
+                          style: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w700,
+                              letterSpacing: 1),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: _applyHSL,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: widget.accentColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text('적용',
+                              style: TextStyle(color: Colors.white,
+                                  fontSize: 11, fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  // 색조
+                  _SliderRow(
+                    label: '색조',
+                    value: _hue / 360,
+                    trackGradient: const LinearGradient(colors: [
+                      Color(0xFFFF0000), Color(0xFFFFFF00), Color(0xFF00FF00),
+                      Color(0xFF00FFFF), Color(0xFF0000FF), Color(0xFFFF00FF),
+                      Color(0xFFFF0000),
+                    ]),
+                    onChanged: (v) =>
+                        setState(() { _hue = v * 360; _applyHSL(); }),
+                  ),
+                  // 채도
+                  _SliderRow(
+                    label: '채도',
+                    value: _sat,
+                    trackGradient: LinearGradient(colors: [
+                      HSLColor.fromAHSL(1.0, _hue, 0.0, _lit).toColor(),
+                      HSLColor.fromAHSL(1.0, _hue, 1.0, _lit).toColor(),
+                    ]),
+                    onChanged: (v) =>
+                        setState(() { _sat = v; _applyHSL(); }),
+                  ),
+                  // 밝기
+                  _SliderRow(
+                    label: '밝기',
+                    value: _lit,
+                    trackGradient: LinearGradient(colors: [
+                      Colors.black,
+                      HSLColor.fromAHSL(1.0, _hue, _sat, 0.5).toColor(),
+                      Colors.white,
+                    ]),
+                    onChanged: (v) =>
+                        setState(() { _lit = v; _applyHSL(); }),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 
