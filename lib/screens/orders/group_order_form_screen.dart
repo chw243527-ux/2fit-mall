@@ -10,7 +10,6 @@ import '../../providers/providers.dart';
 import '../../utils/constants.dart';
 import '../../utils/app_localizations.dart';
 
-import '../../services/order_service.dart';
 import '../orders/checkout_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 
@@ -354,8 +353,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       customOptions: customOptions,
     );
 
+    final cart = context.read<CartProvider>();
     if (isBuyNow) {
-      final cart = context.read<CartProvider>();
       cart.clearCart();
       cart.addItem(product, '단체', _mainColorName ?? '기본',
           quantity: _totalCount,
@@ -365,15 +364,29 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       Navigator.push(context,
           MaterialPageRoute(builder: (_) => CheckoutScreen(cart: cart)));
     } else {
-      try {
-        await OrderService.saveOrder(order);
-        if (!mounted) return;
-        _showSnack('장바구니에 담았습니다. ($_totalCount명 / ${_fmt(_finalPrice)}원)');
-      } catch (e) {
-        if (kDebugMode) debugPrint('주문 저장 오류: $e');
-        if (!mounted) return;
-        _showSnack('주문 저장 중 오류가 발생했습니다. 다시 시도해 주세요.');
-      }
+      // 장바구니에 담기 (기존 아이템 유지, 단체 상품 추가)
+      cart.addItem(product, '단체', _mainColorName ?? '기본',
+          quantity: _totalCount,
+          extraPrice: _fabricExtra.toDouble(),
+          customOptions: customOptions);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Expanded(child: Text('장바구니에 담았습니다. ($_totalCount명 / ${_fmt(_finalPrice)}원)')),
+          ]),
+          backgroundColor: const Color(0xFF1A1A1A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          action: SnackBarAction(
+            label: '장바구니 보기',
+            textColor: const Color(0xFFFFD600),
+            onPressed: () => Navigator.pushNamed(context, '/cart'),
+          ),
+        ),
+      );
     }
   }
 

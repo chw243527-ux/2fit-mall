@@ -8,7 +8,6 @@ import '../../models/models.dart';
 import '../../services/fcm_service.dart';
 import '../../services/auth_service.dart';
 import '../main_screen.dart';
-import '../../main.dart' show navigatorKey;
 import '../../widgets/kakao_address_search.dart';
 import '../../widgets/pc_layout.dart';
 
@@ -22,7 +21,7 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String _selectedPayment = '카카오페이';
+  String _selectedPayment = AppConstants.paymentMethods.first; // 초기값: 첫 번째 결제수단
   final _addressController = TextEditingController();
   final _detailAddressController = TextEditingController();
   final _memoController = TextEditingController();
@@ -1433,7 +1432,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             : '');
 
     bool? result;
-    if (_selectedPayment == '무통장입금') {
+    if (_selectedPayment == '무통장입금' || _selectedPayment == 'Bank Transfer' || _selectedPayment.contains('무통장')) {
       // 무통장입금 전용 다이얼로그
       result = await showDialog<bool>(
         context: context,

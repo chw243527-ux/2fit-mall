@@ -4129,6 +4129,23 @@ $productUrl
 
   // ─── 기성품 옵션 선택 + 다중담기 시트 (장바구니/바로구매 공통) ───
   void _showBuyNowSheet(ProductModel product) {
+    // 바로구매는 로그인 필수
+    final user = context.read<UserProvider>().user;
+    if (user == null) {
+      final l = context.read<LanguageProvider>().loc;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l.loginRequired),
+          backgroundColor: Colors.redAccent,
+          action: SnackBarAction(
+            label: l.login,
+            textColor: Colors.white,
+            onPressed: () => Navigator.pushNamed(context, '/login'),
+          ),
+        ),
+      );
+      return;
+    }
     _showReadyMadeOptionSheet(product, isBuyNow: true);
   }
 
