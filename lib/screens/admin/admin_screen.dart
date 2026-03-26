@@ -1556,26 +1556,35 @@ class _AdminScreenState extends State<AdminScreen>
       '${dt.month}월 ${dt.day}일 ${dt.hour.toString().padLeft(2, '0')}:00';
 
   // ── Android Downloads 폴더에 직접 저장 ──
+  // Android 다운로드 폴더에 직접 저장
+  // - Android 10+ : /storage/emulated/0/Download (권한 불필요)
+  // - Android 9-  : WRITE_EXTERNAL_STORAGE 권한으로 동일 경로
   Future<String?> _saveToDownloads(Uint8List bytes, String fileName) async {
     try {
-      // Android 외부 저장소 경로 목록 가져오기
-      final dirs = await getExternalStorageDirectories(
-        type: StorageDirectory.downloads,
-      );
-      Directory? downloadsDir;
-      if (dirs != null && dirs.isNotEmpty) {
-        downloadsDir = dirs.first;
-      } else {
-        // fallback: /storage/emulated/0/Download
-        downloadsDir = Directory('/storage/emulated/0/Download');
+      // 삼성·LG 등 모든 Android 기기에서 보이는 공용 Download 폴더
+      final downloadDir = Directory('/storage/emulated/0/Download');
+      if (!await downloadDir.exists()) {
+        await downloadDir.create(recursive: true);
       }
-      if (!await downloadsDir.exists()) {
-        await downloadsDir.create(recursive: true);
-      }
-      final filePath = '${downloadsDir.path}/$fileName';
+      final filePath = '${downloadDir.path}/$fileName';
       await File(filePath).writeAsBytes(bytes, flush: true);
-      return filePath;
+      // 파일이 정상 저장됐는지 확인
+      if (await File(filePath).exists()) {
+        return filePath;
+      }
+      return null;
     } catch (_) {
+      // fallback: 앱 외부 저장소
+      try {
+        final dirs = await getExternalStorageDirectories(
+          type: StorageDirectory.downloads,
+        );
+        if (dirs != null && dirs.isNotEmpty) {
+          final filePath = '${dirs.first.path}/$fileName';
+          await File(filePath).writeAsBytes(bytes, flush: true);
+          return filePath;
+        }
+      } catch (_) {}
       return null;
     }
   }

@@ -178,11 +178,8 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       }
     } else {
       try {
-        // Downloads 폴더 직접 저장
-        final dirs = await getExternalStorageDirectories(type: StorageDirectory.downloads);
-        Directory? dlDir = (dirs != null && dirs.isNotEmpty)
-            ? dirs.first
-            : Directory('/storage/emulated/0/Download');
+        // 공용 Download 폴더에 직접 저장
+        final dlDir = Directory('/storage/emulated/0/Download');
         if (!await dlDir.exists()) await dlDir.create(recursive: true);
         final savedPath = '${dlDir.path}/$fileName';
         await File(savedPath).writeAsBytes(uint8List, flush: true);
@@ -631,10 +628,7 @@ class _AdminInventoryTabState extends State<AdminInventoryTab> {
       }
     } else {
       try {
-        final dirs = await getExternalStorageDirectories(type: StorageDirectory.downloads);
-        Directory? dlDir = (dirs != null && dirs.isNotEmpty)
-            ? dirs.first
-            : Directory('/storage/emulated/0/Download');
+        final dlDir = Directory('/storage/emulated/0/Download');
         if (!await dlDir.exists()) await dlDir.create(recursive: true);
         final savedPath = '${dlDir.path}/$fileNameP';
         await File(savedPath).writeAsBytes(bytesP, flush: true);
