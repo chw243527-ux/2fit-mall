@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>주소 검색</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #fff; overflow: hidden; }
+    #wrap { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+<div id="wrap"></div>
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+(function () {
+  function sendResult(data) {
+    var addr = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+    var payload = JSON.stringify({
+      type: 'KAKAO_ADDRESS',
+      address: addr,
+      zonecode: data.zonecode,
+      roadAddress: data.roadAddress || '',
+      jibunAddress: data.jibunAddress || ''
+    });
+    // 1. iframe 방식: 부모 창에 postMessage
+    try { window.parent.postMessage(payload, '*'); } catch (e) {}
+    try { window.top.postMessage(payload, '*'); } catch (e) {}
+    // 2. 팝업 방식: opener 창에 postMessage
+    try { if (window.opener) { window.opener.postMessage(payload, '*'); window.close(); } } catch (e) {}
+  }
+
+  function init() {
+    new daum.Postcode({
+      oncomplete: sendResult,
+      width: '100%',
+      height: '100%',
+      maxSuggestItems: 10,
+      animation: false
+    }).embed(document.getElementById('wrap'), { autoClose: false });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>
