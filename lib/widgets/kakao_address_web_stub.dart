@@ -5,4 +5,5 @@ import 'package:flutter/material.dart';
 Widget buildKakaoWebView(BuildContext context) => const SizedBox.shrink();
 Widget buildKakaoIframeView() => const SizedBox.shrink();
 void registerKakaoIframeListener(void Function(Map<String, dynamic>) onResult) {}
+void cancelKakaoIframeListener() {}
 Future<Map<String, String>?> showKakaoAddressPopup() async => null;

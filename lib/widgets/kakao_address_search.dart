@@ -243,7 +243,7 @@ class _KakaoWebViewWebState extends State<_KakaoWebViewWeb> {
   void initState() {
     super.initState();
     web_impl.registerKakaoIframeListener((data) {
-      if (_done) return;
+      if (_done || !mounted) return;
       _done = true;
       final result = KakaoAddressResult(
         zonecode:     data['zonecode']     as String? ?? '',
@@ -251,11 +251,21 @@ class _KakaoWebViewWebState extends State<_KakaoWebViewWeb> {
         roadAddress:  data['roadAddress']  as String? ?? '',
         jibunAddress: data['jibunAddress'] as String? ?? '',
       );
-      // mounted 체크 후 현재 context로 pop (BottomSheet 닫기 + 결과 반환)
-      if (mounted) {
-        Navigator.of(context).pop(result);
-      }
+      // BottomSheet를 닫으면서 결과를 반환
+      // Navigator.of(context) 는 BottomSheet 자체의 route를 pop함
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pop(result);
+        }
+      });
     });
+  }
+
+  @override
+  void dispose() {
+    // 위젯 소멸 시 리스너 정리
+    web_impl.cancelKakaoIframeListener();
+    super.dispose();
   }
 
   @override
