@@ -106,7 +106,7 @@ class OrderService {
         .snapshots()
         .map((snapshot) {
       final orders = snapshot.docs
-          .map((doc) => _orderFromFirestore(doc.data()))
+          .map((doc) => _orderFromFirestore(doc.data(), docId: doc.id))
           .toList();
       orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return orders;
@@ -121,7 +121,7 @@ class OrderService {
         .snapshots()
         .map((snapshot) {
       final orders = snapshot.docs
-          .map((doc) => _orderFromFirestore(doc.data()))
+          .map((doc) => _orderFromFirestore(doc.data(), docId: doc.id))
           .toList();
       orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return orders;
@@ -180,7 +180,7 @@ class OrderService {
         final orderDoc = await _db.collection('orders').doc(orderId).get();
         if (orderDoc.exists) {
           final orderData = orderDoc.data()!;
-          final order = _orderFromFirestore(orderData);
+          final order = _orderFromFirestore(orderData, docId: orderDoc.id);
           // FCM 알림
           await FcmService.sendOrderStatusNotification(
             order: order,
@@ -237,7 +237,7 @@ class OrderService {
       try {
         final orderDoc = await _db.collection('orders').doc(orderId).get();
         if (orderDoc.exists) {
-          final order = _orderFromFirestore(orderDoc.data()!);
+          final order = _orderFromFirestore(orderDoc.data()!, docId: orderDoc.id);
           await FcmService.sendOrderStatusNotification(order: order, newStatus: status);
           EmailService.sendOrderStatusEmail(order: order, newStatus: status)
               .catchError((e) => false);
@@ -420,7 +420,32 @@ class OrderService {
     };
   }
 
-  static OrderModel _orderFromFirestore(Map<String, dynamic> data) {
+  /// gender 영문 → 한글 변환 헬퍼
+  static String _normalizeGender(dynamic g) {
+    if (g == null) return '-';
+    final s = g.toString().toLowerCase();
+    if (s == 'male' || s == 'm' || s == '남성') return '남';
+    if (s == 'female' || s == 'f' || s == '여성') return '여';
+    return g.toString();
+  }
+
+  /// persons 리스트 정규화 (gender 영문→한글)
+  static List<dynamic> _normalizePersons(dynamic raw) {
+    if (raw is! List) return [];
+    return raw.map((p) {
+      if (p is Map) {
+        final m = Map<String, dynamic>.from(p);
+        m['gender'] = _normalizeGender(m['gender']);
+        return m;
+      }
+      return p;
+    }).toList();
+  }
+
+  static OrderModel _orderFromFirestore(Map<String, dynamic> data, {String? docId}) {
+    // 문서 ID: 파라미터 우선, 없으면 data['id'] 사용
+    final resolvedDocId = (docId?.isNotEmpty == true) ? docId! : (data['id'] as String? ?? '');
+
     // Firestore Timestamp → DateTime 변환
     final createdAtRaw = data['createdAt'];
     DateTime createdAt;
@@ -439,20 +464,25 @@ class OrderService {
     );
 
     // customOptions 파싱: top-level customOptions 맵 + persons 필드 통합
-    Map<String, dynamic>? customOptions;
+    Map<String, dynamic> customOptions;
     final rawOpts = data['customOptions'];
     if (rawOpts is Map) {
       customOptions = Map<String, dynamic>.from(rawOpts);
     } else {
       customOptions = {};
     }
-    // persons 필드: customOptions.persons 없으면 top-level persons 병합
-    if ((customOptions['persons'] == null || (customOptions['persons'] as List?)?.isEmpty == true)) {
+
+    // persons 필드: customOptions.persons 없으면 top-level persons 병합 (gender 정규화 포함)
+    final optsPersons = customOptions['persons'];
+    if (optsPersons == null || (optsPersons as List?)?.isEmpty == true) {
       final topPersons = data['persons'];
       if (topPersons is List && topPersons.isNotEmpty) {
-        customOptions['persons'] = topPersons;
+        customOptions['persons'] = _normalizePersons(topPersons);
       }
+    } else {
+      customOptions['persons'] = _normalizePersons(optsPersons);
     }
+
     // groupName, teamName 통합
     if (customOptions['teamName'] == null || (customOptions['teamName'] as String?)?.isEmpty == true) {
       final gn = data['groupName'] as String?;
@@ -463,30 +493,47 @@ class OrderService {
       final gc = data['groupCount'];
       if (gc != null) customOptions['totalCount'] = gc;
     }
+    // maleCount/femaleCount 통합 (top-level에서)
+    if (customOptions['maleCount'] == null && data['maleCount'] != null) {
+      customOptions['maleCount'] = data['maleCount'];
+    }
+    if (customOptions['femaleCount'] == null && data['femaleCount'] != null) {
+      customOptions['femaleCount'] = data['femaleCount'];
+    }
+    // manager/담당자 이름 통합
+    if (customOptions['manager'] == null && customOptions['managerName'] == null) {
+      final mgr = data['managerName'] as String?;
+      if (mgr != null && mgr.isNotEmpty) customOptions['manager'] = mgr;
+    }
 
     // ── orderType 자동 보정 ──
     // Firestore에 'personal'로 저장됐더라도 진짜 단체주문이면 보정
-    final docId = data['id'] as String? ?? '';
     String rawOrderType = data['orderType'] as String? ?? 'personal';
     if (rawOrderType == 'personal') {
-      final hasPersons = (customOptions?['persons'] as List?)?.isNotEmpty == true;
-      final hasTeamName = (customOptions?['teamName'] as String?)?.isNotEmpty == true;
-      // GRP_ 접두사이거나, persons+teamName 모두 있으면 단체주문으로 보정
-      final isGrpId = docId.startsWith('GRP_') || docId.startsWith('GROUP-');
+      final hasPersons = (customOptions['persons'] as List?)?.isNotEmpty == true;
+      final hasTeamName = (customOptions['teamName'] as String?)?.isNotEmpty == true;
+      // GRP_/GROUP- 접두사이거나, persons+teamName 모두 있으면 단체주문으로 보정
+      final isGrpId = resolvedDocId.startsWith('GRP_') || resolvedDocId.startsWith('GROUP-');
       if (isGrpId || (hasPersons && hasTeamName)) {
-        final isAdditional = docId.contains('ADD') ||
-            customOptions?['isAdditional'] == true;
+        final isAdditional = resolvedDocId.contains('ADD') ||
+            customOptions['isAdditional'] == true ||
+            data['isAdditionalOrder'] == true;
         rawOrderType = isAdditional ? 'additional' : 'group';
       }
     }
 
+    // 주소: userAddress 없으면 deliveryAddress 사용
+    final userAddress = (data['userAddress'] as String?)?.isNotEmpty == true
+        ? data['userAddress'] as String
+        : (data['deliveryAddress'] as String? ?? '');
+
     return OrderModel(
-      id: data['id'] as String? ?? '',
+      id: resolvedDocId,
       userId: data['userId'] as String? ?? '',
       userName: data['userName'] as String? ?? '',
       userEmail: data['userEmail'] as String? ?? '',
       userPhone: data['userPhone'] as String? ?? '',
-      userAddress: data['userAddress'] as String? ?? '',
+      userAddress: userAddress,
       status: status,
       totalAmount: (data['totalAmount'] as num?)?.toDouble() ?? 0,
       shippingFee: (data['shippingFee'] as num?)?.toDouble() ?? 0,

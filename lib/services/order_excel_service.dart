@@ -76,11 +76,38 @@ class OrderExcelService {
     }
   }
 
+  /// gender 영문 → 한글 변환
+  static String _normalizeGender(dynamic g) {
+    if (g == null) return '-';
+    final s = g.toString().toLowerCase();
+    if (s == 'male' || s == 'm' || s == '남성') return '남';
+    if (s == 'female' || s == 'f' || s == '여성') return '여';
+    return g.toString();
+  }
+
+  /// persons 리스트 gender 정규화
+  static List<dynamic> _normalizePersons(dynamic raw) {
+    if (raw is! List) return [];
+    return raw.map((p) {
+      if (p is Map) {
+        final m = Map<String, dynamic>.from(p);
+        m['gender'] = _normalizeGender(m['gender']);
+        return m;
+      }
+      return p;
+    }).toList();
+  }
+
   static OrderModel? _parseOrder(Map<String, dynamic> data, String docId) {
     try {
       final rawItems = data['items'] as List<dynamic>? ?? [];
       final items = rawItems.map((item) {
         final m = item as Map<String, dynamic>;
+        Map<String, dynamic>? itemOpts;
+        final rawItemOpts = m['customOptions'];
+        if (rawItemOpts is Map) {
+          itemOpts = Map<String, dynamic>.from(rawItemOpts);
+        }
         return OrderItem(
           productId: m['productId'] as String? ?? '',
           productName: m['productName'] as String? ?? '',
@@ -88,7 +115,7 @@ class OrderExcelService {
           color: m['color'] as String? ?? '',
           quantity: (m['quantity'] as num?)?.toInt() ?? 1,
           price: (m['price'] as num?)?.toDouble() ?? 0,
-          customOptions: m['customOptions'] as Map<String, dynamic>?,
+          customOptions: itemOpts,
         );
       }).toList();
 
@@ -108,43 +135,87 @@ class OrderExcelService {
         createdAt = DateTime.now();
       }
 
-      Map<String, dynamic>? customOptions;
+      Map<String, dynamic> customOptions;
       final rawOpts = data['customOptions'];
       if (rawOpts is Map) {
         customOptions = Map<String, dynamic>.from(rawOpts);
       } else {
         customOptions = {};
       }
-      if ((customOptions['persons'] == null ||
-          (customOptions['persons'] as List?)?.isEmpty == true)) {
+
+      // persons: customOptions.persons 없으면 top-level persons 사용 (gender 정규화)
+      final optsPersons = customOptions['persons'];
+      if (optsPersons == null || (optsPersons as List?)?.isEmpty == true) {
         final topPersons = data['persons'];
         if (topPersons is List && topPersons.isNotEmpty) {
-          customOptions['persons'] = topPersons;
+          customOptions['persons'] = _normalizePersons(topPersons);
         }
+      } else {
+        customOptions['persons'] = _normalizePersons(optsPersons);
       }
+
+      // teamName: customOptions.teamName 없으면 groupName 사용
       if (customOptions['teamName'] == null ||
           (customOptions['teamName'] as String?)?.isEmpty == true) {
         final gn = data['groupName'] as String?;
         if (gn != null && gn.isNotEmpty) customOptions['teamName'] = gn;
       }
+      // totalCount: groupCount 폴백
       if (customOptions['totalCount'] == null) {
         final gc = data['groupCount'];
         if (gc != null) customOptions['totalCount'] = gc;
+      }
+      // maleCount/femaleCount 폴백
+      if (customOptions['maleCount'] == null && data['maleCount'] != null) {
+        customOptions['maleCount'] = data['maleCount'];
+      }
+      if (customOptions['femaleCount'] == null && data['femaleCount'] != null) {
+        customOptions['femaleCount'] = data['femaleCount'];
+      }
+      // manager 폴백
+      if (customOptions['manager'] == null && customOptions['managerName'] == null) {
+        final mgr = data['managerName'] as String?;
+        if (mgr != null && mgr.isNotEmpty) customOptions['manager'] = mgr;
+      }
+      // item.customOptions에서 색상/인쇄옵션 폴백 (최상위 customOptions에 없는 경우)
+      if (items.isNotEmpty && items.first.customOptions != null) {
+        final itemOpts = items.first.customOptions!;
+        if (customOptions['mainColor'] == null && itemOpts['mainColor'] != null) {
+          customOptions['mainColor'] = itemOpts['mainColor'];
+        }
+        if (customOptions['printType'] == null && itemOpts['printType'] != null) {
+          customOptions['printType'] = itemOpts['printType'];
+        }
+        if (customOptions['waistband'] == null && itemOpts['waistband'] != null) {
+          customOptions['waistbandOption'] = itemOpts['waistband'];
+        }
+        if (customOptions['fabric'] == null && itemOpts['fabric'] != null) {
+          customOptions['fabric'] = itemOpts['fabric'];
+        }
+        if (customOptions['designFileUrl'] == null && itemOpts['designFileUrl'] != null) {
+          customOptions['designFileUrl'] = itemOpts['designFileUrl'];
+        }
       }
 
       // ── orderType 보정: 실제 단체주문 특성으로 자동 판별 ──
       String resolvedOrderType = data['orderType'] as String? ?? 'personal';
       if (resolvedOrderType == 'personal') {
-        final id = docId;
         final hasPersons = (customOptions['persons'] as List?)?.isNotEmpty == true;
         final hasTeamName = (customOptions['teamName'] as String?)?.isNotEmpty == true;
-        // GRP_ 접두사 또는 persons+teamName 모두 있으면 단체주문
-        final isGrpId = id.startsWith('GRP_') || id.startsWith('GROUP-');
+        // GRP_/GROUP- 접두사 또는 persons+teamName 모두 있으면 단체주문
+        final isGrpId = docId.startsWith('GRP_') || docId.startsWith('GROUP-');
         if (isGrpId || (hasPersons && hasTeamName)) {
-          final isAdditional = id.contains('ADD') || customOptions['isAdditional'] == true;
+          final isAdditional = docId.contains('ADD') ||
+              customOptions['isAdditional'] == true ||
+              data['isAdditionalOrder'] == true;
           resolvedOrderType = isAdditional ? 'additional' : 'group';
         }
       }
+
+      // 주소: userAddress 없으면 deliveryAddress 사용
+      final userAddress = (data['userAddress'] as String?)?.isNotEmpty == true
+          ? data['userAddress'] as String
+          : (data['deliveryAddress'] as String? ?? '');
 
       return OrderModel(
         id: docId,
@@ -152,7 +223,7 @@ class OrderExcelService {
         userName: data['userName'] as String? ?? '',
         userEmail: data['userEmail'] as String? ?? '',
         userPhone: data['userPhone'] as String? ?? '',
-        userAddress: data['userAddress'] as String? ?? '',
+        userAddress: userAddress,
         items: items,
         totalAmount: (data['totalAmount'] as num?)?.toDouble() ?? 0,
         shippingFee: (data['shippingFee'] as num?)?.toDouble() ?? 0,
@@ -1657,15 +1728,18 @@ class OrderExcelService {
   /// 주문에서 디자인/상품 이미지 URL 추출
   static String _extractDesignImageUrl(OrderModel order) {
     final opts = order.customOptions ?? {};
-    // 우선순위: productImageUrl → designFileUrl → 아이템 이미지
+    // 우선순위: customOptions → item.customOptions
     final url = opts['productImageUrl']?.toString() ??
         opts['designImageUrl']?.toString() ??
+        opts['designFileUrl']?.toString() ??
         opts['imageUrl']?.toString() ??
         '';
     if (url.isNotEmpty) return url;
     // 아이템의 이미지 확인
     for (final item in order.items) {
       final itemUrl = item.customOptions?['productImageUrl']?.toString() ??
+          item.customOptions?['designFileUrl']?.toString() ??
+          item.customOptions?['designImageUrl']?.toString() ??
           item.customOptions?['imageUrl']?.toString() ?? '';
       if (itemUrl.isNotEmpty) return itemUrl;
     }
@@ -1675,14 +1749,19 @@ class OrderExcelService {
   /// 주문에서 색상 정보 추출
   static String _extractColorInfo(OrderModel order) {
     final opts = order.customOptions ?? {};
-    final mainColor = opts['mainColor']?.toString() ?? '';
-    final bottomColor = opts['bottomColorName']?.toString() ?? '';
+    String mainColor = opts['mainColor']?.toString() ?? '';
+    // item.customOptions 폴백
+    if (mainColor.isEmpty && order.items.isNotEmpty) {
+      mainColor = order.items.first.customOptions?['mainColor']?.toString() ?? '';
+    }
+    final bottomColor = opts['bottomColorName']?.toString() ??
+        opts['bottomColor']?.toString() ?? '';
     if (mainColor.isNotEmpty && bottomColor.isNotEmpty) {
       return '상의:$mainColor / 하의:$bottomColor';
     }
     if (mainColor.isNotEmpty) return mainColor;
-    // 아이템의 색상
-    if (order.items.isNotEmpty) {
+    // 아이템의 color 필드
+    if (order.items.isNotEmpty && order.items.first.color.isNotEmpty) {
       return order.items.first.color;
     }
     return '-';

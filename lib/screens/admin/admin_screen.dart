@@ -2729,9 +2729,27 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // ── 단체주문 팀원 명단 상세보기 ──
+  /// gender 영문 → 한글 변환 (male→남, female→여)
+  String _normalizeGender(dynamic g) {
+    if (g == null) return '-';
+    final s = g.toString().toLowerCase();
+    if (s == 'male' || s == 'm' || s == '남성') return '남';
+    if (s == 'female' || s == 'f' || s == '여성') return '여';
+    return g.toString();
+  }
+
   void _showGroupOrderDetail(OrderModel order) {
     final opts = order.customOptions ?? {};
-    final persons = (opts['persons'] as List<dynamic>?) ?? [];
+    final rawPersons = (opts['persons'] as List<dynamic>?) ?? [];
+    // gender 정규화
+    final persons = rawPersons.map((p) {
+      if (p is Map) {
+        final m = Map<String, dynamic>.from(p);
+        m['gender'] = _normalizeGender(m['gender']);
+        return m;
+      }
+      return p as Map<String, dynamic>;
+    }).toList();
 
     showDialog(
       context: context,
@@ -2779,13 +2797,13 @@ class _AdminScreenState extends State<AdminScreen>
                       spacing: 8,
                       runSpacing: 4,
                       children: [
-                        _whiteTag('${opts['totalCount'] ?? 0}명'),
-                        if ((opts['printTypeLabel'] ?? '').toString().isNotEmpty)
-                          _whiteTag(opts['printTypeLabel'].toString()),
+                        _whiteTag('${opts['totalCount'] ?? order.groupCount ?? persons.length}명'),
+                        if ((opts['printTypeLabel'] ?? opts['printType'] ?? '').toString().isNotEmpty)
+                          _whiteTag((opts['printTypeLabel'] ?? opts['printType']).toString()),
                         if ((opts['mainColor'] ?? '').toString().isNotEmpty)
                           _whiteTag('색상: ${opts['mainColor']}'),
-                        if ((opts['fabricType'] ?? '').toString().isNotEmpty)
-                          _whiteTag(opts['fabricType'].toString()),
+                        if ((opts['fabricType'] ?? opts['fabric'] ?? '').toString().isNotEmpty)
+                          _whiteTag((opts['fabricType'] ?? opts['fabric']).toString()),
                       ],
                     ),
                   ],
@@ -2799,13 +2817,13 @@ class _AdminScreenState extends State<AdminScreen>
                   spacing: 16,
                   runSpacing: 6,
                   children: [
-                    _infoChip(Icons.person, '담당자', opts['managerName']?.toString() ?? order.userName),
+                    _infoChip(Icons.person, '담당자', opts['manager']?.toString() ?? opts['managerName']?.toString() ?? order.userName),
                     _infoChip(Icons.phone, '연락처', PrivacyService.maskPhone(order.userPhone)),
                     _infoChip(Icons.location_on, '배송지', order.userAddress.length > 20 ? '${order.userAddress.substring(0, 20)}...' : order.userAddress),
-                    _infoChip(Icons.male, '남', '${opts['maleCount'] ?? 0}명'),
-                    _infoChip(Icons.female, '여', '${opts['femaleCount'] ?? 0}명'),
-                    if ((opts['waistbandOption'] ?? '').toString().isNotEmpty)
-                      _infoChip(Icons.style, '허리밴드', opts['waistbandOption'].toString()),
+                    _infoChip(Icons.male, '남', '${opts['maleCount'] ?? persons.where((p) => (p as Map)['gender'] == '남').length}명'),
+                    _infoChip(Icons.female, '여', '${opts['femaleCount'] ?? persons.where((p) => (p as Map)['gender'] == '여').length}명'),
+                    if ((opts['waistbandOption'] ?? opts['waistband'] ?? '').toString().isNotEmpty)
+                      _infoChip(Icons.style, '허리밴드', (opts['waistbandOption'] ?? opts['waistband']).toString()),
                   ],
                 ),
               ),
