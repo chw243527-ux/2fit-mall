@@ -48,7 +48,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     final user = Provider.of<UserProvider>(context, listen: false).user;
-    if (user != null) {
+
+    // 단체주문 주소 자동 채우기 (customOptions.address 우선)
+    String? groupAddress;
+    for (final item in widget.cart.items) {
+      final opts = item.customOptions;
+      if (opts == null) continue;
+      final t = opts['orderType'] as String? ?? '';
+      if (t == 'group' || t == 'additional') {
+        groupAddress = opts['address'] as String?;
+        break;
+      }
+    }
+    if (groupAddress != null && groupAddress.isNotEmpty) {
+      _addressController.text = groupAddress;
+    } else if (user != null) {
       // 기본 저장 배송지가 있으면 자동 채우기
       final defaultAddr = user.addresses.where((a) => a.isDefault).firstOrNull
           ?? (user.addresses.isNotEmpty ? user.addresses.first : null);
@@ -774,11 +788,94 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  // 단체주문 여부 및 옵션 빠른 접근
+  bool get _isGroupOrder => widget.cart.items.any((item) {
+    final t = item.customOptions?['orderType'] as String? ?? '';
+    return t == 'group' || t == 'additional';
+  });
+
+  Map<String, dynamic>? get _groupOrderOpts {
+    for (final item in widget.cart.items) {
+      final t = item.customOptions?['orderType'] as String? ?? '';
+      if (t == 'group' || t == 'additional') return item.customOptions;
+    }
+    return null;
+  }
+
+  Widget _buildGroupOrderBanner() {
+    final opts = _groupOrderOpts;
+    if (opts == null) return const SizedBox.shrink();
+    final teamName = opts['teamName'] as String? ?? '';
+    final persons = (opts['persons'] as List?)?.length ?? opts['totalCount'];
+    final isAdditional = opts['orderType'] == 'additional';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isAdditional
+              ? [const Color(0xFF1B5E20), const Color(0xFF388E3C)]
+              : [const Color(0xFF4A148C), const Color(0xFF6A1B9A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isAdditional ? Icons.add_circle_outline_rounded : Icons.groups_rounded,
+            color: Colors.white,
+            size: 22,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isAdditional ? '추가제작 주문' : '단체주문',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                if (teamName.isNotEmpty)
+                  Text(
+                    '팀명: $teamName${persons != null ? ' · ${persons}명' : ''}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              isAdditional ? '추가' : '단체',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildOrderItems() {
     return _buildSection(
       loc.orderItemsCount(widget.cart.items.length),
       Column(
-        children: widget.cart.items.map((item) => Padding(
+        children: [
+          _buildGroupOrderBanner(),
+          ...widget.cart.items.map((item) => Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(
             children: [
@@ -846,6 +943,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           ),
         )).toList(),
+        ],
       ),
     );
   }
@@ -1423,7 +1521,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     final user = Provider.of<UserProvider>(context, listen: false).user;
-    final orderId = 'ORD-${DateTime.now().year}${DateTime.now().month.toString().padLeft(2,'0')}${DateTime.now().day.toString().padLeft(2,'0')}-${(DateTime.now().millisecondsSinceEpoch % 100000).toString().padLeft(5,'0')}';
+
+    // 단체주문 여부 미리 확인 (orderId 접두사 결정용)
+    final _isGroupCart = widget.cart.items.any((item) {
+      final t = item.customOptions?['orderType'] as String? ?? '';
+      return t == 'group' || t == 'additional';
+    });
+    final _isAdditionalCart = widget.cart.items.any((item) =>
+        item.customOptions?['orderType'] == 'additional');
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final orderId = _isGroupCart
+        ? 'GRP_${ts}${_isAdditionalCart ? '_ADD' : ''}'
+        : 'ORD-${DateTime.now().year}${DateTime.now().month.toString().padLeft(2,'0')}${DateTime.now().day.toString().padLeft(2,'0')}-${(ts % 100000).toString().padLeft(5,'0')}';
 
     // ─── 결제수단에 따라 다이얼로그 분기 ───────────────────────
     final orderName = widget.cart.items.first.product.name +
@@ -1465,14 +1574,49 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     // 결제 승인 후 주문 저장
     setState(() => _isProcessing = true);
 
+    // ── 단체주문 여부 판별 (장바구니 아이템의 customOptions 기반) ──
+    // 단체주문 폼에서 담긴 아이템은 customOptions에 orderType, teamName, persons 등이 있음
+    Map<String, dynamic>? groupCustomOptions;
+    String resolvedOrderType = 'personal';
+    String? groupName;
+    int? groupCount;
+    String resolvedUserName = user?.name ?? '';
+    String resolvedUserPhone = user?.phone ?? '';
+    String resolvedUserEmail = user?.email ?? '';
+    String resolvedAddress = _finalAddress;
+
+    for (final item in widget.cart.items) {
+      final opts = item.customOptions;
+      if (opts == null) continue;
+      final itemOrderType = opts['orderType'] as String? ?? '';
+      if (itemOrderType == 'group' || itemOrderType == 'additional') {
+        // 단체주문 아이템 발견 → 단체 정보 추출
+        groupCustomOptions = opts;
+        resolvedOrderType = itemOrderType;
+        groupName = opts['teamName'] as String?;
+        groupCount = (opts['persons'] as List?)?.length ?? 
+                     (opts['totalCount'] as num?)?.toInt();
+        // 단체주문 담당자 정보 우선 사용
+        final manager = opts['manager'] as String? ?? opts['teamName'] as String?;
+        if (manager != null && manager.isNotEmpty) resolvedUserName = manager;
+        final phone = opts['phone'] as String?;
+        if (phone != null && phone.isNotEmpty) resolvedUserPhone = phone;
+        final address = opts['address'] as String?;
+        if (address != null && address.isNotEmpty && resolvedAddress.isEmpty) {
+          resolvedAddress = address;
+        }
+        break;
+      }
+    }
+
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     final order = OrderModel(
       id: orderId,
       userId: user?.id ?? 'guest',
-      userName: user?.name ?? '',
-      userEmail: user?.email ?? '',
-      userPhone: user?.phone ?? '',
-      userAddress: _finalAddress,
+      userName: resolvedUserName,
+      userEmail: resolvedUserEmail,
+      userPhone: resolvedUserPhone,
+      userAddress: resolvedAddress,
       items: widget.cart.items.map((item) => OrderItem(
         productId: item.product.id,
         productName: item.product.name,
@@ -1480,10 +1624,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         color: item.selectedColor,
         quantity: item.quantity,
         price: item.product.price,
+        customOptions: item.customOptions,
       )).toList(),
       totalAmount: _finalTotal,
       shippingFee: widget.cart.shippingFee,
       paymentMethod: _selectedPayment,
+      orderType: resolvedOrderType,
+      customOptions: groupCustomOptions,
+      groupName: groupName,
+      groupCount: groupCount,
       createdAt: DateTime.now(),
       memo: _memoController.text,
     );

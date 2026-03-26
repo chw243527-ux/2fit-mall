@@ -400,7 +400,7 @@ class OrderService {
   }
 
   static Map<String, dynamic> _orderToMap(OrderModel order) {
-    return {
+    final map = <String, dynamic>{
       'id': order.id,
       'userId': order.userId,
       'userName': order.userName,
@@ -418,6 +418,19 @@ class OrderService {
       'createdAt': order.createdAt.toIso8601String(),
       'items': order.items.map((i) => i.toJson()).toList(),
     };
+    // 단체주문인 경우 customOptions (persons, teamName 등) 저장
+    if (order.customOptions != null && order.customOptions!.isNotEmpty) {
+      map['customOptions'] = order.customOptions;
+    }
+    // 단체주문 편의 필드: persons, teamName을 최상위에도 저장 (검색 용이)
+    if (order.orderType == 'group' || order.orderType == 'additional') {
+      final opts = order.customOptions ?? {};
+      final persons = opts['persons'];
+      if (persons != null) map['persons'] = persons;
+      final teamName = opts['teamName'] ?? order.groupName;
+      if (teamName != null) map['teamName'] = teamName;
+    }
+    return map;
   }
 
   /// gender 영문 → 한글 변환 헬퍼
