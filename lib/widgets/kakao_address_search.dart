@@ -81,7 +81,7 @@ class _KakaoAddressSheet extends StatelessWidget {
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
           Expanded(
             child: kIsWeb
-                ? _KakaoWebViewWeb(sheetContext: context)
+                ? const _KakaoWebViewWeb()
                 : const _KakaoWebView(),
           ),
         ],
@@ -231,8 +231,7 @@ if(document.readyState==='loading'){
 // 웹 전용: iframe 방식 카카오 주소 검색
 // ─────────────────────────────────────────────
 class _KakaoWebViewWeb extends StatefulWidget {
-  final BuildContext sheetContext;
-  const _KakaoWebViewWeb({required this.sheetContext});
+  const _KakaoWebViewWeb();
   @override
   State<_KakaoWebViewWeb> createState() => _KakaoWebViewWebState();
 }
@@ -252,8 +251,9 @@ class _KakaoWebViewWebState extends State<_KakaoWebViewWeb> {
         roadAddress:  data['roadAddress']  as String? ?? '',
         jibunAddress: data['jibunAddress'] as String? ?? '',
       );
+      // mounted 체크 후 현재 context로 pop (BottomSheet 닫기 + 결과 반환)
       if (mounted) {
-        Navigator.of(widget.sheetContext).pop(result);
+        Navigator.of(context).pop(result);
       }
     });
   }
