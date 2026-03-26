@@ -186,12 +186,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   void initState() {
     super.initState();
     _printType = widget.initialPrintType.clamp(0, 3);
-    if (widget.initialCount >= 5) {
-      _count     = widget.initialCount;
-      _countFixed = true;
-      for (int i = 0; i < _count; i++) {
-        _persons.add(_PersonEntry(index: i));
-      }
+    _count = widget.initialCount >= 5 ? widget.initialCount : 5;
+    // 기존 주문 편집 or initialCount가 설정된 경우 바로 확정 상태로 시작
+    _countFixed = widget.initialCount >= 5;
+    for (int i = 0; i < _count; i++) {
+      _persons.add(_PersonEntry(index: i));
     }
     _loadSavedImages();
     _colorTabCtrl = TabController(length: 3, vsync: this);
@@ -227,6 +226,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     } else {
       await prefs.setString(_kRefKey, base64);
     }
+  }
+
+  void _applyCount() {
+    if (_count < 1) return;
+    setState(() {
+      while (_persons.length < _count) {
+        _persons.add(_PersonEntry(index: _persons.length));
+      }
+      while (_persons.length > _count) {
+        _persons.last.dispose();
+        _persons.removeLast();
+      }
+      for (int i = 0; i < _persons.length; i++) { _persons[i].index = i; }
+      _resetInvalidPrintType();
+    });
   }
 
   void _confirmCount() {
@@ -520,7 +534,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         // 수량 조절
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           _countBtn(Icons.remove_rounded, () {
-            if (_count > 1) setState(() => _count--);
+            if (_count > 1) {
+              setState(() {
+                _count--;
+                if (_countFixed) {
+                  while (_persons.length > _count) {
+                    _persons.last.dispose();
+                    _persons.removeLast();
+                  }
+                  for (int i = 0; i < _persons.length; i++) {
+                    _persons[i].index = i;
+                  }
+                  _resetInvalidPrintType();
+                }
+              });
+            }
           }),
           Container(
             width: 80,
@@ -531,7 +559,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     color: _purple)),
           ),
           _countBtn(Icons.add_rounded, () {
-            setState(() => _count++);
+            setState(() {
+              _count++;
+              if (_countFixed) {
+                while (_persons.length < _count) {
+                  _persons.add(_PersonEntry(index: _persons.length));
+                }
+                for (int i = 0; i < _persons.length; i++) {
+                  _persons[i].index = i;
+                }
+                _resetInvalidPrintType();
+              }
+            });
           }),
         ]),
         const SizedBox(height: 4),
