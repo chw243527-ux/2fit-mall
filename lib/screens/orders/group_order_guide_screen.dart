@@ -204,7 +204,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                       MaterialPageRoute(
                         builder: (_) => GroupOrderFormScreen(
                           product: widget.product,
-                          initialCount: _guideCount,
                           initialPrintType: _guidePrintType,
                         ),
                       ),
@@ -810,7 +809,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                     MaterialPageRoute(
                       builder: (_) => GroupOrderFormScreen(
                         product: widget.product,
-                        initialCount: _guideCount,
                         initialPrintType: _guidePrintType,
                       ),
                     ),
