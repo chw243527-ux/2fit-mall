@@ -24,12 +24,14 @@ class GroupOrderFormScreen extends StatefulWidget {
   final ProductModel? product;
   final bool isAdditionalOrder;
   final int initialPrintType;   // 0=색상변경, 1=전면단체명, 2=전면+색상, 3=후면이름
+  final int initialCount;       // 주문안내에서 선택한 수량 (0이면 미선택)
 
   const GroupOrderFormScreen({
     super.key,
     this.product,
     this.isAdditionalOrder = false,
     this.initialPrintType = 0,
+    this.initialCount = 0,
   });
 
   @override
@@ -134,8 +136,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen> {
   void initState() {
     super.initState();
     _printType = widget.initialPrintType.clamp(0, 3);
+    // 주문안내에서 수량 선택 후 진입 시 바로 확정 상태로 시작
+    if (widget.initialCount >= 5) {
+      _dialCount    = widget.initialCount;
+      _inputCount   = widget.initialCount;
+      _orderStarted = true;
+    }
     _loadSavedImages();
-    for (int i = 0; i < _inputCount; i++) {
+    final count = _orderStarted ? _inputCount : _inputCount;
+    for (int i = 0; i < count; i++) {
       _persons.add(_PersonEntry(index: i));
     }
   }
