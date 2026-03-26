@@ -158,11 +158,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ── 하의 기본 길이 ──
   String? _defaultLength;
 
-  // ── 허리밴드 옵션 ──
-  // 0: 기본(변경없음), 1: 디자인 변경(+50,000), 2: 색상 변경(+50,000)
-  int _waistbandOption = 0;
+  // ── 허리밴드 옵션 (중복 선택 가능) ──
+  // 1: 디자인 변경(+50,000), 2: 색상 변경(+50,000)
+  // 빈 Set = 기본(변경없음)
+  final Set<int> _waistbandOptions = {};
   String _waistbandColorHex = ''; // 색상변경 선택 시 hex 코드 (#RRGGBB)
   final _waistbandColorCtrl = TextEditingController();
+
+  // ── 허리밴드 디자인 참조 이미지 (최대 3장) ──
+  final List<String> _waistbandRefImages = []; // base64 목록
 
   // ── 참조 이미지 (단일) ──
   String? _refBase64;
@@ -188,17 +192,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   bool get _nameEnabled    => _totalCount >= 10;
   OrderModel? get _originalOrder => widget.originalOrder;
 
-  /// 허리밴드 옵션 레이블
+  /// 허리밴드 옵션 레이블 (중복 선택 반영)
   String get _waistbandOptionLabel {
-    switch (_waistbandOption) {
-      case 1: return '디자인 변경';
-      case 2: return '색상 변경';
-      default: return '기본 (변경없음)';
-    }
+    if (_waistbandOptions.isEmpty) return '기본 (변경없음)';
+    final labels = <String>[];
+    if (_waistbandOptions.contains(1)) labels.add('디자인 변경');
+    if (_waistbandOptions.contains(2)) labels.add('색상 변경');
+    return labels.join(' + ');
   }
 
-  /// 허리밴드 추가 비용 (건당 50,000원)
-  double get _waistbandExtra => _waistbandOption > 0 ? 50000.0 : 0.0;
+  /// 허리밴드 추가 비용 (선택 옵션 수 × 50,000원)
+  double get _waistbandExtra => _waistbandOptions.length * 50000.0;
 
   int    get _fabricExtra  => AppConstants.fabricTypePrices[_fabricType] ?? 0;
   double get _basePrice    => widget.product?.price ?? 0.0;
@@ -592,8 +596,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'weight'       : _fabricWeight,
       'defaultLength': _defaultLength,
       'waistbandOption' : _waistbandOptionLabel,
+      'waistbandOptions': _waistbandOptions.toList(),
       'waistbandExtra'  : _waistbandExtra.toInt(),
-      'waistbandColorHex': _waistbandOption == 2 ? _waistbandColorHex : '',
+      'waistbandColorHex': _waistbandOptions.contains(2) ? _waistbandColorHex : '',
+      'waistbandRefImages': _waistbandRefImages,
       'exclusive'    : _exclusiveDesign,
       'teamName'     : _teamNameCtrl.text.trim(),
       'manager'      : _managerNameCtrl.text.trim(),
@@ -1150,19 +1156,110 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // 허리밴드 옵션 섹션
   // ══════════════════════════════════════════════
   Widget _buildWaistbandSection() {
-    // 0: 기본, 1: 디자인 변경(+50,000), 2: 색상 변경(+50,000)
+    // 1: 디자인 변경(+50,000), 2: 색상 변경(+50,000) — 중복 선택 가능
     const options = [
-      {'id': 0, 'label': '기본 (변경없음)', 'sub': '추가비용 없음'},
-      {'id': 1, 'label': '디자인 변경',     'sub': '+50,000원'},
-      {'id': 2, 'label': '색상 변경',       'sub': '+50,000원'},
+      {'id': 1, 'label': '디자인 변경', 'sub': '+50,000원', 'icon': Icons.brush_outlined},
+      {'id': 2, 'label': '색상 변경',   'sub': '+50,000원', 'icon': Icons.palette_outlined},
     ];
-    final needsColor = _waistbandOption == 2;
+    final needsColor = _waistbandOptions.contains(2);
 
     return _card(
       title: '허리밴드 옵션',
       icon: Icons.style_outlined,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // 안내 문구
+
+        // ── ① 디자인 참조 이미지 업로드 (옵션 위에 배치) ──
+        Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const Icon(Icons.image_search_rounded, size: 15, color: Color(0xFF6A1B9A)),
+              const SizedBox(width: 5),
+              const Text('허리밴드 디자인 참고 이미지',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87)),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Text('최대 3장', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+              ),
+            ]),
+            const SizedBox(height: 4),
+            Text('원하는 허리밴드 디자인 참고 이미지를 업로드해 주세요 (선택사항)',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+            const SizedBox(height: 10),
+            // 이미지 썸네일 + 추가 버튼
+            SizedBox(
+              height: 90,
+              child: Row(children: [
+                // 업로드된 이미지들
+                ..._waistbandRefImages.asMap().entries.map((e) {
+                  final idx = e.key;
+                  final b64 = e.value;
+                  return Container(
+                    width: 90, height: 90,
+                    margin: const EdgeInsets.only(right: 8),
+                    child: Stack(children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.memory(
+                          base64Decode(b64),
+                          width: 90, height: 90,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      // 삭제 버튼
+                      Positioned(
+                        top: 4, right: 4,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _waistbandRefImages.removeAt(idx)),
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              color: Colors.black54, shape: BoxShape.circle),
+                            child: const Icon(Icons.close, color: Colors.white, size: 13),
+                          ),
+                        ),
+                      ),
+                    ]),
+                  );
+                }),
+                // 추가 버튼 (최대 3장)
+                if (_waistbandRefImages.length < 3)
+                  GestureDetector(
+                    onTap: _pickWaistbandRefImage,
+                    child: Container(
+                      width: 90, height: 90,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3E5F5),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: _purple.withValues(alpha: 0.4),
+                          width: 1.5,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Icon(Icons.add_photo_alternate_outlined, color: _purple, size: 26),
+                        const SizedBox(height: 4),
+                        Text('이미지 추가',
+                            style: TextStyle(fontSize: 10, color: _purple, fontWeight: FontWeight.w600)),
+                      ]),
+                    ),
+                  ),
+              ]),
+            ),
+          ]),
+        ),
+
+        const Divider(height: 1, color: Color(0xFFF0F0F0)),
+        const SizedBox(height: 14),
+
+        // ── ② 안내 문구 ──
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           margin: const EdgeInsets.only(bottom: 10),
@@ -1175,24 +1272,68 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             const Icon(Icons.info_outline, size: 14, color: Color(0xFFE65100)),
             const SizedBox(width: 6),
             Expanded(child: Text(
-              '디자인/색상 변경 선택 시 +50,000원 추가됩니다.',
+              '중복 선택 가능 · 각 옵션 선택 시 +50,000원 추가됩니다.',
               style: const TextStyle(fontSize: 11, color: Color(0xFFE65100)),
             )),
           ]),
         ),
-        // 옵션 버튼들
+
+        // ── ③ 옵션 버튼 (중복 선택 가능) ──
+        // 기본(변경없음) 버튼
+        GestureDetector(
+          onTap: () => setState(() {
+            _waistbandOptions.clear();
+            _waistbandColorHex = '';
+            _waistbandColorCtrl.clear();
+          }),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: _waistbandOptions.isEmpty ? const Color(0xFFEEEEEE) : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: _waistbandOptions.isEmpty ? Colors.grey.shade500 : Colors.grey.shade300,
+                width: _waistbandOptions.isEmpty ? 1.5 : 1,
+              ),
+            ),
+            child: Row(children: [
+              Icon(
+                _waistbandOptions.isEmpty ? Icons.check_box_outlined : Icons.check_box_outline_blank,
+                size: 18,
+                color: _waistbandOptions.isEmpty ? Colors.grey.shade700 : Colors.grey.shade400,
+              ),
+              const SizedBox(width: 8),
+              Expanded(child: Text('기본 (변경없음)',
+                  style: TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w600,
+                    color: _waistbandOptions.isEmpty ? Colors.grey.shade800 : Colors.grey.shade500,
+                  ))),
+              Text('추가비용 없음',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+            ]),
+          ),
+        ),
+
         Wrap(spacing: 8, runSpacing: 8, children: options.map((opt) {
           final id    = opt['id'] as int;
           final label = opt['label'] as String;
           final sub   = opt['sub'] as String;
-          final isSel = _waistbandOption == id;
+          final icon  = opt['icon'] as IconData;
+          final isSel = _waistbandOptions.contains(id);
           return GestureDetector(
             onTap: () => setState(() {
-              _waistbandOption = id;
-              if (id != 2) _waistbandColorHex = '';
+              if (isSel) {
+                _waistbandOptions.remove(id);
+                if (id == 2) { _waistbandColorHex = ''; _waistbandColorCtrl.clear(); }
+              } else {
+                _waistbandOptions.add(id);
+              }
             }),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 180),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: isSel ? _purple : Colors.grey.shade50,
@@ -1203,34 +1344,61 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     ? [BoxShadow(color: _purple.withValues(alpha: 0.3), blurRadius: 6, offset: const Offset(0, 2))]
                     : [],
               ),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Row(mainAxisSize: MainAxisSize.min, children: [
-                  if (isSel) const Icon(Icons.check_circle, color: Colors.white, size: 14),
-                  if (isSel) const SizedBox(width: 4),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(
+                  isSel ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                  size: 16,
+                  color: isSel ? Colors.white : Colors.grey.shade400,
+                ),
+                const SizedBox(width: 6),
+                Icon(icon, size: 14, color: isSel ? Colors.white70 : Colors.grey.shade500),
+                const SizedBox(width: 5),
+                Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(label, style: TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w700,
                     color: isSel ? Colors.white : Colors.black87,
                   )),
+                  Text(sub, style: TextStyle(
+                    fontSize: 11,
+                    color: isSel ? Colors.white70 : const Color(0xFFE65100),
+                    fontWeight: FontWeight.w600,
+                  )),
                 ]),
-                const SizedBox(height: 3),
-                Text(sub, style: TextStyle(
-                  fontSize: 11,
-                  color: isSel ? Colors.white70 : (id == 0 ? Colors.grey : const Color(0xFFE65100)),
-                  fontWeight: id == 0 ? FontWeight.normal : FontWeight.w600,
-                )),
               ]),
             ),
           );
         }).toList()),
 
-        // 색상 hex 입력 필드 (색상 변경 선택 시만 표시)
+        // ── ④ 선택된 옵션 합계 표시 ──
+        if (_waistbandOptions.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: _purple.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: _purple.withValues(alpha: 0.2)),
+            ),
+            child: Row(children: [
+              Icon(Icons.receipt_long_rounded, size: 14, color: _purple),
+              const SizedBox(width: 6),
+              Text('선택: $_waistbandOptionLabel',
+                  style: TextStyle(fontSize: 12, color: _purple, fontWeight: FontWeight.w600)),
+              const Spacer(),
+              Text('+${_fmt(_waistbandExtra)}원',
+                  style: const TextStyle(fontSize: 13, color: Color(0xFFE65100), fontWeight: FontWeight.w700)),
+            ]),
+          ),
+        ],
+
+        // ── ⑤ 색상 hex 입력 (색상 변경 선택 시만) ──
         if (needsColor) ...[
           const SizedBox(height: 14),
           const Text('허리밴드 색상 HEX 코드',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black54)),
           const SizedBox(height: 6),
           Row(children: [
-            // 미리보기 박스
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               width: 40, height: 40,
@@ -1274,11 +1442,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             ),
           ]),
           const SizedBox(height: 4),
-          Text(
-            '6자리 HEX 코드를 입력하세요 (예: #1245A8)',
-            style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
-          ),
-          // 2FIT 팔레트 색상 빠른 선택
+          Text('6자리 HEX 코드를 입력하세요 (예: #1245A8)',
+              style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
           const SizedBox(height: 10),
           const Text('빠른 선택 (2FIT 팔레트)',
               style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black54)),
@@ -1288,12 +1453,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               final hexVal = '#${(c['hex'] as int).toRadixString(16).substring(2).toUpperCase()}';
               final isSelected = _waistbandColorHex.toUpperCase() == hexVal.toUpperCase();
               return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _waistbandColorHex = hexVal;
-                    _waistbandColorCtrl.text = hexVal;
-                  });
-                },
+                onTap: () => setState(() {
+                  _waistbandColorHex = hexVal;
+                  _waistbandColorCtrl.text = hexVal;
+                }),
                 child: Tooltip(
                   message: '${c['name']} $hexVal',
                   child: Container(
@@ -1322,6 +1485,22 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ],
       ]),
     );
+  }
+
+  /// 허리밴드 참고 이미지 선택
+  Future<void> _pickWaistbandRefImage() async {
+    if (_waistbandRefImages.length >= 3) return;
+    try {
+      final picker = ImagePicker();
+      final xfile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+      if (xfile == null) return;
+      final bytes = await xfile.readAsBytes();
+      final b64 = base64Encode(bytes);
+      if (!mounted) return;
+      setState(() => _waistbandRefImages.add(b64));
+    } catch (e) {
+      _showSnack('이미지 선택 오류: $e');
+    }
   }
 
   /// 색상이 밝은지 판단 (UI 글자색 결정용)
