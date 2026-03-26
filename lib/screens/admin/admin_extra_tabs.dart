@@ -178,19 +178,39 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       }
     } else {
       try {
-        final dir = await getTemporaryDirectory();
-        final filePath = '${dir.path}/$fileName';
-        await File(filePath).writeAsBytes(uint8List, flush: true);
+        // Downloads 폴더 직접 저장
+        final dirs = await getExternalStorageDirectories(type: StorageDirectory.downloads);
+        Directory? dlDir = (dirs != null && dirs.isNotEmpty)
+            ? dirs.first
+            : Directory('/storage/emulated/0/Download');
+        if (!await dlDir.exists()) await dlDir.create(recursive: true);
+        final savedPath = '${dlDir.path}/$fileName';
+        await File(savedPath).writeAsBytes(uint8List, flush: true);
         if (!mounted) return;
-        await Share.shareXFiles(
-          [XFile(filePath, mimeType: mimeType, name: fileName)],
-          subject: '2FIT MALL 주문내역 $dateStr',
-          text: '${orders.length}건의 주문 내역 엑셀 파일입니다.',
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(children: [
+              const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(fileName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                    const Text('📂 내 파일 → 다운로드 폴더에서 확인', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                  ],
+                ),
+              ),
+            ]),
+            backgroundColor: const Color(0xFF217346),
+            duration: const Duration(seconds: 6),
+          ),
         );
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('파일 공유 오류: $e'), backgroundColor: Colors.red),
+            SnackBar(content: Text('파일 저장 오류: $e'), backgroundColor: Colors.red),
           );
         }
       }
@@ -611,19 +631,38 @@ class _AdminInventoryTabState extends State<AdminInventoryTab> {
       }
     } else {
       try {
-        final dir = await getTemporaryDirectory();
-        final filePath = '${dir.path}/$fileNameP';
-        await File(filePath).writeAsBytes(bytesP, flush: true);
+        final dirs = await getExternalStorageDirectories(type: StorageDirectory.downloads);
+        Directory? dlDir = (dirs != null && dirs.isNotEmpty)
+            ? dirs.first
+            : Directory('/storage/emulated/0/Download');
+        if (!await dlDir.exists()) await dlDir.create(recursive: true);
+        final savedPath = '${dlDir.path}/$fileNameP';
+        await File(savedPath).writeAsBytes(bytesP, flush: true);
         if (!mounted) return;
-        await Share.shareXFiles(
-          [XFile(filePath, mimeType: mimeTypeP, name: fileNameP)],
-          subject: '2FIT MALL 상품목록 $dateStrP',
-          text: '${products.length}개 상품 목록 엑셀 파일입니다.',
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(children: [
+              const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(fileNameP, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                    const Text('📂 내 파일 → 다운로드 폴더에서 확인', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                  ],
+                ),
+              ),
+            ]),
+            backgroundColor: const Color(0xFF217346),
+            duration: const Duration(seconds: 6),
+          ),
         );
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('파일 공유 오류: $e'), backgroundColor: Colors.red),
+            SnackBar(content: Text('파일 저장 오류: $e'), backgroundColor: Colors.red),
           );
         }
       }

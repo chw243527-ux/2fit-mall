@@ -1449,16 +1449,41 @@ class _AdminScreenState extends State<AdminScreen>
           ),
         );
       } else {
-        // 모바일/태블릿: 임시 파일 저장 후 공유
-        final dir = await getTemporaryDirectory();
-        final filePath = '${dir.path}/$fileName';
-        await File(filePath).writeAsBytes(bytes, flush: true);
+        // 모바일/태블릿: Downloads 폴더에 직접 저장
+        final savedPath = await _saveToDownloads(bytes, fileName);
         if (!mounted) return;
-        await Share.shareXFiles(
-          [XFile(filePath, mimeType: mimeType, name: fileName)],
-          subject: '2FIT MALL 엑셀 예시 파일',
-          text: '엑셀 형식 미리보기용 샘플 파일입니다. 구글 시트, 엑셀 앱으로 열 수 있습니다.',
-        );
+        if (savedPath != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(children: [
+                const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('예시 엑셀 파일 저장 완료', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                      Text('📂 내 파일 → 다운로드 폴더에서 확인', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+              ]),
+              backgroundColor: const Color(0xFFF57F17),
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        } else {
+          // fallback: 공유 시트
+          final dir = await getTemporaryDirectory();
+          final filePath = '${dir.path}/$fileName';
+          await File(filePath).writeAsBytes(bytes, flush: true);
+          if (!mounted) return;
+          await Share.shareXFiles(
+            [XFile(filePath, mimeType: mimeType, name: fileName)],
+            subject: '2FIT MALL 엑셀 예시 파일',
+          );
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -1530,14 +1555,40 @@ class _AdminScreenState extends State<AdminScreen>
   String _fmtDateKr(DateTime dt) =>
       '${dt.month}월 ${dt.day}일 ${dt.hour.toString().padLeft(2, '0')}:00';
 
-  // 엑셀 다운로드 / 공유 처리 (PC·태블릿·핸드폰 모두 지원)
+  // ── Android Downloads 폴더에 직접 저장 ──
+  Future<String?> _saveToDownloads(Uint8List bytes, String fileName) async {
+    try {
+      // Android 외부 저장소 경로 목록 가져오기
+      final dirs = await getExternalStorageDirectories(
+        type: StorageDirectory.downloads,
+      );
+      Directory? downloadsDir;
+      if (dirs != null && dirs.isNotEmpty) {
+        downloadsDir = dirs.first;
+      } else {
+        // fallback: /storage/emulated/0/Download
+        downloadsDir = Directory('/storage/emulated/0/Download');
+      }
+      if (!await downloadsDir.exists()) {
+        await downloadsDir.create(recursive: true);
+      }
+      final filePath = '${downloadsDir.path}/$fileName';
+      await File(filePath).writeAsBytes(bytes, flush: true);
+      return filePath;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // 엑셀 다운로드 처리 (PC·태블릿 브라우저·핸드폰 모두 지원)
   Future<void> _handleExcelDownload(
       Uint8List bytes, String fileName, int orderCount,
       DateTime start, DateTime end) async {
     const mimeType =
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
     if (kIsWeb) {
-      // ── 웹(PC/태블릿 브라우저) : anchor 다운로드 ──
+      // ── 웹(PC/태블릿 브라우저) : 브라우저 다운로드 폴더에 저장 ──
       downloadFileWeb(bytes, fileName, mimeType);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1545,10 +1596,10 @@ class _AdminScreenState extends State<AdminScreen>
           content: Row(children: [
             const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
             const SizedBox(width: 8),
-            Expanded(child: Text('$orderCount건 엑셀 다운로드 완료: $fileName')),
+            Expanded(child: Text('$orderCount건 엑셀 저장 완료\n📂 브라우저 다운로드 폴더에서 확인하세요')),
           ]),
           backgroundColor: const Color(0xFF00897B),
-          duration: const Duration(seconds: 4),
+          duration: const Duration(seconds: 5),
           action: SnackBarAction(
             label: '확인',
             textColor: Colors.white70,
@@ -1557,43 +1608,59 @@ class _AdminScreenState extends State<AdminScreen>
         ),
       );
     } else {
-      // ── 모바일/태블릿 네이티브 : 파일 저장 후 공유 ──
+      // ── Android : Downloads 폴더에 직접 저장 ──
       try {
-        // 1) 임시 디렉토리에 파일 저장
-        final dir = await getTemporaryDirectory();
-        final filePath = '${dir.path}/$fileName';
-        final file = File(filePath);
-        await file.writeAsBytes(bytes, flush: true);
+        final savedPath = await _saveToDownloads(bytes, fileName);
 
         if (!mounted) return;
-        // 2) 공유 시트 열기 (저장 + 다른 앱 전달 모두 가능)
-        final xFile = XFile(filePath, mimeType: mimeType, name: fileName);
-        final result = await Share.shareXFiles(
-          [xFile],
-          subject: '2FIT 주문내역 ${_fmtDateKr(start)} ~ ${_fmtDateKr(end)}',
-          text: '$orderCount건의 주문 내역 엑셀 파일입니다.',
-        );
 
-        if (!mounted) return;
-        // 공유 완료 시 성공 메시지
-        if (result.status == ShareResultStatus.success ||
-            result.status == ShareResultStatus.dismissed) {
+        if (savedPath != null) {
+          // ✅ Downloads 폴더 저장 성공
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
                 const SizedBox(width: 8),
-                Expanded(child: Text('$fileName 저장·공유 완료')),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('$fileName', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                      const Text('📂 내 파일 → 다운로드 폴더에서 확인', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                    ],
+                  ),
+                ),
               ]),
               backgroundColor: const Color(0xFF00897B),
-              duration: const Duration(seconds: 3),
+              duration: const Duration(seconds: 6),
+              action: SnackBarAction(
+                label: '공유',
+                textColor: Colors.white,
+                onPressed: () async {
+                  // 추가로 공유도 가능
+                  final xFile = XFile(savedPath, mimeType: mimeType, name: fileName);
+                  await Share.shareXFiles([xFile], subject: fileName);
+                },
+              ),
             ),
+          );
+        } else {
+          // Downloads 저장 실패 → 공유 시트로 fallback
+          final dir = await getTemporaryDirectory();
+          final tmpPath = '${dir.path}/$fileName';
+          await File(tmpPath).writeAsBytes(bytes, flush: true);
+          if (!mounted) return;
+          await Share.shareXFiles(
+            [XFile(tmpPath, mimeType: mimeType, name: fileName)],
+            subject: '2FIT 주문내역 엑셀',
+            text: '$orderCount건 주문 내역 파일입니다.',
           );
         }
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('파일 저장 오류: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('저장 오류: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -2924,17 +2991,50 @@ class _AdminScreenState extends State<AdminScreen>
           );
         }
       } else {
-        // 모바일/태블릿: 임시 파일 저장 후 공유
-        final dir = await getTemporaryDirectory();
-        final filePath = '${dir.path}/$fileName';
-        await File(filePath).writeAsBytes(bytes, flush: true);
+        // 모바일/태블릿: Downloads 폴더에 직접 저장
+        final savedPath = await _saveToDownloads(bytes, fileName);
         if (!mounted) return;
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        await Share.shareXFiles(
-          [XFile(filePath, mimeType: mimeType, name: fileName)],
-          subject: '2FIT 단체주문 ${teamName.replaceAll('_', ' ')} 엑셀',
-          text: '단체주문 엑셀 파일입니다.',
-        );
+        if (savedPath != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(children: [
+                const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(fileName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                      const Text('📂 내 파일 → 다운로드 폴더에서 확인', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+              ]),
+              backgroundColor: const Color(0xFF00897B),
+              duration: const Duration(seconds: 6),
+              action: SnackBarAction(
+                label: '공유',
+                textColor: Colors.white,
+                onPressed: () async {
+                  final xFile = XFile(savedPath, mimeType: mimeType, name: fileName);
+                  await Share.shareXFiles([xFile], subject: fileName);
+                },
+              ),
+            ),
+          );
+        } else {
+          // fallback: 공유 시트
+          final dir = await getTemporaryDirectory();
+          final filePath = '${dir.path}/$fileName';
+          await File(filePath).writeAsBytes(bytes, flush: true);
+          if (!mounted) return;
+          await Share.shareXFiles(
+            [XFile(filePath, mimeType: mimeType, name: fileName)],
+            subject: '2FIT 단체주문 ${teamName.replaceAll('_', ' ')} 엑셀',
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
