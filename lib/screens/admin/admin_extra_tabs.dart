@@ -171,13 +171,28 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ Excel 파일 다운로드 완료! (${orders.length}건)'),
+            content: Row(children: [
+              const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(fileName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                    const Text('📂 화면 하단 다운로드 바 또는 내 PC → 다운로드 폴더 확인',
+                        style: TextStyle(fontSize: 11, color: Colors.white70)),
+                  ],
+                ),
+              ),
+            ]),
             backgroundColor: const Color(0xFF217346),
+            duration: const Duration(seconds: 6),
           ),
         );
       }
     } else {
-      // 모바일: 임시폴더 저장 후 공유 시트
+      // 모바일: 바로 공유 시트 열기
       try {
         final dir = await getTemporaryDirectory();
         final filePath = '${dir.path}/$fileName';
@@ -605,8 +620,23 @@ class _AdminInventoryTabState extends State<AdminInventoryTab> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ 상품 목록 Excel 다운로드! (${products.length}개)'),
+            content: Row(children: [
+              const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(fileNameP, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                    const Text('📂 화면 하단 다운로드 바 또는 내 PC → 다운로드 폴더 확인',
+                        style: TextStyle(fontSize: 11, color: Colors.white70)),
+                  ],
+                ),
+              ),
+            ]),
             backgroundColor: const Color(0xFF217346),
+            duration: const Duration(seconds: 6),
           ),
         );
       }
