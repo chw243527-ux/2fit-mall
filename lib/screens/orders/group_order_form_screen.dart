@@ -125,6 +125,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ── 하의 기본 길이 ──
   String? _defaultLength;
 
+  // ── 허리밴드 옵션 ──
+  // 0: 기본(변경없음), 1: 단체명만, 2: 색상만, 3: 단체명+색상
+  int _waistbandOption = 0;
+  String _waistbandColorHex = ''; // 색상변경 선택 시 hex 코드 (#RRGGBB)
+  final _waistbandColorCtrl = TextEditingController();
+
   // ── 참조 이미지 ──
   String? _maleRefBase64;
   String? _femaleRefBase64;
@@ -150,6 +156,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   bool get _nameEnabled    => _totalCount >= 10;
   OrderModel? get _originalOrder => widget.originalOrder;
+
+  /// 허리밴드 옵션 레이블
+  String get _waistbandOptionLabel {
+    switch (_waistbandOption) {
+      case 1: return '단체명 변경';
+      case 2: return '색상 변경';
+      case 3: return '단체명+색상 변경';
+      default: return '기본 (변경없음)';
+    }
+  }
 
   int    get _fabricExtra  => AppConstants.fabricTypePrices[_fabricType] ?? 0;
   double get _basePrice    => widget.product?.price ?? 0.0;
@@ -190,6 +206,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     _phoneCtrl.dispose();
     _emailCtrl.dispose();
     _memoCtrl.dispose();
+    _waistbandColorCtrl.dispose();
     for (final p in _persons) { p.dispose(); }
     super.dispose();
   }
@@ -318,6 +335,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'fabric'       : _fabricType,
       'weight'       : _fabricWeight,
       'defaultLength': _defaultLength,
+      'waistbandOption' : _waistbandOptionLabel,
+      'waistbandColorHex': (_waistbandOption == 2 || _waistbandOption == 3)
+          ? _waistbandColorHex : '',
       'exclusive'    : _exclusiveDesign,
       'teamName'     : _teamNameCtrl.text.trim(),
       'manager'      : _managerNameCtrl.text.trim(),
@@ -326,12 +346,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'femaleRef'    : _femaleRefBase64 != null,
       'persons'      : _persons.map((p) => <String, dynamic>{
         'index'     : p.index,
-        'name'      : p.nameCtrl.text.trim(),
+        'name'      : _nameEnabled ? p.nameCtrl.text.trim() : '', // 10명 미만은 이름 저장 안 함
         'gender'    : p.gender,
         'sizeType'  : p.sizeType,
         'topSize'   : p.topSizeCtrl.text.trim(),
         'bottomSize': p.bottomSizeCtrl.text.trim(),
-        'length'    : _defaultLength,
+        'length'    : _defaultLength, // 전원 동일 길이 (개별 선택 불가)
         'height'    : p.heightCtrl.text.trim(),
         'weight'    : p.weightCtrl.text.trim(),
         'waist'     : p.waistCtrl.text.trim(),
@@ -431,6 +451,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 if (widget.product != null) _buildProductCard(),
                 _buildFabricSection(),
                 _buildLengthSection(),
+                _buildWaistbandSection(),
                 _buildColorSection(),
                 _buildRefImageSection(),
                 _buildPersonListSection(),
@@ -723,6 +744,193 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         }).toList()),
       ]),
     );
+  }
+
+  // ══════════════════════════════════════════════
+  // 허리밴드 옵션 섹션
+  // ══════════════════════════════════════════════
+  Widget _buildWaistbandSection() {
+    const options = [
+      {'id': 0, 'label': '기본 (변경없음)', 'icon': Icons.remove_circle_outline},
+      {'id': 1, 'label': '단체명 변경',     'icon': Icons.text_fields},
+      {'id': 2, 'label': '색상 변경',       'icon': Icons.palette},
+      {'id': 3, 'label': '단체명+색상',     'icon': Icons.auto_awesome},
+    ];
+    final needsColor = _waistbandOption == 2 || _waistbandOption == 3;
+
+    return _card(
+      title: '허리밴드 옵션',
+      icon: Icons.style_outlined,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // 안내 문구
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF3E0),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFFFE082)),
+          ),
+          child: Row(children: [
+            const Icon(Icons.info_outline, size: 14, color: Color(0xFFE65100)),
+            const SizedBox(width: 6),
+            Expanded(child: Text(
+              '단체명/색상 변경 시 추가 비용이 발생할 수 있습니다.',
+              style: const TextStyle(fontSize: 11, color: Color(0xFFE65100)),
+            )),
+          ]),
+        ),
+        // 옵션 버튼들
+        Wrap(spacing: 8, runSpacing: 8, children: options.map((opt) {
+          final id = opt['id'] as int;
+          final label = opt['label'] as String;
+          final isSel = _waistbandOption == id;
+          return GestureDetector(
+            onTap: () => setState(() {
+              _waistbandOption = id;
+              if (id != 2 && id != 3) _waistbandColorHex = '';
+            }),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              decoration: BoxDecoration(
+                color: isSel ? _purple : Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: isSel ? _purple : Colors.grey.shade300, width: 1.5),
+                boxShadow: isSel
+                    ? [BoxShadow(color: _purple.withValues(alpha: 0.3), blurRadius: 6, offset: const Offset(0, 2))]
+                    : [],
+              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                if (isSel) const Icon(Icons.check_circle, color: Colors.white, size: 14),
+                if (isSel) const SizedBox(width: 4),
+                Text(label, style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600,
+                  color: isSel ? Colors.white : Colors.black87,
+                )),
+              ]),
+            ),
+          );
+        }).toList()),
+
+        // 색상 hex 입력 필드 (색상 변경 선택 시만 표시)
+        if (needsColor) ...[
+          const SizedBox(height: 14),
+          const Text('허리밴드 색상 HEX 코드',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.black54)),
+          const SizedBox(height: 6),
+          Row(children: [
+            // 미리보기 박스
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 40, height: 40,
+              decoration: BoxDecoration(
+                color: _waistbandColorHex.length == 7
+                    ? _parseHexColor(_waistbandColorHex)
+                    : Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: _waistbandColorHex.length != 7
+                  ? Icon(Icons.palette_outlined, color: Colors.grey.shade400, size: 18)
+                  : null,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFormField(
+                controller: _waistbandColorCtrl,
+                maxLength: 7,
+                decoration: InputDecoration(
+                  hintText: '#1A1A1A  (예: #FF0000)',
+                  counterText: '',
+                  prefixText: _waistbandColorCtrl.text.isEmpty ? '#' : null,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: _purple, width: 1.5),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  isDense: true,
+                ),
+                style: const TextStyle(fontSize: 13, fontFamily: 'monospace'),
+                onChanged: (v) {
+                  String hex = v.trim();
+                  if (!hex.startsWith('#')) hex = '#$hex';
+                  if (hex.length <= 7) {
+                    setState(() => _waistbandColorHex = hex.length == 7 ? hex : '');
+                  }
+                },
+              ),
+            ),
+          ]),
+          const SizedBox(height: 4),
+          Text(
+            '6자리 HEX 코드를 입력하세요 (예: #1245A8)',
+            style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+          ),
+          // 2FIT 팔레트 색상 빠른 선택
+          const SizedBox(height: 10),
+          const Text('빠른 선택 (2FIT 팔레트)',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.black54)),
+          const SizedBox(height: 6),
+          Wrap(spacing: 6, runSpacing: 6, children:
+            AppConstants.twoFitColors.map((c) {
+              final hexVal = '#${(c['hex'] as int).toRadixString(16).substring(2).toUpperCase()}';
+              final isSelected = _waistbandColorHex.toUpperCase() == hexVal.toUpperCase();
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _waistbandColorHex = hexVal;
+                    _waistbandColorCtrl.text = hexVal;
+                  });
+                },
+                child: Tooltip(
+                  message: '${c['name']} $hexVal',
+                  child: Container(
+                    width: 28, height: 28,
+                    decoration: BoxDecoration(
+                      color: Color(c['hex'] as int),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isSelected ? _purple : Colors.grey.shade300,
+                        width: isSelected ? 2.5 : 1,
+                      ),
+                      boxShadow: isSelected
+                          ? [BoxShadow(color: _purple.withValues(alpha: 0.4), blurRadius: 4)]
+                          : [],
+                    ),
+                    child: isSelected
+                        ? Icon(Icons.check, size: 14,
+                            color: _isLightColor(Color(c['hex'] as int))
+                                ? Colors.black : Colors.white)
+                        : null,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ]),
+    );
+  }
+
+  /// 색상이 밝은지 판단 (UI 글자색 결정용)
+  static bool _isLightColor(Color color) {
+    final r = color.r * 255;
+    final g = color.g * 255;
+    final b = color.b * 255;
+    return (r * 299 + g * 587 + b * 114) / 1000 >= 128;
+  }
+
+  /// hex 문자열을 Color로 변환
+  static Color _parseHexColor(String hex) {
+    try {
+      final clean = hex.replaceAll('#', '');
+      return Color(int.parse('FF$clean', radix: 16));
+    } catch (_) {
+      return Colors.grey;
+    }
   }
 
   // ══════════════════════════════════════════════
