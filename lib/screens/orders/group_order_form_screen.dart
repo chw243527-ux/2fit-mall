@@ -1188,9 +1188,35 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 child: Text('최대 3장', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
               ),
             ]),
-            const SizedBox(height: 4),
-            Text('원하는 허리밴드 디자인 참고 이미지를 업로드해 주세요 (선택사항)',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+            const SizedBox(height: 6),
+            // ── 안내 박스 ──
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3E5F5),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFCE93D8)),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF6A1B9A)),
+                    SizedBox(width: 5),
+                    Text('업로드 안내',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))),
+                  ]),
+                  SizedBox(height: 5),
+                  Text('• 원하는 문구(텍스트) 또는 무늬(패턴)가 담긴 이미지를 업로드해 주세요.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
+                  Text('• 로고, 팀명, 숫자, 그래픽 무늬 등 허리밴드에 넣고 싶은 디자인 참고 이미지도 가능합니다.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
+                  Text('• 선택사항이며 최대 3장까지 업로드할 수 있습니다.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
+                ],
+              ),
+            ),
             const SizedBox(height: 10),
             // 이미지 썸네일 + 추가 버튼
             SizedBox(
