@@ -2474,13 +2474,12 @@ class _AdminScreenState extends State<AdminScreen>
 
   // ── 주문 상세 보기 다이얼로그 (모든 주문 공통) ──
   void _showOrderDetailDialog(OrderModel order) {
-    // orderType 자동 보정: 'personal'이어도 단체주문 특성이 있으면 단체로 처리
+    // orderType 판별: persons 배열 + teamName 둘 다 있어야 단체주문
     bool isGroup = order.orderType == 'group' || order.orderType == 'additional';
     if (!isGroup) {
-      final hasGroupSize = order.items.any((i) => i.size == '단체' || i.size == 'GROUP');
       final hasTeamName = (order.customOptions?['teamName'] as String?)?.isNotEmpty == true;
       final hasPersons = (order.customOptions?['persons'] as List?)?.isNotEmpty == true;
-      if (hasGroupSize || hasTeamName || hasPersons) isGroup = true;
+      if (hasTeamName && hasPersons) isGroup = true;
     }
     if (isGroup) {
       _showGroupOrderDetail(order);
@@ -2568,26 +2567,22 @@ class _AdminScreenState extends State<AdminScreen>
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
                       const SizedBox(height: 8),
                       ...order.items.map((item) {
-                        // 주문 타입에 따른 올바른 태그 결정
-                        // item.size에 '단체'가 들어있는 것은 레거시 데이터 — orderType으로 판별
-                        final isGroupItem = order.orderType == 'group' ||
-                            order.orderType == 'additional' ||
-                            item.size == '단체' ||
-                            item.size == 'GROUP';
+                        // 주문 타입 배지: orderType 기준으로만 판별
+                        // item.size == '단체'는 단체주문 폼의 레거시값 — 타입 판별에 사용 안 함
                         final typeLabel = order.orderType == 'additional'
                             ? '추가제작'
-                            : isGroupItem
+                            : order.orderType == 'group'
                                 ? '단체'
                                 : '개인';
                         final typeColor = order.orderType == 'additional'
                             ? const Color(0xFFC62828)
-                            : isGroupItem
+                            : order.orderType == 'group'
                                 ? const Color(0xFF6A1B9A)
                                 : const Color(0xFF1565C0);
-                        // 표시할 사이즈: '단체'/'GROUP'이면 수량으로 대체
-                        final displaySize = (item.size == '단체' || item.size == 'GROUP')
+                        // 표시할 사이즈: '단체'/'GROUP'은 의미없는 값이므로 숨김
+                        final displaySize = (item.size == '단체' || item.size == 'GROUP' || item.size.isEmpty)
                             ? null
-                            : (item.size.isNotEmpty ? item.size : null);
+                            : item.size;
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 6),
