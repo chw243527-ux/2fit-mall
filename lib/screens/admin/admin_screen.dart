@@ -2596,17 +2596,44 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(14),
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1A1A2E),
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(44),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: const Text('닫기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _exportPersonalOrderExcel(order);
+                        },
+                        icon: const Icon(Icons.download_rounded, size: 16),
+                        label: const Text('엑셀 내보내기',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          foregroundColor: const Color(0xFF00897B),
+                          side: const BorderSide(color: Color(0xFF00897B)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1A1A2E),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text('닫기',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -2887,6 +2914,85 @@ class _AdminScreenState extends State<AdminScreen>
         Text(value, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
       ],
     );
+  }
+
+  // ── 개인 주문 엑셀 내보내기 ──
+  Future<void> _exportPersonalOrderExcel(OrderModel order) async {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(children: [
+            SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+            SizedBox(width: 12),
+            Text('엑셀 생성 중...'),
+          ]),
+          duration: Duration(seconds: 10),
+          backgroundColor: Color(0xFF1A1A2E),
+        ),
+      );
+    }
+    try {
+      final now = DateTime.now();
+      final bytes = await OrderExcelService.generateSelectedOrdersExcel([order], now);
+      final dateStr =
+          '${order.createdAt.month.toString().padLeft(2, '0')}${order.createdAt.day.toString().padLeft(2, '0')}';
+      final safeName = order.userName.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+      final fileName = '주문_${safeName}_$dateStr.xlsx';
+      const mimeType =
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+      if (kIsWeb) {
+        downloadFileWeb(bytes, fileName, mimeType);
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(children: [
+                const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(fileName,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 12)),
+                      const Text('📂 다운로드 폴더에서 확인하세요',
+                          style: TextStyle(fontSize: 11, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+              ]),
+              backgroundColor: const Color(0xFF00897B),
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+      } else {
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$fileName';
+        await File(filePath).writeAsBytes(bytes, flush: true);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        await Share.shareXFiles(
+          [XFile(filePath, mimeType: mimeType, name: fileName)],
+          subject: '2FIT 주문 ${order.userName} 엑셀',
+          text: fileName,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('엑셀 생성 오류: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   // ── 단체주문 개별 엑셀 내보내기 (디자인 이미지 + 모든 필드 포함) ──
