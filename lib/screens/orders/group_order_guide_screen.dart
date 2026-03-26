@@ -19,9 +19,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
   bool _agreed = false;
 
-  // ── 수량 & 인쇄 타입 (주문안내에서 선택) ──
-  int _guideCount     = 5;
-  int _guidePrintType = 0;
+
 
   @override
   Widget build(BuildContext context) {
@@ -145,20 +143,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           const Divider(),
           const SizedBox(height: 12),
 
-          // ─ 수량 선택 ─
-          const Text('주문 수량', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          _buildPcCountDial(),
-          const SizedBox(height: 12),
-
-          // ─ 인쇄 타입 선택 ─
-          const Text('인쇄 타입', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          _buildPcPrintTypeSelector(),
-          const SizedBox(height: 12),
-          const Divider(),
-          const SizedBox(height: 12),
-
           // 동의 체크
           GestureDetector(
             onTap: () => setState(() => _agreed = !_agreed),
@@ -204,8 +188,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                       MaterialPageRoute(
                         builder: (_) => GroupOrderFormScreen(
                           product: widget.product,
-                          initialPrintType: _guidePrintType,
-                          initialCount: _guideCount,
                         ),
                       ),
                     )
@@ -234,321 +216,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════
-  // 수량 + 인쇄타입 선택 섹션 (모바일/가이드탭 하단)
-  // ═══════════════════════════════════════════════════════
-  Widget _buildCountAndPrintSection() {
-    final countColor = _guideCount >= 50 ? Colors.red
-        : _guideCount >= 30 ? Colors.orange
-        : _guideCount >= 10 ? Colors.green
-        : _guideCount >= 5  ? const Color(0xFF1565C0)
-        : Colors.grey;
-
-    final printOptions = [
-      {'id': 0, 'step': '①', 'title': '색상 변경',        'cond': '5명↑', 'color': const Color(0xFF1565C0), 'enabled': true},
-      {'id': 1, 'step': '②', 'title': '전면 (단체명)',     'cond': '5명↑', 'color': const Color(0xFF2E7D32), 'enabled': true},
-      {'id': 2, 'step': '③', 'title': '조합 (전면+색상)',  'cond': '5명↑', 'color': const Color(0xFF6A1B9A), 'enabled': true},
-      {'id': 3, 'step': '④', 'title': '조합 + 후면 이름', 'cond': '10명↑', 'color': const Color(0xFFC62828), 'enabled': _guideCount >= 10},
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 헤더
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF4A148C), Color(0xFF6A1B9A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.tune_rounded, color: Colors.white, size: 20),
-                SizedBox(width: 10),
-                Text('주문 옵션 선택', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                // ─ 수량 ─
-                const Text('주문 수량', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 8),
-                // 다이얼
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: countColor.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: countColor.withValues(alpha: 0.3), width: 1.5),
-                  ),
-                  child: Row(children: [
-                    _guideDialBtn(Icons.remove_rounded, countColor,
-                        _guideCount > 5, () { if (_guideCount > 5) setState(() => _guideCount--); }),
-                    Expanded(
-                      child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        Text('$_guideCount',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 38, fontWeight: FontWeight.w900, color: countColor)),
-                        Text('명', style: TextStyle(fontSize: 12, color: countColor.withValues(alpha: 0.8))),
-                      ]),
-                    ),
-                    _guideDialBtn(Icons.add_rounded, countColor,
-                        _guideCount < 200, () { if (_guideCount < 200) setState(() => _guideCount++); }),
-                  ]),
-                ),
-                const SizedBox(height: 8),
-                // 빠른 선택
-                Wrap(
-                  spacing: 6, runSpacing: 6,
-                  children: [5, 10, 15, 20, 30, 50].map((n) => GestureDetector(
-                    onTap: () => setState(() => _guideCount = n),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: _guideCount == n ? const Color(0xFF6A1B9A) : const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: _guideCount == n ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD),
-                        ),
-                      ),
-                      child: Text('$n명',
-                          style: TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w700,
-                            color: _guideCount == n ? Colors.white : const Color(0xFF666666),
-                          )),
-                    ),
-                  )).toList(),
-                ),
-
-                const SizedBox(height: 20),
-                const Divider(),
-                const SizedBox(height: 16),
-
-                // ─ 인쇄 타입 ─
-                const Text('인쇄 타입', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 8),
-                ...printOptions.map((opt) {
-                  final id      = opt['id']      as int;
-                  final color   = opt['color']   as Color;
-                  final enabled = opt['enabled'] as bool;
-                  final sel     = _guidePrintType == id;
-                  return GestureDetector(
-                    onTap: enabled ? () => setState(() => _guidePrintType = id) : null,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: sel
-                            ? color.withValues(alpha: 0.10)
-                            : (enabled ? color.withValues(alpha: 0.04) : const Color(0xFFF5F5F5)),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: sel ? color
-                              : (enabled ? color.withValues(alpha: 0.2) : Colors.grey.shade300),
-                          width: sel ? 2 : 1,
-                        ),
-                      ),
-                      child: Row(children: [
-                        Container(
-                          width: 22, height: 22,
-                          decoration: BoxDecoration(
-                            color: enabled ? color : Colors.grey.shade400,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(opt['step'] as String,
-                                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(opt['title'] as String,
-                              style: TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w700,
-                                color: enabled ? color : Colors.grey.shade400,
-                              )),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: enabled ? color.withValues(alpha: 0.1) : Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(opt['cond'] as String,
-                              style: TextStyle(
-                                fontSize: 9, fontWeight: FontWeight.w700,
-                                color: enabled ? color : Colors.grey.shade400,
-                              )),
-                        ),
-                        if (sel) ...[
-                          const SizedBox(width: 6),
-                          Icon(Icons.check_circle_rounded, color: color, size: 18),
-                        ],
-                      ]),
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _guideDialBtn(IconData icon, Color color, bool active, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: active ? onTap : null,
-      child: Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(
-          color: active ? color.withValues(alpha: 0.12) : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: active ? color.withValues(alpha: 0.4) : Colors.grey.shade300,
-          ),
-        ),
-        child: Icon(icon, size: 22, color: active ? color : Colors.grey.shade400),
-      ),
-    );
-  }
-
-  // ─── PC 패널 수량 다이얼 ───
-  Widget _buildPcCountDial() {
-    final color = _guideCount >= 50 ? Colors.red
-        : _guideCount >= 30 ? Colors.orange
-        : _guideCount >= 10 ? Colors.green
-        : _guideCount >= 5  ? const Color(0xFF1565C0)
-        : Colors.grey;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 다이얼 행
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withValues(alpha: 0.3)),
-          ),
-          child: Row(children: [
-            _pcDialBtn(Icons.remove_rounded, () {
-              if (_guideCount > 5) setState(() => _guideCount--);
-            }),
-            Expanded(
-              child: Text('$_guideCount명',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: color)),
-            ),
-            _pcDialBtn(Icons.add_rounded, () {
-              if (_guideCount < 200) setState(() => _guideCount++);
-            }),
-          ]),
-        ),
-        const SizedBox(height: 6),
-        // 빠른 선택
-        Wrap(spacing: 4, runSpacing: 4,
-          children: [5, 10, 15, 20, 30, 50].map((n) => GestureDetector(
-            onTap: () => setState(() => _guideCount = n),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: _guideCount == n ? const Color(0xFF6A1B9A) : const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: _guideCount == n ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD),
-                ),
-              ),
-              child: Text('$n명',
-                  style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w700,
-                    color: _guideCount == n ? Colors.white : const Color(0xFF666666),
-                  )),
-            ),
-          )).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _pcDialBtn(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 30, height: 30,
-        decoration: BoxDecoration(
-          color: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, size: 18, color: const Color(0xFF6A1B9A)),
-      ),
-    );
-  }
-
-  // ─── PC 패널 인쇄타입 선택 ───
-  Widget _buildPcPrintTypeSelector() {
-    final options = [
-      {'id': 0, 'label': '① 색상 변경',       'color': const Color(0xFF1565C0), 'enabled': true},
-      {'id': 1, 'label': '② 전면 (단체명)',    'color': const Color(0xFF2E7D32), 'enabled': true},
-      {'id': 2, 'label': '③ 조합 (전면+색상)', 'color': const Color(0xFF6A1B9A), 'enabled': true},
-      {'id': 3, 'label': '④ 조합 + 후면이름',  'color': const Color(0xFFC62828), 'enabled': _guideCount >= 10},
-    ];
-    return Column(
-      children: options.map((opt) {
-        final id      = opt['id']      as int;
-        final color   = opt['color']   as Color;
-        final enabled = opt['enabled'] as bool;
-        final sel     = _guidePrintType == id;
-        return GestureDetector(
-          onTap: enabled ? () => setState(() => _guidePrintType = id) : null,
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            decoration: BoxDecoration(
-              color: sel ? color.withValues(alpha: 0.12)
-                  : (enabled ? color.withValues(alpha: 0.04) : const Color(0xFFF5F5F5)),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: sel ? color
-                    : (enabled ? color.withValues(alpha: 0.2) : Colors.grey.shade300),
-                width: sel ? 1.5 : 1,
-              ),
-            ),
-            child: Row(children: [
-              Expanded(
-                child: Text(opt['label'] as String,
-                    style: TextStyle(
-                      fontSize: 11, fontWeight: FontWeight.w700,
-                      color: enabled ? color : Colors.grey.shade400,
-                    )),
-              ),
-              if (!enabled)
-                Text('10명↑', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
-              if (sel) Icon(Icons.check_circle_rounded, color: color, size: 16),
-            ]),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
   Widget _pcBenefitRow(BuildContext context, String emoji, String label, String desc, Color color) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -559,14 +226,16 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color)),
+            child: Text(label,
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color)),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(desc, style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
+            child: Text(desc,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF444444))),
           ),
         ],
       ),
@@ -796,10 +465,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           ),
           const SizedBox(height: 24),
 
-          // ── 수량 & 인쇄 타입 선택 ──
-          _buildCountAndPrintSection(),
-          const SizedBox(height: 24),
-
           // 동의 + 주문 양식 이동
           _AgreementSection(
             agreed: _agreed,
@@ -810,8 +475,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                     MaterialPageRoute(
                       builder: (_) => GroupOrderFormScreen(
                         product: widget.product,
-                        initialPrintType: _guidePrintType,
-                          initialCount: _guideCount,
                       ),
                     ),
                   )
