@@ -12,6 +12,18 @@ import '../models/models.dart';
 class OrderExcelService {
   static FirebaseFirestore get _db => FirebaseFirestore.instance;
 
+  // ── 단체주문 여부 공통 판별 함수 ──
+  // GRP_/GROUP- ID이거나, orderType이 group/additional이거나,
+  // persons 배열 + teamName 둘 다 있으면 단체주문
+  static bool _isGroupOrder(OrderModel o) {
+    if (o.orderType == 'group' || o.orderType == 'additional') return true;
+    final isGrpId = o.id.startsWith('GRP_') || o.id.startsWith('GROUP-');
+    if (isGrpId) return true;
+    final hasTeamName = (o.customOptions?['teamName'] as String?)?.isNotEmpty == true;
+    final hasPersons = (o.customOptions?['persons'] as List?)?.isNotEmpty == true;
+    return hasTeamName && hasPersons;
+  }
+
   // ── 전날 오후1시 ~ 당일 오후1시 날짜 계산 ──
   static DateTimeRange getDailyRange({DateTime? baseDate}) {
     final now = baseDate ?? DateTime.now();
@@ -120,6 +132,20 @@ class OrderExcelService {
         if (gc != null) customOptions['totalCount'] = gc;
       }
 
+      // ── orderType 보정: 실제 단체주문 특성으로 자동 판별 ──
+      String resolvedOrderType = data['orderType'] as String? ?? 'personal';
+      if (resolvedOrderType == 'personal') {
+        final id = docId;
+        final hasPersons = (customOptions['persons'] as List?)?.isNotEmpty == true;
+        final hasTeamName = (customOptions['teamName'] as String?)?.isNotEmpty == true;
+        // GRP_ 접두사 또는 persons+teamName 모두 있으면 단체주문
+        final isGrpId = id.startsWith('GRP_') || id.startsWith('GROUP-');
+        if (isGrpId || (hasPersons && hasTeamName)) {
+          final isAdditional = id.contains('ADD') || customOptions['isAdditional'] == true;
+          resolvedOrderType = isAdditional ? 'additional' : 'group';
+        }
+      }
+
       return OrderModel(
         id: docId,
         userId: data['userId'] as String? ?? '',
@@ -132,7 +158,7 @@ class OrderExcelService {
         shippingFee: (data['shippingFee'] as num?)?.toDouble() ?? 0,
         paymentMethod: data['paymentMethod'] as String? ?? '',
         status: status,
-        orderType: data['orderType'] as String? ?? 'personal',
+        orderType: resolvedOrderType,
         customOptions: customOptions.isEmpty ? null : customOptions,
         groupName: data['groupName'] as String?,
         groupCount: (data['groupCount'] as num?)?.toInt(),
@@ -239,14 +265,8 @@ class OrderExcelService {
     );
 
     // 단체/커스텀 주문과 개인 주문 분리
-    final groupOrders = orders.where((o) =>
-        o.orderType == 'group' ||
-        o.orderType == 'additional' ||
-        (o.customOptions != null && o.customOptions!.isNotEmpty)).toList();
-
-    final personalOrders = orders.where((o) =>
-        o.orderType == 'regular' || o.orderType == 'personal' ||
-        (o.customOptions == null || o.customOptions!.isEmpty)).toList();
+    final groupOrders = orders.where(_isGroupOrder).toList();
+    final personalOrders = orders.where((o) => !_isGroupOrder(o)).toList();
 
     // ══════════════════════════════════════════════════════════
     // 시트 1: 전체 주문 요약
@@ -582,10 +602,7 @@ class OrderExcelService {
       List<OrderModel> orders, DateTime start, DateTime end) async {
     final excel = Excel.createExcel();
 
-    final groupOrders = orders.where((o) =>
-        o.orderType == 'group' ||
-        o.orderType == 'additional' ||
-        (o.customOptions != null && o.customOptions!.isNotEmpty)).toList();
+    final groupOrders = orders.where(_isGroupOrder).toList();
 
     final titleStyle = CellStyle(
       bold: true,
@@ -852,12 +869,7 @@ class OrderExcelService {
       List<OrderModel> orders, DateTime start, DateTime end) {
     final excel = Excel.createExcel();
 
-    final groupOrders = orders.where((o) =>
-        o.orderType == 'group' ||
-        o.orderType == 'additional' ||
-        (o.customOptions != null && o.customOptions!.isNotEmpty) ||
-        o.items.any((i) => i.customOptions != null && i.customOptions!.isNotEmpty)
-    ).toList();
+    final groupOrders = orders.where(_isGroupOrder).toList();
 
     final headerStyle = CellStyle(
       bold: true,

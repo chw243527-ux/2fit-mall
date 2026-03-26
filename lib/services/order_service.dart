@@ -466,14 +466,15 @@ class OrderService {
 
     // ── orderType 자동 보정 ──
     // Firestore에 'personal'로 저장됐더라도 진짜 단체주문이면 보정
-    // 판별 기준: persons 배열이 실제로 존재해야 단체주문으로 인정
+    final docId = data['id'] as String? ?? '';
     String rawOrderType = data['orderType'] as String? ?? 'personal';
     if (rawOrderType == 'personal') {
       final hasPersons = (customOptions?['persons'] as List?)?.isNotEmpty == true;
       final hasTeamName = (customOptions?['teamName'] as String?)?.isNotEmpty == true;
-      // persons 배열이 있어야만 단체주문으로 보정 (size=='단체' 단독은 불충분)
-      if (hasPersons && hasTeamName) {
-        final isAdditional = (data['id'] as String? ?? '').contains('ADD') ||
+      // GRP_ 접두사이거나, persons+teamName 모두 있으면 단체주문으로 보정
+      final isGrpId = docId.startsWith('GRP_') || docId.startsWith('GROUP-');
+      if (isGrpId || (hasPersons && hasTeamName)) {
+        final isAdditional = docId.contains('ADD') ||
             customOptions?['isAdditional'] == true;
         rawOrderType = isAdditional ? 'additional' : 'group';
       }

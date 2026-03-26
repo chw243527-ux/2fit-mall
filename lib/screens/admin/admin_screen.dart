@@ -2228,13 +2228,13 @@ class _AdminScreenState extends State<AdminScreen>
   Widget _orderCard(OrderModel order) {
     final statusColor = _statusColor(order.status);
     final isSelected = _selectedOrderIds.contains(order.id);
-    // orderType 자동 보정: 'personal'이어도 단체주문 특성이 있으면 단체로 처리
+    // orderType 판별: GRP_/GROUP- ID이거나, persons+teamName 모두 있으면 단체주문
     bool isGroup = order.orderType == 'group' || order.orderType == 'additional';
     if (!isGroup) {
-      final hasGroupSize = order.items.any((i) => i.size == '단체' || i.size == 'GROUP');
+      final isGrpId = order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
       final hasTeamName = (order.customOptions?['teamName'] as String?)?.isNotEmpty == true;
       final hasPersons = (order.customOptions?['persons'] as List?)?.isNotEmpty == true;
-      if (hasGroupSize || hasTeamName || hasPersons) isGroup = true;
+      if (isGrpId || (hasTeamName && hasPersons)) isGroup = true;
     }
     final opts = order.customOptions;
 
@@ -2474,12 +2474,13 @@ class _AdminScreenState extends State<AdminScreen>
 
   // ── 주문 상세 보기 다이얼로그 (모든 주문 공통) ──
   void _showOrderDetailDialog(OrderModel order) {
-    // orderType 판별: persons 배열 + teamName 둘 다 있어야 단체주문
+    // orderType 판별: GRP_/GROUP- ID이거나, persons+teamName 모두 있으면 단체주문
     bool isGroup = order.orderType == 'group' || order.orderType == 'additional';
     if (!isGroup) {
+      final isGrpId = order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
       final hasTeamName = (order.customOptions?['teamName'] as String?)?.isNotEmpty == true;
       final hasPersons = (order.customOptions?['persons'] as List?)?.isNotEmpty == true;
-      if (hasTeamName && hasPersons) isGroup = true;
+      if (isGrpId || (hasTeamName && hasPersons)) isGroup = true;
     }
     if (isGroup) {
       _showGroupOrderDetail(order);
