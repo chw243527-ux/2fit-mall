@@ -20,18 +20,28 @@
     var payload = JSON.stringify({
       type: 'KAKAO_ADDRESS',
       address: addr,
-      zonecode: data.zonecode,
+      zonecode: data.zonecode || '',
       roadAddress: data.roadAddress || '',
       jibunAddress: data.jibunAddress || ''
     });
-    // 1. iframe 방식: 부모 창에 postMessage
-    try { window.parent.postMessage(payload, '*'); } catch (e) {}
-    try { window.top.postMessage(payload, '*'); } catch (e) {}
-    // 2. 팝업 방식: opener 창에 postMessage
-    try { if (window.opener) { window.opener.postMessage(payload, '*'); window.close(); } } catch (e) {}
+
+    // iframe으로 임베드된 경우: 부모 창에 전달
+    try { window.parent.postMessage(payload, '*'); } catch(e) {}
+
+    // popup으로 열린 경우: opener에 전달 후 창 닫기
+    try {
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage(payload, '*');
+        setTimeout(function(){ window.close(); }, 200);
+      }
+    } catch(e) {}
   }
 
   function init() {
+    if (typeof daum === 'undefined' || typeof daum.Postcode === 'undefined') {
+      setTimeout(init, 300);
+      return;
+    }
     new daum.Postcode({
       oncomplete: sendResult,
       width: '100%',

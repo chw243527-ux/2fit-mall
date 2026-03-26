@@ -1,6 +1,6 @@
 // address_search_widget.dart
 // 주소 검색 위젯
-// - 웹: 카카오 우편번호 팝업(window.open) → postMessage 수신
+// - 웹: HtmlElementView로 kakao_postcode.html iframe 직접 임베드 → postMessage 수신
 // - 모바일: WebView 임베드 방식
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -53,20 +53,23 @@ class _AddressSearchSheet extends StatelessWidget {
       ),
       child: Column(
         children: [
+          // 핸들바
           Container(
             margin: const EdgeInsets.only(top: 12, bottom: 4),
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             decoration: BoxDecoration(
               color: const Color(0xFFDDDDDD),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
+          // 헤더
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 const Icon(Icons.location_on_rounded,
-                    color: Color(0xFF1A1A2E), size: 20),
+                    color: Color(0xFF6A1B9A), size: 20),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text('주소 검색',
@@ -83,6 +86,20 @@ class _AddressSearchSheet extends StatelessWidget {
             ),
           ),
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          // 안내 텍스트
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: const Color(0xFFF3E5F5),
+            child: const Text(
+              '도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다.',
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF6A1B9A),
+                  fontWeight: FontWeight.w500),
+            ),
+          ),
+          // 바디 (웹 or 모바일)
           Expanded(
             child: kIsWeb
                 ? _AddressWebBody(
@@ -99,7 +116,7 @@ class _AddressSearchSheet extends StatelessWidget {
 }
 
 // ══════════════════════════════════════════════════════════
-// 웹 전용: 팝업 + postMessage
+// 웹 전용: HtmlElementView iframe 직접 임베드
 // ══════════════════════════════════════════════════════════
 class _AddressWebBody extends StatefulWidget {
   final ValueChanged<AddressResult> onResult;
@@ -110,134 +127,18 @@ class _AddressWebBody extends StatefulWidget {
 }
 
 class _AddressWebBodyState extends State<_AddressWebBody> {
-  bool _waiting = false;
-  bool _done = false;
-
-  void _openPopup() {
-    if (_done) return;
-    setState(() => _waiting = true);
-
-    addr_web.openKakaoPopupAndListen((data) {
-      if (_done || !mounted) return;
-      _done = true;
-      final result = AddressResult(
-        zonecode:     data['zonecode']?.toString()     ?? '',
-        address:      data['address']?.toString()      ?? '',
-        roadAddress:  data['roadAddress']?.toString()  ?? '',
-        jibunAddress: data['jibunAddress']?.toString() ?? '',
-      );
-      widget.onResult(result);
-    });
-  }
-
-  @override
-  void dispose() {
-    addr_web.cancelAddressListener();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72, height: 72,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3E5F5),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(Icons.location_searching_rounded,
-                  size: 36, color: Color(0xFF6A1B9A)),
-            ),
-            const SizedBox(height: 20),
-            const Text('주소 검색',
-                style: TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A1A1A))),
-            const SizedBox(height: 8),
-            Text(
-              _waiting
-                  ? '팝업 창에서 주소를 선택해 주세요.\n선택하면 자동으로 입력됩니다.'
-                  : '아래 버튼을 눌러 주소를 검색하세요.\n도로명·지번·건물명으로 검색 가능합니다.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), height: 1.5),
-            ),
-            const SizedBox(height: 28),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: _openPopup,
-                icon: Icon(
-                  _waiting ? Icons.hourglass_empty_rounded : Icons.search_rounded,
-                  size: 20,
-                ),
-                label: Text(
-                  _waiting ? '팝업에서 선택 중...' : '주소 검색 팝업 열기',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6A1B9A),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-              ),
-            ),
-            if (_waiting) ...[
-              const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: () {
-                  addr_web.cancelAddressListener();
-                  setState(() { _waiting = false; _done = false; });
-                },
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF888888),
-                  side: const BorderSide(color: Color(0xFFCCCCCC)),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                child: const Text('취소 / 다시 시도'),
-              ),
-            ],
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8F8F8),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFEEEEEE)),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    Icon(Icons.lightbulb_outline_rounded,
-                        size: 14, color: Color(0xFF6A1B9A)),
-                    SizedBox(width: 6),
-                    Text('검색 예시',
-                        style: TextStyle(fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF6A1B9A))),
-                  ]),
-                  SizedBox(height: 6),
-                  Text('• 도로명: 강남대로 396',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF666666))),
-                  Text('• 지번: 역삼동 826',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF666666))),
-                  Text('• 건물명: 코엑스, 강남구청',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF666666))),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+    return addr_web.KakaoIframeWidget(
+      onResult: (data) {
+        final result = AddressResult(
+          zonecode: data['zonecode']?.toString() ?? '',
+          address: data['address']?.toString() ?? '',
+          roadAddress: data['roadAddress']?.toString() ?? '',
+          jibunAddress: data['jibunAddress']?.toString() ?? '',
+        );
+        widget.onResult(result);
+      },
     );
   }
 }
@@ -290,9 +191,9 @@ new daum.Postcode({
         try {
           final data = jsonDecode(msg.message) as Map<String, dynamic>;
           final result = AddressResult(
-            zonecode:     data['zonecode']?.toString()     ?? '',
-            address:      data['address']?.toString()      ?? '',
-            roadAddress:  data['roadAddress']?.toString()  ?? '',
+            zonecode: data['zonecode']?.toString() ?? '',
+            address: data['address']?.toString() ?? '',
+            roadAddress: data['roadAddress']?.toString() ?? '',
             jibunAddress: data['jibunAddress']?.toString() ?? '',
           );
           widget.onResult(result);
@@ -306,7 +207,8 @@ new daum.Postcode({
     return Stack(children: [
       WebViewWidget(controller: _ctrl),
       if (_loading)
-        const Center(child: CircularProgressIndicator(color: Color(0xFF6A1B9A))),
+        const Center(
+            child: CircularProgressIndicator(color: Color(0xFF6A1B9A))),
     ]);
   }
 }
