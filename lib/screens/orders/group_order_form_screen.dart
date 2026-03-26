@@ -241,6 +241,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _persons.removeLast();
       }
       for (int i = 0; i < _persons.length; i++) { _persons[i].index = i; }
+      _resetInvalidPrintType();
     });
   }
 
@@ -248,6 +249,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     setState(() {
       _persons.add(_PersonEntry(index: _persons.length));
       _count = _persons.length;
+      _resetInvalidPrintType();
     });
   }
 
@@ -258,7 +260,20 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       _persons.removeAt(idx);
       for (int i = 0; i < _persons.length; i++) { _persons[i].index = i; }
       _count = _persons.length;
+      _resetInvalidPrintType();
     });
+  }
+
+  /// 인원 변경 시 선택된 인쇄 옵션이 조건 미달이면 자동 리셋
+  void _resetInvalidPrintType() {
+    // 4번(id=3) 옵션은 10명 이상 필요
+    if (_printType == 3 && _totalCount < 10) {
+      _printType = 0;
+    }
+    // 1~3번(id=0~2) 옵션은 5명 이상 필요 (사실 기본 5명 미만이면 리셋)
+    if (_totalCount < 5) {
+      _printType = 0;
+    }
   }
 
   void _showSnack(String msg) {
@@ -577,50 +592,165 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // 인쇄 타입 섹션
   // ══════════════════════════════════════════════
   Widget _buildPrintTypeSection() {
+    // id, title, desc, badgeColor, condMin (최소 인원), condLabel
     final options = [
-      {'id': 0, 'title': '색상 변경만', 'desc': '단체 색상만 커스텀'},
-      {'id': 1, 'title': '전면 단체명', 'desc': '앞면 단체명 인쇄 (10명↑)'},
-      {'id': 2, 'title': '전면 + 색상', 'desc': '단체명 + 색상 변경'},
-      {'id': 3, 'title': '전면+색상+후면이름', 'desc': '풀 커스텀 (10명↑)'},
+      {
+        'id': 0,
+        'title': '색상 변경',
+        'desc': '원하는 색상으로 변경 제작 (상·하의 동일 색상 적용)',
+        'badgeColor': const Color(0xFF1565C0), // 파랑
+        'condMin': 5,
+        'condLabel': '5명↑ 무료',
+      },
+      {
+        'id': 1,
+        'title': '전면 (단체명)',
+        'desc': '전면에 단체명 인쇄',
+        'badgeColor': const Color(0xFF2E7D32), // 초록
+        'condMin': 5,
+        'condLabel': '5명↑ 무료',
+      },
+      {
+        'id': 2,
+        'title': '조합 (전면+색상)',
+        'desc': '전면 단체명 + 색상 변경',
+        'badgeColor': const Color(0xFF6A1B9A), // 보라
+        'condMin': 5,
+        'condLabel': '5명↑ 무료',
+      },
+      {
+        'id': 3,
+        'title': '조합 + 후면 이름',
+        'desc': '전면 단체명·색상 + 후면 개인 이름 인쇄',
+        'badgeColor': const Color(0xFFC62828), // 빨강
+        'condMin': 10,
+        'condLabel': '10명↑',
+      },
     ];
+
     return _card(
       title: '인쇄 타입',
       icon: Icons.print_rounded,
       child: Column(
         children: options.map((opt) {
-          final id   = opt['id'] as int;
-          final isSel = _printType == id;
+          final id         = opt['id'] as int;
+          final condMin    = opt['condMin'] as int;
+          final condLabel  = opt['condLabel'] as String;
+          final badgeColor = opt['badgeColor'] as Color;
+          final enabled    = _totalCount >= condMin;
+          final isSel      = _printType == id;
+
           return GestureDetector(
-            onTap: () => setState(() => _printType = id),
+            onTap: enabled
+                ? () => setState(() => _printType = id)
+                : () => _showSnack('${condMin}명 이상부터 선택 가능한 옵션입니다.'),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: isSel ? _purpleLight : Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(10),
+                color: !enabled
+                    ? Colors.grey.shade100
+                    : isSel
+                        ? _purpleLight
+                        : Colors.white,
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSel ? _purple : Colors.grey.shade200,
-                  width: isSel ? 1.5 : 1,
+                  color: !enabled
+                      ? Colors.grey.shade200
+                      : isSel
+                          ? _purple
+                          : Colors.grey.shade200,
+                  width: isSel ? 1.8 : 1,
                 ),
+                boxShadow: isSel
+                    ? [BoxShadow(
+                        color: _purple.withValues(alpha: 0.12),
+                        blurRadius: 6, offset: const Offset(0, 2))]
+                    : [],
               ),
               child: Row(children: [
-                Icon(isSel ? Icons.radio_button_checked_rounded
-                           : Icons.radio_button_unchecked_rounded,
-                    color: isSel ? _purple : Colors.grey, size: 20),
+                // ── 숫자 뱃지 ──
+                Container(
+                  width: 30, height: 30,
+                  decoration: BoxDecoration(
+                    color: !enabled
+                        ? Colors.grey.shade300
+                        : isSel
+                            ? badgeColor
+                            : badgeColor.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${id + 1}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: !enabled
+                          ? Colors.grey.shade500
+                          : isSel
+                              ? Colors.white
+                              : badgeColor,
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 12),
+                // ── 텍스트 ──
                 Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                    Text(opt['title'] as String,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        opt['title'] as String,
                         style: TextStyle(
-                          fontWeight: FontWeight.w700, fontSize: 14,
-                          color: isSel ? _purple : Colors.black87,
-                        )),
-                    Text(opt['desc'] as String,
-                        style: const TextStyle(
-                            fontSize: 11, color: Colors.grey)),
-                  ]),
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: !enabled
+                              ? Colors.grey.shade400
+                              : isSel
+                                  ? _purple
+                                  : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        opt['desc'] as String,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: !enabled
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // ── 조건 뱃지 ──
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: !enabled
+                        ? Colors.grey.shade200
+                        : condMin == 10
+                            ? const Color(0xFFFCE4EC)
+                            : const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    condLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: !enabled
+                          ? Colors.grey.shade400
+                          : condMin == 10
+                              ? const Color(0xFFC62828)
+                              : const Color(0xFF2E7D32),
+                    ),
+                  ),
                 ),
               ]),
             ),
