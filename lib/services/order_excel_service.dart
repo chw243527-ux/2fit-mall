@@ -1245,6 +1245,170 @@ class OrderExcelService {
       default: return s.name;
     }
   }
+
+  // ════════════════════════════════════════════════════════════════
+  // 예시(샘플) 엑셀 파일 생성 — 실제 주문 없이 구조 미리보기용
+  // ════════════════════════════════════════════════════════════════
+  static Uint8List generateSampleExcel() {
+    final excel = Excel.createExcel();
+
+    // ── 스타일 ──
+    final titleStyle = CellStyle(
+      bold: true, fontSize: 13,
+      backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+    );
+    final headerStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#2D2D5E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 11,
+    );
+    final maleStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#E3F2FD'),
+      fontColorHex: ExcelColor.fromHexString('#1565C0'),
+      bold: true,
+    );
+    final femaleStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#FCE4EC'),
+      fontColorHex: ExcelColor.fromHexString('#C62828'),
+      bold: true,
+    );
+    final evenRowStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#F8F9FA'),
+    );
+    final sampleNoteStyle = CellStyle(
+      bold: true, fontSize: 11,
+      backgroundColorHex: ExcelColor.fromHexString('#FFF9C4'),
+      fontColorHex: ExcelColor.fromHexString('#F57F17'),
+      horizontalAlign: HorizontalAlign.Center,
+    );
+
+    // ════ Sheet 1 : 주문요약 ════
+    final sum = excel['주문요약'];
+    excel.setDefaultSheet('주문요약');
+
+    _setCell(sum, 0, 0, '⚡ 이 파일은 예시(샘플) 파일입니다 — 실제 주문 데이터가 아닙니다', style: sampleNoteStyle);
+    sum.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
+              CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: 0));
+
+    _setCell(sum, 1, 0, '2FIT MALL 주문 내역 엑셀 예시', style: titleStyle);
+    sum.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1),
+              CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: 1));
+
+    final sumHeaders = [
+      'No', '주문번호', '주문일시', '구분', '팀명/단체명',
+      '구매자', '인쇄옵션', '색상', '하의길이', '허리밴드',
+      '남성수량', '여성수량', '총수량', '디자인이미지URL', '상태',
+    ];
+    for (int c = 0; c < sumHeaders.length; c++) {
+      _setCell(sum, 2, c, sumHeaders[c], style: headerStyle);
+    }
+
+    final sampleSummary = [
+      ['1', 'ORD-2024-0001', '2024-03-25 14:30', '단체주문', '부산 트라이애슬론팀',
+       '김철수', '자수', '네이비', '기본', 'O', '15', '5', '20',
+       'https://example.com/design1.jpg', '주문확인'],
+      ['2', 'ORD-2024-0002', '2024-03-25 16:00', '단체주문', '서울 마라톤클럽',
+       '이영희', '실크스크린', '블랙', '-2cm', 'X', '8', '12', '20',
+       'https://example.com/design2.jpg', '제작중'],
+      ['3', 'ORD-2024-0003', '2024-03-26 09:15', '개인주문', '-',
+       '박민준', '없음', '화이트', '기본', 'O', '1', '0', '1',
+       'https://example.com/design3.jpg', '배송중'],
+    ];
+
+    for (int r = 0; r < sampleSummary.length; r++) {
+      final row = sampleSummary[r];
+      final rowStyle = r.isEven ? evenRowStyle : null;
+      for (int c = 0; c < row.length; c++) {
+        _setCell(sum, r + 3, c, row[c], style: rowStyle);
+      }
+    }
+
+    for (int c = 0; c < sumHeaders.length; c++) {
+      sum.setColumnWidth(c, c == 1 ? 20.0 : c == 4 ? 18.0 : c == 13 ? 35.0 : 12.0);
+    }
+
+    // ════ Sheet 2 : 사이즈 명단 ════
+    final sz = excel['사이즈명단'];
+    _setCell(sz, 0, 0, '⚡ 예시 데이터', style: sampleNoteStyle);
+    sz.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
+             CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: 0));
+
+    _setCell(sz, 1, 0, '팀원별 사이즈 목록', style: titleStyle);
+    sz.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1),
+             CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: 1));
+
+    final szHeaders = [
+      'No', '이름', '성별', '상의사이즈', '하의사이즈', '하의길이',
+      '색상', '키(cm)', '몸무게(kg)', '허리(cm)', '허벅지(cm)', '인쇄옵션', '허리밴드',
+    ];
+    for (int c = 0; c < szHeaders.length; c++) {
+      _setCell(sz, 2, c, szHeaders[c], style: headerStyle);
+    }
+
+    final sampleMembers = [
+      ['1', '김철수', '남성', 'XL', '32', '기본', '네이비', '178', '75', '82', '56', '자수', 'O'],
+      ['2', '이영수', '남성', 'L',  '30', '기본', '네이비', '172', '68', '78', '54', '자수', 'O'],
+      ['3', '박소연', '여성', 'M',  '27', '-2cm', '네이비', '162', '52', '66', '50', '자수', 'X'],
+      ['4', '최지은', '여성', 'S',  '25', '-2cm', '네이비', '158', '48', '62', '48', '자수', 'X'],
+    ];
+
+    for (int r = 0; r < sampleMembers.length; r++) {
+      final row = sampleMembers[r];
+      final isM = row[2] == '남성';
+      final genderStyle = isM ? maleStyle : femaleStyle;
+      for (int c = 0; c < row.length; c++) {
+        _setCell(sz, r + 3, c, row[c], style: c == 2 ? genderStyle : (r.isEven ? evenRowStyle : null));
+      }
+    }
+
+    for (int c = 0; c < szHeaders.length; c++) {
+      sz.setColumnWidth(c, c == 1 ? 12.0 : 10.0);
+    }
+
+    // ════ Sheet 3 : 디자인 이미지 ════
+    final img = excel['디자인이미지'];
+    _setCell(img, 0, 0, '⚡ 예시 데이터', style: sampleNoteStyle);
+    img.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
+              CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 0));
+
+    _setCell(img, 1, 0, '디자인 이미지 URL 목록', style: titleStyle);
+    img.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1),
+              CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 1));
+
+    final imgHeaders = ['No', '주문번호', '디자인이미지URL', '남성레퍼런스URL', '여성레퍼런스URL', '메모'];
+    for (int c = 0; c < imgHeaders.length; c++) {
+      _setCell(img, 2, c, imgHeaders[c], style: headerStyle);
+    }
+
+    final sampleImages = [
+      ['1', 'ORD-2024-0001', 'https://example.com/design1.jpg', 'https://example.com/male_ref1.jpg', 'https://example.com/female_ref1.jpg', '부산 트라이애슬론팀 - 네이비'],
+      ['2', 'ORD-2024-0002', 'https://example.com/design2.jpg', 'https://example.com/male_ref2.jpg', 'https://example.com/female_ref2.jpg', '서울 마라톤클럽 - 블랙'],
+    ];
+
+    for (int r = 0; r < sampleImages.length; r++) {
+      final row = sampleImages[r];
+      for (int c = 0; c < row.length; c++) {
+        _setCell(img, r + 3, c, row[c], style: r.isEven ? evenRowStyle : null);
+      }
+    }
+
+    for (int c = 0; c < imgHeaders.length; c++) {
+      img.setColumnWidth(c, c >= 2 && c <= 4 ? 40.0 : c == 5 ? 25.0 : 12.0);
+    }
+
+    // 기본 Sheet 제거
+    if (excel.sheets.containsKey('Sheet1')) {
+      excel.delete('Sheet1');
+    }
+
+    final encoded = excel.encode();
+    if (encoded == null) throw Exception('샘플 엑셀 생성 실패');
+    return Uint8List.fromList(encoded);
+  }
 }
 
 class DateTimeRange {

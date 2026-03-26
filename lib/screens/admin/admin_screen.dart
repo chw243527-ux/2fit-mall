@@ -26,6 +26,8 @@ import 'admin_extra_tabs.dart';
 import 'dart:typed_data';
 import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class AdminScreen extends StatefulWidget {
   final int initialTab;
@@ -1033,6 +1035,31 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   ),
                   const SizedBox(width: 8),
+                  // 예시 엑셀 다운로드 버튼
+                  Tooltip(
+                    message: '예시 엑셀 파일 다운로드 (샘플 데이터)',
+                    child: InkWell(
+                      onTap: _downloadSampleExcel,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF57F17).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFF57F17).withValues(alpha: 0.4)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.file_download_outlined, size: 15, color: Color(0xFFF57F17)),
+                            SizedBox(width: 4),
+                            Text('예시파일', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFFF57F17))),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
                   // 일일 마감 엑셀 버튼
                   Tooltip(
                     message: '일일 마감 엑셀 (전날 13:00 ~ 오늘 13:00)',
@@ -1400,6 +1427,47 @@ class _AdminScreenState extends State<AdminScreen>
   // ──────────────────────────────────────────────
   // 일일 엑셀 내보내기 (전날 오후 1시 ~ 당일 오후 1시)
   // ──────────────────────────────────────────────
+  // ── 예시(샘플) 엑셀 파일 다운로드 ──
+  Future<void> _downloadSampleExcel() async {
+    const mimeType =
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    const fileName = '2FIT_주문엑셀_예시파일.xlsx';
+    try {
+      final bytes = OrderExcelService.generateSampleExcel();
+      if (kIsWeb) {
+        downloadFileWeb(bytes, fileName, mimeType);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(children: [
+              const Icon(Icons.file_download_done_rounded, color: Colors.white, size: 16),
+              const SizedBox(width: 8),
+              const Expanded(child: Text('예시 엑셀 파일 다운로드 완료 (PC에서 바로 열기 가능)')),
+            ]),
+            backgroundColor: const Color(0xFFF57F17),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        // 모바일/태블릿: 임시 파일 저장 후 공유
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$fileName';
+        await File(filePath).writeAsBytes(bytes, flush: true);
+        if (!mounted) return;
+        await Share.shareXFiles(
+          [XFile(filePath, mimeType: mimeType, name: fileName)],
+          subject: '2FIT MALL 엑셀 예시 파일',
+          text: '엑셀 형식 미리보기용 샘플 파일입니다. 구글 시트, 엑셀 앱으로 열 수 있습니다.',
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('예시 파일 생성 오류: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   Future<void> _exportDailyExcel() async {
     // 로딩 표시
     showDialog(
@@ -1462,16 +1530,15 @@ class _AdminScreenState extends State<AdminScreen>
   String _fmtDateKr(DateTime dt) =>
       '${dt.month}월 ${dt.day}일 ${dt.hour.toString().padLeft(2, '0')}:00';
 
-  // 엑셀 다운로드 / 공유 처리
+  // 엑셀 다운로드 / 공유 처리 (PC·태블릿·핸드폰 모두 지원)
   Future<void> _handleExcelDownload(
       Uint8List bytes, String fileName, int orderCount,
       DateTime start, DateTime end) async {
+    const mimeType =
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
     if (kIsWeb) {
-      // 웹: 바로 다운로드
-      downloadFileWeb(
-          bytes,
-          fileName,
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      // ── 웹(PC/태블릿 브라우저) : anchor 다운로드 ──
+      downloadFileWeb(bytes, fileName, mimeType);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1485,31 +1552,48 @@ class _AdminScreenState extends State<AdminScreen>
           action: SnackBarAction(
             label: '확인',
             textColor: Colors.white70,
-            onPressed: () {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            },
+            onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
           ),
         ),
       );
     } else {
-      // 모바일: share_plus로 공유 (파일 저장 후)
+      // ── 모바일/태블릿 네이티브 : 파일 저장 후 공유 ──
       try {
-        // XFile.fromData를 사용하여 직접 공유 (path_provider 없이)
-        final xFile = XFile.fromData(
-          bytes,
-          name: fileName,
-          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        );
+        // 1) 임시 디렉토리에 파일 저장
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$fileName';
+        final file = File(filePath);
+        await file.writeAsBytes(bytes, flush: true);
+
         if (!mounted) return;
-        await Share.shareXFiles(
+        // 2) 공유 시트 열기 (저장 + 다른 앱 전달 모두 가능)
+        final xFile = XFile(filePath, mimeType: mimeType, name: fileName);
+        final result = await Share.shareXFiles(
           [xFile],
           subject: '2FIT 주문내역 ${_fmtDateKr(start)} ~ ${_fmtDateKr(end)}',
           text: '$orderCount건의 주문 내역 엑셀 파일입니다.',
         );
+
+        if (!mounted) return;
+        // 공유 완료 시 성공 메시지
+        if (result.status == ShareResultStatus.success ||
+            result.status == ShareResultStatus.dismissed) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
+                const SizedBox(width: 8),
+                Expanded(child: Text('$fileName 저장·공유 완료')),
+              ]),
+              backgroundColor: const Color(0xFF00897B),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('공유 오류: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('파일 저장 오류: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -2832,7 +2916,7 @@ class _AdminScreenState extends State<AdminScreen>
               content: Row(children: [
                 const Icon(Icons.check_circle_rounded, color: Colors.white, size: 16),
                 const SizedBox(width: 8),
-                Expanded(child: Text('$fileName 다운로드 완료 (디자인이미지·인원사이즈·전체필드 포함)')),
+                Expanded(child: Text('$fileName 다운로드 완료')),
               ]),
               backgroundColor: const Color(0xFF00897B),
               duration: const Duration(seconds: 4),
@@ -2840,14 +2924,16 @@ class _AdminScreenState extends State<AdminScreen>
           );
         }
       } else {
-        // 모바일: share_plus로 공유
-        final xFile = XFile.fromData(bytes, name: fileName, mimeType: mimeType);
+        // 모바일/태블릿: 임시 파일 저장 후 공유
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$fileName';
+        await File(filePath).writeAsBytes(bytes, flush: true);
         if (!mounted) return;
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         await Share.shareXFiles(
-          [xFile],
+          [XFile(filePath, mimeType: mimeType, name: fileName)],
           subject: '2FIT 단체주문 ${teamName.replaceAll('_', ' ')} 엑셀',
-          text: '단체주문 엑셀 파일입니다. (디자인이미지·인원사이즈·전체필드 포함)',
+          text: '단체주문 엑셀 파일입니다.',
         );
       }
     } catch (e) {

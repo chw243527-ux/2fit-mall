@@ -7,6 +7,9 @@ import 'package:excel/excel.dart' hide Border;
 import '../../utils/web_utils.dart'
     if (dart.library.html) '../../utils/web_utils_html.dart';
 import 'dart:typed_data';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../../models/models.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
@@ -72,7 +75,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
     );
   }
 
-  void _exportOrdersToExcel(List<OrderModel> orders) {
+  Future<void> _exportOrdersToExcel(List<OrderModel> orders) async {
     if (orders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('내보낼 주문이 없습니다.'), backgroundColor: Colors.orange),
@@ -156,22 +159,38 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       }
     }
 
+    final encoded = excel.encode();
+    if (encoded == null) return;
+    final uint8List = Uint8List.fromList(encoded);
+    final dateStr = '${now.year}${now.month.toString().padLeft(2,'0')}${now.day.toString().padLeft(2,'0')}';
+    final fileName = '2FIT_MALL_주문내역_$dateStr.xlsx';
+    const mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
     if (kIsWeb) {
-      final bytes = excel.encode();
-      if (bytes != null) {
-        final uint8List = Uint8List.fromList(bytes);
-        final dateStr = '${now.year}${now.month.toString().padLeft(2,'0')}${now.day.toString().padLeft(2,'0')}';
-        downloadFileWeb(
-          uint8List,
-          '2FIT_MALL_주문내역_$dateStr.xlsx',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      downloadFileWeb(uint8List, fileName, mimeType);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ Excel 파일 다운로드 완료! (${orders.length}건)'),
+            backgroundColor: const Color(0xFF217346),
+          ),
         );
+      }
+    } else {
+      try {
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$fileName';
+        await File(filePath).writeAsBytes(uint8List, flush: true);
+        if (!mounted) return;
+        await Share.shareXFiles(
+          [XFile(filePath, mimeType: mimeType, name: fileName)],
+          subject: '2FIT MALL 주문내역 $dateStr',
+          text: '${orders.length}건의 주문 내역 엑셀 파일입니다.',
+        );
+      } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('✅ Excel 파일 다운로드 완료! (${orders.length}건)'),
-              backgroundColor: const Color(0xFF217346),
-            ),
+            SnackBar(content: Text('파일 공유 오류: $e'), backgroundColor: Colors.red),
           );
         }
       }
@@ -530,7 +549,7 @@ class _AdminInventoryTabState extends State<AdminInventoryTab> {
     );
   }
 
-  void _exportProductsToExcel(List<ProductModel> products) {
+  Future<void> _exportProductsToExcel(List<ProductModel> products) async {
     if (products.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('내보낼 상품이 없습니다.')),
@@ -572,22 +591,39 @@ class _AdminInventoryTabState extends State<AdminInventoryTab> {
         cell.cellStyle = rowStyle;
       }
     }
+    final encodedProduct = excel.encode();
+    if (encodedProduct == null) return;
+    final now = DateTime.now();
+    final dateStrP = '${now.year}${now.month.toString().padLeft(2,'0')}${now.day.toString().padLeft(2,'0')}';
+    final fileNameP = '2FIT_MALL_상품목록_$dateStrP.xlsx';
+    const mimeTypeP = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    final bytesP = Uint8List.fromList(encodedProduct);
+
     if (kIsWeb) {
-      final bytes = excel.encode();
-      if (bytes != null) {
-        final now = DateTime.now();
-        final dateStr = '${now.year}${now.month.toString().padLeft(2,'0')}${now.day.toString().padLeft(2,'0')}';
-        downloadFileWeb(
-          Uint8List.fromList(bytes),
-          '2FIT_MALL_상품목록_$dateStr.xlsx',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      downloadFileWeb(bytesP, fileNameP, mimeTypeP);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ 상품 목록 Excel 다운로드! (${products.length}개)'),
+            backgroundColor: const Color(0xFF217346),
+          ),
         );
+      }
+    } else {
+      try {
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$fileNameP';
+        await File(filePath).writeAsBytes(bytesP, flush: true);
+        if (!mounted) return;
+        await Share.shareXFiles(
+          [XFile(filePath, mimeType: mimeTypeP, name: fileNameP)],
+          subject: '2FIT MALL 상품목록 $dateStrP',
+          text: '${products.length}개 상품 목록 엑셀 파일입니다.',
+        );
+      } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('✅ 상품 목록 Excel 다운로드! (${products.length}개)'),
-              backgroundColor: const Color(0xFF217346),
-            ),
+            SnackBar(content: Text('파일 공유 오류: $e'), backgroundColor: Colors.red),
           );
         }
       }
