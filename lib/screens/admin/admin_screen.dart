@@ -1146,10 +1146,11 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
               ),
             ),
-            // ── 전체선택 + 일괄삭제 툴바 ──
-            Container(
-              color: const Color(0xFFF4F6FA),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            // ── 전체선택 + 일괄액션 툴바 ──
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              color: anySelected ? const Color(0xFFEEF2FF) : const Color(0xFFF4F6FA),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               child: Row(
                 children: [
                   // 전체선택 체크박스
@@ -1165,47 +1166,96 @@ class _AdminScreenState extends State<AdminScreen>
                     },
                     child: Row(
                       children: [
-                        Icon(
-                          allSelected
-                              ? Icons.check_box_rounded
-                              : _selectedOrderIds.isEmpty
-                                  ? Icons.check_box_outline_blank_rounded
-                                  : Icons.indeterminate_check_box_rounded,
-                          color: const Color(0xFF1A1A2E),
-                          size: 18,
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 150),
+                          child: Icon(
+                            allSelected
+                                ? Icons.check_box_rounded
+                                : _selectedOrderIds.isEmpty
+                                    ? Icons.check_box_outline_blank_rounded
+                                    : Icons.indeterminate_check_box_rounded,
+                            key: ValueKey(allSelected ? 'all' : _selectedOrderIds.isEmpty ? 'none' : 'partial'),
+                            color: allSelected || !_selectedOrderIds.isEmpty
+                                ? const Color(0xFF3949AB)
+                                : const Color(0xFF888888),
+                            size: 20,
+                          ),
                         ),
                         const SizedBox(width: 5),
-                        const Text('전체선택',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF444444))),
+                        Text(
+                          anySelected ? '전체선택' : '전체선택',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: anySelected ? const Color(0xFF3949AB) : const Color(0xFF444444),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    '총 ${filtered.length}건 · 선택 ${_selectedOrderIds.length}건',
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                  const SizedBox(width: 10),
+                  // 선택 카운트 배지
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: anySelected
+                        ? Container(
+                            key: const ValueKey('badge'),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3949AB),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${_selectedOrderIds.length}건 선택',
+                              style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700),
+                            ),
+                          )
+                        : Text(
+                            '총 ${filtered.length}건',
+                            key: const ValueKey('total'),
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                          ),
                   ),
                   const Spacer(),
-                  // 일괄 상태변경
-                  if (anySelected)
+                  // 선택 시 액션 버튼들
+                  if (anySelected) ...[
+                    // 선택 엑셀 다운로드
                     GestureDetector(
-                      onTap: () => _showBulkStatusChangeDialog(filtered),
+                      onTap: () => _exportSelectedOrdersExcel(
+                        filtered.where((o) => _selectedOrderIds.contains(o.id)).toList(),
+                      ),
                       child: Container(
-                        margin: const EdgeInsets.only(right: 8),
+                        margin: const EdgeInsets.only(right: 6),
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE8EAF6),
+                          color: const Color(0xFF2E7D32),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Row(children: [
-                          Icon(Icons.sync_rounded, color: Color(0xFF3949AB), size: 14),
+                          Icon(Icons.table_chart_rounded, color: Colors.white, size: 13),
                           SizedBox(width: 4),
-                          Text('상태변경', style: TextStyle(color: Color(0xFF3949AB), fontSize: 12, fontWeight: FontWeight.w700)),
+                          Text('엑셀', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
                         ]),
                       ),
                     ),
-                  // 선택 삭제
-                  if (anySelected)
+                    // 일괄 상태변경
+                    GestureDetector(
+                      onTap: () => _showBulkStatusChangeDialog(filtered),
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3949AB),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(children: [
+                          Icon(Icons.sync_rounded, color: Colors.white, size: 13),
+                          SizedBox(width: 4),
+                          Text('상태', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                        ]),
+                      ),
+                    ),
+                    // 선택 삭제
                     GestureDetector(
                       onTap: () async {
                         final ok = await showDialog<bool>(
@@ -1229,30 +1279,36 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                         );
                         if (ok == true && mounted) {
-                          // Firestore에서 실제 삭제
                           for (final id in _selectedOrderIds.toList()) {
                             await OrderService.deleteOrder(id);
                           }
                           setState(() => _selectedOrderIds.clear());
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('선택한 주문이 삭제되었습니다'), backgroundColor: Color(0xFF1A1A2E)),
-                          );
+                              const SnackBar(content: Text('선택한 주문이 삭제되었습니다'), backgroundColor: Color(0xFF1A1A2E)),
+                            );
                           }
                         }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFFEBEE),
+                          color: const Color(0xFFE53935),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Row(children: [
-                          Icon(Icons.delete_sweep_rounded, color: Color(0xFFE53935), size: 14),
+                          Icon(Icons.delete_sweep_rounded, color: Colors.white, size: 13),
                           SizedBox(width: 4),
-                          Text('선택삭제', style: TextStyle(color: Color(0xFFE53935), fontSize: 12, fontWeight: FontWeight.w700)),
+                          Text('삭제', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
                         ]),
                       ),
+                    ),
+                  ],
+                  // 선택 없을 때 힌트
+                  if (!anySelected)
+                    const Text(
+                      '카드를 눌러 상세보기  ·  □ 체크로 선택',
+                      style: TextStyle(fontSize: 10, color: Color(0xFFAAAAAA)),
                     ),
                 ],
               ),
@@ -1283,6 +1339,53 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // CSV 내보내기
+  // ── 선택 주문 엑셀 내보내기 ──
+  Future<void> _exportSelectedOrdersExcel(List<OrderModel> selectedOrders) async {
+    if (selectedOrders.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('선택된 주문이 없습니다.'), backgroundColor: Color(0xFF555555)),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Color(0xFF1A1A2E)),
+                SizedBox(height: 16),
+                Text('엑셀 파일 생성 중...', style: TextStyle(fontSize: 14)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final now = DateTime.now();
+      final bytes = await OrderExcelService.generateSelectedOrdersExcel(selectedOrders, now);
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+
+      final dateStr = '${now.year}${now.month.toString().padLeft(2,'0')}${now.day.toString().padLeft(2,'0')}_${now.hour.toString().padLeft(2,'0')}${now.minute.toString().padLeft(2,'0')}';
+      final fileName = '2FIT_선택주문_${selectedOrders.length}건_$dateStr.xlsx';
+      await _handleExcelDownload(bytes, fileName, selectedOrders.length, now, now);
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('엑셀 생성 오류: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   void _exportOrdersCSV(List<OrderModel> orders) {
     if (orders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2025,13 +2128,8 @@ class _AdminScreenState extends State<AdminScreen>
     final opts = order.customOptions;
 
     return GestureDetector(
-      onTap: () => setState(() {
-        if (isSelected) {
-          _selectedOrderIds.remove(order.id);
-        } else {
-          _selectedOrderIds.add(order.id);
-        }
-      }),
+      // 카드 탭 → 주문 상세 보기
+      onTap: () => _showOrderDetailDialog(order),
       child: AnimatedContainer(
       duration: const Duration(milliseconds: 150),
       decoration: BoxDecoration(
@@ -2050,7 +2148,7 @@ class _AdminScreenState extends State<AdminScreen>
         children: [
           // 헤더
           Container(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+            padding: const EdgeInsets.fromLTRB(10, 10, 14, 10),
             decoration: BoxDecoration(
               color: isSelected ? const Color(0xFFE8EAF6) : isGroup ? const Color(0xFFF3E5F5) : const Color(0xFFFAFAFA),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
@@ -2058,11 +2156,24 @@ class _AdminScreenState extends State<AdminScreen>
             ),
             child: Row(
               children: [
-                // 체크박스
-                Icon(
-                  isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                  color: isSelected ? const Color(0xFF3949AB) : const Color(0xFFCCCCCC),
-                  size: 18,
+                // 체크박스 — 탭 시 선택/해제 (카드 탭과 독립)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => setState(() {
+                    if (isSelected) {
+                      _selectedOrderIds.remove(order.id);
+                    } else {
+                      _selectedOrderIds.add(order.id);
+                    }
+                  }),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8, left: 4),
+                    child: Icon(
+                      isSelected ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                      color: isSelected ? const Color(0xFF3949AB) : const Color(0xFFBBBBBB),
+                      size: 20,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -2231,6 +2342,196 @@ class _AdminScreenState extends State<AdminScreen>
         ],
       ),
     ),   // AnimatedContainer
+    );
+  }
+
+  // ── 주문 상세 보기 다이얼로그 (모든 주문 공통) ──
+  void _showOrderDetailDialog(OrderModel order) {
+    final isGroup = order.orderType == 'group' || order.orderType == 'additional';
+    if (isGroup) {
+      _showGroupOrderDetail(order);
+    } else {
+      _showPersonalOrderDetail(order);
+    }
+  }
+
+  // ── 개인 주문 상세 보기 ──
+  void _showPersonalOrderDetail(OrderModel order) {
+    final statusColor = _statusColor(order.status);
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 480, maxHeight: 640),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 헤더
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [const Color(0xFF1A1A2E), const Color(0xFF2D2D5E)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(order.id,
+                              style: const TextStyle(color: Colors.white70, fontSize: 11),
+                              overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 2),
+                          Text(_fmtDate(order.createdAt),
+                              style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: statusColor.withValues(alpha: 0.5)),
+                      ),
+                      child: Text(order.status.label,
+                          style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w700)),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white70, size: 20),
+                      onPressed: () => Navigator.pop(context),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 주문자 정보
+                      _detailSection('주문자 정보', [
+                        _detailRow(Icons.person_outline, '이름', order.userName),
+                        _detailRow(Icons.phone_outlined, '연락처', PrivacyService.maskPhone(order.userPhone)),
+                        _detailRow(Icons.email_outlined, '이메일', order.userEmail.isNotEmpty ? order.userEmail : '-'),
+                        _detailRow(Icons.location_on_outlined, '배송지', order.userAddress.isNotEmpty ? order.userAddress : '-'),
+                      ]),
+                      const SizedBox(height: 12),
+                      // 주문 상품
+                      const Text('주문 상품',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
+                      const SizedBox(height: 8),
+                      ...order.items.map((item) => Container(
+                        margin: const EdgeInsets.only(bottom: 6),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9FA),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFEEEEEE)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.productName,
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                _miniTag(item.size.isNotEmpty ? item.size : '-', const Color(0xFF1565C0)),
+                                const SizedBox(width: 4),
+                                _miniTag(item.color.isNotEmpty ? item.color : '-', const Color(0xFFE65100)),
+                                const Spacer(),
+                                Text('${item.quantity}개',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                Text(' · ${_fmtPrice(item.price * item.quantity)}원',
+                                    style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                              ],
+                            ),
+                          ],
+                        ),
+                      )),
+                      const SizedBox(height: 12),
+                      // 결제 정보
+                      _detailSection('결제 정보', [
+                        _detailRow(Icons.payments_outlined, '결제 방법', order.paymentMethod),
+                        _detailRow(Icons.local_shipping_outlined, '배송비', '${_fmtPrice(order.shippingFee)}원'),
+                        _detailRow(Icons.receipt_outlined, '합계', '${_fmtPrice(order.totalAmount)}원'),
+                        if (order.memo != null && order.memo!.isNotEmpty)
+                          _detailRow(Icons.notes_outlined, '메모', order.memo!),
+                      ]),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A1A2E),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(44),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('닫기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _detailSection(String title, List<Widget> rows) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFFEEEEEE)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(children: rows),
+        ),
+      ],
+    );
+  }
+
+  Widget _detailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: const Color(0xFF888888)),
+          const SizedBox(width: 6),
+          SizedBox(
+            width: 70,
+            child: Text(label,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+          ),
+          Expanded(
+            child: Text(value,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+          ),
+        ],
+      ),
     );
   }
 
