@@ -14,25 +14,10 @@ class GroupOrderGuideScreen extends StatefulWidget {
   State<GroupOrderGuideScreen> createState() => _GroupOrderGuideScreenState();
 }
 
-class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
-    with SingleTickerProviderStateMixin {
+class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
-  late TabController _tab;
   bool _agreed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _tab = TabController(length: 2, vsync: this);
-    _tab.addListener(() => setState(() {}));
-  }
-
-  @override
-  void dispose() {
-    _tab.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,35 +42,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
               )
             : null,
       ),
-      body: Column(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Color(0xFFE0E0E0))),
-            ),
-            child: TabBar(
-              controller: _tab,
-              labelColor: const Color(0xFF6A1B9A),
-              unselectedLabelColor: const Color(0xFF888888),
-              indicatorColor: const Color(0xFF6A1B9A),
-              indicatorWeight: 3,
-              tabs: [
-                Tab(text: loc.groupOrderGuideTabOrder),
-                Tab(text: loc.groupOrderGuideTabForm),
-              ],
-            ),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tab,
-              children: [
-                _buildGuideTab(context),
-                _buildFormTab(context),
-              ],
-            ),
-          ),
-        ],
-      ),
+      body: _buildGuideTab(context),
     );
   }
 
@@ -113,38 +70,12 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 좌측: 탭 안내 콘텐츠 ──
+                // ── 좌측: 주문 안내 콘텐츠 ──
                 Expanded(
                   flex: 7,
-                  child: Column(
-                    children: [
-                      Container(
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          border: Border(bottom: BorderSide(color: Color(0xFFE0E0E0))),
-                        ),
-                        child: TabBar(
-                          controller: _tab,
-                          labelColor: const Color(0xFF6A1B9A),
-                          unselectedLabelColor: const Color(0xFF888888),
-                          indicatorColor: const Color(0xFF6A1B9A),
-                          indicatorWeight: 3,
-                          tabs: const [
-                            Tab(text: '주문 안내'),
-                            Tab(text: '주문 양식'),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: TabBarView(
-                          controller: _tab,
-                          children: [
-                            _buildGuideTab(context),
-                            _buildFormTab(context),
-                          ],
-                        ),
-                      ),
-                    ],
+                  child: Container(
+                    decoration: const BoxDecoration(color: Colors.white),
+                    child: _buildGuideTab(context),
                   ),
                 ),
                 const SizedBox(width: 24),
@@ -206,8 +137,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           const SizedBox(height: 10),
           _pcBenefitRow(context, '✅', '5↑', loc.groupOrderGuideQtyRule5, const Color(0xFF1565C0)),
           _pcBenefitRow(context, '🏷️', '10↑', loc.groupOrderGuideQtyRule10, const Color(0xFF2E7D32)),
-          _pcBenefitRow(context, '🏆', '30↑', loc.groupOrderBenefit3, const Color(0xFFFF6B35)),
-          _pcBenefitRow(context, '🥇', '50↑', loc.groupOrderBenefit4, const Color(0xFF6A1B9A)),
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 12),
@@ -387,9 +316,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
                     style: const TextStyle(fontSize: 13, height: 1.7)),
                 Text(loc.groupOrderGuideWaistband2,
                     style: const TextStyle(fontSize: 13, height: 1.7)),
-                const SizedBox(height: 4),
-                Text(loc.groupOrderGuideWaistband3,
-                    style: const TextStyle(fontSize: 13, height: 1.7, fontWeight: FontWeight.w700, color: Color(0xFFE65100))),
               ],
             ),
           ),
@@ -434,12 +360,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
             ),
           );}),
           const SizedBox(height: 24),
-
-          // 수량별 할인 (스크린샷: 30개 10%, 50개 20%, 100개 별도협의)
-          _SectionHeader2('🏷️', loc.groupOrderGuideDiscountTitle),
-          const SizedBox(height: 12),
-          _buildDiscountTable(),
-          const SizedBox(height: 16),
 
           // 추가 주문 안내
           _SectionHeader2('➕', loc.groupOrderGuideAdditionalTitle),
@@ -557,90 +477,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
     );
   }
 
-  // ═══════════════════════════════════════════════════
-  // 탭2: 주문 양식
-  // ═══════════════════════════════════════════════════
-  Widget _buildFormTab(BuildContext context) {
-    if (!_agreed) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.lock_outlined, size: 64, color: Color(0xFFCCCCCC)),
-              const SizedBox(height: 16),
-              Text(
-                context.watch<LanguageProvider>().loc.groupOrderGuideLockedMsg,
-                style: const TextStyle(fontSize: 15, height: 1.5),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: () => _tab.animateTo(0),
-                icon: const Icon(Icons.info_outline, size: 16),
-                label: Text(context.watch<LanguageProvider>().loc.groupOrderGuideViewOrderGuide),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6A1B9A),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // 동의 완료 → 버튼 탭 시 GroupOrderFormScreen으로 이동
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.check_circle_rounded, size: 64, color: Color(0xFF6A1B9A)),
-            const SizedBox(height: 16),
-            const Text(
-              '주문 안내에 동의하셨습니다.\n주문서 작성을 시작해 주세요.',
-              style: TextStyle(fontSize: 15, height: 1.6),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => GroupOrderFormScreen(product: widget.product),
-                    ),
-                  ).then((_) {
-                    if (mounted) {
-                      _tab.animateTo(0);
-                      setState(() => _agreed = false);
-                    }
-                  });
-                },
-                icon: const Icon(Icons.edit_note_rounded, size: 20),
-                label: const Text('주문서 작성하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6A1B9A),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ── 선택 상품 카드 ──
   Widget _buildProductCard(ProductModel product) {
     final imageUrl = product.images.isNotEmpty ? product.images.first : '';
@@ -710,47 +546,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
       ),
       child: Text(text,
           style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
-    );
-  }
-
-  // ── 수량별 할인 테이블 ──
-  Widget _buildDiscountTable() {
-    final rows = [
-      {'qty': '30개 이상', 'discount': '10% 할인', 'color': const Color(0xFF1565C0)},
-      {'qty': '50개 이상', 'discount': '20% 할인', 'color': const Color(0xFF6A1B9A)},
-      {'qty': '100개 이상', 'discount': '별도 협의', 'color': const Color(0xFFC62828)},
-    ];
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF8E1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFFFCC80)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            const Icon(Icons.discount_rounded, size: 16, color: Color(0xFFE65100)),
-            const SizedBox(width: 6),
-            const Text('대량 주문 할인', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFFE65100))),
-          ]),
-          const SizedBox(height: 10),
-          ...rows.map((r) => Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(children: [
-              Container(
-                width: 8, height: 8,
-                decoration: BoxDecoration(color: r['color'] as Color, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 8),
-              Expanded(child: Text('${r['qty']}: ', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700))),
-              Text(r['discount'] as String, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: r['color'] as Color)),
-            ]),
-          )),
-        ],
-      ),
     );
   }
 
@@ -1092,7 +887,40 @@ class _SizeTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = loc ?? context.watch<LanguageProvider>().loc;
-    final headers = [l.sizeLabel, '${l.chestLabel}(cm)', '${l.waistLabel}(cm)', '${l.hipLabel}(cm)', '${l.heightLabel}(cm)'];
+    final headers = [l.sizeLabel, l.chestLabel, l.waistLabel, l.hipLabel, l.heightLabel];
+    // 컬럼 flex 비율: 사이즈(1) 가슴(2) 허리(2) 엉덩이(2) 키(2)
+    const colFlex = [1, 2, 2, 2, 2];
+
+    Widget headerCell(String text, int flex) => Expanded(
+      flex: flex,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        color: headerColor.withValues(alpha: 0.12),
+        alignment: Alignment.center,
+        child: Text(text,
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: headerColor),
+            textAlign: TextAlign.center),
+      ),
+    );
+
+    Widget dataCell(String text, int flex, bool isEven, bool isSizeCol) => Expanded(
+      flex: flex,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        color: isSizeCol
+            ? headerColor.withValues(alpha: 0.07)
+            : (isEven ? Colors.white.withValues(alpha: 0.6) : Colors.transparent),
+        alignment: Alignment.center,
+        child: Text(text,
+            style: TextStyle(
+              fontSize: isSizeCol ? 11 : 10,
+              fontWeight: isSizeCol ? FontWeight.w800 : FontWeight.w500,
+              color: isSizeCol ? headerColor : const Color(0xFF333333),
+            ),
+            textAlign: TextAlign.center),
+      ),
+    );
+
     return Container(
       decoration: BoxDecoration(
         color: bgColor,
@@ -1102,34 +930,39 @@ class _SizeTable extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 제목
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
             child: Row(
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 18)),
-                const SizedBox(width: 8),
-                Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: headerColor)),
+                Text(emoji, style: const TextStyle(fontSize: 16)),
+                const SizedBox(width: 6),
+                Text(title,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: headerColor)),
+                const SizedBox(width: 6),
+                Text('(cm)', style: TextStyle(fontSize: 10, color: headerColor.withValues(alpha: 0.7))),
               ],
             ),
           ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              headingRowColor: WidgetStateProperty.all(headerColor.withValues(alpha: 0.1)),
-              headingRowHeight: 36,
-              dataRowMinHeight: 32,
-              dataRowMaxHeight: 32,
-              columnSpacing: 16,
-              columns: headers.map((h) => DataColumn(
-                label: Text(h, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: headerColor)),
-              )).toList(),
-              rows: rows.map((r) => DataRow(
-                cells: r.map((c) => DataCell(
-                  Text(c, style: const TextStyle(fontSize: 12)),
-                )).toList(),
-              )).toList(),
-            ),
-          ),
+          // 헤더 행
+          Row(children: [
+            for (int i = 0; i < headers.length; i++)
+              headerCell(headers[i], colFlex[i]),
+          ]),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFDDDDDD)),
+          // 데이터 행
+          ...rows.asMap().entries.map((e) {
+            final isEven = e.key % 2 == 0;
+            return Column(children: [
+              Row(children: [
+                for (int i = 0; i < e.value.length; i++)
+                  dataCell(e.value[i], colFlex[i], isEven, i == 0),
+              ]),
+              if (e.key < rows.length - 1)
+                Divider(height: 1, thickness: 0.5, color: headerColor.withValues(alpha: 0.15)),
+            ]);
+          }),
+          const SizedBox(height: 4),
         ],
       ),
     );
