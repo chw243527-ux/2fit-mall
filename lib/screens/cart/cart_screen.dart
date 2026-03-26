@@ -612,6 +612,23 @@ class CartScreen extends StatelessWidget {
   }
 
   void _showCheckoutSheet(BuildContext context, CartProvider cart) {
+    // 로그인 체크
+    final user = context.read<UserProvider>().user;
+    final loc  = context.read<LanguageProvider>().loc;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.loginRequired),
+          backgroundColor: Colors.redAccent,
+          action: SnackBarAction(
+            label: loc.login,
+            textColor: Colors.white,
+            onPressed: () => Navigator.pushNamed(context, '/login'),
+          ),
+        ),
+      );
+      return;
+    }
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -639,19 +656,22 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
   final _nameCtrl    = TextEditingController();
   final _phoneCtrl   = TextEditingController();
   final _addressCtrl = TextEditingController();
-  String _selectedPayment = 'kakao';
+  String? _selectedPayment;   // null → build 시점에 loc 값으로 초기화
   bool   _isProcessing    = false;
 
   @override
   void initState() {
     super.initState();
-    // 로그인된 사용자 정보 자동 채우기
+    // 로그인된 사용자 정보 자동 채우기 + 결제수단 초기화
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final user = context.read<UserProvider>().user;
+      final l = context.read<LanguageProvider>().loc;
       if (user != null) {
         _nameCtrl.text  = user.name;
         _phoneCtrl.text = user.phone;
       }
+      setState(() => _selectedPayment = l.checkoutKakaoPayMethod);
     });
   }
 
@@ -742,7 +762,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                     _buildPriceSummary(),
                     const SizedBox(height: 8),
                     // 무통장 안내
-                    if (_selectedPayment == loc.checkoutBankMethod)
+                    if (_selectedPayment == loc.checkoutBankMethod && _selectedPayment != null)
                       Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(12),
@@ -1002,6 +1022,16 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
 
   // ─── 실제 결제 처리 ──────────────────────────────────────────────
   Future<void> _processPayment() async {
+    // 0. 결제수단 미선택 체크
+    if (_selectedPayment == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.checkoutSelectPayment),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
     // 1. 입력 검증
     if (_nameCtrl.text.trim().isEmpty ||
         _phoneCtrl.text.trim().isEmpty ||
@@ -1026,7 +1056,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
       final orderId = OrderService.generateOrderId();
 
       // 3. 무통장입금 → 바로 주문 저장
-      if (_selectedPayment == '무통장입금') {
+      if (_selectedPayment == loc.checkoutBankMethod) {
         await _saveAndComplete(
           orderId:    orderId,
           orderProv:  orderProv,
@@ -1046,7 +1076,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
         amount:        widget.cart.total.toInt(),
         customerName:  _nameCtrl.text.trim(),
         customerEmail: user?.email ?? 'guest@2fit.co.kr',
-        paymentMethod: _selectedPayment,
+        paymentMethod: _selectedPayment!,
       );
 
       if (!mounted) return;
@@ -1058,7 +1088,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
           orderProv:  orderProv,
           userProv:   userProv,
           paid:       true,
-          payMethod:  _selectedPayment,
+          payMethod:  _selectedPayment!,
           paymentKey: result.paymentKey,
         );
       } else {

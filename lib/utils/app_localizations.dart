@@ -10572,6 +10572,13 @@ class AppLocalizations {
     case AppLanguage.mongolian: return 'Банкны шилжүүлэг';
     default: return '무통장입금';
   }}
+  String get checkoutSelectPayment { switch (language) {
+    case AppLanguage.english: return 'Please select a payment method.';
+    case AppLanguage.japanese: return 'お支払い方法を選択してください。';
+    case AppLanguage.chinese: return '请选择支付方式。';
+    case AppLanguage.mongolian: return 'Төлбөрийн аргыг сонгоно уу.';
+    default: return '결제 수단을 선택해 주세요.';
+  }}
   String get checkoutNaverPayMethod { switch (language) {
     case AppLanguage.english: return 'NaverPay';
     case AppLanguage.japanese: return 'ネイバーペイ';

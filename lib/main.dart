@@ -19,6 +19,7 @@ import 'screens/orders/group_order_only_screen.dart';
 import 'screens/orders/order_guide_screen.dart';
 import 'screens/orders/group_custom_order_screen.dart';
 import 'models/models.dart';
+import 'screens/auth/login_screen.dart';
 import 'screens/chat/chat_screen.dart';
 import 'screens/policy/privacy_policy_screen.dart';
 import 'screens/admin/admin_screen.dart';
@@ -96,6 +97,11 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         home: const _AppInit(),
         onGenerateRoute: (settings) {
           switch (settings.name) {
+            case '/login':
+              return MaterialPageRoute(
+                builder: (_) => const LoginScreen(),
+                settings: settings,
+              );
             case '/cart':
               return MaterialPageRoute(
                 builder: (_) => const CartScreen(),
