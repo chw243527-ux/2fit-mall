@@ -22,6 +22,7 @@ class GroupOrderFormScreen extends StatefulWidget {
   final bool isAdditionalOrder;
   final int initialPrintType;
   final int initialCount;
+  final OrderModel? originalOrder; // 추가주문 시 기존 주문 참조
 
   const GroupOrderFormScreen({
     super.key,
@@ -29,6 +30,7 @@ class GroupOrderFormScreen extends StatefulWidget {
     this.isAdditionalOrder = false,
     this.initialPrintType = 0,
     this.initialCount = 0,
+    this.originalOrder,
   });
 
   @override
@@ -39,6 +41,7 @@ class GroupOrderFormScreen extends StatefulWidget {
 class _PersonEntry {
   int index;
   String? gender;
+  String sizeType = '성인'; // '성인' or '주니어'
 
   // 상의/하의 직접 입력 컨트롤러
   final TextEditingController topSizeCtrl    = TextEditingController(); // 상의 사이즈 직접입력
@@ -146,6 +149,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   bool get _hasTeamName    => _printType == 1 || _printType == 2 || _printType == 3;
 
   bool get _nameEnabled    => _totalCount >= 10;
+  OrderModel? get _originalOrder => widget.originalOrder;
 
   int    get _fabricExtra  => AppConstants.fabricTypePrices[_fabricType] ?? 0;
   double get _basePrice    => widget.product?.price ?? 0.0;
@@ -301,6 +305,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
     final customOptions = <String, dynamic>{
       'orderType'      : _isAdditional ? 'additional' : 'group',
+      'originalOrderId': _isAdditional && _originalOrder != null ? _originalOrder!.id : null,
+      'originalOrderDate': _isAdditional && _originalOrder != null ? _originalOrder!.createdAt.toIso8601String() : null,
+      'originalTeamName': _isAdditional && _originalOrder != null ? (_originalOrder!.customOptions?['teamName'] ?? _originalOrder!.groupName ?? '') : null,
+      'originalTotalCount': _isAdditional && _originalOrder != null ? (_originalOrder!.groupCount ?? 0) : null,
+      'originalStatus': _isAdditional && _originalOrder != null ? _originalOrder!.status.name : null,
       'printType'      : _printType,
       'mainColor'      : _mainColorName,
       'adjustedColorHex': '#${_adjustedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
@@ -319,6 +328,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         'index'     : p.index,
         'name'      : p.nameCtrl.text.trim(),
         'gender'    : p.gender,
+        'sizeType'  : p.sizeType,
         'topSize'   : p.topSizeCtrl.text.trim(),
         'bottomSize': p.bottomSizeCtrl.text.trim(),
         'length'    : _defaultLength,
@@ -1687,27 +1697,38 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900)),
             ),
             const SizedBox(width: 8),
-            // 이름
+            // 이름 (10명 이상일 때만 입력 가능)
             Expanded(
-              child: TextField(
-                controller: p.nameCtrl,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                decoration: InputDecoration(
-                  hintText: '이름 입력 (선택)',
-                  hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400),
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(color: Colors.grey.shade300)),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: BorderSide(color: Colors.grey.shade300)),
-                  focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                      borderSide: const BorderSide(color: _purple, width: 1.5)),
+              child: Tooltip(
+                message: _nameEnabled ? '' : '10명 이상일 때 이름 입력 가능',
+                child: TextField(
+                  controller: p.nameCtrl,
+                  enabled: _nameEnabled,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _nameEnabled ? Colors.black87 : Colors.grey.shade400,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: _nameEnabled ? '이름 입력' : '10명 이상 시 입력',
+                    hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                    filled: true,
+                    fillColor: _nameEnabled ? Colors.white : Colors.grey.shade100,
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: BorderSide(color: Colors.grey.shade300)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: BorderSide(color: Colors.grey.shade300)),
+                    disabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: BorderSide(color: Colors.grey.shade200)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        borderSide: const BorderSide(color: _purple, width: 1.5)),
+                  ),
                 ),
               ),
             ),
@@ -1737,21 +1758,33 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           padding: const EdgeInsets.all(12),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-            // ① 상의 사이즈 직접입력
+            // ① 성인/주니어 구분 선택
+            Row(children: [
+              const Icon(Icons.person_outline_rounded, size: 14, color: Color(0xFF6A1B9A)),
+              const SizedBox(width: 5),
+              const Text('사이즈 구분', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
+              const SizedBox(width: 10),
+              _sizeTypeBtn('성인', p, Colors.indigo),
+              const SizedBox(width: 6),
+              _sizeTypeBtn('주니어', p, Colors.teal),
+            ]),
+            const SizedBox(height: 8),
+
+            // ② 상의 사이즈 직접입력
             _sizeInputField(
               label: '상의 사이즈',
               icon: Icons.checkroom_outlined,
               ctrl: p.topSizeCtrl,
-              hint: '예) M, L, XL, 95 등',
+              hint: p.sizeType == '주니어' ? '예) 110, 120, 130, 140 등' : '예) M, L, XL, 95 등',
             ),
             const SizedBox(height: 10),
 
-            // ② 하의 사이즈 직접입력
+            // ③ 하의 사이즈 직접입력
             _sizeInputField(
               label: '하의 사이즈',
               icon: Icons.accessibility_new_rounded,
               ctrl: p.bottomSizeCtrl,
-              hint: '예) M, L, XL, 95 등',
+              hint: p.sizeType == '주니어' ? '예) 110, 120, 130, 140 등' : '예) M, L, XL, 95 등',
             ),
             const SizedBox(height: 10),
 
@@ -1933,6 +1966,30 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.orange.shade300)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.orange.shade200)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.orange.shade500, width: 1.5)),
+      ),
+    );
+  }
+
+  Widget _sizeTypeBtn(String label, _PersonEntry p, Color color) {
+    final isSel = p.sizeType == label;
+    return GestureDetector(
+      onTap: () => setState(() {
+        p.sizeType = label;
+        p.topSizeCtrl.clear();
+        p.bottomSizeCtrl.clear();
+      }),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSel ? color : Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: isSel ? color : Colors.grey.shade300, width: 1.5),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 12, fontWeight: FontWeight.w800,
+                color: isSel ? Colors.white : Colors.black54)),
       ),
     );
   }

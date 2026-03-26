@@ -2866,9 +2866,10 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
                   onPressed: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => const GroupOrderFormScreen(
+                      builder: (_) => GroupOrderFormScreen(
                         product: null,
                         isAdditionalOrder: true,
+                        originalOrder: widget.order,
                       ),
                     ));
                   },
