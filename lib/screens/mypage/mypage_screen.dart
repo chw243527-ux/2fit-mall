@@ -14,6 +14,7 @@ import '../../widgets/color_picker_widget.dart';
 import '../../widgets/pc_layout.dart';
 import '../../services/order_service.dart';
 import '../../widgets/kakao_address_search.dart';
+import 'size_profile_screen.dart';
 
 class MyPageScreen extends StatefulWidget {
   final VoidCallback? onBack; // 홈(탭0)으로 돌아가는 콜백
@@ -135,6 +136,7 @@ class _MyPageScreenState extends State<MyPageScreen>
               await AuthService.logout();
               up.logout();
               if (ctx.mounted) {
+                ctx.read<SizeProfileProvider>().clear();
                 Navigator.of(ctx).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (route) => false,
@@ -1460,6 +1462,15 @@ class _PcSettingsTab extends StatelessWidget {
                       onTap: user != null ? () => onShowProfileEdit(context, user) : null),
                     _PcSettingItem(icon: Icons.location_on_rounded, title: loc.mypageAddressBook,
                       onTap: () => onShowAddressManager(context)),
+                    _PcSettingItem(
+                      icon: Icons.straighten_rounded,
+                      title: '내 사이즈 관리',
+                      subtitle: '저장된 사이즈로 주문 시 빠르게 입력',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SizeProfileScreen()),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -2426,6 +2437,15 @@ class _MobileSettingsTab extends StatelessWidget {
             onTap: user != null ? () => onShowProfileEdit(context, user) : null),
           _MobileSettingItem(icon: Icons.location_on_rounded, title: loc.mypageAddressBook,
             onTap: () => onShowAddressManager(context)),
+          _MobileSettingItem(
+            icon: Icons.straighten_rounded,
+            title: '내 사이즈 관리',
+            subtitle: '저장된 사이즈로 주문 시 빠르게 입력',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SizeProfileScreen()),
+            ),
+          ),
         ]),
         const SizedBox(height: 16),
         _MobileSettingGroup(title: loc.mypageNotificationSection, items: [

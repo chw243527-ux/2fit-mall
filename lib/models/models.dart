@@ -650,6 +650,74 @@ class UserModel {
   }
 }
 
+// ── 사이즈 프로필 ────────────────────────────────────────
+class SizeProfile {
+  final String id;          // Firestore 문서 ID
+  final String userId;      // 소유 유저 ID
+  String profileName;       // 프로필 이름 (예: "내 기본 사이즈", "겨울 오버핏")
+  String gender;            // 'male' | 'female'
+  String sizeType;          // '성인' | '주니어'
+  String topSize;           // 상의 사이즈
+  String bottomSize;        // 하의 사이즈
+  String height;            // 키
+  String weight;            // 몸무게
+  String waist;             // 허리
+  String thigh;             // 허벅지
+  DateTime updatedAt;
+
+  SizeProfile({
+    required this.id,
+    required this.userId,
+    required this.profileName,
+    required this.gender,
+    this.sizeType = '성인',
+    required this.topSize,
+    required this.bottomSize,
+    this.height = '',
+    this.weight = '',
+    this.waist = '',
+    this.thigh = '',
+    DateTime? updatedAt,
+  }) : updatedAt = updatedAt ?? DateTime.now();
+
+  factory SizeProfile.fromJson(String docId, Map<String, dynamic> json) {
+    return SizeProfile(
+      id: docId,
+      userId: json['userId'] as String? ?? '',
+      profileName: json['profileName'] as String? ?? '내 사이즈',
+      gender: json['gender'] as String? ?? 'male',
+      sizeType: json['sizeType'] as String? ?? '성인',
+      topSize: json['topSize'] as String? ?? '',
+      bottomSize: json['bottomSize'] as String? ?? '',
+      height: json['height'] as String? ?? '',
+      weight: json['weight'] as String? ?? '',
+      waist: json['waist'] as String? ?? '',
+      thigh: json['thigh'] as String? ?? '',
+      updatedAt: json['updatedAt'] != null
+          ? (json['updatedAt'] is String
+              ? DateTime.tryParse(json['updatedAt'] as String) ?? DateTime.now()
+              : DateTime.now())
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'userId': userId,
+    'profileName': profileName,
+    'gender': gender,
+    'sizeType': sizeType,
+    'topSize': topSize,
+    'bottomSize': bottomSize,
+    'height': height,
+    'weight': weight,
+    'waist': waist,
+    'thigh': thigh,
+    'updatedAt': updatedAt.toIso8601String(),
+  };
+
+  String get genderLabel => gender == 'male' ? '남성' : '여성';
+}
+
 // ── 인증 결과 ────────────────────────────────────────────
 class AuthResult {
   final bool success;

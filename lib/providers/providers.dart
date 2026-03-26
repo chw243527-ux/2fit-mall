@@ -10,6 +10,7 @@ import '../services/product_service.dart';
 import '../services/review_service.dart';
 import '../services/wishlist_coupon_service.dart';
 import '../services/translation_service.dart';
+import '../services/size_profile_service.dart';
 
 // ── 언어 Provider ──────────────────────────────────────
 class LanguageProvider extends ChangeNotifier {
@@ -1181,5 +1182,71 @@ class ProductProvider extends ChangeNotifier {
       }
     }
     return result;
+  }
+}
+
+
+// ══════════════════════════════════════════════════════
+// SizeProfileProvider — 사이즈 프로필 상태 관리
+// ══════════════════════════════════════════════════════
+class SizeProfileProvider extends ChangeNotifier {
+  List<SizeProfile> _profiles = [];
+  bool _loading = false;
+  String? _error;
+
+  List<SizeProfile> get profiles => List.unmodifiable(_profiles);
+  bool get loading => _loading;
+  String? get error => _error;
+  bool get hasProfiles => _profiles.isNotEmpty;
+
+  /// 로그인 후 호출 — Firestore 실시간 스트림 구독
+  void loadProfiles(String userId) {
+    _loading = true;
+    notifyListeners();
+    SizeProfileService.watchProfiles(userId).listen(
+      (list) {
+        _profiles = list;
+        _loading = false;
+        _error = null;
+        notifyListeners();
+      },
+      onError: (e) {
+        _error = e.toString();
+        _loading = false;
+        notifyListeners();
+      },
+    );
+  }
+
+  /// 저장 (신규 or 수정)
+  Future<String?> saveProfile(String userId, SizeProfile profile) async {
+    try {
+      if (_profiles.length >= SizeProfileService.maxProfiles &&
+          profile.id.isEmpty) {
+        return '사이즈 프로필은 최대 ${SizeProfileService.maxProfiles}개까지 저장할 수 있습니다.';
+      }
+      await SizeProfileService.saveProfile(userId, profile);
+      return null; // 성공
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  /// 삭제
+  Future<String?> deleteProfile(String userId, String profileId) async {
+    try {
+      await SizeProfileService.deleteProfile(userId, profileId);
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  /// 로그아웃 시 초기화
+  void clear() {
+    _profiles = [];
+    _loading = false;
+    _error = null;
+    notifyListeners();
   }
 }

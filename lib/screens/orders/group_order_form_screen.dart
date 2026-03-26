@@ -290,6 +290,200 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     }
   }
 
+  // ── 사이즈 프로필 불러오기 바텀시트 ──────────────────────────
+  void _showLoadSizeSheet(_PersonEntry p) {
+    final user = context.read<UserProvider>().user;
+    if (user == null) {
+      _showSnack('로그인 후 사이즈 프로필을 불러올 수 있습니다.');
+      return;
+    }
+    final profiles = context.read<SizeProfileProvider>().profiles;
+    if (profiles.isEmpty) {
+      _showSnack('저장된 사이즈 프로필이 없습니다. 마이페이지에서 먼저 저장해 주세요.');
+      return;
+    }
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 36, height: 4,
+            margin: const EdgeInsets.only(bottom: 14),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const Text('사이즈 프로필 선택',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
+          const SizedBox(height: 4),
+          Text('선택하면 해당 팀원 칸에 자동 입력됩니다.',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+          const SizedBox(height: 14),
+          ...profiles.map((profile) {
+            final isMale = profile.gender == 'male';
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  p.gender        = profile.gender;
+                  p.sizeType      = profile.sizeType;
+                  p.topSizeCtrl.text    = profile.topSize;
+                  p.bottomSizeCtrl.text = profile.bottomSize;
+                  p.heightCtrl.text = profile.height;
+                  p.weightCtrl.text = profile.weight;
+                  p.waistCtrl.text  = profile.waist;
+                  p.thighCtrl.text  = profile.thigh;
+                  if (profile.height.isNotEmpty || profile.waist.isNotEmpty) {
+                    p.showDetail = true;
+                  }
+                });
+                Navigator.pop(context);
+                _showSnack('"${profile.profileName}" 사이즈가 적용되었습니다.');
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isMale ? Colors.blue.shade50 : Colors.pink.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isMale
+                        ? Colors.blue.withValues(alpha: 0.3)
+                        : Colors.pink.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isMale ? Colors.blue : Colors.pink,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(profile.genderLabel,
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(profile.profileName,
+                          style: const TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
+                      const SizedBox(height: 2),
+                      Text(
+                        '상의 ${profile.topSize} · 하의 ${profile.bottomSize}'
+                        '${profile.height.isNotEmpty ? " · 키 ${profile.height}cm" : ""}',
+                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                      ),
+                    ]),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      size: 14, color: Colors.grey.shade400),
+                ]),
+              ),
+            );
+          }),
+        ]),
+      ),
+    );
+  }
+
+  // ── 주문 후 내 사이즈 저장 제안 ─────────────────────────────
+  void _offerSaveSizeAfterOrder() {
+    final user = context.read<UserProvider>().user;
+    if (user == null || _persons.isEmpty) return;
+
+    // 본인(첫 번째 팀원)의 사이즈만 저장 제안
+    final me = _persons.first;
+    if (me.topSizeCtrl.text.trim().isEmpty || me.bottomSizeCtrl.text.trim().isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final nameCtrl = TextEditingController(text: '내 사이즈');
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(children: [
+            Icon(Icons.save_outlined, color: _purple, size: 22),
+            SizedBox(width: 8),
+            Text('내 사이즈 저장', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          ]),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text('첫 번째 팀원의 사이즈를 저장하면\n다음 주문 시 빠르게 불러올 수 있습니다.',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            const SizedBox(height: 12),
+            TextField(
+              controller: nameCtrl,
+              decoration: InputDecoration(
+                labelText: '프로필 이름',
+                hintText: '예) 내 기본 사이즈',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: _purple, width: 1.5)),
+                isDense: true,
+              ),
+            ),
+          ]),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('나중에', style: TextStyle(color: Colors.grey.shade500)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                final profile = SizeProfile(
+                  id: '',
+                  userId: user.id,
+                  profileName: nameCtrl.text.trim().isEmpty ? '내 사이즈' : nameCtrl.text.trim(),
+                  gender: me.gender ?? 'male',
+                  sizeType: me.sizeType,
+                  topSize: me.topSizeCtrl.text.trim(),
+                  bottomSize: me.bottomSizeCtrl.text.trim(),
+                  height: me.heightCtrl.text.trim(),
+                  weight: me.weightCtrl.text.trim(),
+                  waist: me.waistCtrl.text.trim(),
+                  thigh: me.thighCtrl.text.trim(),
+                );
+                final err = await context
+                    .read<SizeProfileProvider>()
+                    .saveProfile(user.id, profile);
+                if (!mounted) return;
+                if (err != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(err), backgroundColor: Colors.red));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('사이즈가 저장되었습니다!'),
+                      backgroundColor: _purple,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _purple,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                elevation: 0,
+              ),
+              child: const Text('저장하기', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showSnack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(msg), duration: const Duration(seconds: 2)));
@@ -419,6 +613,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           extraPrice: _fabricExtra.toDouble(),
           customOptions: customOptions);
       if (!mounted) return;
+      // 주문 전 사이즈 저장 제안
+      _offerSaveSizeAfterOrder();
       Navigator.push(context,
           MaterialPageRoute(builder: (_) => CheckoutScreen(cart: cart)));
     } else {
@@ -428,6 +624,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           extraPrice: _fabricExtra.toDouble(),
           customOptions: customOptions);
       if (!mounted) return;
+      // 장바구니 담기 후 사이즈 저장 제안
+      _offerSaveSizeAfterOrder();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(children: [
@@ -2109,7 +2307,26 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             _genderBtn('남', isMale, Colors.blue, () => setState(() => p.gender = 'male')),
             const SizedBox(width: 5),
             _genderBtn('여', isFemale, Colors.pink, () => setState(() => p.gender = 'female')),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
+            // 사이즈 불러오기 버튼
+            GestureDetector(
+              onTap: () => _showLoadSizeSheet(p),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _purpleLight,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: _purple.withValues(alpha: 0.3)),
+                ),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.download_outlined, size: 13, color: _purple),
+                  const SizedBox(width: 3),
+                  const Text('불러오기',
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: _purple)),
+                ]),
+              ),
+            ),
+            const SizedBox(width: 6),
             // 삭제
             GestureDetector(
               onTap: () => _removePerson(idx),
