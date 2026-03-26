@@ -12,7 +12,7 @@ import '../../utils/app_localizations.dart';
 
 import '../orders/checkout_screen.dart';
 import '../../widgets/color_picker_widget.dart';
-import '../../widgets/kakao_address_search.dart';
+import '../../widgets/address_search_widget.dart';
 
 // ══════════════════════════════════════════════════════════════
 // 단체 주문 폼 v6 - 완전 재작성
@@ -2838,7 +2838,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   Future<void> _openKakaoAddressSearch() async {
-    final result = await showKakaoAddressSearch(context);
+    final result = await showAddressSearch(context);
     if (result != null && mounted) {
       setState(() {
         _address = result.roadAddress.isNotEmpty

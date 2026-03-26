@@ -8,7 +8,7 @@ import '../../models/models.dart';
 import '../../services/fcm_service.dart';
 import '../../services/auth_service.dart';
 import '../main_screen.dart';
-import '../../widgets/kakao_address_search.dart';
+import '../../widgets/address_search_widget.dart';
 import '../../widgets/pc_layout.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -275,7 +275,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _searchAddress() async {
-    final result = await showKakaoAddressSearch(context);
+    final result = await showAddressSearch(context);
     if (result != null) {
       setState(() {
         _zonecode = result.zonecode;

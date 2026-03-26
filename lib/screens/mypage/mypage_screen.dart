@@ -13,7 +13,7 @@ import '../orders/group_order_form_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/pc_layout.dart';
 import '../../services/order_service.dart';
-import '../../widgets/kakao_address_search.dart';
+import '../../widgets/address_search_widget.dart';
 import 'size_profile_screen.dart';
 
 class MyPageScreen extends StatefulWidget {
@@ -3896,7 +3896,7 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           onPressed: () async {
-                            final result = await showKakaoAddressSearch(context);
+                            final result = await showAddressSearch(context);
                             if (result != null) {
                               setState(() {
                                 _zipCtrl.text   = result.zonecode;
