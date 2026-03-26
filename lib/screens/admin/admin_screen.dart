@@ -2905,7 +2905,7 @@ class _AdminScreenState extends State<AdminScreen>
       );
     }
     try {
-      final bytes = OrderExcelService.generateGroupOrderExcel(order);
+      final bytes = await OrderExcelService.generateGroupOrderExcelAsync(order);
       final teamName = (order.customOptions?['teamName'] as String?)?.replaceAll(' ', '_') ?? order.id;
       final dateStr = '${order.createdAt.month.toString().padLeft(2,'0')}${order.createdAt.day.toString().padLeft(2,'0')}';
       final fileName = '단체주문_${teamName}_$dateStr.xlsx';

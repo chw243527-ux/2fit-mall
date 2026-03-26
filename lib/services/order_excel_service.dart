@@ -2,6 +2,7 @@
 // 포함 항목: 디자인이미지URL, 주문날짜, 키/몸무게/허리/허벅지, 이름, 인쇄옵션,
 //            하의길이, 색상, 수량, 성별, 허리밴드
 import 'dart:convert';
+import 'package:archive/archive.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -909,9 +910,387 @@ class OrderExcelService {
     return Uint8List.fromList(bytes!);
   }
 
-  // ── 단체주문 개별 엑셀 생성 (개선판) ──
+  // ── 단체주문 개별 엑셀 생성 (개선판) ── async 버전 (이미지 실제 삽입)
   static Future<Uint8List> generateGroupOrderExcelAsync(OrderModel order) async {
-    return generateGroupOrderExcel(order);
+    final opts = order.customOptions ?? {};
+    final productImageUrl = opts['productImageUrl']?.toString() ?? '';
+    final designFileUrl   = opts['designFileUrl']?.toString() ?? '';
+
+    // 1) 기본 xlsx 바이트 생성 (sync)
+    final baseBytes = generateGroupOrderExcel(order);
+
+    // 2) 다운로드할 이미지 목록 (label, url, 배치 행 인덱스 = 1-based row in sheet)
+    //    이미지는 '주문정보' 시트, 열 D(index 3) 부터 띄움
+    //    row 위치: productImage → imgRow=1, designFile → imgRow=2 (있을 때만)
+    final List<_ImageToInsert> imagesToInsert = [];
+    int imgRow = 1; // 1-based Excel row (row 0 = 제목행)
+    if (productImageUrl.isNotEmpty) {
+      imagesToInsert.add(_ImageToInsert(
+        url: productImageUrl,
+        sheetIndex: 0,          // '주문정보' 시트
+        row: imgRow,            // 1-based
+        col: 4,                 // 열 E (index 4)
+        widthPx: 320,
+        heightPx: 240,
+        label: '디자인이미지',
+      ));
+      imgRow++;
+    }
+    if (designFileUrl.isNotEmpty) {
+      imagesToInsert.add(_ImageToInsert(
+        url: designFileUrl,
+        sheetIndex: 0,
+        row: imgRow,
+        col: 4,
+        widthPx: 320,
+        heightPx: 240,
+        label: '디자인참조이미지',
+      ));
+    }
+
+    if (imagesToInsert.isEmpty) return baseBytes;
+
+    // 3) 이미지 다운로드
+    for (final img in imagesToInsert) {
+      try {
+        final resp = await http.get(Uri.parse(img.url))
+            .timeout(const Duration(seconds: 15));
+        if (resp.statusCode == 200) {
+          img.bytes = resp.bodyBytes;
+          // 확장자 판별
+          final ct = resp.headers['content-type'] ?? '';
+          if (ct.contains('png') || img.url.toLowerCase().contains('.png')) {
+            img.ext = 'png';
+          } else {
+            img.ext = 'jpeg';
+          }
+        }
+      } catch (_) {
+        // 다운로드 실패 → 해당 이미지는 삽입 건너뜀
+      }
+    }
+
+    // 4) xlsx ZIP에 이미지 삽입
+    return _insertImagesIntoXlsx(baseBytes, imagesToInsert);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // xlsx ZIP에 이미지를 직접 삽입하는 유틸 함수
+  // ─────────────────────────────────────────────────────────────
+  static Uint8List _insertImagesIntoXlsx(
+      Uint8List xlsxBytes, List<_ImageToInsert> images) {
+    try {
+      final archive = ZipDecoder().decodeBytes(xlsxBytes);
+
+      // 시트별로 그룹화
+      final Map<int, List<_ImageToInsert>> bySheet = {};
+      for (final img in images) {
+        if (img.bytes == null) continue;
+        bySheet.putIfAbsent(img.sheetIndex, () => []).add(img);
+      }
+      if (bySheet.isEmpty) return xlsxBytes;
+
+      // workbook.xml에서 시트 rId 목록 추출
+      final wbFile = archive.findFile('xl/workbook.xml');
+      if (wbFile == null) return xlsxBytes;
+      final wbXml = utf8.decode(wbFile.content as List<int>);
+
+      // workbook.xml.rels에서 sheetIndex→파일명 매핑
+      final wbRelsFile = archive.findFile('xl/_rels/workbook.xml.rels');
+      final Map<String, String> rIdToSheet = {}; // rId → xl/worksheets/sheetN.xml
+      if (wbRelsFile != null) {
+        final relsXml = utf8.decode(wbRelsFile.content as List<int>);
+        final relRe = RegExp(
+            r'<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"',
+            multiLine: true);
+        for (final m in relRe.allMatches(relsXml)) {
+          final target = m.group(2)!;
+          if (target.contains('sheet')) {
+            rIdToSheet[m.group(1)!] =
+                target.startsWith('worksheets') ? 'xl/$target' : target;
+          }
+        }
+      }
+
+      // workbook.xml의 sheet 순서로 rId 리스트 추출
+      final sheetRe =
+          RegExp(r'<sheet\b[^>]*r:id="([^"]+)"', multiLine: true);
+      final sheetRIds = sheetRe
+          .allMatches(wbXml)
+          .map((m) => m.group(1)!)
+          .toList();
+
+      final List<ArchiveFile> newFiles = [];
+
+      for (final entry in bySheet.entries) {
+        final sheetIdx = entry.key;
+        final imgs = entry.value;
+        if (sheetIdx >= sheetRIds.length) continue;
+
+        final sheetRId = sheetRIds[sheetIdx];
+        final sheetPath = rIdToSheet[sheetRId];
+        if (sheetPath == null) continue;
+
+        // sheetN.xml 경로에서 N 추출
+        final sheetNumMatch =
+            RegExp(r'sheet(\d+)\.xml').firstMatch(sheetPath);
+        if (sheetNumMatch == null) continue;
+        final sheetNum = sheetNumMatch.group(1)!;
+
+        // 기존 drawing 관계가 있는지 확인
+        final sheetRelsPath =
+            'xl/worksheets/_rels/sheet$sheetNum.xml.rels';
+        final existingRelsFile = archive.findFile(sheetRelsPath);
+        String existingRelsXml = existingRelsFile != null
+            ? utf8.decode(existingRelsFile.content as List<int>)
+            : '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n</Relationships>';
+
+        // 이미 drawing 관계가 있으면 drawingN 번호 추출, 없으면 새로 추가
+        final drawingRe =
+            RegExp(r'drawing(\d+)\.xml', caseSensitive: false);
+        final existingDrawingMatch =
+            drawingRe.firstMatch(existingRelsXml);
+        final drawingNum = existingDrawingMatch != null
+            ? existingDrawingMatch.group(1)!
+            : sheetNum;
+        final drawingPath = 'xl/drawings/drawing$drawingNum.xml';
+        final drawingRelsPath =
+            'xl/drawings/_rels/drawing$drawingNum.xml.rels';
+
+        // 이미지 파일 추가 + drawing XML 빌드
+        final drawingRelsEntries = <String>[];
+        final drawingAnchors = <String>[];
+        int imgIdCounter = 1;
+
+        // 기존 drawing.xml.rels가 있으면 기존 rId 번호 이어받기
+        final existingDrawingRelsFile =
+            archive.findFile(drawingRelsPath);
+        int nextRId = 1;
+        if (existingDrawingRelsFile != null) {
+          final existingDRXml = utf8.decode(
+              existingDrawingRelsFile.content as List<int>);
+          final ridNums = RegExp(r'Id="rId(\d+)"')
+              .allMatches(existingDRXml)
+              .map((m) => int.tryParse(m.group(1)!) ?? 0)
+              .toList();
+          if (ridNums.isNotEmpty) {
+            nextRId = ridNums.reduce((a, b) => a > b ? a : b) + 1;
+          }
+          drawingRelsEntries
+              .add(existingDRXml.replaceAll('</Relationships>', ''));
+        } else {
+          drawingRelsEntries.add(
+              '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+              '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">');
+        }
+
+        // 기존 drawing.xml이 있으면 앵커 이어받기
+        final existingDrawingFile = archive.findFile(drawingPath);
+        String existingDrawingContent = '';
+        if (existingDrawingFile != null) {
+          existingDrawingContent =
+              utf8.decode(existingDrawingFile.content as List<int>);
+          // 닫는 태그 제거
+          existingDrawingContent = existingDrawingContent
+              .replaceAll('</xdr:wsDr>', '')
+              .replaceAll('</wsDr>', '');
+        }
+
+        for (final img in imgs) {
+          if (img.bytes == null) continue;
+          final mediaName = 'image_${sheetNum}_$imgIdCounter.${img.ext}';
+          final mediaPath = 'xl/media/$mediaName';
+          final rId = 'rId$nextRId';
+
+          // 이미지 파일 추가
+          newFiles.add(ArchiveFile(
+              mediaPath, img.bytes!.length, img.bytes!));
+
+          // drawing.xml.rels 항목
+          final mimeType =
+              img.ext == 'png' ? 'image/png' : 'image/jpeg';
+          drawingRelsEntries.add(
+              '  <Relationship Id="$rId" '
+              'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
+              'Target="../media/$mediaName"/>');
+
+          // EMU 변환 (1px ≈ 9525 EMU at 96dpi)
+          final wEmu = img.widthPx * 9525;
+          final hEmu = img.heightPx * 9525;
+
+          // twoCellAnchor: (col, row) → (col+적당한 폭, row+적당한 높이)
+          // row/col은 0-based (Excel 0-based index)
+          final anchorRow = img.row - 1; // 0-based
+          final anchorCol = img.col;     // 열 index
+
+          drawingAnchors.add('''
+  <xdr:twoCellAnchor moveWithCells="1" sizeWithCells="0">
+    <xdr:from>
+      <xdr:col>$anchorCol</xdr:col><xdr:colOff>0</xdr:colOff>
+      <xdr:row>$anchorRow</xdr:row><xdr:rowOff>0</xdr:rowOff>
+    </xdr:from>
+    <xdr:to>
+      <xdr:col>${anchorCol + 3}</xdr:col><xdr:colOff>0</xdr:colOff>
+      <xdr:row>${anchorRow + 14}</xdr:row><xdr:rowOff>0</xdr:rowOff>
+    </xdr:to>
+    <xdr:pic>
+      <xdr:nvPicPr>
+        <xdr:cNvPr id="${100 + imgIdCounter}" name="${img.label}$imgIdCounter"/>
+        <xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr>
+      </xdr:nvPicPr>
+      <xdr:blipFill>
+        <a:blip r:embed="$rId" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>
+        <a:stretch><a:fillRect/></a:stretch>
+      </xdr:blipFill>
+      <xdr:spPr>
+        <a:xfrm><a:off x="0" y="0"/><a:ext cx="$wEmu" cy="$hEmu"/></a:xfrm>
+        <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+      </xdr:spPr>
+    </xdr:pic>
+    <xdr:clientData/>
+  </xdr:twoCellAnchor>''');
+
+          nextRId++;
+          imgIdCounter++;
+        }
+
+        // drawing.xml 생성/갱신
+        final drawingXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+            '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" '
+            'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            '${existingDrawingContent.contains('<xdr:wsDr') ? '' : ''}'
+            '${drawingAnchors.join('\n')}\n</xdr:wsDr>';
+        final drawingBytes = utf8.encode(drawingXml);
+        newFiles.add(
+            ArchiveFile(drawingPath, drawingBytes.length, drawingBytes));
+
+        // drawing.xml.rels 생성/갱신
+        final drawingRelsXml =
+            '${drawingRelsEntries.join('\n')}\n</Relationships>';
+        final drawingRelsBytes = utf8.encode(drawingRelsXml);
+        newFiles.add(ArchiveFile(
+            drawingRelsPath, drawingRelsBytes.length, drawingRelsBytes));
+
+        // sheet.xml에 <drawing r:id="rId_drawing"/> 추가 (아직 없을 때만)
+        final sheetFile = archive.findFile(sheetPath);
+        if (sheetFile != null) {
+          var sheetXml =
+              utf8.decode(sheetFile.content as List<int>);
+          final drawingRIdInSheet = 'rIdD$sheetNum';
+          if (!sheetXml.contains('<drawing ') &&
+              !sheetXml.contains('<drawing\t')) {
+            // </sheetData> 뒤 또는 </worksheet> 바로 앞에 삽입
+            final insertTag =
+                '<drawing r:id="$drawingRIdInSheet"/>';
+            if (sheetXml.contains('</sheetData>')) {
+              sheetXml = sheetXml.replaceFirst(
+                  '</sheetData>',
+                  '</sheetData>$insertTag');
+            } else {
+              sheetXml = sheetXml.replaceFirst(
+                  '</worksheet>', '$insertTag</worksheet>');
+            }
+            // xmlns:r 이미 있는지 확인
+            if (!sheetXml.contains('xmlns:r=')) {
+              sheetXml = sheetXml.replaceFirst(
+                  '<worksheet ',
+                  '<worksheet xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ');
+            }
+            final sheetBytes = utf8.encode(sheetXml);
+            newFiles.add(ArchiveFile(
+                sheetPath, sheetBytes.length, sheetBytes));
+          }
+
+          // sheet.xml.rels에 drawing 관계 추가
+          if (existingRelsFile != null) {
+            if (!existingRelsXml.contains(drawingRIdInSheet)) {
+              final drawingRelEntry =
+                  '  <Relationship Id="$drawingRIdInSheet" '
+                  'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" '
+                  'Target="../drawings/drawing$drawingNum.xml"/>';
+              existingRelsXml = existingRelsXml.replaceFirst(
+                  '</Relationships>',
+                  '$drawingRelEntry\n</Relationships>');
+              final updatedRelsBytes = utf8.encode(existingRelsXml);
+              newFiles.add(ArchiveFile(sheetRelsPath,
+                  updatedRelsBytes.length, updatedRelsBytes));
+            }
+          } else {
+            // rels 파일 자체가 없으면 새로 생성
+            final newRelsXml =
+                '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+                '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n'
+                '  <Relationship Id="$drawingRIdInSheet" '
+                'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" '
+                'Target="../drawings/drawing$drawingNum.xml"/>\n'
+                '</Relationships>';
+            final newRelsBytes = utf8.encode(newRelsXml);
+            newFiles.add(ArchiveFile(sheetRelsPath,
+                newRelsBytes.length, newRelsBytes));
+          }
+        }
+      }
+
+      // [Content_Types].xml에 drawing 및 media 타입 추가
+      final ctFile = archive.findFile('[Content_Types].xml');
+      if (ctFile != null) {
+        var ctXml = utf8.decode(ctFile.content as List<int>);
+
+        // drawing ContentType
+        const drawingCT =
+            '<Override PartName="/xl/drawings/drawing1.xml" '
+            'ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>';
+        if (!ctXml.contains('drawing+xml')) {
+          ctXml = ctXml.replaceFirst(
+              '</Types>', '$drawingCT\n</Types>');
+        }
+        // PNG
+        const pngCT =
+            '<Default Extension="png" ContentType="image/png"/>';
+        if (!ctXml.contains('image/png')) {
+          ctXml =
+              ctXml.replaceFirst('</Types>', '$pngCT\n</Types>');
+        }
+        // JPEG
+        const jpgCT =
+            '<Default Extension="jpeg" ContentType="image/jpeg"/>';
+        if (!ctXml.contains('image/jpeg')) {
+          ctXml =
+              ctXml.replaceFirst('</Types>', '$jpgCT\n</Types>');
+        }
+        // jpg
+        const jpgCT2 =
+            '<Default Extension="jpg" ContentType="image/jpeg"/>';
+        if (!ctXml.contains('"jpg"')) {
+          ctXml =
+              ctXml.replaceFirst('</Types>', '$jpgCT2\n</Types>');
+        }
+
+        final ctBytes = utf8.encode(ctXml);
+        newFiles.add(
+            ArchiveFile('[Content_Types].xml', ctBytes.length, ctBytes));
+      }
+
+      // 새 archive 구성 (기존 파일은 유지, 새/수정 파일로 덮어씀)
+      final newArchive = Archive();
+      final newFilePaths = newFiles.map((f) => f.name).toSet();
+      for (final f in archive.files) {
+        if (!newFilePaths.contains(f.name)) {
+          newArchive.addFile(f);
+        }
+      }
+      for (final f in newFiles) {
+        newArchive.addFile(f);
+      }
+
+      final encoded = ZipEncoder().encode(newArchive);
+      if (encoded == null) return xlsxBytes;
+      return Uint8List.fromList(encoded);
+    } catch (e) {
+      if (kDebugMode) debugPrint('이미지 삽입 오류: $e');
+      return xlsxBytes; // 실패 시 원본 반환
+    }
   }
 
   static Uint8List generateGroupOrderExcel(OrderModel order) {
@@ -989,18 +1368,23 @@ class OrderExcelService {
 
     int imgRow = 1;
     if (productImageUrl.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '🖼️ 상세페이지 디자인 이미지', style: imgLabelStyle);
+      _setCell(summarySheet, imgRow, 0, '🖼️ 디자인이미지', style: imgLabelStyle);
       _setCell(summarySheet, imgRow, 1, productImageUrl, style: linkStyle);
-      _setCell(summarySheet, imgRow, 2, '← 링크 클릭 또는 복사 후 브라우저에서 이미지 확인', style: imgNoteStyle);
+      _setCell(summarySheet, imgRow, 2, '← URL 복사 후 브라우저 확인', style: imgNoteStyle);
+      _setCell(summarySheet, imgRow, 3, '', style: imgNoteStyle); // 이미지 삽입 공간 예약
+      // 행 높이 확보 (이미지 표시 공간)
+      summarySheet.setRowHeight(imgRow, 180.0);
       imgRow++;
     }
     if (designFileUrl.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '📎 디자인수정 파일 첨부', style: imgLabelStyle);
+      _setCell(summarySheet, imgRow, 0, '📎 디자인참조이미지', style: imgLabelStyle);
       _setCell(summarySheet, imgRow, 1, designFileUrl, style: linkStyle);
-      _setCell(summarySheet, imgRow, 2, '← 링크 클릭 또는 복사 후 브라우저에서 확인', style: imgNoteStyle);
+      _setCell(summarySheet, imgRow, 2, '← URL 복사 후 브라우저 확인', style: imgNoteStyle);
+      _setCell(summarySheet, imgRow, 3, '', style: imgNoteStyle); // 이미지 삽입 공간 예약
+      summarySheet.setRowHeight(imgRow, 180.0);
       imgRow++;
     }
-    // 여자 하의 참조이미지 제거됨
+    // 남자참조이미지·여자참조이미지 제거됨
 
     final teamName = opts['teamName']?.toString() ?? order.groupName ?? '-';
     final mainColor = opts['mainColor']?.toString() ?? '-';
@@ -1038,7 +1422,7 @@ class OrderExcelService {
     final startRow = imgRow + 1;
     for (var i = 0; i < infoRows.length; i++) {
       _setCell(summarySheet, startRow + i, 0, infoRows[i][0], style: labelStyle);
-      final key = infoRows[i][0] as String;
+      final key = infoRows[i][0].toString();
       // 색상 항목: 배경색 + hex 코드 함께 표시
       if (key == '색상') {
         _setColorCell(summarySheet, startRow + i, 1, infoRows[i][1].toString(),
@@ -1102,6 +1486,10 @@ class OrderExcelService {
     summarySheet.setColumnWidth(0, 26.0);
     summarySheet.setColumnWidth(1, 70.0);
     summarySheet.setColumnWidth(2, 38.0);
+    summarySheet.setColumnWidth(3, 6.0);   // 이미지 삽입 여백
+    summarySheet.setColumnWidth(4, 48.0);  // 이미지 표시 열 (E열)
+    summarySheet.setColumnWidth(5, 48.0);  // 이미지 표시 열 (F열)
+    summarySheet.setColumnWidth(6, 48.0);  // 이미지 표시 열 (G열)
 
     // ── 시트 2: 인원별 사이즈 (키·몸무게·허리·허벅지 포함) ──
     final personSheet = excel['팀원별사이즈명단'];
@@ -1621,4 +2009,27 @@ class DateTimeRange {
   final DateTime start;
   final DateTime end;
   const DateTimeRange({required this.start, required this.end});
+}
+
+/// 이미지 삽입 정보를 담는 내부 헬퍼 클래스
+class _ImageToInsert {
+  final String url;
+  final int sheetIndex; // 0-based
+  final int row;        // 1-based Excel row
+  final int col;        // 0-based column index
+  final int widthPx;
+  final int heightPx;
+  final String label;
+  Uint8List? bytes;
+  String ext; // 'png' or 'jpeg'
+
+  _ImageToInsert({
+    required this.url,
+    required this.sheetIndex,
+    required this.row,
+    required this.col,
+    required this.widthPx,
+    required this.heightPx,
+    required this.label,
+  }) : ext = 'jpeg';
 }
