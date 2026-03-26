@@ -18,6 +18,27 @@ import '../../widgets/kakao_address_search.dart';
 // 단체 주문 폼 v6 - 완전 재작성
 // ══════════════════════════════════════════════════════════════
 
+// 사이즈 옵션 상수
+const List<String> _kAdultSizes  = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+const List<String> _kJuniorSizes = ['XXS(80)', 'XS(90)', 'S(100)', 'M(110)', 'L(120)', 'XL(130)'];
+const List<List<String>> _kAdultSizeRows = [
+  ['XS',  '154~159', '44~51',  '85', '68'],
+  ['S',   '160~165', '52~60',  '90', '72'],
+  ['M',   '166~172', '61~71',  '95', '76'],
+  ['L',   '172~177', '72~78',  '100','80'],
+  ['XL',  '177~182', '79~85',  '105','84'],
+  ['2XL', '182~187', '86~91',  '110','88'],
+  ['3XL', '187~191', '91~96',  '115','92'],
+];
+const List<List<String>> _kJuniorSizeRows = [
+  ['XXS(80)', '104~116', '16~20', '58', '55'],
+  ['XS(90)',  '116~128', '20~25', '63', '58'],
+  ['S(100)',  '128~140', '25~32', '68', '62'],
+  ['M(110)',  '140~152', '32~40', '73', '65'],
+  ['L(120)',  '152~158', '40~48', '78', '68'],
+  ['XL(130)', '158~165', '48~55', '83', '72'],
+];
+
 class GroupOrderFormScreen extends StatefulWidget {
   final ProductModel? product;
   final bool isAdditionalOrder;
@@ -44,21 +65,32 @@ class _PersonEntry {
   String? gender;
   String sizeType = '성인'; // '성인' or '주니어'
 
-  // 상의/하의 직접 입력 컨트롤러
-  final TextEditingController topSizeCtrl    = TextEditingController(); // 상의 사이즈 직접입력
-  final TextEditingController bottomSizeCtrl = TextEditingController(); // 하의 사이즈 직접입력
+  // 선택형 사이즈
+  String? topSize;
+  String? bottomSize;
+
+  // 직접입력 컨트롤러 (호환성 유지 - 불러오기 등에서 사용)
+  final TextEditingController topSizeCtrl    = TextEditingController();
+  final TextEditingController bottomSizeCtrl = TextEditingController();
 
   // 이름
-  final TextEditingController nameCtrl    = TextEditingController();
+  final TextEditingController nameCtrl = TextEditingController();
+
+  // 사이즈표 토글
+  bool showSizeTable = false;
 
   // 상세 치수 (하의 아래 별도 블록)
-  bool   showDetail = false;              // 상세치수 패널 토글
-  final TextEditingController heightCtrl = TextEditingController(); // 키
-  final TextEditingController weightCtrl = TextEditingController(); // 몸무게
-  final TextEditingController waistCtrl  = TextEditingController(); // 허리
-  final TextEditingController thighCtrl  = TextEditingController(); // 허벅지
+  bool   showDetail = false;
+  final TextEditingController heightCtrl = TextEditingController();
+  final TextEditingController weightCtrl = TextEditingController();
+  final TextEditingController waistCtrl  = TextEditingController();
+  final TextEditingController thighCtrl  = TextEditingController();
 
   _PersonEntry({required this.index});
+
+  // 선택된 사이즈 값 (선택형 우선, 없으면 직접입력)
+  String get effectiveTopSize    => topSize ?? topSizeCtrl.text.trim();
+  String get effectiveBottomSize => bottomSize ?? bottomSizeCtrl.text.trim();
 
   void dispose() {
     nameCtrl.dispose();
@@ -334,6 +366,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 setState(() {
                   p.gender        = profile.gender;
                   p.sizeType      = profile.sizeType;
+                  p.topSize    = profile.topSize.isNotEmpty ? profile.topSize : null;
+                  p.bottomSize = profile.bottomSize.isNotEmpty ? profile.bottomSize : null;
                   p.topSizeCtrl.text    = profile.topSize;
                   p.bottomSizeCtrl.text = profile.bottomSize;
                   p.heightCtrl.text = profile.height;
@@ -402,7 +436,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
     // 본인(첫 번째 팀원)의 사이즈만 저장 제안
     final me = _persons.first;
-    if (me.topSizeCtrl.text.trim().isEmpty || me.bottomSizeCtrl.text.trim().isEmpty) return;
+    if (me.effectiveTopSize.isEmpty || me.effectiveBottomSize.isEmpty) return;
 
     showDialog(
       context: context,
@@ -446,8 +480,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   profileName: nameCtrl.text.trim().isEmpty ? '내 사이즈' : nameCtrl.text.trim(),
                   gender: me.gender ?? 'male',
                   sizeType: me.sizeType,
-                  topSize: me.topSizeCtrl.text.trim(),
-                  bottomSize: me.bottomSizeCtrl.text.trim(),
+                  topSize: me.effectiveTopSize,
+                  bottomSize: me.effectiveBottomSize,
                   height: me.heightCtrl.text.trim(),
                   weight: me.weightCtrl.text.trim(),
                   waist: me.waistCtrl.text.trim(),
@@ -518,12 +552,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         return false;
       }
       // 상의 사이즈 확인
-      if (p.topSizeCtrl.text.trim().isEmpty) {
+      if (p.effectiveTopSize.isEmpty) {
         _showSnack('${i + 1}번 인원의 상의 사이즈를 입력해 주세요.');
         return false;
       }
       // 하의 사이즈 확인
-      if (p.bottomSizeCtrl.text.trim().isEmpty) {
+      if (p.effectiveBottomSize.isEmpty) {
         _showSnack('${i + 1}번 인원의 하의 사이즈를 입력해 주세요.');
         return false;
       }
@@ -571,8 +605,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         'name'      : _nameEnabled ? p.nameCtrl.text.trim() : '', // 10명 미만은 이름 저장 안 함
         'gender'    : p.gender,
         'sizeType'  : p.sizeType,
-        'topSize'   : p.topSizeCtrl.text.trim(),
-        'bottomSize': p.bottomSizeCtrl.text.trim(),
+        'topSize'   : p.effectiveTopSize,
+        'bottomSize': p.effectiveBottomSize,
         'length'    : _defaultLength, // 전원 동일 길이 (개별 선택 불가)
         'height'    : p.heightCtrl.text.trim(),
         'weight'    : p.weightCtrl.text.trim(),
@@ -2357,27 +2391,33 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               const SizedBox(width: 6),
               _sizeTypeBtn('주니어', p, Colors.teal),
             ]),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
 
-            // ② 상의 사이즈 직접입력
-            _sizeInputField(
-              label: '상의 사이즈',
+            // ② 사이즈표 토글
+            _buildPersonSizeTable(p),
+            const SizedBox(height: 10),
+
+            // ③ 상의 사이즈 선택
+            _buildPersonSizeSelector(
+              label: '상의 사이즈 *',
               icon: Icons.checkroom_outlined,
-              ctrl: p.topSizeCtrl,
-              hint: p.sizeType == '주니어' ? '예) 110, 120, 130, 140 등' : '예) M, L, XL, 95 등',
+              selected: p.topSize,
+              sizeType: p.sizeType,
+              onSelect: (v) => setState(() => p.topSize = v),
             ),
             const SizedBox(height: 10),
 
-            // ③ 하의 사이즈 직접입력
-            _sizeInputField(
-              label: '하의 사이즈',
+            // ④ 하의 사이즈 선택
+            _buildPersonSizeSelector(
+              label: '하의 사이즈 *',
               icon: Icons.accessibility_new_rounded,
-              ctrl: p.bottomSizeCtrl,
-              hint: p.sizeType == '주니어' ? '예) 110, 120, 130, 140 등' : '예) M, L, XL, 95 등',
+              selected: p.bottomSize,
+              sizeType: p.sizeType,
+              onSelect: (v) => setState(() => p.bottomSize = v),
             ),
             const SizedBox(height: 10),
 
-            // ③ 상세치수 토글 버튼 (하의 바로 아래 별도 블록)
+            // ⑤ 상세치수 토글 (하의 전용)
             GestureDetector(
               onTap: () => setState(() => p.showDetail = !p.showDetail),
               child: AnimatedContainer(
@@ -2395,23 +2435,20 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   Icon(Icons.straighten_rounded, size: 14,
                       color: p.showDetail ? Colors.orange.shade700 : Colors.grey.shade500),
                   const SizedBox(width: 6),
-                  Text('상세 치수 입력',
-                      style: TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w700,
-                        color: p.showDetail ? Colors.orange.shade800 : Colors.grey.shade600,
-                      )),
+                  Text('하의 상세 치수 입력',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
+                          color: p.showDetail ? Colors.orange.shade800 : Colors.grey.shade600)),
                   const SizedBox(width: 5),
                   Text('(사이즈 미해당 시)',
                       style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
                   const Spacer(),
-                  Icon(p.showDetail ? Icons.expand_less : Icons.expand_more,
-                      size: 18,
+                  Icon(p.showDetail ? Icons.expand_less : Icons.expand_more, size: 18,
                       color: p.showDetail ? Colors.orange.shade600 : Colors.grey.shade400),
                 ]),
               ),
             ),
 
-            // ③-1 상세치수 패널 (키·몸무게·허리·허벅지)
+            // ⑤-1 하의 상세치수 패널 (키·몸무게·허리·허벅지)
             if (p.showDetail) ...[
               const SizedBox(height: 8),
               _detailMeasurePanel(p),
@@ -2492,6 +2529,114 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               : null,
         ),
         onChanged: (_) => setState(() {}), // suffixIcon 갱신
+      ),
+    ]);
+  }
+
+  // ── 팀원별 사이즈표 토글 ─────────────────────────────
+  Widget _buildPersonSizeTable(_PersonEntry p) {
+    final tableRows = p.sizeType == '성인' ? _kAdultSizeRows : _kJuniorSizeRows;
+    const headers = ['사이즈', '키(cm)', '몸무게(kg)', '가슴(cm)', '허리(cm)'];
+    return Column(children: [
+      GestureDetector(
+        onTap: () => setState(() => p.showSizeTable = !p.showSizeTable),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: p.showSizeTable ? _purple.withValues(alpha: 0.07) : Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: p.showSizeTable ? _purple.withValues(alpha: 0.3) : Colors.grey.shade200),
+          ),
+          child: Row(children: [
+            Icon(Icons.table_chart_outlined, size: 14,
+                color: p.showSizeTable ? _purple : Colors.grey.shade500),
+            const SizedBox(width: 6),
+            Text('사이즈 참고표',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                    color: p.showSizeTable ? _purple : Colors.grey.shade600)),
+            const Spacer(),
+            Icon(p.showSizeTable ? Icons.expand_less : Icons.expand_more, size: 16,
+                color: p.showSizeTable ? _purple : Colors.grey.shade400),
+          ]),
+        ),
+      ),
+      if (p.showSizeTable) ...[
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Table(
+              border: TableBorder(
+                horizontalInside: BorderSide(color: Colors.grey.shade100),
+                verticalInside: BorderSide(color: Colors.grey.shade100),
+              ),
+              defaultColumnWidth: const IntrinsicColumnWidth(),
+              children: [
+                TableRow(
+                  decoration: BoxDecoration(color: _purple.withValues(alpha: 0.08)),
+                  children: headers.map((h) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    child: Text(h, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: _purple)),
+                  )).toList(),
+                ),
+                ...tableRows.map((r) => TableRow(
+                  children: r.map((cell) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    child: Text(cell, style: const TextStyle(fontSize: 10, color: Colors.black87)),
+                  )).toList(),
+                )),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ]);
+  }
+
+  // ── 팀원별 사이즈 선택 버튼 ─────────────────────────
+  Widget _buildPersonSizeSelector({
+    required String label,
+    required IconData icon,
+    required String? selected,
+    required String sizeType,
+    required ValueChanged<String> onSelect,
+  }) {
+    final sizes = sizeType == '성인' ? _kAdultSizes : _kJuniorSizes;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Icon(icon, size: 13, color: Colors.black54),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.black54)),
+      ]),
+      const SizedBox(height: 6),
+      Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: sizes.map((size) {
+          final isSelected = selected == size;
+          return GestureDetector(
+            onTap: () => onSelect(size),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: isSelected ? _purple : Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(7),
+                border: Border.all(
+                    color: isSelected ? _purple : Colors.grey.shade300,
+                    width: isSelected ? 2 : 1),
+              ),
+              child: Text(size,
+                  style: TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w700,
+                      color: isSelected ? Colors.white : Colors.grey.shade600)),
+            ),
+          );
+        }).toList(),
       ),
     ]);
   }

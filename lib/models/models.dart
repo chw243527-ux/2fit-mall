@@ -693,11 +693,7 @@ class SizeProfile {
       weight: json['weight'] as String? ?? '',
       waist: json['waist'] as String? ?? '',
       thigh: json['thigh'] as String? ?? '',
-      updatedAt: json['updatedAt'] != null
-          ? (json['updatedAt'] is String
-              ? DateTime.tryParse(json['updatedAt'] as String) ?? DateTime.now()
-              : DateTime.now())
-          : DateTime.now(),
+      updatedAt: _parseDateTime(json['updatedAt']),
     );
   }
 
@@ -716,6 +712,18 @@ class SizeProfile {
   };
 
   String get genderLabel => gender == 'male' ? '남성' : '여성';
+}
+
+// ── 날짜 파싱 헬퍼 ────────────────────────────────────────
+DateTime _parseDateTime(dynamic value) {
+  if (value == null) return DateTime.now();
+  if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+  // Firestore Timestamp 처리
+  try {
+    return (value as dynamic).toDate() as DateTime;
+  } catch (_) {
+    return DateTime.now();
+  }
 }
 
 // ── 인증 결과 ────────────────────────────────────────────

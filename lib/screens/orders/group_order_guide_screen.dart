@@ -306,34 +306,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           ),
           const SizedBox(height: 24),
 
-          // 허리밴드 옵션
-          _SectionHeader2('⚡', loc.groupOrderGuideWaistbandTitle),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF8E1),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFFFE082)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(loc.groupOrderGuideWaistband1,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-                Text(loc.groupOrderGuideWaistband2,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 인쇄 타입
-          _SectionHeader2('🖨️', loc.groupOrderPrintTypeTitle),
-          const SizedBox(height: 12),
-          _buildPrintTypeCards(),
-          const SizedBox(height: 24),
-
           // 디자인 독점 사용 옵션
           _SectionHeader2('🔒', loc.groupOrderExclusiveTitle),
           const SizedBox(height: 12),
@@ -390,50 +362,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
-
-          // 사이즈 안내
-          _SectionHeader2('📏', loc.groupOrderSizeGuideTitle),
-          const SizedBox(height: 12),
-          _buildAdultSizeTable(context),
-          const SizedBox(height: 16),
-          _buildJuniorSizeTable(context),
-          const SizedBox(height: 16),
-
-          // 원하는 사이즈 없을 경우
-          Builder(builder: (context) {
-            return Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3F2FD),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFF90CAF9)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.swap_vert, size: 20, color: Color(0xFF1565C0)),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(loc.groupOrderGuideNoSizeHint,
-                          style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1565C0))),
-                      const SizedBox(height: 6),
-                      Text(
-                        loc.groupOrderGuideNoSizeDesc,
-                        style: const TextStyle(fontSize: 13, height: 1.5),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );}),
           const SizedBox(height: 24),
 
           // 주문 절차 (스크린샷에서 확인된 5단계)

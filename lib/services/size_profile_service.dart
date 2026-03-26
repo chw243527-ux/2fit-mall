@@ -10,22 +10,26 @@ class SizeProfileService {
 
   // ── 프로필 목록 조회 ────────────────────────────────────
   static Future<List<SizeProfile>> getProfiles(String userId) async {
-    final snap = await _col(userId)
-        .orderBy('updatedAt', descending: true)
-        .get();
-    return snap.docs
+    final snap = await _col(userId).get();
+    final list = snap.docs
         .map((d) => SizeProfile.fromJson(d.id, d.data()))
         .toList();
+    list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return list;
   }
 
   // ── 실시간 스트림 ────────────────────────────────────────
   static Stream<List<SizeProfile>> watchProfiles(String userId) {
     return _col(userId)
-        .orderBy('updatedAt', descending: true)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => SizeProfile.fromJson(d.id, d.data()))
-            .toList());
+        .map((snap) {
+          final list = snap.docs
+              .map((d) => SizeProfile.fromJson(d.id, d.data()))
+              .toList();
+          // 메모리 정렬 (index 불필요)
+          list.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+          return list;
+        });
   }
 
   // ── 저장 (신규 or 업데이트) ──────────────────────────────
