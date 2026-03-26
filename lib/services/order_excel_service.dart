@@ -978,26 +978,43 @@ class OrderExcelService {
     final femaleRefUrl = opts['femaleRefImageUrl']?.toString() ?? '';
     final bottomColorName = opts['bottomColorName']?.toString() ?? '';
 
+    // 이미지 URL 하이퍼링크 스타일
+    final linkStyle = CellStyle(
+      fontColorHex: ExcelColor.fromHexString('#1565C0'),
+      underline: Underline.Single,
+      bold: false,
+      fontSize: 10,
+    );
+    final imgLabelStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 10,
+    );
+    final imgNoteStyle = CellStyle(
+      fontColorHex: ExcelColor.fromHexString('#757575'),
+      fontSize: 9,
+      italic: true,
+    );
+
     int imgRow = 1;
     if (productImageUrl.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '[상세페이지 디자인 이미지]', style: labelStyle);
-      _setCell(summarySheet, imgRow, 1, productImageUrl);
-      _setCell(summarySheet, imgRow, 2, '※ URL을 복사하여 브라우저에서 확인');
+      _setCell(summarySheet, imgRow, 0, '🖼️ 상세페이지 디자인 이미지', style: imgLabelStyle);
+      _setCell(summarySheet, imgRow, 1, productImageUrl, style: linkStyle);
+      _setCell(summarySheet, imgRow, 2, '← 링크 클릭 또는 복사 후 브라우저에서 이미지 확인', style: imgNoteStyle);
       imgRow++;
     }
     if (designFileUrl.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '[디자인수정 파일 첨부]', style: labelStyle);
-      _setCell(summarySheet, imgRow, 1, designFileUrl);
-      imgRow++;
-    }
-    if (maleRefUrl.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '[남자 하의 참조이미지]', style: labelStyle);
-      _setCell(summarySheet, imgRow, 1, maleRefUrl);
+      _setCell(summarySheet, imgRow, 0, '📎 디자인수정 파일 첨부', style: imgLabelStyle);
+      _setCell(summarySheet, imgRow, 1, designFileUrl, style: linkStyle);
+      _setCell(summarySheet, imgRow, 2, '← 링크 클릭 또는 복사 후 브라우저에서 확인', style: imgNoteStyle);
       imgRow++;
     }
     if (femaleRefUrl.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '[여자 하의 참조이미지]', style: labelStyle);
-      _setCell(summarySheet, imgRow, 1, femaleRefUrl);
+      _setCell(summarySheet, imgRow, 0, '👗 여자 하의 참조이미지', style: imgLabelStyle);
+      _setCell(summarySheet, imgRow, 1, femaleRefUrl, style: linkStyle);
+      _setCell(summarySheet, imgRow, 2, '← 링크 클릭 또는 복사 후 브라우저에서 확인', style: imgNoteStyle);
       imgRow++;
     }
 
@@ -1035,9 +1052,9 @@ class OrderExcelService {
       _setCell(summarySheet, startRow + i, 1, infoRows[i][1]);
     }
 
-    summarySheet.setColumnWidth(0, 22.0);
-    summarySheet.setColumnWidth(1, 55.0);
-    summarySheet.setColumnWidth(2, 30.0);
+    summarySheet.setColumnWidth(0, 26.0);
+    summarySheet.setColumnWidth(1, 70.0);
+    summarySheet.setColumnWidth(2, 38.0);
 
     // ── 시트 2: 인원별 사이즈 (키·몸무게·허리·허벅지 포함) ──
     final personSheet = excel['팀원별사이즈명단'];
