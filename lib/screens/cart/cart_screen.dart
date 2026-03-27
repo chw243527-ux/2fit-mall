@@ -246,6 +246,7 @@ class CartScreen extends StatelessWidget {
   );
 
   Widget _buildEmptyCart(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     return Center(
       child: Column(

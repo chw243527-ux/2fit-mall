@@ -1019,9 +1019,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     children: [
                       Text(
                         opt['title'] as String,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
-                          fontSize: 14,
+                          fontSize: 13,
                           color: !enabled
                               ? Colors.grey.shade400
                               : isSel
@@ -1032,8 +1034,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       const SizedBox(height: 2),
                       Text(
                         opt['desc'] as String,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           color: !enabled
                               ? Colors.grey.shade400
                               : Colors.grey.shade600,
@@ -1110,6 +1114,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(p.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
             const SizedBox(height: 2),
             Text(p.category,

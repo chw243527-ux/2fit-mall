@@ -497,12 +497,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                       color: Color(0xFF0064FF),
                                       fontWeight: FontWeight.w700)),
                             Text(_addressController.text,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     color: Color(0xFF1A1A2E))),
                             if (_detailAddressController.text.isNotEmpty)
                               Text(_detailAddressController.text,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                       fontSize: 12, color: Color(0xFF666666))),
                           ],
@@ -910,7 +914,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
-                      softWrap: true,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       '${item.selectedColor} / ${item.selectedSize} × ${item.quantity}',

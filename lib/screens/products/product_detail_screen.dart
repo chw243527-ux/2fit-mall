@@ -312,12 +312,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             ],
           ),
           const SizedBox(height: 12),
-          Text(product.localizedName(_lang), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+          Text(product.localizedName(_lang), maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
           const SizedBox(height: 6),
           // ── 섬유 혼용율 한줄 요약 ──
           _buildFiberRatioInline(product),
           const SizedBox(height: 6),
-          Text(product.localizedDescription(_lang), style: const TextStyle(fontSize: 14, color: Color(0xFF666666), height: 1.6)),
+          Text(product.localizedDescription(_lang), maxLines: 4, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, color: Color(0xFF666666), height: 1.6)),
           const SizedBox(height: 20),
           // 가격
           if (product.originalPrice != null)
@@ -446,7 +446,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 children: [
                   const Icon(Icons.groups_rounded, color: Colors.white, size: 18),
                   const SizedBox(width: 8),
-                  Text(loc.groupOrderOnly,
+                  Text(loc.groupOrderOnly, maxLines: 2, overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
                 ],
               ),
@@ -1103,6 +1103,7 @@ $productUrl
           const SizedBox(height: 4),
           // 상품명
           Text(product.localizedName(_lang),
+              maxLines: 3, overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), height: 1.2)),
           const SizedBox(height: 8),
           // ── 섬유 혼용율 한줄 요약 (상품명 아래 표시) ──
@@ -3210,10 +3211,14 @@ $productUrl
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                           fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
                   const SizedBox(height: 5),
                   Text(desc,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                           fontSize: 12, color: Color(0xFF666666), height: 1.6)),
                 ],
@@ -3654,9 +3659,13 @@ $productUrl
                 children: [
                   Row(
                     children: [
-                      Text(r['name'] as String,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 13)),
+                      Flexible(
+                        child: Text(r['name'] as String,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 13)),
+                      ),
                       const SizedBox(width: 8),
                       Row(
                           children: List.generate(
@@ -3682,6 +3691,8 @@ $productUrl
                   ),
                   const SizedBox(height: 8),
                   Text(r['content'] as String,
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                           fontSize: 13, height: 1.6, color: Color(0xFF555555))),
                 ],
