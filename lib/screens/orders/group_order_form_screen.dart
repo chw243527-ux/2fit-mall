@@ -188,8 +188,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══ 파생값 ══
   bool get _isAdditional   => widget.isAdditionalOrder;
   int  get _totalCount     => _persons.length;
-  bool get _hasColorChange => _printType == 0 || _printType == 2 || _printType == 3;
-  bool get _hasTeamName    => _printType == 1 || _printType == 2 || _printType == 3;
+  // 옵션별: 0=색상변경만, 1=단체명만, 2=단체명+색상, 3=디자인+단체명+색상, 4=디자인+색상+단체명+후면이름
+  bool get _hasColorChange => _printType == 0 || _printType == 2 || _printType == 3 || _printType == 4;
+  bool get _hasTeamName    => _printType == 1 || _printType == 2 || _printType == 3 || _printType == 4;
 
   bool get _nameEnabled    => _totalCount >= 10;
   OrderModel? get _originalOrder => widget.originalOrder;
@@ -319,11 +320,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   /// 인원 변경 시 선택된 인쇄 옵션이 조건 미달이면 자동 리셋
   void _resetInvalidPrintType() {
-    // 4번(id=3) 옵션은 10명 이상 필요
-    if (_printType == 3 && _totalCount < 10) {
+    // 5번(id=4) 옵션은 10명 이상 필요
+    if (_printType == 4 && _totalCount < 10) {
       _printType = 0;
     }
-    // 1~3번(id=0~2) 옵션은 5명 이상 필요 (사실 기본 5명 미만이면 리셋)
+    // 나머지 옵션(0~3)은 5명 이상 필요
     if (_totalCount < 5) {
       _printType = 0;
     }
@@ -899,35 +900,44 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══════════════════════════════════════════════
   Widget _buildPrintTypeSection() {
     // id, title, desc, badgeColor, condMin (최소 인원), condLabel
+    // 0: 색상변경(단체명 비활성), 1: 단체명변경(단체명 활성), 2: 단체명+색상, 3: 디자인+단체명+색상, 4: 디자인+모든변경
     final options = [
       {
         'id': 0,
-        'title': '색상 변경',
-        'desc': '원하는 색상으로 변경 제작 (상·하의 동일 색상 적용)',
+        'title': '디자인 유지 + 색상 변경',
+        'desc': '2FIT 로고 적용(전면) + 색상 변경 (단체명 인쇄 없음)',
         'badgeColor': const Color(0xFF1565C0), // 파랑
         'condMin': 5,
-        'condLabel': '5명↑ 무료',
+        'condLabel': '5명↑',
       },
       {
         'id': 1,
-        'title': '전면 (단체명)',
-        'desc': '전면에 단체명 인쇄',
+        'title': '디자인 유지 + 단체명 변경(전면)',
+        'desc': '기존 디자인 유지 + 전면에 단체명 인쇄',
         'badgeColor': const Color(0xFF2E7D32), // 초록
         'condMin': 5,
-        'condLabel': '5명↑ 무료',
+        'condLabel': '5명↑',
       },
       {
         'id': 2,
-        'title': '조합 (전면+색상)',
-        'desc': '전면 단체명 + 색상 변경',
+        'title': '디자인 유지 + 단체명 + 색상 변경',
+        'desc': '기존 디자인 유지 + 단체명(전면) + 색상 변경',
         'badgeColor': const Color(0xFF6A1B9A), // 보라
         'condMin': 5,
-        'condLabel': '5명↑ 무료',
+        'condLabel': '5명↑',
       },
       {
         'id': 3,
-        'title': '조합 + 후면 이름',
-        'desc': '전면 단체명·색상 + 후면 개인 이름 인쇄',
+        'title': '디자인 변경 + 단체명 + 색상 변경',
+        'desc': '새 디자인 변경 + 단체명(전면) + 색상 변경',
+        'badgeColor': const Color(0xFF00838F), // 청록
+        'condMin': 5,
+        'condLabel': '5명↑',
+      },
+      {
+        'id': 4,
+        'title': '디자인 변경 + 색상 + 단체명 + 이름(후면)',
+        'desc': '새 디자인 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)',
         'badgeColor': const Color(0xFFC62828), // 빨강
         'condMin': 10,
         'condLabel': '10명↑',

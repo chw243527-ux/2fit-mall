@@ -313,7 +313,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           ),
           const SizedBox(height: 12),
           Text(product.localizedName(_lang), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
+          // ── 섬유 혼용율 한줄 요약 ──
+          _buildFiberRatioInline(product),
+          const SizedBox(height: 6),
           Text(product.localizedDescription(_lang), style: const TextStyle(fontSize: 14, color: Color(0xFF666666), height: 1.6)),
           const SizedBox(height: 20),
           // 가격
@@ -950,6 +953,61 @@ $productUrl
   }
 
   // ═══════════════════════════════════════
+  // 섬유 혼용율 인라인 (상품명 아래)
+  // ═══════════════════════════════════════
+  Widget _buildFiberRatioInline(ProductModel product) {
+    final table = loc.fiberTableData;
+    final name = product.localizedName(_lang).toLowerCase();
+    final cat  = product.category.toLowerCase();
+    final sub  = product.subCategory.toLowerCase();
+
+    // 상품 카테고리/이름으로 해당 혼용율 행 매칭
+    List<String>? matched;
+    if (name.contains('타이즈') || sub.contains('타이즈') || cat.contains('하의')) {
+      matched = table.firstWhere((r) => r[0].contains('골지') || r[0].contains('Golgi') || r[0].contains('タイツ'), orElse: () => table.isNotEmpty ? table[1] : []);
+    } else if (name.contains('크롭') || name.contains('crop') || name.contains('삼각') || name.contains('원피스')) {
+      // 에어로브라이트 또는 브라이트
+      matched = table.length >= 4 ? table[2] : null;
+    } else {
+      // 싱글렛, 라운드티 기본
+      matched = table.isNotEmpty ? table[0] : null;
+    }
+    if (matched == null || matched.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F8FF),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
+          ),
+          child: Text(
+            matched[1],
+            style: const TextStyle(fontSize: 11, color: Color(0xFF1565C0), fontWeight: FontWeight.w600),
+          ),
+        ),
+        if (matched.length > 2)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F8FF),
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
+            ),
+            child: Text(
+              matched[2],
+              style: const TextStyle(fontSize: 11, color: Color(0xFF1565C0), fontWeight: FontWeight.w600),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ═══════════════════════════════════════
   // 기본 정보
   // ═══════════════════════════════════════
   Widget _buildBasicInfo(ProductModel product) {
@@ -1046,7 +1104,10 @@ $productUrl
           // 상품명
           Text(product.localizedName(_lang),
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), height: 1.2)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
+          // ── 섬유 혼용율 한줄 요약 (상품명 아래 표시) ──
+          _buildFiberRatioInline(product),
+          const SizedBox(height: 6),
 
           // ── 기성품 타이즈/싱글렛세트: 하의 색상 선택 안내 배너 (해당 카테고리만 표시) ──
           if (!product.isGroupOnly && _showBottomColorBadge(product)) ...[
@@ -1850,75 +1911,64 @@ $productUrl
             const SizedBox(height: 8),
           ],
 
-          // ── 구매방식 버튼 (기성품 / 단체주문) ──
-          Builder(builder: (context) {
-            final showGroupBtn = product.isGroupOnly || _showGroupOrderBtn(product);
-            return Row(
-              children: [
-                if (!product.isGroupOnly) ...[
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => _showBuyNowSheet(product),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1A1A1A),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 18),
-                            const SizedBox(height: 4),
-                            Text(loc.readyMadeLabel,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w800,
-                                )),
-                            Text(loc.buyNow,
-                                style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.7),
-                                    fontSize: 10)),
-                          ],
-                        ),
-                      ),
-                    ),
+          // ── 구매방식 버튼: 단체주문 전용 → 단체주문 1개, 기성품 → 기성품 1개 ──
+          if (product.isGroupOnly) ...[
+            GestureDetector(
+              onTap: () => _showGroupOrderGuide(product),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4A148C), Color(0xFF6A1B9A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ],
-                if (showGroupBtn) ...[
-                  if (!product.isGroupOnly) const SizedBox(width: 8),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => _showGroupOrderGuide(product),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF4A148C), Color(0xFF6A1B9A)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.groups_rounded, color: Colors.white, size: 18),
-                            const SizedBox(height: 4),
-                            Text(loc.groupOrderLabel,
-                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
-                            Text(loc.groupOrderSubLabel,
-                                style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 10)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            );
-          }),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.groups_rounded, color: Colors.white, size: 18),
+                    const SizedBox(height: 4),
+                    Text(loc.groupOrderLabel,
+                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+                    Text(loc.groupOrderSubLabel,
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 10)),
+                  ],
+                ),
+              ),
+            ),
+          ] else ...[
+            GestureDetector(
+              onTap: () => _showBuyNowSheet(product),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A1A),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 18),
+                    const SizedBox(height: 4),
+                    Text(loc.readyMadeLabel,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                        )),
+                    Text(loc.buyNow,
+                        style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 10)),
+                  ],
+                ),
+              ),
+            ),
+          ],
 
           // ── 성별 선택 (단체주문 전용 상품 제외) ──
           if (!product.isGroupOnly) ...[
@@ -3101,19 +3151,14 @@ $productUrl
               _sectionHeader('03', loc.section03Title, loc.section03Sub),
               const SizedBox(height: 10),
 
-          // 4가지 포켓 특성
+          // 포켓 특성 (45도 후방입구 카드 제거)
           _buildPocketFeatureTile(
             icon: Icons.location_on_rounded,
             color: const Color(0xFF1565C0),
             title: loc.pocketTile1Title,
             desc: loc.pocketTile1Desc,
           ),
-          _buildPocketFeatureTile(
-            icon: Icons.rotate_right_rounded,
-            color: const Color(0xFF6A1B9A),
-            title: loc.pocketTile2Title,
-            desc: loc.pocketTile2Desc,
-          ),
+          // pocketTile2 (45° 뒤 방향 입구) 제거됨
           _buildPocketFeatureTile(
             icon: Icons.smartphone_rounded,
             color: const Color(0xFF1B5E20),
@@ -3961,9 +4006,9 @@ $productUrl
                     // 타입 선택
                     Text(loc.styleTypeLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
                     const SizedBox(height: 8),
+                    // A타입(레이서백) 카드 제거 → B타입(스쿱넥)만 표시
                     Row(
                       children: [
-                        {'type': 'A', 'label': loc.singletTypeA, 'desc': loc.singletTypeADesc},
                         {'type': 'B', 'label': loc.singletTypeB, 'desc': loc.singletTypeBDesc},
                       ].map((t) {
                         final isSelected = _singletType == t['type'];

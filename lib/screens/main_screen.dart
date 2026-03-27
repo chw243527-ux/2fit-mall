@@ -37,9 +37,12 @@ class MainScreenState extends State<MainScreen> {
     super.initState();
     _currentIndex = widget.initialIndex;
     // 공지사항 팝업 - MainScreen 레벨에서 표시 (가장 안정적)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final noticeProv = context.read<NoticeProvider>();
+      // SharedPreferences에서 닫기 날짜 복원 (로그인 후에도 유지)
+      await noticeProv.loadDismissState();
       // Firestore에서 공지사항 로드 (번역 없으면 자동 번역)
-      context.read<NoticeProvider>().loadFromFirestore();
+      noticeProv.loadFromFirestore();
       Future.delayed(const Duration(milliseconds: 1500), _showNoticePopup);
     });
   }
@@ -59,7 +62,7 @@ class MainScreenState extends State<MainScreen> {
         notices: notices,
         language: langProv.language,
         loc: langProv.loc,
-        onDismissToday: () => noticeProv.dismissToday(),
+        onDismissToday: () { noticeProv.dismissToday(); },
       ),
     );
   }

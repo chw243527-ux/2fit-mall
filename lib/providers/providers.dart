@@ -761,6 +761,24 @@ class NoticeProvider extends ChangeNotifier {
   DateTime? _dismissedDate;
   bool _isLoading = false;
 
+  static const String _kPopupDismissKey = 'popup_dismiss_date';
+
+  /// 앱 시작 시 SharedPreferences에서 닫기 날짜 복원
+  Future<void> loadDismissState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(_kPopupDismissKey);
+      if (saved != null) {
+        final date = DateTime.tryParse(saved);
+        if (date != null) {
+          _dismissedDate = date;
+          _dismissedToday = true;
+          notifyListeners();
+        }
+      }
+    } catch (_) {}
+  }
+
   final List<NoticeModel> _notices = [
     NoticeModel(
       id: 'n001',
@@ -800,9 +818,14 @@ class NoticeProvider extends ChangeNotifier {
 
   void markShown() {}
 
-  void dismissToday() {
+  Future<void> dismissToday() async {
     _dismissedToday = true;
     _dismissedDate = DateTime.now();
+    // SharedPreferences에 날짜 저장 → 로그아웃 후 재로그인해도 유지
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_kPopupDismissKey, _dismissedDate!.toIso8601String());
+    } catch (_) {}
     notifyListeners();
   }
 
