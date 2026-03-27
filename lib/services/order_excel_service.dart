@@ -1251,16 +1251,18 @@ class OrderExcelService {
     final baseBytes = generateGroupOrderExcel(order);
 
     // 2) 다운로드할 이미지 목록
+    // generateGroupOrderExcel에서 row 1부터 이미지 행을 생성하므로 동일 위치에 삽입
+    // A열(0)=레이블, B열(1)~D열(3)=이미지 영역(merge됨)
     final List<_ImageToInsert> imagesToInsert = [];
     int imgRow = 1; // 1-based Excel row (row 0 = 제목행)
     if (productImageUrl.isNotEmpty) {
       imagesToInsert.add(_ImageToInsert(
         url: productImageUrl,
-        sheetIndex: 0,          // '주문정보' 시트
-        row: imgRow,            // 1-based
-        col: 4,                 // 열 E (index 4)
-        widthPx: 320,
-        heightPx: 240,
+        sheetIndex: 0,  // '주문정보' 시트
+        row: imgRow,    // 1-based
+        col: 1,         // B열 (A열은 레이블)
+        widthPx: 260,
+        heightPx: 195,
         label: '디자인이미지',
       ));
       imgRow++;
@@ -1270,10 +1272,10 @@ class OrderExcelService {
         url: designFileUrl,
         sheetIndex: 0,
         row: imgRow,
-        col: 4,
-        widthPx: 320,
-        heightPx: 240,
-        label: '디자인참조이미지',
+        col: 1,         // B열
+        widthPx: 260,
+        heightPx: 195,
+        label: '참조이미지',
       ));
     }
 
@@ -1447,21 +1449,18 @@ class OrderExcelService {
           final wEmu = img.widthPx * 9525;
           final hEmu = img.heightPx * 9525;
 
-          // twoCellAnchor: (col, row) → (col+적당한 폭, row+적당한 높이)
-          // row/col은 0-based (Excel 0-based index)
+          // oneCellAnchor: from 셀에서 시작, EMU 크기로 고정 표시
+          // row/col은 0-based
           final anchorRow = img.row - 1; // 0-based
           final anchorCol = img.col;     // 열 index
 
           drawingAnchors.add('''
-  <xdr:twoCellAnchor moveWithCells="1" sizeWithCells="0">
+  <xdr:oneCellAnchor>
     <xdr:from>
-      <xdr:col>$anchorCol</xdr:col><xdr:colOff>0</xdr:colOff>
-      <xdr:row>$anchorRow</xdr:row><xdr:rowOff>0</xdr:rowOff>
+      <xdr:col>$anchorCol</xdr:col><xdr:colOff>91440</xdr:colOff>
+      <xdr:row>$anchorRow</xdr:row><xdr:rowOff>91440</xdr:rowOff>
     </xdr:from>
-    <xdr:to>
-      <xdr:col>${anchorCol + 3}</xdr:col><xdr:colOff>0</xdr:colOff>
-      <xdr:row>${anchorRow + 14}</xdr:row><xdr:rowOff>0</xdr:rowOff>
-    </xdr:to>
+    <xdr:ext cx="$wEmu" cy="$hEmu"/>
     <xdr:pic>
       <xdr:nvPicPr>
         <xdr:cNvPr id="${100 + imgIdCounter}" name="${img.label}$imgIdCounter"/>
@@ -1477,7 +1476,7 @@ class OrderExcelService {
       </xdr:spPr>
     </xdr:pic>
     <xdr:clientData/>
-  </xdr:twoCellAnchor>''');
+  </xdr:oneCellAnchor>''');
 
           nextRId++;
           imgIdCounter++;
@@ -1705,25 +1704,29 @@ class OrderExcelService {
       italic: true,
     );
 
+    // 이미지 행: URL 텍스트 없이 셀만 넓게 확보 → async 버전에서 실제 이미지 삽입
     int imgRow = 1;
     if (productImageUrl.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '🖼️ 디자인이미지', style: imgLabelStyle);
-      _setCell(summarySheet, imgRow, 1, productImageUrl, style: linkStyle);
-      _setCell(summarySheet, imgRow, 2, '← URL 복사 후 브라우저 확인', style: imgNoteStyle);
-      _setCell(summarySheet, imgRow, 3, '', style: imgNoteStyle); // 이미지 삽입 공간 예약
-      // 행 높이 확보 (이미지 표시 공간)
-      summarySheet.setRowHeight(imgRow, 180.0);
+      // A열: 이미지 레이블, B열: 이미지 실제 삽입 공간 (비워둠)
+      _setCell(summarySheet, imgRow, 0, '디자인이미지', style: imgLabelStyle);
+      summarySheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: imgRow),
+        CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: imgRow),
+      );
+      _setCell(summarySheet, imgRow, 1, '', style: imgNoteStyle);
+      summarySheet.setRowHeight(imgRow, 200.0); // 행 높이 200pt = 이미지 표시 충분
       imgRow++;
     }
     if (designFileUrl.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '📎 디자인참조이미지', style: imgLabelStyle);
-      _setCell(summarySheet, imgRow, 1, designFileUrl, style: linkStyle);
-      _setCell(summarySheet, imgRow, 2, '← URL 복사 후 브라우저 확인', style: imgNoteStyle);
-      _setCell(summarySheet, imgRow, 3, '', style: imgNoteStyle); // 이미지 삽입 공간 예약
-      summarySheet.setRowHeight(imgRow, 180.0);
+      _setCell(summarySheet, imgRow, 0, '참조이미지', style: imgLabelStyle);
+      summarySheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: imgRow),
+        CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: imgRow),
+      );
+      _setCell(summarySheet, imgRow, 1, '', style: imgNoteStyle);
+      summarySheet.setRowHeight(imgRow, 200.0);
       imgRow++;
     }
-    // 남자참조이미지·여자참조이미지 제거됨
 
     final teamName = opts['teamName']?.toString() ?? order.groupName ?? '-';
     final mainColor = opts['mainColor']?.toString() ?? '-';
