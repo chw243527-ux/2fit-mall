@@ -797,91 +797,7 @@ class OrderExcelService {
     final List<_ImageToInsert> allImagesToInsert = [];
 
     // ══════════════════════════════════════════════
-    // 시트 1: 전체 요약 (단체주문요약)
-    // ══════════════════════════════════════════════
-    final summarySheet = excel['단체주문요약'];
-    excel.setDefaultSheet('단체주문요약');
-
-    final totalPersonsAll = groupOrders.fold<int>(0, (s, o) {
-      final cnt = o.customOptions?['totalCount'];
-      return s + ((cnt as num?)?.toInt() ?? o.groupCount ?? 0);
-    });
-
-    _setCell(summarySheet, 0, 0,
-        '2FIT MALL 단체주문 일일마감  ${_fmt(start)} ~ ${_fmt(end)}',
-        style: titleStyle);
-    summarySheet.merge(
-        CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
-        CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: 0));
-    summarySheet.setRowHeight(0, 32);
-
-    _setCell(summarySheet, 1, 0,
-        '총 ${groupOrders.length}팀  |  총 ${totalPersonsAll}명  |  기간: ${_fmt(start)} ~ ${_fmt(end)}',
-        style: headerStyle);
-    summarySheet.merge(
-        CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1),
-        CellIndex.indexByColumnRow(columnIndex: 14, rowIndex: 1));
-    summarySheet.setRowHeight(1, 22);
-
-    final sumHeaders = [
-      'No', '주문번호', '주문날짜', '단체명', '담당자', '연락처',
-      '인쇄옵션', '색상', '하의길이', '허리밴드',
-      '총인원', '남', '여', '원단', '메모',
-    ];
-    for (var i = 0; i < sumHeaders.length; i++) {
-      _setCell(summarySheet, 3, i, sumHeaders[i], style: headerStyle);
-    }
-    summarySheet.setRowHeight(3, 20);
-
-    int sRowIdx = 4;
-    int sNo = 1;
-    for (final order in groupOrders) {
-      final opts = order.customOptions ?? {};
-      final rowStyle = sNo % 2 == 0 ? evenRowStyle : null;
-      final maleCount = _countGender(order, '남');
-      final femaleCount = _countGender(order, '여');
-      final printType = opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '';
-      final printDisplay = printType.isEmpty ? '인쇄옵션 없음' : printType;
-      final printStyle = printType.isEmpty ? noOptionStyle : rowStyle;
-
-      _setCell(summarySheet, sRowIdx, 0, '$sNo', style: rowStyle);
-      _setCell(summarySheet, sRowIdx, 1, _shortId(order.id), style: rowStyle);
-      _setCell(summarySheet, sRowIdx, 2, _fmtFull(order.createdAt), style: rowStyle);
-      _setCell(summarySheet, sRowIdx, 3, opts['teamName']?.toString() ?? order.groupName ?? '-', style: rowStyle);
-      _setCell(summarySheet, sRowIdx, 4, opts['manager']?.toString() ?? opts['managerName']?.toString() ?? order.userName, style: rowStyle);
-      _setCell(summarySheet, sRowIdx, 5, _maskPhone(order.userPhone), style: rowStyle);
-      _setCell(summarySheet, sRowIdx, 6, printDisplay, style: printStyle);
-      _setColorCell(summarySheet, sRowIdx, 7, _extractColorInfo(order), baseStyle: rowStyle, overrideHex: _extractColorHex(order));
-      _setCell(summarySheet, sRowIdx, 8, opts['defaultLength']?.toString() ?? '개별선택', style: rowStyle);
-      _setWaistbandCell(summarySheet, sRowIdx, 9, opts, baseStyle: rowStyle);
-      _setCell(summarySheet, sRowIdx, 10, opts['totalCount'] ?? order.groupCount ?? '-', style: rowStyle);
-      _setCell(summarySheet, sRowIdx, 11, maleCount > 0 ? maleCount : '-', style: rowStyle);
-      _setCell(summarySheet, sRowIdx, 12, femaleCount > 0 ? femaleCount : '-', style: rowStyle);
-      _setCell(summarySheet, sRowIdx, 13,
-          opts['fabricType']?.toString() ?? opts['fabric']?.toString() ?? '-', style: rowStyle);
-      _setCell(summarySheet, sRowIdx, 14, opts['memoText']?.toString() ?? order.memo ?? '', style: rowStyle);
-      sRowIdx++;
-      sNo++;
-    }
-
-    // 합계 행
-    _setCell(summarySheet, sRowIdx, 0, '합계', style: totalStyle);
-    _setCell(summarySheet, sRowIdx, 10, totalPersonsAll, style: totalStyle);
-    summarySheet.merge(
-        CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: sRowIdx),
-        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: sRowIdx));
-
-    final sumColWidths = [
-      5.0, 18.0, 16.0, 16.0, 12.0, 14.0,
-      18.0, 16.0, 12.0, 16.0,
-      8.0, 6.0, 6.0, 12.0, 22.0,
-    ];
-    for (var i = 0; i < sumColWidths.length; i++) {
-      summarySheet.setColumnWidth(i, sumColWidths[i]);
-    }
-
-    // ══════════════════════════════════════════════
-    // 시트 2~N: 팀별 상세 시트 (팀명 = 시트명)
+    // 시트 1~N: 팀별 상세 시트 (팀명 = 시트명)
     //   레이아웃:
     //   행 0   : 타이틀 (팀명)
     //   행 1   : 주문정보 헤더
@@ -966,15 +882,14 @@ class OrderExcelService {
 
       if (designImgUrl.isNotEmpty) {
         _setCell(teamSheet, infoStartRow, 6, '', style: imgPlaceholderStyle);
-        // 시트 인덱스: 0=단체주문요약, 1=첫번째팀, ...
-        final teamSheetIdx = orderIdx + 1;
+        // sheetName 기반으로 정확한 시트에 이미지 삽입
         allImagesToInsert.add(_ImageToInsert(
           url: designImgUrl,
-          sheetIndex: teamSheetIdx,
-          row: infoStartRow + 1,   // 1-based
-          col: 6,                   // G열 (0-based)
+          sheetName: sheetName,  // 시트 이름으로 찾기
+          row: infoStartRow + 1, // 1-based
+          col: 6,                // G열 (0-based)
           widthPx: 200, heightPx: 150,
-          label: '디자인_${teamName}',
+          label: '디자인_$teamName',
         ));
       } else {
         _setCell(teamSheet, infoStartRow, 6, '이미지 없음', style: imgPlaceholderStyle);
@@ -1145,7 +1060,16 @@ class OrderExcelService {
       }
     } // end for each order
 
-    excel.setDefaultSheet('단체주문요약');
+    // 첫 번째 팀 시트를 기본 시트로 설정
+    if (groupOrders.isNotEmpty) {
+      final firstTeamName = groupOrders.first.customOptions?['teamName']?.toString()
+          ?? groupOrders.first.groupName ?? '팀1';
+      final rawFirst = firstTeamName.replaceAll(RegExp(r'[\\/:*?\[\]]'), '');
+      final firstSheet = rawFirst.length > 28 ? rawFirst.substring(0, 28) : rawFirst;
+      excel.setDefaultSheet(firstSheet);
+    }
+    // Excel 라이브러리가 자동 생성한 'Sheet1' 기본 시트 제거
+    try { excel.delete('Sheet1'); } catch (_) {}
     final dailyBase = excel.encode()!;
 
     if (allImagesToInsert.isEmpty) return Uint8List.fromList(dailyBase);
@@ -1482,7 +1406,7 @@ class OrderExcelService {
       if (wbFile == null) return xlsxBytes;
       final wbXml = utf8.decode(wbFile.content as List<int>);
 
-      // workbook.xml.rels에서 sheetIndex→파일명 매핑
+      // workbook.xml.rels에서 rId→파일명 매핑
       final wbRelsFile = archive.findFile('xl/_rels/workbook.xml.rels');
       final Map<String, String> rIdToSheet = {}; // rId → xl/worksheets/sheetN.xml
       if (wbRelsFile != null) {
@@ -1499,22 +1423,40 @@ class OrderExcelService {
         }
       }
 
-      // workbook.xml의 sheet 순서로 rId 리스트 추출
-      final sheetRe =
-          RegExp(r'<sheet\b[^>]*r:id="([^"]+)"', multiLine: true);
-      final sheetRIds = sheetRe
-          .allMatches(wbXml)
-          .map((m) => m.group(1)!)
-          .toList();
+      // workbook.xml의 sheet 순서로 rId + name 리스트 추출
+      final sheetRe = RegExp(
+          r'<sheet\b[^>]*name="([^"]*)"[^>]*r:id="([^"]+)"',
+          multiLine: true);
+      final sheetRIds = <String>[];           // index → rId
+      final Map<String, int> nameToIdx = {}; // sheetName → index
+      for (final m in sheetRe.allMatches(wbXml)) {
+        final name = m.group(1)!;
+        final rId  = m.group(2)!;
+        nameToIdx[name] = sheetRIds.length;
+        sheetRIds.add(rId);
+      }
+      // 이름 매핑이 없으면 r:id만 있는 기존 패턴도 폴백 처리
+      if (sheetRIds.isEmpty) {
+        final fallbackRe = RegExp(r'<sheet\b[^>]*r:id="([^"]+)"', multiLine: true);
+        for (final m in fallbackRe.allMatches(wbXml)) {
+          sheetRIds.add(m.group(1)!);
+        }
+      }
 
       final List<ArchiveFile> newFiles = [];
 
       for (final entry in bySheet.entries) {
         final sheetIdx = entry.key;
         final imgs = entry.value;
-        if (sheetIdx >= sheetRIds.length) continue;
 
-        final sheetRId = sheetRIds[sheetIdx];
+        // sheetName이 있으면 이름으로 인덱스를 찾고, 없으면 sheetIndex 사용
+        final firstImg = imgs.first;
+        final resolvedIdx = (firstImg.sheetName != null && nameToIdx.containsKey(firstImg.sheetName))
+            ? nameToIdx[firstImg.sheetName]!
+            : sheetIdx;
+
+        if (resolvedIdx >= sheetRIds.length) continue;
+        final sheetRId = sheetRIds[resolvedIdx];
         final sheetPath = rIdToSheet[sheetRId];
         if (sheetPath == null) continue;
 
@@ -2558,9 +2500,10 @@ class DateTimeRange {
 /// 이미지 삽입 정보를 담는 내부 헬퍼 클래스
 class _ImageToInsert {
   final String url;
-  final int sheetIndex; // 0-based
-  final int row;        // 1-based Excel row
-  final int col;        // 0-based column index
+  final int sheetIndex;    // 0-based (sheetName 없을 때 폴백)
+  final String? sheetName; // 시트 이름으로 정확히 찾기 (우선 사용)
+  final int row;           // 1-based Excel row
+  final int col;           // 0-based column index
   final int widthPx;
   final int heightPx;
   final String label;
@@ -2569,7 +2512,8 @@ class _ImageToInsert {
 
   _ImageToInsert({
     required this.url,
-    required this.sheetIndex,
+    this.sheetIndex = 0,
+    this.sheetName,
     required this.row,
     required this.col,
     required this.widthPx,
