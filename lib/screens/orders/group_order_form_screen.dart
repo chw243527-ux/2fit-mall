@@ -650,6 +650,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         size: '단체', color: _mainColorName ?? '기본',
         quantity: _totalCount, price: _unitPrice,
         customOptions: customOptions,
+        imageUrl: product.images.isNotEmpty ? product.images.first : null,
       )],
       totalAmount: _finalPrice, shippingFee: _shipping,
       paymentMethod: '무통장입금',

@@ -574,6 +574,7 @@ class OrderService {
           quantity: (item['quantity'] as num?)?.toInt() ?? 1,
           price: (item['price'] as num?)?.toDouble() ?? 0,
           customOptions: itemOpts,
+          imageUrl: item['imageUrl'] as String?,
         );
       }).toList(),
     );
@@ -611,6 +612,7 @@ class OrderService {
           quantity: item['quantity'] as int? ?? 1,
           price: (item['price'] as num?)?.toDouble() ?? 0,
           customOptions: item['customOptions'] as Map<String, dynamic>?,
+          imageUrl: item['imageUrl'] as String?,
         );
       }).toList(),
     );

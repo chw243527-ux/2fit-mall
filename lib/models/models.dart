@@ -351,6 +351,7 @@ class OrderItem {
   final int quantity;
   final double price;
   final Map<String, dynamic>? customOptions;
+  final String? imageUrl;
 
   OrderItem({
     required this.productId,
@@ -360,6 +361,7 @@ class OrderItem {
     required this.quantity,
     required this.price,
     this.customOptions,
+    this.imageUrl,
   });
 
   Map<String, dynamic> toJson() {
@@ -371,6 +373,7 @@ class OrderItem {
       'quantity': quantity,
       'price': price,
       'customOptions': customOptions,
+      if (imageUrl != null && imageUrl!.isNotEmpty) 'imageUrl': imageUrl,
     };
   }
 }

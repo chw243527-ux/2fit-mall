@@ -933,12 +933,23 @@ class _PcOrderCard extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     children: [
-                      Container(
-                        width: 52, height: 52,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100], borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                          ? Image.network(
+                              item.imageUrl!,
+                              width: 52, height: 52, fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 52, height: 52,
+                                decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                                child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                              ),
+                            )
+                          : Container(
+                              width: 52, height: 52,
+                              decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                              child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                            ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -1992,10 +2003,23 @@ class _MobileOrderCard extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                Container(
-                  width: 56, height: 56,
-                  decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: order.items.isNotEmpty && order.items.first.imageUrl != null && order.items.first.imageUrl!.isNotEmpty
+                    ? Image.network(
+                        order.items.first.imageUrl!,
+                        width: 56, height: 56, fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 56, height: 56,
+                          color: Colors.grey[100],
+                          child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                        ),
+                      )
+                    : Container(
+                        width: 56, height: 56,
+                        decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                        child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                      ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

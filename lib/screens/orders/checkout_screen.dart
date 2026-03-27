@@ -1625,6 +1625,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         quantity: item.quantity,
         price: item.product.price,
         customOptions: item.customOptions,
+        imageUrl: item.product.images.isNotEmpty ? item.product.images.first : null,
       )).toList(),
       totalAmount: _finalTotal,
       shippingFee: widget.cart.shippingFee,
