@@ -1617,16 +1617,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       userEmail: resolvedUserEmail,
       userPhone: resolvedUserPhone,
       userAddress: resolvedAddress,
-      items: widget.cart.items.map((item) => OrderItem(
-        productId: item.product.id,
-        productName: item.product.name,
-        size: item.selectedSize,
-        color: item.selectedColor,
-        quantity: item.quantity,
-        price: item.product.price,
-        customOptions: item.customOptions,
-        imageUrl: item.product.images.isNotEmpty ? item.product.images.first : null,
-      )).toList(),
+      items: widget.cart.items.map((item) {
+        // 상세페이지 디자인 이미지 우선, 없으면 메인 이미지
+        final designImg = (item.product.sectionImages['design'] ?? []).isNotEmpty
+            ? item.product.sectionImages['design']!.first
+            : (item.product.images.isNotEmpty ? item.product.images.first : null);
+        // customOptions에 designFileUrl이 없으면 삽입
+        Map<String, dynamic>? mergedOpts = item.customOptions != null
+            ? Map<String, dynamic>.from(item.customOptions!)
+            : null;
+        if (designImg != null && designImg.isNotEmpty) {
+          mergedOpts ??= {};
+          mergedOpts['designFileUrl'] ??= designImg;
+          mergedOpts['productImageUrl'] ??= designImg;
+        }
+        return OrderItem(
+          productId: item.product.id,
+          productName: item.product.name,
+          size: item.selectedSize,
+          color: item.selectedColor,
+          quantity: item.quantity,
+          price: item.product.price,
+          customOptions: mergedOpts,
+          imageUrl: designImg ?? (item.product.images.isNotEmpty ? item.product.images.first : null),
+        );
+      }).toList(),
       totalAmount: _finalTotal,
       shippingFee: widget.cart.shippingFee,
       paymentMethod: _selectedPayment,

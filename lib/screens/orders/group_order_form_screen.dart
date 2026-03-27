@@ -591,8 +591,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       material: '', stockCount: 999, createdAt: DateTime.now(),
     );
 
+    // 상세페이지 디자인 이미지 (sectionImages['design'] 첫 번째 이미지)
+    final designImg = (product.sectionImages['design'] ?? []).isNotEmpty
+        ? product.sectionImages['design']!.first
+        : (product.images.isNotEmpty ? product.images.first : '');
+
     final customOptions = <String, dynamic>{
       'orderType'      : _isAdditional ? 'additional' : 'group',
+      'designFileUrl'  : designImg,
+      'productImageUrl': designImg,
       'originalOrderId': _isAdditional && _originalOrder != null ? _originalOrder!.id : null,
       'originalOrderDate': _isAdditional && _originalOrder != null ? _originalOrder!.createdAt.toIso8601String() : null,
       'originalTeamName': _isAdditional && _originalOrder != null ? (_originalOrder!.customOptions?['teamName'] ?? _originalOrder!.groupName ?? '') : null,
