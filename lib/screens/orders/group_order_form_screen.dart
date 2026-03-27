@@ -751,6 +751,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 _buildPersonListSection(),
                 _buildBasicInfoSection(),
                 _buildMemoSection(),
+                _buildCancelPolicySection(),
                 _buildSummarySection(),
                 const SizedBox(height: 32),
               ],
@@ -3302,6 +3303,62 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             ),
           ]),
         ),
+        // ── 1년 독점 디자인 소유 체크박스 ──
+        Container(
+          margin: const EdgeInsets.only(top: 4, bottom: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: _exclusiveDesign ? const Color(0xFFF3E5F5) : const Color(0xFFFAFAFA),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: _exclusiveDesign ? _purple : Colors.grey.shade300,
+              width: _exclusiveDesign ? 1.5 : 1,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 22,
+                height: 22,
+                child: Checkbox(
+                  value: _exclusiveDesign,
+                  activeColor: _purple,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  onChanged: (v) => setState(() => _exclusiveDesign = v ?? false),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _exclusiveDesign = !_exclusiveDesign),
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF333333), height: 1.5),
+                      children: [
+                        TextSpan(
+                          text: '1년 독점 디자인 소유  ',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: _exclusiveDesign ? _purple : const Color(0xFF333333),
+                          ),
+                        ),
+                        const TextSpan(
+                          text: '(선택)\n',
+                          style: TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF888888)),
+                        ),
+                        const TextSpan(
+                          text: '단체 주문 완료 후 1년간 동일 디자인의 독점 소유권을 보장합니다.\n해당 기간 동안 동일 디자인으로 타 단체에 제작하지 않습니다.',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF666666), fontWeight: FontWeight.w400),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ]),
     );
   }
@@ -3559,6 +3616,93 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               style: TextStyle(fontWeight: FontWeight.w800)),
         ),
       ]),
+    );
+  }
+
+  // ══════════════════════════════════════════════
+  // 취소 규정 섹션
+  // ══════════════════════════════════════════════
+  Widget _buildCancelPolicySection() {
+    return _card(
+      title: '취소·환불 규정',
+      icon: Icons.policy_rounded,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 기성품
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F8FF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1565C0),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text('기성품', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    '수령 후 7일 이내에만 반품·교환 가능',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF1A1A2E), fontWeight: FontWeight.w600, height: 1.5),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          // 단체주문
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3F3),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFC62828).withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC62828),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text('단체주문', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        '주문 확인 후 취소·환불·교환 불가',
+                        style: TextStyle(fontSize: 13, color: Color(0xFFC62828), fontWeight: FontWeight.w700, height: 1.5),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Padding(
+                  padding: EdgeInsets.only(left: 4),
+                  child: Text(
+                    '커스텀 제작 특성상 옷 자체의 하자가 아닌 경우\n취소·환불·교환이 불가합니다.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF8B0000), height: 1.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
