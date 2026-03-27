@@ -899,7 +899,7 @@ class _AdminScreenState extends State<AdminScreen>
                         _exportOrdersCSV(allOrders);
                       }),
                       const SizedBox(height: 6),
-                      _quickActionRow(Icons.table_chart_rounded, '일일 엑셀 (오후1시 마감)', const Color(0xFF00897B), () {
+                      _quickActionRow(Icons.table_chart_rounded, '단체 일일엑셀 (오후1시 마감)', const Color(0xFF00897B), () {
                         _exportDailyExcel();
                       }),
                       const SizedBox(height: 6),
@@ -1062,7 +1062,7 @@ class _AdminScreenState extends State<AdminScreen>
                   const SizedBox(width: 6),
                   // 일일 마감 엑셀 버튼
                   Tooltip(
-                    message: '일일 마감 엑셀 (전날 13:00 ~ 오늘 13:00)',
+                    message: '단체 일일엑셀 (전날 13:00 ~ 오늘 13:00, 단체주문만)',
                     child: InkWell(
                       onTap: _exportDailyExcel,
                       borderRadius: BorderRadius.circular(8),
@@ -1078,7 +1078,7 @@ class _AdminScreenState extends State<AdminScreen>
                           children: [
                             Icon(Icons.table_chart_rounded, size: 15, color: Color(0xFF00897B)),
                             SizedBox(width: 4),
-                            Text('일일엑셀', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF00897B))),
+                            Text('단체일일엑셀', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF00897B))),
                           ],
                         ),
                       ),
@@ -1498,11 +1498,20 @@ class _AdminScreenState extends State<AdminScreen>
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop(); // 로딩 닫기
 
-      if (orders.isEmpty) {
+      // ── 단체주문만 필터 (기성품/개인 주문 제외) ──
+      final groupOnlyOrders = orders.where((o) {
+        if (o.orderType == 'group' || o.orderType == 'additional') return true;
+        final isGrpId = o.id.startsWith('GRP_') || o.id.startsWith('GROUP-');
+        final hasTeamName = (o.customOptions?['teamName'] as String?)?.isNotEmpty == true;
+        final hasPersons = (o.customOptions?['persons'] as List?)?.isNotEmpty == true;
+        return isGrpId || (hasTeamName && hasPersons);
+      }).toList();
+
+      if (groupOnlyOrders.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${_fmtDateKr(range.start)} ~ ${_fmtDateKr(range.end)} 기간에 주문이 없습니다.',
+              '${_fmtDateKr(range.start)} ~ ${_fmtDateKr(range.end)} 기간에 단체주문이 없습니다.',
             ),
             backgroundColor: const Color(0xFF555555),
           ),
@@ -1511,12 +1520,12 @@ class _AdminScreenState extends State<AdminScreen>
       }
 
       // 엑셀 생성 (단체주문 전용 — 이미지 URL 포함)
-      final bytes = await OrderExcelService.generateDailyGroupOrderExcel(orders, range.start, range.end);
+      final bytes = await OrderExcelService.generateDailyGroupOrderExcel(groupOnlyOrders, range.start, range.end);
       final startStr = '${range.start.month.toString().padLeft(2, '0')}${range.start.day.toString().padLeft(2, '0')}';
       final endStr = '${range.end.month.toString().padLeft(2, '0')}${range.end.day.toString().padLeft(2, '0')}';
-      final fileName = '2FIT_단체주문마감_${startStr}_${endStr}.xlsx';
+      final fileName = '2FIT_단체일일엑셀_${startStr}_${endStr}.xlsx';
 
-      await _handleExcelDownload(bytes, fileName, orders.length, range.start, range.end);
+      await _handleExcelDownload(bytes, fileName, groupOnlyOrders.length, range.start, range.end);
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
@@ -2331,7 +2340,7 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            order.userPhone.isNotEmpty ? PrivacyService.maskPhone(order.userPhone) : '-',
+                            order.userPhone.isNotEmpty ? order.userPhone : '-',
                             style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
                           ),
                         ],
@@ -2557,10 +2566,10 @@ class _AdminScreenState extends State<AdminScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 주문자 정보
+                      // 주문자 정보 (관리자: 전체 정보 표시)
                       _detailSection('주문자 정보', [
                         _detailRow(Icons.person_outline, '이름', order.userName),
-                        _detailRow(Icons.phone_outlined, '연락처', PrivacyService.maskPhone(order.userPhone)),
+                        _detailRow(Icons.phone_outlined, '연락처', order.userPhone.isNotEmpty ? order.userPhone : '-'),
                         _detailRow(Icons.email_outlined, '이메일', order.userEmail.isNotEmpty ? order.userEmail : '-'),
                         _detailRow(Icons.location_on_outlined, '배송지', order.userAddress.isNotEmpty ? order.userAddress : '-'),
                       ]),
@@ -2885,8 +2894,8 @@ class _AdminScreenState extends State<AdminScreen>
                   runSpacing: 6,
                   children: [
                     _infoChip(Icons.person, '담당자', opts['manager']?.toString() ?? opts['managerName']?.toString() ?? order.userName),
-                    _infoChip(Icons.phone, '연락처', PrivacyService.maskPhone(order.userPhone)),
-                    _infoChip(Icons.location_on, '배송지', order.userAddress.length > 20 ? '${order.userAddress.substring(0, 20)}...' : order.userAddress),
+                    _infoChip(Icons.phone, '연락처', order.userPhone.isNotEmpty ? order.userPhone : '-'),
+                    _infoChip(Icons.location_on, '배송지', order.userAddress.isNotEmpty ? order.userAddress : '-'),
                     _infoChip(Icons.male, '남', '${opts['maleCount'] ?? persons.where((p) => (p as Map)['gender'] == '남').length}명'),
                     _infoChip(Icons.female, '여', '${opts['femaleCount'] ?? persons.where((p) => (p as Map)['gender'] == '여').length}명'),
                     if ((opts['waistbandOption'] ?? opts['waistband'] ?? '').toString().isNotEmpty)

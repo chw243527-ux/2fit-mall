@@ -2766,7 +2766,35 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         // ── 본문 (사이즈 입력)
         Padding(
           padding: const EdgeInsets.all(12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child: p.gender == null
+            // 성별 미선택 시 비활성화 안내
+            ? Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.wc_rounded, size: 28, color: Colors.grey.shade300),
+                    const SizedBox(height: 8),
+                    Text(
+                      '성별을 먼저 선택해 주세요',
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '위 남/여 버튼으로 성별을 선택하면 사이즈 입력이 활성화됩니다.',
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+            : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
             // ① 성인/주니어 구분 선택
             Row(children: [
@@ -3144,6 +3172,40 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       icon: Icons.info_outline_rounded,
       child: Column(children: [
         _inputField('단체명 *', _teamNameCtrl, '단체명을 입력해 주세요'),
+        // ── 인쇄타입 '전면 단체명 변경' 선택 시 안내문구 ──
+        if (_hasTeamName)
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFFB74D), width: 1.5),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.info_outline_rounded, size: 15, color: Color(0xFFF57C00)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: RichText(
+                    text: const TextSpan(
+                      style: TextStyle(fontSize: 12, color: Color(0xFF5D4037), height: 1.5),
+                      children: [
+                        TextSpan(
+                          text: '인쇄 안내: ',
+                          style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFF57C00)),
+                        ),
+                        TextSpan(
+                          text: '현재 전면 단체명 인쇄 옵션이 선택되어 있습니다.\n위 단체명 입력칸에 입력한 단체명으로 전면에 단체명이 인쇄됩니다.',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         _inputField('담당자 이름', _managerNameCtrl, '담당자 이름'),
         _inputField('연락처 *', _phoneCtrl, '010-0000-0000',
             keyboardType: TextInputType.phone),
@@ -3157,6 +3219,28 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               const Text('배송 주소 *',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
                       color: Colors.black54)),
+              const Spacer(),
+              // 저장 주소 선택 버튼
+              Builder(builder: (ctx) {
+                final user = Provider.of<UserProvider>(ctx, listen: false).user;
+                if (user == null || user.addresses.isEmpty) return const SizedBox.shrink();
+                return GestureDetector(
+                  onTap: () => _showSavedAddressPicker(user.addresses),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: _purple.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: _purple.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.bookmark_outline_rounded, size: 12, color: _purple),
+                      const SizedBox(width: 4),
+                      Text('저장 주소 선택', style: const TextStyle(fontSize: 11, color: _purple, fontWeight: FontWeight.w700)),
+                    ]),
+                  ),
+                );
+              }),
             ]),
             const SizedBox(height: 4),
             GestureDetector(
@@ -3250,6 +3334,92 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           ),
         ),
       ]),
+    );
+  }
+
+  // ── 저장된 주소 선택 바텀시트 ──
+  void _showSavedAddressPicker(List addresses) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.5,
+        minChildSize: 0.3,
+        maxChildSize: 0.8,
+        expand: false,
+        builder: (_, scrollCtrl) => Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.bookmark_rounded, size: 16, color: _purple),
+                const SizedBox(width: 8),
+                const Text('저장된 배송지 선택',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Icon(Icons.close, size: 20, color: Colors.grey.shade400),
+                ),
+              ]),
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: scrollCtrl,
+                itemCount: addresses.length,
+                itemBuilder: (_, i) {
+                  final addr = addresses[i];
+                  final isDefault = addr.isDefault == true;
+                  return ListTile(
+                    leading: Container(
+                      width: 32, height: 32,
+                      decoration: BoxDecoration(
+                        color: isDefault ? _purple.withValues(alpha: 0.1) : Colors.grey.shade100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isDefault ? Icons.home_rounded : Icons.location_on_outlined,
+                        size: 16,
+                        color: isDefault ? _purple : Colors.grey.shade500,
+                      ),
+                    ),
+                    title: Text(
+                      addr.address1,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: addr.address2.isNotEmpty
+                        ? Text(addr.address2, style: TextStyle(fontSize: 12, color: Colors.grey.shade500))
+                        : null,
+                    trailing: isDefault
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: _purple.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text('기본', style: TextStyle(fontSize: 10, color: _purple, fontWeight: FontWeight.w700)),
+                          )
+                        : null,
+                    onTap: () {
+                      setState(() {
+                        _address = addr.address1;
+                        _addressDetailCtrl.text = addr.address2;
+                      });
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

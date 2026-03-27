@@ -889,7 +889,9 @@ class _PcOrderCard extends StatelessWidget {
     final canColorEdit = isGroup && isActive && order.colorEditCount < 3;
     final canAdditional = isGroup && isActive;
 
-    return Container(
+    return GestureDetector(
+      onTap: () => _showUserOrderDetail(context, order),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1011,6 +1013,7 @@ class _PcOrderCard extends StatelessWidget {
             ),
         ],
       ),
+      ),  // GestureDetector 닫힘
     );
   }
 
@@ -1969,7 +1972,9 @@ class _MobileOrderCard extends StatelessWidget {
     final canColorEdit = isGroup && isActive && order.colorEditCount < 3;
     final canAdditional = isGroup && isActive;
 
-    return Container(
+    return GestureDetector(
+      onTap: () => _showUserOrderDetail(context, order),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white, borderRadius: BorderRadius.circular(12),
@@ -2065,6 +2070,7 @@ class _MobileOrderCard extends StatelessWidget {
             ),
         ],
       ),
+      ),  // GestureDetector 닫힘
     );
   }
 
@@ -3979,4 +3985,244 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
       ),
     );
   }
+}
+
+// ── 사용자 주문 상세 다이얼로그 ──────────────────────────────────────
+void _showUserOrderDetail(BuildContext context, OrderModel order) {
+  Color _sc(OrderStatus s) {
+    switch (s) {
+      case OrderStatus.pending: return Colors.orange;
+      case OrderStatus.confirmed: return Colors.blue;
+      case OrderStatus.processing: return const Color(0xFF7B1FA2);
+      case OrderStatus.shipped: return const Color(0xFF00838F);
+      case OrderStatus.delivered: return Colors.green;
+      case OrderStatus.cancelled: return Colors.red;
+      case OrderStatus.refunded: return Colors.brown;
+    }
+  }
+
+  final opts = order.customOptions ?? {};
+  final isGroup = order.orderType == 'group' || order.orderType == 'additional'
+      || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
+  final statusColor = _sc(order.status);
+
+  showDialog(
+    context: context,
+    builder: (_) => Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 680),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── 헤더
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1A1A2E), Color(0xFF2D2D5E)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.receipt_long_rounded, color: Colors.white70, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(order.id,
+                        style: const TextStyle(color: Colors.white70, fontSize: 11),
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${order.createdAt.year}.${order.createdAt.month.toString().padLeft(2,'0')}.${order.createdAt.day.toString().padLeft(2,'0')}',
+                      style: const TextStyle(color: Colors.white54, fontSize: 11),
+                    ),
+                  ]),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: statusColor.withValues(alpha: 0.5)),
+                  ),
+                  child: Text(order.status.label,
+                      style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w700)),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Icon(Icons.close, color: Colors.white70, size: 20),
+                ),
+              ]),
+            ),
+            // ── 내용
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 배송지 정보
+                    _udSection('배송 정보', [
+                      _udRow(Icons.person_outline, '수령인', order.userName),
+                      _udRow(Icons.location_on_outlined, '배송지',
+                          order.userAddress.isNotEmpty ? order.userAddress : '-'),
+                      _udRow(Icons.payment_rounded, '결제 방법', order.paymentMethod),
+                    ]),
+                    const SizedBox(height: 12),
+                    // 주문 상품
+                    const Text('주문 상품',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
+                    const SizedBox(height: 8),
+                    ...order.items.map((item) {
+                      final displaySize = (item.size == '단체' || item.size.isEmpty) ? null : item.size;
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9FA),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFEEEEEE)),
+                        ),
+                        child: Row(children: [
+                          // 이미지
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                              ? Image.network(item.imageUrl!, width: 52, height: 52, fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: 52, height: 52,
+                                    color: Colors.grey[100],
+                                    child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                                  ))
+                              : Container(
+                                  width: 52, height: 52,
+                                  color: Colors.grey[100],
+                                  child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                                ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text(item.productName,
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                  maxLines: 2, overflow: TextOverflow.ellipsis),
+                              if (displaySize != null || item.color.isNotEmpty)
+                                Text(
+                                  [if (displaySize != null) displaySize, if (item.color.isNotEmpty) item.color].join(' / '),
+                                  style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                                ),
+                              Text('수량: ${item.quantity}개  |  ${item.price.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                            ]),
+                          ),
+                        ]),
+                      );
+                    }),
+                    // 단체주문 추가 정보
+                    if (isGroup && opts.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _udSection('단체 주문 정보', [
+                        if ((opts['teamName'] ?? '').toString().isNotEmpty)
+                          _udRow(Icons.group_outlined, '단체명', opts['teamName'].toString()),
+                        if ((opts['totalCount'] ?? order.groupCount) != null)
+                          _udRow(Icons.people_outline, '총 인원', '${opts['totalCount'] ?? order.groupCount}명'),
+                        if ((opts['printTypeLabel'] ?? opts['printType'] ?? '').toString().isNotEmpty)
+                          _udRow(Icons.print_outlined, '인쇄 옵션', (opts['printTypeLabel'] ?? opts['printType']).toString()),
+                        if ((opts['mainColor'] ?? '').toString().isNotEmpty)
+                          _udRow(Icons.palette_outlined, '색상', opts['mainColor'].toString()),
+                      ]),
+                    ],
+                    const SizedBox(height: 12),
+                    // 결제 금액
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F4FF),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(children: [
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                          Text('상품 금액', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                          Text('${(order.totalAmount - order.shippingFee).toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
+                              style: const TextStyle(fontSize: 13)),
+                        ]),
+                        const SizedBox(height: 6),
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                          Text('배송비', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                          Text('${order.shippingFee.toInt()}원', style: const TextStyle(fontSize: 13)),
+                        ]),
+                        const Divider(height: 16),
+                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                          const Text('최종 결제', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                          Text(
+                            '${order.totalAmount.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1565C0)),
+                          ),
+                        ]),
+                      ]),
+                    ),
+                    if ((order.memo ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      _udRow(Icons.notes_rounded, '메모', order.memo!),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            // 닫기 버튼
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A1A2E),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('닫기', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _udSection(String title, List<Widget> rows) {
+  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
+    const SizedBox(height: 8),
+    Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F9FA),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFEEEEEE)),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows),
+    ),
+  ]);
+}
+
+Widget _udRow(IconData icon, String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Icon(icon, size: 14, color: const Color(0xFF6A1B9A)),
+      const SizedBox(width: 6),
+      SizedBox(width: 70, child: Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w600))),
+      Expanded(child: Text(value, style: const TextStyle(fontSize: 12, color: Colors.black87))),
+    ]),
+  );
 }

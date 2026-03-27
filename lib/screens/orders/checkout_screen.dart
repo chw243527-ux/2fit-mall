@@ -57,6 +57,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final t = opts['orderType'] as String? ?? '';
       if (t == 'group' || t == 'additional') {
         groupAddress = opts['address'] as String?;
+        // 상세주소도 함께 가져오기
+        final groupDetail = opts['addressDetail'] as String?;
+        if (groupDetail != null && groupDetail.isNotEmpty) {
+          _detailAddressController.text = groupDetail;
+        }
         break;
       }
     }
@@ -1124,7 +1129,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return _buildSection(
       loc.paymentMethod,
       Column(
-        children: AppConstants.paymentMethods.map((method) {
+        children: [
+          ...AppConstants.paymentMethods.map((method) {
           final isSelected = _selectedPayment == method;
           return GestureDetector(
             onTap: () => setState(() => _selectedPayment = method),
@@ -1165,6 +1171,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           );
         }).toList(),
+          // ── 무통장입금 선택 시 즉시 안내문구 ──
+      if (_selectedPayment == '무통장입금' || _selectedPayment.contains('무통장'))
+        Container(
+          margin: const EdgeInsets.only(top: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF8E1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFFFCA28), width: 1.5),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.account_balance_rounded, size: 16, color: Color(0xFFF57F17)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '무통장입금 시 반드시 담당자 이름으로 입금해 주세요',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFFF57F17)),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '• 입금자명이 주문자명과 다를 경우 입금 확인이 지연될 수 있습니다.\n• 주문 완료 후 표시되는 계좌로 24시간 이내 입금해 주세요.',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.5),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        ],
       ),
     );
   }
