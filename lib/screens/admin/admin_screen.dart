@@ -2491,10 +2491,13 @@ class _AdminScreenState extends State<AdminScreen>
 
   // ── 개인 주문 상세 보기 ──
   void _showPersonalOrderDetail(OrderModel order) {
-    final statusColor = _statusColor(order.status);
+    OrderModel currentOrder = order;
     showDialog(
       context: context,
-      builder: (_) => Dialog(
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDlgState) {
+          final statusColor = _statusColor(currentOrder.status);
+          return Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 480, maxHeight: 640),
@@ -2682,9 +2685,72 @@ class _AdminScreenState extends State<AdminScreen>
                   ],
                 ),
               ),
+              // 결제완료 버튼 (무통장입금 + pending 상태일 때)
+              if (currentOrder.paymentMethod == '무통장입금' &&
+                  currentOrder.status == OrderStatus.pending)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (c) => AlertDialog(
+                            title: const Text('결제 확인', style: TextStyle(fontWeight: FontWeight.w800)),
+                            content: Text(
+                              '${currentOrder.userName} 님의 주문\n(${_fmtPrice(currentOrder.totalAmount)}원) 입금을 확인하고\n결제완료로 변경하시겠습니까?',
+                              style: const TextStyle(fontSize: 14, height: 1.5),
+                            ),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('취소')),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(c, true),
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                                child: const Text('결제완료 확인', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true && mounted) {
+                          await OrderService.updateOrderStatus(currentOrder.id, OrderStatus.confirmed);
+                          context.read<OrderProvider>().updateOrderStatus(currentOrder.id, OrderStatus.confirmed);
+                          FcmService.sendOrderStatusNotification(
+                            userId: currentOrder.userId,
+                            orderId: currentOrder.id,
+                            newStatus: OrderStatus.confirmed,
+                          );
+                          setDlgState(() {
+                            currentOrder = currentOrder.copyWith(status: OrderStatus.confirmed);
+                          });
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('결제완료로 변경되었습니다.'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.check_circle_outline, size: 18),
+                      label: const Text('입금 확인 → 결제완료로 변경',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
+          );
+        },
       ),
     );
   }
@@ -2739,6 +2805,7 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   void _showGroupOrderDetail(OrderModel order) {
+    OrderModel currentOrder = order;
     final opts = order.customOptions ?? {};
     final rawPersons = (opts['persons'] as List<dynamic>?) ?? [];
     // gender 정규화
@@ -2753,7 +2820,8 @@ class _AdminScreenState extends State<AdminScreen>
 
     showDialog(
       context: context,
-      builder: (_) => Dialog(
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setDlgState) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 560, maxHeight: 700),
@@ -2949,8 +3017,70 @@ class _AdminScreenState extends State<AdminScreen>
                   ],
                 ),
               ),
+              // 결제완료 버튼 (무통장입금 + pending 상태일 때)
+              if (currentOrder.paymentMethod == '무통장입금' &&
+                  currentOrder.status == OrderStatus.pending)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (c) => AlertDialog(
+                            title: const Text('결제 확인', style: TextStyle(fontWeight: FontWeight.w800)),
+                            content: Text(
+                              '${currentOrder.groupName ?? currentOrder.userName} 단체 주문\n(${_fmtPrice(currentOrder.totalAmount)}원) 입금을 확인하고\n결제완료로 변경하시겠습니까?',
+                              style: const TextStyle(fontSize: 14, height: 1.5),
+                            ),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('취소')),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(c, true),
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                                child: const Text('결제완료 확인', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true && mounted) {
+                          await OrderService.updateOrderStatus(currentOrder.id, OrderStatus.confirmed);
+                          context.read<OrderProvider>().updateOrderStatus(currentOrder.id, OrderStatus.confirmed);
+                          FcmService.sendOrderStatusNotification(
+                            userId: currentOrder.userId,
+                            orderId: currentOrder.id,
+                            newStatus: OrderStatus.confirmed,
+                          );
+                          setDlgState(() {
+                            currentOrder = currentOrder.copyWith(status: OrderStatus.confirmed);
+                          });
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('결제완료로 변경되었습니다.'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      icon: const Icon(Icons.check_circle_outline, size: 18),
+                      label: const Text('입금 확인 → 결제완료로 변경',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
+        ),
         ),
       ),
     );

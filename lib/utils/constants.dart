@@ -176,7 +176,7 @@ class AppConstants {
   // 단체커스텀: 심리스(무봉제) / 일반(봉제) 선택 가능
   // 기성품: 일반(봉제)만 가능
   static const List<String> fabricTypes = [
-    '일반 (봉제)',
+    '일반 봉제',
     '심리스 (무봉제)',
   ];
 
@@ -184,9 +184,9 @@ class AppConstants {
   static const List<String> fabricWeights = ['80g', '90g'];
   static const String defaultFabricWeight = '80g';
 
-  // ── 원단 타입별 추가 비용 ──
+  // ── 재봉방법별 추가 비용 ──
   static const Map<String, int> fabricTypePrices = {
-    '일반 (봉제)':      0,
+    '일반 봉제':        0,
     '심리스 (무봉제)': 10000,
   };
 
