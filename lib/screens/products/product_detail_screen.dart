@@ -7742,35 +7742,6 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   ),
                   const SizedBox(height: 20),
 
-                  // ─── 2. 커스텀 옵션 ──────────────────────────────
-                  _sheetSectionTitle(null, loc.groupOrderGuideCustomTitle, const Color(0xFFE65100), emoji: '🎨'),
-                  const SizedBox(height: 10),
-                  _optionCard(
-                    bg: const Color(0xFFE8F5E9),
-                    border: const Color(0xFFA5D6A7),
-                    titleColor: const Color(0xFF2E7D32),
-                    title: loc.groupOrderGuideCustomTitle,
-                    items: [
-                      loc.groupOrderGuideCustom1.replaceAll('• ', ''),
-                      loc.groupOrderGuideCustom2.replaceAll('• ', ''),
-                      loc.groupOrderGuideCustom3.replaceAll('• ', ''),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  _optionCard(
-                    bg: const Color(0xFFFFF8E1),
-                    border: const Color(0xFFFFCC80),
-                    titleColor: const Color(0xFFE65100),
-                    title: loc.groupOrderGuideDiscountTitle,
-                    items: [
-                      loc.groupOrderGuideShipping1.replaceAll('• ', ''),
-                      loc.groupOrderGuideDiscount1.replaceAll('• ', ''),
-                      loc.groupOrderGuideDiscount2.replaceAll('• ', ''),
-                      loc.groupOrderGuideDiscount3.replaceAll('• ', ''),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
                   // ─── 3. 사이즈 안내 ──────────────────────────────
                   _sheetSectionTitle(null, loc.groupOrderGuideSizeTitle, const Color(0xFF1A1A1A), emoji: '📏'),
                   const SizedBox(height: 10),
@@ -8035,35 +8006,6 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
   }
 
   // ── 옵션 카드 ─────────────────────────────────────────────────
-  Widget _optionCard({
-    required Color bg,
-    required Color border,
-    required Color titleColor,
-    required String title,
-    required List<String> items,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: titleColor)),
-          const SizedBox(height: 6),
-          ...items.map((item) => Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Text('• $item', style: const TextStyle(fontSize: 13, height: 1.6)),
-              )),
-        ],
-      ),
-    );
-  }
-
   // ── 사이즈 표 ─────────────────────────────────────────────────
   Widget _sizeTable({
     required String title,

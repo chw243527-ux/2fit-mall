@@ -11,6 +11,7 @@ import '../../utils/constants.dart';
 import '../../utils/app_localizations.dart';
 
 import '../orders/checkout_screen.dart';
+import '../cart/cart_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/address_search_widget.dart';
 
@@ -537,7 +538,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       _showSnack('색상을 선택해 주세요.');
       return false;
     }
-    if (_hasTeamName && _teamNameCtrl.text.trim().isEmpty) {
+    if (_teamNameCtrl.text.trim().isEmpty) {
       _showSnack('단체명을 입력해 주세요.');
       return false;
     }
@@ -679,7 +680,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           action: SnackBarAction(
             label: '장바구니 보기',
             textColor: const Color(0xFFFFD600),
-            onPressed: () => Navigator.pushNamed(context, '/cart'),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CartScreen()),
+              );
+            },
           ),
         ),
       );
@@ -720,6 +726,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 _buildWaistbandSection(),
                 _buildColorSection(),
                 _buildRefImageSection(),
+                _buildWaistbandRefImageSection(),
                 _buildPersonListSection(),
                 _buildBasicInfoSection(),
                 _buildMemoSection(),
@@ -1168,124 +1175,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       icon: Icons.style_outlined,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-        // ── ① 디자인 참조 이미지 업로드 (옵션 위에 배치) ──
-        Container(
-          margin: const EdgeInsets.only(bottom: 14),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const Icon(Icons.image_search_rounded, size: 15, color: Color(0xFF6A1B9A)),
-              const SizedBox(width: 5),
-              const Text('허리밴드 디자인 참고 이미지',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87)),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Text('최대 3장', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
-              ),
-            ]),
-            const SizedBox(height: 6),
-            // ── 안내 박스 ──
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3E5F5),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFCE93D8)),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF6A1B9A)),
-                    SizedBox(width: 5),
-                    Text('업로드 안내',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))),
-                  ]),
-                  SizedBox(height: 5),
-                  Text('• 원하는 문구(텍스트) 또는 무늬(패턴)가 담긴 이미지를 업로드해 주세요.',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
-                  Text('• 로고, 팀명, 숫자, 그래픽 무늬 등 허리밴드에 넣고 싶은 디자인 참고 이미지도 가능합니다.',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
-                  Text('• 선택사항이며 최대 3장까지 업로드할 수 있습니다.',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            // 이미지 썸네일 + 추가 버튼
-            SizedBox(
-              height: 90,
-              child: Row(children: [
-                // 업로드된 이미지들
-                ..._waistbandRefImages.asMap().entries.map((e) {
-                  final idx = e.key;
-                  final b64 = e.value;
-                  return Container(
-                    width: 90, height: 90,
-                    margin: const EdgeInsets.only(right: 8),
-                    child: Stack(children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.memory(
-                          base64Decode(b64),
-                          width: 90, height: 90,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      // 삭제 버튼
-                      Positioned(
-                        top: 4, right: 4,
-                        child: GestureDetector(
-                          onTap: () => setState(() => _waistbandRefImages.removeAt(idx)),
-                          child: Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: const BoxDecoration(
-                              color: Colors.black54, shape: BoxShape.circle),
-                            child: const Icon(Icons.close, color: Colors.white, size: 13),
-                          ),
-                        ),
-                      ),
-                    ]),
-                  );
-                }),
-                // 추가 버튼 (최대 3장)
-                if (_waistbandRefImages.length < 3)
-                  GestureDetector(
-                    onTap: _pickWaistbandRefImage,
-                    child: Container(
-                      width: 90, height: 90,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3E5F5),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: _purple.withValues(alpha: 0.4),
-                          width: 1.5,
-                          style: BorderStyle.solid,
-                        ),
-                      ),
-                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        Icon(Icons.add_photo_alternate_outlined, color: _purple, size: 26),
-                        const SizedBox(height: 4),
-                        Text('이미지 추가',
-                            style: TextStyle(fontSize: 10, color: _purple, fontWeight: FontWeight.w600)),
-                      ]),
-                    ),
-                  ),
-              ]),
-            ),
-          ]),
-        ),
-
-        const Divider(height: 1, color: Color(0xFFF0F0F0)),
-        const SizedBox(height: 14),
-
-        // ── ② 안내 문구 ──
+        // ── 안내 문구 ──
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           margin: const EdgeInsets.only(bottom: 10),
@@ -2263,6 +2153,107 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   // ══════════════════════════════════════════════
+  // 허리밴드 디자인 참고이미지 섹션 (참고이미지 아래)
+  // ══════════════════════════════════════════════
+  Widget _buildWaistbandRefImageSection() {
+    return _card(
+      title: '허리밴드 디자인 참고 이미지',
+      icon: Icons.style_outlined,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // 안내 박스
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3E5F5),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFCE93D8)),
+          ),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF6A1B9A)),
+                SizedBox(width: 5),
+                Text('업로드 안내',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))),
+              ]),
+              SizedBox(height: 5),
+              Text('• 원하는 문구(텍스트) 또는 무늬(패턴)가 담긴 이미지를 업로드해 주세요.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
+              Text('• 로고, 팀명, 숫자, 그래픽 무늬 등 허리밴드에 넣고 싶은 디자인 참고 이미지도 가능합니다.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
+              Text('• 선택사항이며 최대 3장까지 업로드할 수 있습니다.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
+            ],
+          ),
+        ),
+        // 이미지 썸네일 + 추가 버튼
+        SizedBox(
+          height: 90,
+          child: Row(children: [
+            // 업로드된 이미지들
+            ..._waistbandRefImages.asMap().entries.map((e) {
+              final idx = e.key;
+              final b64 = e.value;
+              return Container(
+                width: 90, height: 90,
+                margin: const EdgeInsets.only(right: 8),
+                child: Stack(children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.memory(
+                      base64Decode(b64),
+                      width: 90, height: 90,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  Positioned(
+                    top: 4, right: 4,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _waistbandRefImages.removeAt(idx)),
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          color: Colors.black54, shape: BoxShape.circle),
+                        child: const Icon(Icons.close, color: Colors.white, size: 13),
+                      ),
+                    ),
+                  ),
+                ]),
+              );
+            }),
+            // 추가 버튼 (최대 3장)
+            if (_waistbandRefImages.length < 3)
+              GestureDetector(
+                onTap: _pickWaistbandRefImage,
+                child: Container(
+                  width: 90, height: 90,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3E5F5),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _purple.withValues(alpha: 0.4),
+                      width: 1.5,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.add_photo_alternate_outlined, color: _purple, size: 26),
+                    const SizedBox(height: 4),
+                    Text('이미지 추가',
+                        style: TextStyle(fontSize: 10, color: _purple, fontWeight: FontWeight.w600)),
+                  ]),
+                ),
+              ),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  // ══════════════════════════════════════════════
   // 인원별 사이즈 섹션
   // ══════════════════════════════════════════════
   // ─── 인원 목록 헬퍼 ────────────────────────────
@@ -2372,9 +2363,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   bool _sizeTableExpanded = false;
 
   Widget _buildSizeTable() {
-    // 상의 기준 사이즈 표
-    final headers = ['사이즈', '키(cm)', '몸무게(kg)', '가슴(cm)', '허리(cm)'];
-    final rows = [
+    // 성인 사이즈 표
+    final adultHeaders = ['사이즈', '키(cm)', '몸무게(kg)', '가슴(cm)', '허리(cm)'];
+    final adultRows = [
       ['XS',  '154~159', '44~51',  '85 cm',  '68 cm'],
       ['S',   '160~165', '52~60',  '90 cm',  '72 cm'],
       ['M',   '166~172', '61~71',  '95 cm',  '76 cm'],
@@ -2383,7 +2374,48 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       ['2XL', '182~187', '86~91',  '110 cm', '88 cm'],
       ['3XL', '187~191', '91~96',  '115 cm', '92 cm'],
     ];
+    // 주니어 사이즈 표
+    final juniorHeaders = ['사이즈', '키(cm)', '몸무게(kg)', '가슴(cm)', '허리(cm)'];
+    final juniorRows = [
+      ['XXS(80)',  '75~85',   '11~13',  '54 cm',  '48 cm'],
+      ['XS(90)',   '85~95',   '13~15',  '58 cm',  '51 cm'],
+      ['S(100)',   '95~105',  '15~18',  '62 cm',  '54 cm'],
+      ['M(110)',   '105~115', '18~22',  '66 cm',  '57 cm'],
+      ['L(120)',   '115~125', '22~27',  '70 cm',  '60 cm'],
+      ['XL(130)',  '125~135', '27~33',  '74 cm',  '63 cm'],
+    ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      // ── 선택된 색상 표시 (사이즈표 위)
+      if (_mainColorName != null) ...[
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            color: _adjustedColor.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: _adjustedColor.withValues(alpha: 0.35), width: 1.5),
+          ),
+          child: Row(children: [
+            Container(
+              width: 20, height: 20,
+              decoration: BoxDecoration(
+                color: _adjustedColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text('선택 색상: ', style: TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.w600)),
+            Text(_mainColorName!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: _purple)),
+            const SizedBox(width: 6),
+            Text(
+              '#${_adjustedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
+              style: TextStyle(fontSize: 10, color: Colors.black38, fontFamily: 'monospace'),
+            ),
+          ]),
+        ),
+      ],
       // 헤더 토글
       GestureDetector(
         onTap: () => setState(() => _sizeTableExpanded = !_sizeTableExpanded),
@@ -2412,6 +2444,22 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       ),
       if (_sizeTableExpanded) ...[
         const SizedBox(height: 8),
+        // ── 성인 사이즈 표
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: _purple,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text('성인', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w800)),
+            ),
+            const SizedBox(width: 6),
+            Text('Adult Size Guide', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+          ]),
+        ),
         Container(
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade200),
@@ -2428,13 +2476,62 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               children: [
                 TableRow(
                   decoration: BoxDecoration(color: _purple.withValues(alpha: 0.08)),
-                  children: headers.map((h) => Padding(
+                  children: adultHeaders.map((h) => Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     child: Text(h, style: const TextStyle(
                         fontSize: 10, fontWeight: FontWeight.w800, color: _purple)),
                   )).toList(),
                 ),
-                ...rows.map((r) => TableRow(
+                ...adultRows.map((r) => TableRow(
+                  children: r.map((cell) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: Text(cell, style: const TextStyle(fontSize: 10, color: Colors.black87)),
+                  )).toList(),
+                )),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        // ── 주니어 사이즈 표
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade600,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text('주니어', style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w800)),
+            ),
+            const SizedBox(width: 6),
+            Text('Junior Size Guide', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+          ]),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.orange.shade200),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Table(
+              border: TableBorder(
+                horizontalInside: BorderSide(color: Colors.orange.shade50),
+                verticalInside: BorderSide(color: Colors.orange.shade100),
+              ),
+              defaultColumnWidth: const IntrinsicColumnWidth(),
+              children: [
+                TableRow(
+                  decoration: BoxDecoration(color: Colors.orange.shade50),
+                  children: juniorHeaders.map((h) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    child: Text(h, style: TextStyle(
+                        fontSize: 10, fontWeight: FontWeight.w800, color: Colors.orange.shade700)),
+                  )).toList(),
+                ),
+                ...juniorRows.map((r) => TableRow(
                   children: r.map((cell) => Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: Text(cell, style: const TextStyle(fontSize: 10, color: Colors.black87)),
@@ -2961,7 +3058,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       title: '기본 정보',
       icon: Icons.info_outline_rounded,
       child: Column(children: [
-        if (_hasTeamName) _inputField('단체명 *', _teamNameCtrl, '단체명을 입력해 주세요'),
+        _inputField('단체명 *', _teamNameCtrl, '단체명을 입력해 주세요'),
         _inputField('담당자 이름', _managerNameCtrl, '담당자 이름'),
         _inputField('연락처 *', _phoneCtrl, '010-0000-0000',
             keyboardType: TextInputType.phone),
