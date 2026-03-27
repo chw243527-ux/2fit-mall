@@ -2117,7 +2117,7 @@ class _AdminScreenState extends State<AdminScreen>
                       return;
                     }
 
-                    final bytes = OrderExcelService.generateExcel(finalOrders, fStart, fEnd);
+                    final bytes = await OrderExcelService.generateExcel(finalOrders, fStart, fEnd);
                     final startStr = '${fStart.month.toString().padLeft(2, '0')}${fStart.day.toString().padLeft(2, '0')}';
                     final endStr = '${fEnd.month.toString().padLeft(2, '0')}${fEnd.day.toString().padLeft(2, '0')}';
                     final fileName = '2FIT_주문_${startStr}_${endStr}.xlsx';

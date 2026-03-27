@@ -594,18 +594,26 @@ class OrderExcelService {
     }
 
     // ══════════════════════════════════════════════════════════
-    // 시트 3: 디자인 이미지 & 주문 상세
+    // 시트 3: 디자인 이미지 & 주문 상세 (실제 이미지 삽입)
     // ══════════════════════════════════════════════════════════
     final imageSheet = excel['디자인이미지및상세'];
 
+    // 이미지 컬럼: 12=상품이미지, 13=참조이미지
     final imgHeaders = [
       'No', '주문번호', '주문날짜', '단체명', '상품명',
       '인쇄옵션', '색상', '하의길이', '허리밴드', '총수량', '남', '여',
-      '상품이미지URL', '남자참조이미지URL', '메모',
+      '상품이미지', '남자참조이미지', '메모',
     ];
     for (var i = 0; i < imgHeaders.length; i++) {
       _setCell(imageSheet, 0, i, imgHeaders[i], style: headerStyle);
     }
+
+    // 이미지 삽입 목록 (나중에 _insertImagesIntoXlsx에 전달)
+    final List<_ImageToInsert> selectedImagesToInsert = [];
+    // 이미지 시트 인덱스: excel의 시트 목록에서 '디자인이미지및상세' 위치
+    // 주문요약(0), 사이즈목록(1), 디자인이미지및상세(2) 순서
+    const int imgSheetIdx = 2;
+    const int imgRowHeightPx = 120; // 행 높이 120px
 
     int imgRowIdx = 1;
     int imgNo = 1;
@@ -615,14 +623,11 @@ class OrderExcelService {
       final isEven = imgNo % 2 == 0;
       final rowStyle = isEven ? evenRowStyle : null;
 
-      // 이미지 URL들 (여자 하의 참조이미지 제거)
       final maleRefUrl = opts['maleRefImageUrl']?.toString() ?? '';
       final productImgUrl = _extractDesignImageUrl(order);
 
-      // 색상 정보
       final colorInfo = _extractColorInfo(order);
       final colorHex2 = _extractColorHex(order);
-      // 남/여 인원
       final maleCount = _countGender(order, '남');
       final femaleCount = _countGender(order, '여');
       final totalQty = order.items.fold<int>(0, (s, i) => s + i.quantity);
@@ -643,10 +648,34 @@ class OrderExcelService {
       _setCell(imageSheet, imgRowIdx, 9, totalQty, style: rowStyle);
       _setCell(imageSheet, imgRowIdx, 10, maleCount > 0 ? maleCount : '-', style: rowStyle);
       _setCell(imageSheet, imgRowIdx, 11, femaleCount > 0 ? femaleCount : '-', style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 12, productImgUrl.isNotEmpty ? productImgUrl : '-', style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 13, maleRefUrl.isNotEmpty ? maleRefUrl : '-', style: rowStyle);
+      // 이미지 컬럼: 텍스트 비워두고 실제 이미지 삽입 예약
+      _setCell(imageSheet, imgRowIdx, 12, '', style: rowStyle);
+      _setCell(imageSheet, imgRowIdx, 13, '', style: rowStyle);
       _setCell(imageSheet, imgRowIdx, 14,
           opts['memoText']?.toString() ?? order.memo ?? '', style: rowStyle);
+
+      // 상품 이미지 삽입 예약
+      if (productImgUrl.isNotEmpty) {
+        selectedImagesToInsert.add(_ImageToInsert(
+          url: productImgUrl,
+          sheetIndex: imgSheetIdx,
+          row: imgRowIdx + 1, // 1-based
+          col: 12,
+          widthPx: 160, heightPx: imgRowHeightPx,
+          label: '상품이미지_$imgNo',
+        ));
+      }
+      // 참조 이미지 삽입 예약
+      if (maleRefUrl.isNotEmpty) {
+        selectedImagesToInsert.add(_ImageToInsert(
+          url: maleRefUrl,
+          sheetIndex: imgSheetIdx,
+          row: imgRowIdx + 1, // 1-based
+          col: 13,
+          widthPx: 160, heightPx: imgRowHeightPx,
+          label: '참조이미지_$imgNo',
+        ));
+      }
 
       imgRowIdx++;
       imgNo++;
@@ -655,15 +684,32 @@ class OrderExcelService {
     final imgColWidths = [
       5.0, 22.0, 16.0, 14.0, 20.0,
       16.0, 16.0, 12.0, 14.0, 8.0, 6.0, 6.0,
-      50.0, 50.0, 25.0,
+      22.0, 22.0, 25.0, // 이미지 컬럼 폭 조정 (22 = ~160px)
     ];
     for (var i = 0; i < imgColWidths.length; i++) {
       imageSheet.setColumnWidth(i, imgColWidths[i]);
     }
 
     excel.setDefaultSheet('주문요약');
-    final bytes = excel.encode();
-    return Uint8List.fromList(bytes!);
+    final baseBytes = excel.encode()!;
+
+    // 이미지 없으면 바로 반환
+    if (selectedImagesToInsert.isEmpty) return Uint8List.fromList(baseBytes);
+
+    // 이미지 다운로드 (병렬)
+    await Future.wait(selectedImagesToInsert.map((img) async {
+      try {
+        final resp = await http.get(Uri.parse(img.url))
+            .timeout(const Duration(seconds: 20));
+        if (resp.statusCode == 200) {
+          img.bytes = resp.bodyBytes;
+          final ct = resp.headers['content-type'] ?? '';
+          img.ext = (ct.contains('png') || img.url.toLowerCase().contains('.png')) ? 'png' : 'jpeg';
+        }
+      } catch (_) {}
+    }));
+
+    return _insertImagesIntoXlsx(Uint8List.fromList(baseBytes), selectedImagesToInsert);
   }
 
   // ════════════════════════════════════════════════════════════════
@@ -882,18 +928,22 @@ class OrderExcelService {
     }
 
     // ══════════════════════════════════
-    // 시트 3: 디자인 이미지 URL 모음
+    // 시트 3: 디자인 이미지 (실제 이미지 삽입)
     // ══════════════════════════════════
     final imageSheet = excel['디자인이미지'];
 
     final imgHeaders = [
       'No', '주문번호', '주문날짜', '단체명', '상품명',
       '인쇄옵션', '색상', '하의길이', '허리밴드',
-      '상품이미지URL', '남자참조이미지URL',
+      '상품이미지', '남자참조이미지',
     ];
     for (var i = 0; i < imgHeaders.length; i++) {
       _setCell(imageSheet, 0, i, imgHeaders[i], style: headerStyle);
     }
+
+    // 이미지 삽입 목록 (시트 인덱스: 단체주문요약=0, 사이즈=1, 디자인이미지=2)
+    final List<_ImageToInsert> dailyImagesToInsert = [];
+    const int dailyImgSheetIdx = 2;
 
     int imgRowIdx = 1;
     int imgNo = 1;
@@ -914,8 +964,29 @@ class OrderExcelService {
       _setColorCell(imageSheet, imgRowIdx, 6, _extractColorInfo(order), baseStyle: rowStyle, overrideHex: _extractColorHex(order));
       _setCell(imageSheet, imgRowIdx, 7, opts['defaultLength']?.toString() ?? '-', style: rowStyle);
       _setWaistbandCell(imageSheet, imgRowIdx, 8, opts, baseStyle: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 9, productImgUrl.isNotEmpty ? productImgUrl : '-', style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 10, maleRefUrl.isNotEmpty ? maleRefUrl : '-', style: rowStyle);
+      _setCell(imageSheet, imgRowIdx, 9, '', style: rowStyle); // 이미지로 대체
+      _setCell(imageSheet, imgRowIdx, 10, '', style: rowStyle); // 이미지로 대체
+
+      if (productImgUrl.isNotEmpty) {
+        dailyImagesToInsert.add(_ImageToInsert(
+          url: productImgUrl,
+          sheetIndex: dailyImgSheetIdx,
+          row: imgRowIdx + 1,
+          col: 9,
+          widthPx: 160, heightPx: 120,
+          label: '상품이미지_$imgNo',
+        ));
+      }
+      if (maleRefUrl.isNotEmpty) {
+        dailyImagesToInsert.add(_ImageToInsert(
+          url: maleRefUrl,
+          sheetIndex: dailyImgSheetIdx,
+          row: imgRowIdx + 1,
+          col: 10,
+          widthPx: 160, heightPx: 120,
+          label: '참조이미지_$imgNo',
+        ));
+      }
 
       imgRowIdx++;
       imgNo++;
@@ -924,20 +995,35 @@ class OrderExcelService {
     final imgColWidths = [
       5.0, 22.0, 16.0, 16.0, 20.0,
       16.0, 16.0, 12.0, 14.0,
-      50.0, 50.0,
+      22.0, 22.0, // 이미지 컬럼
     ];
     for (var i = 0; i < imgColWidths.length; i++) {
       imageSheet.setColumnWidth(i, imgColWidths[i]);
     }
 
     excel.setDefaultSheet('단체주문요약');
-    final bytes = excel.encode();
-    return Uint8List.fromList(bytes!);
+    final dailyBase = excel.encode()!;
+
+    if (dailyImagesToInsert.isEmpty) return Uint8List.fromList(dailyBase);
+
+    await Future.wait(dailyImagesToInsert.map((img) async {
+      try {
+        final resp = await http.get(Uri.parse(img.url))
+            .timeout(const Duration(seconds: 20));
+        if (resp.statusCode == 200) {
+          img.bytes = resp.bodyBytes;
+          final ct = resp.headers['content-type'] ?? '';
+          img.ext = (ct.contains('png') || img.url.toLowerCase().contains('.png')) ? 'png' : 'jpeg';
+        }
+      } catch (_) {}
+    }));
+
+    return _insertImagesIntoXlsx(Uint8List.fromList(dailyBase), dailyImagesToInsert);
   }
 
   // ── 기존 generateExcel (개인+단체 통합) 유지 ──
-  static Uint8List generateExcel(
-      List<OrderModel> orders, DateTime start, DateTime end) {
+  static Future<Uint8List> generateExcel(
+      List<OrderModel> orders, DateTime start, DateTime end) async {
     final excel = Excel.createExcel();
 
     final groupOrders = orders.where(_isGroupOrder).toList();
@@ -1047,9 +1133,101 @@ class OrderExcelService {
       summarySheet.setColumnWidth(i, colWidths[i]);
     }
 
+    // ── 디자인 이미지 시트 추가 (실제 이미지 삽입) ──
+    final headerStyle2 = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#2C3E50'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+    );
+    final evenRowStyle2 = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#F5F5F5'),
+    );
+    final imgSheet = excel['디자인이미지'];
+    final baseImgHeaders = [
+      'No', '주문번호', '주문날짜', '단체명', '상품명',
+      '인쇄옵션', '색상', '하의길이', '허리밴드',
+      '상품이미지', '남자참조이미지',
+    ];
+    for (var i = 0; i < baseImgHeaders.length; i++) {
+      _setCell(imgSheet, 0, i, baseImgHeaders[i], style: headerStyle2);
+    }
+    final List<_ImageToInsert> baseImagesToInsert = [];
+    const int baseImgSheetIdx = 1; // 주문요약=0, 디자인이미지=1
+    int bImgRowIdx = 1;
+    int bImgNo = 1;
+    for (final order in groupOrders) {
+      final opts = order.customOptions ?? {};
+      final isEven = bImgNo % 2 == 0;
+      final rowStyle2 = isEven ? evenRowStyle2 : null;
+      final teamName = opts['teamName']?.toString() ?? order.groupName ?? '-';
+      final productImgUrl = _extractDesignImageUrl(order);
+      final maleRefUrl = opts['maleRefImageUrl']?.toString() ?? '';
+
+      _setCell(imgSheet, bImgRowIdx, 0, '$bImgNo', style: rowStyle2);
+      _setCell(imgSheet, bImgRowIdx, 1, order.id, style: rowStyle2);
+      _setCell(imgSheet, bImgRowIdx, 2, _fmtFull(order.createdAt), style: rowStyle2);
+      _setCell(imgSheet, bImgRowIdx, 3, teamName, style: rowStyle2);
+      _setCell(imgSheet, bImgRowIdx, 4,
+          order.items.map((i) => i.productName).toSet().join(' / '), style: rowStyle2);
+      _setCell(imgSheet, bImgRowIdx, 5,
+          opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '-', style: rowStyle2);
+      _setColorCell(imgSheet, bImgRowIdx, 6, _extractColorInfo(order), baseStyle: rowStyle2, overrideHex: _extractColorHex(order));
+      _setCell(imgSheet, bImgRowIdx, 7, opts['defaultLength']?.toString() ?? '-', style: rowStyle2);
+      _setWaistbandCell(imgSheet, bImgRowIdx, 8, opts, baseStyle: rowStyle2);
+      _setCell(imgSheet, bImgRowIdx, 9, '', style: rowStyle2);
+      _setCell(imgSheet, bImgRowIdx, 10, '', style: rowStyle2);
+
+      if (productImgUrl.isNotEmpty) {
+        baseImagesToInsert.add(_ImageToInsert(
+          url: productImgUrl,
+          sheetIndex: baseImgSheetIdx,
+          row: bImgRowIdx + 1,
+          col: 9,
+          widthPx: 160, heightPx: 120,
+          label: '상품이미지_$bImgNo',
+        ));
+      }
+      if (maleRefUrl.isNotEmpty) {
+        baseImagesToInsert.add(_ImageToInsert(
+          url: maleRefUrl,
+          sheetIndex: baseImgSheetIdx,
+          row: bImgRowIdx + 1,
+          col: 10,
+          widthPx: 160, heightPx: 120,
+          label: '참조이미지_$bImgNo',
+        ));
+      }
+      bImgRowIdx++;
+      bImgNo++;
+    }
+    final baseImgColWidths = [
+      5.0, 22.0, 16.0, 16.0, 20.0,
+      16.0, 16.0, 12.0, 14.0,
+      22.0, 22.0,
+    ];
+    for (var i = 0; i < baseImgColWidths.length; i++) {
+      imgSheet.setColumnWidth(i, baseImgColWidths[i]);
+    }
+
     excel.setDefaultSheet('주문요약');
-    final bytes = excel.encode();
-    return Uint8List.fromList(bytes!);
+    final baseBytes2 = excel.encode()!;
+
+    if (baseImagesToInsert.isEmpty) return Uint8List.fromList(baseBytes2);
+
+    await Future.wait(baseImagesToInsert.map((img) async {
+      try {
+        final resp = await http.get(Uri.parse(img.url))
+            .timeout(const Duration(seconds: 20));
+        if (resp.statusCode == 200) {
+          img.bytes = resp.bodyBytes;
+          final ct = resp.headers['content-type'] ?? '';
+          img.ext = (ct.contains('png') || img.url.toLowerCase().contains('.png')) ? 'png' : 'jpeg';
+        }
+      } catch (_) {}
+    }));
+
+    return _insertImagesIntoXlsx(Uint8List.fromList(baseBytes2), baseImagesToInsert);
   }
 
   // ── 단체주문 개별 엑셀 생성 (개선판) ── async 버전 (이미지 실제 삽입)
