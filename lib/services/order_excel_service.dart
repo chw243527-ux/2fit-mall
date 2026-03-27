@@ -1233,15 +1233,24 @@ class OrderExcelService {
   // ── 단체주문 개별 엑셀 생성 (개선판) ── async 버전 (이미지 실제 삽입)
   static Future<Uint8List> generateGroupOrderExcelAsync(OrderModel order) async {
     final opts = order.customOptions ?? {};
-    final productImageUrl = opts['productImageUrl']?.toString() ?? '';
-    final designFileUrl   = opts['designFileUrl']?.toString() ?? '';
+    // customOptions 우선, 없으면 item.imageUrl 사용
+    final productImageUrl = opts['productImageUrl']?.toString() ??
+        opts['designImageUrl']?.toString() ??
+        opts['imageUrl']?.toString() ??
+        order.items.firstWhere(
+          (i) => i.imageUrl != null && i.imageUrl!.isNotEmpty,
+          orElse: () => order.items.isNotEmpty ? order.items.first : OrderItem(
+            productId: '', productName: '', size: '', color: '',
+            quantity: 0, price: 0,
+          ),
+        ).imageUrl ?? '';
+    final designFileUrl = opts['designFileUrl']?.toString() ??
+        opts['maleRefImageUrl']?.toString() ?? '';
 
     // 1) 기본 xlsx 바이트 생성 (sync)
     final baseBytes = generateGroupOrderExcel(order);
 
-    // 2) 다운로드할 이미지 목록 (label, url, 배치 행 인덱스 = 1-based row in sheet)
-    //    이미지는 '주문정보' 시트, 열 D(index 3) 부터 띄움
-    //    row 위치: productImage → imgRow=1, designFile → imgRow=2 (있을 때만)
+    // 2) 다운로드할 이미지 목록
     final List<_ImageToInsert> imagesToInsert = [];
     int imgRow = 1; // 1-based Excel row (row 0 = 제목행)
     if (productImageUrl.isNotEmpty) {
@@ -1662,8 +1671,18 @@ class OrderExcelService {
         CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
         CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: 0));
 
-    final productImageUrl = opts['productImageUrl']?.toString() ?? '';
-    final designFileUrl = opts['designFileUrl']?.toString() ?? '';
+    // 이미지 URL: customOptions → item.imageUrl 순으로 폴백
+    final productImageUrl = opts['productImageUrl']?.toString().isNotEmpty == true
+        ? opts['productImageUrl']!.toString()
+        : opts['designImageUrl']?.toString().isNotEmpty == true
+            ? opts['designImageUrl']!.toString()
+            : order.items.firstWhere(
+                (i) => i.imageUrl != null && i.imageUrl!.isNotEmpty,
+                orElse: () => order.items.isNotEmpty ? order.items.first : OrderItem(
+                  productId: '', productName: '', size: '', color: '', quantity: 0, price: 0,
+                ),
+              ).imageUrl ?? '';
+    final designFileUrl = opts['designFileUrl']?.toString() ?? opts['maleRefImageUrl']?.toString() ?? '';
     final bottomColorName = opts['bottomColorName']?.toString() ?? '';
 
     // 이미지 URL 하이퍼링크 스타일
@@ -1906,14 +1925,20 @@ class OrderExcelService {
   /// 주문에서 디자인/상품 이미지 URL 추출
   static String _extractDesignImageUrl(OrderModel order) {
     final opts = order.customOptions ?? {};
-    // 우선순위: customOptions → item.customOptions
+    // 우선순위: customOptions → item.imageUrl → item.customOptions
     final url = opts['productImageUrl']?.toString() ??
         opts['designImageUrl']?.toString() ??
         opts['designFileUrl']?.toString() ??
         opts['imageUrl']?.toString() ??
         '';
     if (url.isNotEmpty) return url;
-    // 아이템의 이미지 확인
+    // 아이템의 imageUrl 필드 확인 (주문 시 저장된 상품 이미지)
+    for (final item in order.items) {
+      if (item.imageUrl != null && item.imageUrl!.isNotEmpty) {
+        return item.imageUrl!;
+      }
+    }
+    // 아이템의 customOptions 이미지 확인
     for (final item in order.items) {
       final itemUrl = item.customOptions?['productImageUrl']?.toString() ??
           item.customOptions?['designFileUrl']?.toString() ??
