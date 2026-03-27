@@ -25,18 +25,14 @@ class OrderExcelService {
   }
 
   // ── 전날 오후1시 ~ 당일 오후1시 날짜 계산 ──
+  // 항상 "오늘 13:00 기준의 직전 24시간 회차"를 반환한다.
+  //   start = 어제 13:00:00
+  //   end   = 오늘 13:00:00
+  // (오전에 다운받든 오후에 다운받든 동일한 구간)
   static DateTimeRange getDailyRange({DateTime? baseDate}) {
     final now = baseDate ?? DateTime.now();
-    final todayAt1pm = DateTime(now.year, now.month, now.day, 13, 0, 0);
-    final DateTime start;
-    final DateTime end;
-    if (now.isBefore(todayAt1pm)) {
-      start = todayAt1pm.subtract(const Duration(days: 1));
-      end = todayAt1pm;
-    } else {
-      start = todayAt1pm;
-      end = todayAt1pm.add(const Duration(days: 1));
-    }
+    final end = DateTime(now.year, now.month, now.day, 13, 0, 0);
+    final start = end.subtract(const Duration(days: 1));
     return DateTimeRange(start: start, end: end);
   }
 

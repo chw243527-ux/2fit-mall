@@ -1842,9 +1842,8 @@ class _AdminScreenState extends State<AdminScreen>
           String rangeLabel = '';
           if (exportType == '일일' && filterStart != null && filterEnd != null) {
             rangeLabel = '${_fmtDateKr(filterStart)} ~ ${_fmtDateKr(filterEnd)}';
-          } else if (exportType == '날짜선택' && filterStart != null) {
-            final d = selectedDate;
-            rangeLabel = '${d.month}월 ${d.day}일 13:00 ~ ${d.month}월 ${d.day + 1}일 13:00';
+          } else if (exportType == '날짜선택' && filterStart != null && filterEnd != null) {
+            rangeLabel = '${_fmtDateKr(filterStart)} ~ ${_fmtDateKr(filterEnd)}';
           } else if (exportType == '전체') {
             rangeLabel = '전체 기간';
           }
