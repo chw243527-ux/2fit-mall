@@ -878,12 +878,154 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  /// 단체주문 기본정보 상세 카드
+  Widget _buildGroupOrderInfoCard() {
+    final opts = _groupOrderOpts;
+    if (opts == null) return const SizedBox.shrink();
+
+    final printTypeLabels = ['색상변경 (단체명 없음)', '단체명 변경 (전면)', '단체명 + 색상 변경', '디자인 + 단체명 + 색상', '디자인 + 색상 + 단체명 + 이름(후면)'];
+    final printType = opts['printType'] as int? ?? 0;
+    final printLabel = printType < printTypeLabels.length ? printTypeLabels[printType] : '알 수 없음';
+
+    final teamName    = opts['teamName'] as String? ?? '';
+    final manager     = opts['manager'] as String? ?? '';
+    final phone       = opts['phone'] as String? ?? opts['userPhone'] as String? ?? '';
+    final email       = opts['email'] as String? ?? opts['userEmail'] as String? ?? '';
+    final address     = opts['address'] as String? ?? '';
+    final addressDetail = opts['addressDetail'] as String? ?? '';
+    final fullAddress = [address, addressDetail].where((s) => s.isNotEmpty).join(' ');
+    final mainColor   = opts['mainColor'] as String? ?? '';
+    final fabric      = opts['fabric'] as String? ?? opts['fabricType'] as String? ?? '';
+    final waistband   = opts['waistbandOption'] as String? ?? '';
+    final exclusive   = opts['exclusive'] as bool? ?? false;
+    final persons     = (opts['persons'] as List?) ?? [];
+    final totalCount  = opts['totalCount'] as int? ?? persons.length;
+    final memo        = opts['memo'] as String? ?? '';
+    final isAdditional = opts['orderType'] == 'additional';
+
+    // 팀원 명단 요약 (최대 5명 표시)
+    final previewPersons = persons.take(5).toList();
+    final moreCount = persons.length - 5;
+
+    Widget infoRow(IconData icon, String label, String value, {Color? color}) {
+      if (value.isEmpty) return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 14, color: const Color(0xFF6A1B9A)),
+            const SizedBox(width: 8),
+            SizedBox(width: 72, child: Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF888888), fontWeight: FontWeight.w500))),
+            Expanded(child: Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color ?? const Color(0xFF1A1A1A)), overflow: TextOverflow.ellipsis, maxLines: 2)),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.25)),
+        boxShadow: [BoxShadow(color: const Color(0xFF6A1B9A).withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 헤더
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF6A1B9A).withValues(alpha: 0.07),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Row(children: [
+              Icon(isAdditional ? Icons.add_circle_outline_rounded : Icons.groups_rounded,
+                size: 16, color: const Color(0xFF6A1B9A)),
+              const SizedBox(width: 8),
+              Text(isAdditional ? '추가제작 기본정보' : '단체주문 기본정보',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
+              const Spacer(),
+              if (totalCount > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(color: const Color(0xFF6A1B9A), borderRadius: BorderRadius.circular(10)),
+                  child: Text('$totalCount명', style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700)),
+                ),
+            ]),
+          ),
+          // 정보 목록
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (teamName.isNotEmpty) infoRow(Icons.group_work_rounded, '단체명', teamName),
+                if (manager.isNotEmpty) infoRow(Icons.person_outline_rounded, '담당자', manager),
+                if (phone.isNotEmpty) infoRow(Icons.phone_outlined, '연락처', phone),
+                if (email.isNotEmpty) infoRow(Icons.email_outlined, '이메일', email),
+                if (fullAddress.isNotEmpty) infoRow(Icons.location_on_outlined, '배송 주소', fullAddress),
+                infoRow(Icons.print_rounded, '인쇄타입', printLabel, color: const Color(0xFF4A148C)),
+                if (mainColor.isNotEmpty) infoRow(Icons.palette_outlined, '색상', mainColor),
+                if (fabric.isNotEmpty) infoRow(Icons.texture_rounded, '원단', fabric),
+                if (waistband.isNotEmpty) infoRow(Icons.style_rounded, '허리밴드', waistband),
+                if (exclusive) infoRow(Icons.star_outline_rounded, '독점 디자인', '1년 독점 소유 신청', color: const Color(0xFF6A1B9A)),
+                if (memo.isNotEmpty) infoRow(Icons.notes_rounded, '메모', memo),
+                // 팀원 명단 요약
+                if (persons.isNotEmpty) ...[
+                  const Divider(height: 16),
+                  Row(children: [
+                    const Icon(Icons.people_alt_rounded, size: 14, color: Color(0xFF6A1B9A)),
+                    const SizedBox(width: 8),
+                    Text('팀원 명단 (${persons.length}명)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+                  ]),
+                  const SizedBox(height: 8),
+                  // 팀원 요약 칩
+                  Wrap(
+                    spacing: 6, runSpacing: 6,
+                    children: [
+                      ...previewPersons.map((p) {
+                        final m = p as Map;
+                        final name  = m['name']?.toString() ?? '';
+                        final top   = m['topSize']?.toString() ?? '';
+                        final bot   = m['bottomSize']?.toString() ?? '';
+                        final gender = m['gender']?.toString() ?? '';
+                        final label = name.isNotEmpty ? '$name ($top/$bot)' : '${m['index'] ?? ''}번 $gender ($top/$bot)';
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: gender == '남' ? const Color(0xFFE3F2FD) : const Color(0xFFFCE4EC),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(label.trim(), style: TextStyle(fontSize: 11, color: gender == '남' ? const Color(0xFF1565C0) : const Color(0xFFC62828), fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+                        );
+                      }),
+                      if (moreCount > 0)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(8)),
+                          child: Text('+ $moreCount명 더보기', style: const TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w600)),
+                        ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildOrderItems() {
     return _buildSection(
       loc.orderItemsCount(widget.cart.items.length),
       Column(
         children: [
           _buildGroupOrderBanner(),
+          _buildGroupOrderInfoCard(),
           ...widget.cart.items.map((item) => Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(

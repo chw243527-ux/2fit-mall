@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../models/models.dart';
@@ -128,6 +129,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             slivers: [
               _buildSliverHeader(product),
               SliverToBoxAdapter(child: _buildThumbnailBar(product)),
+              SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
               SliverToBoxAdapter(child: _buildBasicInfo(product)),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
@@ -380,6 +382,46 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   elevation: 0,
                 ),
                 onPressed: () => _showGroupOrderGuide(product),
+              ),
+            ),
+          ] else if (product.stockCount <= 0) ...[
+            // ── 기성품 품절: 재입고 알림 버튼 (PC) ──
+            Consumer<UserProvider>(
+              builder: (_, up, __) => Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFDDDDDD)),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.remove_shopping_cart_rounded, size: 16, color: Color(0xFFAAAAAA)),
+                        SizedBox(width: 6),
+                        Text('현재 품절된 상품입니다', style: TextStyle(fontSize: 13, color: Color(0xFFAAAAAA), fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.notifications_active_rounded, size: 18, color: Colors.white),
+                      label: const Text('재입고 알림 신청', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1565C0),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        elevation: 0,
+                      ),
+                      onPressed: () => _showRestockAlert(product, up),
+                    ),
+                  ),
+                ],
               ),
             ),
           ] else ...[
@@ -875,6 +917,111 @@ $productUrl
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.95),
       builder: (_) => _LightboxDialog(images: images, initialIndex: initialIndex),
+    );
+  }
+
+  // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 ══
+  Widget _buildMobileDesignImageBanner(ProductModel product) {
+    final designImgs = _sectionImages['design'] ?? [];
+    if (designImgs.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      color: const Color(0xFFF8F4FF),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 헤더
+          Row(children: [
+            Container(
+              width: 3, height: 14,
+              decoration: BoxDecoration(
+                color: const Color(0xFF4A148C),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('디자인 이미지',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
+                    color: Color(0xFF4A148C))),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4A148C).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text('${designImgs.length}장',
+                  style: const TextStyle(fontSize: 10,
+                      color: Color(0xFF4A148C), fontWeight: FontWeight.w700)),
+            ),
+          ]),
+          const SizedBox(height: 10),
+          // 가로 스크롤 이미지 목록
+          SizedBox(
+            height: 110,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: designImgs.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (_, i) => GestureDetector(
+                onTap: () => _showDesignLightbox(designImgs, i),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        designImgs[i],
+                        width: 110, height: 110, fit: BoxFit.cover,
+                        cacheWidth: 300,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 110, height: 110,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEEEEEE),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.broken_image_outlined,
+                              color: Color(0xFFAAAAAA)),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 5, bottom: 5,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Icon(Icons.zoom_in_rounded,
+                            size: 13, color: Colors.white),
+                      ),
+                    ),
+                    if (i == 0)
+                      Positioned(
+                        left: 5, top: 5,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4A148C),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('대표',
+                              style: TextStyle(fontSize: 9,
+                                  color: Colors.white, fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text('탭하면 원본 크기로 볼 수 있습니다',
+              style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+        ],
+      ),
     );
   }
 
@@ -3745,6 +3892,48 @@ $productUrl
                 onPressed: () => _showGroupOrderGuide(product),
               ),
             ),
+          ] else if (product.stockCount <= 0) ...[
+            // ── 기성품 품절: 재입고 알림 버튼 ──
+            Consumer<UserProvider>(
+              builder: (_, up, __) {
+                return Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFDDDDDD)),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.remove_shopping_cart_rounded, size: 16, color: Color(0xFFAAAAAA)),
+                          SizedBox(width: 6),
+                          Text('현재 품절된 상품입니다', style: TextStyle(fontSize: 13, color: Color(0xFFAAAAAA), fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.notifications_active_rounded, size: 18, color: Colors.white),
+                        label: const Text('재입고 알림 신청', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1565C0),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          elevation: 0,
+                        ),
+                        onPressed: () => _showRestockAlert(product, up),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
           ] else ...[
             Row(
               children: [
@@ -4181,6 +4370,67 @@ $productUrl
         builder: (_, scrollController) => _GroupOrderGuideSheet(product: product),
       ),
     );
+  }
+
+  // ─── 재입고 알림 신청 ───────────────────────────────────────────
+  void _showRestockAlert(ProductModel product, UserProvider up) async {
+    if (!up.isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.loginRequired)),
+      );
+      return;
+    }
+    final user = up.user!;
+    final email = user.email.isNotEmpty ? user.email : '';
+
+    // Firestore에 재입고 알림 등록
+    try {
+      final db = FirebaseFirestore.instance;
+      final docId = '${product.id}_${user.id}';
+      await db.collection('restock_alerts').doc(docId).set({
+        'productId': product.id,
+        'productName': product.name,
+        'userId': user.id,
+        'userName': user.name,
+        'userEmail': email,
+        'requestedAt': FieldValue.serverTimestamp(),
+        'isNotified': false,
+      });
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(children: [
+            Icon(Icons.notifications_active_rounded, color: Color(0xFF1565C0), size: 22),
+            SizedBox(width: 8),
+            Text('재입고 알림 신청 완료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          ]),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('${product.name}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+              const SizedBox(height: 8),
+              Text('재입고 시 ${email.isNotEmpty ? email : '등록된 연락처'}로 알림을 보내드립니다.',
+                style: const TextStyle(fontSize: 13, color: Color(0xFF555555), height: 1.5)),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1565C0), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('확인'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('신청 실패: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   // ─── 기성품 옵션 선택 + 다중담기 시트 (장바구니/바로구매 공통) ───

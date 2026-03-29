@@ -622,6 +622,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'exclusive'    : _exclusiveDesign,
       'teamName'     : _teamNameCtrl.text.trim(),
       'manager'      : _managerNameCtrl.text.trim(),
+      'phone'        : _phoneCtrl.text.trim(),
+      'email'        : _emailCtrl.text.trim(),
       'address'      : _address,
       'addressDetail': _addressDetailCtrl.text.trim(),
       'maleRef'      : _refBase64 != null,
@@ -1158,39 +1160,128 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     return _card(
       title: '선택 상품',
       icon: Icons.shopping_bag_outlined,
-      child: Row(children: [
-        // 이미지 (더 크게, 디자인 이미지 표시)
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: imgUrl != null
-              ? Image.network(
-                  imgUrl,
-                  width: 72, height: 72, fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _productImgPlaceholder(),
-                )
-              : _productImgPlaceholder(),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(p.name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-            const SizedBox(height: 2),
-            Text(p.category,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-            const SizedBox(height: 4),
-            Row(children: [
-              Text('${_fmt(p.price)}원',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w900, color: _purple, fontSize: 15)),
-              Text('/인',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-            ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 기본 상품 정보 행
+          Row(children: [
+            // 이미지 (더 크게, 디자인 이미지 표시)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: imgUrl != null
+                  ? Image.network(
+                      imgUrl,
+                      width: 72, height: 72, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _productImgPlaceholder(),
+                    )
+                  : _productImgPlaceholder(),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(p.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                const SizedBox(height: 2),
+                Text(p.category,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                const SizedBox(height: 4),
+                Row(children: [
+                  Text('${_fmt(p.price)}원',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w900, color: _purple, fontSize: 15)),
+                  Text('/인',
+                      style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
+                ]),
+              ]),
+            ),
           ]),
-        ),
-      ]),
+          // ── 디자인 이미지 목록 (메인이미지 아래) ──
+          if (designImgs.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Row(children: [
+              Container(width: 3, height: 14,
+                decoration: BoxDecoration(color: _purple, borderRadius: BorderRadius.circular(2))),
+              const SizedBox(width: 8),
+              const Text('디자인 이미지',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF4A148C))),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _purple.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text('${designImgs.length}장',
+                    style: const TextStyle(fontSize: 10, color: _purple, fontWeight: FontWeight.w700)),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 90,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: designImgs.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (_, i) => GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => Dialog(
+                        backgroundColor: Colors.transparent,
+                        child: Stack(
+                          alignment: Alignment.topRight,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(designImgs[i], fit: BoxFit.contain),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close_rounded, color: Colors.white),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          designImgs[i],
+                          width: 90, height: 90, fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 90, height: 90,
+                            color: Colors.grey.shade100,
+                            child: Icon(Icons.image_outlined, color: Colors.grey.shade400),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        right: 4, bottom: 4,
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(Icons.zoom_in_rounded, size: 12, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text('탭하면 크게 볼 수 있습니다',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+          ],
+        ],
+      ),
     );
   }
 
