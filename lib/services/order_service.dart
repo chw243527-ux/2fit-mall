@@ -559,6 +559,10 @@ class OrderService {
       createdAt: createdAt,
       additionalOrderCount: (data['additionalOrderCount'] as num?)?.toInt() ?? 0,
       colorEditCount: (data['colorEditCount'] as num?)?.toInt() ?? 0,
+      designRevisionCount: (data['designRevisionCount'] as num?)?.toInt() ?? 0,
+      designRevisionDeadline: data['designRevisionDeadline'] != null
+          ? DateTime.tryParse(data['designRevisionDeadline'] as String)
+          : null,
       items: (data['items'] as List? ?? []).map((i) {
         final item = Map<String, dynamic>.from(i as Map);
         Map<String, dynamic>? itemOpts;

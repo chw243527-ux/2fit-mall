@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/constants.dart';
 import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/email_service.dart';
 import '../products/product_detail_screen.dart';
 import '../admin/admin_screen.dart';
 import '../auth/login_screen.dart';
@@ -94,6 +96,15 @@ class _MyPageScreenState extends State<MyPageScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _ColorEditSheet(order: order),
+    );
+  }
+
+  void _showDesignRevisionSheet(OrderModel order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _DesignRevisionSheet(order: order),
     );
   }
 
@@ -878,16 +889,18 @@ class _PcOrderCard extends StatelessWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
+  final void Function(OrderModel)? onDesignRevision;
 
-  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit});
+  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision});
 
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(order.status);
-    final isGroup = order.orderType == 'group_custom';
+    final isGroup = order.orderType == 'group' || order.orderType == 'additional' || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
     final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
     final canColorEdit = isGroup && isActive && order.colorEditCount < 3;
-    final canAdditional = isGroup && isActive;
+    final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
+    final canDesignRevision = isGroup && isActive && order.canDesignRevision;
 
     return GestureDetector(
       onTap: () => _showUserOrderDetail(context, order),
@@ -994,13 +1007,22 @@ class _PcOrderCard extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  if (canDesignRevision) _PcBtn(
+                    label: '디자인 수정',
+                    icon: Icons.edit_note_rounded,
+                    color: const Color(0xFF7B1FA2),
+                    badge: '${order.remainingDesignRevisions}',
+                    onTap: () => onDesignRevision?.call(order),
+                  ),
+                  if (canDesignRevision && (canAdditional || canColorEdit)) const SizedBox(width: 8),
                   if (canAdditional) _PcBtn(
-                    label: loc.mypageAdditionalProduction,
+                    label: '추가제작',
                     icon: Icons.add_circle_outline_rounded,
                     color: const Color(0xFF2E7D32),
+                    badge: '무료',
                     onTap: () => onAdditionalOrder(order),
                   ),
-                  if (canAdditional) const SizedBox(width: 8),
+                  if (canAdditional && canColorEdit) const SizedBox(width: 8),
                   if (canColorEdit) _PcBtn(
                     label: loc.mypageColorGroupEdit,
                     icon: Icons.palette_outlined,
@@ -1008,6 +1030,19 @@ class _PcOrderCard extends StatelessWidget {
                     badge: '${3 - order.colorEditCount}',
                     onTap: () => onColorEdit(order),
                   ),
+                  // 1주일 지나면 안내 배지
+                  if (isGroup && isActive && !order.canOrderAdditionalFree) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF3E0),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFFFCC80)),
+                      ),
+                      child: const Text('추가제작 기간 종료', style: TextStyle(fontSize: 11, color: Color(0xFFE65100), fontWeight: FontWeight.w600)),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1961,16 +1996,18 @@ class _MobileOrderCard extends StatelessWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
+  final void Function(OrderModel)? onDesignRevision;
 
-  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit});
+  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision});
 
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(order.status);
-    final isGroup = order.orderType == 'group_custom';
+    final isGroup = order.orderType == 'group' || order.orderType == 'additional' || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
     final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
     final canColorEdit = isGroup && isActive && order.colorEditCount < 3;
-    final canAdditional = isGroup && isActive;
+    final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
+    final canDesignRevision = isGroup && isActive && order.canDesignRevision;
 
     return GestureDetector(
       onTap: () => _showUserOrderDetail(context, order),
@@ -2048,25 +2085,58 @@ class _MobileOrderCard extends StatelessWidget {
             ),
           ),
           // 버튼
-          if (isActive && (canAdditional || canColorEdit))
+          if (isActive && (canAdditional || canColorEdit || canDesignRevision))
             Container(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Row(
+              child: Column(
                 children: [
-                  if (canAdditional) Expanded(child: _MobileBtn(
-                    label: loc.mypageAdditionalProduction,
-                    color: const Color(0xFF2E7D32),
-                    onTap: () => onAdditionalOrder(order),
-                  )),
-                  if (canAdditional && canColorEdit) const SizedBox(width: 8),
-                  if (canColorEdit) Expanded(child: _MobileBtn(
-                    label: loc.mypageColorGroupEdit,
-                    color: const Color(0xFF1565C0),
-                    badge: '${3 - order.colorEditCount}',
-                    onTap: () => onColorEdit(order),
-                  )),
+                  if (canDesignRevision)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: _MobileBtn(
+                          label: '디자인 수정 요청 (${order.remainingDesignRevisions}회 남음)',
+                          color: const Color(0xFF7B1FA2),
+                          onTap: () => onDesignRevision?.call(order),
+                        ),
+                      ),
+                    ),
+                  Row(
+                    children: [
+                      if (canAdditional) Expanded(child: _MobileBtn(
+                        label: '추가제작 (무료)',
+                        color: const Color(0xFF2E7D32),
+                        onTap: () => onAdditionalOrder(order),
+                      )),
+                      if (canAdditional && canColorEdit) const SizedBox(width: 8),
+                      if (canColorEdit) Expanded(child: _MobileBtn(
+                        label: loc.mypageColorGroupEdit,
+                        color: const Color(0xFF1565C0),
+                        badge: '${3 - order.colorEditCount}',
+                        onTap: () => onColorEdit(order),
+                      )),
+                    ],
+                  ),
                 ],
               ),
+            ),
+          // 1주일 지나면 추가제작 불가 안내
+          if (isGroup && isActive && !order.canOrderAdditionalFree)
+            Container(
+              margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF8E1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFFCC80)),
+              ),
+              child: const Row(children: [
+                Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFFE65100)),
+                SizedBox(width: 6),
+                Expanded(child: Text('주문 완료 후 1주일이 지나 추가제작은 새로 주문해 주세요.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFFE65100)), overflow: TextOverflow.ellipsis, maxLines: 2)),
+              ]),
             ),
         ],
       ),
@@ -4223,6 +4293,335 @@ Widget _udRow(IconData icon, String label, String value) {
       const SizedBox(width: 6),
       SizedBox(width: 70, child: Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w600))),
       Expanded(child: Text(value, style: const TextStyle(fontSize: 12, color: Colors.black87))),
+    ]),
+  );
+}
+
+// ════════════════════════════════════════════════
+// 디자인 수정 요청 바텀시트
+// ════════════════════════════════════════════════
+class _DesignRevisionSheet extends StatefulWidget {
+  final OrderModel order;
+  const _DesignRevisionSheet({required this.order});
+
+  @override
+  State<_DesignRevisionSheet> createState() => _DesignRevisionSheetState();
+}
+
+class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
+  final _memoCtrl = TextEditingController();
+  bool _submitted = false;
+  bool _isSubmitting = false;
+  String? _selectedColorName;
+  Color? _selectedColor;
+
+  @override
+  void dispose() {
+    _memoCtrl.dispose();
+    super.dispose();
+  }
+
+  // 인쇄타입에 따른 수정 가능 항목
+  int get _printType => (widget.order.customOptions?['printType'] as num?)?.toInt() ?? 0;
+  bool get _canChangeColor => _printType == 0 || _printType == 2 || _printType == 3 || _printType == 4;
+  bool get _canChangeTeamName => _printType == 1 || _printType == 2 || _printType == 3 || _printType == 4;
+  bool get _canChangeDesign => _printType == 3 || _printType == 4;
+
+  // 3일 자동확정 안내
+  String get _deadlineText {
+    final deadline = widget.order.designRevisionDeadline;
+    if (deadline == null) return '';
+    final diff = deadline.difference(DateTime.now()).inDays;
+    if (diff <= 0) return '오늘 자정 확정 예정';
+    return '$diff일 후 자동 확정';
+  }
+
+  Future<void> _submit() async {
+    if (_memoCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('수정 요청 내용을 입력해주세요.')),
+      );
+      return;
+    }
+    if (!widget.order.canDesignRevision) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('디자인 수정 가능 횟수를 모두 사용했습니다.')),
+      );
+      return;
+    }
+    setState(() => _isSubmitting = true);
+    try {
+      final db = FirebaseFirestore.instance;
+      final deadline = DateTime.now().add(const Duration(days: 3));
+      await db.collection('orders').doc(widget.order.id).update({
+        'designRevisionCount': FieldValue.increment(1),
+        'designRevisionDeadline': deadline.toIso8601String(),
+        'designRevisionRequest': {
+          'memo': _memoCtrl.text.trim(),
+          'colorName': _selectedColorName,
+          'requestedAt': DateTime.now().toIso8601String(),
+          'status': 'pending', // pending / confirmed / rejected
+        },
+      });
+      // 관리자 알림 (FCM/이메일)
+      try {
+        await EmailService.sendAdminAlert(
+          subject: '[2FIT] 디자인 수정 요청 - 주문 ${widget.order.id}',
+          body: '주문번호: ${widget.order.id}\n'
+              '고객: ${widget.order.userName}\n'
+              '남은횟수: ${widget.order.remainingDesignRevisions - 1}회\n'
+              '요청내용: ${_memoCtrl.text.trim()}\n'
+              '응답기한: ${deadline.year}.${deadline.month}.${deadline.day} (3일 이내)',
+        );
+      } catch (_) {}
+      if (!mounted) return;
+      setState(() {
+        _submitted = true;
+        _isSubmitting = false;
+      });
+      final user = context.read<UserProvider>().user;
+      if (user != null) context.read<OrderProvider>().loadUserOrders(user.id);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('요청 실패: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final h = MediaQuery.of(context).size.height * 0.85;
+    return Container(
+      height: h,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          // 핸들
+          Center(child: Container(
+            margin: const EdgeInsets.only(top: 12, bottom: 8),
+            width: 40, height: 4,
+            decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+          )),
+          // 헤더
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Row(children: [
+              const Icon(Icons.edit_note_rounded, color: Color(0xFF7B1FA2), size: 22),
+              const SizedBox(width: 8),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('디자인 수정 요청', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                Text('주문번호: ${widget.order.id}',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
+              ])),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3E5F5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text('${widget.order.remainingDesignRevisions}회 남음',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF7B1FA2))),
+              ),
+            ]),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: _submitted ? _buildSuccess() : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                // 주문 정보 요약
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F8FF),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE0E0FF)),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('선택된 인쇄타입: ${_getPrintTypeLabel()}',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Wrap(spacing: 6, children: [
+                      if (_canChangeColor) _chip('색상 변경 가능', const Color(0xFF1565C0)),
+                      if (_canChangeTeamName) _chip('단체명 변경 가능', const Color(0xFF2E7D32)),
+                      if (_canChangeDesign) _chip('디자인 변경 가능', const Color(0xFF7B1FA2)),
+                    ]),
+                  ]),
+                ),
+                const SizedBox(height: 16),
+                // 3일 자동확정 안내
+                if (widget.order.designRevisionDeadline != null)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3E0),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFFCC02)),
+                    ),
+                    child: Row(children: [
+                      const Icon(Icons.timer_outlined, size: 16, color: Color(0xFFE65100)),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(
+                        '관리자 미응답 시 $_deadlineText 디자인이 자동 확정됩니다.',
+                        style: const TextStyle(fontSize: 12, color: Color(0xFFE65100), height: 1.4),
+                      )),
+                    ]),
+                  ),
+                // 수정 요청 내용 입력
+                const Text('수정 요청 내용', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _memoCtrl,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: '원하시는 수정 내용을 자세히 입력해주세요.\n예) 색상을 네이비로 변경, 단체명 "2FIT 팀"으로 변경',
+                    hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFF7B1FA2)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // 색상 선택 (색상변경 가능한 경우)
+                if (_canChangeColor) ...[
+                  const Text('희망 색상 (선택)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8, runSpacing: 8,
+                    children: [
+                      {'name': '블랙', 'hex': 0xFF1A1A1A}, {'name': '네이비', 'hex': 0xFF0D1B4F},
+                      {'name': '화이트', 'hex': 0xFFF5F5F5}, {'name': '그레이', 'hex': 0xFF9E9E9E},
+                      {'name': '스카이블루', 'hex': 0xFF90CAF9}, {'name': '블루', 'hex': 0xFF1A4DB3},
+                      {'name': '레드', 'hex': 0xFFE53935}, {'name': '그린', 'hex': 0xFF2E7D32},
+                    ].map((c) {
+                      final isSelected = _selectedColorName == c['name'];
+                      return GestureDetector(
+                        onTap: () => setState(() {
+                          _selectedColorName = c['name'] as String;
+                          _selectedColor = Color(c['hex'] as int);
+                        }),
+                        child: Container(
+                          width: 50, height: 50,
+                          decoration: BoxDecoration(
+                            color: Color(c['hex'] as int),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isSelected ? const Color(0xFF7B1FA2) : Colors.grey.shade300,
+                              width: isSelected ? 2.5 : 1,
+                            ),
+                          ),
+                          child: isSelected
+                              ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
+                              : null,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  if (_selectedColorName != null) ...[
+                    const SizedBox(height: 6),
+                    Text('선택: $_selectedColorName',
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF7B1FA2), fontWeight: FontWeight.w600)),
+                  ],
+                  const SizedBox(height: 16),
+                ],
+                // 안내 문구
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Row(children: [
+                      Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF888888)),
+                      SizedBox(width: 6),
+                      Text('안내사항', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+                    ]),
+                    const SizedBox(height: 6),
+                    _infoRow('디자인 수정은 총 2회까지 가능합니다.'),
+                    _infoRow('요청 후 3일 이내 관리자 미응답 시 현재 디자인으로 자동 확정됩니다.'),
+                    _infoRow('확정 후에는 변경이 불가합니다.'),
+                  ]),
+                ),
+                const SizedBox(height: 24),
+                // 제출 버튼
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7B1FA2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(width: 20, height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Text('수정 요청 제출', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
+                  ),
+                ),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuccess() => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        const Icon(Icons.check_circle_rounded, size: 64, color: Color(0xFF7B1FA2)),
+        const SizedBox(height: 16),
+        const Text('수정 요청 완료!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 8),
+        Text('주문번호 ${widget.order.id}\n관리자가 확인 후 3일 이내 응답드립니다.\n미응답 시 현재 디자인으로 자동 확정됩니다.',
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 13, color: Color(0xFF666666), height: 1.5)),
+        const SizedBox(height: 24),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF7B1FA2),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          child: const Text('닫기', style: TextStyle(color: Colors.white)),
+        ),
+      ]),
+    ),
+  );
+
+  String _getPrintTypeLabel() {
+    const labels = ['색상 변경', '단체명 변경(전면)', '단체명+색상 변경', '디자인+단체명+색상', '전체 변경+이름(후면)'];
+    return _printType < labels.length ? labels[_printType] : '알 수 없음';
+  }
+
+  Widget _chip(String label, Color color) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: color.withValues(alpha: 0.3)),
+    ),
+    child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+  );
+
+  Widget _infoRow(String text) => Padding(
+    padding: const EdgeInsets.only(top: 3),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('• ', style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+      Expanded(child: Text(text, style: const TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.4))),
     ]),
   );
 }

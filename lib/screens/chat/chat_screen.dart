@@ -42,6 +42,7 @@ class _ChatScreenState extends State<ChatScreen> {
   // ignore: unused_field
   final bool _showFaq = true;
   bool _faqExpanded = true;
+  bool _isChatCompleted = false; // 상담 완료 여부
 
   // ── Firestore 실시간 채팅
   String? _roomId;
@@ -99,6 +100,11 @@ class _ChatScreenState extends State<ChatScreen> {
           }
         });
         _scrollToBottom();
+      });
+      // 채팅방 완료 여부 감시
+      ChatService.watchRoomCompleted(roomId).listen((completed) {
+        if (!mounted) return;
+        setState(() => _isChatCompleted = completed);
       });
     } catch (e) {
       // Firestore 연결 실패 시 로컬 모드로 폴백
@@ -297,6 +303,41 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  Future<void> _endConsultation(AppLocalizations loc) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(children: [
+          Icon(Icons.check_circle_outline_rounded, color: Color(0xFF2E7D32), size: 22),
+          SizedBox(width: 8),
+          Text('상담 종료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        ]),
+        content: const Text('상담을 완료로 처리하시겠습니까?\n종료 후에는 새 채팅을 시작하셔야 합니다.', style: TextStyle(fontSize: 14)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32), foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('종료하기'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && _roomId != null) {
+      await ChatService.completeRoom(_roomId!, completedBy: 'user');
+      if (!mounted) return;
+      setState(() => _isChatCompleted = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('상담이 완료되었습니다. 감사합니다!'),
+          backgroundColor: Color(0xFF2E7D32),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   void _showEliteDialog(AppLocalizations loc) {
     showDialog(
       context: context,
@@ -456,6 +497,18 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
             actions: [
+              if (!_isChatCompleted && _roomId != null)
+                TextButton(
+                  onPressed: () => _endConsultation(loc),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text('상담종료', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                  ),
+                ),
               IconButton(
                 icon: const Icon(Icons.phone_rounded, color: Colors.white, size: 20),
                 onPressed: () => _showCallDialog(loc),
@@ -807,6 +860,27 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // ────────── 입력창 ──────────
   Widget _buildInputArea(AppLocalizations loc) {
+    // 상담 완료된 경우 완료 메시지 표시
+    if (_isChatCompleted) {
+      return Container(
+        padding: EdgeInsets.only(
+          left: 12, right: 12, top: 12,
+          bottom: MediaQuery.of(context).padding.bottom + 12,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: AppColors.border)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 18),
+            const SizedBox(width: 6),
+            const Text('상담이 완료되었습니다', style: TextStyle(fontSize: 13, color: Color(0xFF2E7D32), fontWeight: FontWeight.w600)),
+          ],
+        ),
+      );
+    }
     return Container(
       padding: EdgeInsets.only(
         left: 12, right: 12, top: 8,

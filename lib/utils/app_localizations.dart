@@ -15265,4 +15265,71 @@ class AppLocalizations {
     default: return '사이즈 변경 (선택)';
   }}
 
+  // ── 채팅 상담종료 ──────────────────────────────────────────────
+  String get chatEndConsultation { switch (language) {
+    case AppLanguage.english:  return 'End Consultation';
+    case AppLanguage.japanese: return '相談終了';
+    case AppLanguage.chinese:  return '结束咨询';
+    case AppLanguage.mongolian:return 'Зөвлөгөө дуусгах';
+    default: return '상담종료';
+  }}
+
+  String get chatEndConsultationConfirm { switch (language) {
+    case AppLanguage.english:  return 'End the consultation?\nYou will need to start a new chat after closing.';
+    case AppLanguage.japanese: return '相談を完了しますか？\n終了後は新しいチャットを開始する必要があります。';
+    case AppLanguage.chinese:  return '确认结束咨询吗？\n结束后需要重新开始新的对话。';
+    case AppLanguage.mongolian:return 'Зөвлөгөөг дуусгах уу?\nДуусгасны дараа шинэ чат эхлүүлэх шаардлагатай.';
+    default: return '상담을 완료로 처리하시겠습니까?\n종료 후에는 새 채팅을 시작하셔야 합니다.';
+  }}
+
+  String get chatCompleted { switch (language) {
+    case AppLanguage.english:  return 'Consultation completed. Thank you!';
+    case AppLanguage.japanese: return '相談が完了しました。ありがとうございました！';
+    case AppLanguage.chinese:  return '咨询已完成。感谢您！';
+    case AppLanguage.mongolian:return 'Зөвлөгөө дуусгагдлаа. Баярлалаа!';
+    default: return '상담이 완료되었습니다. 감사합니다!';
+  }}
+
+  String get chatConsultationEnded { switch (language) {
+    case AppLanguage.english:  return 'Consultation has ended';
+    case AppLanguage.japanese: return '相談が終了しました';
+    case AppLanguage.chinese:  return '咨询已结束';
+    case AppLanguage.mongolian:return 'Зөвлөгөө дуусгагдлаа';
+    default: return '상담이 완료되었습니다';
+  }}
+
+  // ── 추가제작 기간 안내 ──────────────────────────────────────────
+  String get additionalOrderExpiredNote { switch (language) {
+    case AppLanguage.english:  return 'Additional production is only available within 1 week after order completion.';
+    case AppLanguage.japanese: return '追加制作は注文完了後1週間以内のみ可能です。';
+    case AppLanguage.chinese:  return '追加生产仅在订单完成后1周内可用。';
+    case AppLanguage.mongolian:return 'Нэмэлт үйлдвэрлэл захиалга дууссанаас хойш 1 долоо хоногийн дотор л боломжтой.';
+    default: return '주문 완료 후 1주일이 지나 추가제작은 새로 주문해 주세요.';
+  }}
+
+  String get additionalOrderPeriodEnded { switch (language) {
+    case AppLanguage.english:  return 'Additional production period ended';
+    case AppLanguage.japanese: return '追加制作期間終了';
+    case AppLanguage.chinese:  return '追加生产期限已过';
+    case AppLanguage.mongolian:return 'Нэмэлт үйлдвэрлэлийн хугацаа дууссан';
+    default: return '추가제작 기간 종료';
+  }}
+
+  // ── 디자인 수정 요청 ──────────────────────────────────────────
+  String get designRevisionRequest { switch (language) {
+    case AppLanguage.english:  return 'Design Revision Request';
+    case AppLanguage.japanese: return 'デザイン修正依頼';
+    case AppLanguage.chinese:  return '设计修改申请';
+    case AppLanguage.mongolian:return 'Дизайн засах хүсэлт';
+    default: return '디자인 수정 요청';
+  }}
+
+  String get designRevisionAdminProcess { switch (language) {
+    case AppLanguage.english:  return 'Process Design Revision';
+    case AppLanguage.japanese: return 'デザイン修正処理';
+    case AppLanguage.chinese:  return '处理设计修改';
+    case AppLanguage.mongolian:return 'Дизайн засварыг боловсруулах';
+    default: return '디자인 수정 처리';
+  }}
+
 }

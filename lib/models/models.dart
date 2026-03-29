@@ -262,6 +262,14 @@ class OrderModel {
   final int additionalOrderCount;
   /// 컬러+단체명 수정요청 사용 횟수 (최대 2회)
   final int colorEditCount;
+  /// 디자인 수정 요청 횟수 (최대 2회)
+  final int designRevisionCount;
+  /// 디자인 수정 요청 마감일 (요청 후 3일, null이면 요청 없음)
+  final DateTime? designRevisionDeadline;
+  /// 추가제작 가능 마감일 (주문완료 후 7일)
+  DateTime get additionalOrderDeadline => createdAt.add(const Duration(days: 7));
+  /// 추가제작 무료 가능 여부
+  bool get canOrderAdditionalFree => DateTime.now().isBefore(additionalOrderDeadline);
 
   OrderModel({
     required this.id,
@@ -283,17 +291,25 @@ class OrderModel {
     this.memo,
     this.additionalOrderCount = 0,
     this.colorEditCount = 0,
+    this.designRevisionCount = 0,
+    this.designRevisionDeadline,
   });
 
   /// 컬러+단체명 수정 가능 여부 (총 2회)
   bool get canEditColor => colorEditCount < 2;
   /// 남은 컬러+단체명 수정 횟수
   int get remainingColorEdits => 2 - colorEditCount;
+  /// 디자인 수정 가능 여부 (총 2회)
+  bool get canDesignRevision => designRevisionCount < 2;
+  /// 남은 디자인 수정 횟수
+  int get remainingDesignRevisions => 2 - designRevisionCount;
 
   OrderModel copyWith({
     OrderStatus? status,
     int? additionalOrderCount,
     int? colorEditCount,
+    int? designRevisionCount,
+    DateTime? designRevisionDeadline,
   }) {
     return OrderModel(
       id: id,
@@ -315,6 +331,8 @@ class OrderModel {
       memo: memo,
       additionalOrderCount: additionalOrderCount ?? this.additionalOrderCount,
       colorEditCount: colorEditCount ?? this.colorEditCount,
+      designRevisionCount: designRevisionCount ?? this.designRevisionCount,
+      designRevisionDeadline: designRevisionDeadline ?? this.designRevisionDeadline,
     );
   }
 
@@ -339,6 +357,8 @@ class OrderModel {
       'memo': memo,
       'additionalOrderCount': additionalOrderCount,
       'colorEditCount': colorEditCount,
+      'designRevisionCount': designRevisionCount,
+      'designRevisionDeadline': designRevisionDeadline?.toIso8601String(),
     };
   }
 }

@@ -933,28 +933,133 @@ class _AdminScreenState extends State<AdminScreen>
     final weekStart = todayStart.subtract(Duration(days: now.weekday - 1));
     final monthStart = DateTime(now.year, now.month, 1);
     final lastMonthStart = DateTime(now.year, now.month - 1, 1);
-    final lastMonthEnd = DateTime(now.year, now.month, 0);
+    final lastMonthEnd = DateTime(now.year, now.month, 0, 23, 59, 59);
 
     double calcRevenue(DateTime from, DateTime to) =>
-      allOrders.where((o) => o.createdAt.isAfter(from.subtract(const Duration(seconds: 1))) &&
-          o.createdAt.isBefore(to.add(const Duration(days: 1)))).fold(0.0, (s, o) => s + o.totalAmount);
+      allOrders.where((o) => !o.createdAt.isBefore(from) && !o.createdAt.isAfter(to))
+          .fold(0.0, (s, o) => s + o.totalAmount);
+
+    int calcCount(DateTime from, DateTime to) =>
+      allOrders.where((o) => !o.createdAt.isBefore(from) && !o.createdAt.isAfter(to)).length;
 
     final todayRev = calcRevenue(todayStart, now);
     final weekRev = calcRevenue(weekStart, now);
     final monthRev = calcRevenue(monthStart, now);
     final lastMonthRev = calcRevenue(lastMonthStart, lastMonthEnd);
 
-    return Container(
-      decoration: _cardDeco(),
-      child: Column(
+    final todayCnt = calcCount(todayStart, now);
+    final weekCnt = calcCount(weekStart, now);
+    final monthCnt = calcCount(monthStart, now);
+    final lastMonthCnt = calcCount(lastMonthStart, lastMonthEnd);
+
+    // 이번달 vs 지난달 성장률
+    final growth = lastMonthRev > 0
+        ? ((monthRev - lastMonthRev) / lastMonthRev * 100).toStringAsFixed(1)
+        : '∞';
+    final isGrowthPos = lastMonthRev == 0 || monthRev >= lastMonthRev;
+
+    return Column(
+      children: [
+        // 성장률 배너
+        if (lastMonthRev > 0)
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isGrowthPos
+                    ? [const Color(0xFF1B5E20), const Color(0xFF2E7D32)]
+                    : [const Color(0xFFB71C1C), const Color(0xFFE53935)],
+                begin: Alignment.centerLeft, end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(children: [
+              Icon(isGrowthPos ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+                color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(child: Text(
+                isGrowthPos ? '전월 대비 $growth% 성장 중' : '전월 대비 $growth% 감소',
+                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+                overflow: TextOverflow.ellipsis,
+              )),
+              Text('${_fmtPrice(monthRev)}원', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+            ]),
+          ),
+        // 매출 테이블
+        Container(
+          decoration: _cardDeco(),
+          child: Column(
+            children: [
+              // 헤더
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                ),
+                child: Row(children: [
+                  const Flexible(flex: 2, child: Text('기간', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF888888)))),
+                  const Spacer(),
+                  const Flexible(flex: 3, child: Text('매출액', textAlign: TextAlign.right, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF888888)), overflow: TextOverflow.ellipsis)),
+                  const SizedBox(width: 8),
+                  Container(width: 44, child: const Text('건수', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF888888)))),
+                ]),
+              ),
+              _salesRowV2('오늘', _fmtPrice(todayRev), todayCnt, true),
+              _divider(),
+              _salesRowV2('이번 주', _fmtPrice(weekRev), weekCnt, true),
+              _divider(),
+              _salesRowV2('이번 달', _fmtPrice(monthRev), monthCnt, true),
+              _divider(),
+              _salesRowV2('지난 달', _fmtPrice(lastMonthRev), lastMonthCnt, false),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _salesRowV2(String period, String amount, int count, bool isCurrentPeriod) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
         children: [
-          _salesRow('오늘', '${_fmtPrice(todayRev)}원', allOrders.where((o) => o.createdAt.isAfter(todayStart)).length.toString(), true),
-          _divider(),
-          _salesRow('이번 주', '${_fmtPrice(weekRev)}원', allOrders.where((o) => o.createdAt.isAfter(weekStart)).length.toString(), true),
-          _divider(),
-          _salesRow('이번 달', '${_fmtPrice(monthRev)}원', allOrders.where((o) => o.createdAt.isAfter(monthStart)).length.toString(), true),
-          _divider(),
-          _salesRow('지난 달', '${_fmtPrice(lastMonthRev)}원', allOrders.where((o) => o.createdAt.isAfter(lastMonthStart) && o.createdAt.isBefore(monthStart)).length.toString(), false),
+          Flexible(
+            flex: 2,
+            child: Text(period, style: TextStyle(
+              fontSize: 13,
+              fontWeight: isCurrentPeriod ? FontWeight.w700 : FontWeight.w400,
+              color: isCurrentPeriod ? const Color(0xFF1A1A1A) : const Color(0xFF888888),
+            ), overflow: TextOverflow.ellipsis),
+          ),
+          const Spacer(),
+          Flexible(
+            flex: 3,
+            child: Text('${amount}원',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: isCurrentPeriod ? const Color(0xFF1565C0) : const Color(0xFF555555),
+              ),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+            decoration: BoxDecoration(
+              color: isCurrentPeriod ? const Color(0xFFE8F5E9) : const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text('${count}건', textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11, fontWeight: FontWeight.w700,
+                color: isCurrentPeriod ? const Color(0xFF2E7D32) : const Color(0xFF888888),
+              )),
+          ),
         ],
       ),
     );
@@ -2813,6 +2918,196 @@ class _AdminScreenState extends State<AdminScreen>
     return g.toString();
   }
 
+  // ── 관리자: 디자인 수정 요청 처리 바텀시트 ──
+  void _showDesignRevisionAdminSheet(OrderModel order) {
+    final memoCtrl = TextEditingController();
+    final printType = order.customOptions?['printType'] as int? ?? 0;
+    // 인쇄타입에 따라 수정 가능 항목 결정
+    // 0: 색상변경만, 1: 단체명변경만, 2,3,4: 색상+단체명+디자인
+    final canChangeColor = printType == 0 || printType == 2 || printType == 3 || printType == 4;
+    final canChangeTeamName = printType == 1 || printType == 2 || printType == 3 || printType == 4;
+    final canChangeDesign = printType == 3 || printType == 4;
+    String? selectedColor;
+    bool isSubmitting = false;
+
+    final printTypeLabels = ['색상변경', '단체명변경', '단체명+색상', '디자인+단체명+색상', '디자인+색상+단체명+이름'];
+    final printLabel = printType < printTypeLabels.length ? printTypeLabels[printType] : '알 수 없음';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setSheet) => Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // 핸들
+              Container(margin: const EdgeInsets.only(top: 10), width: 36, height: 4,
+                decoration: BoxDecoration(color: const Color(0xFFDDDDDD), borderRadius: BorderRadius.circular(2))),
+              // 헤더
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                child: Row(children: [
+                  const Icon(Icons.design_services_rounded, color: Color(0xFFE65100), size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('디자인 수정 처리', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                    Text('주문번호: ${order.id} | 인쇄타입: $printLabel',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF888888)), overflow: TextOverflow.ellipsis),
+                  ])),
+                ]),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 요청 내용 확인
+                      if ((order.customOptions?['designRevisionRequest'] as Map?) != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: const Color(0xFFFFF3E0), borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFFFCC80))),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            const Text('사용자 요청 내용', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFE65100))),
+                            const SizedBox(height: 6),
+                            Text('${(order.customOptions!['designRevisionRequest'] as Map)['memo'] ?? '내용 없음'}',
+                              style: const TextStyle(fontSize: 13, height: 1.4)),
+                            if ((order.customOptions!['designRevisionRequest'] as Map)['color'] != null)
+                              Text('요청 색상: ${(order.customOptions!['designRevisionRequest'] as Map)['color']}',
+                                style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
+                          ]),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      // 수정 가능 항목 표시
+                      Wrap(spacing: 8, runSpacing: 6, children: [
+                        if (canChangeColor) _adminChip('색상 변경 가능', const Color(0xFF1565C0)),
+                        if (canChangeTeamName) _adminChip('단체명 변경 가능', const Color(0xFF2E7D32)),
+                        if (canChangeDesign) _adminChip('디자인 변경 가능', const Color(0xFF6A1B9A)),
+                      ]),
+                      const SizedBox(height: 16),
+                      // 수정 내용 입력
+                      const Text('관리자 처리 내용', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: memoCtrl,
+                        maxLines: 4,
+                        decoration: InputDecoration(
+                          hintText: '수정된 내용을 상세히 입력하세요\n(예: 색상 → 네이비, 단체명 → 한국팀)',
+                          hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
+                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
+                          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE65100))),
+                          contentPadding: const EdgeInsets.all(12),
+                          filled: true, fillColor: const Color(0xFFFAFAFA),
+                        ),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                      if (canChangeColor) ...[
+                        const SizedBox(height: 16),
+                        const Text('색상 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8, runSpacing: 8,
+                          children: ['블랙', '화이트', '네이비', '그레이', '레드', '블루', '그린', '퍼플', '오렌지', '베이지'].map((c) {
+                            final isSel = selectedColor == c;
+                            return GestureDetector(
+                              onTap: () => setSheet(() => selectedColor = c),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: isSel ? const Color(0xFF1565C0) : Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: isSel ? const Color(0xFF1565C0) : const Color(0xFFDDDDDD)),
+                                ),
+                                child: Text(c, style: TextStyle(fontSize: 12, color: isSel ? Colors.white : const Color(0xFF333333), fontWeight: isSel ? FontWeight.w700 : FontWeight.w400)),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              // 하단 버튼
+              Padding(
+                padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 16),
+                child: Row(children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      child: const Text('취소'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: isSubmitting ? null : () async {
+                        if (memoCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('처리 내용을 입력해주세요.')));
+                          return;
+                        }
+                        setSheet(() => isSubmitting = true);
+                        try {
+                          final db = FirebaseFirestore.instance;
+                          await db.collection('orders').doc(order.id).update({
+                            'customOptions.designRevisionResponse': {
+                              'memo': memoCtrl.text.trim(),
+                              'color': selectedColor,
+                              'respondedAt': DateTime.now().toIso8601String(),
+                              'status': 'responded',
+                            },
+                            'customOptions.designRevisionRequest.status': 'responded',
+                          });
+                          if (!ctx.mounted) return;
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('디자인 수정 처리가 완료되었습니다.'), backgroundColor: Color(0xFF2E7D32)),
+                          );
+                        } catch (e) {
+                          setSheet(() => isSubmitting = false);
+                          if (!ctx.mounted) return;
+                          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('처리 실패: $e')));
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFE65100), foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: isSubmitting
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text('수정 처리 완료', style: TextStyle(fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                ]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _adminChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: color.withValues(alpha: 0.3))),
+      child: Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+    );
+  }
+
   void _showGroupOrderDetail(OrderModel order) {
     OrderModel currentOrder = order;
     final opts = order.customOptions ?? {};
@@ -2988,6 +3283,52 @@ class _AdminScreenState extends State<AdminScreen>
                         ),
                 ),
               ),
+              // ── 디자인 수정 요청 배너 (요청 있을 때만 표시) ──
+              if ((currentOrder.customOptions?['designRevisionRequest'] as Map?) != null)
+                Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF3E0),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFF8F00).withValues(alpha: 0.5)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(children: [
+                        Icon(Icons.edit_note_rounded, size: 16, color: Color(0xFFE65100)),
+                        SizedBox(width: 6),
+                        Text('디자인 수정 요청', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFFE65100))),
+                      ]),
+                      const SizedBox(height: 6),
+                      if ((currentOrder.customOptions?['designRevisionRequest'] as Map?)!['memo'] != null)
+                        Text('• 요청내용: ${(currentOrder.customOptions!['designRevisionRequest'] as Map)['memo']}',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF5D4037))),
+                      if ((currentOrder.customOptions?['designRevisionRequest'] as Map?)!['color'] != null)
+                        Text('• 색상: ${(currentOrder.customOptions!['designRevisionRequest'] as Map)['color']}',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF5D4037))),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _showDesignRevisionAdminSheet(currentOrder);
+                          },
+                          icon: const Icon(Icons.design_services_rounded, size: 15),
+                          label: const Text('수정 처리하기', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFE65100),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               // 하단 버튼
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -5964,14 +6305,46 @@ class _AdminScreenState extends State<AdminScreen>
                       );
                     },
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.3)),
-                    ),
-                    child: const Text('상담 중', style: TextStyle(fontSize: 10, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
+                  StreamBuilder<bool>(
+                    stream: ChatService.watchRoomCompleted(roomId),
+                    builder: (_, snap) {
+                      final isCompleted = snap.data ?? false;
+                      return isCompleted
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF888888).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFF888888).withValues(alpha: 0.3)),
+                            ),
+                            child: const Text('상담완료', style: TextStyle(fontSize: 10, color: Color(0xFF888888), fontWeight: FontWeight.w700)),
+                          )
+                        : GestureDetector(
+                            onTap: () async {
+                              await ChatService.completeRoom(roomId, completedBy: 'admin');
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('상담을 완료 처리했습니다.'), backgroundColor: Color(0xFF2E7D32)),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.3)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('상담 중', style: TextStyle(fontSize: 10, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
+                                  SizedBox(width: 4),
+                                  Text('·완료', style: TextStyle(fontSize: 9, color: Color(0xFF555555))),
+                                ],
+                              ),
+                            ),
+                          );
+                    },
                   ),
                 ],
               ),

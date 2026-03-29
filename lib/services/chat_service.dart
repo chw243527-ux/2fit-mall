@@ -265,6 +265,40 @@ class ChatService {
 
   static Future<void> markMessagesAsRead(String userId) => markAsRead(userId);
 
+  /// 채팅 상담 완료 처리
+  static Future<void> completeRoom(String roomId, {String completedBy = 'user'}) async {
+    try {
+      await _db.collection('chat_rooms').doc(roomId).update({
+        'isActive': false,
+        'isCompleted': true,
+        'completedAt': FieldValue.serverTimestamp(),
+        'completedBy': completedBy,
+      });
+      // 완료 시스템 메시지 추가
+      await _db.collection('chats').doc(roomId).collection('messages').add({
+        'senderId': 'system',
+        'senderName': '시스템',
+        'message': completedBy == 'user' ? '상담이 종료되었습니다. 감사합니다!' : '관리자가 상담을 종료했습니다.',
+        'text': completedBy == 'user' ? '상담이 종료되었습니다. 감사합니다!' : '관리자가 상담을 종료했습니다.',
+        'originalText': completedBy == 'user' ? '상담이 종료되었습니다. 감사합니다!' : '관리자가 상담을 종료했습니다.',
+        'isAdmin': false,
+        'isSystem': true,
+        'createdAt': FieldValue.serverTimestamp(),
+        'isRead': true,
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint('completeRoom error: $e');
+    }
+  }
+
+  /// 채팅방 완료 여부 확인
+  static Stream<bool> watchRoomCompleted(String roomId) {
+    return _db.collection('chat_rooms').doc(roomId).snapshots().map((doc) {
+      if (!doc.exists) return false;
+      return doc.data()?['isCompleted'] as bool? ?? false;
+    }).handleError((_) => false);
+  }
+
   static Future<int> getTotalUnreadCount() async {
     try {
       final snap = await _db.collection('chat_rooms').get();

@@ -742,6 +742,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               _buildCountSection(),
               if (_countFixed) ...[
                 _buildPrintTypeSection(),
+                _build2FitLogoBanner(),
                 if (widget.product != null) _buildProductCard(),
                 _buildFabricSection(),
                 _buildLengthSection(),
@@ -1076,6 +1077,65 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════════════
+  // 2FIT 로고 안내 배너 (단체명 미선택 시)
+  // ══════════════════════════════════════════════
+  Widget _build2FitLogoBanner() {
+    if (_hasTeamName) return const SizedBox.shrink(); // 단체명 있으면 숨김
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF3F51B5).withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Center(
+              child: Text('2F', style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w900,
+                color: Colors.white, letterSpacing: -0.5,
+              )),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('2FIT 로고 자동 적용',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
+                const SizedBox(height: 3),
+                Text('단체명 변경을 선택하지 않으면 전면에 2FIT 로고가 기본 적용됩니다.',
+                  style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.7), height: 1.4)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFF3F51B5).withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Text('기본', style: TextStyle(
+              fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

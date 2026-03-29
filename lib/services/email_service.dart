@@ -204,6 +204,30 @@ class EmailService {
 
   // ── 무통장입금 주문 관리자 알림 이메일 ────────────────
   // 무통장입금 주문 발생 시 관리자에게 입금 확인 요청 발송
+  /// 범용 관리자 알림 이메일 (디자인 수정 요청 등)
+  static Future<bool> sendAdminAlert({
+    required String subject,
+    required String body,
+  }) async {
+    const adminEmail = 'chw243527@gmail.com';
+    return _sendEmail(
+      templateId: _templateStatusId,
+      templateParams: {
+        'to_email': adminEmail,
+        'to_name': '2FIT MALL 관리자',
+        'order_id': subject,
+        'order_id_short': subject.length > 20 ? subject.substring(0, 20) : subject,
+        'status': '관리자 알림',
+        'status_message': subject,
+        'action_message': body,
+        'tracking_number': '',
+        'courier_name': '',
+        'order_url': 'https://2fit-mall.co.kr/#/admin?tab=orders',
+        'shop_name': '2FIT MALL',
+      },
+    );
+  }
+
   static Future<bool> sendBankTransferAdminAlert(OrderModel order) async {
     // 관리자 수신 이메일 (constants.dart의 CS 이메일로 발송)
     const adminEmail = 'chw243527@gmail.com'; // ✏️ 실제 관리자 이메일로 교체
