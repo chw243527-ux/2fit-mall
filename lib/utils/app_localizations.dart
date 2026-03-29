@@ -563,11 +563,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Google-р нэвтрэх';
   }}
   String get signUpGuide { switch (language) {
-    case AppLanguage.korean:   return '회원가입: support@2fit.co.kr로 문의해주세요';
-    case AppLanguage.english:  return 'Sign up: Contact support@2fit.co.kr';
-    case AppLanguage.japanese: return '会員登録: support@2fit.co.krへお問い合わせください';
-    case AppLanguage.chinese:  return '注册: 请联系 support@2fit.co.kr';
-    case AppLanguage.mongolian:return 'Бүртгэл: support@2fit.co.kr-д хандана уу';
+    case AppLanguage.korean:   return '회원가입: chw243527@gmail.com으로 문의해주세요';
+    case AppLanguage.english:  return 'Sign up: Contact chw243527@gmail.com';
+    case AppLanguage.japanese: return '会員登録: chw243527@gmail.comへお問い合わせください';
+    case AppLanguage.chinese:  return '注册: 请联系 chw243527@gmail.com';
+    case AppLanguage.mongolian:return 'Бүртгэл: chw243527@gmail.com-д хандана уу';
   }}
 
   String get moreReviews { switch (language) {
@@ -946,11 +946,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Өнгө сонгоно уу';
   }}
   String get forgotPasswordGuide { switch (language) {
-    case AppLanguage.korean:   return '비밀번호 재설정 링크가 이메일로 전송됩니다.\n고객센터: help@2fit.co.kr';
-    case AppLanguage.english:  return 'Password reset link will be sent to your email.\nSupport: help@2fit.co.kr';
-    case AppLanguage.japanese: return 'パスワードリセットリンクをメールに送ります。\nサポート: help@2fit.co.kr';
-    case AppLanguage.chinese:  return '密码重置链接将发送到您的邮箱。\n客服: help@2fit.co.kr';
-    case AppLanguage.mongolian:return 'Нууц үг шинэчлэх холбоосыг имэйлээр илгээх болно.\nДэмжлэг: help@2fit.co.kr';
+    case AppLanguage.korean:   return '비밀번호 재설정 링크가 이메일로 전송됩니다.\n고객센터: chw243527@gmail.com';
+    case AppLanguage.english:  return 'Password reset link will be sent to your email.\nSupport: chw243527@gmail.com';
+    case AppLanguage.japanese: return 'パスワードリセットリンクをメールに送ります。\nサポート: chw243527@gmail.com';
+    case AppLanguage.chinese:  return '密码重置链接将发送到您的邮箱。\n客服: chw243527@gmail.com';
+    case AppLanguage.mongolian:return 'Нууц үг шинэчлэх холбоосыг имэйлээр илгээх болно.\nДэмжлэг: chw243527@gmail.com';
   }}
 
   // ── 채팅 상담 ──

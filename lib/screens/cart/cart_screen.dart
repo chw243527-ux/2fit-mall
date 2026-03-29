@@ -1076,7 +1076,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
         orderName:     '2FIT MALL 주문 (${widget.cart.itemCount}개)',
         amount:        widget.cart.total.toInt(),
         customerName:  _nameCtrl.text.trim(),
-        customerEmail: user?.email ?? 'guest@2fit.co.kr',
+        customerEmail: user?.email ?? 'guest@2fit-mall.co.kr',
         paymentMethod: _selectedPayment!,
       );
 

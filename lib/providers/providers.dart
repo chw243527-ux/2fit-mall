@@ -55,8 +55,8 @@ class LanguageProvider extends ChangeNotifier {
 
 // ── 관리자 계정 (하드코딩) ──────────────────────────────
 const _kAdminAccounts = [
-  {'email': 'admin@2fit.co.kr',   'password': 'admin2fit!',  'name': '관리자'},
-  {'email': 'manager@2fit.co.kr', 'password': 'manager2fit', 'name': '매니저'},
+  {'email': 'chw243527@gmail.com',   'password': 'admin2fit!',  'name': '관리자'},
+  {'email': 'tbrk2435@naver.com', 'password': 'manager2fit', 'name': '매니저'},
 ];
 
 class CartProvider extends ChangeNotifier {

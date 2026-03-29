@@ -12,9 +12,10 @@ class AuthService {
 
   // 관리자 이메일 목록 (하드코딩 — Firestore isAdmin 플래그와 병행)
   static const _adminEmails = [
+    'chw243527@gmail.com',
+    'tbrk2435@naver.com',
     'admin@2fitkorea.com',
     'cs@2fitkorea.com',
-    'manager@2fit.co.kr',
   ];
 
   static FirebaseAuth get _auth => FirebaseAuth.instance;
