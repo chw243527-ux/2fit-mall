@@ -1148,14 +1148,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   Widget _buildProductCard() {
     final p = widget.product!;
 
-    // 디자인 이미지 우선, 없으면 s1(메인배너), 없으면 images.first
+    // 디자인 이미지 최우선, 없으면 images.first(착용샷)
     final designImgs = p.sectionImages['design'] ?? [];
-    final s1Imgs     = p.sectionImages['s1'] ?? [];
-    final imgUrl     = designImgs.isNotEmpty
+    final hasDesign  = designImgs.isNotEmpty;
+
+    // 카드 상단에 표시할 대표 이미지 = 디자인 이미지 첫 장 우선
+    final heroImg = hasDesign
         ? designImgs.first
-        : s1Imgs.isNotEmpty
-            ? s1Imgs.first
-            : (p.images.isNotEmpty ? p.images.first : null);
+        : (p.images.isNotEmpty ? p.images.first : null);
 
     return _card(
       title: '선택 상품',
@@ -1163,18 +1163,64 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 기본 상품 정보 행
+          // ── 상품 정보 행 (작은 썸네일 + 텍스트) ──
           Row(children: [
-            // 이미지 (더 크게, 디자인 이미지 표시)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: imgUrl != null
-                  ? Image.network(
-                      imgUrl,
-                      width: 72, height: 72, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _productImgPlaceholder(),
-                    )
-                  : _productImgPlaceholder(),
+            // 썸네일: 항상 디자인이미지 우선 표시
+            GestureDetector(
+              onTap: heroImg != null
+                  ? () => showDialog(
+                        context: context,
+                        builder: (_) => Dialog(
+                          backgroundColor: Colors.transparent,
+                          insetPadding: const EdgeInsets.all(16),
+                          child: Stack(
+                            alignment: Alignment.topRight,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(heroImg, fit: BoxFit.contain),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.close_rounded, color: Colors.white),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                  : null,
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: heroImg != null
+                        ? Image.network(
+                            heroImg,
+                            width: 72, height: 72, fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _productImgPlaceholder(),
+                          )
+                        : _productImgPlaceholder(),
+                  ),
+                  // 디자인 이미지임을 표시하는 배지
+                  if (hasDesign)
+                    Positioned(
+                      left: 0, bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _purple,
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(10),
+                            topRight: Radius.circular(6),
+                          ),
+                        ),
+                        child: const Text('디자인',
+                            style: TextStyle(fontSize: 8, color: Colors.white,
+                                fontWeight: FontWeight.w800)),
+                      ),
+                    ),
+                ],
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1197,9 +1243,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               ]),
             ),
           ]),
-          // ── 디자인 이미지 목록 (메인이미지 아래) ──
-          if (designImgs.isNotEmpty) ...[
+
+          // ── 디자인 이미지 섹션 (있을 때만) ──
+          if (hasDesign) ...[
             const SizedBox(height: 14),
+            // 구분선
+            Container(
+              height: 1,
+              color: const Color(0xFF4A148C).withValues(alpha: 0.1),
+              margin: const EdgeInsets.only(bottom: 12),
+            ),
+            // 헤더
             Row(children: [
               Container(width: 3, height: 14,
                 decoration: BoxDecoration(color: _purple, borderRadius: BorderRadius.circular(2))),
@@ -1216,59 +1270,81 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 child: Text('${designImgs.length}장',
                     style: const TextStyle(fontSize: 10, color: _purple, fontWeight: FontWeight.w700)),
               ),
+              const Spacer(),
+              Text('탭하면 크게 보기',
+                  style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
             ]),
             const SizedBox(height: 8),
+            // 디자인 이미지 가로 스크롤
             SizedBox(
-              height: 90,
+              height: 120,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: designImgs.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (_, i) => GestureDetector(
-                  onTap: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => Dialog(
-                        backgroundColor: Colors.transparent,
-                        child: Stack(
-                          alignment: Alignment.topRight,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(designImgs[i], fit: BoxFit.contain),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close_rounded, color: Colors.white),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                          ],
-                        ),
+                  onTap: () => showDialog(
+                    context: context,
+                    builder: (_) => Dialog(
+                      backgroundColor: Colors.transparent,
+                      insetPadding: const EdgeInsets.all(16),
+                      child: Stack(
+                        alignment: Alignment.topRight,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.network(designImgs[i], fit: BoxFit.contain),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close_rounded, color: Colors.white),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
                       ),
-                    );
-                  },
+                    ),
+                  ),
                   child: Stack(
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
                         child: Image.network(
                           designImgs[i],
-                          width: 90, height: 90, fit: BoxFit.cover,
+                          width: 120, height: 120, fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
-                            width: 90, height: 90,
-                            color: Colors.grey.shade100,
-                            child: Icon(Icons.image_outlined, color: Colors.grey.shade400),
+                            width: 120, height: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(Icons.image_outlined, color: Colors.grey.shade400, size: 36),
                           ),
                         ),
                       ),
+                      // 대표 배지 (첫 번째 이미지)
+                      if (i == 0)
+                        Positioned(
+                          left: 5, top: 5,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: _purple,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text('대표',
+                                style: TextStyle(fontSize: 9, color: Colors.white,
+                                    fontWeight: FontWeight.w800)),
+                          ),
+                        ),
+                      // 확대 아이콘
                       Positioned(
-                        right: 4, bottom: 4,
+                        right: 5, bottom: 5,
                         child: Container(
-                          padding: const EdgeInsets.all(3),
+                          padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(5),
                           ),
-                          child: const Icon(Icons.zoom_in_rounded, size: 12, color: Colors.white),
+                          child: const Icon(Icons.zoom_in_rounded, size: 13, color: Colors.white),
                         ),
                       ),
                     ],
@@ -1276,9 +1352,27 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 ),
               ),
             ),
-            const SizedBox(height: 4),
-            Text('탭하면 크게 볼 수 있습니다',
-                style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+          ],
+
+          // ── 디자인 이미지 없을 때 안내 ──
+          if (!hasDesign) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(children: [
+                Icon(Icons.image_outlined, size: 14, color: Colors.grey.shade400),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('상품 디자인 이미지는 관리자가 등록 후 확인 가능합니다.',
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                ),
+              ]),
+            ),
           ],
         ],
       ),
