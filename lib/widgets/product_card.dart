@@ -138,38 +138,81 @@ class ProductCard extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           // 가격 행
-          if (product.originalPrice != null && product.isSale) ...[
-            Text(
-              '${_formatPrice(product.originalPrice!)}${loc.productWonUnit}',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.black.withValues(alpha: 0.3),
-                decoration: TextDecoration.lineThrough,
-                decorationColor: Colors.black.withValues(alpha: 0.3),
-              ),
+          if (product.originalPrice != null && product.originalPrice! > product.price) ...[
+            // 정가 (취소선)
+            Row(
+              children: [
+                Text(
+                  '정가 ',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.black.withValues(alpha: 0.4),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  '${_formatPrice(product.originalPrice!)}${loc.productWonUnit}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.black.withValues(alpha: 0.4),
+                    decoration: TextDecoration.lineThrough,
+                    decorationColor: Colors.black.withValues(alpha: 0.4),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                // 할인율 뱃지
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE53935),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Text(
+                    '${(((product.originalPrice! - product.price) / product.originalPrice!) * 100).round()}%',
+                    style: const TextStyle(
+                      fontSize: 9,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 1),
+            const SizedBox(height: 2),
           ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
+              if (product.originalPrice != null && product.originalPrice! > product.price)
+                Text(
+                  '할인가 ',
+                  style: const TextStyle(
+                    fontSize: 9,
+                    color: Color(0xFFE53935),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               Text(
                 _formatPrice(product.price),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF111111),
+                  color: (product.originalPrice != null && product.originalPrice! > product.price)
+                      ? const Color(0xFFE53935)
+                      : const Color(0xFF111111),
                   letterSpacing: -0.3,
                 ),
               ),
               const SizedBox(width: 2),
               Text(
                 loc.productWonUnit,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF111111),
+                  color: (product.originalPrice != null && product.originalPrice! > product.price)
+                      ? const Color(0xFFE53935)
+                      : const Color(0xFF111111),
                 ),
               ),
             ],

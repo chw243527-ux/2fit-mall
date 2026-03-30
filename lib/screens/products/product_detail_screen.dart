@@ -323,28 +323,59 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           const SizedBox(height: 6),
           Text(product.localizedDescription(_lang), maxLines: 4, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14, color: Color(0xFF666666), height: 1.6)),
           const SizedBox(height: 20),
-          // 가격
-          if (product.originalPrice != null)
-            Text('${_formatPricePC(product.originalPrice!)}${loc.wonUnit}',
-                style: const TextStyle(fontSize: 14, color: Color(0xFF999999), decoration: TextDecoration.lineThrough)),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text('${_formatPricePC(product.price)}${loc.wonUnit}',
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
-              // ignore: unnecessary_null_comparison
-              if (product.discountPercent != null) ...[
-                const SizedBox(width: 8),
+          // 가격 (PC 버전)
+          if (product.originalPrice != null && product.originalPrice! > product.price) ...[
+            Row(
+              children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(4)),
-                  // ignore: unnecessary_non_null_assertion
-                  child: Text('${product.discountPercent!.toInt()}% OFF',
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(3),
+                    border: Border.all(color: const Color(0xFFDDDDDD)),
+                  ),
+                  child: const Text('정가', style: TextStyle(fontSize: 11, color: Color(0xFF999999), fontWeight: FontWeight.w600)),
                 ),
+                const SizedBox(width: 8),
+                Text('${_formatPricePC(product.originalPrice!)}${loc.wonUnit}',
+                    style: const TextStyle(fontSize: 15, color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough, decorationColor: Color(0xFFAAAAAA))),
+                const SizedBox(width: 8),
+                if (product.originalPrice != null && product.originalPrice! > product.price)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(4)),
+                    child: Text('${((1 - product.price / product.originalPrice!) * 100).round()}% OFF',
+                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                  ),
               ],
-            ],
-          ),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE53935).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(3),
+                    border: Border.all(color: const Color(0xFFE53935).withValues(alpha: 0.4)),
+                  ),
+                  child: const Text('할인가', style: TextStyle(fontSize: 11, color: Color(0xFFE53935), fontWeight: FontWeight.w700)),
+                ),
+                const SizedBox(width: 8),
+                Text('${_formatPricePC(product.price)}${loc.wonUnit}',
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
+              ],
+            ),
+          ] else ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text('${_formatPricePC(product.price)}${loc.wonUnit}',
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+              ],
+            ),
+          ],
           const Divider(height: 32, color: Color(0xFFF0F0F0)),
           // 별점
           Row(
@@ -1272,24 +1303,53 @@ $productUrl
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (product.originalPrice != null) ...[
+                  if (product.originalPrice != null && product.originalPrice! > product.price) ...[
                     Row(
                       children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(3),
+                            border: Border.all(color: const Color(0xFFDDDDDD)),
+                          ),
+                          child: const Text('정가',
+                              style: TextStyle(fontSize: 10, color: Color(0xFF999999), fontWeight: FontWeight.w600)),
+                        ),
+                        const SizedBox(width: 6),
                         Text('${_fmt(product.originalPrice!)}${loc.wonUnit}',
-                            style: const TextStyle(fontSize: 14, color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
+                            style: const TextStyle(fontSize: 15, color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough, decorationColor: Color(0xFFAAAAAA))),
                         const SizedBox(width: 8),
                         if (discount > 0)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                             decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(4)),
-                            child: Text(loc.productDiscountLabel(discount), style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)),
+                            child: Text('$discount% OFF', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53935).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(3),
+                            border: Border.all(color: const Color(0xFFE53935).withValues(alpha: 0.4)),
+                          ),
+                          child: const Text('할인가',
+                              style: TextStyle(fontSize: 10, color: Color(0xFFE53935), fontWeight: FontWeight.w700)),
+                        ),
+                        const SizedBox(width: 6),
+                        Text('${_fmt(product.price)}${loc.wonUnit}',
+                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
+                      ],
+                    ),
+                  ] else ...[
+                    Text('${_fmt(product.price)}${loc.wonUnit}',
+                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
                   ],
-                  Text('${_fmt(product.price)}${loc.wonUnit}',
-                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
                 ],
               ),
             ],
@@ -2240,17 +2300,23 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   // 하의길이 참조 이미지 — 남자 / 여자 분리 업로드 섹션
   // ═══════════════════════════════════════════════════════════
+  // ── 기본 하의길이 참조 이미지 (이미지 미등록 시 fallback) ──
+  static const String _defaultMaleLengthImg =
+      'https://firebasestorage.googleapis.com/v0/b/fit-mall.firebasestorage.app/o/section_images%2Flength_male_default.jpg?alt=media';
+  static const String _defaultFemaleLengthImg =
+      'https://firebasestorage.googleapis.com/v0/b/fit-mall.firebasestorage.app/o/section_images%2Flength_female_default.jpg?alt=media';
+
   Widget _buildGenderLengthImageSection(bool isAdmin) {
     // 기존 통합키 s2_length 이미지도 표시 (하위호환)
     final legacyImgs = _sectionImages['s2_length'] ?? [];
     final maleImgs   = _sectionImages['s2_length_male'] ?? [];
     final femaleImgs = _sectionImages['s2_length_female'] ?? [];
 
-    // 표시 여부: 관리자이거나 이미지 있을 때
-    final showMale   = isAdmin || maleImgs.isNotEmpty || legacyImgs.isNotEmpty;
-    final showFemale = isAdmin || femaleImgs.isNotEmpty;
+    // 이미지 없으면 기본 이미지 사용 (항상 표시)
+    final effectiveMaleImgs   = maleImgs.isNotEmpty ? maleImgs : (legacyImgs.isNotEmpty ? legacyImgs : [_defaultMaleLengthImg]);
+    final effectiveFemaleImgs = femaleImgs.isNotEmpty ? femaleImgs : [_defaultFemaleLengthImg];
 
-    if (!showMale && !showFemale) return const SizedBox.shrink();
+    // 항상 표시
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2277,7 +2343,7 @@ $productUrl
         if (isAdmin) const SizedBox(height: 10),
 
         // ── 남자 섹션 ──
-        if (showMale) ...[
+        ...[
           _buildGenderImageHeader(
             icon: Icons.male_rounded,
             label: loc.maleLengthRef,
@@ -2285,15 +2351,15 @@ $productUrl
             bgColor: const Color(0xFFE3F2FD),
           ),
           const SizedBox(height: 6),
-          // 기존 s2_length 이미지가 있으면 하위호환으로 표시
-          if (legacyImgs.isNotEmpty && maleImgs.isEmpty)
-            _buildAdminImageSection('s2_length', '남자 하의길이 참조 이미지', isAdmin)
+          // 관리자: 업로드 UI 표시 / 일반: effectiveMaleImgs 표시
+          if (isAdmin)
+            _buildAdminImageSection('s2_length_male', '남자 하의길이 참조 이미지', isAdmin)
           else
-            _buildAdminImageSection('s2_length_male', '남자 하의길이 참조 이미지', isAdmin),
+            _buildStaticImageList(effectiveMaleImgs),
         ],
 
         // ── 여자 섹션 ──
-        if (showFemale) ...[
+        ...[
           const SizedBox(height: 12),
           _buildGenderImageHeader(
             icon: Icons.female_rounded,
@@ -2302,9 +2368,31 @@ $productUrl
             bgColor: const Color(0xFFFCE4EC),
           ),
           const SizedBox(height: 6),
-          _buildAdminImageSection('s2_length_female', '여자 하의길이 참조 이미지', isAdmin),
+          if (isAdmin)
+            _buildAdminImageSection('s2_length_female', '여자 하의길이 참조 이미지', isAdmin)
+          else
+            _buildStaticImageList(effectiveFemaleImgs),
         ],
       ],
+    );
+  }
+
+  // ── 정적 이미지 리스트 (fallback 포함) ──
+  Widget _buildStaticImageList(List<String> imgs) {
+    if (imgs.isEmpty) return const SizedBox.shrink();
+    return Column(
+      children: imgs.map((url) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            url,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          ),
+        ),
+      )).toList(),
     );
   }
 
@@ -3156,14 +3244,10 @@ $productUrl
 
           const SizedBox(height: 10),
 
-          // ── 하의길이 참조 이미지 — 하의(타이즈 포함) 또는 싱글렛세트 상품에만 표시 ──
+          // ── 하의길이 참조 이미지 — 하의(타이즈 포함) 또는 싱글렛세트 상품에만 항상 표시 ──
           if (_isBottomOrSingletSetProduct(product)) ...[
-            if (isAdmin || (_sectionImages['s2_length_male'] ?? []).isNotEmpty ||
-                (_sectionImages['s2_length_female'] ?? []).isNotEmpty ||
-                (_sectionImages['s2_length'] ?? []).isNotEmpty) ...[
-              _buildGenderLengthImageSection(isAdmin),
-              const SizedBox(height: 10),
-            ],
+            _buildGenderLengthImageSection(isAdmin),
+            const SizedBox(height: 10),
           ],
 
           // ── 소재혼용율 위 이미지 업로드 ──

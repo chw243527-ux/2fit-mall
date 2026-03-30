@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/providers.dart';
 import '../screens/products/product_list_screen.dart';
 import '../screens/products/category_detail_screen.dart';
-import '../screens/orders/group_order_only_screen.dart';
+import '../screens/orders/group_order_landing_screen.dart';
 import '../screens/chat/chat_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/admin/admin_screen.dart';
@@ -164,12 +164,12 @@ class _AppDrawerState extends State<AppDrawer> {
                 _sectionLabel('ORDERS'),
                 _buildMenuTile(
                   context,
-                  icon: Icons.inventory_2_outlined,
-                  label: loc.navGroupOrderOnly,
+                  icon: Icons.edit_note_rounded,
+                  label: '단체주문하기',
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()));
+                        MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen()));
                   },
                 ),
                 _nikeRule(),

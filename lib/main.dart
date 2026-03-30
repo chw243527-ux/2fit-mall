@@ -15,6 +15,7 @@ import 'screens/orders/checkout_screen.dart';
 import 'screens/orders/group_order_guide_screen.dart';
 import 'screens/orders/group_order_form_screen.dart';
 import 'screens/orders/group_order_only_screen.dart';
+import 'screens/orders/group_order_landing_screen.dart';
 
 import 'screens/orders/order_guide_screen.dart';
 import 'screens/orders/group_custom_order_screen.dart';
@@ -114,6 +115,10 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                   cart: ctx.read<CartProvider>(),
                 ),
                 settings: settings,
+              );
+            case '/group-order':
+              return MaterialPageRoute(
+                builder: (_) => const GroupOrderLandingScreen(),
               );
             case '/group-guide':
               return MaterialPageRoute(

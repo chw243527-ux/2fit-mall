@@ -9082,6 +9082,17 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   String _selSubCat = '';
   String _selTightsSub = ''; // 타이즈 하위분류 (9부/5부/4부/3부/2.5부/숏쇼츠)
 
+  // ── 싱글렛세트A타입 고정 상품내용 (싱글렛유니폼세트와 동일)
+  static const String _singletSetADesc =
+      '2FIT 싱글렛 A타입 유니폼 세트입니다.\n'
+      '싱글렛(상의) + 타이즈(하의)로 구성된 단체 경기복 세트.\n\n'
+      '소재: 78% Nylon, 22% Spandex / 4-way Stretch\n'
+      '심리스(무봉제) 설계로 피부 마찰 최소화 및 편안한 착용감.\n'
+      '빠른 수분 흡수 및 건조로 운동 중 쾌적함 유지.\n\n'
+      '※ 하의 길이: 남성 5부 / 여성 2.5부 기본 제공\n'
+      '※ 단체 맞춤 제작 상품으로 주문 후 제작됩니다.\n'
+      '※ 최소 주문 수량: 10벌 이상';
+
   // ── 선택된 색상 (twoFitColors 기반)
   final Set<String> _selectedColors = {};
 
@@ -9302,13 +9313,23 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('상품명을 입력해주세요')));
       return;
     }
+    // ── 업로드 중이면 완료 대기
+    if (_isUploading) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('이미지 업로드 중입니다. 완료 후 저장해주세요.')));
+      return;
+    }
     final price = double.tryParse(_priceCtrl.text.replaceAll(',', '')) ?? 0;
     if (price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('올바른 가격을 입력해주세요')));
       return;
     }
     final origPrice = double.tryParse(_origPriceCtrl.text.replaceAll(',', ''));
-    final images = List<String>.from(_images);
+    // ── base64 이미지 제거 (업로드 실패한 미리보기는 저장하지 않음)
+    final images = _images.where((img) => !img.startsWith('data:')).toList();
+    if (images.isEmpty && _images.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('이미지 업로드를 완료해주세요. (Firebase Storage 업로드 필요)')));
+      return;
+    }
     if (images.isEmpty) images.add('https://picsum.photos/seed/${DateTime.now().millisecondsSinceEpoch}/400/400');
 
     // 번역이 아직 안 됐으면 저장 전 실행
@@ -9516,13 +9537,19 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                           onChanged: (v) {
                             if (v != null) {
                               setState(() {
-                              _selSubCat = v;
-                              if (v != '타이즈') {
-                                _selTightsSub = '';
-                              } else {
-                                _selTightsSub = '9부';
-                              }
-                            });
+                                _selSubCat = v;
+                                if (v != '타이즈') {
+                                  _selTightsSub = '';
+                                } else {
+                                  _selTightsSub = '9부';
+                                }
+                                // 싱글렛세트A타입 선택 시 싱글렛유니폼세트 기본 내용 항상 자동 적용
+                                if (v == '싱글렛세트A타입') {
+                                  _descCtrl.text = _singletSetADesc;
+                                  _sizesCtrl.text = 'XS, S, M, L, XL, 2XL';
+                                  _isGroupOnly = true;
+                                }
+                              });
                             }
                           },
                         ),
