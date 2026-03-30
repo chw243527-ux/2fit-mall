@@ -29,11 +29,42 @@ class OrderExcelService {
   //   start = 어제 13:00:00
   //   end   = 오늘 13:00:00
   // (오전에 다운받든 오후에 다운받든 동일한 구간)
-  static DateTimeRange getDailyRange({DateTime? baseDate}) {
+  static OrderDateRange getDailyRange({DateTime? baseDate}) {
     final now = baseDate ?? DateTime.now();
     final end = DateTime(now.year, now.month, now.day, 13, 0, 0);
     final start = end.subtract(const Duration(days: 1));
-    return DateTimeRange(start: start, end: end);
+    return OrderDateRange(start: start, end: end);
+  }
+
+  /// 특정 날짜(하루 00:00~익일 00:00) 범위
+  static OrderDateRange getDayRange(DateTime date) {
+    final start = DateTime(date.year, date.month, date.day, 0, 0, 0);
+    final end   = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    return OrderDateRange(start: start, end: end);
+  }
+
+  /// 특정 날짜가 포함된 주(월요일~일요일) 범위
+  static OrderDateRange getWeekRange(DateTime date) {
+    final weekday = date.weekday; // 1=월, 7=일
+    final monday  = date.subtract(Duration(days: weekday - 1));
+    final start   = DateTime(monday.year, monday.month, monday.day, 0, 0, 0);
+    final end     = start.add(const Duration(days: 7)).subtract(const Duration(seconds: 1));
+    return OrderDateRange(start: start, end: end);
+  }
+
+  /// 특정 날짜가 포함된 월(1일~말일) 범위
+  static OrderDateRange getMonthRange(DateTime date) {
+    final start = DateTime(date.year, date.month, 1, 0, 0, 0);
+    final nextMonth = DateTime(date.year, date.month + 1, 1, 0, 0, 0);
+    final end = nextMonth.subtract(const Duration(seconds: 1));
+    return OrderDateRange(start: start, end: end);
+  }
+
+  /// 임의 기간 범위 (시작일 00:00 ~ 종료일 23:59:59)
+  static OrderDateRange getCustomRange(DateTime startDate, DateTime endDate) {
+    final start = DateTime(startDate.year, startDate.month, startDate.day, 0, 0, 0);
+    final end   = DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59);
+    return OrderDateRange(start: start, end: end);
   }
 
   // ── 날짜 범위로 주문 조회 ──
@@ -2694,10 +2725,10 @@ class OrderExcelService {
   }
 }
 
-class DateTimeRange {
+class OrderDateRange {
   final DateTime start;
   final DateTime end;
-  const DateTimeRange({required this.start, required this.end});
+  const OrderDateRange({required this.start, required this.end});
 }
 
 /// 이미지 삽입 정보를 담는 내부 헬퍼 클래스

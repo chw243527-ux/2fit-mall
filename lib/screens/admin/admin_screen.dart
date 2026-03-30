@@ -1574,64 +1574,333 @@ class _AdminScreenState extends State<AdminScreen>
     }
   }
 
-  Future<void> _exportDailyExcel() async {
-    // 로딩 표시
+  // ── 단체주문 엑셀: 날짜 필터 다이얼로그 → 범위 선택 후 다운로드 ──
+  void _exportDailyExcel() => _showGroupExcelDialog();
+
+  void _showGroupExcelDialog() {
+    String exportType = '일일';
+    DateTime selectedDate = DateTime.now();
+    DateTime rangeStart = DateTime.now().subtract(const Duration(days: 6));
+    DateTime rangeEnd   = DateTime.now();
+    int weekOffset  = 0;
+    int monthOffset = 0;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setD) {
+        OrderDateRange? range;
+        if (exportType == '일일') {
+          range = OrderExcelService.getDailyRange();
+        } else if (exportType == '일별') {
+          range = OrderExcelService.getDayRange(selectedDate);
+        } else if (exportType == '주별') {
+          range = OrderExcelService.getWeekRange(DateTime.now().add(Duration(days: weekOffset * 7)));
+        } else if (exportType == '월별') {
+          range = OrderExcelService.getMonthRange(DateTime(DateTime.now().year, DateTime.now().month + monthOffset));
+        } else if (exportType == '기간선택') {
+          range = OrderExcelService.getCustomRange(rangeStart, rangeEnd);
+        }
+
+        String rangeLabel = range != null
+            ? '${range.start.year}.${range.start.month.toString().padLeft(2,"0")}.${range.start.day.toString().padLeft(2,"0")}'
+              ' ~ '
+              '${range.end.year}.${range.end.month.toString().padLeft(2,"0")}.${range.end.day.toString().padLeft(2,"0")}'
+            : '전체 기간';
+
+        String weekLabel() {
+          if (weekOffset == 0) return '이번 주';
+          if (weekOffset == -1) return '지난 주';
+          return '${-weekOffset}주 전';
+        }
+        String monthLabel() {
+          final m = DateTime(DateTime.now().year, DateTime.now().month + monthOffset);
+          return '${m.year}년 ${m.month}월';
+        }
+
+        Widget optBtn(String type, String label, String sub, Color color) {
+          final sel = exportType == type;
+          return Expanded(child: GestureDetector(
+            onTap: () => setD(() => exportType = type),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              decoration: BoxDecoration(
+                color: sel ? color : const Color(0xFFF0F0F0),
+                borderRadius: BorderRadius.circular(8),
+                border: sel ? null : Border.all(color: const Color(0xFFDDDDDD)),
+              ),
+              child: Column(children: [
+                Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                    color: sel ? Colors.white : const Color(0xFF555555))),
+                Text(sub, style: TextStyle(fontSize: 9,
+                    color: sel ? Colors.white70 : const Color(0xFF999999))),
+              ]),
+            ),
+          ));
+        }
+
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(children: [
+            Icon(Icons.groups_rounded, color: Color(0xFF00897B), size: 22),
+            SizedBox(width: 8),
+            Expanded(child: Text('단체주문 엑셀 내보내기',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800))),
+          ]),
+          content: SizedBox(
+            width: 360,
+            child: SingleChildScrollView(
+              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('조회 기간 선택', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                Row(children: [
+                  optBtn('일일',  '일일마감', '전날13시~오늘13시', const Color(0xFF1A1A2E)),
+                  const SizedBox(width: 6),
+                  optBtn('일별',  '일별',    '특정 하루',         const Color(0xFF1565C0)),
+                  const SizedBox(width: 6),
+                  optBtn('주별',  '주별',    '월~일 1주',         const Color(0xFF6A1B9A)),
+                ]),
+                const SizedBox(height: 6),
+                Row(children: [
+                  optBtn('월별',   '월별',   '1개월',     const Color(0xFF00695C)),
+                  const SizedBox(width: 6),
+                  optBtn('기간선택','기간선택','직접 지정', const Color(0xFFE65100)),
+                  const SizedBox(width: 6),
+                  optBtn('전체',   '전체',   '전체 주문', const Color(0xFF2E7D32)),
+                ]),
+                const SizedBox(height: 14),
+
+                // 일별 피커
+                if (exportType == '일별') ...[
+                  const Text('날짜 선택', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: () async {
+                      final p = await showDatePicker(context: ctx, initialDate: selectedDate,
+                        firstDate: DateTime(2020), lastDate: DateTime.now(),
+                        builder: (c, child) => Theme(data: ThemeData.light().copyWith(
+                          colorScheme: const ColorScheme.light(primary: Color(0xFF1565C0))), child: child!));
+                      if (p != null) setD(() => selectedDate = p);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1565C0)),
+                          borderRadius: BorderRadius.circular(8), color: const Color(0xFFE3F2FD)),
+                      child: Row(children: [
+                        const Icon(Icons.calendar_today_rounded, size: 16, color: Color(0xFF1565C0)),
+                        const SizedBox(width: 8),
+                        Text('${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일',
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                        const Spacer(),
+                        const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF1565C0)),
+                      ]),
+                    ),
+                  ),
+                ],
+
+                // 주별
+                if (exportType == '주별') ...[
+                  const Text('주 선택', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFF6A1B9A)),
+                        borderRadius: BorderRadius.circular(8), color: const Color(0xFFF3E5F5)),
+                    child: Row(children: [
+                      IconButton(onPressed: () => setD(() => weekOffset--),
+                          icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF6A1B9A)),
+                          padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32)),
+                      Expanded(child: Center(child: Text(weekLabel(),
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))))),
+                      IconButton(
+                          onPressed: weekOffset < 0 ? () => setD(() => weekOffset++) : null,
+                          icon: Icon(Icons.chevron_right_rounded,
+                              color: weekOffset < 0 ? const Color(0xFF6A1B9A) : Colors.grey),
+                          padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32)),
+                    ]),
+                  ),
+                ],
+
+                // 월별
+                if (exportType == '월별') ...[
+                  const Text('월 선택', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFF00695C)),
+                        borderRadius: BorderRadius.circular(8), color: const Color(0xFFE8F5E9)),
+                    child: Row(children: [
+                      IconButton(onPressed: () => setD(() => monthOffset--),
+                          icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF00695C)),
+                          padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32)),
+                      Expanded(child: Center(child: Text(monthLabel(),
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF00695C))))),
+                      IconButton(
+                          onPressed: monthOffset < 0 ? () => setD(() => monthOffset++) : null,
+                          icon: Icon(Icons.chevron_right_rounded,
+                              color: monthOffset < 0 ? const Color(0xFF00695C) : Colors.grey),
+                          padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32)),
+                    ]),
+                  ),
+                ],
+
+                // 기간선택
+                if (exportType == '기간선택') ...[
+                  const Text('기간 직접 선택', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    Expanded(child: GestureDetector(
+                      onTap: () async {
+                        final p = await showDatePicker(context: ctx, initialDate: rangeStart,
+                          firstDate: DateTime(2020), lastDate: DateTime.now(),
+                          builder: (c, child) => Theme(data: ThemeData.light().copyWith(
+                            colorScheme: const ColorScheme.light(primary: Color(0xFFE65100))), child: child!));
+                        if (p != null) setD(() => rangeStart = p);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE65100)),
+                            borderRadius: BorderRadius.circular(8), color: const Color(0xFFFFF3E0)),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const Text('시작일', style: TextStyle(fontSize: 10, color: Color(0xFFE65100), fontWeight: FontWeight.w600)),
+                          Text('${rangeStart.year}.${rangeStart.month.toString().padLeft(2,"0")}.${rangeStart.day.toString().padLeft(2,"0")}',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE65100))),
+                        ]),
+                      ),
+                    )),
+                    const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('~', style: TextStyle(fontWeight: FontWeight.w700))),
+                    Expanded(child: GestureDetector(
+                      onTap: () async {
+                        final p = await showDatePicker(context: ctx, initialDate: rangeEnd,
+                          firstDate: rangeStart, lastDate: DateTime.now(),
+                          builder: (c, child) => Theme(data: ThemeData.light().copyWith(
+                            colorScheme: const ColorScheme.light(primary: Color(0xFFE65100))), child: child!));
+                        if (p != null) setD(() => rangeEnd = p);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE65100)),
+                            borderRadius: BorderRadius.circular(8), color: const Color(0xFFFFF3E0)),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const Text('종료일', style: TextStyle(fontSize: 10, color: Color(0xFFE65100), fontWeight: FontWeight.w600)),
+                          Text('${rangeEnd.year}.${rangeEnd.month.toString().padLeft(2,"0")}.${rangeEnd.day.toString().padLeft(2,"0")}',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE65100))),
+                        ]),
+                      ),
+                    )),
+                  ]),
+                ],
+
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: const Color(0xFFE0F2F1),
+                      borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFF80CBC4))),
+                  child: Row(children: [
+                    const Icon(Icons.groups_rounded, size: 14, color: Color(0xFF00695C)),
+                    const SizedBox(width: 6),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(rangeLabel, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF00695C))),
+                      const SizedBox(height: 2),
+                      const Text('단체주문만 포함 (개인주문 제외)',
+                          style: TextStyle(fontSize: 10, color: Color(0xFF555555))),
+                    ])),
+                  ]),
+                ),
+              ]),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00897B),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
+              icon: const Icon(Icons.table_chart_rounded, size: 16),
+              label: const Text('단체 엑셀 다운로드', style: TextStyle(fontWeight: FontWeight.w700)),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                await _exportGroupExcelByRange(
+                  exportType: exportType,
+                  selectedDate: selectedDate,
+                  rangeStart: rangeStart,
+                  rangeEnd: rangeEnd,
+                  weekOffset: weekOffset,
+                  monthOffset: monthOffset,
+                );
+              },
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  Future<void> _exportGroupExcelByRange({
+    required String exportType,
+    required DateTime selectedDate,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    required int weekOffset,
+    required int monthOffset,
+  }) async {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(color: Color(0xFF1A1A2E)),
-                SizedBox(height: 16),
-                Text('주문 데이터 조회 중...', style: TextStyle(fontSize: 14)),
-              ],
-            ),
-          ),
-        ),
+        child: Card(child: Padding(padding: EdgeInsets.all(24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            CircularProgressIndicator(color: Color(0xFF00897B)),
+            SizedBox(height: 16),
+            Text('단체주문 데이터 조회 중...', style: TextStyle(fontSize: 14)),
+          ]))),
       ),
     );
 
     try {
-      final range = OrderExcelService.getDailyRange();
-      final orders = await OrderExcelService.getOrdersByDateRange(
-          range.start, range.end);
+      OrderDateRange finalRange;
+      if (exportType == '일일') {
+        finalRange = OrderExcelService.getDailyRange();
+      } else if (exportType == '일별') {
+        finalRange = OrderExcelService.getDayRange(selectedDate);
+      } else if (exportType == '주별') {
+        finalRange = OrderExcelService.getWeekRange(DateTime.now().add(Duration(days: weekOffset * 7)));
+      } else if (exportType == '월별') {
+        finalRange = OrderExcelService.getMonthRange(DateTime(DateTime.now().year, DateTime.now().month + monthOffset));
+      } else if (exportType == '기간선택') {
+        finalRange = OrderExcelService.getCustomRange(rangeStart, rangeEnd);
+      } else {
+        finalRange = OrderExcelService.getCustomRange(DateTime(2020), DateTime.now());
+      }
 
+      final orders = await OrderExcelService.getOrdersByDateRange(finalRange.start, finalRange.end);
       if (!mounted) return;
-      Navigator.of(context, rootNavigator: true).pop(); // 로딩 닫기
+      Navigator.of(context, rootNavigator: true).pop();
 
-      // ── 단체주문만 필터 (기성품/개인 주문 제외) ──
       final groupOnlyOrders = orders.where((o) {
         if (o.orderType == 'group' || o.orderType == 'additional') return true;
         final isGrpId = o.id.startsWith('GRP_') || o.id.startsWith('GROUP-');
         final hasTeamName = (o.customOptions?['teamName'] as String?)?.isNotEmpty == true;
-        final hasPersons = (o.customOptions?['persons'] as List?)?.isNotEmpty == true;
+        final hasPersons  = (o.customOptions?['persons'] as List?)?.isNotEmpty == true;
         return isGrpId || (hasTeamName && hasPersons);
       }).toList();
 
       if (groupOnlyOrders.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${_fmtDateKr(range.start)} ~ ${_fmtDateKr(range.end)} 기간에 단체주문이 없습니다.',
-            ),
-            backgroundColor: const Color(0xFF555555),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('해당 기간에 단체주문이 없습니다.'),
+          backgroundColor: Color(0xFF555555),
+        ));
         return;
       }
 
-      // 엑셀 생성 (단체주문 전용 — 이미지 URL 포함)
-      final bytes = await OrderExcelService.generateDailyGroupOrderExcel(groupOnlyOrders, range.start, range.end);
-      final startStr = '${range.start.month.toString().padLeft(2, '0')}${range.start.day.toString().padLeft(2, '0')}';
-      final endStr = '${range.end.month.toString().padLeft(2, '0')}${range.end.day.toString().padLeft(2, '0')}';
-      final fileName = '2FIT_단체일일엑셀_${startStr}_${endStr}.xlsx';
+      final bytes = await OrderExcelService.generateDailyGroupOrderExcel(
+          groupOnlyOrders, finalRange.start, finalRange.end);
+      final typeTag = {'일일':'daily','일별':'day','주별':'week','월별':'month','기간선택':'range','전체':'all'}[exportType] ?? 'export';
+      final startStr = '${finalRange.start.year}${finalRange.start.month.toString().padLeft(2,"0")}${finalRange.start.day.toString().padLeft(2,"0")}';
+      final endStr   = '${finalRange.end.year}${finalRange.end.month.toString().padLeft(2,"0")}${finalRange.end.day.toString().padLeft(2,"0")}';
+      final fileName = '2FIT_단체엑셀_${typeTag}_${startStr}_${endStr}.xlsx';
 
-      await _handleExcelDownload(bytes, fileName, groupOnlyOrders.length, range.start, range.end);
+      await _handleExcelDownload(bytes, fileName, groupOnlyOrders.length, finalRange.start, finalRange.end);
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
@@ -1921,186 +2190,154 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   void _showExportDialog(List<OrderModel> allOrders) {
-    String exportType = '일일'; // '일일'=전날오후1시~당일오후1시, '전체', '날짜선택'
+    // 엑셀 내보내기 기간 유형
+    // 일일(전날13시~당일13시), 일별(특정일), 주별, 월별, 기간선택, 전체
+    String exportType = '일일';
     DateTime selectedDate = DateTime.now();
+    DateTime rangeStart = DateTime.now().subtract(const Duration(days: 6));
+    DateTime rangeEnd = DateTime.now();
+    int selectedWeekOffset = 0;  // 0=이번주, -1=지난주 …
+    int selectedMonthOffset = 0; // 0=이번달, -1=지난달 …
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setD) {
-          // ── 기간 범위 계산 (UI 미리보기용 - 로컬 필터)
-          DateTime? filterStart;
-          DateTime? filterEnd;
-
+          // ── 기간 범위 계산 ──
+          OrderDateRange? range;
           if (exportType == '일일') {
-            final range = OrderExcelService.getDailyRange();
-            filterStart = range.start;
-            filterEnd = range.end;
-          } else if (exportType == '날짜선택') {
-            filterStart = DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 13, 0);
-            filterEnd = filterStart.add(const Duration(days: 1));
+            range = OrderExcelService.getDailyRange();
+          } else if (exportType == '일별') {
+            range = OrderExcelService.getDayRange(selectedDate);
+          } else if (exportType == '주별') {
+            final base = DateTime.now().add(Duration(days: selectedWeekOffset * 7));
+            range = OrderExcelService.getWeekRange(base);
+          } else if (exportType == '월별') {
+            final base = DateTime(DateTime.now().year, DateTime.now().month + selectedMonthOffset);
+            range = OrderExcelService.getMonthRange(base);
+          } else if (exportType == '기간선택') {
+            range = OrderExcelService.getCustomRange(rangeStart, rangeEnd);
           }
 
-          // 로컬 미리보기 카운트 (Firestore에서 실제 조회는 다운로드 시 진행)
+          // 로컬 미리보기 카운트
           int previewCount;
           if (exportType == '전체') {
             previewCount = allOrders.length;
-          } else if (filterStart != null && filterEnd != null) {
-            final fS = filterStart;
-            final fE = filterEnd;
+          } else if (range != null) {
+            final fS = range.start; final fE = range.end;
             previewCount = allOrders.where((o) =>
-                !o.createdAt.isBefore(fS) && o.createdAt.isBefore(fE)).length;
+                !o.createdAt.isBefore(fS) && !o.createdAt.isAfter(fE)).length;
           } else {
             previewCount = 0;
           }
 
           String rangeLabel = '';
-          if (exportType == '일일' && filterStart != null && filterEnd != null) {
-            rangeLabel = '${_fmtDateKr(filterStart)} ~ ${_fmtDateKr(filterEnd)}';
-          } else if (exportType == '날짜선택' && filterStart != null && filterEnd != null) {
-            rangeLabel = '${_fmtDateKr(filterStart)} ~ ${_fmtDateKr(filterEnd)}';
+          if (range != null) {
+            final s = range.start; final e = range.end;
+            rangeLabel =
+              '\${s.year}.\${s.month.toString().padLeft(2,"0")}.\${s.day.toString().padLeft(2,"0")}'
+              ' ~ '
+              '\${e.year}.\${e.month.toString().padLeft(2,"0")}.\${e.day.toString().padLeft(2,"0")}';
           } else if (exportType == '전체') {
             rangeLabel = '전체 기간';
           }
 
+          // 주별 이름
+          String weekLabel() {
+            if (selectedWeekOffset == 0) return '이번 주';
+            if (selectedWeekOffset == -1) return '지난 주';
+            return '\${-selectedWeekOffset}주 전';
+          }
+
+          // 월별 이름
+          String monthLabel() {
+            final m = DateTime(DateTime.now().year, DateTime.now().month + selectedMonthOffset);
+            return '\${m.year}년 \${m.month}월';
+          }
+
+          // 옵션 버튼 빌더
+          Widget optBtn(String type, String label, String sub, Color activeColor) {
+            final sel = exportType == type;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => setD(() => exportType = type),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  decoration: BoxDecoration(
+                    color: sel ? activeColor : const Color(0xFFF0F0F0),
+                    borderRadius: BorderRadius.circular(8),
+                    border: sel ? null : Border.all(color: const Color(0xFFDDDDDD)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(label,
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                              color: sel ? Colors.white : const Color(0xFF555555))),
+                      Text(sub,
+                          style: TextStyle(fontSize: 9,
+                              color: sel ? Colors.white70 : const Color(0xFF999999))),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Row(
+            title: const Row(
               children: [
-                Container(
-                  width: 32, height: 32,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A2E),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.table_chart_rounded, color: Colors.white, size: 18),
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text('주문 내역 엑셀 내보내기',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                ),
+                Icon(Icons.table_chart_rounded, color: Color(0xFF1A1A2E), size: 22),
+                SizedBox(width: 8),
+                Expanded(child: Text('주문 내역 엑셀 내보내기',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800))),
               ],
             ),
             content: SizedBox(
-              width: 340,
+              width: 360,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('내보내기 기간', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  const Text('조회 기간 선택', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
-                  // 3가지 옵션
-                  Row(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setD(() => exportType = '일일'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: exportType == '일일' ? const Color(0xFF1A1A2E) : const Color(0xFFF0F0F0),
-                              borderRadius: BorderRadius.circular(8),
-                              border: exportType == '일일'
-                                  ? null
-                                  : Border.all(color: const Color(0xFFDDDDDD)),
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(Icons.today_rounded, size: 18,
-                                    color: exportType == '일일' ? Colors.white : const Color(0xFF555555)),
-                                const SizedBox(height: 2),
-                                Text('일일 마감',
-                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                                        color: exportType == '일일' ? Colors.white : const Color(0xFF555555))),
-                                Text('전날1시~오늘1시',
-                                    style: TextStyle(fontSize: 9,
-                                        color: exportType == '일일' ? Colors.white70 : const Color(0xFF999999))),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setD(() => exportType = '날짜선택'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: exportType == '날짜선택' ? const Color(0xFF1565C0) : const Color(0xFFF0F0F0),
-                              borderRadius: BorderRadius.circular(8),
-                              border: exportType == '날짜선택'
-                                  ? null
-                                  : Border.all(color: const Color(0xFFDDDDDD)),
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(Icons.date_range_rounded, size: 18,
-                                    color: exportType == '날짜선택' ? Colors.white : const Color(0xFF555555)),
-                                const SizedBox(height: 2),
-                                Text('날짜 선택',
-                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                                        color: exportType == '날짜선택' ? Colors.white : const Color(0xFF555555))),
-                                Text('특정일 지정',
-                                    style: TextStyle(fontSize: 9,
-                                        color: exportType == '날짜선택' ? Colors.white70 : const Color(0xFF999999))),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () => setD(() => exportType = '전체'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: exportType == '전체' ? const Color(0xFF2E7D32) : const Color(0xFFF0F0F0),
-                              borderRadius: BorderRadius.circular(8),
-                              border: exportType == '전체'
-                                  ? null
-                                  : Border.all(color: const Color(0xFFDDDDDD)),
-                            ),
-                            child: Column(
-                              children: [
-                                Icon(Icons.all_inbox_rounded, size: 18,
-                                    color: exportType == '전체' ? Colors.white : const Color(0xFF555555)),
-                                const SizedBox(height: 2),
-                                Text('전체',
-                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
-                                        color: exportType == '전체' ? Colors.white : const Color(0xFF555555))),
-                                Text('전체 주문',
-                                    style: TextStyle(fontSize: 9,
-                                        color: exportType == '전체' ? Colors.white70 : const Color(0xFF999999))),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (exportType == '날짜선택') ...[
-                    const SizedBox(height: 12),
-                    const Text('날짜 선택 (해당일 13:00 ~ 익일 13:00)',
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                  // ── 1행: 일일 / 일별 / 주별 ──
+                  Row(children: [
+                    optBtn('일일',  '일일마감', '전날13시~오늘13시', const Color(0xFF1A1A2E)),
+                    const SizedBox(width: 6),
+                    optBtn('일별',  '일별',    '특정 하루',         const Color(0xFF1565C0)),
+                    const SizedBox(width: 6),
+                    optBtn('주별',  '주별',    '월~일 1주',         const Color(0xFF6A1B9A)),
+                  ]),
+                  const SizedBox(height: 6),
+                  // ── 2행: 월별 / 기간선택 / 전체 ──
+                  Row(children: [
+                    optBtn('월별',   '월별',   '1개월',           const Color(0xFF00695C)),
+                    const SizedBox(width: 6),
+                    optBtn('기간선택','기간선택','직접 지정',       const Color(0xFFE65100)),
+                    const SizedBox(width: 6),
+                    optBtn('전체',   '전체',   '전체 주문',        const Color(0xFF2E7D32)),
+                  ]),
+
+                  const SizedBox(height: 14),
+
+                  // ── 일별: 날짜 피커 ──
+                  if (exportType == '일별') ...[
+                    const Text('날짜 선택', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
                     GestureDetector(
                       onTap: () async {
-                        final picked = await showDatePicker(
+                        final p = await showDatePicker(
                           context: ctx,
                           initialDate: selectedDate,
                           firstDate: DateTime(2020),
                           lastDate: DateTime.now(),
-                          builder: (ctx, child) => Theme(
-                            data: ThemeData.light().copyWith(
-                              colorScheme: const ColorScheme.light(primary: Color(0xFF1A1A2E)),
-                            ),
+                          builder: (c, child) => Theme(
+                            data: ThemeData.light().copyWith(colorScheme: const ColorScheme.light(primary: Color(0xFF1565C0))),
                             child: child!,
                           ),
                         );
-                        if (picked != null) setD(() => selectedDate = picked);
+                        if (p != null) setD(() => selectedDate = p);
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -2109,23 +2346,136 @@ class _AdminScreenState extends State<AdminScreen>
                           borderRadius: BorderRadius.circular(8),
                           color: const Color(0xFFE3F2FD),
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.calendar_today_rounded, size: 16, color: Color(0xFF1565C0)),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일',
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0)),
-                            ),
-                            const Spacer(),
-                            const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF1565C0)),
-                          ],
-                        ),
+                        child: Row(children: [
+                          const Icon(Icons.calendar_today_rounded, size: 16, color: Color(0xFF1565C0)),
+                          const SizedBox(width: 8),
+                          Text('\${selectedDate.year}년 \${selectedDate.month}월 \${selectedDate.day}일',
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                          const Spacer(),
+                          const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF1565C0)),
+                        ]),
                       ),
                     ),
                   ],
+
+                  // ── 주별: 이전/다음 주 버튼 ──
+                  if (exportType == '주별') ...[
+                    const Text('주 선택', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFF6A1B9A)),
+                        borderRadius: BorderRadius.circular(8),
+                        color: const Color(0xFFF3E5F5),
+                      ),
+                      child: Row(children: [
+                        IconButton(
+                          onPressed: () => setD(() => selectedWeekOffset--),
+                          icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF6A1B9A)),
+                          padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        ),
+                        Expanded(child: Center(child: Text(weekLabel(),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))))),
+                        IconButton(
+                          onPressed: selectedWeekOffset < 0 ? () => setD(() => selectedWeekOffset++) : null,
+                          icon: Icon(Icons.chevron_right_rounded,
+                              color: selectedWeekOffset < 0 ? const Color(0xFF6A1B9A) : Colors.grey),
+                          padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        ),
+                      ]),
+                    ),
+                  ],
+
+                  // ── 월별: 이전/다음 달 버튼 ──
+                  if (exportType == '월별') ...[
+                    const Text('월 선택', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFF00695C)),
+                        borderRadius: BorderRadius.circular(8),
+                        color: const Color(0xFFE8F5E9),
+                      ),
+                      child: Row(children: [
+                        IconButton(
+                          onPressed: () => setD(() => selectedMonthOffset--),
+                          icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF00695C)),
+                          padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        ),
+                        Expanded(child: Center(child: Text(monthLabel(),
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF00695C))))),
+                        IconButton(
+                          onPressed: selectedMonthOffset < 0 ? () => setD(() => selectedMonthOffset++) : null,
+                          icon: Icon(Icons.chevron_right_rounded,
+                              color: selectedMonthOffset < 0 ? const Color(0xFF00695C) : Colors.grey),
+                          padding: EdgeInsets.zero, constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        ),
+                      ]),
+                    ),
+                  ],
+
+                  // ── 기간선택: 시작~종료 날짜 ──
+                  if (exportType == '기간선택') ...[
+                    const Text('기간 직접 선택', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Row(children: [
+                      Expanded(child: GestureDetector(
+                        onTap: () async {
+                          final p = await showDatePicker(
+                            context: ctx, initialDate: rangeStart,
+                            firstDate: DateTime(2020), lastDate: DateTime.now(),
+                            builder: (c, child) => Theme(data: ThemeData.light().copyWith(
+                              colorScheme: const ColorScheme.light(primary: Color(0xFFE65100))), child: child!),
+                          );
+                          if (p != null) setD(() => rangeStart = p);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: const Color(0xFFE65100)),
+                            borderRadius: BorderRadius.circular(8),
+                            color: const Color(0xFFFFF3E0),
+                          ),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            const Text('시작일', style: TextStyle(fontSize: 10, color: Color(0xFFE65100), fontWeight: FontWeight.w600)),
+                            Text('\${rangeStart.year}.\${rangeStart.month.toString().padLeft(2,"0")}.\${rangeStart.day.toString().padLeft(2,"0")}',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE65100))),
+                          ]),
+                        ),
+                      )),
+                      const Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('~', style: TextStyle(fontWeight: FontWeight.w700))),
+                      Expanded(child: GestureDetector(
+                        onTap: () async {
+                          final p = await showDatePicker(
+                            context: ctx, initialDate: rangeEnd,
+                            firstDate: rangeStart, lastDate: DateTime.now(),
+                            builder: (c, child) => Theme(data: ThemeData.light().copyWith(
+                              colorScheme: const ColorScheme.light(primary: Color(0xFFE65100))), child: child!),
+                          );
+                          if (p != null) setD(() => rangeEnd = p);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: const Color(0xFFE65100)),
+                            borderRadius: BorderRadius.circular(8),
+                            color: const Color(0xFFFFF3E0),
+                          ),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            const Text('종료일', style: TextStyle(fontSize: 10, color: Color(0xFFE65100), fontWeight: FontWeight.w600)),
+                            Text('\${rangeEnd.year}.\${rangeEnd.month.toString().padLeft(2,"0")}.\${rangeEnd.day.toString().padLeft(2,"0")}',
+                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE65100))),
+                          ]),
+                        ),
+                      )),
+                    ]),
+                  ],
+
                   const SizedBox(height: 12),
-                  // 기간 표시 + 건수
+
+                  // ── 범위 및 건수 미리보기 ──
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -2133,36 +2483,31 @@ class _AdminScreenState extends State<AdminScreen>
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFFCCD6FF)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (rangeLabel.isNotEmpty) ...[
-                          Row(children: [
-                            const Icon(Icons.schedule_rounded, size: 13, color: Color(0xFF1A1A2E)),
-                            const SizedBox(width: 4),
-                            Expanded(child: Text(rangeLabel,
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)))),
-                          ]),
-                          const SizedBox(height: 4),
-                        ],
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      if (rangeLabel.isNotEmpty) ...[
                         Row(children: [
-                          const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF888888)),
+                          const Icon(Icons.schedule_rounded, size: 13, color: Color(0xFF1A1A2E)),
                           const SizedBox(width: 4),
-                          Expanded(child: Text(
-                            previewCount > 0
-                                ? '$previewCount건 확인됨 · 3개 시트(주문요약/배송목록/상품집계) 엑셀 파일'
-                                : '로딩된 주문 범위 외 · 다운로드 시 Firestore 재조회',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: previewCount > 0
-                                  ? const Color(0xFF555555)
-                                  : const Color(0xFF1565C0),
-                              fontWeight: previewCount == 0 ? FontWeight.w600 : FontWeight.normal,
-                            ),
-                          )),
+                          Expanded(child: Text(rangeLabel,
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)))),
                         ]),
+                        const SizedBox(height: 4),
                       ],
-                    ),
+                      Row(children: [
+                        const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF888888)),
+                        const SizedBox(width: 4),
+                        Expanded(child: Text(
+                          previewCount > 0
+                              ? '\$previewCount건 확인됨 · 3개 시트(주문요약/배송목록/상품집계) 엑셀 파일'
+                              : '로딩된 주문 범위 외 · 다운로드 시 Firestore 재조회',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: previewCount > 0 ? const Color(0xFF555555) : const Color(0xFF1565C0),
+                            fontWeight: previewCount == 0 ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        )),
+                      ]),
+                    ]),
                   ),
                 ],
               ),
@@ -2180,7 +2525,6 @@ class _AdminScreenState extends State<AdminScreen>
                 label: const Text('엑셀 다운로드', style: TextStyle(fontWeight: FontWeight.w700)),
                 onPressed: () async {
                   Navigator.pop(ctx);
-                  // 실제 날짜 범위로 Firestore에서 재조회 후 엑셀 생성
                   showDialog(
                     context: context,
                     barrierDismissible: false,
@@ -2201,25 +2545,27 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   );
                   try {
-                    List<OrderModel> finalOrders;
-                    DateTime fStart;
-                    DateTime fEnd;
-
+                    // 날짜 범위 결정
+                    OrderDateRange finalRange;
                     if (exportType == '일일') {
-                      final range = OrderExcelService.getDailyRange();
-                      fStart = range.start;
-                      fEnd = range.end;
-                      finalOrders = await OrderExcelService.getOrdersByDateRange(fStart, fEnd);
-                    } else if (exportType == '날짜선택') {
-                      fStart = DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 13, 0);
-                      fEnd = fStart.add(const Duration(days: 1));
-                      finalOrders = await OrderExcelService.getOrdersByDateRange(fStart, fEnd);
+                      finalRange = OrderExcelService.getDailyRange();
+                    } else if (exportType == '일별') {
+                      finalRange = OrderExcelService.getDayRange(selectedDate);
+                    } else if (exportType == '주별') {
+                      final base = DateTime.now().add(Duration(days: selectedWeekOffset * 7));
+                      finalRange = OrderExcelService.getWeekRange(base);
+                    } else if (exportType == '월별') {
+                      final base = DateTime(DateTime.now().year, DateTime.now().month + selectedMonthOffset);
+                      finalRange = OrderExcelService.getMonthRange(base);
+                    } else if (exportType == '기간선택') {
+                      finalRange = OrderExcelService.getCustomRange(rangeStart, rangeEnd);
                     } else {
-                      // 전체 주문: Firestore 전체 재조회
-                      fStart = DateTime(2020);
-                      fEnd = DateTime.now().add(const Duration(days: 1));
-                      finalOrders = await OrderExcelService.getOrdersByDateRange(fStart, fEnd);
+                      finalRange = OrderExcelService.getCustomRange(DateTime(2020), DateTime.now());
                     }
+
+                    final fStart = finalRange.start;
+                    final fEnd = finalRange.end;
+                    final finalOrders = await OrderExcelService.getOrdersByDateRange(fStart, fEnd);
 
                     if (!mounted) return;
                     Navigator.of(context, rootNavigator: true).pop();
@@ -2232,15 +2578,16 @@ class _AdminScreenState extends State<AdminScreen>
                     }
 
                     final bytes = await OrderExcelService.generateExcel(finalOrders, fStart, fEnd);
-                    final startStr = '${fStart.month.toString().padLeft(2, '0')}${fStart.day.toString().padLeft(2, '0')}';
-                    final endStr = '${fEnd.month.toString().padLeft(2, '0')}${fEnd.day.toString().padLeft(2, '0')}';
-                    final fileName = '2FIT_주문_${startStr}_${endStr}.xlsx';
+                    final startStr = '\${fStart.year}\${fStart.month.toString().padLeft(2,"0")}\${fStart.day.toString().padLeft(2,"0")}';
+                    final endStr   = '\${fEnd.year}\${fEnd.month.toString().padLeft(2,"0")}\${fEnd.day.toString().padLeft(2,"0")}';
+                    final typeTag  = {'일일':'daily','일별':'day','주별':'week','월별':'month','기간선택':'range','전체':'all'}[exportType] ?? 'export';
+                    final fileName = '2FIT_주문_\${typeTag}_\${startStr}_\${endStr}.xlsx';
                     await _handleExcelDownload(bytes, fileName, finalOrders.length, fStart, fEnd);
                   } catch (e) {
                     if (!mounted) return;
                     Navigator.of(context, rootNavigator: true).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('엑셀 생성 오류: $e'), backgroundColor: Colors.red),
+                      SnackBar(content: Text('엑셀 생성 오류: \$e'), backgroundColor: Colors.red),
                     );
                   }
                 },
