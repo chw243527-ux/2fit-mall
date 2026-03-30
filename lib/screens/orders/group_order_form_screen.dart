@@ -2396,12 +2396,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   // ══════════════════════════════════════════════
-  // 참조 이미지 섹션 (단일 버튼)
+  // 디자인 참고 이미지 섹션 (단일 버튼)
   // ══════════════════════════════════════════════
   Widget _buildRefImageSection() {
     return _card(
-      title: '참조 이미지 (선택)',
-      icon: Icons.image_outlined,
+      title: '디자인 참고 이미지',
+      icon: Icons.design_services_outlined,
       child: _refImageCard(),
     );
   }
@@ -2442,7 +2442,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.add_photo_alternate_outlined, color: _purple, size: 36),
                 const SizedBox(height: 6),
-                Text('참조 이미지 선택',
+                Text('디자인 참고 이미지 선택',
                     style: TextStyle(color: _purple,
                         fontSize: 13, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
