@@ -3609,8 +3609,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           style: TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF888888)),
                         ),
                         const TextSpan(
-                          text: '단체 주문 완료 후 1년간 동일 디자인의 독점 소유권을 보장합니다.\n해당 기간 동안 동일 디자인으로 타 단체에 제작하지 않습니다.',
+                          text: '· 1년간 동일 디자인 또는 동일 색상의 제품은 타 단체에 판매하지 않습니다.\n',
                           style: TextStyle(fontSize: 11, color: Color(0xFF666666), fontWeight: FontWeight.w400),
+                        ),
+                        const TextSpan(
+                          text: '· 1년 이후부터는 2FIT 몰에서만 판매됩니다.',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),

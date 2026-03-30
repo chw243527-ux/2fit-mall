@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../../utils/constants.dart';
 import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
@@ -8,6 +12,8 @@ import '../../models/models.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/email_service.dart';
+import '../../services/order_excel_service.dart';
+import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
 import '../products/product_detail_screen.dart';
 import '../admin/admin_screen.dart';
 import '../auth/login_screen.dart';
@@ -65,6 +71,7 @@ class _MyPageScreenState extends State<MyPageScreen>
         onShowLogout: _showLogoutDialog,
         onShowChangePassword: _showChangePasswordDialog,
         onShowDeleteAccount: _showDeleteAccountDialog,
+        onExcelDownload: _exportOrderExcel,
       );
     }
     return _MobileMyPage(
@@ -78,6 +85,7 @@ class _MyPageScreenState extends State<MyPageScreen>
       onShowLogout: _showLogoutDialog,
       onShowChangePassword: _showChangePasswordDialog,
       onShowDeleteAccount: _showDeleteAccountDialog,
+      onExcelDownload: _exportOrderExcel,
     );
   }
 
@@ -134,14 +142,38 @@ class _MyPageScreenState extends State<MyPageScreen>
   }
 
   void _showLogoutDialog(BuildContext ctx, UserProvider up) {
+    // 이미 비로그인 상태면 바로 로그인 화면으로 이동
+    if (up.user == null) {
+      Navigator.of(ctx).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+      return;
+    }
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
-        title: Text(context.read<LanguageProvider>().loc.mypageLogout),
-        content: const Text('로그아웃 하시겠습니까?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(children: [
+          const Icon(Icons.logout_rounded, color: Colors.orange, size: 22),
+          const SizedBox(width: 8),
+          Text(context.read<LanguageProvider>().loc.mypageLogout,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+        ]),
+        content: const Text('로그아웃 하시겠습니까?',
+            style: TextStyle(fontSize: 14, color: Color(0xFF555555))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.read<LanguageProvider>().loc.cancel)),
           TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.read<LanguageProvider>().loc.cancel,
+                style: const TextStyle(color: Color(0xFF888888))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
               await AuthService.logout();
@@ -154,11 +186,81 @@ class _MyPageScreenState extends State<MyPageScreen>
                 );
               }
             },
-            child: Text(context.read<LanguageProvider>().loc.mypageLogout, style: const TextStyle(color: Colors.red)),
+            child: Text(context.read<LanguageProvider>().loc.mypageLogout),
           ),
         ],
       ),
     );
+  }
+
+  // ── 단체주문 엑셀 다운로드 (이미지 포함) ──
+  Future<void> _exportOrderExcel(BuildContext ctx, OrderModel order) async {
+    const mimeType =
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    final dateStr = '${order.createdAt.year}${order.createdAt.month.toString().padLeft(2,'0')}${order.createdAt.day.toString().padLeft(2,'0')}';
+    final teamName = (order.customOptions?['teamName'] as String? ?? order.groupName ?? '').replaceAll(' ', '_');
+    final fileName = '2FIT_${teamName.isNotEmpty ? '${teamName}_' : ''}${order.id}_$dateStr.xlsx';
+
+    // 로딩 다이얼로그
+    showDialog(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Color(0xFF6A1B9A)),
+                SizedBox(height: 16),
+                Text('이미지 포함 엑셀 생성 중...', style: TextStyle(fontSize: 14)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final bytes = await OrderExcelService.generateGroupOrderExcelAsync(order);
+      if (ctx.mounted) Navigator.pop(ctx); // 로딩 닫기
+
+      if (kIsWeb) {
+        downloadFileWeb(bytes, fileName, mimeType);
+        if (ctx.mounted) {
+          ScaffoldMessenger.of(ctx).showSnackBar(
+            SnackBar(
+              content: Row(children: const [
+                Icon(Icons.file_download_done_rounded, color: Colors.white, size: 16),
+                SizedBox(width: 8),
+                Expanded(child: Text('엑셀 파일 다운로드 완료')),
+              ]),
+              backgroundColor: const Color(0xFF6A1B9A),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$fileName';
+        await File(filePath).writeAsBytes(bytes, flush: true);
+        if (ctx.mounted) {
+          await Share.shareXFiles(
+            [XFile(filePath, mimeType: mimeType, name: fileName)],
+            subject: '2FIT 단체주문 내역',
+            text: fileName,
+          );
+        }
+      }
+    } catch (e) {
+      if (ctx.mounted) {
+        Navigator.pop(ctx);
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(content: Text('엑셀 생성 오류: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   void _showChangePasswordDialog(BuildContext ctx) {
@@ -365,6 +467,7 @@ class _PcMyPage extends StatelessWidget {
   final void Function(BuildContext, UserProvider) onShowLogout;
   final void Function(BuildContext) onShowChangePassword;
   final void Function(BuildContext, UserProvider) onShowDeleteAccount;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
 
   const _PcMyPage({
     required this.tabController,
@@ -376,6 +479,7 @@ class _PcMyPage extends StatelessWidget {
     required this.onShowLogout,
     required this.onShowChangePassword,
     required this.onShowDeleteAccount,
+    this.onExcelDownload,
   });
 
   @override
@@ -502,32 +606,32 @@ class _PcMyPage extends StatelessWidget {
                         ),
                       ],
                       const SizedBox(height: 12),
-                      // 로그아웃
-                      if (user != null)
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(12),
-                            onTap: () => onShowLogout(context, userProvider),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.04), blurRadius: 8)],
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.logout_rounded, size: 18, color: Colors.grey[600]),
-                                  const SizedBox(width: 8),
-                                  Text(loc.mypageLogout, style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-                                ],
-                              ),
+                      // 로그아웃 (항상 표시)
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => onShowLogout(context, userProvider),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.orange.withValues(alpha:0.4)),
+                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.04), blurRadius: 8)],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.logout_rounded, size: 18, color: Colors.orange),
+                                const SizedBox(width: 8),
+                                Text(loc.mypageLogout, style: const TextStyle(fontSize: 13, color: Colors.orange, fontWeight: FontWeight.w600)),
+                              ],
                             ),
                           ),
                         ),
+                      ),
                     ],
                   ),
                 ),
@@ -548,7 +652,8 @@ class _PcMyPage extends StatelessWidget {
                         builder: (_, __) {
                           switch (tabController.index) {
                             case 0: return _PcOrderHistoryTab(userProvider: userProvider, loc: loc,
-                                onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit);
+                                onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
+                                onExcelDownload: onExcelDownload);
                             case 1: return _PcPaymentHistoryTab(userProvider: userProvider, loc: loc);
                             case 2: return _PcWishlistTab(userProvider: userProvider, loc: loc);
                             case 3: return _PcCouponTab(userProvider: userProvider, loc: loc);
@@ -840,10 +945,12 @@ class _PcOrderHistoryTab extends StatelessWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
 
   const _PcOrderHistoryTab({
     required this.userProvider, required this.loc,
     required this.onAdditionalOrder, required this.onColorEdit,
+    this.onExcelDownload,
   });
 
   @override
@@ -876,6 +983,7 @@ class _PcOrderHistoryTab extends StatelessWidget {
                   order: orders[i], loc: loc,
                   onAdditionalOrder: onAdditionalOrder,
                   onColorEdit: onColorEdit,
+                  onExcelDownload: onExcelDownload,
                 ),
               ),
         ),
@@ -890,8 +998,9 @@ class _PcOrderCard extends StatelessWidget {
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
   final void Function(OrderModel)? onDesignRevision;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
 
-  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision});
+  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision, this.onExcelDownload});
 
   @override
   Widget build(BuildContext context) {
@@ -1042,6 +1151,16 @@ class _PcOrderCard extends StatelessWidget {
                       ),
                       child: const Text('추가제작 기간 종료', style: TextStyle(fontSize: 11, color: Color(0xFFE65100), fontWeight: FontWeight.w600)),
                     ),
+                  ],
+                  // 단체주문 엑셀 다운로드 버튼
+                  if (isGroup) ...[
+                    const SizedBox(width: 8),
+                    Builder(builder: (ctx) => _PcBtn(
+                      label: '내역 엑셀',
+                      icon: Icons.file_download_outlined,
+                      color: const Color(0xFF00695C),
+                      onTap: () => onExcelDownload?.call(ctx, order),
+                    )),
                   ],
                 ],
               ),
@@ -1668,6 +1787,7 @@ class _MobileMyPage extends StatelessWidget {
   final void Function(BuildContext, UserProvider) onShowLogout;
   final void Function(BuildContext) onShowChangePassword;
   final void Function(BuildContext, UserProvider) onShowDeleteAccount;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
 
   const _MobileMyPage({
     required this.tabController,
@@ -1680,6 +1800,7 @@ class _MobileMyPage extends StatelessWidget {
     required this.onShowLogout,
     required this.onShowChangePassword,
     required this.onShowDeleteAccount,
+    this.onExcelDownload,
   });
 
   @override
@@ -1743,7 +1864,8 @@ class _MobileMyPage extends StatelessWidget {
                 controller: tabController,
                 children: [
                   _MobileOrderHistoryTab(userProvider: userProvider, loc: loc,
-                    onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit),
+                    onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
+                    onExcelDownload: onExcelDownload),
                   _MobilePaymentHistoryTab(userProvider: userProvider, loc: loc),
                   _MobileWishlistTab(userProvider: userProvider, loc: loc),
                   _MobileCouponTab(userProvider: userProvider, loc: loc),
@@ -1959,10 +2081,12 @@ class _MobileOrderHistoryTab extends StatelessWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
 
   const _MobileOrderHistoryTab({
     required this.userProvider, required this.loc,
     required this.onAdditionalOrder, required this.onColorEdit,
+    this.onExcelDownload,
   });
 
   @override
@@ -1985,6 +2109,7 @@ class _MobileOrderHistoryTab extends StatelessWidget {
         itemBuilder: (_, i) => _MobileOrderCard(
           order: orders[i], loc: loc,
           onAdditionalOrder: onAdditionalOrder, onColorEdit: onColorEdit,
+          onExcelDownload: onExcelDownload,
         ),
       ),
     );
@@ -1997,8 +2122,9 @@ class _MobileOrderCard extends StatelessWidget {
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
   final void Function(OrderModel)? onDesignRevision;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
 
-  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision});
+  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision, this.onExcelDownload});
 
   @override
   Widget build(BuildContext context) {
@@ -2137,6 +2263,27 @@ class _MobileOrderCard extends StatelessWidget {
                 Expanded(child: Text('주문 완료 후 1주일이 지나 추가제작은 새로 주문해 주세요.',
                   style: TextStyle(fontSize: 11, color: Color(0xFFE65100)), overflow: TextOverflow.ellipsis, maxLines: 2)),
               ]),
+            ),
+          // 단체주문 엑셀 다운로드 버튼 (이미지 포함)
+          if (isGroup)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Builder(
+                builder: (ctx) => SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => onExcelDownload?.call(ctx, order),
+                    icon: const Icon(Icons.file_download_outlined, size: 16),
+                    label: const Text('이미지 포함 내역 엑셀 다운로드', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF00695C),
+                      side: const BorderSide(color: Color(0xFF00695C)),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                ),
+              ),
             ),
         ],
       ),
@@ -2571,16 +2718,15 @@ class _MobileSettingsTab extends StatelessWidget {
             onTap: () => Navigator.pushNamed(context, '/terms-of-service'),
           ),
         ]),
-        if (user != null) ...[          const SizedBox(height: 16),
-          _MobileSettingGroup(title: loc.mypageSecuritySection, items: [
-            _MobileSettingItem(icon: Icons.lock_rounded, title: loc.mypageChangePassword,
-              onTap: () => onShowChangePassword(context)),
-            _MobileSettingItem(icon: Icons.logout_rounded, title: loc.mypageLogout,
-              onTap: () => onShowLogout(context, userProvider), color: Colors.orange),
-            _MobileSettingItem(icon: Icons.delete_outline_rounded, title: loc.mypageDeleteAccount,
-              onTap: () => onShowDeleteAccount(context, userProvider), color: Colors.red),
-          ]),
-        ],
+        const SizedBox(height: 16),
+        _MobileSettingGroup(title: loc.mypageSecuritySection, items: [
+          if (user != null) _MobileSettingItem(icon: Icons.lock_rounded, title: loc.mypageChangePassword,
+            onTap: () => onShowChangePassword(context)),
+          _MobileSettingItem(icon: Icons.logout_rounded, title: loc.mypageLogout,
+            onTap: () => onShowLogout(context, userProvider), color: Colors.orange),
+          if (user != null) _MobileSettingItem(icon: Icons.delete_outline_rounded, title: loc.mypageDeleteAccount,
+            onTap: () => onShowDeleteAccount(context, userProvider), color: Colors.red),
+        ]),
         const SizedBox(height: 40),
       ],
     );

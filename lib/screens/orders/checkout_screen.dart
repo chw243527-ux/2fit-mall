@@ -971,7 +971,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 if (mainColor.isNotEmpty) infoRow(Icons.palette_outlined, '색상', mainColor),
                 if (fabric.isNotEmpty) infoRow(Icons.texture_rounded, '원단', fabric),
                 if (waistband.isNotEmpty) infoRow(Icons.style_rounded, '허리밴드', waistband),
-                if (exclusive) infoRow(Icons.star_outline_rounded, '독점 디자인', '1년 독점 소유 신청', color: const Color(0xFF6A1B9A)),
+                if (exclusive) infoRow(Icons.star_rounded, '독점 디자인', '1년간 동일 디자인/색상 미판매 · 1년 후 2FIT몰 단독 판매', color: const Color(0xFF6A1B9A)),
                 if (memo.isNotEmpty) infoRow(Icons.notes_rounded, '메모', memo),
                 // 팀원 명단 요약
                 if (persons.isNotEmpty) ...[

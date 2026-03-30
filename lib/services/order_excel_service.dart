@@ -226,7 +226,14 @@ class OrderExcelService {
         paymentMethod: data['paymentMethod'] as String? ?? '',
         status: status,
         orderType: resolvedOrderType,
-        customOptions: customOptions.isEmpty ? null : customOptions,
+        customOptions: () {
+          // designRevisionRequest를 customOptions에 병합 (엑셀 시트 생성 시 사용)
+          final revReq = data['designRevisionRequest'];
+          if (revReq is Map) {
+            customOptions['designRevisionRequest'] = Map<String, dynamic>.from(revReq);
+          }
+          return customOptions.isEmpty ? null : customOptions;
+        }(),
         groupName: data['groupName'] as String?,
         groupCount: (data['groupCount'] as num?)?.toInt(),
         createdAt: createdAt,
@@ -2016,9 +2023,205 @@ class OrderExcelService {
       personSheet.setColumnWidth(i, pColWidths[i]);
     }
 
+    // ── 시트 3: 디자인 수정 / 추가제작 이력 ──
+    _buildRevisionHistorySheet(excel, order, opts, headerStyle, labelStyle, subHeaderStyle);
+
     excel.setDefaultSheet('주문정보');
     final bytes = excel.encode();
     return Uint8List.fromList(bytes!);
+  }
+
+  /// 디자인 수정 / 추가제작 이력 시트 생성
+  static void _buildRevisionHistorySheet(
+      Excel excel,
+      OrderModel order,
+      Map<String, dynamic> opts,
+      CellStyle headerStyle,
+      CellStyle labelStyle,
+      CellStyle subHeaderStyle,
+  ) {
+    final histSheet = excel['수정·추가이력'];
+
+    final purpleHeader = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#4A148C'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 12,
+    );
+    final greenHeader = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#1B5E20'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 12,
+    );
+    final sectionLabel = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#EDE7F6'),
+      fontColorHex: ExcelColor.fromHexString('#4A148C'),
+      fontSize: 11,
+    );
+    final addLabel = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#E8F5E9'),
+      fontColorHex: ExcelColor.fromHexString('#1B5E20'),
+      fontSize: 11,
+    );
+    final normalStyle = CellStyle(fontSize: 10);
+    final grayStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#FAFAFA'),
+      fontSize: 10,
+    );
+
+    int row = 0;
+
+    // ── 제목 ──
+    _setCell(histSheet, row, 0, '디자인 수정 · 추가제작 이력 (${order.id})', style: purpleHeader);
+    histSheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+      CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row),
+    );
+    row += 2;
+
+    // ── 1. 디자인 수정 이력 ──
+    _setCell(histSheet, row, 0, '▶ 디자인 수정 이력', style: purpleHeader);
+    histSheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+      CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row),
+    );
+    row++;
+
+    // 기본 정보
+    final designRevCount = order.designRevisionCount;
+    final designRevDeadline = order.designRevisionDeadline;
+    final revisionRequest = opts['designRevisionRequest'] as Map<dynamic, dynamic>?;
+    final revisionNote = revisionRequest?['memo']?.toString() ?? '';
+    final revisionColor = revisionRequest?['colorName']?.toString() ?? '';
+    final revisionRequestedAt = revisionRequest?['requestedAt']?.toString() ?? '';
+    final revisionStatus = revisionRequest?['status']?.toString() ?? '';
+
+    final revInfoRows = [
+      ['디자인 수정 요청 횟수', '$designRevCount회 / 최대 2회'],
+      ['남은 수정 가능 횟수', '${2 - designRevCount}회'],
+      ['마지막 요청 마감일', designRevDeadline != null
+          ? '${designRevDeadline.year}.${designRevDeadline.month.toString().padLeft(2,'0')}.${designRevDeadline.day.toString().padLeft(2,'0')} (3일 이내 자동확정)'
+          : '요청 없음'],
+      ['최근 수정 요청 메모', revisionNote.isNotEmpty ? revisionNote : '-'],
+      ['최근 요청 색상명', revisionColor.isNotEmpty ? revisionColor : '-'],
+      ['최근 요청 일자', revisionRequestedAt.isNotEmpty ? revisionRequestedAt.substring(0, 10) : '-'],
+      ['최근 요청 상태', revisionStatus.isNotEmpty ? _revStatusLabel(revisionStatus) : '-'],
+    ];
+
+    for (var i = 0; i < revInfoRows.length; i++) {
+      final st = i % 2 == 0 ? sectionLabel : normalStyle;
+      _setCell(histSheet, row, 0, revInfoRows[i][0], style: sectionLabel);
+      _setCell(histSheet, row, 1, revInfoRows[i][1], style: i % 2 == 0 ? grayStyle : normalStyle);
+      histSheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row),
+      );
+      row++;
+      // suppress unused variable warning
+      // ignore: unused_local_variable
+      final _ = st;
+    }
+
+    row += 2;
+
+    // ── 2. 추가제작 이력 ──
+    _setCell(histSheet, row, 0, '▶ 추가제작 이력', style: greenHeader);
+    histSheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+      CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row),
+    );
+    row++;
+
+    final addCount = order.additionalOrderCount;
+    final addDeadline = order.additionalOrderDeadline;
+    final canAddFree = order.canOrderAdditionalFree;
+    final origOrderId = opts['originalOrderId']?.toString() ?? '';
+    final origTeamName = opts['originalTeamName']?.toString() ?? '';
+    final origTotalCount = opts['originalTotalCount']?.toString() ?? '';
+
+    final addInfoRows = [
+      ['추가제작 신청 횟수', '$addCount회'],
+      ['무료 추가제작 마감일', '${addDeadline.year}.${addDeadline.month.toString().padLeft(2,'0')}.${addDeadline.day.toString().padLeft(2,'0')}'],
+      ['추가제작 가능 여부', canAddFree ? '가능 (마감 전)' : '마감 (새로 주문 필요)'],
+      if (order.orderType == 'additional') ...[ 
+        ['원주문 번호', origOrderId.isNotEmpty ? origOrderId : '-'],
+        ['원주문 팀명', origTeamName.isNotEmpty ? origTeamName : '-'],
+        ['원주문 인원', origTotalCount.isNotEmpty ? '${origTotalCount}명' : '-'],
+      ],
+    ];
+
+    for (var i = 0; i < addInfoRows.length; i++) {
+      _setCell(histSheet, row, 0, addInfoRows[i][0], style: addLabel);
+      _setCell(histSheet, row, 1, addInfoRows[i][1], style: i % 2 == 0 ? grayStyle : normalStyle);
+      histSheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row),
+      );
+      row++;
+    }
+
+    row += 2;
+
+    // ── 3. 컬러/단체명 수정 이력 ──
+    final colorRevHeader = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#0D47A1'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 12,
+    );
+    final colorRevLabel = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#E3F2FD'),
+      fontColorHex: ExcelColor.fromHexString('#0D47A1'),
+      fontSize: 11,
+    );
+
+    _setCell(histSheet, row, 0, '▶ 컬러/단체명 수정 이력', style: colorRevHeader);
+    histSheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+      CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row),
+    );
+    row++;
+
+    final colorEditCount = order.colorEditCount;
+    final colorRevInfoRows = [
+      ['컬러/단체명 수정 횟수', '$colorEditCount회 / 최대 2회'],
+      ['남은 수정 가능 횟수', '${2 - colorEditCount}회'],
+      ['현재 색상', opts['mainColor']?.toString() ?? '-'],
+    ];
+    for (var i = 0; i < colorRevInfoRows.length; i++) {
+      _setCell(histSheet, row, 0, colorRevInfoRows[i][0], style: colorRevLabel);
+      _setCell(histSheet, row, 1, colorRevInfoRows[i][1], style: i % 2 == 0 ? grayStyle : normalStyle);
+      histSheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
+        CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: row),
+      );
+      row++;
+    }
+
+    // 컬럼 폭
+    histSheet.setColumnWidth(0, 30.0);
+    histSheet.setColumnWidth(1, 50.0);
+    histSheet.setColumnWidth(2, 20.0);
+    histSheet.setColumnWidth(3, 20.0);
+    histSheet.setColumnWidth(4, 20.0);
+  }
+
+  /// 디자인 수정 상태 라벨
+  static String _revStatusLabel(String status) {
+    switch (status) {
+      case 'pending': return '검토 중';
+      case 'confirmed': return '확정 완료';
+      case 'rejected': return '거절됨';
+      case 'auto_confirmed': return '자동 확정 (3일 경과)';
+      default: return status;
+    }
   }
 
   // ── 유틸리티 함수들 ──
