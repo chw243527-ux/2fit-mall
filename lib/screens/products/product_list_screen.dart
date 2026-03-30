@@ -325,18 +325,25 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  // ── 그리드 뷰 ──
+  // ── 그리드 뷰 — Wrap으로 교체 (카드 실제 높이 유지, 이미지 잘림 없음) ──
   Widget _buildGridView(List<ProductModel> products) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(10),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.58,   // 4:5 이미지 + 텍스트 영역
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: products.length,
-      itemBuilder: (_, i) => _buildProductCard(products[i]),
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        const cols = 2;
+        const spacing = 8.0;
+        const padding = 10.0;
+        final cardW = (constraints.maxWidth - padding * 2 - spacing * (cols - 1)) / cols;
+        return Padding(
+          padding: const EdgeInsets.all(padding),
+          child: Wrap(
+            spacing: spacing,
+            runSpacing: spacing,
+            children: products.map((p) =>
+              SizedBox(width: cardW, child: _buildProductCard(p))
+            ).toList(),
+          ),
+        );
+      },
     );
   }
 

@@ -738,20 +738,22 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           const SizedBox(height: 14),
-          // 4컬럼 그리드
+          // 4컬럼 그리드 — Wrap으로 카드 실제 높이 유지
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                childAspectRatio: 0.58,  // 4:5 이미지 + 텍스트
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: display.length,
-              itemBuilder: (_, i) => _buildPcHomeProductCard(display[i]),
+            child: LayoutBuilder(
+              builder: (ctx, constraints) {
+                const cols = 4;
+                const spacing = 10.0;
+                final cardW = (constraints.maxWidth - spacing * (cols - 1)) / cols;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: display.map((p) =>
+                    SizedBox(width: cardW, child: _buildPcHomeProductCard(p))
+                  ).toList(),
+                );
+              },
             ),
           ),
         ],
@@ -1839,23 +1841,25 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           const SizedBox(height: 20),
-          // 5컬럼 그리드
+          // 5컬럼 그리드 — Wrap으로 카드 실제 높이 유지
           Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1280),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 5,
-                    childAspectRatio: 0.58,  // 4:5 이미지 + 텍스트
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: display.length,
-                  itemBuilder: (_, i) => _buildPcHomeProductCard(display[i]),
+                child: LayoutBuilder(
+                  builder: (ctx, constraints) {
+                    const cols = 5;
+                    const sp = 12.0;
+                    final cardW = (constraints.maxWidth - sp * (cols - 1)) / cols;
+                    return Wrap(
+                      spacing: sp,
+                      runSpacing: sp,
+                      children: display.map((p) =>
+                        SizedBox(width: cardW, child: _buildPcHomeProductCard(p))
+                      ).toList(),
+                    );
+                  },
                 ),
               ),
             ),
@@ -2454,20 +2458,22 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           const SizedBox(height: 12),
-          // PC처럼 그리드 레이아웃
+          // 2컬럼 — Wrap으로 카드 실제 높이 유지
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.53,  // 4:5 이미지 + 텍스트
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: groupProducts.length,
-              itemBuilder: (ctx, i) => ProductCard(product: groupProducts[i]),
+            child: LayoutBuilder(
+              builder: (ctx, constraints) {
+                const cols = 2;
+                const spacing = 8.0;
+                final cardW = (constraints.maxWidth - spacing * (cols - 1)) / cols;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: groupProducts.map((p) =>
+                    SizedBox(width: cardW, child: ProductCard(product: p))
+                  ).toList(),
+                );
+              },
             ),
           ),
           const SizedBox(height: 16),
@@ -3764,8 +3770,7 @@ class _HomeScreenState extends State<HomeScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     // 모바일 폭 기준으로 컬럼 수 및 비율 결정
     final crossAxisCount = screenWidth >= 600 ? 3 : 2;
-    // 4:5 이미지(0.8) + 텍스트 영역(약 80px) → 전체 비율 약 0.53~0.56
-    final childAspectRatio = screenWidth >= 600 ? 0.55 : 0.53;
+    const spacing = 8.0;
 
     return Container(
       color: Colors.white,
@@ -3835,19 +3840,21 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           const SizedBox(height: 16),
+          // Wrap으로 카드 실제 높이 유지 — 이미지 잘림 없음
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                childAspectRatio: childAspectRatio,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: products.length > 8 ? 8 : products.length,
-              itemBuilder: (context, index) => ProductCard(product: products[index]),
+            child: LayoutBuilder(
+              builder: (ctx, constraints) {
+                final cardW = (constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount;
+                final display = products.length > 8 ? products.sublist(0, 8) : products;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: display.map((p) =>
+                    SizedBox(width: cardW, child: ProductCard(product: p))
+                  ).toList(),
+                );
+              },
             ),
           ),
           const SizedBox(height: 20),

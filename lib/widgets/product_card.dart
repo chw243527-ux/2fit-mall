@@ -26,6 +26,7 @@ class ProductCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,  // 실제 내용 높이만큼만 차지
           children: [
             _buildImage(context),
             _buildInfo(context),
@@ -39,16 +40,22 @@ class ProductCard extends StatelessWidget {
     final loc = context.watch<LanguageProvider>().loc;
     return Stack(
       children: [
-        // 이미지: 정사각형, 모서리 0
+        // 이미지: 4:5 세로형 비율 — 전신 모델 사진 잘림 없음
         AspectRatio(
-          aspectRatio: 1.0,
-          child: product.images.isNotEmpty
-              ? Image.network(
-                  product.images.first,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _placeholder(),
-                )
-              : _placeholder(),
+          aspectRatio: 4 / 5,
+          child: Container(
+            color: const Color(0xFFF5F5F5),
+            child: product.images.isNotEmpty
+                ? Image.network(
+                    product.images.first,
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                    filterQuality: FilterQuality.medium,
+                    errorBuilder: (_, __, ___) => _placeholder(),
+                  )
+                : _placeholder(),
+          ),
         ),
         // 배지 그룹 (좌상단)
         Positioned(
