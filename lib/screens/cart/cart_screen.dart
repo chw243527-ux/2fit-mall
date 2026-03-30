@@ -354,7 +354,7 @@ class CartScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${_formatPrice(item.product.price)}${loc.wonUnit2}',
+                        '${_formatPrice(item.unitPrice)}${loc.wonUnit2}', // extraPrice 포함한 단가
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w800),
                       ),

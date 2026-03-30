@@ -473,6 +473,13 @@ class CouponProvider extends ChangeNotifier {
       return null;
     }
   }
+
+  // 로그아웃 시 쿠폰 데이터 초기화
+  void clear() {
+    _coupons = [];
+    _userId = null;
+    notifyListeners();
+  }
 }
 
 // ── 포인트 Provider ───────────────────────────────────

@@ -37,20 +37,7 @@ class OrderService {
         'createdAt': FieldValue.serverTimestamp(),
       });
       if (kDebugMode) debugPrint('✅ Firestore 주문 저장 완료: ${order.id}');
-
-      // 3) 주문 확인 이메일 발송 (비동기, 실패 무시)
-      EmailService.sendOrderConfirmEmail(order).catchError((e) {
-        if (kDebugMode) debugPrint('주문 확인 이메일 실패 (무시): $e');
-        return false;
-      });
-
-      // 4) 무통장입금 주문인 경우 관리자에게 별도 알림
-      if (order.paymentMethod == '무통장입금') {
-        EmailService.sendBankTransferAdminAlert(order).catchError((e) {
-          if (kDebugMode) debugPrint('무통장입금 관리자 알림 실패 (무시): $e');
-          return false;
-        });
-      }
+      // ℹ️ 이메일 발송은 OrderProvider.addOrder()에서 처리 (중복 방지)
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ Firestore 주문 저장 실패 (로컬만 저장됨): $e');
     }
@@ -606,6 +593,13 @@ class OrderService {
       groupCount: data['groupCount'] as int?,
       memo: data['memo'] as String?,
       createdAt: DateTime.tryParse(data['createdAt'] as String? ?? '') ?? DateTime.now(),
+      customOptions: data['customOptions'] as Map<String, dynamic>?,
+      additionalOrderCount: (data['additionalOrderCount'] as num?)?.toInt() ?? 0,
+      colorEditCount: (data['colorEditCount'] as num?)?.toInt() ?? 0,
+      designRevisionCount: (data['designRevisionCount'] as num?)?.toInt() ?? 0,
+      designRevisionDeadline: data['designRevisionDeadline'] != null
+          ? DateTime.tryParse(data['designRevisionDeadline'] as String)
+          : null,
       items: (data['items'] as List? ?? []).map((i) {
         final item = Map<String, dynamic>.from(i as Map);
         return OrderItem(
@@ -615,7 +609,9 @@ class OrderService {
           color: item['color'] as String? ?? '',
           quantity: item['quantity'] as int? ?? 1,
           price: (item['price'] as num?)?.toDouble() ?? 0,
-          customOptions: item['customOptions'] as Map<String, dynamic>?,
+          customOptions: item['customOptions'] != null
+              ? Map<String, dynamic>.from(item['customOptions'] as Map)
+              : null,
           imageUrl: item['imageUrl'] as String?,
         );
       }).toList(),

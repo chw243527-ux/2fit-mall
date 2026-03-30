@@ -184,6 +184,7 @@ class _MyPageScreenState extends State<MyPageScreen>
               if (ctx.mounted) {
                 ctx.read<SizeProfileProvider>().clear();
                 ctx.read<CartProvider>().clearCart();
+                ctx.read<CouponProvider>().clear(); // 쿠폰 데이터 초기화
                 Navigator.of(ctx).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (route) => false,
@@ -437,6 +438,9 @@ class _MyPageScreenState extends State<MyPageScreen>
                     await AuthService.logout();
                     if (ctx.mounted) {
                       up.logout();
+                      ctx.read<CartProvider>().clearCart();
+                      ctx.read<CouponProvider>().clear();
+                      ctx.read<SizeProfileProvider>().clear();
                       Navigator.pop(dialogCtx);
                       ScaffoldMessenger.of(ctx).showSnackBar(
                         const SnackBar(content: Text('회원 탈퇴가 완료되었습니다.'), backgroundColor: Colors.red),
@@ -1019,7 +1023,7 @@ class _PcOrderCard extends StatelessWidget {
     final statusColor = _statusColor(order.status);
     final isGroup = order.orderType == 'group' || order.orderType == 'additional' || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
     final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
-    final canColorEdit = isGroup && isActive && order.colorEditCount < 3;
+    final canColorEdit = isGroup && isActive && order.canEditColor; // models.dart: colorEditCount < 2 (최대 2회)
     final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
     final canDesignRevision = isGroup && isActive && order.canDesignRevision;
 
@@ -1148,7 +1152,7 @@ class _PcOrderCard extends StatelessWidget {
                     label: loc.mypageColorGroupEdit,
                     icon: Icons.palette_outlined,
                     color: const Color(0xFF1565C0),
-                    badge: '${3 - order.colorEditCount}',
+                    badge: '${order.remainingColorEdits}',
                     onTap: () => onColorEdit(order),
                   ),
                   // 1주일 지나면 안내 배지
@@ -2149,7 +2153,7 @@ class _MobileOrderCard extends StatelessWidget {
     final statusColor = _statusColor(order.status);
     final isGroup = order.orderType == 'group' || order.orderType == 'additional' || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
     final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
-    final canColorEdit = isGroup && isActive && order.colorEditCount < 3;
+    final canColorEdit = isGroup && isActive && order.canEditColor; // models.dart: colorEditCount < 2 (최대 2회)
     final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
     final canDesignRevision = isGroup && isActive && order.canDesignRevision;
 
@@ -2257,7 +2261,7 @@ class _MobileOrderCard extends StatelessWidget {
                       if (canColorEdit) Expanded(child: _MobileBtn(
                         label: loc.mypageColorGroupEdit,
                         color: const Color(0xFF1565C0),
-                        badge: '${3 - order.colorEditCount}',
+                        badge: '${order.remainingColorEdits}',
                         onTap: () => onColorEdit(order),
                       )),
                     ],
