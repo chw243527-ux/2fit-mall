@@ -127,7 +127,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             controller: _scrollCtrl,
             cacheExtent: 1200, // 미리 렌더링 범위 확대
             slivers: [
-              _buildSliverHeader(product),
+              _buildSliverAppBarOnly(product),
+              SliverToBoxAdapter(child: _buildImageSlider(product)),
               SliverToBoxAdapter(child: _buildThumbnailBar(product)),
               SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
               SliverToBoxAdapter(child: _buildBasicInfo(product)),
@@ -648,12 +649,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // ═══════════════════════════════════════
   // SLIVER HEADER (이미지 + 패럴랙스)
   // ═══════════════════════════════════════
-  Widget _buildSliverHeader(ProductModel product) {
-    // 화면 높이의 62% — 전신 모델 이미지가 완전히 보이도록 (패럴랙스 없으므로 딱 맞게)
-    final screenH = MediaQuery.of(context).size.height;
-    final imgH = (screenH * 0.62).clamp(500.0, 640.0);
+  // ── 상단 앱바만 (pinned) ──
+  Widget _buildSliverAppBarOnly(ProductModel product) {
     return SliverAppBar(
-      expandedHeight: imgH,
       pinned: true,
       backgroundColor: const Color(0xFF1A1A1A),
       leading: IconButton(
@@ -694,96 +692,87 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           icon: const Icon(Icons.share_rounded, color: Colors.white),
           onPressed: () => _shareProduct(product),
         ),
-        // 라이트박스 열기
         IconButton(
           icon: const Icon(Icons.fullscreen_rounded, color: Colors.white),
           onPressed: () => _showLightbox(product, _mainImageIndex),
         ),
       ],
-      flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            // 메인 이미지 슬라이더 (패럴랙스 제거 → 이미지 잘림 방지)
-            PageView.builder(
-              controller: _pageCtrl,
-              itemCount: product.images.isNotEmpty ? product.images.length : 1,
-              onPageChanged: (i) => setState(() => _mainImageIndex = i),
-              itemBuilder: (_, i) {
-                final url = product.images.isNotEmpty ? product.images[i] : '';
-                return GestureDetector(
-                  onTap: () => _showLightbox(product, i),
-                  child: url.isNotEmpty
-                      ? Container(
-                          color: const Color(0xFFF8F8F8),
-                          child: Image.network(
-                            url,
-                            fit: BoxFit.contain,      // 이미지 전체 표시
-                            width: double.infinity,
-                            height: double.infinity,
-                            // cacheWidth 제거 → 원본 화질 유지
-                            gaplessPlayback: true,
-                            filterQuality: FilterQuality.high,
-                            errorBuilder: (_, __, ___) => _imagePlaceholder(),
-                          ),
-                        )
-                      : _imagePlaceholder(),
-                );
-              },
-            ),
-            // 하단 그라디언트
-            const Positioned(
-              bottom: 0, left: 0, right: 0,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Color(0x88000000)],
-                  ),
-                ),
-                child: SizedBox(height: 80),
-              ),
-            ),
-            // 페이지 인디케이터
-            if (product.images.length > 1)
-              Positioned(
-                bottom: 14, left: 0, right: 0,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(product.images.length, (i) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      width: _mainImageIndex == i ? 18 : 6,
-                      height: 6,
-                      margin: const EdgeInsets.symmetric(horizontal: 2),
-                      decoration: BoxDecoration(
-                        color: _mainImageIndex == i
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.45),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-            // 이미지 번호
+    );
+  }
+
+  // ── 이미지 슬라이더 (AspectRatio 기반 — 잘림 없음) ──
+  Widget _buildImageSlider(ProductModel product) {
+    final screenW = MediaQuery.of(context).size.width;
+    // 3:4 비율로 컨테이너 고정 → 세로형 상품 사진 전체 표시
+    final imgH = screenW * (4 / 3);
+
+    return Container(
+      width: screenW,
+      height: imgH,
+      color: const Color(0xFFF8F8F8),
+      child: Stack(
+        children: [
+          // 메인 PageView
+          PageView.builder(
+            controller: _pageCtrl,
+            itemCount: product.images.isNotEmpty ? product.images.length : 1,
+            onPageChanged: (i) => setState(() => _mainImageIndex = i),
+            itemBuilder: (_, i) {
+              final url = product.images.isNotEmpty ? product.images[i] : '';
+              return GestureDetector(
+                onTap: () => _showLightbox(product, i),
+                child: url.isNotEmpty
+                    ? Image.network(
+                        url,
+                        fit: BoxFit.contain,        // 전체 표시, 잘림 없음
+                        width: screenW,
+                        height: imgH,
+                        gaplessPlayback: true,
+                        filterQuality: FilterQuality.high,
+                        errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                      )
+                    : _imagePlaceholder(),
+              );
+            },
+          ),
+          // 페이지 인디케이터 (하단)
+          if (product.images.length > 1)
             Positioned(
-              top: 12, right: 14,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.45),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${_mainImageIndex + 1} / ${product.images.isEmpty ? 1 : product.images.length}',
-                  style: const TextStyle(color: Colors.white, fontSize: 11),
-                ),
+              bottom: 12, left: 0, right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(product.images.length, (i) {
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    width: _mainImageIndex == i ? 18 : 6,
+                    height: 6,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      color: _mainImageIndex == i
+                          ? const Color(0xFF1A1A1A)
+                          : const Color(0xFFCCCCCC),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  );
+                }),
               ),
             ),
-          ],
-        ),
+          // 이미지 번호 (우상단)
+          Positioned(
+            top: 12, right: 14,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${_mainImageIndex + 1} / ${product.images.isEmpty ? 1 : product.images.length}',
+                style: const TextStyle(color: Colors.white, fontSize: 11),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
