@@ -2459,7 +2459,7 @@ class _HomeScreenState extends State<HomeScreen>
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                childAspectRatio: 0.58,
+                childAspectRatio: 0.53,  // 4:5 이미지 + 텍스트
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
               ),
@@ -3761,7 +3761,8 @@ class _HomeScreenState extends State<HomeScreen>
     final screenWidth = MediaQuery.of(context).size.width;
     // 모바일 폭 기준으로 컬럼 수 및 비율 결정
     final crossAxisCount = screenWidth >= 600 ? 3 : 2;
-    final childAspectRatio = screenWidth >= 600 ? 0.62 : 0.58;
+    // 4:5 이미지(0.8) + 텍스트 영역(약 80px) → 전체 비율 약 0.53~0.56
+    final childAspectRatio = screenWidth >= 600 ? 0.55 : 0.53;
 
     return Container(
       color: Colors.white,

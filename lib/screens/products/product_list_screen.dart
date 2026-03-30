@@ -331,7 +331,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       padding: const EdgeInsets.all(10),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.65,
+        childAspectRatio: 0.58,   // 4:5 이미지 + 텍스트 영역
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
       ),
@@ -364,19 +364,26 @@ class _ProductListScreenState extends State<ProductListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 이미지 영역
-            Expanded(
-              flex: 6,
+            // 이미지 영역 — 4:5 고정 비율, contain으로 전신 표시
+            AspectRatio(
+              aspectRatio: 4 / 5,
               child: Stack(
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                    child: p.images.isNotEmpty
-                        ? Image.network(p.images.first, width: double.infinity, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFFF0F0F0),
-                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)))
-                        : Container(color: const Color(0xFFF0F0F0),
-                            child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)),
+                    child: Container(
+                      color: const Color(0xFFF5F5F5),
+                      child: p.images.isNotEmpty
+                          ? Image.network(p.images.first,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.contain,
+                              filterQuality: FilterQuality.medium,
+                              errorBuilder: (_, __, ___) => Container(color: const Color(0xFFF0F0F0),
+                                  child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)))
+                          : Container(color: const Color(0xFFF0F0F0),
+                              child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)),
+                    ),
                   ),
                   // 배지들
                   if (p.isNew) Positioned(top: 8, left: 8,
@@ -400,50 +407,47 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ),
             ),
             // 정보 영역
-            Expanded(
-              flex: 4,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('2FIT KOREA', style: TextStyle(fontSize: 10, color: Color(0xFF888888), letterSpacing: 0.5)),
-                    const SizedBox(height: 2),
-                    Text(p.localizedName(_lang), maxLines: 2, overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3)),
-                    const Spacer(),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (p.originalPrice != null)
-                              Text('${_fmt(p.originalPrice!)}${loc.wonUnit}',
-                                  style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
-                            Row(
-                              children: [
-                                if (discount > 0) ...[
-                                  Text('$discount%', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
-                                  const SizedBox(width: 4),
-                                ],
-                                Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF111111))),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('2FIT KOREA', style: TextStyle(fontSize: 10, color: Color(0xFF888888), letterSpacing: 0.5)),
+                  const SizedBox(height: 2),
+                  Text(p.localizedName(_lang), maxLines: 2, overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3)),
+                  const SizedBox(height: 6),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (p.originalPrice != null)
+                            Text('${_fmt(p.originalPrice!)}${loc.wonUnit}',
+                                style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
+                          Row(
+                            children: [
+                              if (discount > 0) ...[
+                                Text('$discount%', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
+                                const SizedBox(width: 4),
                               ],
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Row(
-                          children: [
-                            const Icon(Icons.star_rounded, size: 11, color: Color(0xFFFFB300)),
-                            const SizedBox(width: 1),
-                            Text('${p.rating}', style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                              Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF111111))),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          const Icon(Icons.star_rounded, size: 11, color: Color(0xFFFFB300)),
+                          const SizedBox(width: 1),
+                          Text('${p.rating}', style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],

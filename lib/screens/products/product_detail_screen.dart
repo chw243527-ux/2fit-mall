@@ -703,8 +703,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // ── 이미지 슬라이더 (AspectRatio 기반 — 잘림 없음) ──
   Widget _buildImageSlider(ProductModel product) {
     final screenW = MediaQuery.of(context).size.width;
-    // 3:4 비율로 컨테이너 고정 → 세로형 상품 사진 전체 표시
-    final imgH = screenW * (4 / 3);
+    // 4:5 비율로 컨테이너 고정 → 세로형 상품 사진 전신 표시
+    final imgH = screenW * (5 / 4);
 
     return Container(
       width: screenW,
