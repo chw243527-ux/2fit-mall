@@ -19,6 +19,7 @@ import '../../widgets/app_drawer.dart';
 import '../notifications/notification_center_screen.dart';
 import '../../services/fcm_service.dart';
 import '../../services/product_service.dart';
+import '../../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -861,6 +862,40 @@ class _HomeScreenState extends State<HomeScreen>
                   builder: (ctx, user, _) => user.isAdmin
                       ? IconButton(icon: const Icon(Icons.admin_panel_settings_rounded, color: Color(0xFFE53935), size: 22), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminScreen())))
                       : const SizedBox.shrink(),
+                ),
+                // ── PC 로그아웃 버튼 ──
+                Consumer<UserProvider>(
+                  builder: (ctx, userProv, _) {
+                    if (!userProv.isLoggedIn) return const SizedBox.shrink();
+                    return IconButton(
+                      icon: const Icon(Icons.logout_rounded, color: Colors.white70, size: 20),
+                      tooltip: '로그아웃',
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text('로그아웃'),
+                            content: const Text('로그아웃 하시겠습니까?'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('로그아웃', style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true && mounted) {
+                          await AuthService.logout();
+                          if (mounted) {
+                            context.read<UserProvider>().logout();
+                            context.read<CartProvider>().clearCart();
+                            context.read<CouponProvider>().clear();
+                          }
+                        }
+                      },
+                    );
+                  },
                 ),
               ],
             ),
