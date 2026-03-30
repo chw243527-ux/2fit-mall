@@ -7102,6 +7102,8 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
             );
             if (found.isEmpty) return const SizedBox.shrink();
             final isFree = freeColors.contains(col);
+            final selHex = found['hex'] as int;
+            final selColor = Color(selHex);
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(children: [
@@ -7109,15 +7111,13 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                     style: const TextStyle(
                         fontSize: 12, color: Color(0xFF888888))),
                 const SizedBox(width: 6),
-                Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    color: Color(found['hex'] as int),
-                    shape: BoxShape.circle,
-                    border:
-                        Border.all(color: const Color(0xFFCCCCCC), width: 0.8),
-                  ),
+                RibColorSwatch(
+                  color: selColor,
+                  size: 20,
+                  isSelected: true,
+                  accentColor: const Color(0xFF1A1A1A),
+                  isLight: selColor.computeLuminance() > 0.5,
+                  borderRadius: 4,
                 ),
                 const SizedBox(width: 6),
                 Text(col,
