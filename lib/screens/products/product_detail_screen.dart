@@ -37,6 +37,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   final ValueNotifier<double> _imageOffsetNotifier = ValueNotifier(0); // 패럴랙스 오프셋 (setState 없이)
 
   // ── 상품 선택 ──
+  // ignore: unused_field
   String? _selectedSize;
   String? _selectedBottomLength;
 
@@ -51,6 +52,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   late Map<String, List<String>> _sectionImages;
 
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+  // ignore: unused_element
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
 
   @override
@@ -1355,6 +1357,7 @@ $productUrl
   }
 
   // 상의 색상 안내 배너용 행 위젯
+  // ignore: unused_element
   Widget _colorNoticeRow(IconData icon, String label, String desc, {required bool highlight}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1778,6 +1781,7 @@ $productUrl
         (product.category == '세트' && product.name.contains('트레이닝')));
 
     // 하의 길이 선택 표시 여부: 타이즈 or 싱글렛 A타입세트
+    // ignore: unused_local_variable
     final showLengthPicker = isTaiz || isSingletATypeSet;
     // 9부 고정 표시 여부: 트레이닝세트
     final showFixedLength9 = isTrainingSet;
@@ -2644,6 +2648,7 @@ $productUrl
         onSave: (finalUrls) async {
           await context.read<ProductProvider>().updateSectionImages(
               widget.product.id, sectionKey, finalUrls);
+          if (!mounted) return;
           setState(() {
             if (finalUrls.isEmpty) {
               _sectionImages.remove(sectionKey);
@@ -2651,6 +2656,7 @@ $productUrl
               _sectionImages[sectionKey] = finalUrls;
             }
           });
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -2662,7 +2668,9 @@ $productUrl
         onDeleteAll: () async {
           await context.read<ProductProvider>().updateSectionImages(
               widget.product.id, sectionKey, []);
+          if (!mounted) return;
           setState(() => _sectionImages.remove(sectionKey));
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(loc.productSectionDeleted(sectionLabel)),
@@ -4455,6 +4463,7 @@ $productUrl
     _showReadyMadeOptionSheet(product, isBuyNow: true);
   }
 
+  // ignore: unused_element
   void _showBottomLengthSheet(ProductModel product) {
     _showReadyMadeOptionSheet(product, isBuyNow: false);
   }
@@ -4484,6 +4493,7 @@ $productUrl
       AppConstants.freeColors.contains(color) ? 0.0 : AppConstants.extraColorPrice.toDouble();
 
   // 실제 장바구니 추가 처리
+  // ignore: unused_element
   void _doAddToCart(
     ProductModel product,
     String size,
@@ -4622,6 +4632,7 @@ class _LightboxDialog extends StatefulWidget {
 
 class _LightboxDialogState extends State<_LightboxDialog> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+  // ignore: unused_element
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
   late int _idx;
   late PageController _ctrl;
@@ -4838,6 +4849,7 @@ class _PickedImagesSheet extends StatefulWidget {
 
 class _PickedImagesSheetState extends State<_PickedImagesSheet> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+  // ignore: unused_element
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
   // 최종 이미지 목록: 기존 이미지 + 새로 선택한 Base64 이미지
   late List<String> _allImages;
@@ -5521,6 +5533,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
 
 // 빠른 사이즈 선택 시트 (바로 구매 - 컬러 선택 없음)
 // ══════════════════════════════════════════════════════════════
+// ignore: unused_element
 class _QuickSizeSelectSheet extends StatefulWidget {
   final ProductModel product;
   final void Function(String size, int qty) onConfirm;
@@ -5529,6 +5542,7 @@ class _QuickSizeSelectSheet extends StatefulWidget {
   const _QuickSizeSelectSheet({
     required this.product,
     required this.onConfirm,
+    // ignore: unused_element
     this.isBuyNow = false,
   });
 
@@ -5538,6 +5552,7 @@ class _QuickSizeSelectSheet extends StatefulWidget {
 
 class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+  // ignore: unused_element
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
   String? _selectedSize;
   int _quantity = 1;
@@ -5787,37 +5802,39 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   /// 싱글렛 A타입 세트: 성별 선택 → 하의기장 고정(남=5부, 여=2.5부, 변경불가)
   bool get _isSingletATypeSet =>
       (widget.product.category == '세트' &&
-          ((widget.product.subCategory ?? '').contains('싱글렛 A타입세트') ||
-           (widget.product.subCategory ?? '').contains('싱글렛세트'))) ||
-      (widget.product.subCategory ?? '').contains('싱글렛 A타입세트') ||
-      (widget.product.subCategory ?? '').contains('싱글렛세트') ||
+          (widget.product.subCategory.contains('싱글렛 A타입세트') ||
+           widget.product.subCategory.contains('싱글렛세트'))) ||
+      widget.product.subCategory.contains('싱글렛 A타입세트') ||
+      widget.product.subCategory.contains('싱글렛세트') ||
       (widget.product.category == '세트' && widget.product.name.contains('싱글렛 A타입'));
 
   /// 타이즈 카테고리: 하의길이 모두 선택 가능
   bool get _isTaiz =>
-      (widget.product.subCategory ?? '').contains('타이즈') ||
+      widget.product.subCategory.contains('타이즈') ||
       widget.product.name.contains('타이즈');
 
   /// 세트 상품 여부 (상의/하의 사이즈 각각 선택)
   bool get _isSetProduct =>
       widget.product.category == '세트' ||
-      (widget.product.subCategory ?? '').contains('세트') ||
+      widget.product.subCategory.contains('세트') ||
       widget.product.name.contains('세트');
 
   /// 기성품 싱글렛 (상의 색상 고정, 하의만 색상 선택 가능)
+  // ignore: unused_element
   bool get _isSingletReadyMade =>
       (widget.product.category == '상의' ||
-          (widget.product.subCategory ?? '').contains('싱글렛')) &&
+          widget.product.subCategory.contains('싱글렛')) &&
       !_isSetProduct;
 
   /// 하의류: 색상 선택 시 하의 색상 탭 먼저
+  // ignore: unused_element
   bool get _isBottomItem =>
       widget.product.category == '하의' ||
-      (widget.product.subCategory ?? '').contains('타이즈') ||
-      (widget.product.subCategory ?? '').contains('레깅스') ||
-      (widget.product.subCategory ?? '').contains('팬츠') ||
-      (widget.product.subCategory ?? '').contains('반바지') ||
-      (widget.product.subCategory ?? '').contains('숏츠') ||
+      widget.product.subCategory.contains('타이즈') ||
+      widget.product.subCategory.contains('레깅스') ||
+      widget.product.subCategory.contains('팬츠') ||
+      widget.product.subCategory.contains('반바지') ||
+      widget.product.subCategory.contains('숏츠') ||
       widget.product.name.contains('타이즈');
 
   /// 하의길이 선택이 필요한지: 타이즈이거나 싱글렛 A타입 세트
@@ -5835,7 +5852,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     if (raw.isNotEmpty) return raw;
     final isJunior = widget.product.name.contains('주니어') ||
         widget.product.name.contains('Jr') ||
-        (widget.product.subCategory ?? '').contains('주니어');
+        widget.product.subCategory.contains('주니어');
     // 성인 S~XL / 주니어 S~XL (요구사항)
     return isJunior ? AppConstants.juniorSizes : AppConstants.adultSizes;
   }
@@ -6653,6 +6670,7 @@ class _QuickSizeColorSelectSheetState
   int _quantity = 1;
 
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+  // ignore: unused_element
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
 
   // 색상 추가금액
@@ -7063,6 +7081,7 @@ class _SizeChartTabs extends StatefulWidget {
 
 class _SizeChartTabsState extends State<_SizeChartTabs> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+  // ignore: unused_element
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
   int _tab = 0; // 0=성인, 1=주니어
 
@@ -7169,6 +7188,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
   String _sort = 'latest'; // latest, highest, lowest
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
 
+  // ignore: unused_element
   List<ReviewModel> get _sorted {
     final list = List<ReviewModel>.from(widget.reviews);
     if (_sort == 'highest') list.sort((a, b) => b.rating.compareTo(a.rating));
@@ -7952,6 +7972,7 @@ class _GroupOrderGuideSheet extends StatefulWidget {
 class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
   bool _checked = false;
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+  // ignore: unused_element
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
 
   static const Color _purple = Color(0xFF4A148C);

@@ -152,7 +152,8 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    final isKorean = loc.language == AppLanguage.korean;
+    // ignore: unused_local_variable
+        final isKorean = loc.language == AppLanguage.korean;
     String koreanQuestion = _toKoreanFaqQuestion(questionText, loc);
     final user = context.read<UserProvider>().user;
     final userId = user?.id ?? 'guest';
@@ -216,7 +217,8 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendMessage(String text, AppLocalizations loc) {
     if (text.trim().isEmpty) return;
 
-    final isKorean = loc.language == AppLanguage.korean;
+    // ignore: unused_local_variable
+        final isKorean = loc.language == AppLanguage.korean;
     final user = context.read<UserProvider>().user;
     final userId = user?.id ?? 'guest';
     final userName = user?.name ?? _loc.chatVisitor;
@@ -448,6 +450,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final width = MediaQuery.of(context).size.width;
     final isPc = kIsWeb && width >= 900;
@@ -721,7 +724,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   // ────────── 메시지 버블 ──────────
   Widget _buildMessageBubble(ChatMessage message, AppLocalizations loc) {
-    final isKorean = loc.language == AppLanguage.korean;
+    // ignore: unused_local_variable
+        final isKorean = loc.language == AppLanguage.korean;
     // 관리자용 번역 표시 여부
     final hasTranslation = message.isUser &&
         !isKorean &&
@@ -946,6 +950,7 @@ class AdminChatView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     return ListView.builder(
       padding: const EdgeInsets.all(12),
@@ -968,6 +973,7 @@ class _AdminMsgTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),

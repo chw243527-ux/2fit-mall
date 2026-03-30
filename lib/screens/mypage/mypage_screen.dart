@@ -183,6 +183,7 @@ class _MyPageScreenState extends State<MyPageScreen>
               up.logout();
               if (ctx.mounted) {
                 ctx.read<SizeProfileProvider>().clear();
+                ctx.read<CartProvider>().clearCart();
                 Navigator.of(ctx).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (route) => false,
@@ -1354,7 +1355,7 @@ class _PcWishlistTab extends StatelessWidget {
     final user = userProvider.user;
     final wishIds = user?.wishlist ?? [];
     final products = wishIds
-        .map((id) => ProductService.getProductById(id))
+        .map((id) => ProductService.getProductByIdSync(id))
         .where((p) => p != null)
         .cast<ProductModel>()
         .toList();
@@ -1521,7 +1522,7 @@ class _PcCouponCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final discountText = coupon.type == 'percent'
+    final discountText = coupon.type == CouponType.percent
         ? '${coupon.value.toInt()}% OFF'
         : '${coupon.value.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '\${m[1]},')}원 할인';
 
@@ -2462,7 +2463,7 @@ class _MobileWishlistTab extends StatelessWidget {
     final user = userProvider.user;
     final wishIds = user?.wishlist ?? [];
     final products = wishIds
-        .map((id) => ProductService.getProductById(id))
+        .map((id) => ProductService.getProductByIdSync(id))
         .where((p) => p != null)
         .cast<ProductModel>()
         .toList();
@@ -2613,7 +2614,7 @@ class _MobileCouponCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final discountText = coupon.type == 'percent'
+    final discountText = coupon.type == CouponType.percent
         ? '${coupon.value.toInt()}%'
         : '${coupon.value.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '\${m[1]},')}원';
 
@@ -3299,7 +3300,6 @@ class _ColorEditSheetState extends State<_ColorEditSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = context.watch<LanguageProvider>().loc;
     final remaining = widget.order.remainingColorEdits;
     const blueColor = Color(0xFF1565C0);
 
@@ -3902,7 +3902,6 @@ class _AddressManagerSheetState extends State<_AddressManagerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = context.watch<LanguageProvider>().loc;
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: const BoxDecoration(
@@ -4121,7 +4120,6 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = context.watch<LanguageProvider>().loc;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(

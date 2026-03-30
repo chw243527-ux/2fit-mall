@@ -5,6 +5,7 @@ import '../../providers/providers.dart';
 import '../../services/size_profile_service.dart';
 
 const Color _purple = Color(0xFF6A1B9A);
+// ignore: unused_element
 const Color _purpleLight = Color(0xFFF3E5F5);
 
 // ── 성인 사이즈 옵션 ─────────────────────────────────────

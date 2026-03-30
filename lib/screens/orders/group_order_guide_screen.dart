@@ -212,6 +212,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _pcBenefitRow(BuildContext context, String emoji, String label, String desc, Color color) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -483,6 +484,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   }
 
   // ── 인쇄 타입 카드 (읽기 전용 안내) ──
+  // ignore: unused_element
   Widget _buildPrintTypeCards() {
     final types = [
       {'step': '①', 'title': '색상 변경',             'cond': '5명↑ 무료', 'color': const Color(0xFF1565C0), 'desc': '원하는 색상으로 변경 제작 (상·하의 동일 색상 적용)'},
@@ -604,6 +606,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   }
 
   // ── 성인 사이즈표 ──
+  // ignore: unused_element
   Widget _buildAdultSizeTable(BuildContext context) {
     final rows = [
       ['XS', '80~84', '60~64', '84~88', '155~160'],
@@ -619,6 +622,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   }
 
   // ── 주니어 사이즈표 ──
+  // ignore: unused_element
   Widget _buildJuniorSizeTable(BuildContext context) {
     final rows = [
       ['XXS', '68~72', '52~56', '72~76', '120~130'],

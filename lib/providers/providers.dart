@@ -72,22 +72,28 @@ class CartProvider extends ChangeNotifier {
   bool get isEmpty => _items.isEmpty;
 
   void addItem(ProductModel product, String size, String color, {int quantity = 1, double extraPrice = 0, Map<String, dynamic>? customOptions}) {
-    final existingIndex = _items.indexWhere(
-      (item) => item.product.id == product.id && item.selectedSize == size && item.selectedColor == color && item.extraPrice == extraPrice,
-    );
-    if (existingIndex >= 0) {
-      _items[existingIndex].quantity += quantity;
-    } else {
-      _items.add(CartItem(
-        id: '${product.id}_${size}_${color}_${DateTime.now().millisecondsSinceEpoch}',
-        product: product,
-        selectedSize: size,
-        selectedColor: color,
-        quantity: quantity,
-        extraPrice: extraPrice,
-        customOptions: customOptions,
-      ));
+    // 단체주문/추가제작 아이템은 항상 새로 추가 (customOptions 다를 수 있음)
+    final isGroupOrder = customOptions != null &&
+        (customOptions['orderType'] == 'group' || customOptions['orderType'] == 'additional');
+    if (!isGroupOrder) {
+      final existingIndex = _items.indexWhere(
+        (item) => item.product.id == product.id && item.selectedSize == size && item.selectedColor == color && item.extraPrice == extraPrice,
+      );
+      if (existingIndex >= 0) {
+        _items[existingIndex].quantity += quantity;
+        notifyListeners();
+        return;
+      }
     }
+    _items.add(CartItem(
+      id: '${product.id}_${size}_${color}_${DateTime.now().millisecondsSinceEpoch}',
+      product: product,
+      selectedSize: size,
+      selectedColor: color,
+      quantity: quantity,
+      extraPrice: extraPrice,
+      customOptions: customOptions,
+    ));
     notifyListeners();
   }
 
@@ -364,6 +370,7 @@ class OrderProvider extends ChangeNotifier {
         id: old.id,
         userId: old.userId,
         userName: old.userName,
+        userEmail: old.userEmail,
         userPhone: old.userPhone,
         userAddress: old.userAddress,
         items: old.items,
@@ -377,6 +384,10 @@ class OrderProvider extends ChangeNotifier {
         groupCount: old.groupCount,
         createdAt: old.createdAt,
         memo: old.memo,
+        additionalOrderCount: old.additionalOrderCount,
+        colorEditCount: old.colorEditCount,
+        designRevisionCount: old.designRevisionCount,
+        designRevisionDeadline: old.designRevisionDeadline,
       );
       notifyListeners();
     }

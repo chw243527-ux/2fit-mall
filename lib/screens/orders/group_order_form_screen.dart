@@ -189,6 +189,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   bool get _isAdditional   => widget.isAdditionalOrder;
   int  get _totalCount     => _persons.length;
   // 옵션별: 0=색상변경만, 1=단체명만, 2=단체명+색상, 3=디자인+단체명+색상, 4=디자인+색상+단체명+후면이름
+  // ignore: unused_element
   bool get _hasColorChange => _printType == 0 || _printType == 2 || _printType == 3 || _printType == 4;
   bool get _hasTeamName    => _printType == 1 || _printType == 2 || _printType == 3 || _printType == 4;
 
@@ -268,6 +269,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     }
   }
 
+  // ignore: unused_element
   void _applyCount() {
     if (_count < 1) return;
     setState(() {
@@ -645,6 +647,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     };
 
     final orderId = 'GRP_${DateTime.now().millisecondsSinceEpoch}';
+    // ignore: unused_local_variable
     final order   = OrderModel(
       id: orderId,
       userId: user?.id ?? 'guest',
@@ -3164,6 +3167,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   // ── 상의/하의 사이즈 직접입력 필드
+  // ignore: unused_element
   Widget _sizeInputField({
     required String label,
     required IconData icon,

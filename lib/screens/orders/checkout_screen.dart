@@ -798,6 +798,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   // 단체주문 여부 및 옵션 빠른 접근
+  // ignore: unused_element
   bool get _isGroupOrder => widget.cart.items.any((item) {
     final t = item.customOptions?['orderType'] as String? ?? '';
     return t == 'group' || t == 'additional';

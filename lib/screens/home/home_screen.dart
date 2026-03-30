@@ -119,6 +119,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── PC 카테고리 드로어 (햄버거 버튼으로 열림) ──
+  // ignore: unused_element
   Widget _buildPcCategoryDrawer(AppLocalizations loc) {
     return Drawer(
       width: 300,
@@ -758,6 +759,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── PC 전용 NavBar (배너 위에 표시) ──
+  // ignore: unused_element
   Widget _buildPcNavBar(AppLocalizations loc) {
     return Container(
       color: const Color(0xFF111111),
@@ -1174,6 +1176,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── PC 전용 카테고리 사이드바 (아코디언) ──
   // ── PC 배너 섹션 (모바일과 동일, 높이만 조정) ──
+  // ignore: unused_element
   Widget _buildPcBannerSection(AppLocalizations loc) {
     final banners = [
       {
@@ -2054,6 +2057,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── PC 단체주문 CTA 배너 ──
+  // ignore: unused_element
   Widget _buildPcNewArrivalCta() {
     return Container(
       decoration: BoxDecoration(
@@ -2775,6 +2779,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ────────────────────────────────────────────
   // 앱바: Nike 스타일 — 블랙 배경, 흰 로고, 최소 UI
   // ────────────────────────────────────────────
+  // ignore: unused_element
   Widget _buildAppBar(AppLocalizations loc) {
     return SliverPersistentHeader(
       pinned: false,
@@ -4324,6 +4329,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.loc,
   });
 
+  // ignore: unused_element
   double _topPadding(BuildContext ctx) =>
       MediaQuery.of(ctx).padding.top;
 

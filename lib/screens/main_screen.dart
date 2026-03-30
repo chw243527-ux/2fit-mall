@@ -70,6 +70,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final width = MediaQuery.of(context).size.width;
     final isPc = kIsWeb && width >= kPcBreakpoint;
@@ -146,6 +147,7 @@ class _PcLayoutState extends State<_PcLayout> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final tabs = [loc.navHome, loc.navProducts, loc.navCart, loc.pcMyPage];
     return Scaffold(
@@ -472,6 +474,7 @@ class _PcTopBarState extends State<_PcTopBar> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     return Container(
       decoration: const BoxDecoration(
@@ -751,6 +754,7 @@ class _SearchBarState extends State<_SearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     return Container(
       height: 44,
@@ -816,6 +820,7 @@ class _PcFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     return Container(
       color: const Color(0xFF1A1A1A),
@@ -1022,6 +1027,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final notice  = widget.notices[_page];
     final title   = notice.localizedTitle(widget.language);
@@ -1220,6 +1226,7 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final cat = widget.cat;

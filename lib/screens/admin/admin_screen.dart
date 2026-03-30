@@ -520,7 +520,9 @@ class _AdminScreenState extends State<AdminScreen>
                           );
                           if (confirmed == true && context.mounted) {
                             await AuthService.logout();
+                            if (!context.mounted) return;
                             context.read<UserProvider>().logout();
+                            context.read<CartProvider>().clearCart();
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false);
                           }
@@ -675,7 +677,9 @@ class _AdminScreenState extends State<AdminScreen>
               );
               if (confirmed == true && context.mounted) {
                 await AuthService.logout();
+                if (!context.mounted) return;
                 context.read<UserProvider>().logout();
+                context.read<CartProvider>().clearCart();
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (r) => false,
@@ -1414,6 +1418,7 @@ class _AdminScreenState extends State<AdminScreen>
                         if (ok == true && mounted) {
                           for (final id in _selectedOrderIds.toList()) {
                             await OrderService.deleteOrder(id);
+                            if (!mounted) return;
                           }
                           setState(() => _selectedOrderIds.clear());
                           if (mounted) {
@@ -3181,6 +3186,7 @@ class _AdminScreenState extends State<AdminScreen>
                         );
                         if (confirmed == true && mounted) {
                           await OrderService.updateOrderStatus(currentOrder.id, OrderStatus.confirmed);
+                          if (!mounted) return;
                           context.read<OrderProvider>().updateOrderStatus(currentOrder.id, OrderStatus.confirmed);
                           FcmService.sendOrderStatusNotification(
                             userId: currentOrder.userId,
@@ -3425,6 +3431,7 @@ class _AdminScreenState extends State<AdminScreen>
                           });
                           if (!ctx.mounted) return;
                           Navigator.pop(ctx);
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('디자인 수정 처리가 완료되었습니다.'), backgroundColor: Color(0xFF2E7D32)),
                           );
@@ -3588,7 +3595,7 @@ class _AdminScreenState extends State<AdminScreen>
                             ),
                             ...persons.asMap().entries.map((entry) {
                               final i = entry.key;
-                              final p = entry.value as Map<String, dynamic>;
+                              final p = entry.value;
                               final isEven = i % 2 == 0;
                               return Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -3749,6 +3756,7 @@ class _AdminScreenState extends State<AdminScreen>
                         );
                         if (confirmed == true && mounted) {
                           await OrderService.updateOrderStatus(currentOrder.id, OrderStatus.confirmed);
+                          if (!mounted) return;
                           context.read<OrderProvider>().updateOrderStatus(currentOrder.id, OrderStatus.confirmed);
                           FcmService.sendOrderStatusNotification(
                             userId: currentOrder.userId,
@@ -4709,6 +4717,7 @@ class _AdminScreenState extends State<AdminScreen>
                         if (ok == true && mounted) {
                           for (final uid in _selectedMemberIds.toList()) {
                             await AuthService.deleteUserDocument(uid);
+                            if (!mounted) return;
                           }
                           setState(() => _selectedMemberIds.clear());
                           if (mounted) {
@@ -5038,6 +5047,7 @@ class _AdminScreenState extends State<AdminScreen>
                   );
                   if (mounted) {
                     Navigator.pop(ctx);
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(success
@@ -5797,7 +5807,9 @@ class _AdminScreenState extends State<AdminScreen>
             onPressed: () async {
               final newStock = int.tryParse(ctrl.text) ?? p.stockCount;
               await ProductService.updateStock(p.id, newStock);
+              if (!context.mounted) return;
               await context.read<ProductProvider>().refresh();
+              if (!context.mounted) return;
               Navigator.pop(ctx);
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -5873,6 +5885,7 @@ class _AdminScreenState extends State<AdminScreen>
                 shippingCompany: companyCtrl.text.trim().isEmpty ? null : companyCtrl.text.trim(),
                 adminMemo: memoCtrl.text.trim().isEmpty ? null : memoCtrl.text.trim(),
               );
+              if (!context.mounted) return;
               // FCM 푸시 알림 (배송 시작)
               final allOrders = context.read<OrderProvider>().orders;
               final targetOrder = allOrders.firstWhere(
@@ -5927,6 +5940,7 @@ class _AdminScreenState extends State<AdminScreen>
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE53935)),
             onPressed: () async {
               await context.read<ProductProvider>().deleteProduct(p.id);
+              if (!context.mounted) return;
               Navigator.pop(ctx);
               if (mounted) {
                 setState(() { _selectedProductIds.remove(p.id); });
@@ -6172,7 +6186,7 @@ class _AdminScreenState extends State<AdminScreen>
                   onPressed: () async {
                     final ok = await AdminWebNotifier.requestPermission();
                     setDlgState(() {});
-                    if (ok && ctx.mounted) {
+                    if (ok && ctx.mounted && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('브라우저 알림이 허용되었습니다 🔔'), backgroundColor: Colors.green),
                       );
@@ -8551,6 +8565,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
         );
         current.add(url);
       }
+      if (!mounted) return;
       await context.read<ProductProvider>().updateSectionImages(widget.product.id, widget.sectionKey, current);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -8612,6 +8627,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
     );
     if (ok == true) {
       await context.read<ProductProvider>().updateSectionImages(widget.product.id, widget.sectionKey, []);
+      if (!mounted) return;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('${widget.sectionLabel} 이미지 전체 삭제 완료'),
@@ -10210,6 +10226,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
     if (ok != true) return;
     try {
       await context.read<NoticeProvider>().deleteNotice(notice.id);
+      if (!mounted) return;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

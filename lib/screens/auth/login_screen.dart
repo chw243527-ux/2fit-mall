@@ -121,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen>
       // 로그인 상태 유지 처리
       if (_rememberMe) {
         await AuthService.saveRememberMe(_emailCtrl.text.trim());
+        if (!mounted) return;
       }
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
@@ -850,6 +851,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   /// 소셜 로그인 데모 다이얼로그
+  // ignore: unused_element
   void _showSocialLoginDialog(String provider) {
     final isKakao = provider == '카카오';
     final nameCtrl = TextEditingController(
