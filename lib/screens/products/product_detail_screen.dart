@@ -651,8 +651,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // SLIVER HEADER (이미지 + 패럴랙스)
   // ═══════════════════════════════════════
   Widget _buildSliverHeader(ProductModel product) {
+    // 화면 높이의 55% 또는 최소 460px — 전신 모델 이미지가 잘리지 않도록
+    final screenH = MediaQuery.of(context).size.height;
+    final imgH = (screenH * 0.55).clamp(460.0, 580.0);
     return SliverAppBar(
-      expandedHeight: 380,
+      expandedHeight: imgH,
       pinned: true,
       backgroundColor: const Color(0xFF1A1A1A),
       leading: IconButton(
@@ -719,11 +722,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   return GestureDetector(
                     onTap: () => _showLightbox(product, i),
                     child: url.isNotEmpty
-                        ? Image.network(url,
-                            fit: BoxFit.cover,
-                            cacheWidth: 600,
-                            gaplessPlayback: true,
-                            errorBuilder: (_, __, ___) => _imagePlaceholder())
+                        ? Container(
+                            color: const Color(0xFFF8F8F8),
+                            child: Image.network(url,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                              height: double.infinity,
+                              cacheWidth: 800,
+                              gaplessPlayback: true,
+                              errorBuilder: (_, __, ___) => _imagePlaceholder()),
+                          )
                         : _imagePlaceholder(),
                   );
                 },
