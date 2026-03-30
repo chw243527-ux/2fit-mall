@@ -2659,12 +2659,12 @@ $productUrl
     );
   }
 
-  // ── 파일 선택 → Base64 변환 → 저장 ──
+  // ── 파일 선택 → Base64 변환 → 자동 저장 ──
   Future<void> _pickAndUploadImages(
       String sectionKey, String sectionLabel, List<String> existingImgs) async {
     final picker = ImagePicker();
 
-    // 로딩 스낵바
+    // 1) 이미지 선택
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -2674,13 +2674,12 @@ $productUrl
           const SizedBox(width: 12),
           Text(loc.fileSelecting),
         ]),
-        duration: const Duration(seconds: 30),
+        duration: const Duration(seconds: 60),
         backgroundColor: const Color(0xFF1A1A2E),
       ),
     );
 
     try {
-      // 여러 장 선택
       final pickedFiles = await picker.pickMultiImage(
         imageQuality: 85,
         maxWidth: 1200,
@@ -2689,32 +2688,99 @@ $productUrl
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
       if (pickedFiles.isEmpty) return;
 
-      // 선택된 이미지들 미리보기 다이얼로그
-      _showPickedImagesPreview(
-          sectionKey, sectionLabel, existingImgs, pickedFiles);
+      // 2) 변환 중 스낵바
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(children: [
+            const SizedBox(width: 20, height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+            const SizedBox(width: 12),
+            Text('${pickedFiles.length}장 변환 중...'),
+          ]),
+          duration: const Duration(seconds: 60),
+          backgroundColor: const Color(0xFF1A1A2E),
+        ),
+      );
+
+      // 3) Base64 변환
+      final newBase64List = <String>[];
+      for (final file in pickedFiles) {
+        try {
+          final bytes = await file.readAsBytes();
+          final ext = file.name.toLowerCase();
+          final mime = ext.endsWith('.png') ? 'image/png'
+              : ext.endsWith('.gif') ? 'image/gif'
+              : ext.endsWith('.webp') ? 'image/webp'
+              : 'image/jpeg';
+          newBase64List.add('data:$mime;base64,${base64Encode(bytes)}');
+        } catch (_) { /* 변환 실패 시 스킵 */ }
+      }
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (newBase64List.isEmpty) return;
+
+      // 4) 기존 이미지에 추가
+      final finalUrls = [...existingImgs, ...newBase64List];
+
+      // 5) 저장 중 스낵바
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(children: [
+            const SizedBox(width: 20, height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+            const SizedBox(width: 12),
+            Text('$sectionLabel 저장 중...'),
+          ]),
+          duration: const Duration(seconds: 60),
+          backgroundColor: const Color(0xFF1A1A2E),
+        ),
+      );
+
+      // 6) Firestore 자동 저장
+      await context.read<ProductProvider>().updateSectionImages(
+          widget.product.id, sectionKey, finalUrls);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      // 7) UI 즉시 반영
+      setState(() => _sectionImages[sectionKey] = finalUrls);
+
+      // 8) 완료 스낵바
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 10),
+            Text('$sectionLabel 이미지 ${finalUrls.length}장 저장 완료'),
+          ]),
+          duration: const Duration(seconds: 2),
+          backgroundColor: const Color(0xFF2E7D32),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${loc.imageSelectFailed}: $e'),
+          content: Text('저장 실패: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  // ── 선택된 이미지 미리보기 + 최종 저장 다이얼로그 ──
+  // ── 선택된 이미지 미리보기 + 최종 저장 다이얼로그 (레거시 - 더 이상 사용 안함) ──
   void _showPickedImagesPreview(
     String sectionKey,
     String sectionLabel,
     List<String> existingImgs,
     List<XFile> pickedFiles,
   ) {
-    // 선택된 파일 정보 표시
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -2738,8 +2804,7 @@ $productUrl
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                  '$sectionLabel 이미지 ${finalUrls.length}장이 저장되었습니다'),
+              content: Text('$sectionLabel 이미지 ${finalUrls.length}장이 저장되었습니다'),
               backgroundColor: const Color(0xFF1A1A2E),
             ),
           );
