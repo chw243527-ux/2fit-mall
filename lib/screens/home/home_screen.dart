@@ -746,7 +746,7 @@ class _HomeScreenState extends State<HomeScreen>
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 4,
-                childAspectRatio: 0.72,
+                childAspectRatio: 0.58,  // 4:5 이미지 + 텍스트
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
@@ -1850,7 +1850,7 @@ class _HomeScreenState extends State<HomeScreen>
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 5,
-                    childAspectRatio: 0.72,
+                    childAspectRatio: 0.58,  // 4:5 이미지 + 텍스트
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
@@ -1882,28 +1882,34 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // 이미지
-            Expanded(
-              flex: 6,
+            // 이미지 — 4:5 고정 비율, contain으로 전신 표시
+            AspectRatio(
+              aspectRatio: 4 / 5,
               child: Stack(
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                    child: product.images.isNotEmpty
-                        ? Image.network(
-                            product.images.first,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: const Color(0xFFF0F0F0),
+                    child: Container(
+                      color: const Color(0xFFF5F5F5),
+                      child: product.images.isNotEmpty
+                          ? Image.network(
+                              product.images.first,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.contain,
+                              filterQuality: FilterQuality.medium,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: const Color(0xFFF0F0F0),
+                                child: const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
+                              ),
+                            )
+                          : Container(
+                              color: const Color(0xFFF5F5F5),
                               child: const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
                             ),
-                          )
-                        : Container(
-                            color: const Color(0xFFF5F5F5),
-                            child: const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
-                          ),
+                    ),
                   ),
                   if (product.isNew)
                     Positioned(
@@ -1933,41 +1939,38 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             // 정보
-            Expanded(
-              flex: 4,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('2FIT KOREA',
-                        style: TextStyle(fontSize: 9, color: Color(0xFF888888), letterSpacing: 0.5)),
-                    const SizedBox(height: 2),
-                    Text(
-                      product.localizedName(_lang),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      '${_fmtPrice(product.price)}${loc.wonUnit2}',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFF111111)),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        const Icon(Icons.star_rounded, size: 11, color: Color(0xFFFFB300)),
-                        const SizedBox(width: 2),
-                        Text('${product.rating}',
-                            style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
-                        const SizedBox(width: 3),
-                        Text('(${product.reviewCount})',
-                            style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA))),
-                      ],
-                    ),
-                  ],
-                ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('2FIT KOREA',
+                      style: TextStyle(fontSize: 9, color: Color(0xFF888888), letterSpacing: 0.5)),
+                  const SizedBox(height: 2),
+                  Text(
+                    product.localizedName(_lang),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_fmtPrice(product.price)}${loc.wonUnit2}',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFF111111)),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(Icons.star_rounded, size: 11, color: Color(0xFFFFB300)),
+                      const SizedBox(width: 2),
+                      Text('${product.rating}',
+                          style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
+                      const SizedBox(width: 3),
+                      Text('(${product.reviewCount})',
+                          style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA))),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
@@ -2057,7 +2060,7 @@ class _HomeScreenState extends State<HomeScreen>
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
-              childAspectRatio: 0.72,
+              childAspectRatio: 0.58,  // 4:5 이미지 + 텍스트
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
             ),
