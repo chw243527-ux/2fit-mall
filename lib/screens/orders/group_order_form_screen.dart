@@ -1762,23 +1762,78 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       icon: Icons.palette_outlined,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-        // ① 안내 문구
+        // ① 안내 문구 (상의/하의 제작 방식)
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
-            color: Colors.blue.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue.shade200),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.25)),
           ),
-          child: Row(children: [
-            Icon(Icons.info_outline, size: 14, color: Colors.blue.shade600),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                '기성 19색 중 선택하거나, 추가 색상 / HEX 코드로 원하는 색상을 지정하세요.',
-                style: TextStyle(fontSize: 11, color: Colors.blue.shade700, height: 1.4),
+          child: Column(children: [
+            // 헤더
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6A1B9A).withValues(alpha: 0.08),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
               ),
+              child: Row(children: [
+                const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF6A1B9A)),
+                const SizedBox(width: 6),
+                const Text('색상 적용 안내',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF4A148C))),
+              ]),
+            ),
+            // 내용
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(11)),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                // 상의 안내
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1565C0),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text('상의',
+                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      '포인트 색상 또는 전체 색상이 선택한 색상으로 변경됩니다.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF333333), height: 1.5),
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 8),
+                // 하의 안내
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2E7D32),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text('하의',
+                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      '골지 느낌의 선택한 색상으로 제작됩니다.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF333333), height: 1.5),
+                    ),
+                  ),
+                ]),
+              ]),
             ),
           ]),
         ),
@@ -1866,28 +1921,25 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           ),
           child: Row(children: [
             const SizedBox(width: 14),
-            // 원본 vs 조절 후 비교
-            Container(
-              width: 32, height: 32,
-              decoration: BoxDecoration(
-                color: _mainColor,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 2),
-                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
-              ),
+            // 원본 vs 조절 후 비교 (골지 질감 스와치)
+            RibColorSwatch(
+              color: _mainColor ?? adjusted,
+              size: 32,
+              isSelected: false,
+              isLight: (_mainColor ?? adjusted).computeLuminance() > 0.5,
+              borderRadius: 8,
             ),
             const SizedBox(width: 4),
             Icon(Icons.arrow_forward_rounded, size: 14,
                 color: isLight ? Colors.black38 : Colors.white54),
             const SizedBox(width: 4),
-            Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(
-                color: adjusted,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2.5),
-                boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 6)],
-              ),
+            RibColorSwatch(
+              color: adjusted,
+              size: 40,
+              isSelected: true,
+              accentColor: Colors.white,
+              isLight: isLight,
+              borderRadius: 10,
               child: Icon(Icons.check_rounded, size: 18,
                   color: isLight ? Colors.black87 : Colors.white),
             ),
@@ -2051,28 +2103,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   ),
                 ),
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  // 원형 스와치
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 38, height: 38,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isSel ? _purple : (isLight ? Colors.grey.shade300 : Colors.transparent),
-                            width: isSel ? 2.5 : 1,
-                          ),
-                          boxShadow: isSel
-                              ? [const BoxShadow(color: Color(0x446A1B9A), blurRadius: 8, spreadRadius: 1)]
-                              : [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 3)],
-                        ),
-                      ),
-                      if (isSel)
-                        Icon(Icons.check_rounded, size: 18,
-                            color: isLight ? Colors.black87 : Colors.white),
-                    ],
+                  // 골지 질감 스와치
+                  RibColorSwatch(
+                    color: color,
+                    size: 38,
+                    isSelected: isSel,
+                    accentColor: _purple,
+                    isLight: isLight,
+                    borderRadius: 10,
+                    child: isSel
+                        ? Icon(Icons.check_rounded, size: 18,
+                            color: isLight ? Colors.black87 : Colors.white)
+                        : null,
                   ),
                   const SizedBox(height: 4),
                   // 코드
