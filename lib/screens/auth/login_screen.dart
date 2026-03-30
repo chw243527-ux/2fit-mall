@@ -66,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  // 로고 5번 연속 탭 → 관리자 계정 자동 입력
+  // 로고 5번 연속 탭 → 관리자 계정 자동 입력 + 즉시 로그인
   void _handleLogoTap() {
     final now = DateTime.now();
     if (_lastLogoTap != null &&
@@ -99,6 +99,10 @@ class _LoginScreenState extends State<LoginScreen>
           duration: const Duration(seconds: 2),
         ),
       );
+      // 자동입력 후 바로 로그인 실행
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) _login();
+      });
     }
   }
 
@@ -767,21 +771,56 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _hintRow(String email, String pw) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 1),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(email,
-                  style: const TextStyle(
-                      fontSize: 11, color: Color(0xFF888888),
-                      fontFamily: 'monospace')),
+  Widget _hintRow(String email, String pw) => GestureDetector(
+        onTap: () {
+          // 탭하면 이메일/비밀번호 자동입력 + 바로 로그인
+          _emailCtrl.text = email;
+          _pwCtrl.text = pw;
+          setState(() => _obscurePw = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(children: [
+                const Icon(Icons.admin_panel_settings_rounded,
+                    color: Colors.white, size: 16),
+                const SizedBox(width: 8),
+                Text('$email 입력 완료 — 로그인 버튼을 눌러주세요',
+                    style: const TextStyle(fontSize: 12)),
+              ]),
+              backgroundColor: const Color(0xFF1A1A2E),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 2),
             ),
-            Text('/ $pw',
-                style: const TextStyle(
-                    fontSize: 11, color: Color(0xFFAAAAAA),
-                    fontFamily: 'monospace')),
-          ],
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEEEEEE),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.touch_app_rounded,
+                  size: 12, color: Color(0xFF888888)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(email,
+                    style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF444444),
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.w600)),
+              ),
+              Text('/ $pw',
+                  style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF888888),
+                      fontFamily: 'monospace')),
+            ],
+          ),
         ),
       );
 
