@@ -63,10 +63,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     // 성별 기본값: 남성 → 하의 5부 자동 설정
     _singletGender = '남';
     _selectedBottomLength = '5부';
-    _scrollCtrl.addListener(() {
-      // ValueNotifier 사용 → setState 없이 패럴랙스만 업데이트 (전체 rebuild 방지)
-      _imageOffsetNotifier.value = (_scrollCtrl.offset * 0.4).clamp(0, 120);
-    });
+    // 패럴랙스 비활성화: 이미지 잘림 방지를 위해 오프셋 항상 0 유지
+    _imageOffsetNotifier.value = 0;
     // GA4: 상품 조회 이벤트
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AnalyticsService.logViewItem(
@@ -651,9 +649,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // SLIVER HEADER (이미지 + 패럴랙스)
   // ═══════════════════════════════════════
   Widget _buildSliverHeader(ProductModel product) {
-    // 화면 높이의 55% 또는 최소 460px — 전신 모델 이미지가 잘리지 않도록
+    // 화면 높이의 62% — 전신 모델 이미지가 완전히 보이도록 (패럴랙스 없으므로 딱 맞게)
     final screenH = MediaQuery.of(context).size.height;
-    final imgH = (screenH * 0.55).clamp(460.0, 580.0);
+    final imgH = (screenH * 0.62).clamp(500.0, 640.0);
     return SliverAppBar(
       expandedHeight: imgH,
       pinned: true,
@@ -706,36 +704,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         background: Stack(
           fit: StackFit.expand,
           children: [
-            // 패럴랙스: ValueListenableBuilder로 이미지만 분리 빌드 (setState 없이)
-            ValueListenableBuilder<double>(
-              valueListenable: _imageOffsetNotifier,
-              builder: (_, offset, child) => Transform.translate(
-                offset: Offset(0, -offset),
-                child: child,
-              ),
-              child: PageView.builder(
-                controller: _pageCtrl,
-                itemCount: product.images.isNotEmpty ? product.images.length : 1,
-                onPageChanged: (i) => setState(() => _mainImageIndex = i),
-                itemBuilder: (_, i) {
-                  final url = product.images.isNotEmpty ? product.images[i] : '';
-                  return GestureDetector(
-                    onTap: () => _showLightbox(product, i),
-                    child: url.isNotEmpty
-                        ? Container(
-                            color: const Color(0xFFF8F8F8),
-                            child: Image.network(url,
-                              fit: BoxFit.contain,
-                              width: double.infinity,
-                              height: double.infinity,
-                              cacheWidth: 800,
-                              gaplessPlayback: true,
-                              errorBuilder: (_, __, ___) => _imagePlaceholder()),
-                          )
-                        : _imagePlaceholder(),
-                  );
-                },
-              ),
+            // 메인 이미지 슬라이더 (패럴랙스 제거 → 이미지 잘림 방지)
+            PageView.builder(
+              controller: _pageCtrl,
+              itemCount: product.images.isNotEmpty ? product.images.length : 1,
+              onPageChanged: (i) => setState(() => _mainImageIndex = i),
+              itemBuilder: (_, i) {
+                final url = product.images.isNotEmpty ? product.images[i] : '';
+                return GestureDetector(
+                  onTap: () => _showLightbox(product, i),
+                  child: url.isNotEmpty
+                      ? Container(
+                          color: const Color(0xFFF8F8F8),
+                          child: Image.network(
+                            url,
+                            fit: BoxFit.contain,      // 이미지 전체 표시
+                            width: double.infinity,
+                            height: double.infinity,
+                            // cacheWidth 제거 → 원본 화질 유지
+                            gaplessPlayback: true,
+                            filterQuality: FilterQuality.high,
+                            errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                          ),
+                        )
+                      : _imagePlaceholder(),
+                );
+              },
             ),
             // 하단 그라디언트
             const Positioned(
