@@ -198,11 +198,13 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         final filePath = '${dir.path}/$fileName';
         await File(filePath).writeAsBytes(uint8List, flush: true);
         if (!mounted) return;
-        await Share.shareXFiles(
-          [XFile(filePath, mimeType: mimeType, name: fileName)],
-          subject: '2FIT MALL 주문내역 엑셀',
-          text: '공유 시트에서 "내 파일에 저장" 또는 "다운로드"를 선택하세요.\n파일명: $fileName',
-        );
+        await SharePlus.instance.share(
+            ShareParams(
+              files: [XFile(filePath, mimeType: mimeType, name: fileName)],
+              subject: '2FIT MALL 주문내역 엑셀',
+              text: '공유 시트에서 "내 파일에 저장" 또는 "다운로드"를 선택하세요.\n파일명: $fileName',
+            ),
+          );
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -647,11 +649,13 @@ class _AdminInventoryTabState extends State<AdminInventoryTab> {
         final filePath = '${dir.path}/$fileNameP';
         await File(filePath).writeAsBytes(bytesP, flush: true);
         if (!mounted) return;
-        await Share.shareXFiles(
-          [XFile(filePath, mimeType: mimeTypeP, name: fileNameP)],
-          subject: '2FIT MALL 상품목록 엑셀',
-          text: '공유 시트에서 "내 파일에 저장" 또는 "다운로드"를 선택하세요.\n파일명: $fileNameP',
-        );
+        await SharePlus.instance.share(
+            ShareParams(
+              files: [XFile(filePath, mimeType: mimeTypeP, name: fileNameP)],
+              subject: '2FIT MALL 상품목록 엑셀',
+              text: '공유 시트에서 "내 파일에 저장" 또는 "다운로드"를 선택하세요.\n파일명: $fileNameP',
+            ),
+          );
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

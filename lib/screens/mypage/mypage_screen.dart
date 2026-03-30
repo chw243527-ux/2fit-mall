@@ -36,6 +36,7 @@ class _MyPageScreenState extends State<MyPageScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  // ignore: unused_element
   AppLocalizations get _loc => context.watch<LanguageProvider>().loc;
 
   @override
@@ -72,6 +73,7 @@ class _MyPageScreenState extends State<MyPageScreen>
         onShowChangePassword: _showChangePasswordDialog,
         onShowDeleteAccount: _showDeleteAccountDialog,
         onExcelDownload: _exportOrderExcel,
+        onShowDesignRevision: _showDesignRevisionSheet,
       );
     }
     return _MobileMyPage(
@@ -86,6 +88,7 @@ class _MyPageScreenState extends State<MyPageScreen>
       onShowChangePassword: _showChangePasswordDialog,
       onShowDeleteAccount: _showDeleteAccountDialog,
       onExcelDownload: _exportOrderExcel,
+      onShowDesignRevision: _showDesignRevisionSheet,
     );
   }
 
@@ -246,10 +249,12 @@ class _MyPageScreenState extends State<MyPageScreen>
         final filePath = '${dir.path}/$fileName';
         await File(filePath).writeAsBytes(bytes, flush: true);
         if (ctx.mounted) {
-          await Share.shareXFiles(
-            [XFile(filePath, mimeType: mimeType, name: fileName)],
-            subject: '2FIT 단체주문 내역',
-            text: fileName,
+          await SharePlus.instance.share(
+            ShareParams(
+              files: [XFile(filePath, mimeType: mimeType, name: fileName)],
+              subject: '2FIT 단체주문 내역',
+              text: fileName,
+            ),
           );
         }
       }
@@ -468,6 +473,7 @@ class _PcMyPage extends StatelessWidget {
   final void Function(BuildContext) onShowChangePassword;
   final void Function(BuildContext, UserProvider) onShowDeleteAccount;
   final void Function(BuildContext, OrderModel)? onExcelDownload;
+  final void Function(OrderModel)? onShowDesignRevision;
 
   const _PcMyPage({
     required this.tabController,
@@ -480,6 +486,7 @@ class _PcMyPage extends StatelessWidget {
     required this.onShowChangePassword,
     required this.onShowDeleteAccount,
     this.onExcelDownload,
+    this.onShowDesignRevision,
   });
 
   @override
@@ -653,7 +660,8 @@ class _PcMyPage extends StatelessWidget {
                           switch (tabController.index) {
                             case 0: return _PcOrderHistoryTab(userProvider: userProvider, loc: loc,
                                 onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
-                                onExcelDownload: onExcelDownload);
+                                onExcelDownload: onExcelDownload,
+                                onDesignRevision: onShowDesignRevision);
                             case 1: return _PcPaymentHistoryTab(userProvider: userProvider, loc: loc);
                             case 2: return _PcWishlistTab(userProvider: userProvider, loc: loc);
                             case 3: return _PcCouponTab(userProvider: userProvider, loc: loc);
@@ -946,11 +954,13 @@ class _PcOrderHistoryTab extends StatelessWidget {
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
   final void Function(BuildContext, OrderModel)? onExcelDownload;
+  final void Function(OrderModel)? onDesignRevision;
 
   const _PcOrderHistoryTab({
     required this.userProvider, required this.loc,
     required this.onAdditionalOrder, required this.onColorEdit,
     this.onExcelDownload,
+    this.onDesignRevision,
   });
 
   @override
@@ -984,6 +994,7 @@ class _PcOrderHistoryTab extends StatelessWidget {
                   onAdditionalOrder: onAdditionalOrder,
                   onColorEdit: onColorEdit,
                   onExcelDownload: onExcelDownload,
+                  onDesignRevision: onDesignRevision,
                 ),
               ),
         ),
@@ -1788,6 +1799,7 @@ class _MobileMyPage extends StatelessWidget {
   final void Function(BuildContext) onShowChangePassword;
   final void Function(BuildContext, UserProvider) onShowDeleteAccount;
   final void Function(BuildContext, OrderModel)? onExcelDownload;
+  final void Function(OrderModel)? onShowDesignRevision;
 
   const _MobileMyPage({
     required this.tabController,
@@ -1801,6 +1813,7 @@ class _MobileMyPage extends StatelessWidget {
     required this.onShowChangePassword,
     required this.onShowDeleteAccount,
     this.onExcelDownload,
+    this.onShowDesignRevision,
   });
 
   @override
@@ -1865,7 +1878,8 @@ class _MobileMyPage extends StatelessWidget {
                 children: [
                   _MobileOrderHistoryTab(userProvider: userProvider, loc: loc,
                     onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
-                    onExcelDownload: onExcelDownload),
+                    onExcelDownload: onExcelDownload,
+                    onDesignRevision: onShowDesignRevision),
                   _MobilePaymentHistoryTab(userProvider: userProvider, loc: loc),
                   _MobileWishlistTab(userProvider: userProvider, loc: loc),
                   _MobileCouponTab(userProvider: userProvider, loc: loc),
@@ -2082,11 +2096,13 @@ class _MobileOrderHistoryTab extends StatelessWidget {
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
   final void Function(BuildContext, OrderModel)? onExcelDownload;
+  final void Function(OrderModel)? onDesignRevision;
 
   const _MobileOrderHistoryTab({
     required this.userProvider, required this.loc,
     required this.onAdditionalOrder, required this.onColorEdit,
     this.onExcelDownload,
+    this.onDesignRevision,
   });
 
   @override
@@ -2110,6 +2126,7 @@ class _MobileOrderHistoryTab extends StatelessWidget {
           order: orders[i], loc: loc,
           onAdditionalOrder: onAdditionalOrder, onColorEdit: onColorEdit,
           onExcelDownload: onExcelDownload,
+          onDesignRevision: onDesignRevision,
         ),
       ),
     );
@@ -4459,6 +4476,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
   bool _submitted = false;
   bool _isSubmitting = false;
   String? _selectedColorName;
+  // ignore: unused_field
   Color? _selectedColor;
 
   @override

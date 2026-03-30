@@ -277,6 +277,7 @@ class OrderExcelService {
   }
 
   // ── 이미지 URL → Base64 변환 (웹 환경용) ──
+  // ignore: unused_element
   static Future<String?> _fetchImageBase64(String? url) async {
     if (url == null || url.isEmpty) return null;
     try {
@@ -1574,8 +1575,6 @@ class OrderExcelService {
               mediaPath, img.bytes!.length, img.bytes!));
 
           // drawing.xml.rels 항목
-          final mimeType =
-              img.ext == 'png' ? 'image/png' : 'image/jpeg';
           drawingRelsEntries.add(
               '  <Relationship Id="$rId" '
               'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
@@ -1820,13 +1819,6 @@ class OrderExcelService {
     final designFileUrl = opts['designFileUrl']?.toString() ?? opts['maleRefImageUrl']?.toString() ?? '';
     final bottomColorName = opts['bottomColorName']?.toString() ?? '';
 
-    // 이미지 URL 하이퍼링크 스타일
-    final linkStyle = CellStyle(
-      fontColorHex: ExcelColor.fromHexString('#1565C0'),
-      underline: Underline.Single,
-      bold: false,
-      fontSize: 10,
-    );
     final imgLabelStyle = CellStyle(
       bold: true,
       backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
@@ -2363,7 +2355,7 @@ class OrderExcelService {
     return persons.where((p) => (p as Map<String, dynamic>)['gender']?.toString() == gender).length;
   }
 
-  /// 커스텀 옵션 요약 문자열
+  // ignore: unused_element
   static String _buildCustomSummary(Map<String, dynamic> opts) {
     final parts = <String>[];
     final printType = opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '';
@@ -2536,6 +2528,7 @@ class OrderExcelService {
   static String _fmt(DateTime dt) =>
       '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:00';
 
+  // ignore: unused_element
   static String _fmtDate(DateTime dt) =>
       '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
 

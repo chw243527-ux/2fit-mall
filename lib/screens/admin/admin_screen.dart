@@ -1560,11 +1560,13 @@ class _AdminScreenState extends State<AdminScreen>
         final filePath = '${dir.path}/$fileName';
         await File(filePath).writeAsBytes(bytes, flush: true);
         if (!mounted) return;
-        await Share.shareXFiles(
-          [XFile(filePath, mimeType: mimeType, name: fileName)],
-          subject: '2FIT MALL 엑셀 예시 파일',
-          text: fileName,
-        );
+        await SharePlus.instance.share(
+            ShareParams(
+              files: [XFile(filePath, mimeType: mimeType, name: fileName)],
+              subject: '2FIT MALL 엑셀 예시 파일',
+              text: fileName,
+            ),
+          );
       }
     } catch (e) {
       if (!mounted) return;
@@ -1911,6 +1913,7 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // 날짜 한국어 포맷
+  // ignore: unused_element
   String _fmtDateKr(DateTime dt) =>
       '${dt.month}월 ${dt.day}일 ${dt.hour.toString().padLeft(2, '0')}:00';
 
@@ -1958,11 +1961,13 @@ class _AdminScreenState extends State<AdminScreen>
         await File(filePath).writeAsBytes(bytes, flush: true);
         if (!mounted) return;
         // 바로 공유 시트 열기 (다이얼로그 없이)
-        await Share.shareXFiles(
-          [XFile(filePath, mimeType: mimeType, name: fileName)],
-          subject: '2FIT 주문내역 $orderCount건',
-          text: fileName,
-        );
+        await SharePlus.instance.share(
+            ShareParams(
+              files: [XFile(filePath, mimeType: mimeType, name: fileName)],
+              subject: '2FIT 주문내역 $orderCount건',
+              text: fileName,
+            ),
+          );
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1972,7 +1977,7 @@ class _AdminScreenState extends State<AdminScreen>
     }
   }
 
-  // 저장 방법 안내 행
+  // ignore: unused_element
   Widget _saveGuideRow(IconData icon, String title, String sub) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
@@ -2235,9 +2240,9 @@ class _AdminScreenState extends State<AdminScreen>
           if (range != null) {
             final s = range.start; final e = range.end;
             rangeLabel =
-              '\${s.year}.\${s.month.toString().padLeft(2,"0")}.\${s.day.toString().padLeft(2,"0")}'
+              '${s.year}.${s.month.toString().padLeft(2,"0")}.${s.day.toString().padLeft(2,"0")}'
               ' ~ '
-              '\${e.year}.\${e.month.toString().padLeft(2,"0")}.\${e.day.toString().padLeft(2,"0")}';
+              '${e.year}.${e.month.toString().padLeft(2,"0")}.${e.day.toString().padLeft(2,"0")}';
           } else if (exportType == '전체') {
             rangeLabel = '전체 기간';
           }
@@ -2246,13 +2251,13 @@ class _AdminScreenState extends State<AdminScreen>
           String weekLabel() {
             if (selectedWeekOffset == 0) return '이번 주';
             if (selectedWeekOffset == -1) return '지난 주';
-            return '\${-selectedWeekOffset}주 전';
+            return '${-selectedWeekOffset}주 전';
           }
 
           // 월별 이름
           String monthLabel() {
             final m = DateTime(DateTime.now().year, DateTime.now().month + selectedMonthOffset);
-            return '\${m.year}년 \${m.month}월';
+            return '${m.year}년 ${m.month}월';
           }
 
           // 옵션 버튼 빌더
@@ -2349,7 +2354,7 @@ class _AdminScreenState extends State<AdminScreen>
                         child: Row(children: [
                           const Icon(Icons.calendar_today_rounded, size: 16, color: Color(0xFF1565C0)),
                           const SizedBox(width: 8),
-                          Text('\${selectedDate.year}년 \${selectedDate.month}월 \${selectedDate.day}일',
+                          Text('${selectedDate.year}년 ${selectedDate.month}월 ${selectedDate.day}일',
                               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
                           const Spacer(),
                           const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF1565C0)),
@@ -2440,7 +2445,7 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             const Text('시작일', style: TextStyle(fontSize: 10, color: Color(0xFFE65100), fontWeight: FontWeight.w600)),
-                            Text('\${rangeStart.year}.\${rangeStart.month.toString().padLeft(2,"0")}.\${rangeStart.day.toString().padLeft(2,"0")}',
+                            Text('${rangeStart.year}.${rangeStart.month.toString().padLeft(2,"0")}.${rangeStart.day.toString().padLeft(2,"0")}',
                                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE65100))),
                           ]),
                         ),
@@ -2465,7 +2470,7 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             const Text('종료일', style: TextStyle(fontSize: 10, color: Color(0xFFE65100), fontWeight: FontWeight.w600)),
-                            Text('\${rangeEnd.year}.\${rangeEnd.month.toString().padLeft(2,"0")}.\${rangeEnd.day.toString().padLeft(2,"0")}',
+                            Text('${rangeEnd.year}.${rangeEnd.month.toString().padLeft(2,"0")}.${rangeEnd.day.toString().padLeft(2,"0")}',
                                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE65100))),
                           ]),
                         ),
@@ -2498,7 +2503,7 @@ class _AdminScreenState extends State<AdminScreen>
                         const SizedBox(width: 4),
                         Expanded(child: Text(
                           previewCount > 0
-                              ? '\$previewCount건 확인됨 · 3개 시트(주문요약/배송목록/상품집계) 엑셀 파일'
+                              ? '$previewCount건 확인됨 · 3개 시트(주문요약/배송목록/상품집계) 엑셀 파일'
                               : '로딩된 주문 범위 외 · 다운로드 시 Firestore 재조회',
                           style: TextStyle(
                             fontSize: 11,
@@ -2578,16 +2583,16 @@ class _AdminScreenState extends State<AdminScreen>
                     }
 
                     final bytes = await OrderExcelService.generateExcel(finalOrders, fStart, fEnd);
-                    final startStr = '\${fStart.year}\${fStart.month.toString().padLeft(2,"0")}\${fStart.day.toString().padLeft(2,"0")}';
-                    final endStr   = '\${fEnd.year}\${fEnd.month.toString().padLeft(2,"0")}\${fEnd.day.toString().padLeft(2,"0")}';
+                    final startStr = '${fStart.year}${fStart.month.toString().padLeft(2,"0")}${fStart.day.toString().padLeft(2,"0")}';
+                    final endStr   = '${fEnd.year}${fEnd.month.toString().padLeft(2,"0")}${fEnd.day.toString().padLeft(2,"0")}';
                     final typeTag  = {'일일':'daily','일별':'day','주별':'week','월별':'month','기간선택':'range','전체':'all'}[exportType] ?? 'export';
-                    final fileName = '2FIT_주문_\${typeTag}_\${startStr}_\${endStr}.xlsx';
+                    final fileName = '2FIT_주문_${typeTag}_${startStr}_${endStr}.xlsx';
                     await _handleExcelDownload(bytes, fileName, finalOrders.length, fStart, fEnd);
                   } catch (e) {
                     if (!mounted) return;
                     Navigator.of(context, rootNavigator: true).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('엑셀 생성 오류: \$e'), backgroundColor: Colors.red),
+                      SnackBar(content: Text('엑셀 생성 오류: $e'), backgroundColor: Colors.red),
                     );
                   }
                 },
@@ -2599,6 +2604,7 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
+  // ignore: unused_element
   void _doExportCSV(List<OrderModel> orders, String fileName) {
     final sb = StringBuffer();
     // BOM for Excel UTF-8
@@ -3869,11 +3875,13 @@ class _AdminScreenState extends State<AdminScreen>
         await File(filePath).writeAsBytes(bytes, flush: true);
         if (!mounted) return;
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        await Share.shareXFiles(
-          [XFile(filePath, mimeType: mimeType, name: fileName)],
-          subject: '2FIT 주문 ${order.userName} 엑셀',
-          text: fileName,
-        );
+        await SharePlus.instance.share(
+            ShareParams(
+              files: [XFile(filePath, mimeType: mimeType, name: fileName)],
+              subject: '2FIT 주문 ${order.userName} 엑셀',
+              text: fileName,
+            ),
+          );
       }
     } catch (e) {
       if (mounted) {
@@ -5121,7 +5129,7 @@ class _AdminScreenState extends State<AdminScreen>
   // 공통 헬퍼 위젯
   // ══════════════════════════════════════════════
 
-  // 빈 상태 / 에러 상태 공통 위젯
+  // ignore: unused_element
   Widget _buildEmptyState(String title, String subtitle, IconData icon) {
     return Container(
       color: const Color(0xFFF4F6FA),
@@ -5192,6 +5200,7 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
+  // ignore: unused_element
   Widget _salesRow(String period, String amount, String change, bool isPos) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -5791,9 +5800,9 @@ class _AdminScreenState extends State<AdminScreen>
               await context.read<ProductProvider>().refresh();
               Navigator.pop(ctx);
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('\${p.name} 재고가 \${newStock}개로 업데이트되었습니다'),
-                  backgroundColor: Color(0xFF1A1A2E)));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('${p.name} 재고가 ${newStock}개로 업데이트되었습니다'),
+                  backgroundColor: const Color(0xFF1A1A2E)));
               }
             },
             child: const Text('저장', style: TextStyle(color: Colors.white)),
@@ -5910,8 +5919,8 @@ class _AdminScreenState extends State<AdminScreen>
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('상품 삭제', style: TextStyle(fontWeight: FontWeight.w800)),
-        content: const Text('"\${p.name}"을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.',
-            style: TextStyle(fontSize: 13)),
+        content: Text('"${p.name}"을(를) 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.',
+            style: const TextStyle(fontSize: 13)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
@@ -5921,9 +5930,9 @@ class _AdminScreenState extends State<AdminScreen>
               Navigator.pop(ctx);
               if (mounted) {
                 setState(() { _selectedProductIds.remove(p.id); });
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('\${p.name}이(가) 삭제되었습니다'),
-                  backgroundColor: Color(0xFFE53935)));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('${p.name}이(가) 삭제되었습니다'),
+                  backgroundColor: const Color(0xFFE53935)));
               }
             },
             child: const Text('삭제', style: TextStyle(color: Colors.white)),
