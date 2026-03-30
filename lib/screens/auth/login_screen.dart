@@ -79,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (_logoTapCount >= 5) {
       _logoTapCount = 0;
       _emailCtrl.text = 'chw243527@gmail.com';
-      _pwCtrl.text = 'admin2fit!';
+      _pwCtrl.text = 'Admin2fit2024!';
       setState(() => _obscurePw = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -425,7 +425,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ],
                           ),
                           const SizedBox(height: 6),
-                          _hintRow('chw243527@gmail.com', 'admin2fit!'),
+                          _hintRow('chw243527@gmail.com', 'Admin2fit2024!'),
                           const SizedBox(height: 2),
                           _hintRow('tbrk2435@naver.com', 'manager2fit'),
                         ],
@@ -633,7 +633,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   children: [
                                     Row(children: [Icon(Icons.admin_panel_settings_rounded, size: 14, color: Colors.grey.shade500), const SizedBox(width: 6), Text(loc.loginAdminAccount, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade500))]),
                                     const SizedBox(height: 6),
-                                    _hintRow('chw243527@gmail.com', 'admin2fit!'),
+                                    _hintRow('chw243527@gmail.com', 'Admin2fit2024!'),
                                     const SizedBox(height: 2),
                                     _hintRow('tbrk2435@naver.com', 'manager2fit'),
                                   ],
