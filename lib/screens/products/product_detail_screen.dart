@@ -2907,16 +2907,27 @@ $productUrl
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          imgs[i],
-                          width: 100, height: 100,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            width: 100, height: 100,
-                            color: const Color(0xFFEEEEEE),
-                            child: const Icon(Icons.broken_image_outlined, color: Color(0xFFAAAAAA)),
-                          ),
-                        ),
+                        child: imgs[i].startsWith('data:image')
+                            ? Image.memory(
+                                base64Decode(imgs[i].split(',').last),
+                                width: 100, height: 100,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 100, height: 100,
+                                  color: const Color(0xFFEEEEEE),
+                                  child: const Icon(Icons.broken_image_outlined, color: Color(0xFFAAAAAA)),
+                                ),
+                              )
+                            : Image.network(
+                                imgs[i],
+                                width: 100, height: 100,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 100, height: 100,
+                                  color: const Color(0xFFEEEEEE),
+                                  child: const Icon(Icons.broken_image_outlined, color: Color(0xFFAAAAAA)),
+                                ),
+                              ),
                       ),
                       // 확대 아이콘 오버레이
                       Positioned(
@@ -4805,14 +4816,23 @@ class _LightboxDialogState extends State<_LightboxDialog> {
               minScale: 0.5,
               maxScale: 4.0,
               child: Center(
-                child: Image.network(
-                  widget.images[i],
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(
-                      Icons.broken_image_rounded,
-                      color: Colors.white54,
-                      size: 80),
-                ),
+                child: widget.images[i].startsWith('data:image')
+                    ? Image.memory(
+                        base64Decode(widget.images[i].split(',').last),
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                            Icons.broken_image_rounded,
+                            color: Colors.white54,
+                            size: 80),
+                      )
+                    : Image.network(
+                        widget.images[i],
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                            Icons.broken_image_rounded,
+                            color: Colors.white54,
+                            size: 80),
+                      ),
               ),
             ),
           ),
