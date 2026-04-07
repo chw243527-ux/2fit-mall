@@ -1031,10 +1031,11 @@ class ProductService {
     // Firestore 섹션 이미지 업데이트
     try {
       await _db.collection('products').doc(productId).update({'sectionImages': newMap});
+      return true;
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ Firestore 섹션이미지 업데이트 실패: $e');
+      return false;
     }
-    return true;
   }
 
   static Future<bool> updateMainImages(

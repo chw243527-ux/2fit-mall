@@ -17,6 +17,7 @@ import '../../widgets/color_picker_widget.dart';
 import '../../utils/app_localizations.dart';
 import '../../services/analytics_service.dart';
 import '../../services/product_service.dart';
+import '../../services/storage_service.dart';
 
 // ══════════════════════════════════════════════════════════════
 // ProductDetailScreen
@@ -2581,9 +2582,15 @@ $productUrl
               top: 8, right: 8,
               child: GestureDetector(
                 onTap: () async {
+                  final deletedUrl = imgs[index];
                   final newList = List<String>.from(imgs)..removeAt(index);
                   await context.read<ProductProvider>().updateSectionImages(
                       widget.product.id, sectionKey, newList);
+                  // Firebase Storage URL이면 Storage에서도 삭제
+                  if (deletedUrl.startsWith('https://firebasestorage.googleapis.com') ||
+                      deletedUrl.startsWith('https://storage.googleapis.com')) {
+                    StorageService.deleteFile(deletedUrl);
+                  }
                   setState(() {
                     if (newList.isEmpty) {
                       _sectionImages.remove(sectionKey);
@@ -2708,76 +2715,104 @@ $productUrl
       ),
     );
 
+    List<XFile> pickedFiles = [];
     try {
-      final pickedFiles = await picker.pickMultiImage(
+      pickedFiles = await picker.pickMultiImage(
         imageQuality: 85,
         maxWidth: 1200,
         maxHeight: 1200,
       );
+    } catch (_) {}
 
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      if (pickedFiles.isEmpty) return;
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    if (pickedFiles.isEmpty) return;
 
-      // 2) 변환 중 스낵바
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(children: [
-            const SizedBox(width: 20, height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-            const SizedBox(width: 12),
-            Text('${pickedFiles.length}장 변환 중...'),
-          ]),
-          duration: const Duration(seconds: 60),
-          backgroundColor: const Color(0xFF1A1A2E),
-        ),
-      );
+    // 2) 업로드 중 스낵바
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(children: [
+          const SizedBox(width: 20, height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+          const SizedBox(width: 12),
+          Text('${pickedFiles.length}장 업로드 중... (잠시 기다려 주세요)'),
+        ]),
+        duration: const Duration(seconds: 120),
+        backgroundColor: const Color(0xFF1A1A2E),
+      ),
+    );
 
-      // 3) Base64 변환
-      final newBase64List = <String>[];
-      for (final file in pickedFiles) {
+    try {
+      // 3) Firebase Storage 업로드 → 다운로드 URL 획득
+      final productId = widget.product.id;
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final newUrls = <String>[];
+
+      for (int i = 0; i < pickedFiles.length; i++) {
+        final file = pickedFiles[i];
         try {
           final bytes = await file.readAsBytes();
-          final ext = file.name.toLowerCase();
-          final mime = ext.endsWith('.png') ? 'image/png'
-              : ext.endsWith('.gif') ? 'image/gif'
-              : ext.endsWith('.webp') ? 'image/webp'
-              : 'image/jpeg';
-          newBase64List.add('data:$mime;base64,${base64Encode(bytes)}');
-        } catch (_) { /* 변환 실패 시 스킵 */ }
+          final ext = file.name.toLowerCase().split('.').last;
+          final fileName = '${ts}_$i.$ext';
+          final url = await StorageService.uploadSectionImage(
+            productId: productId,
+            sectionKey: sectionKey,
+            bytes: bytes,
+            fileName: fileName,
+          );
+          if (url.isNotEmpty) newUrls.add(url);
+        } catch (_) { /* 개별 파일 실패 시 스킵 */ }
       }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-      if (newBase64List.isEmpty) return;
+      if (newUrls.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('업로드 실패: Firebase Storage 저장에 실패했습니다.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
 
-      // 4) 기존 이미지에 추가
-      final finalUrls = [...existingImgs, ...newBase64List];
+      // 4) 기존 이미지(URL)에 새 URL 추가
+      final finalUrls = [...existingImgs, ...newUrls];
 
-      // 5) 저장 중 스낵바
+      // 5) Firestore 저장 중 스낵바
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(children: [
             const SizedBox(width: 20, height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
             const SizedBox(width: 12),
-            Text('$sectionLabel 저장 중...'),
+            Text('$sectionLabel Firestore 저장 중...'),
           ]),
-          duration: const Duration(seconds: 60),
+          duration: const Duration(seconds: 30),
           backgroundColor: const Color(0xFF1A1A2E),
         ),
       );
 
       // 6) Firestore 자동 저장
-      await context.read<ProductProvider>().updateSectionImages(
-          widget.product.id, sectionKey, finalUrls);
+      final ok = await context.read<ProductProvider>()
+          .updateSectionImages(productId, sectionKey, finalUrls);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
+      if (!ok) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Firestore 저장 실패. 잠시 후 다시 시도해 주세요.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       // 7) UI 즉시 반영
-      setState(() => _sectionImages[sectionKey] = finalUrls);
+      setState(() => _sectionImages[sectionKey] = List<String>.from(finalUrls));
 
       // 8) 완료 스낵바
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2785,7 +2820,7 @@ $productUrl
           content: Row(children: [
             const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
             const SizedBox(width: 10),
-            Text('$sectionLabel 이미지 ${finalUrls.length}장 저장 완료'),
+            Text('$sectionLabel 이미지 ${newUrls.length}장 저장 완료'),
           ]),
           duration: const Duration(seconds: 2),
           backgroundColor: const Color(0xFF2E7D32),
@@ -2976,10 +3011,15 @@ $productUrl
                           right: 4, top: 4,
                           child: GestureDetector(
                             onTap: () async {
+                              final deletedUrl = imgs[i];
                               final newList = List<String>.from(imgs)..removeAt(i);
                               setState(() => _sectionImages['design'] = newList);
                               await context.read<ProductProvider>()
                                   .updateSectionImages(product.id, 'design', newList);
+                              if (deletedUrl.startsWith('https://firebasestorage.googleapis.com') ||
+                                  deletedUrl.startsWith('https://storage.googleapis.com')) {
+                                StorageService.deleteFile(deletedUrl);
+                              }
                             },
                             child: Container(
                               padding: const EdgeInsets.all(3),
