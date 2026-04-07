@@ -185,6 +185,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ── 독점 디자인 ──
   bool _exclusiveDesign = false; // ignore: prefer_final_fields
 
+  // ── 추가 옵션 ──
+  bool _hasPocket = false; // 주머니 선택 (+0원, 선택사항)
+
+  // ══ 추가 옵션 가격 상수 ══
+  static const int _tights9Price    = 20000; // 타이즈 9부 추가금
+  static const int _exclusivePrice  = 80000; // 1년 독점 추가금
+
   // ══ 파생값 ══
   bool get _isAdditional   => widget.isAdditionalOrder;
   int  get _totalCount     => _persons.length;
@@ -210,13 +217,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   int    get _fabricExtra  => AppConstants.fabricTypePrices[_fabricType] ?? 0;
   double get _basePrice    => widget.product?.price ?? 0.0;
-  double get _unitPrice    => _basePrice + _fabricExtra;
+  // 타이즈 9부 선택 여부
+  bool get _isTights9      => _defaultLength == '9부';
+  // 단가 = 기본가 + 원단추가 + 타이즈9부 추가
+  double get _unitPrice    => _basePrice + _fabricExtra + (_isTights9 ? _tights9Price : 0);
   double get _subTotal     => _unitPrice * _totalCount;
   double get _shipping     =>
       _totalCount >= AppConstants.groupMinFreeShipping
           ? 0
           : AppConstants.groupAdditionalShippingFee.toDouble();
-  double get _finalPrice   => _subTotal + _shipping + _waistbandExtra;
+  // 최종 = 소계 + 배송비 + 허리밴드 + 독점
+  double get _finalPrice   => _subTotal + _shipping + _waistbandExtra + (_exclusiveDesign ? _exclusivePrice : 0);
 
   String _fmt(num v) => v.toInt().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
@@ -751,6 +762,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 if (widget.product != null) _buildProductCard(),
                 _buildFabricSection(),
                 _buildLengthSection(),
+                _buildPocketSection(),
                 _buildWaistbandSection(),
                 _buildColorSection(),
                 _buildRefImageSection(),
@@ -2402,38 +2414,184 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     return _card(
       title: '하의 기본 길이',
       icon: Icons.straighten_rounded,
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: lengths.map((l) {
-          final label = l['label']!;
-          final desc  = l['desc']!;
-          final isSel = _defaultLength == label;
-          return GestureDetector(
-            onTap: () => setState(() => _defaultLength = label),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 120),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: isSel ? _purple : Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                    color: isSel ? _purple : Colors.grey.shade300),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: lengths.map((l) {
+            final label   = l['label']!;
+            final desc    = l['desc']!;
+            final isSel   = _defaultLength == label;
+            final is9bu   = label == '9부';
+            return GestureDetector(
+              onTap: () => setState(() => _defaultLength = label),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSel ? _purple : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                      color: isSel ? _purple : Colors.grey.shade300),
+                ),
+                child: Column(children: [
+                  Text(label,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800, fontSize: 13,
+                          color: isSel ? Colors.white : Colors.black87)),
+                  Text(desc,
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: isSel ? Colors.white70 : Colors.grey)),
+                  if (is9bu) ...[
+                    const SizedBox(height: 3),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isSel
+                            ? Colors.white.withValues(alpha: 0.25)
+                            : const Color(0xFFE65100).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '+2만원',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: isSel ? Colors.white : const Color(0xFFE65100),
+                        ),
+                      ),
+                    ),
+                  ],
+                ]),
               ),
-              child: Column(children: [
-                Text(label,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800, fontSize: 13,
-                        color: isSel ? Colors.white : Colors.black87)),
-                Text(desc,
-                    style: TextStyle(
-                        fontSize: 10,
-                        color: isSel ? Colors.white70 : Colors.grey)),
-              ]),
+            );
+          }).toList(),
+        ),
+        // 9부 선택 시 안내 배너
+        if (_defaultLength == '9부') ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFFB74D)),
             ),
-          );
-        }).toList(),
-      ),
+            child: Row(children: [
+              const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFFE65100)),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  '타이즈 9부 선택 시 인당 +20,000원이 추가됩니다.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFFBF360C),
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            ]),
+          ),
+        ],
+      ]),
+    );
+  }
+
+  // ══════════════════════════════════════════════
+  // 주머니 선택 섹션 (선택사항)
+  // ══════════════════════════════════════════════
+  Widget _buildPocketSection() {
+    return _card(
+      title: '주머니 (선택사항)',
+      icon: Icons.style_outlined,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // 안내 문구
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Row(children: [
+            Icon(Icons.info_outline_rounded, size: 14, color: Colors.grey.shade600),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                '주머니는 선택사항입니다. 추가 비용 없이 선택 가능합니다.',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade700, height: 1.4),
+              ),
+            ),
+          ]),
+        ),
+        // 선택 버튼
+        Row(children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _hasPocket = false),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: !_hasPocket ? _purple : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: !_hasPocket ? _purple : Colors.grey.shade300,
+                  ),
+                ),
+                child: Column(children: [
+                  Icon(Icons.do_not_disturb_alt_outlined,
+                      size: 22,
+                      color: !_hasPocket ? Colors.white : Colors.grey.shade500),
+                  const SizedBox(height: 4),
+                  Text('주머니 없음',
+                      style: TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700,
+                        color: !_hasPocket ? Colors.white : Colors.black87,
+                      )),
+                  Text('기본',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: !_hasPocket ? Colors.white70 : Colors.grey,
+                      )),
+                ]),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _hasPocket = true),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: _hasPocket ? _purple : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _hasPocket ? _purple : Colors.grey.shade300,
+                  ),
+                ),
+                child: Column(children: [
+                  Icon(Icons.cases_outlined,
+                      size: 22,
+                      color: _hasPocket ? Colors.white : Colors.grey.shade500),
+                  const SizedBox(height: 4),
+                  Text('주머니 있음',
+                      style: TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700,
+                        color: _hasPocket ? Colors.white : Colors.black87,
+                      )),
+                  Text('선택',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: _hasPocket ? Colors.white70 : Colors.grey,
+                      )),
+                ]),
+              ),
+            ),
+          ),
+        ]),
+      ]),
     );
   }
 
@@ -3650,9 +3808,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             color: _exclusiveDesign ? _purple : const Color(0xFF333333),
                           ),
                         ),
-                        const TextSpan(
-                          text: '(선택)\n',
-                          style: TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF888888)),
+                        TextSpan(
+                          text: '(선택)  ',
+                          style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF888888)),
+                        ),
+                        TextSpan(
+                          text: '+80,000원\n',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: _exclusiveDesign ? _purple : const Color(0xFFE65100),
+                          ),
                         ),
                         const TextSpan(
                           text: '· 1년간 동일 디자인 또는 동일 색상의 제품은 타 단체에 판매하지 않습니다.\n',
@@ -3839,8 +4005,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _sumRow('기본 단가', '${_fmt(_basePrice)}원'),
         if (_fabricExtra > 0)
           _sumRow('재봉방법(심리스) 추가', '+${_fmt(_fabricExtra)}원'),
+        if (_isTights9)
+          _sumRow('타이즈 9부 추가', '+${_fmt(_tights9Price)}원',
+              valueColor: const Color(0xFFE65100)),
         _sumRow('단가 합계', '${_fmt(_unitPrice)}원/인'),
         _sumRow('총 인원', '$_totalCount명'),
+        if (_hasPocket)
+          _sumRow('주머니', '선택됨',
+              valueColor: Colors.green.shade700),
         const Divider(height: 20),
         _sumRow('상품 합계', '${_fmt(_subTotal)}원'),
         _sumRow(
@@ -3853,6 +4025,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           _sumRow('허리밴드 ${_waistbandOptionLabel}',
               '+${_fmt(_waistbandExtra)}원',
               valueColor: const Color(0xFFE65100)),
+        if (_exclusiveDesign)
+          _sumRow('1년 독점 디자인',
+              '+${_fmt(_exclusivePrice)}원',
+              valueColor: const Color(0xFF6A1B9A)),
         const Divider(height: 20),
         _sumRow('최종 결제금액', '${_fmt(_finalPrice)}원',
             isTotal: true),
