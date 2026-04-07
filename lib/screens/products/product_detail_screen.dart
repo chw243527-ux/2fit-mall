@@ -16,6 +16,7 @@ import '../orders/group_order_guide_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../utils/app_localizations.dart';
 import '../../services/analytics_service.dart';
+import '../../services/product_service.dart';
 
 // ══════════════════════════════════════════════════════════════
 // ProductDetailScreen
@@ -65,15 +66,44 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     _selectedBottomLength = '5부';
     // 패럴랙스 비활성화: 이미지 잘림 방지를 위해 오프셋 항상 0 유지
     _imageOffsetNotifier.value = 0;
-    // GA4: 상품 조회 이벤트
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // GA4: 상품 조회 이벤트
       AnalyticsService.logViewItem(
         itemId: widget.product.id,
         itemName: widget.product.name,
         price: widget.product.price,
         category: widget.product.category,
       );
+      // Firestore 최신 sectionImages 강제 로드 (캐시 우선 → 최신 반영)
+      _refreshSectionImagesFromFirestore();
     });
+  }
+
+  /// Firestore에서 최신 상품 데이터를 가져와 sectionImages를 갱신
+  /// (캐시 우회 – 관리자가 업로드한 이미지를 일반 사용자에게 즉시 반영)
+  Future<void> _refreshSectionImagesFromFirestore() async {
+    try {
+      final fresh = await ProductService.getProductByIdFresh(widget.product.id);
+      if (fresh == null || !mounted) return;
+      final freshImages = fresh.sectionImages;
+      if (freshImages.isEmpty) return;
+      bool changed = false;
+      for (final key in freshImages.keys) {
+        final newList = freshImages[key]!;
+        if (_sectionImages[key] != newList) {
+          _sectionImages[key] = List<String>.from(newList);
+          changed = true;
+        }
+      }
+      // Firestore에서 삭제된 키 제거
+      _sectionImages.keys.toList().forEach((key) {
+        if (!freshImages.containsKey(key)) {
+          _sectionImages.remove(key);
+          changed = true;
+        }
+      });
+      if (changed && mounted) setState(() {});
+    } catch (_) {}
   }
 
   @override
@@ -110,9 +140,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         _sectionImages[key] = List<String>.from(product.sectionImages[key]!);
       }
     }
-    // 삭제된 섹션 키 제거
-    _sectionImages.removeWhere((key, _) => !product.sectionImages.containsKey(key)
-        && !_sectionImages.containsKey(key));
+    // 삭제된 섹션 키 제거 (product.sectionImages에 없는 키를 로컬에서 제거)
+    _sectionImages.removeWhere((key, _) => !product.sectionImages.containsKey(key));
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 

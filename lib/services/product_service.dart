@@ -865,6 +865,29 @@ class ProductService {
     return null;
   }
 
+  /// Firestore에서 최신 데이터를 직접 조회 (캐시 우선순위 없음)
+  /// 관리자 이미지 업로드 후 일반 사용자가 최신 sectionImages를 볼 때 사용
+  static Future<ProductModel?> getProductByIdFresh(String id) async {
+    try {
+      final doc = await _db.collection('products').doc(id).get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        if (data['createdAt'] is Timestamp) {
+          data['createdAt'] =
+              (data['createdAt'] as Timestamp).toDate().toIso8601String();
+        }
+        final fresh = ProductModel.fromJson(data);
+        // 인메모리 캐시도 갱신
+        final idx = _products.indexWhere((p) => p.id == id);
+        if (idx >= 0) {
+          _products[idx] = fresh;
+        }
+        return fresh;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   static Future<List<ProductModel>> searchProducts(String query) async {
     if (query.isEmpty) return getAllProducts();
     final q = query.toLowerCase();
@@ -957,15 +980,17 @@ class ProductService {
     if (idx < 0) return false;
     final p = _products[idx];
     _products[idx] = ProductModel(
-      id: p.id, name: p.name, category: p.category,
+      id: p.id, name: p.name, category: p.category, subCategory: p.subCategory,
       price: p.price, originalPrice: p.originalPrice,
       description: p.description, images: p.images,
       sizes: p.sizes, colors: p.colors, material: p.material,
       isNew: p.isNew, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-      isActive: p.isActive,
+      isGroupOnly: p.isGroupOnly, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount,
       stockCount: newStock,
       createdAt: p.createdAt, sectionImages: p.sectionImages,
+      nameTranslations: p.nameTranslations,
+      descriptionTranslations: p.descriptionTranslations,
     );
     _cache = List.from(_products);
     await _persist();
@@ -990,14 +1015,16 @@ class ProductService {
       newMap[sectionKey] = List<String>.from(urls);
     }
     _products[idx] = ProductModel(
-      id: p.id, name: p.name, category: p.category,
+      id: p.id, name: p.name, category: p.category, subCategory: p.subCategory,
       price: p.price, originalPrice: p.originalPrice,
       description: p.description, images: p.images,
       sizes: p.sizes, colors: p.colors, material: p.material,
       isNew: p.isNew, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-      isActive: p.isActive,
+      isGroupOnly: p.isGroupOnly, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
       createdAt: p.createdAt, sectionImages: newMap,
+      nameTranslations: p.nameTranslations,
+      descriptionTranslations: p.descriptionTranslations,
     );
     _cache = List.from(_products);
     await _persist();
@@ -1016,14 +1043,16 @@ class ProductService {
     if (idx < 0) return false;
     final p = _products[idx];
     _products[idx] = ProductModel(
-      id: p.id, name: p.name, category: p.category,
+      id: p.id, name: p.name, category: p.category, subCategory: p.subCategory,
       price: p.price, originalPrice: p.originalPrice,
       description: p.description, images: urls,
       sizes: p.sizes, colors: p.colors, material: p.material,
       isNew: p.isNew, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
-      isActive: p.isActive,
+      isGroupOnly: p.isGroupOnly, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
       createdAt: p.createdAt, sectionImages: p.sectionImages,
+      nameTranslations: p.nameTranslations,
+      descriptionTranslations: p.descriptionTranslations,
     );
     _cache = List.from(_products);
     await _persist();
