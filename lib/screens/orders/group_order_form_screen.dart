@@ -2817,25 +2817,27 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             margin: const EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
-              color: _purpleLight,
+              color: _adjustedColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _purple.withValues(alpha: 0.25)),
+              border: Border.all(color: _adjustedColor.withValues(alpha: 0.40), width: 1.5),
             ),
             child: Row(children: [
-              // 원본 → 조절 후 비교
+              // 원본 색상 원
               Container(
                 width: 18, height: 18,
                 decoration: BoxDecoration(
                   color: _mainColor,
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 1.5),
+                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 2)],
                 ),
               ),
               const SizedBox(width: 3),
               Icon(Icons.arrow_forward_rounded, size: 10, color: Colors.black38),
               const SizedBox(width: 3),
+              // 조절 후 색상 원 (더 크게)
               Container(
-                width: 22, height: 22,
+                width: 24, height: 24,
                 decoration: BoxDecoration(
                   color: _adjustedColor,
                   shape: BoxShape.circle,
@@ -2843,19 +2845,29 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
-                child: RichText(text: TextSpan(
-                  style: const TextStyle(fontSize: 11, color: Colors.black87),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const TextSpan(text: '전체 색상 통일: ',
-                        style: TextStyle(fontWeight: FontWeight.w600, color: Colors.black54)),
-                    TextSpan(text: _mainColorName!,
-                        style: const TextStyle(fontWeight: FontWeight.w900, color: _purple)),
-                    TextSpan(text: '  ·  $_lightnessLabel',
-                        style: const TextStyle(color: Colors.black45, fontSize: 10, fontWeight: FontWeight.w600)),
+                    Row(children: [
+                      const Text('전체 색상 통일: ',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black54)),
+                      Text(_mainColorName!,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: _purple)),
+                    ]),
+                    const SizedBox(height: 2),
+                    Row(children: [
+                      Text(
+                        '#${_adjustedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
+                        style: const TextStyle(fontSize: 10, color: Colors.black45, fontFamily: 'monospace', fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(width: 6),
+                      Text('· $_lightnessLabel',
+                          style: const TextStyle(fontSize: 10, color: Colors.black38, fontWeight: FontWeight.w500)),
+                    ]),
                   ],
-                )),
+                ),
               ),
             ]),
           ),
@@ -2932,36 +2944,54 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       ['XL(130)',  '125~135', '27~33',  '74 cm',  '63 cm'],
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      // ── 선택된 색상 표시 (사이즈표 위)
-      if (_mainColorName != null) ...[
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          margin: const EdgeInsets.only(bottom: 8),
-          decoration: BoxDecoration(
-            color: _adjustedColor.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _adjustedColor.withValues(alpha: 0.35), width: 1.5),
-          ),
-          child: Row(children: [
-            Container(
-              width: 20, height: 20,
-              decoration: BoxDecoration(
-                color: _adjustedColor,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
+      // ── 허리밴드 색상 표시 (사이즈표 위) - 실제 허리밴드 hex 색상 사용
+      if (_waistbandColorHex.length == 7) ...[
+        Builder(builder: (context) {
+          final wbColor = _parseHexColor(_waistbandColorHex);
+          final isLight = wbColor.computeLuminance() > 0.5;
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: wbColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: wbColor.withValues(alpha: 0.45), width: 1.5),
+            ),
+            child: Row(children: [
+              // 허리밴드 실제 색상 원
+              Container(
+                width: 24, height: 24,
+                decoration: BoxDecoration(
+                  color: wbColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isLight ? Colors.black26 : Colors.white,
+                    width: 2,
+                  ),
+                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text('허리밴드 색상: ', style: TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.w600)),
-            Text(_mainColorName!, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: _purple)),
-            const SizedBox(width: 6),
-            Text(
-              '#${_adjustedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
-              style: TextStyle(fontSize: 10, color: Colors.black38, fontFamily: 'monospace'),
-            ),
-          ]),
-        ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('허리밴드 색상',
+                      style: TextStyle(fontSize: 10, color: Colors.black54, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 2),
+                  Text(
+                    _waistbandColorHex.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: wbColor.withValues(alpha: 1.0),
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ],
+              ),
+            ]),
+          );
+        }),
       ],
       // 헤더 토글
       GestureDetector(
