@@ -52,6 +52,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 로컬 섹션 이미지 캐시 (관리자 업로드 시 즉시 반영) ──
   late Map<String, List<String>> _sectionImages;
+  // Firestore 최신 로드 완료 여부 (중복 로드 방지)
+  bool _sectionImagesLoaded = false;
 
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   // ignore: unused_element
@@ -81,20 +83,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   }
 
   /// Firestore에서 최신 상품 데이터를 가져와 sectionImages를 갱신
-  /// (캐시 우회 – 관리자가 업로드한 이미지를 일반 사용자에게 즉시 반영)
+  /// (앱 첫 진입 시 1회만 실행 – 관리자가 업로드한 이미지를 일반 사용자에게 즉시 반영)
   Future<void> _refreshSectionImagesFromFirestore() async {
+    if (_sectionImagesLoaded) return; // 이미 로드됐으면 skip (업로드/삭제 후 덮어쓰기 방지)
     try {
       final fresh = await ProductService.getProductByIdFresh(widget.product.id);
       if (fresh == null || !mounted) return;
+      _sectionImagesLoaded = true;
       final freshImages = fresh.sectionImages;
-      if (freshImages.isEmpty) return;
       bool changed = false;
+      // Firestore에 있는 키만 반영
       for (final key in freshImages.keys) {
         final newList = freshImages[key]!;
-        if (_sectionImages[key] != newList) {
-          _sectionImages[key] = List<String>.from(newList);
-          changed = true;
-        }
+        _sectionImages[key] = List<String>.from(newList);
+        changed = true;
       }
       // Firestore에서 삭제된 키 제거
       _sectionImages.keys.toList().forEach((key) {
@@ -104,7 +106,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         }
       });
       if (changed && mounted) setState(() {});
-    } catch (_) {}
+    } catch (_) {
+      _sectionImagesLoaded = true; // 실패해도 재시도 방지
+    }
   }
 
   @override
@@ -127,22 +131,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   Widget build(BuildContext context) {
     final isAdmin = context.watch<UserProvider>().isAdmin;
 
-    // ProductProvider를 watch → 관리자가 이미지/정보 수정 시 즉시 반영
+    // ProductProvider를 watch → 상품 기본 정보(가격, 이름 등) 변경 시 즉시 반영
+    // ⚠️ _sectionImages는 build()에서 절대 덮어쓰지 않음
+    //    (덮어쓰면 업로드/삭제 직후 setState가 무효화됨)
     final productProvider = context.watch<ProductProvider>();
     final liveProduct = productProvider.products
         .firstWhere((p) => p.id == widget.product.id, orElse: () => widget.product);
     final product = liveProduct;
-
-    // 로컬 _sectionImages를 최신 product 데이터와 동기화
-    // (관리자가 다른 화면에서 수정했을 때 반영)
-    for (final key in product.sectionImages.keys) {
-      if (!_sectionImages.containsKey(key) ||
-          _sectionImages[key] != product.sectionImages[key]) {
-        _sectionImages[key] = List<String>.from(product.sectionImages[key]!);
-      }
-    }
-    // 삭제된 섹션 키 제거 (product.sectionImages에 없는 키를 로컬에서 제거)
-    _sectionImages.removeWhere((key, _) => !product.sectionImages.containsKey(key));
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
@@ -2475,13 +2470,15 @@ $productUrl
             ReorderableListView(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              onReorder: (oldIndex, newIndex) async {
+              onReorder: (oldIndex, newIndex) {
                 if (newIndex > oldIndex) newIndex--;
                 final newList = List<String>.from(imgs);
                 final item = newList.removeAt(oldIndex);
                 newList.insert(newIndex, item);
+                // UI 즉시 반영 (먼저)
                 setState(() => _sectionImages[sectionKey] = newList);
-                await context.read<ProductProvider>().updateSectionImages(
+                // 백그라운드 저장 (나중에)
+                context.read<ProductProvider>().updateSectionImages(
                     widget.product.id, sectionKey, newList);
               },
               children: imgs.asMap().entries.map((e) {
@@ -2584,13 +2581,7 @@ $productUrl
                 onTap: () async {
                   final deletedUrl = imgs[index];
                   final newList = List<String>.from(imgs)..removeAt(index);
-                  await context.read<ProductProvider>().updateSectionImages(
-                      widget.product.id, sectionKey, newList);
-                  // Firebase Storage URL이면 Storage에서도 삭제
-                  if (deletedUrl.startsWith('https://firebasestorage.googleapis.com') ||
-                      deletedUrl.startsWith('https://storage.googleapis.com')) {
-                    StorageService.deleteFile(deletedUrl);
-                  }
+                  // UI 즉시 반영 (먼저)
                   setState(() {
                     if (newList.isEmpty) {
                       _sectionImages.remove(sectionKey);
@@ -2598,6 +2589,14 @@ $productUrl
                       _sectionImages[sectionKey] = newList;
                     }
                   });
+                  // 백그라운드 저장 (나중에)
+                  context.read<ProductProvider>().updateSectionImages(
+                      widget.product.id, sectionKey, newList);
+                  // Firebase Storage URL이면 Storage에서도 삭제
+                  if (deletedUrl.startsWith('https://firebasestorage.googleapis.com') ||
+                      deletedUrl.startsWith('https://storage.googleapis.com')) {
+                    StorageService.deleteFile(deletedUrl);
+                  }
                 },
                 child: Container(
                   width: 32, height: 32,
@@ -2778,7 +2777,9 @@ $productUrl
       }
 
       // 4) 기존 이미지(URL)에 새 URL 추가
-      final finalUrls = [...existingImgs, ...newUrls];
+      // _sectionImages에서 최신값 참조 (함수 호출 시점 스냅샷 대신 현재 상태 사용)
+      final currentImgs = _sectionImages[sectionKey] ?? [];
+      final finalUrls = [...currentImgs, ...newUrls];
 
       // 5) Firestore 저장 중 스낵바
       ScaffoldMessenger.of(context).showSnackBar(
@@ -3013,8 +3014,16 @@ $productUrl
                             onTap: () async {
                               final deletedUrl = imgs[i];
                               final newList = List<String>.from(imgs)..removeAt(i);
-                              setState(() => _sectionImages['design'] = newList);
-                              await context.read<ProductProvider>()
+                              // UI 즉시 반영 (먼저)
+                              setState(() {
+                                if (newList.isEmpty) {
+                                  _sectionImages.remove('design');
+                                } else {
+                                  _sectionImages['design'] = newList;
+                                }
+                              });
+                              // 백그라운드 저장 (나중에)
+                              context.read<ProductProvider>()
                                   .updateSectionImages(product.id, 'design', newList);
                               if (deletedUrl.startsWith('https://firebasestorage.googleapis.com') ||
                                   deletedUrl.startsWith('https://storage.googleapis.com')) {
