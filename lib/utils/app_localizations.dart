@@ -3612,18 +3612,18 @@ class AppLocalizations {
     case AppLanguage.mongolian:return '• Бүсний өнгийг өөрчлөх боломжтой (хэлбэр/дизайн өөрчлөх боломжгүй)';
   }}
   String get groupOrderGuideExclusiveTitle { switch (language) {
-    case AppLanguage.korean:   return '1년 독점 사용권 (+100,000원)';
-    case AppLanguage.english:  return '1-Year Exclusive License (+₩100,000)';
-    case AppLanguage.japanese: return '1年独占使用権（+100,000ウォン）';
-    case AppLanguage.chinese:  return '1年独家使用权（+100,000韩元）';
-    case AppLanguage.mongolian:return '1 жилийн онцгой эрх (+100,000₩)';
+    case AppLanguage.korean:   return '1년 독점 사용권 (+80,000원)';
+    case AppLanguage.english:  return '1-Year Exclusive License (+₩80,000)';
+    case AppLanguage.japanese: return '1年独占使用権（+80,000ウォン）';
+    case AppLanguage.chinese:  return '1年独家使用权（+80,000韩元）';
+    case AppLanguage.mongolian:return '1 жилийн онцгой эрх (+80,000₩)';
   }}
   String get groupOrderGuideExclusive1 { switch (language) {
-    case AppLanguage.korean:   return '• 추가 10만원 결제 시 해당 디자인을 1년간 타인에게 배포하지 않습니다.';
-    case AppLanguage.english:  return '• Pay extra ₩100,000 to keep the design exclusive for 1 year.';
-    case AppLanguage.japanese: return '• 追加10万ウォン支払いで、そのデザインを1年間他者に配布しません。';
-    case AppLanguage.chinese:  return '• 额外支付10万韩元，该设计1年内不向他人分发。';
-    case AppLanguage.mongolian:return '• Нэмэлт 100,000₩ төлвөл дизайныг 1 жилийн хугацаанд бусдад өгөхгүй.';
+    case AppLanguage.korean:   return '• 추가 8만원 결제 시 해당 디자인을 1년간 타인에게 배포하지 않습니다.';
+    case AppLanguage.english:  return '• Pay extra ₩80,000 to keep the design exclusive for 1 year.';
+    case AppLanguage.japanese: return '• 追加8万ウォン支払いで、そのデザインを1年間他者に配布しません。';
+    case AppLanguage.chinese:  return '• 额外支付8万韩元，该设计1年内不向他人分发。';
+    case AppLanguage.mongolian:return '• Нэмэлт 80,000₩ төлвөл дизайныг 1 жилийн хугацаанд бусдад өгөхгүй.';
   }}
   String get groupOrderGuideExclusive2 { switch (language) {
     case AppLanguage.korean:   return '• 1년 이후에는 2FIT 쇼핑몰에서 판매될 수 있습니다.';

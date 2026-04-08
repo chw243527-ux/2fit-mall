@@ -186,11 +186,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   bool _exclusiveDesign = false; // ignore: prefer_final_fields
 
   // ── 추가 옵션 ──
-  bool _hasPocket = false; // 주머니 선택 (+0원, 선택사항)
+  bool _hasPocket = false; // 주머니 선택 (+10,000원)
 
   // ══ 추가 옵션 가격 상수 ══
   static const int _tights9Price    = 20000; // 타이즈 9부 추가금
   static const int _exclusivePrice  = 80000; // 1년 독점 추가금
+  static const int _pocketPrice     = 10000; // 주머니 추가금
 
   // ══ 파생값 ══
   bool get _isAdditional   => widget.isAdditionalOrder;
@@ -219,15 +220,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   double get _basePrice    => widget.product?.price ?? 0.0;
   // 타이즈 9부 선택 여부
   bool get _isTights9      => _defaultLength == '9부';
-  // 단가 = 기본가 + 원단추가 + 타이즈9부 추가
-  double get _unitPrice    => _basePrice + _fabricExtra + (_isTights9 ? _tights9Price : 0);
+  // 단가 = 기본가 + 원단추가 + 타이즈9부 추가 + 주머니 추가
+  double get _unitPrice    => _basePrice + _fabricExtra + (_isTights9 ? _tights9Price : 0) + (_hasPocket ? _pocketPrice : 0);
   double get _subTotal     => _unitPrice * _totalCount;
-  double get _shipping     =>
-      _totalCount >= AppConstants.groupMinFreeShipping
-          ? 0
-          : AppConstants.groupAdditionalShippingFee.toDouble();
-  // 최종 = 소계 + 배송비 + 허리밴드 + 독점
-  double get _finalPrice   => _subTotal + _shipping + _waistbandExtra + (_exclusiveDesign ? _exclusivePrice : 0);
+  // 배송비: 30만원 이상 무료, 미만 4,000원
+  double get _shipping     => _subTotal >= 300000 ? 0 : AppConstants.groupAdditionalShippingFee.toDouble();
+  // 최종 = 소계 + 배송비 + 허리밴드 + 독점 + 주머니
+  double get _finalPrice   => _subTotal + _shipping + _waistbandExtra
+      + (_exclusiveDesign ? _exclusivePrice : 0)
+      + (_hasPocket ? _pocketPrice : 0);
 
   String _fmt(num v) => v.toInt().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
@@ -2518,7 +2519,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                '주머니는 선택사항입니다. 추가 비용 없이 선택 가능합니다.',
+                '주머니 선택 시 +10,000원이 추가됩니다.',
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade700, height: 1.4),
               ),
             ),
@@ -2549,7 +2550,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         fontSize: 13, fontWeight: FontWeight.w700,
                         color: !_hasPocket ? Colors.white : Colors.black87,
                       )),
-                  Text('기본',
+                  Text('기본 (+0원)',
                       style: TextStyle(
                         fontSize: 10,
                         color: !_hasPocket ? Colors.white70 : Colors.grey,
@@ -2582,10 +2583,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         fontSize: 13, fontWeight: FontWeight.w700,
                         color: _hasPocket ? Colors.white : Colors.black87,
                       )),
-                  Text('선택',
+                  Text('+10,000원',
                       style: TextStyle(
                         fontSize: 10,
-                        color: _hasPocket ? Colors.white70 : Colors.grey,
+                        fontWeight: FontWeight.w700,
+                        color: _hasPocket ? Colors.white70 : Colors.orange.shade700,
                       )),
                 ]),
               ),
@@ -4012,15 +4014,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _sumRow('단가 합계', '${_fmt(_unitPrice)}원/인'),
         _sumRow('총 인원', '$_totalCount명'),
         if (_hasPocket)
-          _sumRow('주머니', '선택됨',
-              valueColor: Colors.green.shade700),
+          _sumRow('주머니 추가', '+${_fmt(_pocketPrice)}원',
+              valueColor: const Color(0xFFE65100)),
         const Divider(height: 20),
         _sumRow('상품 합계', '${_fmt(_subTotal)}원'),
         _sumRow(
           '배송비',
-          _totalCount >= AppConstants.groupMinFreeShipping ? '무료' : '+${_fmt(_shipping)}원',
-          valueColor: _totalCount >= AppConstants.groupMinFreeShipping
-              ? Colors.green.shade700 : null,
+          _subTotal >= 300000 ? '무료 (30만원 이상)' : '+${_fmt(_shipping)}원',
+          valueColor: _subTotal >= 300000 ? Colors.green.shade700 : null,
         ),
         if (_waistbandExtra > 0)
           _sumRow('허리밴드 ${_waistbandOptionLabel}',
