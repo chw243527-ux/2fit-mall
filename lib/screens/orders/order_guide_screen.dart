@@ -817,7 +817,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           const SizedBox(height: 16),
           _buildInfoRow(Icons.local_shipping_rounded, '배송 방법', '택배 (CJ대한통운, 롯데택배)', AppColors.primary),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.attach_money_rounded, '배송비', '3,000원 (30만원 이상 무료배송)', AppColors.success),
+          _buildInfoRow(Icons.attach_money_rounded, '배송비', '4,000원 (30만원 이상 무료배송)', AppColors.success),
           const SizedBox(height: 12),
           _buildInfoRow(Icons.access_time_rounded, '일반 배송', '결제 완료 후 2~3 영업일', AppColors.info),
           const SizedBox(height: 12),

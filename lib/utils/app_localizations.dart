@@ -2662,11 +2662,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Буцаалт/Солилт';
   }}
   String get shippingFeeValue { switch (language) {
-    case AppLanguage.korean:   return '3,000원 (30만원↑ 무료)';
-    case AppLanguage.english:  return '₩3,000 (Free over ₩300,000)';
-    case AppLanguage.japanese: return '3,000ウォン(30万ウォン以上無料)';
-    case AppLanguage.chinese:  return '3,000韩元(满30万免运费)';
-    case AppLanguage.mongolian:return '₩3,000 (₩300,000-аас дээш үнэгүй)';
+    case AppLanguage.korean:   return '4,000원 (30만원↑ 무료)';
+    case AppLanguage.english:  return '₩4,000 (Free over ₩300,000)';
+    case AppLanguage.japanese: return '4,000ウォン(30万ウォン以上無料)';
+    case AppLanguage.chinese:  return '4,000韩元(满30万免运费)';
+    case AppLanguage.mongolian:return '₩4,000 (₩300,000-аас дээш үнэгүй)';
   }}
   String get deliveryDaysValue { switch (language) {
     case AppLanguage.korean:   return '주문 후 5~7일';
@@ -4405,11 +4405,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Хүргэлт';
   }}
   String get basicShippingFeeInfo { switch (language) {
-    case AppLanguage.korean:   return '기본 배송비 3,000원 (30,000원 이상 무료)';
-    case AppLanguage.english:  return 'Basic shipping ₩3,000 (Free over ₩30,000)';
-    case AppLanguage.japanese: return '基本送料3,000ウォン（30,000ウォン以上無料）';
-    case AppLanguage.chinese:  return '基本运费3,000韩元（满30,000免运费）';
-    case AppLanguage.mongolian:return 'Үндсэн хүргэлт ₩3,000 (₩30,000-аас дээш үнэгүй)';
+    case AppLanguage.korean:   return '기본 배송비 4,000원 (30만원 이상 무료)';
+    case AppLanguage.english:  return 'Basic shipping ₩4,000 (Free over ₩300,000)';
+    case AppLanguage.japanese: return '基本送料4,000ウォン（30万ウォン以上無料）';
+    case AppLanguage.chinese:  return '基本运费4,000韩元（满30万免运费）';
+    case AppLanguage.mongolian:return 'Үндсэн хүргэлт ₩4,000 (₩300,000-аас дээш үнэгүй)';
   }}
   String get dispatchLabel { switch (language) {
     case AppLanguage.korean:   return '발송';
@@ -6392,11 +6392,11 @@ class AppLocalizations {
   }
   String get cartShippingFee {
     switch (language) {
-      case AppLanguage.english: return '₩3,000';
-      case AppLanguage.japanese: return '3,000円';
-      case AppLanguage.chinese: return '3,000韩元';
-      case AppLanguage.mongolian: return '₩3,000';
-      case AppLanguage.korean: return '3,000원';
+      case AppLanguage.english: return '₩4,000';
+      case AppLanguage.japanese: return '4,000円';
+      case AppLanguage.chinese: return '4,000韩元';
+      case AppLanguage.mongolian: return '₩4,000';
+      case AppLanguage.korean: return '4,000원';
     }
   }
   String get cartTotal {
