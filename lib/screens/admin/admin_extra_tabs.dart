@@ -92,7 +92,13 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
     );
 
-    final headers = ['주문번호', '회원명', '연락처', '배송주소', '주문금액', '배송비', '결제방법', '주문유형', '상태', '주문일시'];
+    final headers = [
+      '주문번호', '회원명', '연락처', '배송주소', '주문금액', '배송비', '결제방법', '주문유형', '상태', '주문일시',
+      // 단체주문 옵션
+      '팀명', '담당자', '총인원', '메인색상', '색상HEX', '밝기',
+      '재봉방법', '원단무게', '주머니', '하의기장', '허리밴드옵션', '허리밴드색상HEX',
+      '독점디자인', '인쇄방식',
+    ];
     for (int i = 0; i < headers.length; i++) {
       final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
       cell.value = TextCellValue(headers[i]);
@@ -101,6 +107,16 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
 
     for (int r = 0; r < orders.length; r++) {
       final o = orders[r];
+      final opts = o.customOptions ?? {};
+      final isGroup = o.orderType == 'group';
+      // 주머니: bool 또는 string 모두 처리
+      String pocketVal = '-';
+      if (isGroup) {
+        final p = opts['pocket'];
+        if (p == true || p == 'true') pocketVal = '있음';
+        else if (p == false || p == 'false') pocketVal = '없음';
+        else pocketVal = '없음';
+      }
       final row = [
         o.id,
         o.userName,
@@ -109,9 +125,24 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         o.totalAmount.toStringAsFixed(0),
         o.shippingFee.toStringAsFixed(0),
         o.paymentMethod,
-        o.orderType == 'group' ? '단체' : '개인',
+        isGroup ? '단체' : '개인',
         o.status.label,
         '${o.createdAt.year}-${o.createdAt.month.toString().padLeft(2,'0')}-${o.createdAt.day.toString().padLeft(2,'0')} ${o.createdAt.hour.toString().padLeft(2,'0')}:${o.createdAt.minute.toString().padLeft(2,'0')}',
+        // 단체주문 옵션 (비단체주문은 '-')
+        isGroup ? (opts['teamName'] ?? o.groupName ?? '-') : '-',
+        isGroup ? (opts['manager'] ?? '-') : '-',
+        isGroup ? (o.groupCount?.toString() ?? '-') : '-',
+        isGroup ? (opts['mainColor'] ?? '-') : '-',
+        isGroup ? (opts['adjustedColorHex'] ?? '-') : '-',
+        isGroup ? (opts['colorTone'] ?? '-') : '-',
+        isGroup ? (opts['fabric'] ?? '-') : '-',
+        isGroup ? (opts['weight'] ?? '-') : '-',
+        pocketVal,
+        isGroup ? (opts['defaultLength'] ?? '-') : '-',
+        isGroup ? (opts['waistbandOption'] ?? '-') : '-',
+        isGroup ? ((opts['waistbandColorHex'] ?? '').toString().isEmpty ? '-' : opts['waistbandColorHex'].toString()) : '-',
+        isGroup ? ((opts['exclusive'] == true || opts['exclusive'] == 'true') ? '선택' : '미선택') : '-',
+        isGroup ? (opts['printType'] ?? '-') : '-',
       ];
       final rowStyle = CellStyle(
         backgroundColorHex: r % 2 == 0
