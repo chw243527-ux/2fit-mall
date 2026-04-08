@@ -759,6 +759,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               _buildHeader(),
               _buildCountSection(),
               if (_countFixed) ...[
+                _buildAllMembersNotice(),
                 _buildPrintTypeSection(),
                 _build2FitLogoBanner(),
                 if (widget.product != null) _buildProductCard(),
@@ -916,6 +917,37 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   // ══════════════════════════════════════════════
+  // ── 전체 인원 공통 적용 안내 배너
+  Widget _buildAllMembersNotice() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8E1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFFFCC02), width: 1.5),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFFF57F17)),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              '아래 모든 선택사항은 전체 인원에게 동일하게 적용됩니다.\n개인별로 다르게 선택할 수 없습니다.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFF5D4037),
+                fontWeight: FontWeight.w600,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // 인쇄 타입 섹션
   // ══════════════════════════════════════════════
   Widget _buildPrintTypeSection() {
