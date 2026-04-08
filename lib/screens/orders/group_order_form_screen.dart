@@ -153,7 +153,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   // ── 원단 ──
-  String _fabricType   = '일반 (봉제)';
+  String _fabricType   = '일반 봉제'; // constants.fabricTypes[0] 과 동일하게 유지
   String _fabricWeight = '80g';
 
   // ── 하의 기본 길이 ──
@@ -626,6 +626,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'colorTone'      : _lightnessLabel,
       'fabric'       : _fabricType,
       'weight'       : _fabricWeight,
+      'pocket'       : _hasPocket,
       'defaultLength': _defaultLength,
       'waistbandOption' : _waistbandOptionLabel,
       'waistbandOptions': _waistbandOptions.toList(),
