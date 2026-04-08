@@ -15332,4 +15332,74 @@ class AppLocalizations {
     default: return '디자인 수정 처리';
   }}
 
+  // ── 단체주문 공통 적용 안내 ───────────────────────────────────
+  String get groupOrderAllMembersNotice { switch (language) {
+    case AppLanguage.english:  return 'All options below apply equally to all members.\nIndividual selection is not available.';
+    case AppLanguage.japanese: return '以下のすべての選択肢は全メンバーに同じく適用されます。\n個別に選択することはできません。';
+    case AppLanguage.chinese:  return '以下所有选项对全体成员统一适用。\n不支持个人单独选择。';
+    case AppLanguage.mongolian:return 'Доорх бүх сонголтууд бүх гишүүдэд адилхан хэрэглэгдэнэ.\nХувь хүний сонголт боломжгүй.';
+    default: return '아래 모든 선택사항은 전체 인원에게 동일하게 적용됩니다.\n개인별로 다르게 선택할 수 없습니다.';
+  }}
+
+  // ── 주머니 섹션 ───────────────────────────────────────────────
+  String get pocketPriceNotice { switch (language) {
+    case AppLanguage.english:  return 'Selecting a pocket adds +₩10,000.';
+    case AppLanguage.japanese: return 'ポケット選択時に+10,000ウォンが追加されます。';
+    case AppLanguage.chinese:  return '选择口袋时，将额外收费 +10,000韩元。';
+    case AppLanguage.mongolian:return 'Халтай сонгосон тохиолдолд +₩10,000 нэмэгдэнэ.';
+    default: return '주머니 선택 시 +10,000원이 추가됩니다.';
+  }}
+  String get pocketNone { switch (language) {
+    case AppLanguage.english:  return 'No Pocket';
+    case AppLanguage.japanese: return 'ポケットなし';
+    case AppLanguage.chinese:  return '无口袋';
+    case AppLanguage.mongolian:return 'Хал байхгүй';
+    default: return '주머니 없음';
+  }}
+  String get pocketNoneSubtitle { switch (language) {
+    case AppLanguage.english:  return 'Basic (+₩0)';
+    case AppLanguage.japanese: return '基本 (+0ウォン)';
+    case AppLanguage.chinese:  return '基本 (+0元)';
+    case AppLanguage.mongolian:return 'Үндсэн (+₩0)';
+    default: return '기본 (+0원)';
+  }}
+  String get pocketYes { switch (language) {
+    case AppLanguage.english:  return 'With Pocket';
+    case AppLanguage.japanese: return 'ポケットあり';
+    case AppLanguage.chinese:  return '有口袋';
+    case AppLanguage.mongolian:return 'Халтай';
+    default: return '주머니 있음';
+  }}
+  String get pocketYesSubtitle { switch (language) {
+    case AppLanguage.english:  return '+₩10,000';
+    case AppLanguage.japanese: return '+10,000ウォン';
+    case AppLanguage.chinese:  return '+10,000韩元';
+    case AppLanguage.mongolian:return '+₩10,000';
+    default: return '+10,000원';
+  }}
+  String get pocketAddLabel { switch (language) {
+    case AppLanguage.english:  return 'Pocket Add-on';
+    case AppLanguage.japanese: return 'ポケット追加';
+    case AppLanguage.chinese:  return '口袋追加';
+    case AppLanguage.mongolian:return 'Хал нэмэлт';
+    default: return '주머니 추가';
+  }}
+
+  // ── 색상 통일 배너 ────────────────────────────────────────────
+  String get colorUnifyLabel { switch (language) {
+    case AppLanguage.english:  return 'Unified Color: ';
+    case AppLanguage.japanese: return 'カラー統一: ';
+    case AppLanguage.chinese:  return '统一颜色: ';
+    case AppLanguage.mongolian:return 'Нэгдсэн өнгө: ';
+    default: return '전체 색상 통일: ';
+  }}
+  // ── 단체주문 요약 배송비 ─────────────────────────────────────
+  String get groupShippingFree { switch (language) {
+    case AppLanguage.english:  return 'Free (5+ items)';
+    case AppLanguage.japanese: return '無料 (5枚以上)';
+    case AppLanguage.chinese:  return '免费 (5件以上)';
+    case AppLanguage.mongolian:return 'Үнэгүй (5+ ширхэг)';
+    default: return '무료 (5장 이상)';
+  }}
+
 }

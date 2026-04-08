@@ -932,10 +932,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         children: [
           const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFFF57F17)),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
-              '아래 모든 선택사항은 전체 인원에게 동일하게 적용됩니다.\n개인별로 다르게 선택할 수 없습니다.',
-              style: TextStyle(
+              loc.groupOrderAllMembersNotice,
+              style: const TextStyle(
                 fontSize: 12,
                 color: Color(0xFF5D4037),
                 fontWeight: FontWeight.w600,
@@ -2551,7 +2551,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                '주머니 선택 시 +10,000원이 추가됩니다.',
+                loc.pocketPriceNotice,
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade700, height: 1.4),
               ),
             ),
@@ -2577,12 +2577,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       size: 22,
                       color: !_hasPocket ? Colors.white : Colors.grey.shade500),
                   const SizedBox(height: 4),
-                  Text('주머니 없음',
+                  Text(loc.pocketNone,
                       style: TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w700,
                         color: !_hasPocket ? Colors.white : Colors.black87,
                       )),
-                  Text('기본 (+0원)',
+                  Text(loc.pocketNoneSubtitle,
                       style: TextStyle(
                         fontSize: 10,
                         color: !_hasPocket ? Colors.white70 : Colors.grey,
@@ -2610,12 +2610,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       size: 22,
                       color: _hasPocket ? Colors.white : Colors.grey.shade500),
                   const SizedBox(height: 4),
-                  Text('주머니 있음',
+                  Text(loc.pocketYes,
                       style: TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w700,
                         color: _hasPocket ? Colors.white : Colors.black87,
                       )),
-                  Text('+10,000원',
+                  Text(loc.pocketYesSubtitle,
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -2883,8 +2883,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      const Text('전체 색상 통일: ',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black54)),
+                      Text(loc.colorUnifyLabel,
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.black54)),
                       Text(_mainColorName!,
                           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: _purple)),
                     ]),
@@ -3007,8 +3007,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('허리밴드 색상',
-                      style: TextStyle(fontSize: 10, color: Colors.black54, fontWeight: FontWeight.w600)),
+                  Text(loc.waistbandColorLabel,
+                      style: const TextStyle(fontSize: 10, color: Colors.black54, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 2),
                   Text(
                     _waistbandColorHex.toUpperCase(),
@@ -4076,13 +4076,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _sumRow('단가 합계', '${_fmt(_unitPrice)}원/인'),
         _sumRow('총 인원', '$_totalCount명'),
         if (_hasPocket)
-          _sumRow('주머니 추가', '+${_fmt(_pocketPrice)}원',
+          _sumRow(loc.pocketAddLabel, '+${_fmt(_pocketPrice)}원',
               valueColor: const Color(0xFFE65100)),
         const Divider(height: 20),
         _sumRow('상품 합계', '${_fmt(_subTotal)}원'),
         _sumRow(
           '배송비',
-          _totalCount >= AppConstants.groupMinFreeShipping ? '무료 (5장 이상)' : '+${_fmt(_shipping)}원',
+          _totalCount >= AppConstants.groupMinFreeShipping ? loc.groupShippingFree : '+${_fmt(_shipping)}원',
           valueColor: _totalCount >= AppConstants.groupMinFreeShipping ? Colors.green.shade700 : null,
         ),
         if (_waistbandExtra > 0)
