@@ -1069,3 +1069,170 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
     );
   }
 }
+
+// ══════════════════════════════════════════════
+// 디자인 요청 엑셀 내보내기 헬퍼 함수
+// ══════════════════════════════════════════════
+Future<void> exportDesignRequestsToExcel(
+  BuildContext context,
+  List<Map<String, dynamic>> requests,
+) async {
+  if (requests.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('내보낼 디자인 요청이 없습니다.'), backgroundColor: Colors.orange),
+    );
+    return;
+  }
+
+  String fmtPrice(double v) =>
+      v.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+
+  final excelFile = Excel.createExcel();
+  final sheet = excelFile['디자인요청'];
+
+  final headerStyle = CellStyle(
+    bold: true,
+    backgroundColorHex: ExcelColor.fromHexString('#6A1B9A'),
+    fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+  );
+  final subHeaderStyle = CellStyle(
+    bold: true,
+    backgroundColorHex: ExcelColor.fromHexString('#E1BEE7'),
+    fontColorHex: ExcelColor.fromHexString('#4A148C'),
+  );
+
+  // ── 헤더 ──
+  final headers = [
+    '번호', '주문번호', '고객명', '요청유형',
+    '요청내용', '상태', '요청일시',
+    '메인색상', '색상HEX', '재봉방법',
+    '원단무게', '주머니', '하의기장', '팀명', '담당자',
+  ];
+  for (int i = 0; i < headers.length; i++) {
+    final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+    cell.value = TextCellValue(headers[i]);
+    cell.cellStyle = i < 7 ? headerStyle : subHeaderStyle;
+  }
+
+  // ── 데이터 행 ──
+  for (int r = 0; r < requests.length; r++) {
+    final req = requests[r];
+    final createdAt = req['createdAt'] as DateTime? ?? DateTime.now();
+    final opts = req['customOptions'] as Map<String, dynamic>? ?? {};
+
+    final pocketRaw = opts['pocket'];
+    String pocketVal = '-';
+    if (pocketRaw == true || pocketRaw == 'true') pocketVal = '있음';
+    else if (pocketRaw == false || pocketRaw == 'false') pocketVal = '없음';
+
+    final rowData = [
+      '${r + 1}',
+      req['orderId'] as String? ?? req['id'] as String? ?? '-',
+      req['userName'] as String? ?? '-',
+      req['requestType'] as String? ?? '디자인 수정',
+      req['description'] as String? ?? '-',
+      req['status'] as String? ?? '대기중',
+      '${createdAt.year}-${createdAt.month.toString().padLeft(2, '0')}-${createdAt.day.toString().padLeft(2, '0')} '
+          '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}',
+      opts['mainColor'] as String? ?? '-',
+      opts['adjustedColorHex'] as String? ?? '-',
+      opts['fabric'] as String? ?? '-',
+      opts['weight'] as String? ?? '-',
+      pocketVal,
+      opts['defaultLength'] as String? ?? '-',
+      opts['teamName'] as String? ?? '-',
+      opts['manager'] as String? ?? '-',
+    ];
+
+    final rowStyle = CellStyle(
+      backgroundColorHex: r % 2 == 0
+          ? ExcelColor.fromHexString('#FFFFFF')
+          : ExcelColor.fromHexString('#FAF5FF'),
+    );
+    for (int c = 0; c < rowData.length; c++) {
+      final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1));
+      cell.value = TextCellValue(rowData[c]);
+      cell.cellStyle = rowStyle;
+    }
+  }
+
+  // ── 요약 시트 ──
+  final summary = excelFile['요약'];
+  final now = DateTime.now();
+  final statusCounts = <String, int>{};
+  for (final req in requests) {
+    final s = req['status'] as String? ?? '대기중';
+    statusCounts[s] = (statusCounts[s] ?? 0) + 1;
+  }
+
+  final summaryHeaderStyle = CellStyle(
+    bold: true,
+    backgroundColorHex: ExcelColor.fromHexString('#6A1B9A'),
+    fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+  );
+  final sh0 = summary.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
+  sh0.value = TextCellValue('항목'); sh0.cellStyle = summaryHeaderStyle;
+  final sh1 = summary.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0));
+  sh1.value = TextCellValue('값'); sh1.cellStyle = summaryHeaderStyle;
+
+  final summaryData = [
+    ['총 요청 수', '${requests.length}건'],
+    ['대기중', '${statusCounts['대기중'] ?? 0}건'],
+    ['처리중', '${statusCounts['처리중'] ?? 0}건'],
+    ['완료', '${statusCounts['완료'] ?? 0}건'],
+    ['거절', '${statusCounts['거절'] ?? 0}건'],
+    ['다운로드 일시',
+      '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
+      '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}'],
+  ];
+  for (int r = 0; r < summaryData.length; r++) {
+    for (int c = 0; c < 2; c++) {
+      summary.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1))
+          .value = TextCellValue(summaryData[r][c]);
+    }
+  }
+
+  // ── 인코딩 & 다운로드 ──
+  final encoded = excelFile.encode();
+  if (encoded == null) return;
+  final uint8List = Uint8List.fromList(encoded);
+  final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+  final fileName = '2FIT_디자인요청_$dateStr.xlsx';
+  const mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+  if (kIsWeb) {
+    downloadFileWeb(uint8List, fileName, mimeType);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(children: [
+            const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text('$fileName 다운로드 완료'),
+          ]),
+          backgroundColor: const Color(0xFF6A1B9A),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
+  } else {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/$fileName');
+      await file.writeAsBytes(uint8List);
+      await SharePlus.instance.share(
+        ShareParams(files: [XFile(file.path, mimeType: mimeType)], subject: '2FIT 디자인요청'),
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('저장 실패: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  // fmtPrice 사용 억제
+  if (false) fmtPrice(0);
+}

@@ -8103,6 +8103,19 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   ),
                   const SizedBox(width: 6),
+                  // 엑셀 다운로드 버튼
+                  IconButton(
+                    onPressed: () => exportDesignRequestsToExcel(context, _designRequests),
+                    icon: const Icon(Icons.table_chart_rounded, size: 18),
+                    tooltip: '엑셀 다운로드',
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFFE8F5E9),
+                      foregroundColor: const Color(0xFF2E7D32),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      fixedSize: const Size(34, 34),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
                   // 요청 건수 배지
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
