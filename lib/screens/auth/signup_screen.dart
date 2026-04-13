@@ -31,7 +31,7 @@ class _SignupRateLimit {
     if (_attempts.isEmpty) return 0;
     final oldest = _attempts.first;
     final elapsed = DateTime.now().difference(oldest).inSeconds;
-    final windowSecs = _windowMinutes * 60;
+    const windowSecs = _windowMinutes * 60;
     return (windowSecs - elapsed).clamp(0, windowSecs);
   }
 
@@ -113,6 +113,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // 국제 전화번호
   _Country _selectedCountry = _countries[0]; // 기본 한국
 
+  // ── 전화번호 SMS 인증 상태 ──
+  bool _phoneSending = false;        // SMS 발송 중
+  bool _phoneVerified = false;       // 인증 완료 여부
+  String? _verificationId;           // Firebase verificationId
+  // ignore: unused_field
+  int? _resendToken;                 // 재발송 토큰 (향후 재발송 최적화에 사용)
+  final _otpCtrl = TextEditingController();
+  Timer? _otpTimer;                  // OTP 만료 카운트다운
+  int _otpRemaining = 0;             // 남은 초 (60초)
+  bool _otpSent = false;             // OTP 발송 완료 여부
+  bool _otpVerifying = false;        // OTP 확인 중
+
   // rate limit 타이머
   Timer? _blockTimer;
   int _blockRemaining = 0;
@@ -131,7 +143,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _phoneCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
+    _otpCtrl.dispose();
     _blockTimer?.cancel();
+    _otpTimer?.cancel();
     super.dispose();
   }
 
@@ -255,6 +269,93 @@ class _SignUpScreenState extends State<SignUpScreen> {
         text: formatted,
         selection: TextSelection.collapsed(offset: formatted.length),
       );
+    }
+  }
+
+  // ─── 전화번호 → E.164 변환 ───
+  String _toE164(String countryCode, String localNumber) {
+    final digits = localNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    // 한국: 앞 0 제거 후 +82 붙이기
+    if (countryCode == '+82') {
+      final without0 = digits.startsWith('0') ? digits.substring(1) : digits;
+      return '+82$without0';
+    }
+    return '$countryCode$digits';
+  }
+
+  // ─── SMS 인증번호 발송 ───
+  Future<void> _sendOtp() async {
+    final phoneRaw = _phoneCtrl.text.trim();
+    if (phoneRaw.isEmpty) {
+      _showSnack('전화번호를 먼저 입력해주세요.');
+      return;
+    }
+    final digits = phoneRaw.replaceAll(RegExp(r'[^0-9]'), '');
+    if (_selectedCountry.code == '+82' && (digits.length < 9 || digits.length > 11)) {
+      _showSnack('올바른 한국 휴대폰 번호를 입력해주세요.');
+      return;
+    }
+    final e164 = _toE164(_selectedCountry.code, phoneRaw);
+    setState(() { _phoneSending = true; _phoneVerified = false; _otpSent = false; });
+
+    final result = await AuthService.sendPhoneVerification(phoneNumber: e164);
+
+    if (!mounted) return;
+    setState(() => _phoneSending = false);
+
+    if (result['status'] == 'code_sent' || result['status'] == 'timeout') {
+      _verificationId = result['verificationId'] as String?;
+      _resendToken = result['resendToken'] as int?;
+      setState(() { _otpSent = true; _otpRemaining = 60; });
+      _startOtpTimer();
+      _showSnack('인증번호가 발송되었습니다. 60초 내에 입력해주세요.', isSuccess: true);
+    } else if (result['status'] == 'auto_verified') {
+      setState(() { _phoneVerified = true; _otpSent = false; });
+      _showSnack('전화번호가 자동으로 인증되었습니다.', isSuccess: true);
+    } else {
+      _showSnack(result['message'] as String? ?? 'SMS 발송에 실패했습니다.');
+    }
+  }
+
+  // ─── OTP 카운트다운 타이머 ───
+  void _startOtpTimer() {
+    _otpTimer?.cancel();
+    _otpTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) { t.cancel(); return; }
+      setState(() => _otpRemaining--);
+      if (_otpRemaining <= 0) {
+        t.cancel();
+        setState(() { _otpSent = false; _verificationId = null; });
+        _showSnack('인증번호가 만료되었습니다. 다시 발송해주세요.');
+      }
+    });
+  }
+
+  // ─── OTP 코드 확인 ───
+  Future<void> _verifyOtp() async {
+    final code = _otpCtrl.text.trim();
+    if (code.length != 6) {
+      _showSnack('6자리 인증번호를 입력해주세요.');
+      return;
+    }
+    if (_verificationId == null) {
+      _showSnack('인증번호를 다시 발송해주세요.');
+      return;
+    }
+    setState(() => _otpVerifying = true);
+    final result = await AuthService.verifyPhoneOtp(
+      verificationId: _verificationId!,
+      smsCode: code,
+    );
+    if (!mounted) return;
+    setState(() => _otpVerifying = false);
+
+    if (result['status'] == 'verified') {
+      _otpTimer?.cancel();
+      setState(() { _phoneVerified = true; _otpSent = false; });
+      _showSnack('전화번호 인증이 완료되었습니다.', isSuccess: true);
+    } else {
+      _showSnack(result['message'] as String? ?? '인증에 실패했습니다.');
     }
   }
 
@@ -423,6 +524,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
     if (_emailAvailable == false) {
       _showSnack(loc.signupEmailAlreadyUsed);
+      return;
+    }
+    // 전화번호 인증 필수 확인
+    if (!_phoneVerified) {
+      _showSnack('전화번호 인증을 완료해주세요.');
       return;
     }
 
@@ -658,8 +764,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ]),
                 const SizedBox(height: 16),
 
-                // ── 휴대폰 (국제번호 + 필수) ──
-                _buildLabel('휴대폰 번호 *'),
+                // ── 휴대폰 (국제번호 + SMS 인증) ──
+                _buildLabel('휴대폰 번호 * (SMS 인증 필수)'),
                 const SizedBox(height: 4),
                 Text(
                   _selectedCountry.code == '+82'
@@ -668,19 +774,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
                 const SizedBox(height: 8),
+                // 전화번호 입력 + 인증번호 받기 버튼
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   // 국가 코드 선택
                   GestureDetector(
-                    onTap: () async {
+                    onTap: _phoneVerified ? null : () async {
                       await _showCountryPicker();
-                      // 국가 변경 시 전화번호 초기화
                       _phoneCtrl.clear();
+                      setState(() { _otpSent = false; _phoneVerified = false; });
                     },
                     child: Container(
                       height: 50,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
+                        color: _phoneVerified ? Colors.grey.shade100 : const Color(0xFFF5F5F5),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(color: Colors.grey.shade200),
                       ),
@@ -701,7 +808,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: TextFormField(
                       controller: _phoneCtrl,
                       keyboardType: TextInputType.phone,
-                      onChanged: _onPhoneChanged,
+                      enabled: !_phoneVerified,
+                      onChanged: (v) {
+                        _onPhoneChanged(v);
+                        if (_otpSent || _phoneVerified) {
+                          setState(() { _otpSent = false; _phoneVerified = false; _otpCtrl.clear(); });
+                        }
+                      },
                       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\-]'))],
                       style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E)),
                       decoration: InputDecoration(
@@ -713,12 +826,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     ? '90-0000-0000'
                                     : 'Phone number',
                         hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                        suffixIcon: _phoneVerified
+                            ? const Icon(Icons.check_circle, color: Colors.green, size: 20)
+                            : null,
                         filled: true,
-                        fillColor: const Color(0xFFF5F5F5),
+                        fillColor: _phoneVerified ? Colors.green.shade50 : const Color(0xFFF5F5F5),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
                             borderSide: BorderSide.none),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide.none),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: _phoneVerified
+                              ? const BorderSide(color: Colors.green, width: 1.5)
+                              : BorderSide.none,
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Colors.green, width: 1.5),
+                        ),
                         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
                             borderSide: const BorderSide(color: Color(0xFF1A1A2E), width: 1.5)),
                         errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
@@ -728,21 +852,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       ),
                       validator: (v) {
-                        // 필수 입력
-                        if (v == null || v.trim().isEmpty) {
-                          return '휴대폰 번호는 필수입니다.';
-                        }
+                        if (v == null || v.trim().isEmpty) return '휴대폰 번호는 필수입니다.';
                         final digits = v.replaceAll(RegExp(r'[^0-9]'), '');
-                        // 한국: 9~11자리
                         if (_selectedCountry.code == '+82') {
                           if (digits.length < 9 || digits.length > 11) {
-                            return '올바른 한국 휴대폰 번호를 입력해주세요. (예: 010-0000-0000)';
-                          }
-                          if (!digits.startsWith('0')) {
-                            return '한국 번호는 0으로 시작해야 합니다.';
+                            return '올바른 한국 휴대폰 번호를 입력해주세요.';
                           }
                         } else {
-                          // 해외: 6~15자리 (E.164 기준)
                           if (digits.length < 6 || digits.length > 15) {
                             return '올바른 전화번호를 입력해주세요. (6~15자리)';
                           }
@@ -751,7 +867,148 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       },
                     ),
                   ),
+                  const SizedBox(width: 8),
+                  // 인증번호 받기 버튼
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: (_phoneSending || _phoneVerified) ? null : _sendOtp,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _phoneVerified
+                            ? Colors.green
+                            : const Color(0xFF1A1A2E),
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      child: _phoneSending
+                          ? const SizedBox(width: 16, height: 16,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : _phoneVerified
+                              ? const Icon(Icons.check, color: Colors.white, size: 18)
+                              : Text(
+                                  _otpSent ? '재발송' : '인증받기',
+                                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                                ),
+                    ),
+                  ),
                 ]),
+
+                // ── OTP 입력란 (발송 후 표시) ──
+                if (_otpSent && !_phoneVerified) ...[  
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F4FF),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFF1A1A2E).withValues(alpha: 0.15)),
+                    ),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: [
+                        const Icon(Icons.sms_outlined, size: 16, color: Color(0xFF1A1A2E)),
+                        const SizedBox(width: 6),
+                        const Expanded(
+                          child: Text('문자로 발송된 6자리 인증번호를 입력하세요.',
+                              style: TextStyle(fontSize: 12, color: Color(0xFF1A1A2E),
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                        // 카운트다운
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: _otpRemaining <= 10
+                                ? Colors.red.shade100
+                                : const Color(0xFF1A1A2E).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${_otpRemaining ~/ 60}:${(_otpRemaining % 60).toString().padLeft(2, '0')}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: _otpRemaining <= 10
+                                  ? Colors.red.shade600
+                                  : const Color(0xFF1A1A2E),
+                            ),
+                          ),
+                        ),
+                      ]),
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _otpCtrl,
+                            keyboardType: TextInputType.number,
+                            maxLength: 6,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            style: const TextStyle(fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 6,
+                                color: Color(0xFF1A1A2E)),
+                            decoration: InputDecoration(
+                              hintText: '000000',
+                              hintStyle: TextStyle(fontSize: 18,
+                                  letterSpacing: 6, color: Colors.grey.shade300,
+                                  fontWeight: FontWeight.w700),
+                              counterText: '',
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none),
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: Colors.grey.shade200)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFF1A1A2E), width: 1.5)),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 14),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _otpVerifying ? null : _verifyOtp,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1A1A2E),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            child: _otpVerifying
+                                ? const SizedBox(width: 16, height: 16,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2))
+                                : const Text('확인',
+                                    style: TextStyle(fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white)),
+                          ),
+                        ),
+                      ]),
+                    ]),
+                  ),
+                ],
+
+                // ── 인증 완료 배지 ──
+                if (_phoneVerified) ...[  
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    const Icon(Icons.verified_rounded, color: Colors.green, size: 16),
+                    const SizedBox(width: 6),
+                    Text('전화번호 인증 완료',
+                        style: TextStyle(fontSize: 12,
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.w600)),
+                  ]),
+                ],
                 const SizedBox(height: 16),
 
                 // ── 비밀번호 ──

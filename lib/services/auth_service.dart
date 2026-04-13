@@ -27,6 +27,104 @@ class AuthService {
   }
 
   // ────────────────────────────────────────────
+  // 전화번호 SMS 인증 - 코드 발송
+  // ────────────────────────────────────────────
+  static Future<Map<String, dynamic>> sendPhoneVerification({
+    required String phoneNumber, // E.164 형식: +821012345678
+  }) async {
+    final completer = Completer<Map<String, dynamic>>();
+
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      timeout: const Duration(seconds: 60),
+      verificationCompleted: (PhoneAuthCredential credential) {
+        // Android 자동 인증 (일부 기기)
+        if (!completer.isCompleted) {
+          completer.complete({
+            'status': 'auto_verified',
+            'credential': credential,
+          });
+        }
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        if (!completer.isCompleted) {
+          String msg;
+          switch (e.code) {
+            case 'invalid-phone-number':
+              msg = '올바른 전화번호 형식이 아닙니다.';
+              break;
+            case 'too-many-requests':
+              msg = '너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요.';
+              break;
+            case 'quota-exceeded':
+              msg = 'SMS 발송 한도를 초과했습니다. 내일 다시 시도해주세요.';
+              break;
+            case 'operation-not-allowed':
+              msg = '전화번호 인증이 활성화되지 않았습니다. 관리자에게 문의하세요.';
+              break;
+            default:
+              msg = 'SMS 발송 실패: ${e.message ?? e.code}';
+          }
+          completer.complete({'status': 'error', 'message': msg});
+        }
+      },
+      codeSent: (String verificationId, int? resendToken) {
+        if (!completer.isCompleted) {
+          completer.complete({
+            'status': 'code_sent',
+            'verificationId': verificationId,
+            'resendToken': resendToken,
+          });
+        }
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        if (!completer.isCompleted) {
+          completer.complete({
+            'status': 'timeout',
+            'verificationId': verificationId,
+          });
+        }
+      },
+    );
+
+    return completer.future;
+  }
+
+  // ────────────────────────────────────────────
+  // 전화번호 SMS 인증 - OTP 코드 검증
+  // ────────────────────────────────────────────
+  static Future<Map<String, dynamic>> verifyPhoneOtp({
+    required String verificationId,
+    required String smsCode,
+  }) async {
+    try {
+      final credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode.trim(),
+      );
+      // 인증 자격증명 확인 (임시 로그인 후 바로 로그아웃 - 실제 계정 생성 전 검증용)
+      final result = await _auth.signInWithCredential(credential);
+      await result.user?.delete(); // 임시 계정 삭제
+      return {'status': 'verified'};
+    } on FirebaseAuthException catch (e) {
+      String msg;
+      switch (e.code) {
+        case 'invalid-verification-code':
+          msg = '인증번호가 올바르지 않습니다. 다시 확인해주세요.';
+          break;
+        case 'session-expired':
+          msg = '인증번호가 만료되었습니다. 다시 발송해주세요.';
+          break;
+        default:
+          msg = '인증 실패: ${e.message ?? e.code}';
+      }
+      return {'status': 'error', 'message': msg};
+    } catch (e) {
+      return {'status': 'error', 'message': '인증 중 오류가 발생했습니다.'};
+    }
+  }
+
+  // ────────────────────────────────────────────
   // 이메일 중복 확인
   // ────────────────────────────────────────────
   static Future<bool> checkEmailAvailable(String email) async {
