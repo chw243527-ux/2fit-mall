@@ -401,7 +401,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             ),
           ],
           const Divider(height: 32, color: Color(0xFFF0F0F0)),
-          // 별점
+          // 별점 - 실제 리뷰가 있을 때만 표시
+          if (product.rating > 0 && product.reviewCount > 0)
           Row(
             children: [
               ...List.generate(5, (i) => Icon(Icons.star_rounded,
@@ -1371,7 +1372,8 @@ $productUrl
             ],
           ),
           const SizedBox(height: 12),
-          // 별점
+          // 별점 - 실제 리뷰가 있을 때만 표시
+          if (product.rating > 0 && product.reviewCount > 0)
           Row(
             children: [
               Row(
@@ -3937,7 +3939,7 @@ $productUrl
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                        '${reviews.isNotEmpty ? reviews.length : product.reviewCount}',
+                        '${reviews.length}',
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -3945,12 +3947,12 @@ $productUrl
                   ),
                 ],
               ),
-              if (avg > 0 || product.rating > 0) ...[
+              if (avg > 0) ...[
                 const SizedBox(height: 14),
                 Row(
                   children: [
                     Text(
-                      (avg > 0 ? avg : product.rating).toStringAsFixed(1),
+                      avg.toStringAsFixed(1),
                       style: const TextStyle(
                           fontSize: 40,
                           fontWeight: FontWeight.w900,
@@ -3965,13 +3967,13 @@ $productUrl
                               5,
                               (i) => Icon(Icons.star_rounded,
                                   size: 20,
-                                  color: i < (avg > 0 ? avg : product.rating).floor()
+                                  color: i < avg.floor()
                                       ? const Color(0xFFFFD600)
                                       : const Color(0xFFE0E0E0))),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                            '${reviews.isNotEmpty ? reviews.length : product.reviewCount}개 리뷰',
+                            '${reviews.length}개 리뷰',
                             style: const TextStyle(
                                 fontSize: 12, color: Color(0xFF888888))),
                       ],
@@ -3980,8 +3982,7 @@ $productUrl
                 ),
               ],
               const SizedBox(height: 20),
-              ..._buildSampleReviews(product),
-              const SizedBox(height: 16),
+              const SizedBox(height: 4),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
@@ -4012,78 +4013,7 @@ $productUrl
     );
   }
 
-  List<Widget> _buildSampleReviews(ProductModel product) {
-    final list = [
-      {
-        'name': '김*지', 'rating': 5, 'size': 'M', 'color': 'Black',
-        'content': '착용감이 너무 좋아요! 신축성이 뛰어나고 땀 흡수도 잘 됩니다. 운동할 때 불편함이 전혀 없어요.',
-        'date': '2024.03.10'
-      },
-      {
-        'name': '이*수', 'rating': 4, 'size': 'S', 'color': 'Navy',
-        'content': '품질은 정말 좋습니다. 사이즈가 약간 작게 나오는 것 같아 한 사이즈 업 추천드려요.',
-        'date': '2024.03.05'
-      },
-      {
-        'name': '박*준', 'rating': 5, 'size': 'L', 'color': 'Black',
-        'content': '2FIT 제품 믿고 삽니다. 이번에도 역시나 만족스럽고 빠른 배송도 좋았어요!',
-        'date': '2024.02.28'
-      },
-    ];
-    return list
-        .map((r) => Container(
-              margin: const EdgeInsets.only(bottom: 14),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7F8FA),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(r['name'] as String,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 13)),
-                      ),
-                      const SizedBox(width: 8),
-                      Row(
-                          children: List.generate(
-                              5,
-                              (i) => Icon(Icons.star_rounded,
-                                  size: 13,
-                                  color: i < (r['rating'] as int)
-                                      ? const Color(0xFFFFD600)
-                                      : const Color(0xFFE0E0E0)))),
-                      const Spacer(),
-                      Text(r['date'] as String,
-                          style: const TextStyle(
-                              fontSize: 11, color: Color(0xFFAAAAAA))),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      _reviewChip('사이즈: ${r['size']}'),
-                      const SizedBox(width: 6),
-                      _reviewChip('컬러: ${r['color']}'),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(r['content'] as String,
-                      maxLines: 5,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 13, height: 1.6, color: Color(0xFF555555))),
-                ],
-              ),
-            ))
-        .toList();
-  }
+  // 예시 리뷰 제거됨 - 실제 회원 리뷰만 표시
 
   Widget _reviewChip(String text) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

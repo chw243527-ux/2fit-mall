@@ -1962,6 +1962,7 @@ class _HomeScreenState extends State<HomeScreen>
                     '${_fmtPrice(product.price)}${loc.wonUnit2}',
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFF111111)),
                   ),
+                  if (product.rating > 0 && product.reviewCount > 0) ...[
                   const SizedBox(height: 2),
                   Row(
                     children: [
@@ -1974,6 +1975,7 @@ class _HomeScreenState extends State<HomeScreen>
                           style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA))),
                     ],
                   ),
+                  ],
                 ],
               ),
             ),

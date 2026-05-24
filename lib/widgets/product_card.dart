@@ -225,7 +225,7 @@ class ProductCard extends StatelessWidget {
             ],
           ),
           // 별점
-          if (product.rating > 0) ...[
+          if (product.rating > 0 && product.reviewCount > 0) ...[
             const SizedBox(height: 4),
             Row(
               children: [
