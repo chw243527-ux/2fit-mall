@@ -2181,6 +2181,8 @@ class _AdminScreenState extends State<AdminScreen>
       }
 
       if (mounted) {
+        // 일괄 상태 변경 후 베스트 상품 판매 수 재집계
+        context.read<ProductProvider>().refreshSalesCounts();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('✅ $updated건 자동 업데이트 완료' + (failed > 0 ? ' ($failed건 실패)' : '')),
@@ -2889,6 +2891,8 @@ class _AdminScreenState extends State<AdminScreen>
                               });
                               if (mounted) {
                                 context.read<OrderProvider>().updateOrderStatus(order.id, newStatus);
+                                // 주문 상태 변경 시 베스트 상품 판매 수 재집계
+                                context.read<ProductProvider>().refreshSalesCounts();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('주문 ${order.id} 상태: ${newStatus.label} 🔔알림 전송'),

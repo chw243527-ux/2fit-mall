@@ -20,6 +20,8 @@ class ProductModel {
   final double rating;
   final int reviewCount;
   final int stockCount;
+  /// 실제 구매 완료된 누적 판매 수량 (confirmed 이상 주문 기준)
+  final int salesCount;
   final bool isActive;
   final DateTime createdAt;
   // 섹션별 관리자 업로드 이미지 (key: 's1','s2','s3','s4','s5','s6')
@@ -48,6 +50,7 @@ class ProductModel {
     this.rating = 0.0,
     this.reviewCount = 0,
     this.stockCount = 100,
+    this.salesCount = 0,
     this.isActive = true,
     required this.createdAt,
     this.sectionImages = const {},
@@ -106,7 +109,7 @@ class ProductModel {
       images: images, sizes: sizes, colors: colors, material: material,
       isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping,
       isGroupOnly: isGroupOnly, rating: rating, reviewCount: reviewCount,
-      stockCount: stockCount, isActive: isActive, createdAt: createdAt,
+      stockCount: stockCount, salesCount: salesCount, isActive: isActive, createdAt: createdAt,
       sectionImages: sectionImages,
       nameTranslations: nameTranslations ?? this.nameTranslations,
       descriptionTranslations: descriptionTranslations ?? this.descriptionTranslations,
@@ -161,6 +164,7 @@ class ProductModel {
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount: json['reviewCount'] as int? ?? 0,
       stockCount: json['stockCount'] as int? ?? 100,
+      salesCount: json['salesCount'] as int? ?? 0,
       isActive: json['isActive'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
       sectionImages: parseSectionImages(json['sectionImages']),
@@ -193,6 +197,7 @@ class ProductModel {
       'rating': rating,
       'reviewCount': reviewCount,
       'stockCount': stockCount,
+      'salesCount': salesCount,
       'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
       'sectionImages': sectionImages,
@@ -208,7 +213,7 @@ class ProductModel {
       price: price, originalPrice: originalPrice, description: description,
       images: images, sizes: sizes, colors: colors, material: material,
       isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping, isGroupOnly: isGroupOnly,
-      rating: rating, reviewCount: reviewCount, stockCount: stockCount,
+      rating: rating, reviewCount: reviewCount, stockCount: stockCount, salesCount: salesCount,
       isActive: isActive, createdAt: createdAt,
       sectionImages: newSectionImages,
       nameTranslations: nameTranslations,

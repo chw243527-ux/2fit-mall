@@ -3746,15 +3746,17 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildBestSection(AppLocalizations loc) {
-    List<ProductModel> rawProds = context.watch<ProductProvider>().products;
-    if (rawProds.isEmpty) rawProds = ProductService.getAllProductsSync();
-    final allProducts = List<ProductModel>.from(rawProds)
-      ..sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
+    final provider = context.watch<ProductProvider>();
+    final bestProds = provider.bestProducts;
+
+    // 실제 구매 이력이 있는 베스트 상품이 없으면 섹션 자체를 숨김
+    if (bestProds.isEmpty) return const SizedBox.shrink();
+
     return _buildProductSection(
       title: loc.sectionBestSeller,
       englishTitle: loc.sectionBestSellerSub,
       accentColor: const Color(0xFFE53935),
-      products: allProducts.take(8).toList(),
+      products: bestProds,
       category: '전체',
       viewAllLabel: loc.viewAll,
     );

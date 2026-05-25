@@ -354,6 +354,46 @@ class OrderService {
   }
 
   // ────────────────────────────────────────────
+  // 베스트 상품 집계 (실제 구매 기준)
+  // ────────────────────────────────────────────
+
+  /// confirmed / processing / shipped / delivered 상태 주문에서
+  /// productId별 실제 판매 수량(quantity 합산)을 집계해 반환.
+  /// 반환값: { productId: totalQuantity }
+  static Future<Map<String, int>> getSalesCountMap() async {
+    try {
+      final snapshot = await _db
+          .collection('orders')
+          .where('status', whereIn: [
+            OrderStatus.confirmed.name,
+            OrderStatus.processing.name,
+            OrderStatus.shipped.name,
+            OrderStatus.delivered.name,
+          ])
+          .get();
+
+      final Map<String, int> countMap = {};
+      for (final doc in snapshot.docs) {
+        try {
+          final data = doc.data();
+          final rawItems = data['items'] as List<dynamic>? ?? [];
+          for (final rawItem in rawItems) {
+            final item = rawItem as Map<String, dynamic>;
+            final productId = item['productId'] as String? ?? '';
+            final qty = (item['quantity'] as num?)?.toInt() ?? 1;
+            if (productId.isNotEmpty) {
+              countMap[productId] = (countMap[productId] ?? 0) + qty;
+            }
+          }
+        } catch (_) {}
+      }
+      return countMap;
+    } catch (_) {
+      return {};
+    }
+  }
+
+  // ────────────────────────────────────────────
   // 내부 유틸리티
   // ────────────────────────────────────────────
   static Future<List<OrderModel>> _getUserOrdersFromHive(String userId) async {

@@ -1032,6 +1032,8 @@ class ProductProvider extends ChangeNotifier {
   bool _isAdminLoading = false;
   String? _error;
   String _currentCategory = '전체';
+  /// 상품ID → 실제 판매 수량 캐시
+  Map<String, int> _salesCountMap = {};
 
   List<ProductModel> get products => _products;
   /// 관리자 전용: isActive 무관 전체 상품 목록
@@ -1041,11 +1043,26 @@ class ProductProvider extends ChangeNotifier {
   String? get error => _error;
   String get currentCategory => _currentCategory;
 
+  /// 실제 구매(confirmed 이상) 기준으로 판매 수 상위 상품 목록 (salesCount > 0 인 것만)
+  List<ProductModel> get bestProducts {
+    final withSales = _products
+        .where((p) => p.isActive && (_salesCountMap[p.id] ?? p.salesCount) > 0)
+        .toList()
+      ..sort((a, b) {
+        final sa = _salesCountMap[a.id] ?? a.salesCount;
+        final sb = _salesCountMap[b.id] ?? b.salesCount;
+        return sb.compareTo(sa);
+      });
+    return withSales.take(8).toList();
+  }
+
   ProductProvider() {
     // 즉시 더미 데이터 표시 (Firestore 로드 전에도 상품이 보이도록)
     _products = ProductService.getAllProductsSync();
     _adminProducts = ProductService.getAllProductsSync();
     _loadCategory('전체');
+    // 실제 판매 수 집계 비동기 로드
+    _loadSalesCounts();
   }
 
   void setCategory(String category) {
@@ -1132,7 +1149,21 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> refresh() async => _loadCategory(_currentCategory);
+  /// 실제 구매 집계 (confirmed 이상 주문 → productId별 수량 합산)
+  Future<void> _loadSalesCounts() async {
+    try {
+      _salesCountMap = await OrderService.getSalesCountMap();
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  /// 외부에서 강제 갱신 (주문 상태 변경 후 호출)
+  Future<void> refreshSalesCounts() => _loadSalesCounts();
+
+  Future<void> refresh() async {
+    await _loadCategory(_currentCategory);
+    await _loadSalesCounts();
+  }
 
   /// 관리자 전용: isActive 무관 전체 상품 새로 로드
   Future<void> loadAdminProducts() async {
@@ -1217,6 +1248,7 @@ class ProductProvider extends ChangeNotifier {
           isGroupOnly: p.isGroupOnly,
           isActive: p.isActive,
           rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
+          salesCount: p.salesCount,
           createdAt: p.createdAt, sectionImages: p.sectionImages,
         );
         notifyListeners();
