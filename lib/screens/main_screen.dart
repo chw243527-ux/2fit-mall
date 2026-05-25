@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/providers.dart';
 import '../utils/app_localizations.dart';
@@ -99,7 +98,7 @@ class MainScreenState extends State<MainScreen> {
     // ── 모바일 레이아웃 (BottomNav 제거) ──
     // PopScope: 안드로이드 뒤로가기 처리
     //  - 홈탭(0) 이외 탭에서 → 홈탭(0)으로 이동 (앱 종료 X)
-    //  - 홈탭(0)에서 → 앱을 종료하지 않고 백그라운드로 이동
+    //  - 홈탭(0)에서 → 아무 동작 안 함 (홈이 항상 마지막 종착지)
     return PopScope(
       canPop: false, // 항상 직접 처리
       onPopInvokedWithResult: (didPop, result) {
@@ -107,10 +106,8 @@ class MainScreenState extends State<MainScreen> {
         if (_currentIndex != 0) {
           // 서브탭 → 홈탭으로 이동
           setState(() => _currentIndex = 0);
-        } else {
-          // 홈탭 → 앱을 백그라운드로 이동 (종료 X)
-          SystemNavigator.pop();
         }
+        // 홈탭(0)에서는 아무것도 하지 않음 → 홈이 마지막 종착지
       },
       child: Scaffold(
         key: _scaffoldKey,
@@ -171,15 +168,15 @@ class _PcLayoutState extends State<_PcLayout> {
     final loc = context.watch<LanguageProvider>().loc;
     final tabs = [loc.navHome, loc.navProducts, loc.navCart, loc.pcMyPage];
     // PopScope: 태블릿/PC에서도 안드로이드 뒤로가기 처리
+    // 서브탭 → 홈탭, 홈탭에서는 아무 동작 안 함 (홈이 마지막 종착지)
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         if (widget.currentIndex != 0) {
           widget.onTabChanged(0);
-        } else {
-          SystemNavigator.pop();
         }
+        // 홈탭(0)에서는 아무것도 하지 않음 → 홈이 마지막 종착지
       },
       child: Scaffold(
         key: _pcScaffoldKey,
