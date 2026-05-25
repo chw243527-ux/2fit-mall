@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -43,8 +44,12 @@ class _HomeScreenState extends State<HomeScreen>
   String? _expandedCatName;            // 사이드바 펼쳐진 카테고리 이름
   late AnimationController _chatPulse;
 
-  // 동영상 배너 슬라이드 인덱스 집합 (videoUrl 가진 슬라이드)
-  // VideoBannerWidget이 자체 관리하므로 별도 컨트롤러 불필요
+  // ── 배너 자동 슬라이드 ──
+  final PageController _pcBannerCtrl = PageController();
+  final PageController _mobileBannerCtrl = PageController();
+  Timer? _bannerTimer;
+  static const int _bannerTotalCount = 3; // 배너 슬라이드 총 개수
+  static const Duration _bannerAutoInterval = Duration(seconds: 5);
 
   // 카테고리 정의 (key 기반, 다국어 텍스트는 loc에서)
   List<Map<String, dynamic>> _getCategoryItems(AppLocalizations loc) => [
@@ -65,10 +70,38 @@ class _HomeScreenState extends State<HomeScreen>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
+    // 배너 자동 슬라이드 타이머 시작
+    _startBannerTimer();
+  }
+
+  void _startBannerTimer() {
+    _bannerTimer?.cancel();
+    _bannerTimer = Timer.periodic(_bannerAutoInterval, (_) {
+      if (!mounted) return;
+      final nextIndex = (_bannerIndex + 1) % _bannerTotalCount;
+      // PC/모바일 둘 다 같은 인덱스로 이동
+      if (_pcBannerCtrl.hasClients) {
+        _pcBannerCtrl.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+      if (_mobileBannerCtrl.hasClients) {
+        _mobileBannerCtrl.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   @override
   void dispose() {
+    _bannerTimer?.cancel();
+    _pcBannerCtrl.dispose();
+    _mobileBannerCtrl.dispose();
     _chatPulse.dispose();
     super.dispose();
   }
@@ -888,7 +921,7 @@ class _HomeScreenState extends State<HomeScreen>
       {
         // ── 1번 슬라이드: 동영상 배너 (테스트 MP4) ──
         'videoUrl': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=4iEZ6YJMldBU5ZBmJOFgT9kDZdMvpBevDj3N3dwEEeVI1FzibJfbFhybEcLnk%2BNRjXJffeCC%2FWAfsrHeWZXfUhH2Zi5CbqkZFdWKyPTesqa7AXgsg1mOfCZDkIOPU8ittlARbOw70BxrqaRkP2%2FFhkyaQQlQDwaf3Ao4czb0&u2=uctVv2VRDCguTvai&width=2560',
+        'imageUrl': 'https://www.genspark.ai/api/files/s/0A333RJO?cache_control=3600',
         'tag': isKo ? '2025 S/S 신상품' : 'NEW ARRIVALS',
         'title': isKo ? '새로운 시즌이\n시작됩니다' : 'NEW SEASON\nSTARTS',
         'cta': isKo ? '신상품 보러가기' : 'VIEW NEW ARRIVALS',
@@ -897,7 +930,7 @@ class _HomeScreenState extends State<HomeScreen>
         'btnAction': 0,
       },
       {
-        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=ZjWVfgUk7a83y04sEr0LzGOgclyZ8fcvuA6tFrbXfcCRPxbwJwYpj7ogAYuNEkXMqVKpmihq6t0wR7lk1flNvGIJicNrYmCMBd7kTEvRs073rg%3D%3D&u2=gQzSN%2F09%2BJCOIZOk&width=2560',
+        'imageUrl': 'https://www.genspark.ai/api/files/s/wc91nP9e?cache_control=3600',
         'tag': isKo ? '베스트셀러' : 'BEST SELLER',
         'title': isKo ? '가장 많이\n선택받은 2FIT' : 'MOST\nLOVED 2FIT',
         'cta': isKo ? '베스트 상품 보기' : 'SHOP BEST',
@@ -906,7 +939,7 @@ class _HomeScreenState extends State<HomeScreen>
         'btnAction': 1,
       },
       {
-        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=NnwdgvM2Y4c7m6FYqNOl7mERv9jI8qezNyrR%2BiV20eW6J2Ao05K9Bhyik0ixFWniy749h7JiGK9miz9HvtUx9WJtmstzEfBUsqgfjARhfueaa9v3BpdmHD8ytPkCGy%2BHi50oQJJwp%2ByE8T3ja4kO5mHfhk7JqOmFCKP6U1mJjPjiGJLCLm8rYTEOlk9fRg%3D%3D&u2=wk9dEzWh0bFuEAWE&width=2560',
+        'imageUrl': 'https://www.genspark.ai/api/files/s/8ed64BLu?cache_control=3600',
         'tag': isKo ? '단체주문 전문' : 'GROUP ORDER',
         'title': isKo ? '팀 유니폼\n맞춤 제작 전문' : 'CUSTOM\nTEAM UNIFORM',
         'cta': isKo ? '단체주문 알아보기' : 'GROUP ORDER',
@@ -942,7 +975,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Stack(
         children: [
           PageView.builder(
-            controller: PageController(),
+            controller: _pcBannerCtrl,
             onPageChanged: (i) => setState(() => _bannerIndex = i),
             itemCount: banners.length,
             itemBuilder: (_, idx) {
@@ -3024,7 +3057,7 @@ class _HomeScreenState extends State<HomeScreen>
       {
         // ── 1번 슬라이드: 동영상 배너 (테스트 MP4) ──
         'videoUrl': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=4iEZ6YJMldBU5ZBmJOFgT9kDZdMvpBevDj3N3dwEEeVI1FzibJfbFhybEcLnk%2BNRjXJffeCC%2FWAfsrHeWZXfUhH2Zi5CbqkZFdWKyPTesqa7AXgsg1mOfCZDkIOPU8ittlARbOw70BxrqaRkP2%2FFhkyaQQlQDwaf3Ao4czb0&u2=uctVv2VRDCguTvai&width=2560',
+        'imageUrl': 'https://www.genspark.ai/api/files/s/0A333RJO?cache_control=3600',
         'tag': isKo ? '2025 S/S 신상품' : 'NEW ARRIVALS',
         'title': isKo ? '새로운\n시즌이\n시작됩니다' : 'NEW\nSEASON\nSTARTS',
         'cta': isKo ? '신상품 보러가기' : 'VIEW NEW ARRIVALS',
@@ -3035,7 +3068,7 @@ class _HomeScreenState extends State<HomeScreen>
         'imgAlign': Alignment.topCenter,
       },
       {
-        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=ZjWVfgUk7a83y04sEr0LzGOgclyZ8fcvuA6tFrbXfcCRPxbwJwYpj7ogAYuNEkXMqVKpmihq6t0wR7lk1flNvGIJicNrYmCMBd7kTEvRs073rg%3D%3D&u2=gQzSN%2F09%2BJCOIZOk&width=2560',
+        'imageUrl': 'https://www.genspark.ai/api/files/s/wc91nP9e?cache_control=3600',
         'tag': isKo ? '베스트셀러' : 'BEST SELLER',
         'title': isKo ? '가장 많이\n선택받은\n2FIT' : 'MOST\nLOVED\n2FIT',
         'cta': isKo ? '베스트 상품 보기' : 'SHOP BEST',
@@ -3046,7 +3079,7 @@ class _HomeScreenState extends State<HomeScreen>
         'imgAlign': Alignment.topCenter,
       },
       {
-        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=NnwdgvM2Y4c7m6FYqNOl7mERv9jI8qezNyrR%2BiV20eW6J2Ao05K9Bhyik0ixFWniy749h7JiGK9miz9HvtUx9WJtmstzEfBUsqgfjARhfueaa9v3BpdmHD8ytPkCGy%2BHi50oQJJwp%2ByE8T3ja4kO5mHfhk7JqOmFCKP6U1mJjPjiGJLCLm8rYTEOlk9fRg%3D%3D&u2=wk9dEzWh0bFuEAWE&width=2560',
+        'imageUrl': 'https://www.genspark.ai/api/files/s/8ed64BLu?cache_control=3600',
         'tag': isKo ? '단체주문 전문' : 'GROUP ORDER',
         'title': isKo ? '팀 유니폼\n맞춤 제작\n전문 브랜드' : 'CUSTOM\nTEAM\nUNIFORM',
         'cta': isKo ? '단체주문 알아보기' : 'GROUP ORDER',
@@ -3068,7 +3101,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // ── 슬라이드 ──
           PageView.builder(
-            controller: PageController(),
+            controller: _mobileBannerCtrl,
             onPageChanged: (i) => setState(() => _bannerIndex = i),
             itemCount: banners.length,
             itemBuilder: (_, i) => _buildFullBannerItem(banners[i], i, loc),
