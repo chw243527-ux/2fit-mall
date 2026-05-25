@@ -155,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen>
     // PC 레이아웃 복원
     if (isPcWeb(context)) return _buildPcLayout(context, userProv, loc);
 
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
               backgroundColor: Colors.white,
@@ -442,11 +442,11 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildPcLayout(BuildContext context, UserProvider userProv, dynamic loc) {
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF0F0F0),
       body: Row(
         children: [
@@ -655,7 +655,7 @@ class _LoginScreenState extends State<LoginScreen>
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _pcFeatureChip(IconData icon, String label) {

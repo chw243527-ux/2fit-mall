@@ -220,18 +220,16 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   @override
   Widget build(BuildContext context) {
     final isMobile = !isPcWeb(context);
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
       appBar: AppBar(
         backgroundColor: const Color(0xFF4A148C),
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: Navigator.canPop(context)
-            ? IconButton(
+        leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
+                onPressed: () => goBackOrHome(context),
+              ),
         title: Text(loc.groupOrderFormTitle2, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
         centerTitle: true,
       ),
@@ -312,7 +310,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
           _buildSubmitBar(),
         ],
       ),
-    );
+    ));
   }
 
   // ══════════════════════════════════════════════════════════════

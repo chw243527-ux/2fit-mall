@@ -12,7 +12,7 @@ class NotificationCenterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = context.watch<LanguageProvider>().loc;
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: AppColors.surfaceGray,
       appBar: AppBar(
         title: Text(loc.notifCenterTitle),
@@ -138,7 +138,7 @@ class NotificationCenterScreen extends StatelessWidget {
           );
         },
       ),
-    );
+    ));
   }
 
   IconData _iconData(String? type) {

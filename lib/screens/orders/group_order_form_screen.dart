@@ -737,7 +737,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   @override
   Widget build(BuildContext context) {
     final title = _isAdditional ? '추가 제작 주문서' : '단체 주문서';
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: _bg,
       appBar: AppBar(
         title: Text(title,
@@ -781,7 +781,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ),
       ),
       bottomNavigationBar: _countFixed ? _buildBottomBar() : null,
-    );
+    ));
   }
 
   // ══════════════════════════════════════════════

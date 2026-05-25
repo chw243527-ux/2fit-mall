@@ -145,7 +145,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     // PC 웹이면 PC 전용 레이아웃 사용
     if (isPcWeb(context)) return _buildPcLayout(product, isAdmin, loc);
 
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
@@ -173,12 +173,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           ),
         ],
       ),
-    );
+    ));
   }
 
   // ─── PC 전용 레이아웃 ───────────────────────────────────────────
   Widget _buildPcLayout(ProductModel product, bool isAdmin, dynamic loc) {
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -247,7 +247,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildPcImageGallery(ProductModel product) {

@@ -6,7 +6,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
@@ -125,7 +125,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           const SizedBox(height: 40),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildSection(String title, String content) {

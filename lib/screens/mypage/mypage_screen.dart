@@ -1827,7 +1827,7 @@ class _MobileMyPage extends StatelessWidget {
     final loc = context.watch<LanguageProvider>().loc;
     final user = userProvider.user;
 
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -1893,7 +1893,7 @@ class _MobileMyPage extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 

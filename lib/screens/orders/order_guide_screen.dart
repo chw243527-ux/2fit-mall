@@ -20,16 +20,14 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
   @override
   Widget build(BuildContext context) {
     if (isPcWeb(context)) return _buildPcLayout(context);
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: null,
       appBar: AppBar(
         title: Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderGuideTitle)),
-        leading: Navigator.canPop(context)
-            ? IconButton(
+        leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => goBackOrHome(context),
-              )
-            : null,
+              ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -44,24 +42,22 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   // ── PC 2컬럼 레이아웃 ──
   Widget _buildPcLayout(BuildContext context) {
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         title: Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderGuideTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: Navigator.canPop(context)
-            ? IconButton(
+        leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
                 onPressed: () => goBackOrHome(context),
-              )
-            : null,
+              ),
       ),
       body: Center(
         child: ConstrainedBox(
@@ -99,7 +95,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   // ── PC 빠른 주문 패널 ──

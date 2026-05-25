@@ -17,6 +17,18 @@ void goBackOrHome(BuildContext context) {
   }
 }
 
+/// 하드웨어 뒤로가기를 goBackOrHome으로 연결하는 PopScope 래퍼
+/// 모든 서브화면의 Scaffold를 이것으로 감싸면 됨
+Widget wrapWithPopScope(BuildContext context, Widget child) {
+  return PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, result) {
+      if (!didPop) goBackOrHome(context);
+    },
+    child: child,
+  );
+}
+
 /// AppBar leading 뒤로가기 버튼 위젯 (공통)
 Widget buildBackButton(BuildContext context, {Color color = Colors.white}) {
   return IconButton(

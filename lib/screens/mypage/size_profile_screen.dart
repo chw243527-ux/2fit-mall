@@ -41,7 +41,7 @@ class SizeProfileScreen extends StatelessWidget {
     if (user == null) {
       return const Scaffold(body: Center(child: Text('로그인이 필요합니다.')));
     }
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF7F5FB),
       appBar: AppBar(
         title: const Text('내 사이즈 관리',
@@ -71,7 +71,7 @@ class SizeProfileScreen extends StatelessWidget {
           );
         },
       ),
-    );
+    ));
   }
 }
 

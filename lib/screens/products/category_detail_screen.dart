@@ -113,7 +113,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   @override
   Widget build(BuildContext context) {
     if (isPcWeb(context)) return _buildPcLayout(context);
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
@@ -136,7 +136,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           ],
         ),
       ),
-    );
+    ));
   }
 
   // ── 필터/정렬 바 ──
@@ -404,7 +404,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   // PC 레이아웃
   // ──────────────────────────────────────────────────────────────────
   Widget _buildPcLayout(BuildContext context) {
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -504,7 +504,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildPcFilterSidebar() {

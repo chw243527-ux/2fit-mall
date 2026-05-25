@@ -107,17 +107,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     if (isPcWeb(context)) return _buildPcLayout(context);
 
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(loc.checkoutPayment),
         backgroundColor: AppColors.primary,
-        leading: Navigator.canPop(context)
-            ? IconButton(
+        leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
+                onPressed: () => goBackOrHome(context),
+              ),
       ),
       body: Column(
         children: [
@@ -145,24 +143,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           _buildBottomBar(),
         ],
       ),
-    );
+    ));
   }
 
   // ── PC 전용 2컬럼 레이아웃 ──
   Widget _buildPcLayout(BuildContext context) {
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         title: Text(loc.checkoutPayment),
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF1A1A1A),
         elevation: 0,
-        leading: Navigator.canPop(context)
-            ? IconButton(
+        leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
+                onPressed: () => goBackOrHome(context),
+              ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(height: 1, color: const Color(0xFFEEEEEE)),
@@ -277,7 +273,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildOrdererInfo() {

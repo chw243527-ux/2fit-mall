@@ -455,7 +455,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final width = MediaQuery.of(context).size.width;
     final isPc = width >= 900; // 태블릿 포함
 
-    return Consumer<LanguageProvider>(
+    return wrapWithPopScope(context, Consumer<LanguageProvider>(
       builder: (_, lp, __) {
         final loc = lp.loc;
         return Scaffold(
@@ -638,7 +638,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
         );
       },
-    );
+    ));
   }
 
   // ────────── FAQ 패널 (항상 표시) ──────────

@@ -42,7 +42,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   // 모바일 레이아웃
   // ══════════════════════════════════════════════════════════
   Widget _buildMobileLayout() {
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('단체주문하기',
@@ -51,12 +51,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
         foregroundColor: Colors.white,
         elevation: 0,
         toolbarHeight: 48,
-        leading: Navigator.canPop(context)
-            ? IconButton(
+        leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => goBackOrHome(context),
-              )
-            : null,
+              ),
         bottom: TabBar(
           controller: _tabCtrl,
           indicatorColor: const Color(0xFFFF6B35),
@@ -76,14 +74,14 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           _buildOrderFormTab(),
         ],
       ),
-    );
+    ));
   }
 
   // ══════════════════════════════════════════════════════════
   // PC 레이아웃
   // ══════════════════════════════════════════════════════════
   Widget _buildPcLayout() {
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         title: const Text('단체주문하기',
@@ -91,12 +89,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
         backgroundColor: const Color(0xFF1A1A1A),
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: Navigator.canPop(context)
-            ? IconButton(
+        leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
                 onPressed: () => goBackOrHome(context),
-              )
-            : null,
+              ),
       ),
       body: Center(
         child: ConstrainedBox(
@@ -136,7 +132,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           ),
         ),
       ),
-    );
+    ));
   }
 
   // ══════════════════════════════════════════════════════════

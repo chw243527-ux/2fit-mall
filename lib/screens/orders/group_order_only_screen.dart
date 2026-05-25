@@ -25,7 +25,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
@@ -87,7 +87,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildProductCard(ProductModel p) {
