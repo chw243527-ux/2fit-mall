@@ -1006,22 +1006,34 @@ class _HomeScreenState extends State<HomeScreen>
                       onTap: onTap,
                     )
                   else if (b.imageUrl.isNotEmpty)
-                    GestureDetector(
-                      onTap: onTap,
-                      child: Image.network(
-                        b.imageUrl,
-                        fit: BoxFit.cover, alignment: Alignment.topCenter,
-                        loadingBuilder: (_, child, progress) => progress == null
-                            ? child
-                            : Container(color: const Color(0xFF1A1A1A),
-                                child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2))),
-                        errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                    Positioned.fill(
+                      child: GestureDetector(
+                        onTap: onTap,
+                        child: Image.network(
+                          b.imageUrl,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                          width: double.infinity,
+                          height: double.infinity,
+                          loadingBuilder: (_, child, progress) => progress == null
+                              ? child
+                              : Container(
+                                  color: const Color(0xFF1A1A1A),
+                                  child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2)),
+                                ),
+                          errorBuilder: (_, __, ___) => Container(
+                            color: const Color(0xFF2A2A2A),
+                            child: const Center(child: Icon(Icons.image_not_supported_rounded, color: Colors.white24, size: 48)),
+                          ),
+                        ),
                       ),
                     )
                   else
-                    GestureDetector(
-                      onTap: onTap,
-                      child: Container(color: const Color(0xFF1A1A1A)),
+                    Positioned.fill(
+                      child: GestureDetector(
+                        onTap: onTap,
+                        child: Container(color: const Color(0xFF1A1A1A)),
+                      ),
                     ),
 
                     // 하단 그라데이션
@@ -3165,7 +3177,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Stack(
       fit: StackFit.expand,
       children: [
-        // ── 배경: 동영상(Web, order==0) or 이미지 ──
+        // ── 배경: 동영상(order==0 & videoUrl 있을 때) or 이미지 ──
         if (videoUrl != null)
           VideoBannerWidget(
             videoUrl: videoUrl,
@@ -3173,30 +3185,36 @@ class _HomeScreenState extends State<HomeScreen>
             onTap: onTap,
           )
         else if (imageUrl.isNotEmpty)
-          GestureDetector(
-            onTap: onTap,
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
-              loadingBuilder: (_, child, progress) => progress == null
-                  ? child
-                  : Container(
-                      color: const Color(0xFF1A1A1A),
-                      child: const Center(
-                        child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: onTap,
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                width: double.infinity,
+                height: double.infinity,
+                loadingBuilder: (_, child, progress) => progress == null
+                    ? child
+                    : Container(
+                        color: const Color(0xFF1A1A1A),
+                        child: const Center(
+                          child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
+                        ),
                       ),
-                    ),
-              errorBuilder: (_, __, ___) => Container(
-                color: const Color(0xFF1A1A1A),
-                child: const Center(child: Icon(Icons.image_not_supported, color: Colors.white24, size: 48)),
+                errorBuilder: (_, __, ___) => Container(
+                  color: const Color(0xFF2A2A2A),
+                  child: const Center(child: Icon(Icons.image_not_supported_rounded, color: Colors.white24, size: 48)),
+                ),
               ),
             ),
           )
         else
-          GestureDetector(
-            onTap: onTap,
-            child: Container(color: const Color(0xFF1A1A1A)),
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: onTap,
+              child: Container(color: const Color(0xFF1A1A1A)),
+            ),
           ),
 
           // ── 하단 그라데이션 오버레이 (동영상/이미지 공통) ──
