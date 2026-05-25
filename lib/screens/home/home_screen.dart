@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:video_player/video_player.dart';
 // ignore: unused_import
 import '../main_screen.dart' show kPcBreakpoint;
+import '../../widgets/video_banner_widget.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
@@ -42,9 +42,8 @@ class _HomeScreenState extends State<HomeScreen>
   String? _expandedCatName;            // 사이드바 펼쳐진 카테고리 이름
   late AnimationController _chatPulse;
 
-  // 동영상 배너 컨트롤러 (index → controller)
-  final Map<int, VideoPlayerController> _videoControllers = {};
-  final Map<int, bool> _videoReady = {};
+  // 동영상 배너 슬라이드 인덱스 집합 (videoUrl 가진 슬라이드)
+  // VideoBannerWidget이 자체 관리하므로 별도 컨트롤러 불필요
 
   // 카테고리 정의 (key 기반, 다국어 텍스트는 loc에서)
   List<Map<String, dynamic>> _getCategoryItems(AppLocalizations loc) => [
@@ -65,39 +64,11 @@ class _HomeScreenState extends State<HomeScreen>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    // 동영상 배너 초기화 (비동기)
-    WidgetsBinding.instance.addPostFrameCallback((_) => _initVideoControllers());
-  }
-
-  // 배너 동영상 슬라이드 초기화 — videoUrl 키가 있는 항목만
-  void _initVideoControllers() {
-    // 배너 리스트에서 videoUrl 가진 것들만 초기화
-    // 실제 배너 데이터와 동기화: index별로 videoUrl 확인
-    final videoSlides = <int, String>{
-      0: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    };
-    for (final entry in videoSlides.entries) {
-      final idx = entry.key;
-      final url = entry.value;
-      final ctrl = VideoPlayerController.networkUrl(Uri.parse(url));
-      _videoControllers[idx] = ctrl;
-      _videoReady[idx] = false;
-      ctrl.initialize().then((_) {
-        if (!mounted) return;
-        ctrl.setLooping(true);
-        ctrl.setVolume(0); // 자동재생 정책: 무음 필수
-        ctrl.play();
-        setState(() => _videoReady[idx] = true);
-      });
-    }
   }
 
   @override
   void dispose() {
     _chatPulse.dispose();
-    for (final c in _videoControllers.values) {
-      c.dispose();
-    }
     super.dispose();
   }
 
@@ -954,19 +925,12 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           PageView.builder(
             controller: PageController(),
-            onPageChanged: (i) {
-              setState(() => _bannerIndex = i);
-              _videoControllers.forEach((vidIdx, ctrl) {
-                if (vidIdx == i) { ctrl.play(); } else { ctrl.pause(); }
-              });
-            },
+            onPageChanged: (i) => setState(() => _bannerIndex = i),
             itemCount: banners.length,
             itemBuilder: (_, idx) {
               final b = banners[idx];
               final accent = b['accent'] as Color;
               final videoUrl = b['videoUrl'] as String?;
-              final ctrl = _videoControllers[idx];
-              final isVideoReady = (_videoReady[idx] ?? false) && ctrl != null && ctrl.value.isInitialized;
 
               void onTap() {
                 switch (b['btnAction'] as int) {
@@ -985,39 +949,20 @@ class _HomeScreenState extends State<HomeScreen>
                 }
               }
 
-              return GestureDetector(
-                onTap: onTap,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // ── 배경: 동영상 or 이미지 ──
-                    if (videoUrl != null && isVideoReady)
-                      ClipRect(
-                        child: OverflowBox(
-                          alignment: Alignment.center,
-                          minWidth: 0, minHeight: 0,
-                          maxWidth: double.infinity, maxHeight: double.infinity,
-                          child: AspectRatio(
-                            aspectRatio: ctrl.value.aspectRatio,
-                            child: VideoPlayer(ctrl),
-                          ),
-                        ),
-                      )
-                    else if (videoUrl != null && !isVideoReady)
-                      Stack(fit: StackFit.expand, children: [
-                        Image.network(b['imageUrl'] as String, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A1A))),
-                        Positioned(top: 16, right: 16,
-                          child: Container(
-                            width: 28, height: 28,
-                            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.4), shape: BoxShape.circle),
-                            child: const Padding(padding: EdgeInsets.all(5),
-                              child: CircularProgressIndicator(color: Colors.white70, strokeWidth: 2)),
-                          ),
-                        ),
-                      ])
-                    else
-                      Image.network(
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  // ── 배경: 동영상(Web) or 이미지 ──
+                  if (videoUrl != null)
+                    VideoBannerWidget(
+                      videoUrl: videoUrl,
+                      thumbnailUrl: b['imageUrl'] as String,
+                      onTap: onTap,
+                    )
+                  else
+                    GestureDetector(
+                      onTap: onTap,
+                      child: Image.network(
                         b['imageUrl'] as String,
                         fit: BoxFit.cover, alignment: Alignment.topCenter,
                         loadingBuilder: (_, child, progress) => progress == null
@@ -1026,49 +971,27 @@ class _HomeScreenState extends State<HomeScreen>
                                 child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2))),
                         errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
                       ),
+                    ),
 
                     // 하단 그라데이션
                     Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            stops: const [0.3, 0.6, 1.0],
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.45),
-                              Colors.black.withValues(alpha: 0.88),
-                            ],
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: const [0.3, 0.6, 1.0],
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.45),
+                                Colors.black.withValues(alpha: 0.88),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-
-                    // 동영상 음소거 토글 버튼
-                    if (videoUrl != null && isVideoReady)
-                      Positioned(
-                        right: 64, bottom: 58,
-                        child: GestureDetector(
-                          onTap: () {
-                            final isMuted = ctrl.value.volume == 0;
-                            ctrl.setVolume(isMuted ? 1.0 : 0.0);
-                            setState(() {});
-                          },
-                          child: Container(
-                            width: 36, height: 36,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1),
-                            ),
-                            child: Icon(
-                              (ctrl.value.volume == 0) ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                              color: Colors.white, size: 17,
-                            ),
-                          ),
-                        ),
-                      ),
 
                     // 텍스트 + CTA (왼쪽 하단)
                     Positioned(
@@ -1108,8 +1031,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                   ],
-                ),
-              );
+                );
             },
           ),
           // 우측 세로 점 인디케이터
@@ -3156,17 +3078,7 @@ class _HomeScreenState extends State<HomeScreen>
           // ── 슬라이드 ──
           PageView.builder(
             controller: PageController(),
-            onPageChanged: (i) {
-              setState(() => _bannerIndex = i);
-              // 페이지 전환 시 동영상 재생/일시정지 처리
-              _videoControllers.forEach((idx, ctrl) {
-                if (idx == i) {
-                  ctrl.play();
-                } else {
-                  ctrl.pause();
-                }
-              });
-            },
+            onPageChanged: (i) => setState(() => _bannerIndex = i),
             itemCount: banners.length,
             itemBuilder: (_, i) => _buildFullBannerItem(banners[i], i, loc),
           ),
@@ -3224,68 +3136,27 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
 
-    // ── 동영상 vs 이미지 배경 결정 ──
     final videoUrl = banner['videoUrl'] as String?;
-    final ctrl = _videoControllers[index];
-    final isVideoReady = (_videoReady[index] ?? false) && ctrl != null && ctrl.value.isInitialized;
+    final imageUrl = banner['imageUrl'] as String;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
+    return Stack(
+      fit: StackFit.expand,
+      children: [
 
-          // ── 배경: 동영상 or 이미지 ──
-          if (videoUrl != null && isVideoReady)
-            // 동영상: AspectRatio로 비율 유지 + BoxFit.cover 효과를 FittedBox로
-            ClipRect(
-              child: OverflowBox(
-                alignment: Alignment.center,
-                minWidth: 0,
-                minHeight: 0,
-                maxWidth: double.infinity,
-                maxHeight: double.infinity,
-                child: AspectRatio(
-                  aspectRatio: ctrl.value.aspectRatio,
-                  child: VideoPlayer(ctrl),
-                ),
-              ),
-            )
-          else if (videoUrl != null && !isVideoReady)
-            // 동영상 로딩 중 → 이미지를 썸네일로 표시
-            Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.network(
-                  banner['imageUrl'] as String,
-                  fit: BoxFit.cover,
-                  alignment: imgAlign,
-                  errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
-                ),
-                // 로딩 인디케이터
-                Positioned(
-                  top: 16, right: 16,
-                  child: Container(
-                    width: 28, height: 28,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(5),
-                      child: CircularProgressIndicator(
-                        color: Colors.white70,
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            )
-          else
-            // 일반 이미지 배너
-            Image.network(
-              banner['imageUrl'] as String,
+        // ── 배경: 동영상(Web) or 이미지 ──
+        if (videoUrl != null)
+          // VideoBannerWidget: Web → HTML video 자동재생, 모바일 → 썸네일
+          VideoBannerWidget(
+            videoUrl: videoUrl,
+            thumbnailUrl: imageUrl,
+            onTap: onTap,
+          )
+        else
+          // 일반 이미지 배너
+          GestureDetector(
+            onTap: onTap,
+            child: Image.network(
+              imageUrl,
               fit: BoxFit.cover,
               alignment: imgAlign,
               loadingBuilder: (_, child, progress) => progress == null
@@ -3301,52 +3172,27 @@ class _HomeScreenState extends State<HomeScreen>
                 child: const Center(child: Icon(Icons.image_not_supported, color: Colors.white24, size: 48)),
               ),
             ),
+          ),
 
-          // ── 하단 그라데이션 오버레이 (동영상/이미지 모두 공통) ──
+          // ── 하단 그라데이션 오버레이 (동영상/이미지 공통) ──
           Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  stops: const [0.35, 0.65, 1.0],
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.45),
-                    Colors.black.withValues(alpha: 0.85),
-                  ],
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.35, 0.65, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.45),
+                      Colors.black.withValues(alpha: 0.85),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-
-          // ── 동영상 배너: 우하단 음소거/음량 아이콘 표시 ──
-          if (videoUrl != null && isVideoReady)
-            Positioned(
-              right: 52, bottom: 32,
-              child: GestureDetector(
-                onTap: () {
-                  final isMuted = ctrl.value.volume == 0;
-                  ctrl.setVolume(isMuted ? 1.0 : 0.0);
-                  setState(() {});
-                },
-                child: Container(
-                  width: 34, height: 34,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1),
-                  ),
-                  child: Icon(
-                    (ctrl.value.volume == 0)
-                        ? Icons.volume_off_rounded
-                        : Icons.volume_up_rounded,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ),
-              ),
-            ),
 
           // ── 콘텐츠 (하단 고정) ──
           Positioned(
@@ -3423,8 +3269,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 
   // ────────────────────────────────────────────
