@@ -34,6 +34,7 @@ class AppConstants {
     '스킨슈트',
     '악세사리',
     '이벤트',
+    '단체주문',
   ];
   
   // Sort Options

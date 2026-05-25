@@ -6,6 +6,7 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import 'product_detail_screen.dart';
 import '../../utils/navigation_helper.dart';
+import '../orders/group_order_only_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
   final String? initialCategory;
@@ -45,6 +46,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
     _searchController.text = _searchQuery;
     if (widget.initialSortBy != null) _sortBy = widget.initialSortBy!;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // initialCategory='단체주문'이면 GroupOrderOnlyScreen으로 자동 리다이렉트
+      if (_selectedCategory == '단체주문') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()),
+        );
+        return;
+      }
       context.read<ProductProvider>().setCategory(_selectedCategory);
     });
   }
@@ -177,22 +186,50 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 final isSel = _selectedCategory == cat;
                 return GestureDetector(
                   onTap: () {
+                    // 단체주문 탭: GroupOrderOnlyScreen으로 직접 이동
+                    if (cat == '단체주문') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()),
+                      );
+                      return;
+                    }
                     setState(() { _selectedCategory = cat; _searchQuery = ''; _searchController.clear(); });
                     provider.setCategory(cat);
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     margin: const EdgeInsets.only(right: 6),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isSel ? const Color(0xFF111111) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: isSel ? const Color(0xFF111111) : const Color(0xFFDDDDDD)),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: cat == '단체주문' ? 12 : 14,
+                      vertical: 4,
                     ),
-                    child: Text(cat, style: TextStyle(
-                      fontSize: 12.5, fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
-                      color: isSel ? Colors.white : const Color(0xFF444444),
-                    )),
+                    decoration: BoxDecoration(
+                      // 단체주문 탭: 보라색 강조
+                      color: cat == '단체주문'
+                          ? const Color(0xFF6A1B9A)
+                          : isSel ? const Color(0xFF111111) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: cat == '단체주문'
+                            ? const Color(0xFF6A1B9A)
+                            : isSel ? const Color(0xFF111111) : const Color(0xFFDDDDDD),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (cat == '단체주문') ...[
+                          const Icon(Icons.groups_rounded, size: 13, color: Colors.white),
+                          const SizedBox(width: 4),
+                        ],
+                        Text(cat, style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: (isSel || cat == '단체주문') ? FontWeight.w800 : FontWeight.w500,
+                          color: (isSel || cat == '단체주문') ? Colors.white : const Color(0xFF444444),
+                        )),
+                      ],
+                    ),
                   ),
                 );
               },

@@ -839,6 +839,10 @@ class ProductService {
     if (category == '세일') {
       return _products.where((p) => p.isSale && p.isActive).toList();
     }
+    // 단체주문 탭: isGroupOnly=true 상품 반환 (Firestore 직접 조회)
+    if (category == '단체주문') {
+      return getGroupOnlyProducts();
+    }
     return _products
         .where((p) => p.category == category && p.isActive)
         .toList();
@@ -1109,6 +1113,8 @@ class ProductService {
     if (category == '전체') return _cache;
     if (category == '신상품') return _cache.where((p) => p.isNew).toList();
     if (category == '세일') return _cache.where((p) => p.isSale).toList();
+    // 단체주문 탭: isGroupOnly=true 상품 반환
+    if (category == '단체주문') return _cache.where((p) => p.isGroupOnly && p.isActive).toList();
     return _cache.where((p) => p.category == category).toList();
   }
 
