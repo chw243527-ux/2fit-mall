@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1344,24 +1345,35 @@ class BannerProvider extends ChangeNotifier {
   List<BannerModel> _banners = [];
   bool _loading = true;
   String? _error;
+  StreamSubscription<List<BannerModel>>? _bannerSub;
 
   List<BannerModel> get banners => _banners;
   bool get loading => _loading;
   String? get error => _error;
 
   /// 홈 화면에서 표시할 활성 배너 (active==true, order 정렬)
-  List<BannerModel> get activeBanners =>
-      _banners.where((b) => b.active).toList();
+  List<BannerModel> get activeBanners {
+    final active = _banners.where((b) => b.active).toList();
+    // order 기준 정렬 (이미 서비스에서 정렬되지만 이중 보장)
+    active.sort((a, b) => a.order.compareTo(b.order));
+    return active;
+  }
 
   BannerProvider() {
     _init();
   }
 
   void _init() async {
-    // 기본 데이터 없으면 시드
-    await BannerService.seedDefaultBanners();
+    // 기본 데이터 없으면 시드 (에러 무시 - 이미 데이터 있으면 스킵됨)
+    try {
+      await BannerService.seedDefaultBanners();
+    } catch (e) {
+      if (kDebugMode) debugPrint('BannerProvider: seedDefaultBanners error: $e');
+    }
 
-    BannerService.watchAllBanners().listen(
+    // 기존 구독 취소 후 재구독
+    await _bannerSub?.cancel();
+    _bannerSub = BannerService.watchAllBanners().listen(
       (list) {
         _banners = list;
         _loading = false;
@@ -1369,10 +1381,40 @@ class BannerProvider extends ChangeNotifier {
         notifyListeners();
       },
       onError: (e) {
+        if (kDebugMode) debugPrint('BannerProvider stream error: $e');
+        _error = e.toString();
+        _loading = false;
+        notifyListeners();
+        // 에러 발생 시 3초 후 재시도
+        Future.delayed(const Duration(seconds: 3), _retryStream);
+      },
+    );
+  }
+
+  /// 스트림 에러 발생 시 재연결 시도
+  void _retryStream() {
+    if (_banners.isNotEmpty) return; // 이미 데이터 있으면 재시도 불필요
+    if (kDebugMode) debugPrint('BannerProvider: retrying stream connection...');
+    _bannerSub?.cancel();
+    _bannerSub = BannerService.watchAllBanners().listen(
+      (list) {
+        _banners = list;
+        _loading = false;
+        _error = null;
+        notifyListeners();
+      },
+      onError: (e) {
+        if (kDebugMode) debugPrint('BannerProvider retry error: $e');
         _error = e.toString();
         _loading = false;
         notifyListeners();
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _bannerSub?.cancel();
+    super.dispose();
   }
 }

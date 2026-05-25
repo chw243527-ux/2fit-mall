@@ -6,27 +6,38 @@ import '../models/models.dart';
 class BannerService {
   static final _col = FirebaseFirestore.instance.collection('banners');
 
-  // ── 실시간 스트림 (active만, order 정렬) ──────────────────
+  // ── 실시간 스트림 (active만) ──────────────────────────────
+  // NOTE: active+order 복합 쿼리는 Firestore 인덱스 필요 → 클라이언트 정렬로 대체
   static Stream<List<BannerModel>> watchActiveBanners() {
     return _col
         .where('active', isEqualTo: true)
-        .orderBy('order')
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => BannerModel.fromFirestore(
-                d.data() as Map<String, dynamic>, d.id))
-            .toList());
+        .map((snap) {
+          final list = snap.docs
+              .map((d) => BannerModel.fromFirestore(
+                  d.data() as Map<String, dynamic>, d.id))
+              .toList();
+          // 클라이언트 측 order 정렬 (인덱스 불필요)
+          list.sort((a, b) => a.order.compareTo(b.order));
+          return list;
+        });
   }
 
   // ── 전체 스트림 (관리자용) ────────────────────────────────
+  // NOTE: orderBy는 단일 필드 정렬이어도 복합 where와 함께 쓰면 인덱스 필요
+  //       → 전체 가져와서 클라이언트 정렬로 대체
   static Stream<List<BannerModel>> watchAllBanners() {
     return _col
-        .orderBy('order')
         .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => BannerModel.fromFirestore(
-                d.data() as Map<String, dynamic>, d.id))
-            .toList());
+        .map((snap) {
+          final list = snap.docs
+              .map((d) => BannerModel.fromFirestore(
+                  d.data() as Map<String, dynamic>, d.id))
+              .toList();
+          // 클라이언트 측 order 정렬
+          list.sort((a, b) => a.order.compareTo(b.order));
+          return list;
+        });
   }
 
   // ── 단건 조회 ────────────────────────────────────────────
