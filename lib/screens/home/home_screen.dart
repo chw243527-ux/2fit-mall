@@ -916,13 +916,30 @@ class _HomeScreenState extends State<HomeScreen>
       },
     ];
 
-    // PC 배너: 화면 전체 높이 — NavBar를 제외한 나머지 공간 차지
-    final navBarH = 52.0; // PC NavBar 높이
-    final bannerHeight = MediaQuery.of(context).size.height - navBarH;
+    // PC 레이아웃: NavBar(상단 고정) + 배너(나머지 공간 전체)
+    return Scaffold(
+      key: _pcScaffoldKey,
+      backgroundColor: Colors.black,
+      drawer: AppDrawer(onNavigateToMyPage: () => widget.onNavigate?.call(3)),
+      body: Column(
+        children: [
+          // ── PC NavBar (상단 고정) ──
+          _buildPcNavBar(loc),
 
-    return SizedBox(
-      height: bannerHeight,
-      child: Stack(
+          // ── 배너 (NavBar 아래 남은 공간 전체) ──
+          Expanded(
+            child: _buildPcBannerBody(loc, banners),
+          ),
+        ],
+      ),
+      floatingActionButton: _buildChatFAB(loc),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+    );
+  }
+
+  // ── PC 배너 슬라이더 본체 ──
+  Widget _buildPcBannerBody(AppLocalizations loc, List<Map<String, dynamic>> banners) {
+    return Stack(
         children: [
           PageView.builder(
             controller: PageController(),
@@ -942,7 +959,7 @@ class _HomeScreenState extends State<HomeScreen>
                     break;
                   case 2:
                     Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => const GroupOrderLandingScreen(),
+                      builder: (_) => const GroupOrderOnlyScreen(),
                     ));
                     break;
                   default:
@@ -1057,41 +1074,13 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ),
-          // 좌측 하단에 없는 빈 placeholder (PC 레이아웃 이전 코드 잔여 제거용)
-          const SizedBox.shrink(),
         ],
-      ),
-    );
-
-    // ── 아래 코드는 이전 레거시 (도달 불가, 컴파일러 경고 방지용 주석) ──
-    // ignore: dead_code
-    /*
-    return Container(
-      color: const Color(0xFF111111),
-      child: Column(
-        children: [
-          SizedBox(
-            height: bannerHeight,
-            child: PageView.builder(
-              controller: PageController(),
-              onPageChanged: (i) => setState(() => _bannerIndex = i),
-              itemCount: banners.length,
-              itemBuilder: (_, idx) {
-                final b = banners[idx];
-                // 로컬 asset 이미지 배너 처리
-                final assetImage = b['assetImage'] as String?;
-                if (assetImage != null && assetImage.isNotEmpty) {
-                  return Container();
-                }
-                return Container();
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-    */
+      );
   }
+  // end _buildPcBannerBody
+
+  // ignore: unused_element
+  Widget _unusedLegacyPcBanner() => const SizedBox.shrink();
 
 
 
@@ -3069,8 +3058,9 @@ class _HomeScreenState extends State<HomeScreen>
       },
     ];
 
-    // 배너: 전체 화면 높이 100% (홈화면 = 배너만)
-    final bannerHeight = MediaQuery.of(context).size.height;
+    // 배너: 전체 화면 높이 — 시스템 하단 제스처 영역 제외
+    final mq = MediaQuery.of(context);
+    final bannerHeight = mq.size.height - mq.viewPadding.bottom;
 
     return SizedBox(
       height: bannerHeight,
