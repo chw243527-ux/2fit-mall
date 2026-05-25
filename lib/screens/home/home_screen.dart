@@ -910,45 +910,208 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── PC 전용 배너 (외부 이미지 없이 그라디언트만 사용, 항상 표시됨) ──
   Widget _buildPcBannerOnly(AppLocalizations loc) {
+    final isKo = loc.language == AppLanguage.korean;
     final banners = [
       {
-        'title': 'JUST\nDO IT.',
-        'sub': loc.language == AppLanguage.korean ? '2025 S/S 컬렉션 · 고퀄리티 단체 스포츠웨어' : '2025 S/S COLLECTION · Premium Sportswear',
-        'tag': 'NEW SEASON',
+        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=4iEZ6YJMldBU5ZBmJOFgT9kDZdMvpBevDj3N3dwEEeVI1FzibJfbFhybEcLnk%2BNRjXJffeCC%2FWAfsrHeWZXfUhH2Zi5CbqkZFdWKyPTesqa7AXgsg1mOfCZDkIOPU8ittlARbOw70BxrqaRkP2%2FFhkyaQQlQDwaf3Ao4czb0&u2=uctVv2VRDCguTvai&width=2560',
+        'tag': isKo ? '2025 S/S 신상품' : 'NEW ARRIVALS',
+        'title': isKo ? '새로운 시즌이\n시작됩니다' : 'NEW SEASON\nSTARTS',
+        'cta': isKo ? '신상품 보러가기' : 'VIEW NEW ARRIVALS',
+        'ctaIcon': Icons.arrow_forward_rounded,
         'accent': const Color(0xFFE53935),
-        'bg1': const Color(0xFF0D0D0D),
-        'bg2': const Color(0xFF1A1A1A),
-        'bgMid': const Color(0xFF141414),
         'btnAction': 0,
-        'icon': Icons.sports_soccer_rounded,
-        'desc': loc.language == AppLanguage.korean
-            ? loc.homeBrandSpecialty
-            : 'Team Uniforms & Custom Sportswear',
       },
       {
-        'title': 'BEST\nSELLER.',
-        'sub': loc.language == AppLanguage.korean ? '2FIT 인기 상품 · 최대 10% 단체 할인' : 'TOP PRODUCTS · Up to 10% Group Discount',
-        'tag': 'POPULAR',
+        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=ZjWVfgUk7a83y04sEr0LzGOgclyZ8fcvuA6tFrbXfcCRPxbwJwYpj7ogAYuNEkXMqVKpmihq6t0wR7lk1flNvGIJicNrYmCMBd7kTEvRs073rg%3D%3D&u2=gQzSN%2F09%2BJCOIZOk&width=2560',
+        'tag': isKo ? '베스트셀러' : 'BEST SELLER',
+        'title': isKo ? '가장 많이\n선택받은 2FIT' : 'MOST\nLOVED 2FIT',
+        'cta': isKo ? '베스트 상품 보기' : 'SHOP BEST',
+        'ctaIcon': Icons.local_fire_department_rounded,
         'accent': const Color(0xFFFF6B35),
-        'bg1': const Color(0xFF1A0000),
-        'bg2': const Color(0xFF2D0000),
-        'bgMid': const Color(0xFF220000),
-        'btnAction': 3,
-        'icon': Icons.local_fire_department_rounded,
-        'desc': loc.language == AppLanguage.korean
-            ? '30인 이상 5% · 50인 이상 10% 할인'
-            : '5% off 30+ · 10% off 50+ people',
+        'btnAction': 1,
       },
       {
-        'assetImage': 'assets/images/banner_custom_fit.jpg',
-        'btnAction': 0,
+        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=NnwdgvM2Y4c7m6FYqNOl7mERv9jI8qezNyrR%2BiV20eW6J2Ao05K9Bhyik0ixFWniy749h7JiGK9miz9HvtUx9WJtmstzEfBUsqgfjARhfueaa9v3BpdmHD8ytPkCGy%2BHi50oQJJwp%2ByE8T3ja4kO5mHfhk7JqOmFCKP6U1mJjPjiGJLCLm8rYTEOlk9fRg%3D%3D&u2=wk9dEzWh0bFuEAWE&width=2560',
+        'tag': isKo ? '단체주문 전문' : 'GROUP ORDER',
+        'title': isKo ? '팀 유니폼\n맞춤 제작 전문' : 'CUSTOM\nTEAM UNIFORM',
+        'cta': isKo ? '단체주문 알아보기' : 'GROUP ORDER',
+        'ctaIcon': Icons.groups_rounded,
+        'accent': const Color(0xFF1565C0),
+        'btnAction': 2,
       },
     ];
 
-    // 배너 높이를 화면 너비 기준 3:2 비율로 동적 계산 (이미지 실제 비율 1536x1024)
-    final screenWidth = MediaQuery.of(context).size.width;
-    final bannerHeight = screenWidth * 2 / 3;
+    // PC 배너: 화면 높이 75% (와이드 화면에서 임팩트)
+    final bannerHeight = MediaQuery.of(context).size.height * 0.75;
 
+    return SizedBox(
+      height: bannerHeight,
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: PageController(),
+            onPageChanged: (i) => setState(() => _bannerIndex = i),
+            itemCount: banners.length,
+            itemBuilder: (_, idx) {
+              final b = banners[idx];
+              final accent = b['accent'] as Color;
+              void onTap() {
+                switch (b['btnAction'] as int) {
+                  case 1:
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => const ProductListScreen(initialSortBy: '인기순'),
+                    ));
+                    break;
+                  case 2:
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => const GroupOrderLandingScreen(),
+                    ));
+                    break;
+                  default:
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
+                }
+              }
+              return GestureDetector(
+                onTap: onTap,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // 배경 이미지
+                    Image.network(
+                      b['imageUrl'] as String,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                      loadingBuilder: (_, child, progress) => progress == null
+                          ? child
+                          : Container(color: const Color(0xFF1A1A1A),
+                              child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2))),
+                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                    ),
+                    // 하단 그라데이션
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: const [0.3, 0.6, 1.0],
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.45),
+                              Colors.black.withValues(alpha: 0.88),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // 텍스트 + CTA (왼쪽 하단)
+                    Positioned(
+                      left: 60, bottom: 52,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: accent,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: Text(
+                              b['tag'] as String,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 2.2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            b['title'] as String,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 52,
+                              fontWeight: FontWeight.w900,
+                              height: 1.15,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          // CTA 버튼 (흰색 카드형)
+                          GestureDetector(
+                            onTap: onTap,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(6),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(b['ctaIcon'] as IconData, size: 17, color: accent),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    b['cta'] as String,
+                                    style: const TextStyle(
+                                      color: Color(0xFF111111),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          // 우측 세로 점 인디케이터
+          Positioned(
+            right: 20, top: 0, bottom: 0,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: banners.asMap().entries.map((e) {
+                  final active = _bannerIndex == e.key;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 280),
+                    width: 4,
+                    height: active ? 26 : 6,
+                    margin: const EdgeInsets.symmetric(vertical: 3),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2),
+                      color: active ? Colors.white : Colors.white.withValues(alpha: 0.35),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          // 좌측 하단에 없는 빈 placeholder (PC 레이아웃 이전 코드 잔여 제거용)
+          const SizedBox.shrink(),
+        ],
+      ),
+    );
+
+    // ── 아래 코드는 이전 레거시 (도달 불가, 컴파일러 경고 방지용 주석) ──
+    // ignore: dead_code
+    /*
     return Container(
       color: const Color(0xFF111111),
       child: Column(
@@ -964,253 +1127,19 @@ class _HomeScreenState extends State<HomeScreen>
                 // 로컬 asset 이미지 배너 처리
                 final assetImage = b['assetImage'] as String?;
                 if (assetImage != null && assetImage.isNotEmpty) {
-                  return GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
-                    child: Container(
-                      width: double.infinity,
-                      height: double.infinity,
-                      color: Colors.black,
-                      child: Image.asset(
-                        assetImage,
-                        fit: BoxFit.contain,
-                        alignment: Alignment.center,
-                        errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
-                      ),
-                    ),
-                  );
+                  return Container();
                 }
-                // 이미지 URL 배너 처리
-                final imageUrl = b['imageUrl'] as String?;
-                if (imageUrl != null && imageUrl.isNotEmpty) {
-                  return GestureDetector(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                      loadingBuilder: (_, child, progress) => progress == null
-                          ? child
-                          : Container(color: const Color(0xFF111111),
-                              child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2))),
-                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
-                    ),
-                  );
-                }
-                final bg1 = b['bg1'] as Color;
-                final bg2 = b['bg2'] as Color;
-                final bgMid = b['bgMid'] as Color;
-                final accent = b['accent'] as Color;
-                final icon = b['icon'] as IconData;
-                final btnAction = b['btnAction'] as int;
-                void onShop() {
-                  switch (btnAction) {
-                    case 3:
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => const ProductListScreen(initialSortBy: '인기순'),
-                      ));
-                      break;
-                    default:
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
-                  }
-                }
-                return Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [bg1, bgMid, bg2],
-                      stops: const [0.0, 0.5, 1.0],
-                    ),
-                  ),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1280),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 60),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // 왼쪽: 텍스트 컨텐츠
-                            Expanded(
-                              flex: 3,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                                    decoration: BoxDecoration(
-                                      color: accent,
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                    child: Text(
-                                      b['tag'] as String,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 2.5,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Text(
-                                    b['title'] as String,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 64,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: -2,
-                                      height: 0.95,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    b['sub'] as String,
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.7),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    b['desc'] as String,
-                                    style: TextStyle(
-                                      color: accent.withValues(alpha: 0.9),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 28),
-                                  Row(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: onShop,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(3),
-                                          ),
-                                          child: const Text(
-                                            'SHOP NOW',
-                                            style: TextStyle(
-                                              color: Color(0xFF111111),
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 2,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      GestureDetector(
-                                        onTap: () => Navigator.pushNamed(context, '/group-guide'),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
-                                            borderRadius: BorderRadius.circular(3),
-                                          ),
-                                          child: Text(
-                                            loc.homeBannerGroupOrder,
-                                            style: TextStyle(
-                                              color: Colors.white.withValues(alpha: 0.85),
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            // 오른쪽: 아이콘 + 통계
-                            Expanded(
-                              flex: 2,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    width: 200,
-                                    height: 200,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.white.withValues(alpha: 0.05),
-                                      border: Border.all(
-                                        color: Colors.white.withValues(alpha: 0.1),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Center(
-                                      child: Icon(icon, size: 80, color: Colors.white.withValues(alpha: 0.15)),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  // 통계 배지들
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      _pcBannerStat('1,200+', loc.homeBannerTeams),
-                                      Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.2), margin: const EdgeInsets.symmetric(horizontal: 16)),
-                                      _pcBannerStat('98%', loc.homeBannerSatisfaction),
-                                      Container(width: 1, height: 30, color: Colors.white.withValues(alpha: 0.2), margin: const EdgeInsets.symmetric(horizontal: 16)),
-                                      _pcBannerStat('15일', loc.homeBannerDelivery),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
+                return Container();
               },
-            ),
-          ),
-          // 인디케이터
-          Container(
-            color: const Color(0xFF0D0D0D),
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: banners.asMap().entries.map((e) {
-                final active = _bannerIndex == e.key;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  width: active ? 24 : 6,
-                  height: 4,
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(2),
-                    color: active ? Colors.white : Colors.white.withValues(alpha: 0.3),
-                  ),
-                );
-              }).toList(),
             ),
           ),
         ],
       ),
     );
+    */
   }
 
-  Widget _pcBannerStat(String value, String label) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 2),
-        Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11)),
-      ],
-    );
-  }
+
 
   // ── PC 전용 카테고리 사이드바 (아코디언) ──
   // ── PC 배너 섹션 (모바일과 동일, 높이만 조정) ──
