@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import '../main.dart' show navigatorKey;
 import '../screens/main_screen.dart';
 
-/// 뒤로가기 공통 처리 함수
+/// 뒤로가기 공통 처리 함수 (AppBar ← 버튼 전용)
 /// - Navigator 스택에 이전 화면이 있으면 → pop (정상 뒤로가기)
 /// - 없으면 → MainScreen 홈탭으로 이동 (앱 종료 없음)
 void goBackOrHome(BuildContext context) {
-  final nav = navigatorKey.currentState;
-  if (nav != null && nav.canPop()) {
-    nav.pop();
+  if (Navigator.canPop(context)) {
+    Navigator.pop(context);
   } else {
     // 스택 바닥 → 홈으로 이동
     navigatorKey.currentState?.pushAndRemoveUntil(

@@ -97,17 +97,19 @@ class MainScreenState extends State<MainScreen> {
 
     // ── 모바일 레이아웃 (BottomNav 제거) ──
     // PopScope: 안드로이드 뒤로가기 처리
-    //  - 홈탭(0) 이외 탭에서 → 홈탭(0)으로 이동 (앱 종료 X)
-    //  - 홈탭(0)에서 → 아무 동작 안 함 (홈이 항상 마지막 종착지)
+    //  - 서브탭(1~3)에서 → 홈탭(0)으로 이동
+    //  - 홈탭(0)에서 → canPop:false 로 앱 종료 완전 차단
     return PopScope(
-      canPop: false, // 항상 직접 처리
+      canPop: false, // 항상 false → OS 종료 완전 차단
       onPopInvokedWithResult: (didPop, result) {
+        // didPop이 true면 이미 다른 곳에서 처리됨 (서브화면 pop)
         if (didPop) return;
+        // MainScreen 자체에 도달한 뒤로가기
         if (_currentIndex != 0) {
           // 서브탭 → 홈탭으로 이동
           setState(() => _currentIndex = 0);
         }
-        // 홈탭(0)에서는 아무것도 하지 않음 → 홈이 마지막 종착지
+        // 홈탭(0): 아무것도 안 함 → 앱 유지
       },
       child: Scaffold(
         key: _scaffoldKey,
