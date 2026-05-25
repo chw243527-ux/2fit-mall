@@ -12,6 +12,7 @@ import '../../widgets/product_card.dart';
 import '../products/product_list_screen.dart';
 import '../products/product_detail_screen.dart';
 import '../products/category_detail_screen.dart';
+import '../orders/group_order_landing_screen.dart';
 import '../admin/admin_screen.dart';
 import '../../services/analytics_service.dart';
 import '../chat/chat_screen.dart';
@@ -3155,72 +3156,82 @@ class _HomeScreenState extends State<HomeScreen>
   // 메인 배너 (다국어 subtitle 적용)
   // ────────────────────────────────────────────
   Widget _buildBannerSection(AppLocalizations loc) {
+    final isKo = loc.language == AppLanguage.korean;
     final banners = [
       {
-        'title': 'JUST\nDO IT.',
-        'sub': loc.language == AppLanguage.korean ? '2025 S/S 컬렉션' : '2025 S/S COLLECTION',
-        'tag': 'NEW SEASON',
+        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=4iEZ6YJMldBU5ZBmJOFgT9kDZdMvpBevDj3N3dwEEeVI1FzibJfbFhybEcLnk%2BNRjXJffeCC%2FWAfsrHeWZXfUhH2Zi5CbqkZFdWKyPTesqa7AXgsg1mOfCZDkIOPU8ittlARbOw70BxrqaRkP2%2FFhkyaQQlQDwaf3Ao4czb0&u2=uctVv2VRDCguTvai&width=2560',
+        'tag': isKo ? '2025 S/S 신상품' : 'NEW ARRIVALS',
+        'title': isKo ? '새로운\n시즌이\n시작됩니다' : 'NEW\nSEASON\nSTARTS',
+        'cta': isKo ? '신상품 보러가기' : 'VIEW NEW ARRIVALS',
+        'ctaIcon': Icons.arrow_forward_rounded,
         'accent': const Color(0xFFE53935),
-        'bg1': const Color(0xFF0D0D0D),
-        'bg2': const Color(0xFF1A1A1A),
-        'icon': Icons.sports_soccer_rounded,
         'btnAction': 0,
+        'align': CrossAxisAlignment.start,
+        'imgAlign': Alignment.topCenter,
       },
       {
-        'title': 'BEST\nSELLER.',
-        'sub': loc.language == AppLanguage.korean ? '2FIT 인기 상품' : 'TOP PRODUCTS',
-        'tag': 'POPULAR',
+        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=ZjWVfgUk7a83y04sEr0LzGOgclyZ8fcvuA6tFrbXfcCRPxbwJwYpj7ogAYuNEkXMqVKpmihq6t0wR7lk1flNvGIJicNrYmCMBd7kTEvRs073rg%3D%3D&u2=gQzSN%2F09%2BJCOIZOk&width=2560',
+        'tag': isKo ? '베스트셀러' : 'BEST SELLER',
+        'title': isKo ? '가장 많이\n선택받은\n2FIT' : 'MOST\nLOVED\n2FIT',
+        'cta': isKo ? '베스트 상품 보기' : 'SHOP BEST',
+        'ctaIcon': Icons.local_fire_department_rounded,
         'accent': const Color(0xFFFF6B35),
-        'bg1': const Color(0xFF1A0000),
-        'bg2': const Color(0xFF330000),
-        'icon': Icons.local_fire_department_rounded,
-        'btnAction': 3,
+        'btnAction': 1,
+        'align': CrossAxisAlignment.start,
+        'imgAlign': Alignment.topCenter,
       },
       {
-        'assetImage': 'assets/images/banner_custom_fit.jpg',
-        'btnAction': 0,
+        'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=NnwdgvM2Y4c7m6FYqNOl7mERv9jI8qezNyrR%2BiV20eW6J2Ao05K9Bhyik0ixFWniy749h7JiGK9miz9HvtUx9WJtmstzEfBUsqgfjARhfueaa9v3BpdmHD8ytPkCGy%2BHi50oQJJwp%2ByE8T3ja4kO5mHfhk7JqOmFCKP6U1mJjPjiGJLCLm8rYTEOlk9fRg%3D%3D&u2=wk9dEzWh0bFuEAWE&width=2560',
+        'tag': isKo ? '단체주문 전문' : 'GROUP ORDER',
+        'title': isKo ? '팀 유니폼\n맞춤 제작\n전문 브랜드' : 'CUSTOM\nTEAM\nUNIFORM',
+        'cta': isKo ? '단체주문 알아보기' : 'GROUP ORDER',
+        'ctaIcon': Icons.groups_rounded,
+        'accent': const Color(0xFF1565C0),
+        'btnAction': 2,
+        'align': CrossAxisAlignment.start,
+        'imgAlign': Alignment.topCenter,
       },
     ];
 
-    // 배너 높이를 화면 너비 기준 3:2 비율로 동적 계산 (이미지 실제 비율 1536x1024)
-    final bannerHeightMobile = MediaQuery.of(context).size.width * 2 / 3;
+    // 화면 높이의 70% (TOPTEN10 스타일 풀스크린 느낌)
+    final screenHeight = MediaQuery.of(context).size.height;
+    final bannerHeight = screenHeight * 0.70;
 
-    return Container(
-      color: const Color(0xFF111111),
-      child: Column(
+    return SizedBox(
+      height: bannerHeight,
+      child: Stack(
         children: [
-          CarouselSlider(
-            options: CarouselOptions(
-              height: bannerHeightMobile,
-              viewportFraction: 1.0,
-              autoPlay: true,
-              autoPlayInterval: const Duration(seconds: 4),
-              autoPlayAnimationDuration: const Duration(milliseconds: 600),
-              autoPlayCurve: Curves.easeInOutCubic,
-              onPageChanged: (index, _) => setState(() => _bannerIndex = index),
-            ),
-            items: banners.asMap().entries
-                .map((e) => _buildBannerItem(e.value, e.key, loc))
-                .toList(),
+          // ── 슬라이드 ──
+          PageView.builder(
+            controller: PageController(),
+            onPageChanged: (i) => setState(() => _bannerIndex = i),
+            itemCount: banners.length,
+            itemBuilder: (_, i) => _buildFullBannerItem(banners[i], i, loc),
           ),
-          // 점 인디케이터
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: banners.asMap().entries.map((e) {
-                final active = _bannerIndex == e.key;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  width: active ? 20 : 4,
-                  height: 4,
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(2),
-                    color: active ? Colors.white : Colors.white.withValues(alpha: 0.3),
-                  ),
-                );
-              }).toList(),
+          // ── 우측 세로 점 인디케이터 ──
+          Positioned(
+            right: 14,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: banners.asMap().entries.map((e) {
+                  final active = _bannerIndex == e.key;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 280),
+                    width: 4,
+                    height: active ? 22 : 5,
+                    margin: const EdgeInsets.symmetric(vertical: 2.5),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2),
+                      color: active
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.35),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
           ),
         ],
@@ -3228,164 +3239,143 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildBannerItem(Map<String, dynamic> banner, int index, AppLocalizations loc) {
-    // 로컬 asset 이미지 배너인 경우
-    final assetImage = banner['assetImage'] as String?;
-    if (assetImage != null && assetImage.isNotEmpty) {
-      return GestureDetector(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
-        child: Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(color: Colors.black),
-          child: Image.asset(
-            assetImage,
-            fit: BoxFit.contain,
-            width: double.infinity,
-            alignment: Alignment.center,
-            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
-          ),
-        ),
-      );
+  Widget _buildFullBannerItem(Map<String, dynamic> banner, int index, AppLocalizations loc) {
+    final accent = banner['accent'] as Color;
+    final imgAlign = banner['imgAlign'] as Alignment? ?? Alignment.topCenter;
+
+    void onTap() {
+      switch (banner['btnAction'] as int) {
+        case 1:
+          Navigator.push(context, MaterialPageRoute(
+            builder: (_) => const ProductListScreen(initialSortBy: '인기순'),
+          ));
+          break;
+        case 2:
+          Navigator.push(context, MaterialPageRoute(
+            builder: (_) => const GroupOrderLandingScreen(),
+          ));
+          break;
+        default:
+          Navigator.push(context, MaterialPageRoute(
+            builder: (_) => const ProductListScreen(),
+          ));
+      }
     }
-    // 이미지 URL 배너인 경우
-    final imageUrl = banner['imageUrl'] as String?;
-    if (imageUrl != null && imageUrl.isNotEmpty) {
-      return GestureDetector(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
-        child: Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(color: Colors.black),
-          child: Image.network(
-            imageUrl,
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ── 배경 이미지 ──
+          Image.network(
+            banner['imageUrl'] as String,
             fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
+            alignment: imgAlign,
             loadingBuilder: (_, child, progress) => progress == null
                 ? child
-                : Container(color: const Color(0xFF111111),
-                    child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2))),
-            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
+                : Container(color: const Color(0xFF1A1A1A),
+                    child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2))),
+            errorBuilder: (_, __, ___) => Container(
+              color: const Color(0xFF1A1A1A),
+              child: const Center(child: Icon(Icons.image_not_supported, color: Colors.white24, size: 48)),
+            ),
           ),
-        ),
-      );
-    }
 
-    final bg1 = banner['bg1'] as Color? ?? const Color(0xFF0D0D0D);
-    final bg2 = banner['bg2'] as Color? ?? const Color(0xFF1A1A1A);
-    final accent = banner['accent'] as Color? ?? const Color(0xFFE53935);
-    final icon = banner['icon'] as IconData? ?? Icons.sports_soccer_rounded;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [bg1, bg2],
-        ),
-      ),
-      child: Stack(
-        children: [
-          // 배경 패턴 (아이콘으로 시각적 장식)
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Icon(icon, size: 220, color: Colors.white.withValues(alpha: 0.04)),
+          // ── 하단 그라데이션 오버레이 ──
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  stops: const [0.35, 0.65, 1.0],
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.45),
+                    Colors.black.withValues(alpha: 0.85),
+                  ],
+                ),
+              ),
+            ),
           ),
-          // 콘텐츠
+
+          // ── 콘텐츠 (하단 고정) ──
           Positioned(
-            left: 20, right: 20, bottom: 24,
+            left: 20, right: 32, bottom: 28,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: banner['align'] as CrossAxisAlignment,
               mainAxisSize: MainAxisSize.min,
               children: [
                 // 태그 뱃지
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
                     color: accent,
-                    borderRadius: BorderRadius.circular(3),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                   child: Text(
                     banner['tag'] as String,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.8,
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
+                // 메인 타이틀
                 Text(
                   banner['title'] as String,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 40,
+                    fontSize: 32,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                    height: 0.95,
+                    height: 1.15,
+                    letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  banner['sub'] as String,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
+                // CTA 버튼 (흰색 카드형 — TOPTEN10 검색바 스타일)
                 GestureDetector(
-                  onTap: () {
-                    switch (index) {
-                      case 1:
-                        Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => const ProductListScreen(initialSortBy: '인기순'),
-                        ));
-                        break;
-                      default:
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
-                    }
-                  },
+                  onTap: onTap,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(3),
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.18),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: const Text(
-                      'SHOP NOW',
-                      style: TextStyle(
-                        color: Color(0xFF111111),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          banner['ctaIcon'] as IconData,
+                          size: 16,
+                          color: accent,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          banner['cta'] as String,
+                          style: TextStyle(
+                            color: const Color(0xFF111111),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ],
-            ),
-          ),
-          // 우상단 페이지 카운터
-          Positioned(
-            top: 16, right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '${_bannerIndex + 1} / 2',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
             ),
           ),
         ],
