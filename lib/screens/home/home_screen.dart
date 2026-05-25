@@ -2324,12 +2324,16 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildCompactBanner(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
-    // 배너 높이: 화면의 60%
-    final screenH = MediaQuery.of(context).size.height * 0.60;
+    // 배너 높이: 화면 너비에 따라 자동 조절
+    // 모바일(<600px): 60%, 태블릿(600~1024px): 70%, PC(>1024px): 80%
+    final screenW = MediaQuery.of(context).size.width;
+    final screenH = MediaQuery.of(context).size.height;
+    final bannerRatio = screenW < 600 ? 0.60 : screenW < 1024 ? 0.70 : 0.80;
+    final bannerH = screenH * bannerRatio;
 
     if (bannerProv.loading) {
       return SizedBox(
-        height: screenH,
+        height: bannerH,
         child: Stack(
           children: [
             const ColoredBox(color: Color(0xFF111111), child: SizedBox.expand()),
@@ -2342,7 +2346,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
     if (activeBanners.isEmpty) {
       return SizedBox(
-        height: screenH,
+        height: bannerH,
         child: Stack(
           children: [
             const ColoredBox(color: Color(0xFF1A1A1A), child: SizedBox.expand()),
@@ -2353,7 +2357,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
 
     return SizedBox(
-      height: screenH,
+      height: bannerH,
       child: Stack(
         children: [
           // 배너 슬라이더
