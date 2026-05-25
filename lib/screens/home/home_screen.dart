@@ -2107,60 +2107,52 @@ class _HomeScreenState extends State<HomeScreen>
     final pp = context.watch<ProductProvider>();
     final groupProds = pp.groupOnlyProducts;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            // ── ① 고정 헤더 ──
-            _buildFixedHeader(loc),
-            // ── ② 카테고리 탭 ──
-            _buildCategoryTabBar(loc),
-            // ── ③ 스크롤 바디: 배너 + 단체주문 상품 ──
-            Expanded(
-              child: CustomScrollView(
-                slivers: [
-                  // 배너 슬라이더
-                  SliverToBoxAdapter(child: _buildCompactBanner(loc)),
-                  // 단체주문 전용 상품 헤더
-                  SliverToBoxAdapter(child: _buildGroupSectionHeader(loc, groupProds.length)),
-                  // 상품 그리드
-                  if (pp.isGroupOnlyLoading && groupProds.isEmpty)
-                    const SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 40),
-                        child: Center(child: CircularProgressIndicator(color: Color(0xFF6A1B9A), strokeWidth: 2)),
-                      ),
-                    )
-                  else if (groupProds.isEmpty)
-                    SliverToBoxAdapter(child: _buildGroupEmptyState(loc))
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-                      sliver: SliverGrid(
-                        delegate: SliverChildBuilderDelegate(
-                          (_, i) => _buildGroupProductCard(groupProds[i]),
-                          childCount: groupProds.length,
-                        ),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 0.68,
-                        ),
-                      ),
-                    ),
-                  // 하단 여백 (BottomNav 높이 보정)
-                  const SliverToBoxAdapter(child: SizedBox(height: 80)),
-                ],
+    return Stack(
+      children: [
+        // ── 전체 스크롤 컨텐츠 ──
+        CustomScrollView(
+          slivers: [
+            // ── ① 배너 슬라이더 (헤더 포함) ──
+            SliverToBoxAdapter(child: _buildCompactBanner(loc)),
+            // ── ② 단체주문 전용 상품 헤더 ──
+            SliverToBoxAdapter(child: _buildGroupSectionHeader(loc, groupProds.length)),
+            // ── ③ 상품 그리드 ──
+            if (pp.isGroupOnlyLoading && groupProds.isEmpty)
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(child: CircularProgressIndicator(color: Color(0xFF6A1B9A), strokeWidth: 2)),
+                ),
+              )
+            else if (groupProds.isEmpty)
+              SliverToBoxAdapter(child: _buildGroupEmptyState(loc))
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+                sliver: SliverGrid(
+                  delegate: SliverChildBuilderDelegate(
+                    (_, i) => _buildGroupProductCard(groupProds[i]),
+                    childCount: groupProds.length,
+                  ),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 0.68,
+                  ),
+                ),
               ),
-            ),
+            // 하단 여백
+            const SliverToBoxAdapter(child: SizedBox(height: 80)),
           ],
         ),
-      ),
-      floatingActionButton: _buildChatFAB(loc),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        // ── FAB 채팅버튼 ──
+        Positioned(
+          right: 16,
+          bottom: 16,
+          child: _buildChatFAB(loc),
+        ),
+      ],
     );
   }
 
@@ -2329,35 +2321,51 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ── 컴팩트 배너 (화면 높이 50%) ──
+  // ── 모바일 풀스크린 배너 (헤더 오버레이 포함) ──
   Widget _buildCompactBanner(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
-    final bannerH = MediaQuery.of(context).size.height * 0.50;
+    // 화면 전체 높이 (SafeArea top 포함)
+    final screenH = MediaQuery.of(context).size.height;
 
     if (bannerProv.loading) {
       return SizedBox(
-        height: bannerH,
-        child: const ColoredBox(
-          color: Color(0xFF111111),
-          child: Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2)),
+        height: screenH,
+        child: Stack(
+          children: [
+            const ColoredBox(color: Color(0xFF111111), child: SizedBox.expand()),
+            const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2)),
+            // 상단 오버레이 헤더
+            Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
+          ],
         ),
       );
     }
     if (activeBanners.isEmpty) {
-      return SizedBox(height: bannerH, child: const ColoredBox(color: Color(0xFF1A1A1A)));
+      return SizedBox(
+        height: screenH,
+        child: Stack(
+          children: [
+            const ColoredBox(color: Color(0xFF1A1A1A), child: SizedBox.expand()),
+            Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
+          ],
+        ),
+      );
     }
 
     return SizedBox(
-      height: bannerH,
+      height: screenH,
       child: Stack(
         children: [
+          // 배너 슬라이더
           PageView.builder(
             controller: _mobileBannerCtrl,
             onPageChanged: (i) => setState(() => _bannerIndex = i),
             itemCount: activeBanners.length,
             itemBuilder: (_, i) => _buildFullBannerItem(activeBanners[i], i, loc),
           ),
+          // 상단 오버레이 헤더 (그라데이션 배경)
+          Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
           // 우측 세로 인디케이터
           Positioned(
             right: 12, top: 0, bottom: 0,
