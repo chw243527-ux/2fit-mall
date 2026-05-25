@@ -1060,7 +1060,7 @@ class ProductProvider extends ChangeNotifier {
         final sb = _salesCountMap[b.id] ?? b.salesCount;
         return sb.compareTo(sa);
       });
-    return withSales.take(8).toList();
+    return withSales.take(10).toList();
   }
 
   ProductProvider() {
