@@ -10,13 +10,24 @@ import '../../widgets/pc_layout.dart';
 import '../main_screen.dart';
 
 class CartScreen extends StatelessWidget {
-  const CartScreen({super.key});
+  /// IndexedStack 안에 있을 때는 onBack 콜백으로 홈탭 이동,
+  /// Navigator.push로 열렸을 때는 null이면 자동으로 Navigator.pop 사용
+  final VoidCallback? onBack;
+  const CartScreen({super.key, this.onBack});
 
   String _formatPrice(double price) {
     return price.toStringAsFixed(0).replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]},',
     );
+  }
+
+  void _handleBack(BuildContext context) {
+    if (onBack != null) {
+      onBack!();
+    } else if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -32,7 +43,7 @@ class CartScreen extends StatelessWidget {
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => _handleBack(context),
             ),
             title: Consumer<LanguageProvider>(
               builder: (_, lp, __) => Text(
@@ -67,7 +78,7 @@ class CartScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => _handleBack(context),
         ),
         title: Consumer2<CartProvider, LanguageProvider>(
           builder: (context, cart, lp, _) => Text(

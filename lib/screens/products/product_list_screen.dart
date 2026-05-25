@@ -10,8 +10,10 @@ class ProductListScreen extends StatefulWidget {
   final String? initialCategory;
   final String? searchQuery;
   final String? initialSortBy;
+  /// IndexedStack 안에 있을 때 뒤로가기 콜백 (홈탭 이동)
+  final VoidCallback? onBack;
 
-  const ProductListScreen({super.key, this.initialCategory, this.searchQuery, this.initialSortBy});
+  const ProductListScreen({super.key, this.initialCategory, this.searchQuery, this.initialSortBy, this.onBack});
 
   @override
   State<ProductListScreen> createState() => _ProductListScreenState();
@@ -122,7 +124,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () {
+          if (widget.onBack != null) {
+            widget.onBack!();
+          } else if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+        },
       ),
       title: widget.searchQuery != null
           ? TextField(

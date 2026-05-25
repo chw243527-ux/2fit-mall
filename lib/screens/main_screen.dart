@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/providers.dart';
 import '../utils/app_localizations.dart';
@@ -97,26 +97,46 @@ class MainScreenState extends State<MainScreen> {
     }
 
     // ── 모바일 레이아웃 (BottomNav 제거) ──
-    return Scaffold(
-      key: _scaffoldKey,
-      drawer: AppDrawer(
-        onNavigateToMyPage: () => setState(() => _currentIndex = 3),
+    // PopScope: 안드로이드 뒤로가기 처리
+    //  - 홈탭(0) 이외 탭에서 → 홈탭(0)으로 이동 (앱 종료 X)
+    //  - 홈탭(0)에서 → 앱을 종료하지 않고 백그라운드로 이동
+    return PopScope(
+      canPop: false, // 항상 직접 처리
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          // 서브탭 → 홈탭으로 이동
+          setState(() => _currentIndex = 0);
+        } else {
+          // 홈탭 → 앱을 백그라운드로 이동 (종료 X)
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        drawer: AppDrawer(
+          onNavigateToMyPage: () => setState(() => _currentIndex = 3),
+        ),
+        body: IndexedStack(
+          index: _currentIndex,
+          children: [
+            HomeScreen(
+              scaffoldKey: _scaffoldKey,
+              onNavigate: navigateTo,
+            ),
+            ProductListScreen(
+              onBack: () => setState(() => _currentIndex = 0),
+            ),
+            CartScreen(
+              onBack: () => setState(() => _currentIndex = 0),
+            ),
+            MyPageScreen(
+              onBack: () => setState(() => _currentIndex = 0),
+            ),
+          ],
+        ),
+        // bottomNavigationBar 제거 — 로고 클릭으로 홈, 앱바 아이콘으로 이동
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          HomeScreen(
-            scaffoldKey: _scaffoldKey,
-            onNavigate: navigateTo,
-          ),
-          const ProductListScreen(),
-          const CartScreen(),
-          MyPageScreen(
-            onBack: () => setState(() => _currentIndex = 0),
-          ),
-        ],
-      ),
-      // bottomNavigationBar 제거 — 로고 클릭으로 홈, 앱바 아이콘으로 이동
     );
   }
 }
@@ -150,41 +170,57 @@ class _PcLayoutState extends State<_PcLayout> {
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final tabs = [loc.navHome, loc.navProducts, loc.navCart, loc.pcMyPage];
-    return Scaffold(
-      key: _pcScaffoldKey,
-      backgroundColor: const Color(0xFFF5F5F5),
-      drawer: _buildPcCategoryDrawer(context, loc),
-      floatingActionButton: widget.currentIndex == 0
-          ? FloatingActionButton.extended(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen())),
-              backgroundColor: const Color(0xFF4CAF50),
-              icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
-              label: Text(loc.pcKakaoChannel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-            )
-          : null,
-      body: Column(
-        children: [
-          _PcTopBar(
-            currentIndex: widget.currentIndex,
-            onTabChanged: widget.onTabChanged,
-            tabs: tabs,
-            icons: _PcLayout._icons,
-            scaffoldKey: _pcScaffoldKey,
-          ),
-          Expanded(
-            child: IndexedStack(
-              index: widget.currentIndex,
-              children: [
-                HomeScreen(onNavigate: widget.onTabChanged),
-                const ProductListScreen(),
-                const CartScreen(),
-                MyPageScreen(
-                  onBack: () => widget.onTabChanged(0),
-                ),
-              ],
+    // PopScope: 태블릿/PC에서도 안드로이드 뒤로가기 처리
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (widget.currentIndex != 0) {
+          widget.onTabChanged(0);
+        } else {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        key: _pcScaffoldKey,
+        backgroundColor: const Color(0xFFF5F5F5),
+        drawer: _buildPcCategoryDrawer(context, loc),
+        floatingActionButton: widget.currentIndex == 0
+            ? FloatingActionButton.extended(
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen())),
+                backgroundColor: const Color(0xFF4CAF50),
+                icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
+                label: Text(loc.pcKakaoChannel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+              )
+            : null,
+        body: Column(
+          children: [
+            _PcTopBar(
+              currentIndex: widget.currentIndex,
+              onTabChanged: widget.onTabChanged,
+              tabs: tabs,
+              icons: _PcLayout._icons,
+              scaffoldKey: _pcScaffoldKey,
             ),
-          ),
-        ],
+            Expanded(
+              child: IndexedStack(
+                index: widget.currentIndex,
+                children: [
+                  HomeScreen(onNavigate: widget.onTabChanged),
+                  ProductListScreen(
+                    onBack: () => widget.onTabChanged(0),
+                  ),
+                  CartScreen(
+                    onBack: () => widget.onTabChanged(0),
+                  ),
+                  MyPageScreen(
+                    onBack: () => widget.onTabChanged(0),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
