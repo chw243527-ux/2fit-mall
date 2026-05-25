@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+// ignore: unused_import
 import '../main_screen.dart' show kPcBreakpoint;
 import '../../widgets/pc_layout.dart';
 import '../../utils/app_localizations.dart';
@@ -81,43 +82,8 @@ class _HomeScreenState extends State<HomeScreen>
   final GlobalKey<ScaffoldState> _pcScaffoldKey = GlobalKey<ScaffoldState>();
 
   Widget _buildPcLayout(AppLocalizations loc) {
-    // Scaffold 제거: main_screen._PcLayout의 Scaffold 안에서 실행되므로
-    // 중첩 Scaffold를 피하고 CustomScrollView만 반환
-    return CustomScrollView(
-      slivers: [
-        // PC 전용 배너 (이미지 없이 그라디언트만)
-        SliverToBoxAdapter(child: _buildPcBannerOnly(loc)),
-        const SliverToBoxAdapter(child: SizedBox(height: 24)),
-        // 베스트 상품 (5열 PC 그리드)
-        SliverToBoxAdapter(
-          child: _buildPcProductGridSection(
-            title: loc.sectionBestSeller,
-            englishTitle: loc.sectionBestSellerSub,
-            accentColor: const Color(0xFFE53935),
-            isNew: false,
-            loc: loc,
-          ),
-        ),
-        const SliverToBoxAdapter(child: SizedBox(height: 16)),
-        // 단체주문 섹션
-        SliverToBoxAdapter(child: _buildPcGroupOrderSection(loc)),
-        const SliverToBoxAdapter(child: SizedBox(height: 16)),
-        // 신상품 (5열 PC 그리드)
-        SliverToBoxAdapter(
-          child: _buildPcProductGridSection(
-            title: loc.sectionNewArrival,
-            englishTitle: loc.sectionNewArrivalSub,
-            accentColor: const Color(0xFF1A1A1A),
-            isNew: true,
-            loc: loc,
-          ),
-        ),
-        const SliverToBoxAdapter(child: SizedBox(height: 16)),
-        SliverToBoxAdapter(child: _buildBrandFeatureSection()),
-        SliverToBoxAdapter(child: _buildPcFooter(loc)),
-        const SliverToBoxAdapter(child: SizedBox(height: 40)),
-      ],
-    );
+    // 홈화면: 배너만 표시 (전체 화면 높이 풀스크린)
+    return _buildPcBannerOnly(loc);
   }
 
   // ── PC 카테고리 드로어 (햄버거 버튼으로 열림) ──
@@ -766,7 +732,10 @@ class _HomeScreenState extends State<HomeScreen>
   // ignore: unused_element
   Widget _buildPcNavBar(AppLocalizations loc) {
     return Container(
-      color: const Color(0xFF111111),
+      color: Colors.white,
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
+      ),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
@@ -781,11 +750,11 @@ class _HomeScreenState extends State<HomeScreen>
                     child: SizedBox(
                       height: 28,
                       child: Image.asset(
-                        'assets/images/logo_2fit_white.png',
+                        'assets/images/2fit_logo.png',
                         fit: BoxFit.contain,
                         errorBuilder: (_, __, ___) => const Text(
                           '2FIT',
-                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 3),
+                          style: TextStyle(color: Color(0xFF111111), fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 3),
                         ),
                       ),
                     ),
@@ -793,7 +762,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.search_rounded, color: Colors.white, size: 20),
+                  icon: const Icon(Icons.search_rounded, color: Color(0xFF333333), size: 22),
                   tooltip: loc.search,
                   onPressed: () => _showSearchSheet(context, loc),
                 ),
@@ -802,7 +771,7 @@ class _HomeScreenState extends State<HomeScreen>
                     clipBehavior: Clip.none,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 20),
+                        icon: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF333333), size: 22),
                         tooltip: loc.cart,
                         onPressed: () => widget.onNavigate?.call(2),
                       ),
@@ -822,14 +791,14 @@ class _HomeScreenState extends State<HomeScreen>
                   builder: (ctx, userProv, _) {
                     final userId = userProv.user?.id;
                     if (userId == null) {
-                      return IconButton(icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20), onPressed: () => _showNotificationsSheet(context, loc));
+                      return IconButton(icon: const Icon(Icons.notifications_outlined, color: Color(0xFF333333), size: 22), onPressed: () => _showNotificationsSheet(context, loc));
                     }
                     return StreamBuilder<int>(
                       stream: FcmService.watchUnreadCount(userId),
                       builder: (ctx2, snap) {
                         final unread = snap.data ?? 0;
                         return Stack(clipBehavior: Clip.none, children: [
-                          IconButton(icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 20), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationCenterScreen()))),
+                          IconButton(icon: const Icon(Icons.notifications_outlined, color: Color(0xFF333333), size: 22), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationCenterScreen()))),
                           if (unread > 0) Positioned(top: 6, right: 6, child: Container(width: 14, height: 14, decoration: const BoxDecoration(color: Color(0xFFFF0000), shape: BoxShape.circle), child: Center(child: Text(unread > 9 ? '9+' : '$unread', style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900))))),
                         ]);
                       },
@@ -841,20 +810,20 @@ class _HomeScreenState extends State<HomeScreen>
                   onTap: () => widget.onNavigate?.call(3),
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF111111),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.person_outline_rounded,
-                            color: Color(0xFF111111), size: 16),
+                            color: Colors.white, size: 16),
                         const SizedBox(width: 6),
                         Text(loc.navMyPage,
                             style: const TextStyle(
-                                color: Color(0xFF111111),
+                                color: Colors.white,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700)),
                       ],
@@ -871,7 +840,7 @@ class _HomeScreenState extends State<HomeScreen>
                   builder: (ctx, userProv, _) {
                     if (!userProv.isLoggedIn) return const SizedBox.shrink();
                     return IconButton(
-                      icon: const Icon(Icons.logout_rounded, color: Colors.white70, size: 20),
+                      icon: const Icon(Icons.logout_rounded, color: Color(0xFF999999), size: 20),
                       tooltip: '로그아웃',
                       onPressed: () async {
                         final confirm = await showDialog<bool>(
@@ -941,8 +910,9 @@ class _HomeScreenState extends State<HomeScreen>
       },
     ];
 
-    // PC 배너: 화면 높이 75% (와이드 화면에서 임팩트)
-    final bannerHeight = MediaQuery.of(context).size.height * 0.75;
+    // PC 배너: 화면 전체 높이 — NavBar를 제외한 나머지 공간 차지
+    final navBarH = 52.0; // PC NavBar 높이
+    final bannerHeight = MediaQuery.of(context).size.height - navBarH;
 
     return SizedBox(
       height: bannerHeight,
@@ -1631,6 +1601,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── PC 상품 그리드 섹션 (신상품/베스트 — 모바일 가로 스크롤 대신 5컬럼 그리드) ──
+  // ignore: unused_element
   Widget _buildPcProductGridSection({
     required String title,
     required String englishTitle,
@@ -1926,6 +1897,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── PC 단체주문전용 상품 섹션 ──
+  // ignore: unused_element
   Widget _buildPcGroupOrderSection(AppLocalizations loc) {
     List<ProductModel> allProds = context.watch<ProductProvider>().products;
     // 비어있으면 더미 데이터로 즉시 폴백
@@ -2112,28 +2084,14 @@ class _HomeScreenState extends State<HomeScreen>
   // ─── 모바일 레이아웃 ────────────────────────────
   Widget _buildMobileLayout(AppLocalizations loc) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // ── 메인 스크롤 콘텐츠 ──
-          CustomScrollView(
-            slivers: [
-              // 헤더 높이만큼 상단 여백 (배너가 헤더 아래에서 시작)
-              SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).padding.top + 56)),
-              // 배너 (헤더 바로 아래)
-              SliverToBoxAdapter(child: _buildBannerSection(loc)),
-              // 베스트 상품
-              SliverToBoxAdapter(child: _buildBestSection(loc)),
-              // 단체주문전용 상품 섹션
-              SliverToBoxAdapter(child: _buildGroupOrderSection(loc)),
-              SliverToBoxAdapter(child: _buildNewArrivalsSection(loc)),
-              SliverToBoxAdapter(child: _buildBrandFeatureSection()),
-              if (MediaQuery.of(context).size.width >= kPcBreakpoint) // 태블릿 포함
-                SliverToBoxAdapter(child: _buildPcFooter(loc)),
-              const SliverToBoxAdapter(child: SizedBox(height: 80)),
-            ],
+          // ── 배너만 풀스크린 표시 ──
+          Positioned.fill(
+            child: _buildBannerSection(loc),
           ),
-          // ── 상단 오버레이 헤더 (1행, 투명→다크 그라디언트) ──
+          // ── 상단 오버레이 헤더 ──
           Positioned(
             top: 0,
             left: 0,
@@ -2149,17 +2107,18 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 1행 오버레이 헤더 ──
   Widget _buildOverlayHeader(AppLocalizations loc) {
+    // 배너 풀스크린 위에 올라오는 헤더 — 상단 그라데이션으로 가독성 확보
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFF111111),
-            const Color(0xFF111111).withValues(alpha: 0.92),
-            const Color(0xFF111111).withValues(alpha: 0.0),
+            Colors.black.withValues(alpha: 0.55),
+            Colors.black.withValues(alpha: 0.28),
+            Colors.transparent,
           ],
-          stops: const [0.0, 0.75, 1.0],
+          stops: const [0.0, 0.65, 1.0],
         ),
       ),
       child: SafeArea(
@@ -2186,11 +2145,11 @@ class _HomeScreenState extends State<HomeScreen>
                   child: Center(
                     child: Image.asset(
                       'assets/images/logo_2fit_white.png',
-                      height: 32,
+                      height: 30,
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => Image.asset(
                         'assets/images/2fit_logo.png',
-                        height: 32,
+                        height: 30,
                         fit: BoxFit.contain,
                         color: Colors.white,
                         colorBlendMode: BlendMode.srcIn,
@@ -2252,10 +2211,10 @@ class _HomeScreenState extends State<HomeScreen>
                     margin: const EdgeInsets.only(right: 10),
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
+                      color: Colors.white.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(5),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: Colors.white.withValues(alpha: 0.55),
                         width: 1.0,
                       ),
                     ),
@@ -2292,6 +2251,7 @@ class _HomeScreenState extends State<HomeScreen>
 
 
   // ── 단체주문전용 상품 섹션 ──
+  // ignore: unused_element
   Widget _buildGroupOrderSection(AppLocalizations loc) {
     List<ProductModel> allProds = context.watch<ProductProvider>().products;
     if (allProds.isEmpty) allProds = ProductService.getAllProductsSync();
@@ -2726,6 +2686,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── 브랜드 특징 섹션 ──
+  // ignore: unused_element
   Widget _buildBrandFeatureSection() {
     final features = [
       {'icon': Icons.local_shipping_outlined, 'title': loc.homeFreeShipping, 'sub': loc.homeFreeShippingSub},
@@ -3122,9 +3083,8 @@ class _HomeScreenState extends State<HomeScreen>
       },
     ];
 
-    // 화면 높이의 70% (TOPTEN10 스타일 풀스크린 느낌)
-    final screenHeight = MediaQuery.of(context).size.height;
-    final bannerHeight = screenHeight * 0.70;
+    // 배너: 전체 화면 높이 100% (홈화면 = 배너만)
+    final bannerHeight = MediaQuery.of(context).size.height;
 
     return SizedBox(
       height: bannerHeight,
@@ -3650,6 +3610,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ────────────────────────────────────────────
   // 신상품 / 베스트 섹션
   // ────────────────────────────────────────────
+  // ignore: unused_element
   Widget _buildNewArrivalsSection(AppLocalizations loc) {
     List<ProductModel> allProds = context.watch<ProductProvider>().products;
     if (allProds.isEmpty) allProds = ProductService.getAllProductsSync();
@@ -3664,6 +3625,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  // ignore: unused_element
   Widget _buildBestSection(AppLocalizations loc) {
     final provider = context.watch<ProductProvider>();
 
@@ -3805,6 +3767,7 @@ class _HomeScreenState extends State<HomeScreen>
   // 우하단 채팅 FAB
   // ────────────────────────────────────────────
   // ── PC 푸터 (홈 스크롤 맨 아래) ──
+  // ignore: unused_element
   Widget _buildPcFooter(AppLocalizations loc) {
     return Container(
       color: const Color(0xFF1A1A1A),
