@@ -754,6 +754,93 @@ DateTime _parseDateTime(dynamic value) {
   }
 }
 
+// ── 홈 배너 ────────────────────────────────────────────
+/// Firestore /banners/{id} 문서 구조
+class BannerModel {
+  final String id;
+  final int order;          // 표시 순서 (0부터)
+  final bool active;        // 노출 여부
+  final String title;       // 배너 제목 (관리자 표시용)
+  final String tag;         // 태그 뱃지 텍스트
+  final String titleKo;     // 슬라이드 메인 타이틀 (한국어)
+  final String titleEn;     // 슬라이드 메인 타이틀 (영어)
+  final String ctaKo;       // CTA 버튼 텍스트 (한국어)
+  final String ctaEn;       // CTA 버튼 텍스트 (영어)
+  final String imageUrl;    // 배경 이미지 URL (Firebase Storage)
+  final String? videoUrl;   // 동영상 URL (1번 슬라이드 전용, null이면 이미지)
+  final int accentColor;    // accent 색상 (ARGB int)
+  final int btnAction;      // 0=신상, 1=베스트, 2=단체주문
+
+  const BannerModel({
+    required this.id,
+    required this.order,
+    this.active = true,
+    required this.title,
+    this.tag = '',
+    this.titleKo = '',
+    this.titleEn = '',
+    this.ctaKo = '',
+    this.ctaEn = '',
+    this.imageUrl = '',
+    this.videoUrl,
+    this.accentColor = 0xFFE53935,
+    this.btnAction = 0,
+  });
+
+  factory BannerModel.fromFirestore(Map<String, dynamic> d, String id) {
+    return BannerModel(
+      id: id,
+      order: (d['order'] as num?)?.toInt() ?? 99,
+      active: (d['active'] as bool?) ?? true,
+      title: (d['title'] as String?) ?? '',
+      tag: (d['tag'] as String?) ?? '',
+      titleKo: (d['titleKo'] as String?) ?? '',
+      titleEn: (d['titleEn'] as String?) ?? '',
+      ctaKo: (d['ctaKo'] as String?) ?? '',
+      ctaEn: (d['ctaEn'] as String?) ?? '',
+      imageUrl: (d['imageUrl'] as String?) ?? '',
+      videoUrl: d['videoUrl'] as String?,
+      accentColor: (d['accentColor'] as num?)?.toInt() ?? 0xFFE53935,
+      btnAction: (d['btnAction'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toFirestore() => {
+    'order': order,
+    'active': active,
+    'title': title,
+    'tag': tag,
+    'titleKo': titleKo,
+    'titleEn': titleEn,
+    'ctaKo': ctaKo,
+    'ctaEn': ctaEn,
+    'imageUrl': imageUrl,
+    if (videoUrl != null && videoUrl!.isNotEmpty) 'videoUrl': videoUrl,
+    'accentColor': accentColor,
+    'btnAction': btnAction,
+  };
+
+  BannerModel copyWith({
+    String? id, int? order, bool? active, String? title, String? tag,
+    String? titleKo, String? titleEn, String? ctaKo, String? ctaEn,
+    String? imageUrl, String? videoUrl, int? accentColor, int? btnAction,
+  }) => BannerModel(
+    id: id ?? this.id,
+    order: order ?? this.order,
+    active: active ?? this.active,
+    title: title ?? this.title,
+    tag: tag ?? this.tag,
+    titleKo: titleKo ?? this.titleKo,
+    titleEn: titleEn ?? this.titleEn,
+    ctaKo: ctaKo ?? this.ctaKo,
+    ctaEn: ctaEn ?? this.ctaEn,
+    imageUrl: imageUrl ?? this.imageUrl,
+    videoUrl: videoUrl ?? this.videoUrl,
+    accentColor: accentColor ?? this.accentColor,
+    btnAction: btnAction ?? this.btnAction,
+  );
+}
+
 // ── 인증 결과 ────────────────────────────────────────────
 class AuthResult {
   final bool success;

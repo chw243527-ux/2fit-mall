@@ -88,6 +88,7 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         ChangeNotifierProvider(create: (_) => ProductProvider()),
         ChangeNotifierProvider(create: (_) => PointProvider()),
         ChangeNotifierProvider(create: (_) => SizeProfileProvider()),
+        ChangeNotifierProvider(create: (_) => BannerProvider()),
       ],
       child: MaterialApp(
         title: '2FIT MALL',

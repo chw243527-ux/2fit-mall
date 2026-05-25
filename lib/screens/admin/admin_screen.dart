@@ -18,6 +18,7 @@ import '../../services/notification_service.dart';
 import '../../services/fcm_service.dart';
 import '../../services/chat_service.dart';
 import '../../services/translation_service.dart';
+import '../../services/banner_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/constants.dart';
 import '../auth/login_screen.dart';
@@ -4393,176 +4394,261 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   // ══════════════════════════════════════════════
-  // TAB 4 : 배너 관리
+  // TAB 4 : 배너 관리 (Firestore 실시간 연동)
   // ══════════════════════════════════════════════
   Widget _buildBannerManagement() {
-    final banners = _bannerItems;
+    return StreamBuilder<List<BannerModel>>(
+      stream: BannerService.watchAllBanners(),
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return Center(child: Text('배너 로드 오류: ${snap.error}',
+              style: const TextStyle(color: Color(0xFFE53935))));
+        }
+        if (!snap.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final banners = snap.data!;
 
-    return Column(
-      children: [
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              const Text('홈 메인 배너',
-                  style:
-                      TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-              const Spacer(),
-              ElevatedButton.icon(
-                onPressed: () => _showAddBannerDialog(),
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('배너 추가'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1A1A2E),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  elevation: 0,
-                  textStyle: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w700),
-                ),
+        return Column(
+          children: [
+            // ── 헤더 ──
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Row(
+                children: [
+                  const Text('홈 메인 배너',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A2E),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text('${banners.length}개',
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                  ),
+                  const Spacer(),
+                  ElevatedButton.icon(
+                    onPressed: () => _showAddBannerDialog(),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('배너 추가'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1A1A2E),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
+                      textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(12),
-            itemCount: banners.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (_, i) {
-              final b = banners[i];
-              final isActive = b['active'] as bool;
-              return Container(
-                decoration: _cardDeco(),
-                child: Column(
-                  children: [
-                    // 배너 미리보기
-                    Container(
-                      height: 100,
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(14)),
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFF1A1A1A),
-                            Color(0xFF3D3D3D)
-                          ],
-                        ),
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                b['tag'] as String,
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              b['title'] as String,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w900),
-                            ),
-                          ],
-                        ),
-                      ),
+            ),
+            // ── 안내 ──
+            Container(
+              color: const Color(0xFFFFF8E1),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFFFF8F00)),
+                  const SizedBox(width: 6),
+                  const Expanded(
+                    child: Text(
+                      '순서 0번 배너는 항상 동영상으로 표시됩니다. 동영상 없으면 이미지로 대체됩니다.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF795548)),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Row(
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                ],
+              ),
+            ),
+            // ── 배너 목록 ──
+            Expanded(
+              child: banners.isEmpty
+                  ? const Center(
+                      child: Text('배너가 없습니다. 배너 추가 버튼을 눌러 추가하세요.',
+                          style: TextStyle(color: Color(0xFF888888), fontSize: 13)))
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: banners.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (_, i) {
+                        final b = banners[i];
+                        final accent = Color(b.accentColor);
+                        final isFirst = b.order == 0;
+
+                        return Container(
+                          decoration: _cardDeco(),
+                          child: Column(
                             children: [
-                              Text(b['title'] as String,
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700)),
-                              Text('순서 ${b['order']}번',
-                                  style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF888888))),
-                            ],
-                          ),
-                          const Spacer(),
-                          // 활성 토글
-                          Row(
-                            children: [
-                              Text(
-                                isActive ? '활성' : '비활성',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: isActive
-                                        ? const Color(0xFF43A047)
-                                        : const Color(0xFFAAAAAA)),
-                              ),
-                              const SizedBox(width: 6),
-                              Switch(
-                                value: isActive,
-                                onChanged: (val) {
-                                  setState(() => _bannerItems[i]['active'] = val);
-                                },
-                                activeThumbColor: const Color(0xFF43A047),
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(width: 6),
-                          _iconBtn(Icons.edit_outlined, () {
-                            _showEditBannerDialog(i, b);
-                          }),
-                          const SizedBox(width: 4),
-                          _iconBtn(Icons.delete_outline, () {
-                            showDialog(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                title: const Text('배너 삭제'),
-                                content: Text('\'${b['title']}\' 배너를 삭제하시겠습니까?'),
-                                actions: [
-                                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(() => _bannerItems.removeAt(i));
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('배너가 삭제되었습니다.'), backgroundColor: Color(0xFF1A1A2E)),
-                                      );
-                                    },
-                                    child: const Text('삭제', style: TextStyle(color: Color(0xFFE53935))),
+                              // ── 배너 미리보기 ──
+                              Container(
+                                height: 110,
+                                decoration: BoxDecoration(
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                                  color: const Color(0xFF1A1A1A),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      // 배경 이미지
+                                      if (b.imageUrl.isNotEmpty)
+                                        Image.network(b.imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                Container(color: const Color(0xFF2A2A2A)))
+                                      else
+                                        Container(color: const Color(0xFF2A2A2A)),
+                                      // 어둡게 오버레이
+                                      Container(color: Colors.black.withValues(alpha: 0.45)),
+                                      // 태그 + 제목
+                                      Center(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (b.tag.isNotEmpty)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                    color: accent, borderRadius: BorderRadius.circular(3)),
+                                                child: Text(b.tag,
+                                                    style: const TextStyle(
+                                                        color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+                                              ),
+                                            const SizedBox(height: 6),
+                                            Text(b.title,
+                                                style: const TextStyle(
+                                                    color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                                          ],
+                                        ),
+                                      ),
+                                      // 동영상 뱃지
+                                      if (isFirst)
+                                        Positioned(
+                                          top: 8, right: 8,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red.shade700,
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(Icons.videocam_rounded, size: 11, color: Colors.white),
+                                                const SizedBox(width: 3),
+                                                Text(
+                                                  b.videoUrl?.isNotEmpty == true ? 'VIDEO' : 'NO VIDEO',
+                                                  style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            );
-                          },
-                              color: const Color(0xFFE53935)),
-                        ],
-                      ),
+                              // ── 정보 + 컨트롤 ──
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                child: Row(
+                                  children: [
+                                    // 순서 뱃지
+                                    Container(
+                                      width: 28, height: 28,
+                                      decoration: BoxDecoration(
+                                        color: isFirst
+                                            ? Colors.red.shade50
+                                            : const Color(0xFFF0F0F0),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Center(
+                                        child: Text('${b.order + 1}',
+                                            style: TextStyle(
+                                              fontSize: 13, fontWeight: FontWeight.w800,
+                                              color: isFirst ? Colors.red.shade700 : const Color(0xFF444444),
+                                            )),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(b.title,
+                                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                                              maxLines: 1, overflow: TextOverflow.ellipsis),
+                                          Text(
+                                            isFirst ? '동영상 슬라이드 (1번 고정)' : '이미지 슬라이드',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: isFirst ? Colors.red.shade600 : const Color(0xFF888888),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    // 활성 토글
+                                    Switch(
+                                      value: b.active,
+                                      onChanged: (val) async {
+                                        await BannerService.updateBanner(b.id, {'active': val});
+                                      },
+                                      activeColor: const Color(0xFF43A047),
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    // 편집
+                                    _iconBtn(Icons.edit_outlined, () {
+                                      _showEditBannerDialogNew(b);
+                                    }),
+                                    const SizedBox(width: 4),
+                                    // 삭제
+                                    _iconBtn(Icons.delete_outline, () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (_) => AlertDialog(
+                                          title: const Text('배너 삭제'),
+                                          content: Text('\'${b.title}\' 배너를 삭제하시겠습니까?'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text('취소'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () async {
+                                                Navigator.pop(context);
+                                                await BannerService.deleteBanner(b.id);
+                                                if (mounted) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text('배너가 삭제되었습니다.'),
+                                                        backgroundColor: Color(0xFF1A1A2E)),
+                                                  );
+                                                }
+                                              },
+                                              child: const Text('삭제',
+                                                  style: TextStyle(color: Color(0xFFE53935))),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }, color: const Color(0xFFE53935)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -5515,235 +5601,445 @@ class _AdminScreenState extends State<AdminScreen>
 
   Widget _divider() => const Divider(height: 1, color: Color(0xFFF0F0F0));
 
-  void _showEditBannerDialog(int index, Map<String, dynamic> b) {
-    final titleCtrl = TextEditingController(text: b['title'] as String);
-    Uint8List? pickedBytes;
+  // 배너 편집 다이얼로그 (Firestore 기반, 동영상 업로드 지원)
+  void _showEditBannerDialogNew(BannerModel banner) {
+    final titleCtrl   = TextEditingController(text: banner.title);
+    final tagCtrl     = TextEditingController(text: banner.tag);
+    final titleKoCtrl = TextEditingController(text: banner.titleKo);
+    final titleEnCtrl = TextEditingController(text: banner.titleEn);
+    final ctaKoCtrl   = TextEditingController(text: banner.ctaKo);
+    final ctaEnCtrl   = TextEditingController(text: banner.ctaEn);
+
+    Uint8List? pickedImageBytes;
+    Uint8List? pickedVideoBytes;
+    String?    pickedVideoName;
     bool isUploading = false;
-    final existingUrl = (b['imageUrl'] ?? '') as String;
+    double uploadProgress = 0.0;
+    final isFirstSlide = banner.order == 0;
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDlg) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('배너 편집', style: TextStyle(fontWeight: FontWeight.w800)),
-          content: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              TextField(
-                controller: titleCtrl,
-                decoration: InputDecoration(
-                  labelText: '배너 제목',
-                  filled: true, fillColor: const Color(0xFFF5F5F5),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12))),
-              const SizedBox(height: 14),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text('배너 이미지', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: isUploading ? null : () async {
-                  final picker = ImagePicker();
-                  final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85, maxWidth: 1400);
-                  if (file == null) return;
-                  final bytes = await file.readAsBytes();
-                  setDlg(() => pickedBytes = bytes);
-                },
-                child: Container(
-                  height: 140,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F7FA),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(9),
-                    child: pickedBytes != null
-                        ? Stack(children: [
-                            Image.memory(pickedBytes!, width: double.infinity, height: 140, fit: BoxFit.cover),
-                            Positioned(
-                              top: 6, right: 6,
-                              child: GestureDetector(
-                                onTap: () => setDlg(() => pickedBytes = null),
-                                child: Container(
-                                  width: 24, height: 24,
-                                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
-                                  child: const Icon(Icons.close, color: Colors.white, size: 14),
-                                ),
-                              ),
-                            ),
-                          ])
-                        : existingUrl.isNotEmpty
-                            ? Stack(children: [
-                                Image.network(existingUrl, width: double.infinity, height: 140, fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 40, color: Color(0xFFCCCCCC))),
-                                Positioned(
-                                  bottom: 0, left: 0, right: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 4),
-                                    color: Colors.black38,
-                                    child: const Text('탭하여 이미지 교체', textAlign: TextAlign.center,
-                                        style: TextStyle(color: Colors.white, fontSize: 11)),
-                                  ),
-                                ),
-                              ])
-                            : const Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.add_photo_alternate_rounded, size: 36, color: Color(0xFFBBBBBB)),
-                                  SizedBox(height: 6),
-                                  Text('탭하여 이미지 선택', style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
-                                ],
-                              ),
+        builder: (ctx, setDlg) {
+          Widget imgPreview() {
+            if (pickedImageBytes != null) {
+              return Stack(children: [
+                Image.memory(pickedImageBytes!, width: double.infinity, height: 130, fit: BoxFit.cover),
+                Positioned(
+                  top: 6, right: 6,
+                  child: GestureDetector(
+                    onTap: () => setDlg(() => pickedImageBytes = null),
+                    child: Container(
+                      width: 24, height: 24,
+                      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
+                      child: const Icon(Icons.close, color: Colors.white, size: 14),
+                    ),
                   ),
                 ),
+              ]);
+            }
+            if (banner.imageUrl.isNotEmpty) {
+              return Stack(children: [
+                Image.network(banner.imageUrl, width: double.infinity, height: 130, fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 40, color: Color(0xFFCCCCCC))),
+                Positioned(
+                  bottom: 0, left: 0, right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    color: Colors.black38,
+                    child: const Text('탭하여 교체', textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white, fontSize: 11)),
+                  ),
+                ),
+              ]);
+            }
+            return const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_photo_alternate_rounded, size: 32, color: Color(0xFFBBBBBB)),
+                SizedBox(height: 4),
+                Text('탭하여 이미지 선택', style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+              ],
+            );
+          }
+
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Row(
+              children: [
+                const Text('배너 편집', style: TextStyle(fontWeight: FontWeight.w800)),
+                const Spacer(),
+                if (isFirstSlide)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(6)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.videocam_rounded, size: 13, color: Colors.red.shade700),
+                        const SizedBox(width: 4),
+                        Text('동영상 슬라이드', style: TextStyle(fontSize: 11, color: Colors.red.shade700, fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            content: SizedBox(
+              width: 420,
+              child: SingleChildScrollView(
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  // ── 제목 / 태그 ──
+                  _dlgField(titleCtrl, '배너 제목 (관리용)'),
+                  const SizedBox(height: 10),
+                  _dlgField(tagCtrl, '태그 보엠 텍스트 (ex: NEW ARRIVALS)'),
+                  const SizedBox(height: 14),
+                  // ── 메인 타이틀 ──
+                  const Align(alignment: Alignment.centerLeft,
+                      child: Text('타이틀 (한/영)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF333333)))),
+                  const SizedBox(height: 6),
+                  _dlgField(titleKoCtrl, '한국어 타이틀 (\n으로 줄바꽈)'),
+                  const SizedBox(height: 8),
+                  _dlgField(titleEnCtrl, '영어 타이틀 (\n으로 줄바꽈)'),
+                  const SizedBox(height: 14),
+                  // ── CTA ──
+                  const Align(alignment: Alignment.centerLeft,
+                      child: Text('CTA 버튼 텍스트', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF333333)))),
+                  const SizedBox(height: 6),
+                  _dlgField(ctaKoCtrl, 'CTA (한국어)'),
+                  const SizedBox(height: 8),
+                  _dlgField(ctaEnCtrl, 'CTA (영어)'),
+                  const SizedBox(height: 14),
+                  // ── 배경 이미지 ──
+                  const Align(alignment: Alignment.centerLeft,
+                      child: Text('배경 이미지', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: isUploading ? null : () async {
+                      final picker = ImagePicker();
+                      final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 88, maxWidth: 1920);
+                      if (file == null) return;
+                      final bytes = await file.readAsBytes();
+                      setDlg(() => pickedImageBytes = bytes);
+                    },
+                    child: Container(
+                      height: 130,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F7FA),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(9),
+                        child: imgPreview(),
+                      ),
+                    ),
+                  ),
+
+                  // ── 동영상 업로드 (첫 번째 슬라이드만) ──
+                  if (isFirstSlide) ...[
+                    const SizedBox(height: 14),
+                    const Divider(),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(Icons.videocam_rounded, size: 16, color: Color(0xFFE53935)),
+                        const SizedBox(width: 6),
+                        const Text('동영상 업로드 (1번 슬라이드 전용)',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        const Spacer(),
+                        if (banner.videoUrl?.isNotEmpty == true)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text('동영상 있음',
+                                style: TextStyle(fontSize: 10, color: Colors.green.shade700, fontWeight: FontWeight.w700)),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (pickedVideoName != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF43A047)),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(pickedVideoName!,
+                                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 12)),
+                            ),
+                            GestureDetector(
+                              onTap: () => setDlg(() { pickedVideoBytes = null; pickedVideoName = null; }),
+                              child: const Icon(Icons.close, size: 16, color: Color(0xFF888888)),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      GestureDetector(
+                        onTap: isUploading ? null : () async {
+                          final picker = ImagePicker();
+                          final file = await picker.pickVideo(source: ImageSource.gallery);
+                          if (file == null) return;
+                          final bytes = await file.readAsBytes();
+                          setDlg(() {
+                            pickedVideoBytes = bytes;
+                            pickedVideoName = file.name;
+                          });
+                        },
+                        child: Container(
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF3F3),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.red.shade200, width: 1.5),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.video_library_rounded, size: 28, color: Colors.red.shade300),
+                              const SizedBox(height: 4),
+                              Text(
+                                banner.videoUrl?.isNotEmpty == true
+                                    ? '탭하여 동영상 교체 (mp4, mov)'
+                                    : '탭하여 동영상 업로드 (mp4, mov)',
+                                style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if (isUploading) ...[
+                      const SizedBox(height: 10),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: uploadProgress > 0 ? uploadProgress : null,
+                          backgroundColor: const Color(0xFFEEEEEE),
+                          color: const Color(0xFF1A1A2E),
+                          minHeight: 6,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        uploadProgress > 0
+                            ? '업로드 중... ${(uploadProgress * 100).toStringAsFixed(0)}%'
+                            : '이미지 업로드 중...',
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                      ),
+                    ],
+                  ],
+                ]),
               ),
-            ]),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
-              onPressed: isUploading ? null : () async {
-                if (titleCtrl.text.trim().isEmpty) return;
-                String? newUrl;
-                if (pickedBytes != null) {
-                  setDlg(() => isUploading = true);
-                  newUrl = await StorageService.uploadBannerImage(
-                    bannerId: 'banner_${index}_${DateTime.now().millisecondsSinceEpoch}',
-                    imageBytes: pickedBytes!,
-                  );
-                }
-                setState(() {
-                  _bannerItems[index]['title'] = titleCtrl.text.trim();
-                  if (newUrl != null) _bannerItems[index]['imageUrl'] = newUrl;
-                });
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('배너가 수정되었습니다'), backgroundColor: Color(0xFF1A1A2E)));
-                }
-              },
-              child: isUploading
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('저장', style: TextStyle(color: Colors.white))),
-          ],
-        ),
+            ),
+            actions: [
+              TextButton(onPressed: isUploading ? null : () => Navigator.pop(ctx), child: const Text('취소')),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
+                onPressed: isUploading ? null : () async {
+                  if (titleCtrl.text.trim().isEmpty) return;
+                  setDlg(() { isUploading = true; uploadProgress = 0; });
+
+                  String imageUrl = banner.imageUrl;
+                  String? videoUrl = banner.videoUrl;
+
+                  // 이미지 업로드
+                  if (pickedImageBytes != null) {
+                    final url = await StorageService.uploadBannerImage(
+                      bannerId: '${banner.id}_${DateTime.now().millisecondsSinceEpoch}',
+                      imageBytes: pickedImageBytes!,
+                    );
+                    if (url != null) imageUrl = url;
+                  }
+
+                  // 동영상 업로드 (1번 슬라이드)
+                  if (isFirstSlide && pickedVideoBytes != null && pickedVideoName != null) {
+                    String? uploadedVideoUrl;
+                    await for (final progress in StorageService.uploadBannerVideoWithProgress(
+                      bannerId: '${banner.id}_vid',
+                      videoBytes: pickedVideoBytes!,
+                      fileName: pickedVideoName!,
+                      onComplete: (url) { uploadedVideoUrl = url; },
+                      onError: (e) {
+                        if (ctx.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('동영상 업로드 실패: $e'),
+                                backgroundColor: Colors.red));
+                        }
+                      },
+                    )) {
+                      setDlg(() => uploadProgress = progress);
+                    }
+                    if (uploadedVideoUrl != null) videoUrl = uploadedVideoUrl;
+                  }
+
+                  // Firestore 저장
+                  final fields = <String, dynamic>{
+                    'title': titleCtrl.text.trim(),
+                    'tag': tagCtrl.text.trim(),
+                    'titleKo': titleKoCtrl.text,
+                    'titleEn': titleEnCtrl.text,
+                    'ctaKo': ctaKoCtrl.text,
+                    'ctaEn': ctaEnCtrl.text,
+                    'imageUrl': imageUrl,
+                    if (videoUrl != null && videoUrl.isNotEmpty) 'videoUrl': videoUrl,
+                  };
+                  await BannerService.updateBanner(banner.id, fields);
+
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('배너가 수정되었습니다'),
+                          backgroundColor: Color(0xFF1A1A2E)));
+                  }
+                },
+                child: isUploading
+                    ? const SizedBox(width: 16, height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('저장', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
+  // 배너 추가 다이얼로그 (Firestore 저장)
   void _showAddBannerDialog() {
-    final titleCtrl = TextEditingController();
-    final urlCtrl   = TextEditingController();
-    Uint8List? pickedBytes;
+    final titleCtrl   = TextEditingController();
+    final tagCtrl     = TextEditingController();
+    final titleKoCtrl = TextEditingController();
+    final titleEnCtrl = TextEditingController();
+    final ctaKoCtrl   = TextEditingController();
+    final ctaEnCtrl   = TextEditingController();
+
+    Uint8List? pickedImageBytes;
     bool isUploading = false;
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlg) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('배너 추가', style: TextStyle(fontWeight: FontWeight.w800)),
-          content: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              TextField(
-                controller: titleCtrl,
-                decoration: InputDecoration(
-                  hintText: '배너 제목',
-                  filled: true, fillColor: const Color(0xFFF5F5F5),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12))),
-              const SizedBox(height: 12),
-              // ── 이미지 업로드 영역 ──
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text('배너 이미지', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: isUploading ? null : () async {
-                  final picker = ImagePicker();
-                  final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85, maxWidth: 1400);
-                  if (file == null) return;
-                  final bytes = await file.readAsBytes();
-                  setDlg(() { pickedBytes = bytes; urlCtrl.clear(); });
-                },
-                child: Container(
-                  height: 140,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F7FA),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(9),
-                    child: pickedBytes != null
-                        ? Stack(children: [
-                            Image.memory(pickedBytes!, width: double.infinity, height: 140, fit: BoxFit.cover),
-                            Positioned(
-                              top: 6, right: 6,
-                              child: GestureDetector(
-                                onTap: () => setDlg(() => pickedBytes = null),
-                                child: Container(
-                                  width: 24, height: 24,
-                                  decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
-                                  child: const Icon(Icons.close, color: Colors.white, size: 14),
+          content: SizedBox(
+            width: 380,
+            child: SingleChildScrollView(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                _dlgField(titleCtrl, '배너 제목 (관리용)'),
+                const SizedBox(height: 10),
+                _dlgField(tagCtrl, '태그 뱃지 (ex: NEW ARRIVALS)'),
+                const SizedBox(height: 14),
+                const Align(alignment: Alignment.centerLeft,
+                    child: Text('타이틀 (한/영)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+                const SizedBox(height: 6),
+                _dlgField(titleKoCtrl, '한국어 타이틀'),
+                const SizedBox(height: 8),
+                _dlgField(titleEnCtrl, '영어 타이틀'),
+                const SizedBox(height: 14),
+                const Align(alignment: Alignment.centerLeft,
+                    child: Text('CTA 버튼', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+                const SizedBox(height: 6),
+                _dlgField(ctaKoCtrl, 'CTA (한국어)'),
+                const SizedBox(height: 8),
+                _dlgField(ctaEnCtrl, 'CTA (영어)'),
+                const SizedBox(height: 14),
+                const Align(alignment: Alignment.centerLeft,
+                    child: Text('배경 이미지', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+                const SizedBox(height: 6),
+                GestureDetector(
+                  onTap: isUploading ? null : () async {
+                    final picker = ImagePicker();
+                    final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 88, maxWidth: 1920);
+                    if (file == null) return;
+                    final bytes = await file.readAsBytes();
+                    setDlg(() => pickedImageBytes = bytes);
+                  },
+                  child: Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F7FA),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(9),
+                      child: pickedImageBytes != null
+                          ? Stack(children: [
+                              Image.memory(pickedImageBytes!, width: double.infinity, height: 120, fit: BoxFit.cover),
+                              Positioned(
+                                top: 6, right: 6,
+                                child: GestureDetector(
+                                  onTap: () => setDlg(() => pickedImageBytes = null),
+                                  child: Container(
+                                    width: 24, height: 24,
+                                    decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
+                                    child: const Icon(Icons.close, color: Colors.white, size: 14),
+                                  ),
                                 ),
                               ),
+                            ])
+                          : const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_photo_alternate_rounded, size: 32, color: Color(0xFFBBBBBB)),
+                                SizedBox(height: 6),
+                                Text('탭하여 이미지 선택', style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+                              ],
                             ),
-                          ])
-                        : const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.add_photo_alternate_rounded, size: 36, color: Color(0xFFBBBBBB)),
-                              SizedBox(height: 6),
-                              Text('탭하여 이미지 선택', style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
-                              SizedBox(height: 2),
-                              Text('또는 아래 URL 직접 입력', style: TextStyle(fontSize: 11, color: Color(0xFFBBBBBB))),
-                            ],
-                          ),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              // URL 직접 입력 (선택)
-              TextField(
-                controller: urlCtrl,
-                enabled: pickedBytes == null,
-                decoration: InputDecoration(
-                  hintText: 'URL 직접 입력 (이미지 선택 시 무시됨)',
-                  hintStyle: const TextStyle(fontSize: 11, color: Color(0xFFBBBBBB)),
-                  filled: true, fillColor: pickedBytes != null ? const Color(0xFFEEEEEE) : const Color(0xFFF5F5F5),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12))),
-            ]),
+                const SizedBox(height: 8),
+                const Text('💡 동영상은 추가 후 편집에서 업로드 가능합니다.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF999999))),
+              ]),
+            ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            TextButton(onPressed: isUploading ? null : () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
               onPressed: isUploading ? null : () async {
                 if (titleCtrl.text.trim().isEmpty) return;
-                String imageUrl = urlCtrl.text.trim();
-                if (pickedBytes != null) {
-                  setDlg(() => isUploading = true);
-                  final uploaded = await StorageService.uploadBannerImage(
+                setDlg(() => isUploading = true);
+
+                // 현재 배너 수 조회 (order 설정 위해)
+                String imageUrl = '';
+                if (pickedImageBytes != null) {
+                  final url = await StorageService.uploadBannerImage(
                     bannerId: 'banner_new_${DateTime.now().millisecondsSinceEpoch}',
-                    imageBytes: pickedBytes!,
+                    imageBytes: pickedImageBytes!,
                   );
-                  imageUrl = uploaded ?? '';
+                  imageUrl = url ?? '';
                 }
-                setState(() {
-                  _bannerItems.add({
-                    'title': titleCtrl.text.trim(),
-                    'tag': 'NEW',
-                    'active': true,
-                    'order': _bannerItems.length + 1,
-                    'imageUrl': imageUrl,
-                  });
-                });
+
+                final newBanner = BannerModel(
+                  id: 'banner_${DateTime.now().millisecondsSinceEpoch}',
+                  order: 99, // 맨 뒤에 추가
+                  title: titleCtrl.text.trim(),
+                  tag: tagCtrl.text.trim(),
+                  titleKo: titleKoCtrl.text,
+                  titleEn: titleEnCtrl.text,
+                  ctaKo: ctaKoCtrl.text,
+                  ctaEn: ctaEnCtrl.text,
+                  imageUrl: imageUrl,
+                  accentColor: 0xFFE53935,
+                  btnAction: 0,
+                );
+                await BannerService.addBanner(newBanner);
+
                 if (ctx.mounted) Navigator.pop(ctx);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -5752,9 +6048,24 @@ class _AdminScreenState extends State<AdminScreen>
               },
               child: isUploading
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('추가', style: TextStyle(color: Colors.white))),
+                  : const Text('추가', style: TextStyle(color: Colors.white)),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  // 다이얼로그 공통 TextField 헬퍼
+  Widget _dlgField(TextEditingController ctrl, String hint) {
+    return TextField(
+      controller: ctrl,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
+        filled: true, fillColor: const Color(0xFFF5F5F5),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       ),
     );
   }

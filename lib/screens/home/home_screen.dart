@@ -48,7 +48,6 @@ class _HomeScreenState extends State<HomeScreen>
   final PageController _pcBannerCtrl = PageController();
   final PageController _mobileBannerCtrl = PageController();
   Timer? _bannerTimer;
-  static const int _bannerTotalCount = 3; // 배너 슬라이드 총 개수
   static const Duration _bannerAutoInterval = Duration(seconds: 5);
 
   // 카테고리 정의 (key 기반, 다국어 텍스트는 loc에서)
@@ -78,7 +77,10 @@ class _HomeScreenState extends State<HomeScreen>
     _bannerTimer?.cancel();
     _bannerTimer = Timer.periodic(_bannerAutoInterval, (_) {
       if (!mounted) return;
-      final nextIndex = (_bannerIndex + 1) % _bannerTotalCount;
+      // Firestore에서 로드된 활성 배너 수 기반으로 동적 계산
+      final total = context.read<BannerProvider>().activeBanners.length;
+      if (total < 2) return; // 배너가 1개 이하면 슬라이드 불필요
+      final nextIndex = (_bannerIndex + 1) % total;
       // PC/모바일 둘 다 같은 인덱스로 이동
       if (_pcBannerCtrl.hasClients) {
         _pcBannerCtrl.animateToPage(
@@ -914,40 +916,10 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ── PC 전용 배너 (외부 이미지 없이 그라디언트만 사용, 항상 표시됨) ──
+  // ── PC 전용 배너 (Firestore BannerProvider에서 실시간 로드) ──
   Widget _buildPcBannerOnly(AppLocalizations loc) {
-    final isKo = loc.language == AppLanguage.korean;
-    final banners = [
-      {
-        // ── 1번 슬라이드: 동영상 배너 (테스트 MP4) ──
-        'videoUrl': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        'imageUrl': 'https://www.genspark.ai/api/files/s/0A333RJO?cache_control=3600',
-        'tag': isKo ? '2025 S/S 신상품' : 'NEW ARRIVALS',
-        'title': isKo ? '새로운 시즌이\n시작됩니다' : 'NEW SEASON\nSTARTS',
-        'cta': isKo ? '신상품 보러가기' : 'VIEW NEW ARRIVALS',
-        'ctaIcon': Icons.arrow_forward_rounded,
-        'accent': const Color(0xFFE53935),
-        'btnAction': 0,
-      },
-      {
-        'imageUrl': 'https://www.genspark.ai/api/files/s/wc91nP9e?cache_control=3600',
-        'tag': isKo ? '베스트셀러' : 'BEST SELLER',
-        'title': isKo ? '가장 많이\n선택받은 2FIT' : 'MOST\nLOVED 2FIT',
-        'cta': isKo ? '베스트 상품 보기' : 'SHOP BEST',
-        'ctaIcon': Icons.local_fire_department_rounded,
-        'accent': const Color(0xFFFF6B35),
-        'btnAction': 1,
-      },
-      {
-        'imageUrl': 'https://www.genspark.ai/api/files/s/8ed64BLu?cache_control=3600',
-        'tag': isKo ? '단체주문 전문' : 'GROUP ORDER',
-        'title': isKo ? '팀 유니폼\n맞춤 제작 전문' : 'CUSTOM\nTEAM UNIFORM',
-        'cta': isKo ? '단체주문 알아보기' : 'GROUP ORDER',
-        'ctaIcon': Icons.groups_rounded,
-        'accent': const Color(0xFF1565C0),
-        'btnAction': 2,
-      },
-    ];
+    final bannerProv = context.watch<BannerProvider>();
+    final activeBanners = bannerProv.activeBanners;
 
     // PC 레이아웃: NavBar(상단 고정) + 배너(나머지 공간 전체)
     return Scaffold(
@@ -961,7 +933,19 @@ class _HomeScreenState extends State<HomeScreen>
 
           // ── 배너 (NavBar 아래 남은 공간 전체) ──
           Expanded(
-            child: _buildPcBannerBody(loc, banners),
+            child: bannerProv.loading
+                ? const ColoredBox(
+                    color: Color(0xFF111111),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                          color: Colors.white30, strokeWidth: 2)))
+                : activeBanners.isEmpty
+                    ? const ColoredBox(
+                        color: Color(0xFF111111),
+                        child: Center(
+                          child: Text('배너 없음',
+                              style: TextStyle(color: Colors.white38))))
+                    : _buildPcBannerBody(loc, activeBanners),
           ),
         ],
       ),
@@ -970,8 +954,9 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ── PC 배너 슬라이더 본체 ──
-  Widget _buildPcBannerBody(AppLocalizations loc, List<Map<String, dynamic>> banners) {
+  // ── PC 배너 슬라이더 본체 (BannerModel 리스트 사용) ──
+  Widget _buildPcBannerBody(AppLocalizations loc, List<BannerModel> banners) {
+    final isKo = loc.language == AppLanguage.korean;
     return Stack(
         children: [
           PageView.builder(
@@ -980,11 +965,21 @@ class _HomeScreenState extends State<HomeScreen>
             itemCount: banners.length,
             itemBuilder: (_, idx) {
               final b = banners[idx];
-              final accent = b['accent'] as Color;
-              final videoUrl = b['videoUrl'] as String?;
+              final accent = Color(b.accentColor);
+              // order==0 인 슬라이드는 videoUrl 우선 (없으면 이미지)
+              final videoUrl = b.videoUrl?.isNotEmpty == true ? b.videoUrl : null;
+              final title = isKo ? b.titleKo : b.titleEn;
+              final cta   = isKo ? b.ctaKo   : b.ctaEn;
+
+              // CTA 아이콘 (btnAction 기반)
+              final ctaIcon = switch (b.btnAction) {
+                1 => Icons.local_fire_department_rounded,
+                2 => Icons.groups_rounded,
+                _ => Icons.arrow_forward_rounded,
+              };
 
               void onTap() {
-                switch (b['btnAction'] as int) {
+                switch (b.btnAction) {
                   case 1:
                     Navigator.push(context, MaterialPageRoute(
                       builder: (_) => const ProductListScreen(initialSortBy: '인기순'),
@@ -1003,18 +998,18 @@ class _HomeScreenState extends State<HomeScreen>
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  // ── 배경: 동영상(Web) or 이미지 ──
+                  // ── 배경: 동영상(Web, order==0) or 이미지 ──
                   if (videoUrl != null)
                     VideoBannerWidget(
                       videoUrl: videoUrl,
-                      thumbnailUrl: b['imageUrl'] as String,
+                      thumbnailUrl: b.imageUrl,
                       onTap: onTap,
                     )
-                  else
+                  else if (b.imageUrl.isNotEmpty)
                     GestureDetector(
                       onTap: onTap,
                       child: Image.network(
-                        b['imageUrl'] as String,
+                        b.imageUrl,
                         fit: BoxFit.cover, alignment: Alignment.topCenter,
                         loadingBuilder: (_, child, progress) => progress == null
                             ? child
@@ -1022,6 +1017,11 @@ class _HomeScreenState extends State<HomeScreen>
                                 child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2))),
                         errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
                       ),
+                    )
+                  else
+                    GestureDetector(
+                      onTap: onTap,
+                      child: Container(color: const Color(0xFF1A1A1A)),
                     ),
 
                     // 하단 그라데이션
@@ -1051,33 +1051,36 @@ class _HomeScreenState extends State<HomeScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                            decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(3)),
-                            child: Text(b['tag'] as String,
-                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 2.2)),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(b['title'] as String,
-                            style: const TextStyle(color: Colors.white, fontSize: 52, fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.5)),
-                          const SizedBox(height: 24),
-                          GestureDetector(
-                            onTap: onTap,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(6),
-                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 14, offset: const Offset(0, 4))],
-                              ),
-                              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                Icon(b['ctaIcon'] as IconData, size: 17, color: accent),
-                                const SizedBox(width: 10),
-                                Text(b['cta'] as String,
-                                  style: const TextStyle(color: Color(0xFF111111), fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
-                              ]),
+                          if (b.tag.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                              decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(3)),
+                              child: Text(b.tag,
+                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 2.2)),
                             ),
-                          ),
+                          if (b.tag.isNotEmpty) const SizedBox(height: 16),
+                          if (title.isNotEmpty)
+                            Text(title,
+                              style: const TextStyle(color: Colors.white, fontSize: 52, fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.5)),
+                          if (title.isNotEmpty) const SizedBox(height: 24),
+                          if (cta.isNotEmpty)
+                            GestureDetector(
+                              onTap: onTap,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(6),
+                                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 14, offset: const Offset(0, 4))],
+                                ),
+                                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                  Icon(ctaIcon, size: 17, color: accent),
+                                  const SizedBox(width: 10),
+                                  Text(cta,
+                                    style: const TextStyle(color: Color(0xFF111111), fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
+                                ]),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -3051,49 +3054,35 @@ class _HomeScreenState extends State<HomeScreen>
   // ────────────────────────────────────────────
   // 메인 배너 (다국어 subtitle 적용)
   // ────────────────────────────────────────────
+  // 모바일 배너 섹션 (Firestore BannerProvider 실시간)
+  // ────────────────────────────────────────────
   Widget _buildBannerSection(AppLocalizations loc) {
-    final isKo = loc.language == AppLanguage.korean;
-    final banners = [
-      {
-        // ── 1번 슬라이드: 동영상 배너 (테스트 MP4) ──
-        'videoUrl': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        'imageUrl': 'https://www.genspark.ai/api/files/s/0A333RJO?cache_control=3600',
-        'tag': isKo ? '2025 S/S 신상품' : 'NEW ARRIVALS',
-        'title': isKo ? '새로운\n시즌이\n시작됩니다' : 'NEW\nSEASON\nSTARTS',
-        'cta': isKo ? '신상품 보러가기' : 'VIEW NEW ARRIVALS',
-        'ctaIcon': Icons.arrow_forward_rounded,
-        'accent': const Color(0xFFE53935),
-        'btnAction': 0,
-        'align': CrossAxisAlignment.start,
-        'imgAlign': Alignment.topCenter,
-      },
-      {
-        'imageUrl': 'https://www.genspark.ai/api/files/s/wc91nP9e?cache_control=3600',
-        'tag': isKo ? '베스트셀러' : 'BEST SELLER',
-        'title': isKo ? '가장 많이\n선택받은\n2FIT' : 'MOST\nLOVED\n2FIT',
-        'cta': isKo ? '베스트 상품 보기' : 'SHOP BEST',
-        'ctaIcon': Icons.local_fire_department_rounded,
-        'accent': const Color(0xFFFF6B35),
-        'btnAction': 1,
-        'align': CrossAxisAlignment.start,
-        'imgAlign': Alignment.topCenter,
-      },
-      {
-        'imageUrl': 'https://www.genspark.ai/api/files/s/8ed64BLu?cache_control=3600',
-        'tag': isKo ? '단체주문 전문' : 'GROUP ORDER',
-        'title': isKo ? '팀 유니폼\n맞춤 제작\n전문 브랜드' : 'CUSTOM\nTEAM\nUNIFORM',
-        'cta': isKo ? '단체주문 알아보기' : 'GROUP ORDER',
-        'ctaIcon': Icons.groups_rounded,
-        'accent': const Color(0xFF1565C0),
-        'btnAction': 2,
-        'align': CrossAxisAlignment.start,
-        'imgAlign': Alignment.topCenter,
-      },
-    ];
+    final bannerProv = context.watch<BannerProvider>();
+    final activeBanners = bannerProv.activeBanners;
 
     // 배너: 전체 화면 높이 — 시스템 하단 제스처 영역 제외
     final mq = MediaQuery.of(context);
     final bannerHeight = mq.size.height - mq.viewPadding.bottom;
+
+    if (bannerProv.loading) {
+      return SizedBox(
+        height: bannerHeight,
+        child: const ColoredBox(
+          color: Color(0xFF111111),
+          child: Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2)),
+        ),
+      );
+    }
+
+    if (activeBanners.isEmpty) {
+      return SizedBox(
+        height: bannerHeight,
+        child: const ColoredBox(
+          color: Color(0xFF111111),
+          child: Center(child: Text('배너 없음', style: TextStyle(color: Colors.white38))),
+        ),
+      );
+    }
 
     return SizedBox(
       height: bannerHeight,
@@ -3103,8 +3092,8 @@ class _HomeScreenState extends State<HomeScreen>
           PageView.builder(
             controller: _mobileBannerCtrl,
             onPageChanged: (i) => setState(() => _bannerIndex = i),
-            itemCount: banners.length,
-            itemBuilder: (_, i) => _buildFullBannerItem(banners[i], i, loc),
+            itemCount: activeBanners.length,
+            itemBuilder: (_, i) => _buildFullBannerItem(activeBanners[i], i, loc),
           ),
           // ── 우측 세로 점 인디케이터 ──
           Positioned(
@@ -3114,7 +3103,7 @@ class _HomeScreenState extends State<HomeScreen>
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: banners.asMap().entries.map((e) {
+                children: activeBanners.asMap().entries.map((e) {
                   final active = _bannerIndex == e.key;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 280),
@@ -3137,12 +3126,25 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildFullBannerItem(Map<String, dynamic> banner, int index, AppLocalizations loc) {
-    final accent = banner['accent'] as Color;
-    final imgAlign = banner['imgAlign'] as Alignment? ?? Alignment.topCenter;
+  // ── 모바일 배너 개별 슬라이드 아이템 (BannerModel 기반) ──
+  Widget _buildFullBannerItem(BannerModel banner, int index, AppLocalizations loc) {
+    final isKo = loc.language == AppLanguage.korean;
+    final accent = Color(banner.accentColor);
+    final title = isKo ? banner.titleKo : banner.titleEn;
+    final cta   = isKo ? banner.ctaKo   : banner.ctaEn;
+    // order==0 인 슬라이드는 videoUrl 우선
+    final videoUrl = banner.videoUrl?.isNotEmpty == true ? banner.videoUrl : null;
+    final imageUrl = banner.imageUrl;
+
+    // CTA 아이콘
+    final ctaIcon = switch (banner.btnAction) {
+      1 => Icons.local_fire_department_rounded,
+      2 => Icons.groups_rounded,
+      _ => Icons.arrow_forward_rounded,
+    };
 
     void onTap() {
-      switch (banner['btnAction'] as int) {
+      switch (banner.btnAction) {
         case 1:
           Navigator.push(context, MaterialPageRoute(
             builder: (_) => const ProductListScreen(initialSortBy: '인기순'),
@@ -3160,29 +3162,23 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
 
-    final videoUrl = banner['videoUrl'] as String?;
-    final imageUrl = banner['imageUrl'] as String;
-
     return Stack(
       fit: StackFit.expand,
       children: [
-
-        // ── 배경: 동영상(Web) or 이미지 ──
+        // ── 배경: 동영상(Web, order==0) or 이미지 ──
         if (videoUrl != null)
-          // VideoBannerWidget: Web → HTML video 자동재생, 모바일 → 썸네일
           VideoBannerWidget(
             videoUrl: videoUrl,
             thumbnailUrl: imageUrl,
             onTap: onTap,
           )
-        else
-          // 일반 이미지 배너
+        else if (imageUrl.isNotEmpty)
           GestureDetector(
             onTap: onTap,
             child: Image.network(
               imageUrl,
               fit: BoxFit.cover,
-              alignment: imgAlign,
+              alignment: Alignment.topCenter,
               loadingBuilder: (_, child, progress) => progress == null
                   ? child
                   : Container(
@@ -3196,6 +3192,11 @@ class _HomeScreenState extends State<HomeScreen>
                 child: const Center(child: Icon(Icons.image_not_supported, color: Colors.white24, size: 48)),
               ),
             ),
+          )
+        else
+          GestureDetector(
+            onTap: onTap,
+            child: Container(color: const Color(0xFF1A1A1A)),
           ),
 
           // ── 하단 그라데이션 오버레이 (동영상/이미지 공통) ──
@@ -3222,73 +3223,73 @@ class _HomeScreenState extends State<HomeScreen>
           Positioned(
             left: 20, right: 32, bottom: 28,
             child: Column(
-              crossAxisAlignment: banner['align'] as CrossAxisAlignment,
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 태그 뱃지
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: BorderRadius.circular(2),
+                if (banner.tag.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: accent,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                    child: Text(
+                      banner.tag,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.8,
+                      ),
+                    ),
                   ),
-                  child: Text(
-                    banner['tag'] as String,
+                if (banner.tag.isNotEmpty) const SizedBox(height: 12),
+                if (title.isNotEmpty)
+                  Text(
+                    title,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.8,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      height: 1.15,
+                      letterSpacing: -0.3,
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                // 메인 타이틀
-                Text(
-                  banner['title'] as String,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    height: 1.15,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // CTA 버튼 (흰색 카드형)
-                GestureDetector(
-                  onTap: onTap,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.18),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(banner['ctaIcon'] as IconData, size: 16, color: accent),
-                        const SizedBox(width: 10),
-                        Text(
-                          banner['cta'] as String,
-                          style: const TextStyle(
-                            color: Color(0xFF111111),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.3,
+                if (title.isNotEmpty) const SizedBox(height: 20),
+                if (cta.isNotEmpty)
+                  GestureDetector(
+                    onTap: onTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.18),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(ctaIcon, size: 16, color: accent),
+                          const SizedBox(width: 10),
+                          Text(
+                            cta,
+                            style: const TextStyle(
+                              color: Color(0xFF111111),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

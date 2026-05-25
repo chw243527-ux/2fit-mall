@@ -11,6 +11,7 @@ import '../services/review_service.dart';
 import '../services/wishlist_coupon_service.dart';
 import '../services/translation_service.dart';
 import '../services/size_profile_service.dart';
+import '../services/banner_service.dart';
 
 // ── 언어 Provider ──────────────────────────────────────
 class LanguageProvider extends ChangeNotifier {
@@ -1332,5 +1333,46 @@ class SizeProfileProvider extends ChangeNotifier {
     _loading = false;
     _error = null;
     notifyListeners();
+  }
+}
+
+
+// ── 배너 Provider ─────────────────────────────────────────────────────────
+/// Firestore /banners 컬렉션 실시간 구독.
+/// HomeScreen·AdminScreen 양쪽이 동일한 데이터를 참조한다.
+class BannerProvider extends ChangeNotifier {
+  List<BannerModel> _banners = [];
+  bool _loading = true;
+  String? _error;
+
+  List<BannerModel> get banners => _banners;
+  bool get loading => _loading;
+  String? get error => _error;
+
+  /// 홈 화면에서 표시할 활성 배너 (active==true, order 정렬)
+  List<BannerModel> get activeBanners =>
+      _banners.where((b) => b.active).toList();
+
+  BannerProvider() {
+    _init();
+  }
+
+  void _init() async {
+    // 기본 데이터 없으면 시드
+    await BannerService.seedDefaultBanners();
+
+    BannerService.watchAllBanners().listen(
+      (list) {
+        _banners = list;
+        _loading = false;
+        _error = null;
+        notifyListeners();
+      },
+      onError: (e) {
+        _error = e.toString();
+        _loading = false;
+        notifyListeners();
+      },
+    );
   }
 }
