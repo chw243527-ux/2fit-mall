@@ -2325,8 +2325,8 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildCompactBanner(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
-    // 배너 높이: 화면의 75%
-    final screenH = MediaQuery.of(context).size.height * 0.75;
+    // 배너 높이: 화면의 60%
+    final screenH = MediaQuery.of(context).size.height * 0.60;
 
     if (bannerProv.loading) {
       return SizedBox(
