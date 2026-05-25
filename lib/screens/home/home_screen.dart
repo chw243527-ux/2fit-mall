@@ -2324,12 +2324,23 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildCompactBanner(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
-    // 배너 높이: 화면 너비에 따라 자동 조절
-    // 모바일(<600px): 60%, 태블릿(600~1024px): 70%, PC(>1024px): 80%
+    // 배너 높이: 화면 너비 기준 자동 조절 (이미지 잘림 없이 전체 표시)
+    // 모바일(<600): 너비*1.2 (세로형), 태블릿(600~1024): 너비*0.7, PC(>1024): 너비*0.55
     final screenW = MediaQuery.of(context).size.width;
     final screenH = MediaQuery.of(context).size.height;
-    final bannerRatio = screenW < 600 ? 0.60 : screenW < 1024 ? 0.70 : 0.80;
-    final bannerH = screenH * bannerRatio;
+    double bannerH;
+    if (screenW < 600) {
+      // 모바일: 배너가 세로로 긴 이미지이므로 화면 60% 유지
+      bannerH = screenH * 0.60;
+    } else if (screenW < 1024) {
+      // 태블릿: 화면 너비의 70% 비율
+      bannerH = screenW * 0.70;
+    } else {
+      // PC: 화면 너비의 50% (와이드 이미지에 최적)
+      bannerH = screenW * 0.50;
+    }
+    // 최소/최대 높이 클램프 (너무 작거나 화면을 넘지 않도록)
+    bannerH = bannerH.clamp(screenH * 0.40, screenH * 0.85);
 
     if (bannerProv.loading) {
       return SizedBox(
@@ -3666,23 +3677,26 @@ class _HomeScreenState extends State<HomeScreen>
           Positioned.fill(
             child: GestureDetector(
               onTap: onTap,
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                alignment: Alignment.center,
-                width: double.infinity,
-                height: double.infinity,
-                loadingBuilder: (_, child, progress) => progress == null
-                    ? child
-                    : Container(
-                        color: const Color(0xFF1A1A1A),
-                        child: const Center(
-                          child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
+              child: Container(
+                color: const Color(0xFF111111), // 여백 배경
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,        // 잘리지 않고 전체 표시
+                  alignment: Alignment.center,
+                  width: double.infinity,
+                  height: double.infinity,
+                  loadingBuilder: (_, child, progress) => progress == null
+                      ? child
+                      : Container(
+                          color: const Color(0xFF1A1A1A),
+                          child: const Center(
+                            child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
+                          ),
                         ),
-                      ),
-                errorBuilder: (_, __, ___) => Container(
-                  color: const Color(0xFF2A2A2A),
-                  child: const Center(child: Icon(Icons.image_not_supported_rounded, color: Colors.white24, size: 48)),
+                  errorBuilder: (_, __, ___) => Container(
+                    color: const Color(0xFF2A2A2A),
+                    child: const Center(child: Icon(Icons.image_not_supported_rounded, color: Colors.white24, size: 48)),
+                  ),
                 ),
               ),
             ),
@@ -3695,98 +3709,109 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
-          // ── 하단 그라데이션 오버레이 (동영상/이미지 공통) ──
-          Positioned.fill(
-            child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: const [0.35, 0.65, 1.0],
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withValues(alpha: 0.45),
-                      Colors.black.withValues(alpha: 0.85),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
 
-          // ── 콘텐츠 (하단 고정) ──
+
+          // ── 콘텐츠 (하단 고정, 반응형) ──
           Positioned(
-            left: 20, right: 32, bottom: 28,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (banner.tag.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: accent,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                    child: Text(
-                      banner.tag,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.8,
-                      ),
-                    ),
-                  ),
-                if (banner.tag.isNotEmpty) const SizedBox(height: 12),
-                if (title.isNotEmpty)
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      height: 1.15,
-                      letterSpacing: -0.3,
+            left: 0, right: 0, bottom: 0,
+            child: LayoutBuilder(
+              builder: (ctx, cons) {
+                final w = MediaQuery.of(ctx).size.width;
+                final isTablet = w >= 600 && w < 1024;
+                final isPc = w >= 1024;
+                final hPad = isPc ? 60.0 : isTablet ? 36.0 : 20.0;
+                final titleSize = isPc ? 52.0 : isTablet ? 40.0 : 32.0;
+                final tagSize = isPc ? 13.0 : isTablet ? 11.0 : 10.0;
+                final ctaSize = isPc ? 16.0 : isTablet ? 14.0 : 13.0;
+                final ctaVPad = isPc ? 16.0 : isTablet ? 15.0 : 14.0;
+                final ctaHPad = isPc ? 28.0 : isTablet ? 22.0 : 18.0;
+                final bottomPad = isPc ? 48.0 : isTablet ? 36.0 : 28.0;
+                return Container(
+                  padding: EdgeInsets.fromLTRB(hPad, 0, hPad, bottomPad),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      stops: const [0.0, 0.45, 1.0],
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.45),
+                        Colors.black.withValues(alpha: 0.85),
+                      ],
                     ),
                   ),
-                if (title.isNotEmpty) const SizedBox(height: 20),
-                if (cta.isNotEmpty)
-                  GestureDetector(
-                    onTap: onTap,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.18),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (banner.tag.isNotEmpty)
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: tagSize - 1, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: accent,
+                            borderRadius: BorderRadius.circular(2),
                           ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(ctaIcon, size: 16, color: accent),
-                          const SizedBox(width: 10),
-                          Text(
-                            cta,
-                            style: const TextStyle(
-                              color: Color(0xFF111111),
-                              fontSize: 13,
+                          child: Text(
+                            banner.tag,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: tagSize,
                               fontWeight: FontWeight.w800,
-                              letterSpacing: 0.3,
+                              letterSpacing: 1.8,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      if (banner.tag.isNotEmpty) SizedBox(height: isTablet || isPc ? 16 : 12),
+                      if (title.isNotEmpty)
+                        Text(
+                          title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: titleSize,
+                            fontWeight: FontWeight.w900,
+                            height: 1.15,
+                            letterSpacing: -0.3,
+                          ),
+                        ),
+                      if (title.isNotEmpty) SizedBox(height: isTablet || isPc ? 28 : 20),
+                      if (cta.isNotEmpty)
+                        GestureDetector(
+                          onTap: onTap,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: ctaHPad, vertical: ctaVPad),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(6),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.18),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(ctaIcon, size: ctaSize + 3, color: accent),
+                                const SizedBox(width: 10),
+                                Text(
+                                  cta,
+                                  style: TextStyle(
+                                    color: const Color(0xFF111111),
+                                    fontSize: ctaSize,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-              ],
+                );
+              },
             ),
           ),
         ],
