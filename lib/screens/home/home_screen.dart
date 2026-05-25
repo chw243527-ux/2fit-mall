@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:video_player/video_player.dart';
 // ignore: unused_import
 import '../main_screen.dart' show kPcBreakpoint;
 import '../../widgets/pc_layout.dart';
@@ -41,6 +42,10 @@ class _HomeScreenState extends State<HomeScreen>
   String? _expandedCatName;            // 사이드바 펼쳐진 카테고리 이름
   late AnimationController _chatPulse;
 
+  // 동영상 배너 컨트롤러 (index → controller)
+  final Map<int, VideoPlayerController> _videoControllers = {};
+  final Map<int, bool> _videoReady = {};
+
   // 카테고리 정의 (key 기반, 다국어 텍스트는 loc에서)
   List<Map<String, dynamic>> _getCategoryItems(AppLocalizations loc) => [
     {'key': 'all',       'label': loc.catAll,       'icon': Icons.grid_view_rounded,        'color': const Color(0xFF1A1A1A)},
@@ -60,12 +65,39 @@ class _HomeScreenState extends State<HomeScreen>
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    // 공지사항 팝업은 MainScreen 레벨에서 처리됨
+    // 동영상 배너 초기화 (비동기)
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initVideoControllers());
+  }
+
+  // 배너 동영상 슬라이드 초기화 — videoUrl 키가 있는 항목만
+  void _initVideoControllers() {
+    // 배너 리스트에서 videoUrl 가진 것들만 초기화
+    // 실제 배너 데이터와 동기화: index별로 videoUrl 확인
+    final videoSlides = <int, String>{
+      0: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    };
+    for (final entry in videoSlides.entries) {
+      final idx = entry.key;
+      final url = entry.value;
+      final ctrl = VideoPlayerController.networkUrl(Uri.parse(url));
+      _videoControllers[idx] = ctrl;
+      _videoReady[idx] = false;
+      ctrl.initialize().then((_) {
+        if (!mounted) return;
+        ctrl.setLooping(true);
+        ctrl.setVolume(0); // 자동재생 정책: 무음 필수
+        ctrl.play();
+        setState(() => _videoReady[idx] = true);
+      });
+    }
   }
 
   @override
   void dispose() {
     _chatPulse.dispose();
+    for (final c in _videoControllers.values) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -882,6 +914,8 @@ class _HomeScreenState extends State<HomeScreen>
     final isKo = loc.language == AppLanguage.korean;
     final banners = [
       {
+        // ── 1번 슬라이드: 동영상 배너 (테스트 MP4) ──
+        'videoUrl': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
         'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=4iEZ6YJMldBU5ZBmJOFgT9kDZdMvpBevDj3N3dwEEeVI1FzibJfbFhybEcLnk%2BNRjXJffeCC%2FWAfsrHeWZXfUhH2Zi5CbqkZFdWKyPTesqa7AXgsg1mOfCZDkIOPU8ittlARbOw70BxrqaRkP2%2FFhkyaQQlQDwaf3Ao4czb0&u2=uctVv2VRDCguTvai&width=2560',
         'tag': isKo ? '2025 S/S 신상품' : 'NEW ARRIVALS',
         'title': isKo ? '새로운 시즌이\n시작됩니다' : 'NEW SEASON\nSTARTS',
@@ -920,11 +954,20 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           PageView.builder(
             controller: PageController(),
-            onPageChanged: (i) => setState(() => _bannerIndex = i),
+            onPageChanged: (i) {
+              setState(() => _bannerIndex = i);
+              _videoControllers.forEach((vidIdx, ctrl) {
+                if (vidIdx == i) { ctrl.play(); } else { ctrl.pause(); }
+              });
+            },
             itemCount: banners.length,
             itemBuilder: (_, idx) {
               final b = banners[idx];
               final accent = b['accent'] as Color;
+              final videoUrl = b['videoUrl'] as String?;
+              final ctrl = _videoControllers[idx];
+              final isVideoReady = (_videoReady[idx] ?? false) && ctrl != null && ctrl.value.isInitialized;
+
               void onTap() {
                 switch (b['btnAction'] as int) {
                   case 1:
@@ -941,22 +984,49 @@ class _HomeScreenState extends State<HomeScreen>
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
                 }
               }
+
               return GestureDetector(
                 onTap: onTap,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // 배경 이미지
-                    Image.network(
-                      b['imageUrl'] as String,
-                      fit: BoxFit.cover,
-                      alignment: Alignment.topCenter,
-                      loadingBuilder: (_, child, progress) => progress == null
-                          ? child
-                          : Container(color: const Color(0xFF1A1A1A),
-                              child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2))),
-                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
-                    ),
+                    // ── 배경: 동영상 or 이미지 ──
+                    if (videoUrl != null && isVideoReady)
+                      ClipRect(
+                        child: OverflowBox(
+                          alignment: Alignment.center,
+                          minWidth: 0, minHeight: 0,
+                          maxWidth: double.infinity, maxHeight: double.infinity,
+                          child: AspectRatio(
+                            aspectRatio: ctrl.value.aspectRatio,
+                            child: VideoPlayer(ctrl),
+                          ),
+                        ),
+                      )
+                    else if (videoUrl != null && !isVideoReady)
+                      Stack(fit: StackFit.expand, children: [
+                        Image.network(b['imageUrl'] as String, fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A1A))),
+                        Positioned(top: 16, right: 16,
+                          child: Container(
+                            width: 28, height: 28,
+                            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.4), shape: BoxShape.circle),
+                            child: const Padding(padding: EdgeInsets.all(5),
+                              child: CircularProgressIndicator(color: Colors.white70, strokeWidth: 2)),
+                          ),
+                        ),
+                      ])
+                    else
+                      Image.network(
+                        b['imageUrl'] as String,
+                        fit: BoxFit.cover, alignment: Alignment.topCenter,
+                        loadingBuilder: (_, child, progress) => progress == null
+                            ? child
+                            : Container(color: const Color(0xFF1A1A1A),
+                                child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2))),
+                        errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                      ),
+
                     // 하단 그라데이션
                     Positioned.fill(
                       child: DecoratedBox(
@@ -974,6 +1044,32 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       ),
                     ),
+
+                    // 동영상 음소거 토글 버튼
+                    if (videoUrl != null && isVideoReady)
+                      Positioned(
+                        right: 64, bottom: 58,
+                        child: GestureDetector(
+                          onTap: () {
+                            final isMuted = ctrl.value.volume == 0;
+                            ctrl.setVolume(isMuted ? 1.0 : 0.0);
+                            setState(() {});
+                          },
+                          child: Container(
+                            width: 36, height: 36,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1),
+                            ),
+                            child: Icon(
+                              (ctrl.value.volume == 0) ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                              color: Colors.white, size: 17,
+                            ),
+                          ),
+                        ),
+                      ),
+
                     // 텍스트 + CTA (왼쪽 하단)
                     Positioned(
                       left: 60, bottom: 52,
@@ -983,33 +1079,14 @@ class _HomeScreenState extends State<HomeScreen>
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: accent,
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                            child: Text(
-                              b['tag'] as String,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 2.2,
-                              ),
-                            ),
+                            decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(3)),
+                            child: Text(b['tag'] as String,
+                              style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 2.2)),
                           ),
                           const SizedBox(height: 16),
-                          Text(
-                            b['title'] as String,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 52,
-                              fontWeight: FontWeight.w900,
-                              height: 1.15,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
+                          Text(b['title'] as String,
+                            style: const TextStyle(color: Colors.white, fontSize: 52, fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.5)),
                           const SizedBox(height: 24),
-                          // CTA 버튼 (흰색 카드형)
                           GestureDetector(
                             onTap: onTap,
                             child: Container(
@@ -1017,30 +1094,14 @@ class _HomeScreenState extends State<HomeScreen>
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(6),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 14,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 14, offset: const Offset(0, 4))],
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(b['ctaIcon'] as IconData, size: 17, color: accent),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    b['cta'] as String,
-                                    style: const TextStyle(
-                                      color: Color(0xFF111111),
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                Icon(b['ctaIcon'] as IconData, size: 17, color: accent),
+                                const SizedBox(width: 10),
+                                Text(b['cta'] as String,
+                                  style: const TextStyle(color: Color(0xFF111111), fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
+                              ]),
                             ),
                           ),
                         ],
@@ -3049,6 +3110,8 @@ class _HomeScreenState extends State<HomeScreen>
     final isKo = loc.language == AppLanguage.korean;
     final banners = [
       {
+        // ── 1번 슬라이드: 동영상 배너 (테스트 MP4) ──
+        'videoUrl': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
         'imageUrl': 'https://sspark.genspark.ai/cfimages?u1=4iEZ6YJMldBU5ZBmJOFgT9kDZdMvpBevDj3N3dwEEeVI1FzibJfbFhybEcLnk%2BNRjXJffeCC%2FWAfsrHeWZXfUhH2Zi5CbqkZFdWKyPTesqa7AXgsg1mOfCZDkIOPU8ittlARbOw70BxrqaRkP2%2FFhkyaQQlQDwaf3Ao4czb0&u2=uctVv2VRDCguTvai&width=2560',
         'tag': isKo ? '2025 S/S 신상품' : 'NEW ARRIVALS',
         'title': isKo ? '새로운\n시즌이\n시작됩니다' : 'NEW\nSEASON\nSTARTS',
@@ -3093,7 +3156,17 @@ class _HomeScreenState extends State<HomeScreen>
           // ── 슬라이드 ──
           PageView.builder(
             controller: PageController(),
-            onPageChanged: (i) => setState(() => _bannerIndex = i),
+            onPageChanged: (i) {
+              setState(() => _bannerIndex = i);
+              // 페이지 전환 시 동영상 재생/일시정지 처리
+              _videoControllers.forEach((idx, ctrl) {
+                if (idx == i) {
+                  ctrl.play();
+                } else {
+                  ctrl.pause();
+                }
+              });
+            },
             itemCount: banners.length,
             itemBuilder: (_, i) => _buildFullBannerItem(banners[i], i, loc),
           ),
@@ -3151,27 +3224,85 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
 
+    // ── 동영상 vs 이미지 배경 결정 ──
+    final videoUrl = banner['videoUrl'] as String?;
+    final ctrl = _videoControllers[index];
+    final isVideoReady = (_videoReady[index] ?? false) && ctrl != null && ctrl.value.isInitialized;
+
     return GestureDetector(
       onTap: onTap,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // ── 배경 이미지 ──
-          Image.network(
-            banner['imageUrl'] as String,
-            fit: BoxFit.cover,
-            alignment: imgAlign,
-            loadingBuilder: (_, child, progress) => progress == null
-                ? child
-                : Container(color: const Color(0xFF1A1A1A),
-                    child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2))),
-            errorBuilder: (_, __, ___) => Container(
-              color: const Color(0xFF1A1A1A),
-              child: const Center(child: Icon(Icons.image_not_supported, color: Colors.white24, size: 48)),
-            ),
-          ),
 
-          // ── 하단 그라데이션 오버레이 ──
+          // ── 배경: 동영상 or 이미지 ──
+          if (videoUrl != null && isVideoReady)
+            // 동영상: AspectRatio로 비율 유지 + BoxFit.cover 효과를 FittedBox로
+            ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.center,
+                minWidth: 0,
+                minHeight: 0,
+                maxWidth: double.infinity,
+                maxHeight: double.infinity,
+                child: AspectRatio(
+                  aspectRatio: ctrl.value.aspectRatio,
+                  child: VideoPlayer(ctrl),
+                ),
+              ),
+            )
+          else if (videoUrl != null && !isVideoReady)
+            // 동영상 로딩 중 → 이미지를 썸네일로 표시
+            Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.network(
+                  banner['imageUrl'] as String,
+                  fit: BoxFit.cover,
+                  alignment: imgAlign,
+                  errorBuilder: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                ),
+                // 로딩 인디케이터
+                Positioned(
+                  top: 16, right: 16,
+                  child: Container(
+                    width: 28, height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.all(5),
+                      child: CircularProgressIndicator(
+                        color: Colors.white70,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            // 일반 이미지 배너
+            Image.network(
+              banner['imageUrl'] as String,
+              fit: BoxFit.cover,
+              alignment: imgAlign,
+              loadingBuilder: (_, child, progress) => progress == null
+                  ? child
+                  : Container(
+                      color: const Color(0xFF1A1A1A),
+                      child: const Center(
+                        child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
+                      ),
+                    ),
+              errorBuilder: (_, __, ___) => Container(
+                color: const Color(0xFF1A1A1A),
+                child: const Center(child: Icon(Icons.image_not_supported, color: Colors.white24, size: 48)),
+              ),
+            ),
+
+          // ── 하단 그라데이션 오버레이 (동영상/이미지 모두 공통) ──
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -3188,6 +3319,34 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ),
+
+          // ── 동영상 배너: 우하단 음소거/음량 아이콘 표시 ──
+          if (videoUrl != null && isVideoReady)
+            Positioned(
+              right: 52, bottom: 32,
+              child: GestureDetector(
+                onTap: () {
+                  final isMuted = ctrl.value.volume == 0;
+                  ctrl.setVolume(isMuted ? 1.0 : 0.0);
+                  setState(() {});
+                },
+                child: Container(
+                  width: 34, height: 34,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1),
+                  ),
+                  child: Icon(
+                    (ctrl.value.volume == 0)
+                        ? Icons.volume_off_rounded
+                        : Icons.volume_up_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ),
+            ),
 
           // ── 콘텐츠 (하단 고정) ──
           Positioned(
@@ -3226,7 +3385,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
                 const SizedBox(height: 20),
-                // CTA 버튼 (흰색 카드형 — TOPTEN10 검색바 스타일)
+                // CTA 버튼 (흰색 카드형)
                 GestureDetector(
                   onTap: onTap,
                   child: Container(
@@ -3245,16 +3404,12 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          banner['ctaIcon'] as IconData,
-                          size: 16,
-                          color: accent,
-                        ),
+                        Icon(banner['ctaIcon'] as IconData, size: 16, color: accent),
                         const SizedBox(width: 10),
                         Text(
                           banner['cta'] as String,
-                          style: TextStyle(
-                            color: const Color(0xFF111111),
+                          style: const TextStyle(
+                            color: Color(0xFF111111),
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.3,
