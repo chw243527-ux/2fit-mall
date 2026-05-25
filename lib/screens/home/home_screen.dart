@@ -3716,7 +3716,7 @@ class _HomeScreenState extends State<HomeScreen>
 
 
 
-          // ── 콘텐츠 (하단 고정, 반응형) ──
+          // ── 콘텐츠 (하단 고정, 모바일만 표시) ──
           Positioned(
             left: 0, right: 0, bottom: 0,
             child: LayoutBuilder(
@@ -3724,6 +3724,8 @@ class _HomeScreenState extends State<HomeScreen>
                 final w = MediaQuery.of(ctx).size.width;
                 final isTablet = w >= 600 && w < 1024;
                 final isPc = w >= 1024;
+                // PC/태블릿에서는 배너 텍스트/버튼 숨김
+                if (isTablet || isPc) return const SizedBox.shrink();
                 final hPad = isPc ? 60.0 : isTablet ? 36.0 : 20.0;
                 final titleSize = isPc ? 52.0 : isTablet ? 40.0 : 32.0;
                 final tagSize = isPc ? 13.0 : isTablet ? 11.0 : 10.0;
