@@ -693,7 +693,7 @@ class ProductService {
   // ── 캐시 ──────────────────────────────────────────────────────
   static List<ProductModel> _cache = [];
   static bool _loaded = false;
-  static const String _prefKey = 'products_v4'; // v4: Firestore 연동
+  static const String _prefKey = 'products_v5'; // v5: 더미 캐시 무효화 (isGroupOnly 적용)
 
   static void _ensureCache() {
     if (_cache.isEmpty) _cache = List.from(_products);

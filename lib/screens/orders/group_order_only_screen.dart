@@ -43,10 +43,21 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _initTabs());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initTabs();
+      // ProductProvider 로딩 완료 시 탭 재초기화 (Firestore 데이터 반영)
+      final pp = context.read<ProductProvider>();
+      pp.addListener(_onProductsUpdated);
+    });
+  }
+
+  void _onProductsUpdated() {
+    if (!mounted) return;
+    _initTabs();
   }
 
   void _initTabs() {
+    if (!mounted) return;
     final pp = context.read<ProductProvider>();
     final groupProducts =
         pp.products.where((p) => p.isGroupOnly && p.isActive).toList();
@@ -61,17 +72,29 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     }
 
     final tabs = ['전체', ...subCats];
-    if (_tabs == tabs) return;
+
+    // 탭이 실제로 바뀐 경우에만 갱신 (동일하면 스킵)
+    final tabsChanged = _tabs.length != tabs.length ||
+        !List.generate(tabs.length, (i) => _tabs.length > i && _tabs[i] == tabs[i])
+            .every((e) => e);
+    if (!tabsChanged && _tabCtrl != null) return;
 
     setState(() {
       _tabs = tabs;
       _tabCtrl?.dispose();
-      _tabCtrl = TabController(length: tabs.length, vsync: this);
+      _tabCtrl = TabController(
+        length: tabs.isEmpty ? 1 : tabs.length,
+        vsync: this,
+      );
     });
   }
 
   @override
   void dispose() {
+    // ProductProvider 리스너 해제
+    try {
+      context.read<ProductProvider>().removeListener(_onProductsUpdated);
+    } catch (_) {}
     _tabCtrl?.dispose();
     super.dispose();
   }
@@ -79,13 +102,36 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   // ────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    if (_tabs.isEmpty) {
-      // 탭 초기화 전 로딩
+    final pp = context.watch<ProductProvider>();
+
+    // Firestore 로딩 중이고 탭이 아직 없으면 로딩 표시
+    if (pp.isLoading && _tabs.isEmpty) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
-        body: const Center(child: CircularProgressIndicator()),
+        backgroundColor: const Color(0xFF1A1A2E),
+        body: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(color: Color(0xFFFF6B35)),
+            const SizedBox(height: 16),
+            Text('단체주문 상품을 불러오는 중...',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 13,
+                )),
+          ],
+        ),
       );
     }
+
+    // 탭이 비어있으면 기본 탭 하나 생성
+    if (_tabs.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _initTabs());
+      return Scaffold(
+        backgroundColor: const Color(0xFF1A1A2E),
+        body: const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B35))),
+      );
+    }
+
     return isPcWeb(context) ? _buildPcLayout() : _buildMobileLayout();
   }
 
