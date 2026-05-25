@@ -30,60 +30,72 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
 
   // ── 모바일 레이아웃 ──
   Widget _buildMobileLayout(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(context.watch<LanguageProvider>().loc.groupOrderGuideAppBar, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-        backgroundColor: const Color(0xFF6A1B9A),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        toolbarHeight: 48,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
-          onPressed: () => goBackOrHome(context),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) goBackOrHome(context);
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: Text(context.watch<LanguageProvider>().loc.groupOrderGuideAppBar, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          backgroundColor: const Color(0xFF6A1B9A),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          toolbarHeight: 48,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+            onPressed: () => goBackOrHome(context),
+          ),
         ),
+        body: _buildGuideTab(context),
       ),
-      body: _buildGuideTab(context),
     );
   }
 
   // ── PC 레이아웃 ──
   Widget _buildPcLayout(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: Text(context.watch<LanguageProvider>().loc.groupOrderGuideAppBar, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        backgroundColor: const Color(0xFF6A1B9A),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
-          onPressed: () => goBackOrHome(context),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) goBackOrHome(context);
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        appBar: AppBar(
+          title: Text(context.watch<LanguageProvider>().loc.groupOrderGuideAppBar, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          backgroundColor: const Color(0xFF6A1B9A),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+            onPressed: () => goBackOrHome(context),
+          ),
         ),
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1280),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── 좌측: 주문 안내 콘텐츠 ──
-                Expanded(
-                  flex: 7,
-                  child: Container(
-                    decoration: const BoxDecoration(color: Colors.white),
-                    child: _buildGuideTab(context),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1280),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ── 좌측: 주문 안내 콘텐츠 ──
+                  Expanded(
+                    flex: 7,
+                    child: Container(
+                      decoration: const BoxDecoration(color: Colors.white),
+                      child: _buildGuideTab(context),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 24),
-                // ── 우측: 주문 패널 ──
-                SizedBox(
-                  width: 300,
-                  child: _buildPcOrderPanel(context),
-                ),
-              ],
+                  const SizedBox(width: 24),
+                  // ── 우측: 주문 패널 ──
+                  SizedBox(
+                    width: 300,
+                    child: _buildPcOrderPanel(context),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
