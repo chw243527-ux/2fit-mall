@@ -59,8 +59,10 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   void _initTabs() {
     if (!mounted) return;
     final pp = context.read<ProductProvider>();
-    final groupProducts =
-        pp.products.where((p) => p.isGroupOnly && p.isActive).toList();
+    // 단체주문 전용 상품 로딩 중이고 아직 데이터 없으면 대기
+    if (pp.isGroupOnlyLoading && pp.groupOnlyProducts.isEmpty) return;
+    // groupOnlyProducts: Firestore에서 직접 로드된 isGroupOnly=true & isActive=true 상품
+    final groupProducts = pp.groupOnlyProducts;
 
     // subCategory 유니크 목록 (등장 순서 유지)
     final seen = <String>{};
@@ -105,20 +107,22 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     final pp = context.watch<ProductProvider>();
 
     // Firestore 로딩 중이고 탭이 아직 없으면 로딩 표시
-    if (pp.isLoading && _tabs.isEmpty) {
+    if ((pp.isLoading || pp.isGroupOnlyLoading) && _tabs.isEmpty) {
       return Scaffold(
         backgroundColor: const Color(0xFF1A1A2E),
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(color: Color(0xFFFF6B35)),
-            const SizedBox(height: 16),
-            Text('단체주문 상품을 불러오는 중...',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 13,
-                )),
-          ],
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(color: Color(0xFFFF6B35)),
+              const SizedBox(height: 16),
+              Text('단체주문 상품을 불러오는 중...',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 13,
+                  )),
+            ],
+          ),
         ),
       );
     }
@@ -205,7 +209,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
             children: _tabs.map((tab) {
               return Consumer<ProductProvider>(
                 builder: (_, pp, __) {
-                  final list = _filterByTab(pp.products, tab);
+                  final list = _filterByTab(pp.groupOnlyProducts, tab);
                   return _buildProductBody(list, gridColumns: 2);
                 },
               );
@@ -332,7 +336,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                   child: TabBarView(
                     controller: _tabCtrl,
                     children: _tabs.map((tab) {
-                      final list = _filterByTab(pp.products, tab);
+                      final list = _filterByTab(pp.groupOnlyProducts, tab);
                       return Center(
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 1280),
@@ -1003,10 +1007,10 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   // ════════════════════════════════════════════
   // 헬퍼
   // ════════════════════════════════════════════
-  List<ProductModel> _filterByTab(List<ProductModel> all, String tab) {
-    final group = all.where((p) => p.isGroupOnly && p.isActive).toList();
-    if (tab == '전체') return group;
-    return group.where((p) => p.subCategory == tab).toList();
+  List<ProductModel> _filterByTab(List<ProductModel> groupOnly, String tab) {
+    // groupOnly는 이미 isGroupOnly=true, isActive=true 필터링된 목록
+    if (tab == '전체') return groupOnly;
+    return groupOnly.where((p) => p.subCategory == tab).toList();
   }
 
   void _goToLanding() {

@@ -844,6 +844,37 @@ class ProductService {
         .toList();
   }
 
+  /// 단체주문 전용 상품 Firestore 직접 조회 (isGroupOnly=true, isActive=true)
+  static Future<List<ProductModel>> getGroupOnlyProducts() async {
+    try {
+      final snapshot = await _db
+          .collection('products')
+          .where('isGroupOnly', isEqualTo: true)
+          .where('isActive', isEqualTo: true)
+          .get()
+          .timeout(const Duration(seconds: 10));
+
+      final list = snapshot.docs.map((doc) {
+        final data = doc.data();
+        if (data['createdAt'] is Timestamp) {
+          data['createdAt'] =
+              (data['createdAt'] as Timestamp).toDate().toIso8601String();
+        }
+        return ProductModel.fromJson(data);
+      }).toList();
+
+      if (kDebugMode) {
+        debugPrint('✅ 단체주문 전용 상품 ${list.length}개 로드');
+      }
+      return list;
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 단체주문 전용 상품 조회 실패: $e');
+      // 폴백: 캐시에서 필터링
+      _ensureCache();
+      return _cache.where((p) => p.isGroupOnly && p.isActive).toList();
+    }
+  }
+
   static Future<ProductModel?> getProductById(String id) async {
     if (!_loaded) await _loadFromFirestore();
     // 1) 캐시에서 먼저 탐색

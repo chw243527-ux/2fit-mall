@@ -1030,8 +1030,10 @@ class NoticeProvider extends ChangeNotifier {
 class ProductProvider extends ChangeNotifier {
   List<ProductModel> _products = [];
   List<ProductModel> _adminProducts = [];
+  List<ProductModel> _groupOnlyProducts = []; // 단체주문 전용 상품
   bool _isLoading = false;
   bool _isAdminLoading = false;
+  bool _isGroupOnlyLoading = false; // 단체주문 전용 로딩 상태
   String? _error;
   String _currentCategory = '전체';
   /// 상품ID → 실제 판매 수량 캐시
@@ -1042,8 +1044,11 @@ class ProductProvider extends ChangeNotifier {
   List<ProductModel> get products => _products;
   /// 관리자 전용: isActive 무관 전체 상품 목록
   List<ProductModel> get adminProducts => _adminProducts;
+  /// 단체주문 전용 상품 목록 (isGroupOnly=true, isActive=true)
+  List<ProductModel> get groupOnlyProducts => _groupOnlyProducts;
   bool get isLoading => _isLoading;
   bool get isAdminLoading => _isAdminLoading;
+  bool get isGroupOnlyLoading => _isGroupOnlyLoading;
   String? get error => _error;
   String get currentCategory => _currentCategory;
   /// 판매 수 집계 로드 완료 여부 (홈화면 베스트 섹션 로딩 표시용)
@@ -1072,6 +1077,28 @@ class ProductProvider extends ChangeNotifier {
     _loadCategory('전체');
     // 실제 판매 수 집계 비동기 로드
     _loadSalesCounts();
+    // 단체주문 전용 상품 로드
+    loadGroupOnlyProducts();
+  }
+
+  /// 단체주문 전용 상품을 Firestore에서 직접 로드
+  Future<void> loadGroupOnlyProducts() async {
+    _isGroupOnlyLoading = true;
+    notifyListeners();
+    try {
+      final prods = await ProductService.getGroupOnlyProducts();
+      _groupOnlyProducts = prods;
+      _isGroupOnlyLoading = false;
+      notifyListeners();
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 단체주문 전용 상품 로드 실패: $e');
+      _isGroupOnlyLoading = false;
+      // 폴백: 전체 상품에서 필터링
+      _groupOnlyProducts = _products
+          .where((p) => p.isGroupOnly && p.isActive)
+          .toList();
+      notifyListeners();
+    }
   }
 
   void setCategory(String category) {
