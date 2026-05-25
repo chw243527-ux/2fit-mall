@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../utils/theme.dart';
 import '../../utils/app_localizations.dart';
+import '../../utils/navigation_helper.dart';
 
 class NotificationCenterScreen extends StatelessWidget {
   const NotificationCenterScreen({super.key});
@@ -21,7 +22,7 @@ class NotificationCenterScreen extends StatelessWidget {
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => goBackOrHome(context),
               )
             : null,
         actions: [

@@ -8,6 +8,7 @@ import '../../services/analytics_service.dart';
 import '../../widgets/pc_layout.dart';
 import '../main_screen.dart';
 import 'signup_screen.dart';
+import '../../utils/navigation_helper.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -156,16 +157,14 @@ class _LoginScreenState extends State<LoginScreen>
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: Navigator.canPop(context)
-          ? AppBar(
+      appBar: AppBar(
               backgroundColor: Colors.white,
               elevation: 0,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A1A1A)),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => goBackOrHome(context),
               ),
-            )
-          : null,
+            ),
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnim,

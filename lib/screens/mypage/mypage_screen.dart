@@ -23,6 +23,7 @@ import '../../widgets/pc_layout.dart';
 import '../../services/order_service.dart';
 import '../../widgets/address_search_widget.dart';
 import 'size_profile_screen.dart';
+import '../../utils/navigation_helper.dart';
 
 class MyPageScreen extends StatefulWidget {
   final VoidCallback? onBack; // 홈(탭0)으로 돌아가는 콜백
@@ -1831,19 +1832,11 @@ class _MobileMyPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: onBack != null
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A1A1A)),
-                onPressed: onBack,
-                tooltip: '이전으로',
-              )
-            : Navigator.canPop(context)
-                ? IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A1A1A)),
-                    onPressed: () => Navigator.pop(context),
-                    tooltip: '이전으로',
-                  )
-                : null,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A1A1A)),
+          onPressed: onBack ?? () => goBackOrHome(context),
+          tooltip: '이전으로',
+        ),
         automaticallyImplyLeading: false,
         title: const Text('마이페이지', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
       ),

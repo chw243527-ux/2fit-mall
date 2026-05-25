@@ -4,6 +4,7 @@ import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
 import '../../widgets/pc_layout.dart';
 import 'group_order_guide_screen.dart';
+import '../../utils/navigation_helper.dart';
 
 /// 사이드바 "단체주문하기" 전용 랜딩 페이지
 /// - 단체주문 안내 + 주문서 작성 바로가기
@@ -53,7 +54,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => goBackOrHome(context),
               )
             : null,
         bottom: TabBar(
@@ -93,7 +94,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => goBackOrHome(context),
               )
             : null,
       ),

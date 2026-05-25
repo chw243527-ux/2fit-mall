@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../services/size_profile_service.dart';
+import '../../utils/navigation_helper.dart';
 
 const Color _purple = Color(0xFF6A1B9A);
 // ignore: unused_element
@@ -48,6 +49,10 @@ class SizeProfileScreen extends StatelessWidget {
         backgroundColor: _purple,
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+          onPressed: () => goBackOrHome(context),
+        ),
       ),
       body: _SizeProfileBody(user: user),
       floatingActionButton: Consumer<SizeProfileProvider>(

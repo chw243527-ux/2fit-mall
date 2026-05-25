@@ -7,6 +7,7 @@ import '../../providers/providers.dart';
 import '../../services/notification_service.dart';
 import '../../services/chat_service.dart';
 import '../../services/email_service.dart';
+import '../../utils/navigation_helper.dart';
 
 class ChatMessage {
   final String text;
@@ -465,7 +466,7 @@ class _ChatScreenState extends State<ChatScreen> {
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_rounded, size: 18, color: Colors.white),
-              onPressed: () => Navigator.of(context).maybePop(),
+              onPressed: () => goBackOrHome(context),
               tooltip: loc.back,
             ),
             title: Row(

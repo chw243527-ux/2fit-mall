@@ -5,6 +5,7 @@ import '../../utils/constants.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
 import 'product_detail_screen.dart';
+import '../../utils/navigation_helper.dart';
 
 class ProductListScreen extends StatefulWidget {
   final String? initialCategory;

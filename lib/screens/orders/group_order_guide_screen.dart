@@ -5,6 +5,7 @@ import '../../providers/providers.dart';
 import '../../models/models.dart';
 import 'group_order_form_screen.dart';
 import '../../widgets/pc_layout.dart';
+import '../../utils/navigation_helper.dart';
 
 class GroupOrderGuideScreen extends StatefulWidget {
   final ProductModel? product;
@@ -37,12 +38,10 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         toolbarHeight: 48,
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+          onPressed: () => goBackOrHome(context),
+        ),
       ),
       body: _buildGuideTab(context),
     );
@@ -57,12 +56,10 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
         backgroundColor: const Color(0xFF6A1B9A),
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+          onPressed: () => goBackOrHome(context),
+        ),
       ),
       body: Center(
         child: ConstrainedBox(

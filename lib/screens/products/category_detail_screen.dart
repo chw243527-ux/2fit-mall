@@ -9,6 +9,7 @@ import '../../widgets/product_card.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/pc_layout.dart';
 import 'product_detail_screen.dart';
+import '../../utils/navigation_helper.dart';
 
 class CategoryDetailScreen extends StatefulWidget {
   final String categoryName;
@@ -410,7 +411,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF1A1A1A), size: 28),
-          onPressed: () => Navigator.maybePop(context),
+          onPressed: () => goBackOrHome(context),
         ),
         title: Row(
           children: [
@@ -923,7 +924,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded,
             color: Colors.white, size: 20),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => goBackOrHome(context),
       ),
       actions: [
         IconButton(

@@ -18,6 +18,7 @@ import '../../utils/app_localizations.dart';
 import '../../services/analytics_service.dart';
 import '../../services/product_service.dart';
 import '../../services/storage_service.dart';
+import '../../utils/navigation_helper.dart';
 
 // ══════════════════════════════════════════════════════════════
 // ProductDetailScreen
@@ -682,7 +683,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       backgroundColor: const Color(0xFF1A1A1A),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => goBackOrHome(context),
       ),
       actions: [
         Consumer<UserProvider>(

@@ -10,6 +10,7 @@ import '../../services/auth_service.dart';
 import '../../models/models.dart' show AuthResult;
 import '../main_screen.dart';
 import 'login_screen.dart' show LanguageSelectorWidget;
+import '../../utils/navigation_helper.dart';
 
 // ══════════════════════════════════════════
 // 연속 가입 시도 방지 (클라이언트측 rate limit)
@@ -607,7 +608,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Color(0xFF1A1A2E), size: 20),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => goBackOrHome(context),
         ),
         title: Text(loc.signupTitle,
             style: const TextStyle(color: Color(0xFF1A1A2E),

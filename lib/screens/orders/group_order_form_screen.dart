@@ -14,6 +14,7 @@ import '../orders/checkout_screen.dart';
 import '../cart/cart_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/address_search_widget.dart';
+import '../../utils/navigation_helper.dart';
 
 // ══════════════════════════════════════════════════════════════
 // 단체 주문 폼 v6 - 완전 재작성
@@ -744,11 +745,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         backgroundColor: _purple,
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: Navigator.canPop(context)
-            ? IconButton(
+        leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => Navigator.pop(context))
-            : null,
+                onPressed: () => goBackOrHome(context)),
       ),
       body: Form(
         key: _formKey,

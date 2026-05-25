@@ -6,6 +6,7 @@ import '../../providers/providers.dart';
 import 'group_order_guide_screen.dart';
 import 'group_order_form_screen.dart';
 import '../../widgets/pc_layout.dart';
+import '../../utils/navigation_helper.dart';
 
 class OrderGuideScreen extends StatefulWidget {
   const OrderGuideScreen({super.key});
@@ -26,7 +27,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => goBackOrHome(context),
               )
             : null,
       ),
@@ -58,7 +59,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => goBackOrHome(context),
               )
             : null,
       ),

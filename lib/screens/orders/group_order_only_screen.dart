@@ -7,6 +7,7 @@ import '../../utils/app_localizations.dart';
 import '../../models/models.dart';
 import '../../widgets/pc_layout.dart';
 import '../products/product_detail_screen.dart';
+import '../../utils/navigation_helper.dart';
 
 class GroupOrderOnlyScreen extends StatefulWidget {
   const GroupOrderOnlyScreen({super.key});
@@ -33,7 +34,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen> {
         leading: Navigator.canPop(context)
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => goBackOrHome(context),
               )
             : null,
         title: Text(
