@@ -94,7 +94,24 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         debugShowCheckedModeBanner: false,
         navigatorKey: navigatorKey,
         builder: (context, child) {
-          return child!;
+          // 앱 전체를 PopScope로 감싸서 하드웨어/제스처 뒤로가기 인터셉트
+          // - Navigator 스택에 이전 화면이 있으면 → pop (정상 뒤로가기)
+          // - 스택이 MainScreen만 남은 경우 → MainScreen의 PopScope가 처리
+          // - 그 외 → 홈으로 이동
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) return;
+              final nav = navigatorKey.currentState;
+              if (nav == null) return;
+              if (nav.canPop()) {
+                nav.pop();
+              }
+              // canPop()이 false면 MainScreen의 PopScope가 처리하거나
+              // 이미 홈이므로 아무것도 안 함
+            },
+            child: child!,
+          );
         },
         home: const _AppInit(),
         onGenerateRoute: (settings) {

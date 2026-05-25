@@ -3,13 +3,14 @@ import '../main.dart' show navigatorKey;
 import '../screens/main_screen.dart';
 
 /// 뒤로가기 공통 처리 함수
-/// - Navigator 스택에 이전 화면이 있으면 → pop
-/// - 없으면 (앱 최초 진입이거나 딥링크 진입 등) → MainScreen 홈탭으로 이동
+/// - Navigator 스택에 이전 화면이 있으면 → pop (정상 뒤로가기)
+/// - 없으면 → MainScreen 홈탭으로 이동 (앱 종료 없음)
 void goBackOrHome(BuildContext context) {
-  if (Navigator.canPop(context)) {
-    Navigator.pop(context);
+  final nav = navigatorKey.currentState;
+  if (nav != null && nav.canPop()) {
+    nav.pop();
   } else {
-    // 스택이 없을 때: MainScreen 홈탭으로 이동
+    // 스택 바닥 → 홈으로 이동
     navigatorKey.currentState?.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 0)),
       (route) => false,
