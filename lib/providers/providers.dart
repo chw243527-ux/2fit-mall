@@ -1034,6 +1034,8 @@ class ProductProvider extends ChangeNotifier {
   String _currentCategory = '전체';
   /// 상품ID → 실제 판매 수량 캐시
   Map<String, int> _salesCountMap = {};
+  /// 판매 수 집계 로드 완료 여부
+  bool _salesCountsLoaded = false;
 
   List<ProductModel> get products => _products;
   /// 관리자 전용: isActive 무관 전체 상품 목록
@@ -1042,9 +1044,14 @@ class ProductProvider extends ChangeNotifier {
   bool get isAdminLoading => _isAdminLoading;
   String? get error => _error;
   String get currentCategory => _currentCategory;
+  /// 판매 수 집계 로드 완료 여부 (홈화면 베스트 섹션 로딩 표시용)
+  bool get salesCountsLoaded => _salesCountsLoaded;
 
-  /// 실제 구매(confirmed 이상) 기준으로 판매 수 상위 상품 목록 (salesCount > 0 인 것만)
+  /// 취소·환불 제외 실구매 기준 판매량 상위 상품 (salesCount > 0 인 것만)
+  /// - 집계 로드 전(_salesCountsLoaded=false)이면 빈 리스트 반환 → 섹션 숨김
+  /// - 로드 후 실구매 이력 없으면 빈 리스트 → 섹션 숨김
   List<ProductModel> get bestProducts {
+    if (!_salesCountsLoaded) return [];
     final withSales = _products
         .where((p) => p.isActive && (_salesCountMap[p.id] ?? p.salesCount) > 0)
         .toList()
@@ -1149,12 +1156,16 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  /// 실제 구매 집계 (confirmed 이상 주문 → productId별 수량 합산)
+  /// 실제 구매 집계 (취소·환불 제외 전 주문 → productId별 수량 합산)
   Future<void> _loadSalesCounts() async {
     try {
       _salesCountMap = await OrderService.getSalesCountMap();
+    } catch (_) {
+      _salesCountMap = {};
+    } finally {
+      _salesCountsLoaded = true;
       notifyListeners();
-    } catch (_) {}
+    }
   }
 
   /// 외부에서 강제 갱신 (주문 상태 변경 후 호출)

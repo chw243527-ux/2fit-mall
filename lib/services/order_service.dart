@@ -357,18 +357,18 @@ class OrderService {
   // 베스트 상품 집계 (실제 구매 기준)
   // ────────────────────────────────────────────
 
-  /// confirmed / processing / shipped / delivered 상태 주문에서
+  /// 취소/환불을 제외한 모든 실구매 주문에서
   /// productId별 실제 판매 수량(quantity 합산)을 집계해 반환.
+  /// (pending 포함 — 결제 완료 시점부터 베스트 반영)
   /// 반환값: { productId: totalQuantity }
   static Future<Map<String, int>> getSalesCountMap() async {
     try {
+      // Firestore whereNotIn은 최대 10개 값 지원
       final snapshot = await _db
           .collection('orders')
-          .where('status', whereIn: [
-            OrderStatus.confirmed.name,
-            OrderStatus.processing.name,
-            OrderStatus.shipped.name,
-            OrderStatus.delivered.name,
+          .where('status', whereNotIn: [
+            OrderStatus.cancelled.name,
+            OrderStatus.refunded.name,
           ])
           .get();
 

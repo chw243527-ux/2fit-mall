@@ -3747,6 +3747,21 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildBestSection(AppLocalizations loc) {
     final provider = context.watch<ProductProvider>();
+
+    // 판매 집계 로드 전 → 로딩 인디케이터 표시
+    if (!provider.salesCountsLoaded) {
+      return Container(
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: const Center(
+          child: SizedBox(
+            width: 24, height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFE53935)),
+          ),
+        ),
+      );
+    }
+
     final bestProds = provider.bestProducts;
 
     // 실제 구매 이력이 있는 베스트 상품이 없으면 섹션 자체를 숨김
