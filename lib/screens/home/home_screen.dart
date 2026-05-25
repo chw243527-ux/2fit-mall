@@ -15,6 +15,7 @@ import '../products/product_list_screen.dart';
 import '../products/product_detail_screen.dart';
 import '../products/category_detail_screen.dart';
 import '../orders/group_order_landing_screen.dart';
+import '../orders/group_order_only_screen.dart';
 import '../admin/admin_screen.dart';
 import '../../services/analytics_service.dart';
 import '../chat/chat_screen.dart';
@@ -3126,7 +3127,7 @@ class _HomeScreenState extends State<HomeScreen>
           break;
         case 2:
           Navigator.push(context, MaterialPageRoute(
-            builder: (_) => const GroupOrderLandingScreen(),
+            builder: (_) => const GroupOrderOnlyScreen(),
           ));
           break;
         default:
