@@ -111,8 +111,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
-    // PC 웹이면 PC 전용 레이아웃, 모바일이면 모바일 레이아웃
-    if (isPcWeb(context)) return _buildPcLayout(loc);
+    // PC/태블릿/모바일 모두 동일한 모바일 레이아웃 사용
     return _buildMobileLayout(loc);
   }
 
