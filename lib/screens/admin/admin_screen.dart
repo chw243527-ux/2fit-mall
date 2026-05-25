@@ -9136,6 +9136,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     '스킨슈트': ['스킨슈트'],
     '악세사리': ['모자', '백팩'],
     '이벤트': ['이벤트'],
+    '단체주문': ['싱글렛세트A타입', '싱글렛 B타입', '스킨슈트', '트레이닝복세트', '기타'],
   };
 
   // 타이즈 하위분류 (하의 > 타이즈 선택 시 추가 선택)
@@ -9144,7 +9145,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   ];
 
   static const List<String> _mainCategories = [
-    '상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '이벤트',
+    '상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '이벤트', '단체주문',
   ];
 
   List<String> get _currentSubCats => _subCatMap[_selCat] ?? [];
@@ -9516,6 +9517,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             if (v == null) return;
                             setState(() {
                               _selCat = v;
+                              // 단체주문 카테고리 선택 ↔ 단체전용 토글 양방향 연동
+                              _isGroupOnly = (v == '단체주문');
                               final subs = _subCatMap[v] ?? [];
                               _selSubCat = subs.isNotEmpty ? subs.first : '';
                               _selTightsSub = '';
@@ -9963,7 +9966,22 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                   _chip('신상품', _isNew, (v) => setState(() => _isNew = v)),
                   _chip('세일', _isSale, (v) => setState(() => _isSale = v)),
                   _chip('무료배송', _isFreeShip, (v) => setState(() => _isFreeShip = v)),
-                  _chip('단체전용', _isGroupOnly, (v) => setState(() => _isGroupOnly = v), ac: const Color(0xFF6A1B9A)),
+                  _chip('단체전용', _isGroupOnly, (v) => setState(() {
+                    _isGroupOnly = v;
+                    if (v) {
+                      // 단체전용 ON → 카테고리 자동으로 '단체주문'으로 변경
+                      _selCat = '단체주문';
+                      final subs = _subCatMap['단체주문'] ?? [];
+                      _selSubCat = subs.isNotEmpty ? subs.first : '';
+                      _selTightsSub = '';
+                    } else {
+                      // 단체전용 OFF → 카테고리 '상의'로 초기화
+                      _selCat = '상의';
+                      final subs = _subCatMap['상의'] ?? [];
+                      _selSubCat = subs.isNotEmpty ? subs.first : '';
+                      _selTightsSub = '';
+                    }
+                  }), ac: const Color(0xFF6A1B9A)),
                   _chip('활성화', _isActive, (v) => setState(() => _isActive = v), ac: Colors.green),
                 ]),
                 const SizedBox(height: 8),
