@@ -2342,6 +2342,9 @@ class _HomeScreenState extends State<HomeScreen>
     // 최소/최대 높이 클램프 (너무 작거나 화면을 넘지 않도록)
     bannerH = bannerH.clamp(screenH * 0.40, screenH * 0.85);
 
+    // 모바일에서만 오버레이 헤더 표시 (PC/태블릿은 MainScreen NavBar 사용)
+    final isMobile = screenW < 600;
+
     if (bannerProv.loading) {
       return SizedBox(
         height: bannerH,
@@ -2349,8 +2352,8 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             const ColoredBox(color: Color(0xFF111111), child: SizedBox.expand()),
             const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2)),
-            // 상단 오버레이 헤더
-            Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
+            if (isMobile)
+              Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
           ],
         ),
       );
@@ -2361,7 +2364,8 @@ class _HomeScreenState extends State<HomeScreen>
         child: Stack(
           children: [
             const ColoredBox(color: Color(0xFF1A1A1A), child: SizedBox.expand()),
-            Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
+            if (isMobile)
+              Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
           ],
         ),
       );
@@ -2378,8 +2382,9 @@ class _HomeScreenState extends State<HomeScreen>
             itemCount: activeBanners.length,
             itemBuilder: (_, i) => _buildFullBannerItem(activeBanners[i], i, loc),
           ),
-          // 상단 오버레이 헤더 (그라데이션 배경)
-          Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
+          // 상단 오버레이 헤더 (모바일만)
+          if (isMobile)
+            Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
           // 우측 세로 인디케이터
           Positioned(
             right: 12, top: 0, bottom: 0,
