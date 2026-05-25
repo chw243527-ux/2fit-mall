@@ -44,10 +44,14 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initTabs();
-      // ProductProvider 로딩 완료 시 탭 재초기화 (Firestore 데이터 반영)
       final pp = context.read<ProductProvider>();
+      // 항상 최신 단체주문 상품 재로드 (화면 진입 시마다)
+      pp.loadGroupOnlyProducts().then((_) {
+        if (mounted) _initTabs();
+      });
       pp.addListener(_onProductsUpdated);
+      // 이미 데이터 있으면 바로 탭 초기화
+      if (pp.groupOnlyProducts.isNotEmpty) _initTabs();
     });
   }
 
