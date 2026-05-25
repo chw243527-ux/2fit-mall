@@ -1,12 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/// PC 기준 breakpoint (main_screen.dart 와 동일)
+/// PC/태블릿 기준 breakpoint (main_screen.dart 와 동일)
 const double kPcBreak = 900;
 
-/// 현재 컨텍스트가 PC 웹인지 확인
+/// 현재 화면이 넓은 레이아웃(PC 또는 태블릿)인지 확인
+/// - 웹: 너비 900 이상
+/// - 앱(태블릿): 너비 900 이상
 bool isPcWeb(BuildContext context) =>
-    kIsWeb && MediaQuery.of(context).size.width >= kPcBreak;
+    MediaQuery.of(context).size.width >= kPcBreak;
 
 /// PC 화면에서 콘텐츠를 최대 [maxWidth]로 중앙 정렬
 /// 모바일에서는 [child]를 그대로 반환

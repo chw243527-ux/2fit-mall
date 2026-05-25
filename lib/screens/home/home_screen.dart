@@ -2198,7 +2198,7 @@ class _HomeScreenState extends State<HomeScreen>
               SliverToBoxAdapter(child: _buildGroupOrderSection(loc)),
               SliverToBoxAdapter(child: _buildNewArrivalsSection(loc)),
               SliverToBoxAdapter(child: _buildBrandFeatureSection()),
-              if (kIsWeb && MediaQuery.of(context).size.width >= kPcBreakpoint)
+              if (MediaQuery.of(context).size.width >= kPcBreakpoint) // 태블릿 포함
                 SliverToBoxAdapter(child: _buildPcFooter(loc)),
               const SliverToBoxAdapter(child: SizedBox(height: 80)),
             ],

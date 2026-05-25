@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
@@ -453,7 +452,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final width = MediaQuery.of(context).size.width;
-    final isPc = kIsWeb && width >= 900;
+    final isPc = width >= 900; // 태블릿 포함
 
     return Consumer<LanguageProvider>(
       builder: (_, lp, __) {

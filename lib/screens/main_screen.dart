@@ -73,7 +73,7 @@ class MainScreenState extends State<MainScreen> {
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final width = MediaQuery.of(context).size.width;
-    final isPc = kIsWeb && width >= kPcBreakpoint;
+    final isPc = width >= kPcBreakpoint; // 태블릿 포함: 너비 900 이상이면 PC 레이아웃
     final userProvider = context.watch<UserProvider>();
 
     // 로그아웃 감지: user가 null이 되면 로그인 화면으로 이동

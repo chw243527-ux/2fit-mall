@@ -6412,7 +6412,7 @@ class _AdminScreenState extends State<AdminScreen>
 
   Widget _buildChatManagement() {
     final width = MediaQuery.of(context).size.width;
-    final isPc = kIsWeb && width >= 900;
+    final isPc = width >= 900; // 태블릿 포함
 
     // PC: 좌측 목록 + 우측 상세 2단 레이아웃
     if (isPc) {
@@ -6641,7 +6641,7 @@ class _AdminScreenState extends State<AdminScreen>
               child: Row(
                 children: [
                   // PC에서는 뒤로가기 버튼 숨김
-                  if (!(kIsWeb && MediaQuery.of(context).size.width >= 900))
+                  if (!(MediaQuery.of(context).size.width >= 900))
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_rounded, size: 18),
                       onPressed: () => setState(() => _selectedRoomId = null),
