@@ -2345,25 +2345,29 @@ class _HomeScreenState extends State<HomeScreen>
     // 모바일에서만 오버레이 헤더 표시 (PC/태블릿은 MainScreen NavBar 사용)
     final isMobile = screenW < 600;
 
-    if (bannerProv.loading) {
+    // Firestore 로딩 중이거나 배너 없어도 → 로컬 asset 동영상 즉시 표시
+    if (bannerProv.loading || activeBanners.isEmpty) {
       return SizedBox(
         height: bannerH,
         child: Stack(
           children: [
-            const ColoredBox(color: Color(0xFF111111), child: SizedBox.expand()),
-            const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2)),
-            if (isMobile)
-              Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
-          ],
-        ),
-      );
-    }
-    if (activeBanners.isEmpty) {
-      return SizedBox(
-        height: bannerH,
-        child: Stack(
-          children: [
-            const ColoredBox(color: Color(0xFF1A1A1A), child: SizedBox.expand()),
+            // 로컬 asset 동영상 즉시 재생 (검은 화면 방지)
+            Positioned.fill(
+              child: VideoBannerWidget(
+                videoUrl: 'assets/assets/images/banner_video.mp4',
+                thumbnailUrl: null,
+                onTap: null,
+              ),
+            ),
+            // Firestore 로딩 중이면 하단에 가벼운 인디케이터만
+            if (bannerProv.loading)
+              const Positioned(
+                right: 16, bottom: 16,
+                child: SizedBox(
+                  width: 16, height: 16,
+                  child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
+                ),
+              ),
             if (isMobile)
               Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
           ],
@@ -3671,11 +3675,12 @@ class _HomeScreenState extends State<HomeScreen>
     return Stack(
       fit: StackFit.expand,
       children: [
-        // ── 배경: 동영상(order==0 & videoUrl 있을 때) or 이미지 ──
+        // ── 배경: 동영상(videoUrl 있을 때) or 이미지 ──
+        // 로컬 asset 우선 → 즉시 재생 (Firebase URL은 폴백으로 내부에서 처리)
         if (videoUrl != null)
           VideoBannerWidget(
-            videoUrl: videoUrl,
-            thumbnailUrl: imageUrl,
+            videoUrl: videoUrl,           // 폴백용 Firebase URL
+            thumbnailUrl: imageUrl,       // poster 이미지 (로드 전 표시)
             onTap: onTap,
           )
         else if (imageUrl.isNotEmpty)

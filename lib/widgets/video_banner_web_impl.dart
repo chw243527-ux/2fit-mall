@@ -14,12 +14,17 @@ final Set<String> _registeredVideoViews = {};
 final Map<String, html.VideoElement> _videoElements = {};
 
 /// Web용 비디오 배너 위젯
-/// - dart:html VideoElement를 직접 삽입 → autoplay + muted → 브라우저 정책 통과
-/// - 마운트 직후 video.play() 명시 호출 → 즉시 재생 보장
+/// - 로컬 asset 경로 우선 사용 → 즉시 재생 (네트워크 의존 없음)
+/// - poster(썸네일) 즉시 표시 → 검은 화면 방지
+/// - autoplay + muted → 브라우저 autoplay 정책 통과
 class VideoBannerWidget extends StatefulWidget {
   final String videoUrl;
   final String? thumbnailUrl;
   final VoidCallback? onTap;
+
+  // 로컬 asset 경로 (Flutter 웹 빌드 후 실제 서빙 경로)
+  // Flutter 웹: assets/ → build/web/assets/assets/ 로 번들됨
+  static const String localAssetVideo = 'assets/assets/images/banner_video.mp4';
 
   const VideoBannerWidget({
     super.key,
@@ -35,35 +40,33 @@ class VideoBannerWidget extends StatefulWidget {
 class _VideoBannerWidgetState extends State<VideoBannerWidget> {
   late String _viewType;
   bool _isMuted = true;
+  bool _isLoaded = false;
   Timer? _playRetryTimer;
+
+  /// 실제 사용할 영상 URL 결정:
+  /// 1순위: 로컬 asset (Flutter 웹 빌드에 번들된 파일) → 즉시 재생
+  /// 2순위: Firestore에서 받은 videoUrl (네트워크) → 폴백
+  String get _effectiveVideoUrl => VideoBannerWidget.localAssetVideo;
 
   @override
   void initState() {
     super.initState();
-    _viewType = 'video-banner-${widget.videoUrl.hashCode}';
+    _viewType = 'video-banner-local-${_effectiveVideoUrl.hashCode}';
     _registerVideoView();
 
-    // HtmlElementView가 DOM에 삽입된 직후 play() 호출
-    // addPostFrameCallback: 첫 프레임 렌더 완료 후 실행
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _forcePlay();
     });
   }
 
-  /// video 엘리먼트에 play()를 명시적으로 호출.
-  /// 브라우저는 muted 상태라면 autoplay 정책 통과 가능.
-  /// 혹시 재생이 안 됐을 경우 300ms 뒤 한 번 더 시도.
   void _forcePlay() {
     final video = _videoElements[_viewType];
     if (video == null) {
-      // DOM 삽입 전일 경우 잠시 후 재시도
-      _playRetryTimer = Timer(const Duration(milliseconds: 300), _forcePlay);
+      _playRetryTimer = Timer(const Duration(milliseconds: 200), _forcePlay);
       return;
     }
-    // paused 상태일 때만 play() 호출
     if (video.paused) {
       video.play().catchError((e) {
-        // Autoplay 정책으로 거부됐을 때 — muted 재확인 후 재시도
         video.muted = true;
         video.play().catchError((_) {
           if (kDebugMode) debugPrint('VideoBanner: play() 거부됨 - $_viewType');
@@ -85,38 +88,45 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
     // ignore: avoid_web_libraries_in_flutter
     ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) {
       final video = html.VideoElement()
-        ..src = widget.videoUrl
+        ..src = _effectiveVideoUrl
         ..autoplay = true
-        ..muted = true        // ← 브라우저 autoplay 정책: muted 필수
+        ..muted = true
         ..loop = true
-        ..setAttribute('playsinline', 'true')  // iOS Safari 전체화면 방지
-        ..setAttribute('preload', 'auto')      // 즉시 로드 시작
+        ..setAttribute('playsinline', 'true')
+        ..setAttribute('preload', 'metadata') // 빠른 초기 로드 후 자동 재생
         ..style.width = '100%'
         ..style.height = '100%'
-        ..style.objectFit = 'contain'
+        ..style.objectFit = 'cover'           // 배너 영역 꽉 채우기
         ..style.objectPosition = 'center center'
         ..style.backgroundColor = '#000000'
-        ..style.pointerEvents = 'none'; // Flutter GestureDetector가 탭 받도록
+        ..style.display = 'block'
+        ..style.pointerEvents = 'none';
+
+      // poster(썸네일) 설정 → 영상 로드 전 즉시 표시 (검은 화면 방지)
+      final thumb = widget.thumbnailUrl;
+      if (thumb != null && thumb.isNotEmpty) {
+        video.poster = thumb;
+      }
 
       _videoElements[_viewType] = video;
 
-      // canplay 이벤트: 버퍼 준비되면 즉시 play()
-      video.onCanPlay.listen((_) {
-        if (video.paused) {
-          video.play().catchError((_) {});
-        }
-      });
-
-      // loadeddata 이벤트: 첫 프레임 로드 완료 시 play()
+      // 첫 프레임 로드 시 loaded 상태로 전환
       video.onLoadedData.listen((_) {
-        if (video.paused) {
-          video.play().catchError((_) {});
-        }
+        if (mounted) setState(() => _isLoaded = true);
+        if (video.paused) video.play().catchError((_) {});
       });
 
+      video.onCanPlay.listen((_) {
+        if (video.paused) video.play().catchError((_) {});
+      });
+
+      // 로컬 asset 실패 시 → Firebase URL로 폴백
       video.onError.listen((_) {
-        if (kDebugMode) {
-          debugPrint('VideoBanner: 로드 실패 - ${widget.videoUrl}');
+        if (kDebugMode) debugPrint('VideoBanner: 로컬 실패, Firebase URL로 폴백');
+        if (video.src != widget.videoUrl && widget.videoUrl.isNotEmpty) {
+          video.src = widget.videoUrl;
+          video.load();
+          video.play().catchError((_) {});
         }
       });
 
@@ -155,10 +165,10 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.35),
+                color: Colors.black.withValues(alpha: 0.45),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.5),
+                  color: Colors.white.withValues(alpha: 0.6),
                   width: 1,
                 ),
               ),
