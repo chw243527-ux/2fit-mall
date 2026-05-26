@@ -130,24 +130,11 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
         if (video.paused) video.play().catchError((_) {});
       });
 
-      // ── seamless loop: ended 이벤트에서 즉시 처음으로 되감고 재생 ──
-      // HTML loop 속성만으로는 seek 딜레이로 인해 프레임 갭 발생 가능
-      // → ended 직접 핸들링으로 끊김 없는 반복 보장
-      video.loop = false; // ended 이벤트가 발생하도록 loop 속성 OFF
+      // ── ended: 영상 끝 → 즉시 처음부터 재생 ──
+      // loop=true 는 유지하되, ended 도 직접 처리해 이중 보장
       video.onEnded.listen((_) {
         video.currentTime = 0;
         video.play().catchError((_) {});
-      });
-
-      // timeupdate: 영상 끝 0.3초 전에 미리 처음으로 seek → 완벽한 무결점 루프
-      video.onTimeUpdate.listen((_) {
-        final dur = video.duration;
-        if (dur != null && dur.isFinite && dur > 0) {
-          if (video.currentTime >= dur - 0.3) {
-            video.currentTime = 0;
-            video.play().catchError((_) {});
-          }
-        }
       });
 
       video.onError.listen((_) {
