@@ -93,8 +93,9 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
         ..setAttribute('preload', 'auto')      // 즉시 로드 시작
         ..style.width = '100%'
         ..style.height = '100%'
-        ..style.objectFit = 'cover'
-        ..style.objectPosition = 'center top'
+        ..style.objectFit = 'contain'
+        ..style.objectPosition = 'center center'
+        ..style.backgroundColor = '#000000'
         ..style.pointerEvents = 'none'; // Flutter GestureDetector가 탭 받도록
 
       _videoElements[_viewType] = video;
