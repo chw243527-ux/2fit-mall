@@ -1,6 +1,6 @@
 // video_banner_stub.dart
 // Android / iOS 네이티브: video_player 패키지로 실제 동영상 재생
-// loop = true → 동영상 끝나면 자동으로 처음부터 재생 (무한반복)
+// loop = true → 영상 끝나면 처음부터 반복 재생
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -43,7 +43,7 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
     try {
       await ctrl.initialize();
       ctrl.setVolume(0.0);      // 음소거 시작
-      ctrl.setLooping(false);    // loop OFF: 영상 끝(육상경기장 씬)에서 멈춤
+      ctrl.setLooping(true);    // loop ON: 끝나면 처음부터 반복 재생
 
       if (!mounted) {
         ctrl.dispose();

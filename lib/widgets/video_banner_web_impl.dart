@@ -16,7 +16,7 @@ final Map<String, html.VideoElement> _videoElements = {};
 /// Web용 비디오 배너 위젯
 /// - videoUrl이 'assets/images/banner_video.mp4' 이면 → 로컬 asset 재생
 /// - videoUrl이 http(s):// URL 이면 → 네트워크 스트리밍
-/// - loop = false → 영상 끝에서 멈춤
+/// - loop = true → 영상 끝나면 처음부터 반복 재생
 /// - autoplay + muted → 브라우저 autoplay 정책 통과
 class VideoBannerWidget extends StatefulWidget {
   final String videoUrl;
@@ -99,10 +99,10 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
     // ignore: avoid_web_libraries_in_flutter
     ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) {
       final video = html.VideoElement()
-        ..src = src                  // ← Firestore videoUrl 기반 동적 결정
+        ..src = src
         ..autoplay = true
         ..muted = true
-        ..loop = false               // ← loop OFF: 영상 끝에서 멈춤
+        ..loop = true                // ← loop ON: 끝나면 처음부터 반복 재생
         ..setAttribute('playsinline', 'true')
         ..setAttribute('preload', 'auto')
         ..style.width = '100%'
@@ -120,10 +120,12 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
 
       _videoElements[_viewType] = video;
 
+      // 로드 완료 시 재생 보장
       video.onLoadedData.listen((_) {
         if (video.paused) video.play().catchError((_) {});
       });
 
+      // canplay 시 재생 보장 (autoplay 정책 우회)
       video.onCanPlay.listen((_) {
         if (video.paused) video.play().catchError((_) {});
       });
