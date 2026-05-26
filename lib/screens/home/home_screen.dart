@@ -2329,20 +2329,20 @@ class _HomeScreenState extends State<HomeScreen>
 
     double bannerH;
     if (isPC) {
-      // PC: 화면 너비 기준 16:9, 최대 화면 높이 70%
-      bannerH = (screenW * 9 / 16).clamp(0, screenH * 0.70);
+      // PC: 화면 너비 기준 16:9, 최대 화면 높이 75%
+      bannerH = (screenW * 9 / 16).clamp(0, screenH * 0.75);
     } else if (isTablet && isPortrait) {
       // 태블릿 세로모드: 16:9 정비율 (너비 기준)
       bannerH = screenW * 9 / 16;
     } else if (isTablet && !isPortrait) {
-      // 태블릿 가로모드: 화면 높이 기준 (영상이 꽉 차 보이도록)
-      bannerH = (screenW * 9 / 16).clamp(0, screenH * 0.85);
+      // 태블릿 가로모드
+      bannerH = (screenW * 9 / 16).clamp(0, screenH * 0.88);
     } else {
-      // 모바일: 16:9 정비율 (너비 = 화면 너비)
+      // 모바일: 16:9 정비율 (너비 = 화면 너비) → 화면 높이의 최대 90%까지 허용
       bannerH = screenW * 9 / 16;
     }
-    // 최소/최대 안전 범위
-    bannerH = bannerH.clamp(screenH * 0.22, screenH * 0.75);
+    // 최소/최대 안전 범위 — 모바일은 최대 90% 허용
+    bannerH = bannerH.clamp(screenH * 0.22, isPC ? screenH * 0.75 : screenH * 0.90);
 
     // 모바일에서만 오버레이 헤더 표시 (PC/태블릿은 MainScreen NavBar 사용)
     final isMobile = screenW < 600;
