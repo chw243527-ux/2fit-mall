@@ -25,6 +25,7 @@ import '../auth/login_screen.dart';
 import '../home/home_screen.dart';
 import '../chat/chat_screen.dart';
 import 'admin_extra_tabs.dart';
+import 'admin_delivery_tab.dart';
 import 'dart:typed_data';
 import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
@@ -742,6 +743,7 @@ class _AdminScreenState extends State<AdminScreen>
             const Tab(icon: Icon(Icons.warehouse_rounded, size: 14), text: '재고관리'),
             const Tab(icon: Icon(Icons.badge_rounded, size: 14), text: '직원관리'),
             const Tab(icon: Icon(Icons.campaign_rounded, size: 14), text: '공지관리'),
+            const Tab(icon: Icon(Icons.local_shipping_rounded, size: 14), text: '배송관리'),
           ],
         ),
       ),
@@ -773,6 +775,7 @@ class _AdminScreenState extends State<AdminScreen>
         Offstage(offstage: index != 10, child: const AdminInventoryTab()),
         Offstage(offstage: index != 11, child: const AdminStaffTab()),
         Offstage(offstage: index != 12, child: _buildNoticeManagement()),
+        Offstage(offstage: index != 13, child: const AdminDeliveryTab()),
       ],
     );
   }
