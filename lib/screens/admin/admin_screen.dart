@@ -6162,7 +6162,7 @@ class _AdminScreenState extends State<AdminScreen>
               controller: companyCtrl,
               decoration: InputDecoration(
                 labelText: '택배사',
-                hintText: '예: CJ대한통운, 롯데택배',
+                hintText: '예: 한진택배, 롯데택배',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 isDense: true,
               ),

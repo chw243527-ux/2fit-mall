@@ -1106,11 +1106,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Захиалгын дугаараа өгвөл захиалгын байдлыг шалгана.\nМиний хуудас > Захиалгын түүхээс ч шалгах боломжтой.';
   }}
   String get faqShippingAns { switch (language) {
-    case AppLanguage.korean:   return '배송 조회는 마이페이지 > 주문내역에서 운송장 번호로 조회하실 수 있습니다.\nCJ대한통운 기준 2~3 영업일 소요됩니다.';
-    case AppLanguage.english:  return 'You can track your shipment with the tracking number in My Page > Order History.\nTypically takes 2~3 business days via CJ Logistics.';
-    case AppLanguage.japanese: return 'マイページ > 注文履歴で追跡番号から配送状況を確認できます。\nCJ大韓通運基準で2〜3営業日かかります。';
-    case AppLanguage.chinese:  return '可在我的页面 > 订单历史中用运单号查询配送状态。\nCJ大韩通运标准需2~3个工作日。';
-    case AppLanguage.mongolian:return 'Миний хуудас > Захиалгын түүхэд трекинг дугаараар хянана.\nCJ Logistics-ээр 2~3 ажлын өдөр болно.';
+    case AppLanguage.korean:   return '배송 조회는 마이페이지 > 주문내역에서 운송장 번호로 조회하실 수 있습니다.\n한진택배 기준 2~3 영업일 소요됩니다.';
+    case AppLanguage.english:  return 'You can track your shipment with the tracking number in My Page > Order History.\nTypically takes 2~3 business days via Hanjin Express.';
+    case AppLanguage.japanese: return 'マイページ > 注文履歴で追跡番号から配送状況を確認できます。\nハンジン宅配便基準で2〜3営業日かかります。';
+    case AppLanguage.chinese:  return '可在我的页面 > 订单历史中用运单号查询配送状态。\n韩进快递标准需2~3个工作日。';
+    case AppLanguage.mongolian:return 'Миний хуудас > Захиалгын түүхэд трекинг дугаараар хянана.\nHanjin Express-ээр 2~3 ажлын өдөр болно.';
   }}
   String get faqSizeAns { switch (language) {
     case AppLanguage.korean:   return '사이즈 추천을 위해 키와 몸무게, 평소 사이즈를 알려주세요!\n상품 상세 페이지의 사이즈 가이드도 참고해 주세요 😊';

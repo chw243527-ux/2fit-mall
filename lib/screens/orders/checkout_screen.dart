@@ -2444,7 +2444,7 @@ class _OrderCompleteScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     _guideRow(Icons.schedule_rounded, loc.checkoutDeliveryDays),
-                    _guideRow(Icons.local_shipping_rounded, 'CJ대한통운 · 배송조회는 마이페이지에서'),
+                    _guideRow(Icons.local_shipping_rounded, '한진택배 · 배송조회는 마이페이지에서'),
                     _guideRow(Icons.support_agent_rounded, loc.checkoutKakaoInquiry),
                   ],
                 ),

@@ -812,7 +812,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         children: [
           Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.shippingGuide, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
           const SizedBox(height: 16),
-          _buildInfoRow(Icons.local_shipping_rounded, '배송 방법', '택배 (CJ대한통운, 롯데택배)', AppColors.primary),
+          _buildInfoRow(Icons.local_shipping_rounded, '배송 방법', '택배 (한진택배)', AppColors.primary),
           const SizedBox(height: 12),
           _buildInfoRow(Icons.attach_money_rounded, '배송비', '4,000원 (30만원 이상 무료배송)', AppColors.success),
           const SizedBox(height: 12),

@@ -86,7 +86,7 @@ class NotificationService {
         '#{고객명}': order.userName,
         '#{택배사}': courierName,
         '#{운송장번호}': trackingNumber,
-        '#{배송조회URL}': 'https://www.cjlogistics.com/ko/tool/parcel/tracking?gnbInvcNo=$trackingNumber',
+        '#{배송조회URL}': 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillSch.do?mCode=MN038&schLang=KR&wblnumText2=$trackingNumber',
       },
     );
   }
