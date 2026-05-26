@@ -2347,26 +2347,34 @@ class _HomeScreenState extends State<HomeScreen>
     // 모바일에서만 오버레이 헤더 표시 (PC/태블릿은 MainScreen NavBar 사용)
     final isMobile = screenW < 600;
 
+    // 헤더 높이 = 상단 시스템바(statusBar) + 56px 헤더
+    // → 배너 영상이 헤더 아래에서 시작하도록 상단 패딩 적용
+    final statusBarH = mq.viewPadding.top;
+    final headerH    = isMobile ? statusBarH + 56.0 : 0.0;
+
     // Firestore 로딩 중이거나 배너 없어도 → 로컬 asset 동영상 즉시 표시
     if (bannerProv.loading || activeBanners.isEmpty) {
       return SizedBox(
         height: bannerH,
         child: Stack(
           children: [
-            // 로컬 asset 동영상 즉시 재생 (검은 화면 방지)
+            // 로컬 asset 동영상 — 헤더 아래부터 시작
             Positioned.fill(
               child: Container(
                 color: Colors.black,
-                child: Center(
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: VideoBannerWidget(
-                      videoUrl: 'assets/images/banner_video.mp4',
-                      thumbnailUrl: null,
-                      onTap: null,
-                      onProductTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                child: Padding(
+                  padding: EdgeInsets.only(top: headerH),
+                  child: Center(
+                    child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: VideoBannerWidget(
+                        videoUrl: 'assets/images/banner_video.mp4',
+                        thumbnailUrl: null,
+                        onTap: null,
+                        onProductTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                        ),
                       ),
                     ),
                   ),
@@ -2393,14 +2401,17 @@ class _HomeScreenState extends State<HomeScreen>
       height: bannerH,
       child: Stack(
         children: [
-          // 배너 슬라이더
-          PageView.builder(
-            controller: _mobileBannerCtrl,
-            onPageChanged: (i) => setState(() => _bannerIndex = i),
-            itemCount: activeBanners.length,
-            itemBuilder: (_, i) => _buildFullBannerItem(activeBanners[i], i, loc),
+          // 배너 슬라이더 — 헤더 아래부터 시작
+          Positioned(
+            top: headerH, left: 0, right: 0, bottom: 0,
+            child: PageView.builder(
+              controller: _mobileBannerCtrl,
+              onPageChanged: (i) => setState(() => _bannerIndex = i),
+              itemCount: activeBanners.length,
+              itemBuilder: (_, i) => _buildFullBannerItem(activeBanners[i], i, loc),
+            ),
           ),
-          // 상단 오버레이 헤더 (모바일만)
+          // 상단 오버레이 헤더 (모바일만) — 항상 최상단
           if (isMobile)
             Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
           // 우측 세로 인디케이터
