@@ -160,8 +160,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ── 하의 기본 길이 ──
   String? _defaultLength;
 
-  // ── 허리밴드 옵션 (중복 선택 가능) ──
-  // 1: 디자인 변경(+50,000), 2: 색상 변경(+50,000)
+  // ── 허리밴드 옵션 (중복 선택 가능) ── 전부 무료
+  // 1: 디자인 변경(무료), 2: 색상 변경(무료)
   // 빈 Set = 기본(변경없음)
   final Set<int> _waistbandOptions = {};
   String _waistbandColorHex = ''; // 색상변경 선택 시 hex 코드 (#RRGGBB)
@@ -191,7 +191,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   // ══ 추가 옵션 가격 상수 ══
   static const int _tights9Price    = 20000; // 타이즈 9부 추가금
-  static const int _exclusivePrice  = 80000; // 1년 독점 추가금
+  static const int _exclusivePrice  = 0; // 1년 독점 — 무료 제공
   static const int _pocketPrice     = 10000; // 주머니 추가금
 
   // ══ 파생값 ══
@@ -214,8 +214,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     return labels.join(' + ');
   }
 
-  /// 허리밴드 추가 비용 (선택 옵션 수 × 50,000원)
-  double get _waistbandExtra => _waistbandOptions.length * 50000.0;
+  /// 허리밴드 추가 비용 — 전부 무료
+  double get _waistbandExtra => 0.0;
 
   int    get _fabricExtra  => AppConstants.fabricTypePrices[_fabricType] ?? 0;
   double get _basePrice    => widget.product?.price ?? 0.0;
@@ -807,6 +807,59 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         const SizedBox(height: 4),
         const Text('아래 폼을 작성하여 주문을 완료해 주세요.',
             style: TextStyle(color: Colors.white70, fontSize: 12)),
+        const SizedBox(height: 14),
+        // ── 핵심 안내 칩 목록 ──
+        Wrap(
+          spacing: 6, runSpacing: 6,
+          children: [
+            _headerChip(Icons.check_circle_rounded, '허리밴드 디자인·색상 변경 무료', const Color(0xFF4CAF50)),
+            _headerChip(Icons.attach_file_rounded,  '로고 AI 원본파일 필수 (AI/EPS/SVG)', const Color(0xFFFFB300)),
+            _headerChip(Icons.photo_camera_outlined, '원하는 디자인 앞·뒤 사진 첨부 제작 가능', const Color(0xFF42A5F5)),
+            _headerChip(Icons.lock_outlined,         '1년 독점 사용권 무료 제공', const Color(0xFFCE93D8)),
+          ],
+        ),
+        const SizedBox(height: 10),
+        // ── 교환·환불 핵심 안내 ──
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Row(children: [
+              Icon(Icons.swap_horiz_rounded, color: Colors.white70, size: 14),
+              SizedBox(width: 6),
+              Text('교환·환불 안내',
+                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
+            ]),
+            const SizedBox(height: 4),
+            const Text('✅ 기성품: 수령 후 3일 이내 교환·환불 가능',
+                style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.5)),
+            const Text('❌ 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불 불가',
+                style: TextStyle(color: Colors.white60, fontSize: 11, height: 1.5)),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  // ── 헤더 안내 칩 ──
+  Widget _headerChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, color: color, size: 12),
+        const SizedBox(width: 4),
+        Text(label,
+            style: TextStyle(color: Colors.white, fontSize: 10,
+                fontWeight: FontWeight.w600)),
       ]),
     );
   }
@@ -1526,8 +1579,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   Widget _buildWaistbandSection() {
     // 1: 디자인 변경(+50,000), 2: 색상 변경(+50,000) — 중복 선택 가능
     const options = [
-      {'id': 1, 'label': '디자인 변경', 'sub': '+50,000원', 'icon': Icons.brush_outlined},
-      {'id': 2, 'label': '색상 변경',   'sub': '+50,000원', 'icon': Icons.palette_outlined},
+      {'id': 1, 'label': '디자인 변경', 'sub': '무료', 'icon': Icons.brush_outlined},
+      {'id': 2, 'label': '색상 변경',   'sub': '무료', 'icon': Icons.palette_outlined},
     ];
     final needsColor = _waistbandOptions.contains(2);
 
@@ -1538,19 +1591,19 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
         // ── 안내 문구 ──
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFFFF3E0),
+            color: const Color(0xFFE8F5E9),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFFFE082)),
+            border: Border.all(color: const Color(0xFFA5D6A7)),
           ),
           child: Row(children: [
-            const Icon(Icons.info_outline, size: 14, color: Color(0xFFE65100)),
+            const Icon(Icons.check_circle_outline, size: 14, color: Color(0xFF2E7D32)),
             const SizedBox(width: 6),
             Expanded(child: Text(
-              '중복 선택 가능 · 각 옵션 선택 시 +50,000원 추가됩니다.',
-              style: const TextStyle(fontSize: 11, color: Color(0xFFE65100)),
+              '허리밴드 디자인·색상 변경 전부 무료',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700),
             )),
           ]),
         ),
@@ -1637,8 +1690,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   )),
                   Text(sub, style: TextStyle(
                     fontSize: 11,
-                    color: isSel ? Colors.white70 : const Color(0xFFE65100),
-                    fontWeight: FontWeight.w600,
+                    color: isSel ? Colors.white70 : const Color(0xFF2E7D32),
+                    fontWeight: FontWeight.w700,
                   )),
                 ]),
               ]),
@@ -3873,24 +3926,28 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           ),
                         ),
                         TextSpan(
-                          text: '(선택)  ',
-                          style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF888888)),
+                          text: '(선택 · 무료)  ',
+                          style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2E7D32)),
                         ),
                         TextSpan(
-                          text: '+80,000원\n',
+                          text: '무료 제공\n',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
-                            color: _exclusiveDesign ? _purple : const Color(0xFFE65100),
+                            color: _exclusiveDesign ? _purple : const Color(0xFF2E7D32),
                           ),
                         ),
                         const TextSpan(
-                          text: '· 1년간 동일 디자인 또는 동일 색상의 제품은 타 단체에 판매하지 않습니다.\n',
+                          text: '· 1년간 해당 디자인을 타인에게 배포하지 않습니다.\n',
                           style: TextStyle(fontSize: 11, color: Color(0xFF666666), fontWeight: FontWeight.w400),
                         ),
                         const TextSpan(
-                          text: '· 1년 이후부터는 2FIT 몰에서만 판매됩니다.',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), fontWeight: FontWeight.w600),
+                          text: '· 별도 이야기 없으면 매년 2월 1일 홈페이지 업로드 설명으로 변경됩니다.\n',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF666666), fontWeight: FontWeight.w400),
+                        ),
+                        const TextSpan(
+                          text: '· 같은 디자인 희망 시 색상만 변경 가능 (같은 색상 제작 불가)',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF880E4F), fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -4089,9 +4146,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               '+${_fmt(_waistbandExtra)}원',
               valueColor: const Color(0xFFE65100)),
         if (_exclusiveDesign)
-          _sumRow('1년 독점 디자인',
-              '+${_fmt(_exclusivePrice)}원',
-              valueColor: const Color(0xFF6A1B9A)),
+          _sumRow('1년 독점 디자인', '무료',
+              valueColor: const Color(0xFF2E7D32)),
         const Divider(height: 20),
         _sumRow('최종 결제금액', '${_fmt(_finalPrice)}원',
             isTotal: true),
@@ -4201,7 +4257,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 const SizedBox(width: 10),
                 const Expanded(
                   child: Text(
-                    '수령 후 7일 이내에만 반품·교환 가능',
+                    '수령 후 3일 이내 교환·환불 가능',
                     style: TextStyle(fontSize: 13, color: Color(0xFF1A1A2E), fontWeight: FontWeight.w600, height: 1.5),
                   ),
                 ),
@@ -4229,12 +4285,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         color: const Color(0xFFC62828),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text('단체주문', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                      child: const Text('커스텀(단체)', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                     ),
                     const SizedBox(width: 10),
                     const Expanded(
                       child: Text(
-                        '주문 확인 후 취소·환불·교환 불가',
+                        '의류 자체 불량 외 교환·환불 불가',
                         style: TextStyle(fontSize: 13, color: Color(0xFFC62828), fontWeight: FontWeight.w700, height: 1.5),
                       ),
                     ),
@@ -4244,7 +4300,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 const Padding(
                   padding: EdgeInsets.only(left: 4),
                   child: Text(
-                    '커스텀 제작 특성상 옷 자체의 하자가 아닌 경우\n취소·환불·교환이 불가합니다.',
+                    '커스텀 제작 특성상 옷 자체의 하자가 아닌 경우\n교환·환불이 불가합니다.',
                     style: TextStyle(fontSize: 11, color: Color(0xFF8B0000), height: 1.6),
                   ),
                 ),
