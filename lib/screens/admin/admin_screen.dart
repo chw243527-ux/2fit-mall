@@ -5616,6 +5616,7 @@ class _AdminScreenState extends State<AdminScreen>
     Uint8List? pickedImageBytes;
     Uint8List? pickedVideoBytes;
     String?    pickedVideoName;
+    bool useLocalVideo = false;   // 로컬 편집 영상 사용 여부
     bool isUploading = false;
     double uploadProgress = 0.0;
     final isFirstSlide = banner.order == 0;
@@ -5739,8 +5740,8 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   ),
 
-                  // ── 동영상 업로드 (첫 번째 슬라이드만) ──
-                  if (isFirstSlide) ...[
+                  // ── 동영상 (첫 번째 슬라이드만) ──
+                  if (isFirstSlide) ...[                    
                     const SizedBox(height: 14),
                     const Divider(),
                     const SizedBox(height: 6),
@@ -5748,79 +5749,176 @@ class _AdminScreenState extends State<AdminScreen>
                       children: [
                         const Icon(Icons.videocam_rounded, size: 16, color: Color(0xFFE53935)),
                         const SizedBox(width: 6),
-                        const Text('동영상 업로드 (1번 슬라이드 전용)',
+                        const Text('동영상 설정',
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                         const Spacer(),
-                        if (banner.videoUrl?.isNotEmpty == true)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade50,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text('동영상 있음',
-                                style: TextStyle(fontSize: 10, color: Colors.green.shade700, fontWeight: FontWeight.w700)),
+                        // 현재 상태 뱃지
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: useLocalVideo
+                                ? Colors.blue.shade50
+                                : (banner.videoUrl == 'assets/images/banner_video.mp4'
+                                    ? Colors.green.shade50
+                                    : (banner.videoUrl?.isNotEmpty == true
+                                        ? Colors.orange.shade50
+                                        : Colors.grey.shade100)),
+                            borderRadius: BorderRadius.circular(4),
                           ),
+                          child: Text(
+                            useLocalVideo
+                                ? '편집 영상 선택됨'
+                                : (banner.videoUrl == 'assets/images/banner_video.mp4'
+                                    ? '편집 영상 사용 중'
+                                    : (banner.videoUrl?.isNotEmpty == true
+                                        ? 'Firebase 영상'
+                                        : '영상 없음')),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: useLocalVideo
+                                  ? Colors.blue.shade700
+                                  : (banner.videoUrl == 'assets/images/banner_video.mp4'
+                                      ? Colors.green.shade700
+                                      : (banner.videoUrl?.isNotEmpty == true
+                                          ? Colors.orange.shade700
+                                          : Colors.grey.shade600)),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    if (pickedVideoName != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    const SizedBox(height: 10),
+
+                    // ── 로컬 편집 영상 사용 버튼 ──
+                    GestureDetector(
+                      onTap: isUploading ? null : () {
+                        setDlg(() {
+                          useLocalVideo = !useLocalVideo;
+                          // 로컬 선택 시 갤러리 업로드 취소
+                          if (useLocalVideo) {
+                            pickedVideoBytes = null;
+                            pickedVideoName = null;
+                          }
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade50,
-                          borderRadius: BorderRadius.circular(8),
+                          color: useLocalVideo
+                              ? Colors.blue.shade50
+                              : const Color(0xFFF0F4FF),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: useLocalVideo
+                                ? Colors.blue.shade400
+                                : Colors.blue.shade100,
+                            width: useLocalVideo ? 2 : 1.5,
+                          ),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF43A047)),
-                            const SizedBox(width: 6),
+                            Icon(
+                              useLocalVideo
+                                  ? Icons.check_circle_rounded
+                                  : Icons.video_file_rounded,
+                              size: 22,
+                              color: useLocalVideo
+                                  ? Colors.blue.shade600
+                                  : Colors.blue.shade300,
+                            ),
+                            const SizedBox(width: 10),
                             Expanded(
-                              child: Text(pickedVideoName!,
-                                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 12)),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    useLocalVideo ? '✅ 편집 영상 선택됨' : '편집 영상 사용 (권장)',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: useLocalVideo
+                                          ? Colors.blue.shade700
+                                          : Colors.blue.shade600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  const Text(
+                                    'banner_video.mp4 (18.875초 편집본)',
+                                    style: TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                                  ),
+                                ],
+                              ),
                             ),
-                            GestureDetector(
-                              onTap: () => setDlg(() { pickedVideoBytes = null; pickedVideoName = null; }),
-                              child: const Icon(Icons.close, size: 16, color: Color(0xFF888888)),
-                            ),
+                            if (useLocalVideo)
+                              Icon(Icons.check_circle, color: Colors.blue.shade600, size: 20),
                           ],
                         ),
-                      )
-                    else
-                      GestureDetector(
-                        onTap: isUploading ? null : () async {
-                          final picker = ImagePicker();
-                          final file = await picker.pickVideo(source: ImageSource.gallery);
-                          if (file == null) return;
-                          final bytes = await file.readAsBytes();
-                          setDlg(() {
-                            pickedVideoBytes = bytes;
-                            pickedVideoName = file.name;
-                          });
-                        },
-                        child: Container(
-                          height: 80,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // ── 갤러리에서 업로드 ──
+                    if (!useLocalVideo) ...[                      
+                      if (pickedVideoName != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFF3F3),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.red.shade200, width: 1.5),
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          child: Row(
                             children: [
-                              Icon(Icons.video_library_rounded, size: 28, color: Colors.red.shade300),
-                              const SizedBox(height: 4),
-                              Text(
-                                banner.videoUrl?.isNotEmpty == true
-                                    ? '탭하여 동영상 교체 (mp4, mov)'
-                                    : '탭하여 동영상 업로드 (mp4, mov)',
-                                style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                              const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF43A047)),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(pickedVideoName!,
+                                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 12)),
+                              ),
+                              GestureDetector(
+                                onTap: () => setDlg(() { pickedVideoBytes = null; pickedVideoName = null; }),
+                                child: const Icon(Icons.close, size: 16, color: Color(0xFF888888)),
                               ),
                             ],
                           ),
+                        )
+                      else
+                        GestureDetector(
+                          onTap: isUploading ? null : () async {
+                            final picker = ImagePicker();
+                            final file = await picker.pickVideo(source: ImageSource.gallery);
+                            if (file == null) return;
+                            final bytes = await file.readAsBytes();
+                            setDlg(() {
+                              pickedVideoBytes = bytes;
+                              pickedVideoName = file.name;
+                            });
+                          },
+                          child: Container(
+                            height: 70,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3F3),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.red.shade200, width: 1.5),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.upload_file_rounded, size: 24, color: Colors.red.shade300),
+                                const SizedBox(height: 4),
+                                Text(
+                                  banner.videoUrl?.isNotEmpty == true
+                                      ? '다른 동영상 업로드 (mp4, mov)'
+                                      : '갤러리에서 동영상 업로드 (mp4, mov)',
+                                  style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                    ],
                     if (isUploading) ...[
                       const SizedBox(height: 10),
                       ClipRRect(
@@ -5864,8 +5962,12 @@ class _AdminScreenState extends State<AdminScreen>
                     if (url != null) imageUrl = url;
                   }
 
-                  // 동영상 업로드 (1번 슬라이드)
-                  if (isFirstSlide && pickedVideoBytes != null && pickedVideoName != null) {
+                  // 로컬 편집 영상 선택 → Firestore에 로컬 식별자 저장
+                  if (isFirstSlide && useLocalVideo) {
+                    videoUrl = 'assets/images/banner_video.mp4';
+                  }
+                  // 갤러리 업로드 동영상 → Firebase Storage
+                  else if (isFirstSlide && pickedVideoBytes != null && pickedVideoName != null) {
                     String? uploadedVideoUrl;
                     await for (final progress in StorageService.uploadBannerVideoWithProgress(
                       bannerId: '${banner.id}_vid',
@@ -5927,6 +6029,7 @@ class _AdminScreenState extends State<AdminScreen>
     final ctaEnCtrl   = TextEditingController();
 
     Uint8List? pickedImageBytes;
+    bool useLocalVideo = false;   // 로컬 편집 영상 사용 여부
     bool isUploading = false;
 
     showDialog(
@@ -6004,9 +6107,67 @@ class _AdminScreenState extends State<AdminScreen>
                     ),
                   ),
                 ),
+                const SizedBox(height: 14),
+                const Divider(),
                 const SizedBox(height: 8),
-                const Text('💡 동영상은 추가 후 편집에서 업로드 가능합니다.',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF999999))),
+                // ── 동영상 옵션 ──
+                Row(
+                  children: [
+                    const Icon(Icons.videocam_rounded, size: 15, color: Color(0xFFE53935)),
+                    const SizedBox(width: 5),
+                    const Text('동영상 (선택)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () => setDlg(() => useLocalVideo = !useLocalVideo),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: useLocalVideo ? Colors.blue.shade50 : const Color(0xFFF0F4FF),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: useLocalVideo ? Colors.blue.shade400 : Colors.blue.shade100,
+                        width: useLocalVideo ? 2 : 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          useLocalVideo ? Icons.check_circle_rounded : Icons.video_file_rounded,
+                          size: 20,
+                          color: useLocalVideo ? Colors.blue.shade600 : Colors.blue.shade300,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                useLocalVideo ? '✅ 편집 영상 선택됨' : '편집 영상 사용 (권장)',
+                                style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w700,
+                                  color: useLocalVideo ? Colors.blue.shade700 : Colors.blue.shade600,
+                                ),
+                              ),
+                              const Text('banner_video.mp4 (18.875초)',
+                                  style: TextStyle(fontSize: 10, color: Color(0xFF999999))),
+                            ],
+                          ),
+                        ),
+                        if (useLocalVideo)
+                          Icon(Icons.check_circle, color: Colors.blue.shade600, size: 18),
+                      ],
+                    ),
+                  ),
+                ),
+                if (!useLocalVideo)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 6),
+                    child: Text('💡 동영상은 추가 후 편집에서 업로드도 가능합니다.',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF999999))),
+                  ),
               ]),
             ),
           ),
@@ -6038,6 +6199,8 @@ class _AdminScreenState extends State<AdminScreen>
                   ctaKo: ctaKoCtrl.text,
                   ctaEn: ctaEnCtrl.text,
                   imageUrl: imageUrl,
+                  // 로컬 영상 선택 시 Firestore에 로컬 식별자 저장
+                  videoUrl: useLocalVideo ? 'assets/images/banner_video.mp4' : null,
                   accentColor: 0xFFE53935,
                   btnAction: 0,
                 );

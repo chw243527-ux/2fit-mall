@@ -14,8 +14,9 @@ final Set<String> _registeredVideoViews = {};
 final Map<String, html.VideoElement> _videoElements = {};
 
 /// Web용 비디오 배너 위젯
-/// - 로컬 asset 경로 고정 재생 (Firestore videoUrl 무시 — 항상 로컬 우선)
-/// - loop = false → 영상 끝(육상경기장 씬)에서 멈춤
+/// - videoUrl이 'assets/images/banner_video.mp4' 이면 → 로컬 asset 재생
+/// - videoUrl이 http(s):// URL 이면 → 네트워크 스트리밍
+/// - loop = false → 영상 끝에서 멈춤
 /// - autoplay + muted → 브라우저 autoplay 정책 통과
 class VideoBannerWidget extends StatefulWidget {
   final String videoUrl;
@@ -23,8 +24,11 @@ class VideoBannerWidget extends StatefulWidget {
   final VoidCallback? onTap;
   final VoidCallback? onProductTap;
 
-  // Flutter 웹 빌드 후 실제 서빙 경로 (build/web/assets/assets/images/...)
+  // Flutter 웹 빌드 후 로컬 asset 실제 서빙 경로
   static const String localAssetVideo = 'assets/assets/images/banner_video.mp4';
+
+  // Firestore에 저장되는 로컬 식별자
+  static const String localAssetId = 'assets/images/banner_video.mp4';
 
   const VideoBannerWidget({
     super.key,
@@ -42,8 +46,17 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
   late String _viewType;
   Timer? _playRetryTimer;
 
-  // 항상 로컬 asset 고정 — Firestore URL 무시
-  static const String _src = VideoBannerWidget.localAssetVideo;
+  /// Firestore videoUrl → 실제 재생할 src 결정
+  /// - 로컬 식별자(assets/images/...) → 웹 asset 경로로 변환
+  /// - http(s) URL → 그대로 사용
+  String get _resolvedSrc {
+    final url = widget.videoUrl;
+    if (url.isEmpty) return VideoBannerWidget.localAssetVideo;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    // assets/images/banner_video.mp4 → assets/assets/images/banner_video.mp4
+    if (url.startsWith('assets/')) return 'assets/$url';
+    return VideoBannerWidget.localAssetVideo;
+  }
 
   @override
   void initState() {
@@ -81,10 +94,12 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
     if (_registeredVideoViews.contains(_viewType)) return;
     _registeredVideoViews.add(_viewType);
 
+    final src = _resolvedSrc;
+
     // ignore: avoid_web_libraries_in_flutter
     ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) {
       final video = html.VideoElement()
-        ..src = _src                  // ← 로컬 asset 고정 (Firestore URL 무시)
+        ..src = src                  // ← Firestore videoUrl 기반 동적 결정
         ..autoplay = true
         ..muted = true
         ..loop = false               // ← loop OFF: 영상 끝에서 멈춤
@@ -113,9 +128,8 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
         if (video.paused) video.play().catchError((_) {});
       });
 
-      // onError: 로컬 asset 실패 시만 로그 (외부 URL 폴백 없음)
       video.onError.listen((_) {
-        if (kDebugMode) debugPrint('VideoBanner: 로컬 asset 로드 실패 ($_src)');
+        if (kDebugMode) debugPrint('VideoBanner: 영상 로드 실패 ($src)');
       });
 
       return video;
