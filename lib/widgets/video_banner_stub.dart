@@ -76,12 +76,11 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
         if (_isInitialized && _controller != null)
           GestureDetector(
             onTap: widget.onTap,
-            child: SizedBox.expand(
-              child: FittedBox(
-                fit: BoxFit.cover,
-                child: SizedBox(
-                  width: _controller!.value.size.width,
-                  height: _controller!.value.size.height,
+            child: Container(
+              color: Colors.black,
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: _controller!.value.aspectRatio,
                   child: VideoPlayer(_controller!),
                 ),
               ),

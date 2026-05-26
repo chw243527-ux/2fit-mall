@@ -999,13 +999,23 @@ class _HomeScreenState extends State<HomeScreen>
                 children: [
                   // ── 배경: 동영상(Web, order==0) or 이미지 ──
                   if (videoUrl != null)
-                    VideoBannerWidget(
-                      videoUrl: videoUrl,
-                      thumbnailUrl: b.imageUrl,
-                      onTap: onTap,
-                      onProductTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black,
+                        child: Center(
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: VideoBannerWidget(
+                              videoUrl: videoUrl,
+                              thumbnailUrl: b.imageUrl,
+                              onTap: onTap,
+                              onProductTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     )
                   else if (b.imageUrl.isNotEmpty)
@@ -2328,21 +2338,30 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildCompactBanner(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
-    // 배너 높이: 동영상 16:9 비율 + 방향(orientation) 반응형 계산
-    final screenW = MediaQuery.of(context).size.width;
-    final screenH = MediaQuery.of(context).size.height;
-    final isPortrait = screenH > screenW; // 세로모드 여부
-    final isTablet   = screenW >= 600;    // 태블릿 이상 여부
+    // 배너 높이: 영상 원본 비율(16:9) 기준, 잘림 없이 전체 표시
+    final mq       = MediaQuery.of(context);
+    final screenW  = mq.size.width;
+    final screenH  = mq.size.height;
+    final isPortrait = screenH > screenW;
+    final isTablet   = screenW >= 600;
+    final isPC       = screenW >= 1024;
 
     double bannerH;
-    if (isTablet && isPortrait) {
-      // 태블릿 세로모드: 화면 높이의 45% — 세로로 길어 16:9 그대로 쓰면 너무 작아 보임
-      bannerH = screenH * 0.45;
+    if (isPC) {
+      // PC: 화면 너비 기준 16:9, 최대 화면 높이 70%
+      bannerH = (screenW * 9 / 16).clamp(0, screenH * 0.70);
+    } else if (isTablet && isPortrait) {
+      // 태블릿 세로모드: 16:9 정비율 (너비 기준)
+      bannerH = screenW * 9 / 16;
+    } else if (isTablet && !isPortrait) {
+      // 태블릿 가로모드: 화면 높이 기준 (영상이 꽉 차 보이도록)
+      bannerH = (screenW * 9 / 16).clamp(0, screenH * 0.85);
     } else {
-      // 모바일 / 태블릿 가로모드 / PC: 16:9 정비율
+      // 모바일: 16:9 정비율 (너비 = 화면 너비)
       bannerH = screenW * 9 / 16;
     }
-    bannerH = bannerH.clamp(screenH * 0.28, screenH * 0.90);
+    // 최소/최대 안전 범위
+    bannerH = bannerH.clamp(screenH * 0.22, screenH * 0.75);
 
     // 모바일에서만 오버레이 헤더 표시 (PC/태블릿은 MainScreen NavBar 사용)
     final isMobile = screenW < 600;
@@ -2355,13 +2374,21 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             // 로컬 asset 동영상 즉시 재생 (검은 화면 방지)
             Positioned.fill(
-              child: VideoBannerWidget(
-                videoUrl: 'assets/assets/images/banner_video.mp4',
-                thumbnailUrl: null,
-                onTap: null,
-                onProductTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProductListScreen()),
+              child: Container(
+                color: Colors.black,
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: VideoBannerWidget(
+                      videoUrl: 'assets/images/banner_video.mp4',
+                      thumbnailUrl: null,
+                      onTap: null,
+                      onProductTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -3685,16 +3712,24 @@ class _HomeScreenState extends State<HomeScreen>
       fit: StackFit.expand,
       children: [
         // ── 배경: 동영상(videoUrl 있을 때) or 이미지 ──
-        // 로컬 asset 우선 → 즉시 재생 (Firebase URL은 폴백으로 내부에서 처리)
         if (videoUrl != null)
-          VideoBannerWidget(
-            videoUrl: videoUrl,           // 폴백용 Firebase URL
-            thumbnailUrl: imageUrl,       // poster 이미지 (로드 전 표시)
-            onTap: onTap,
-            // 영상 종료 후 CTA 버튼 → 전체 상품 목록으로 이동
-            onProductTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProductListScreen()),
+          Positioned.fill(
+            child: Container(
+              color: Colors.black,   // 레터박스 영역 검은 배경
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: 16 / 9, // 영상 원본 비율 고정 → 잘림 없음
+                  child: VideoBannerWidget(
+                    videoUrl: videoUrl,
+                    thumbnailUrl: imageUrl,
+                    onTap: onTap,
+                    onProductTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                    ),
+                  ),
+                ),
+              ),
             ),
           )
         else if (imageUrl.isNotEmpty)
