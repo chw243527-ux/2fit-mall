@@ -84,7 +84,7 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
         ..src = _effectiveVideoUrl
         ..autoplay = true
         ..muted = true
-        ..loop = true               // ← loop ON: 끝나면 자동으로 처음부터 재생
+        ..loop = false               // ← loop OFF: 영상 끝(육상경기장 씬)에서 멈춤
         ..setAttribute('playsinline', 'true')
         ..setAttribute('preload', 'auto')
         ..style.width = '100%'

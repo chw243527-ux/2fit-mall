@@ -43,7 +43,7 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
     try {
       await ctrl.initialize();
       ctrl.setVolume(0.0);      // 음소거 시작
-      ctrl.setLooping(true);    // loop ON → 끝나면 처음부터 자동 재생
+      ctrl.setLooping(false);    // loop OFF: 영상 끝(육상경기장 씬)에서 멈춤
 
       if (!mounted) {
         ctrl.dispose();
