@@ -107,9 +107,9 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
         ..setAttribute('preload', 'auto')
         ..style.width = '100%'
         ..style.height = '100%'
-        ..style.objectFit = 'contain'         // 잘림 없이 전체 영상 표시
+        ..style.objectFit = 'cover'            // 컨테이너 꽉 채움 (비율 유지, 잘림 없음)
         ..style.objectPosition = 'center center'
-        ..style.backgroundColor = '#000000'    // 레터박스 검은 배경
+        ..style.backgroundColor = '#000000'
         ..style.display = 'block'
         ..style.pointerEvents = 'none';
 
