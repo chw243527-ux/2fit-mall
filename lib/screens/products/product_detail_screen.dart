@@ -676,62 +676,63 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // ═══════════════════════════════════════
   // SLIVER HEADER (이미지 + 패럴랙스)
   // ═══════════════════════════════════════
-  // ── 상단 앱바만 (pinned) ──
+  // ── 탑텐 스타일: 상단 앱바 (투명 → 스크롤 시 흰색) ──
   Widget _buildSliverAppBarOnly(ProductModel product) {
     return SliverAppBar(
       pinned: true,
-      backgroundColor: const Color(0xFF1A1A1A),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-        onPressed: () => goBackOrHome(context),
+      backgroundColor: Colors.white,
+      elevation: 0,
+      scrolledUnderElevation: 0.5,
+      shadowColor: Colors.black.withValues(alpha: 0.1),
+      leading: Container(
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          shape: BoxShape.circle,
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Color(0xFF1A1A1A), size: 18),
+          onPressed: () => goBackOrHome(context),
+          padding: EdgeInsets.zero,
+        ),
       ),
       actions: [
-        Consumer<UserProvider>(
-          builder: (_, up, __) {
-            final isWish = up.isInWishlist(product.id);
-            return IconButton(
-              icon: Icon(
-                isWish ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                color: isWish ? Colors.redAccent : Colors.white,
-              ),
-              onPressed: () {
-                if (up.isLoggedIn) {
-                  final wasInWishlist = up.isInWishlist(product.id);
-                  up.toggleWishlist(product.id);
-                  if (!wasInWishlist) {
-                    AnalyticsService.logAddToWishlist(
-                      itemId: product.id,
-                      itemName: product.name,
-                      price: product.price,
-                    );
-                  }
-                } else {
-                  final l = context.watch<LanguageProvider>().loc;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l.loginRequired)),
-                  );
-                }
-              },
-            );
-          },
+        // 공유 버튼
+        Container(
+          margin: const EdgeInsets.only(right: 4, top: 8, bottom: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.share_outlined, color: Color(0xFF1A1A1A), size: 20),
+            onPressed: () => _shareProduct(product),
+            padding: EdgeInsets.zero,
+          ),
         ),
-        IconButton(
-          icon: const Icon(Icons.share_rounded, color: Colors.white),
-          onPressed: () => _shareProduct(product),
-        ),
-        IconButton(
-          icon: const Icon(Icons.fullscreen_rounded, color: Colors.white),
-          onPressed: () => _showLightbox(product, _mainImageIndex),
+        // 확대 버튼
+        Container(
+          margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            shape: BoxShape.circle,
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.zoom_in_rounded, color: Color(0xFF1A1A1A), size: 22),
+            onPressed: () => _showLightbox(product, _mainImageIndex),
+            padding: EdgeInsets.zero,
+          ),
         ),
       ],
     );
   }
 
-  // ── 이미지 슬라이더 (AspectRatio 기반 — 잘림 없음) ──
+  // ── 이미지 슬라이더 (탑텐 스타일: 전체화면형, 하단 바 인디케이터) ──
   Widget _buildImageSlider(ProductModel product) {
     final screenW = MediaQuery.of(context).size.width;
     // 4:5 비율로 컨테이너 고정 → 세로형 상품 사진 전신 표시
     final imgH = screenW * (5 / 4);
+    final imgCount = product.images.isNotEmpty ? product.images.length : 1;
 
     return Container(
       width: screenW,
@@ -742,7 +743,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           // 메인 PageView
           PageView.builder(
             controller: _pageCtrl,
-            itemCount: product.images.isNotEmpty ? product.images.length : 1,
+            itemCount: imgCount,
             onPageChanged: (i) => setState(() => _mainImageIndex = i),
             itemBuilder: (_, i) {
               final url = product.images.isNotEmpty ? product.images[i] : '';
@@ -751,7 +752,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 child: url.isNotEmpty
                     ? Image.network(
                         url,
-                        fit: BoxFit.contain,        // 전체 표시, 잘림 없음
+                        fit: BoxFit.contain,
                         width: screenW,
                         height: imgH,
                         gaplessPlayback: true,
@@ -762,40 +763,39 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               );
             },
           ),
-          // 페이지 인디케이터 (하단)
-          if (product.images.length > 1)
+          // ── 탑텐 스타일: 하단 가득 채운 얇은 바 인디케이터 ──
+          if (imgCount > 1)
             Positioned(
-              bottom: 12, left: 0, right: 0,
+              bottom: 0, left: 0, right: 0,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(product.images.length, (i) {
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    width: _mainImageIndex == i ? 18 : 6,
-                    height: 6,
-                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                    decoration: BoxDecoration(
-                      color: _mainImageIndex == i
-                          ? const Color(0xFF1A1A1A)
-                          : const Color(0xFFCCCCCC),
-                      borderRadius: BorderRadius.circular(3),
+                children: List.generate(imgCount, (i) {
+                  return Expanded(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      height: _mainImageIndex == i ? 3.0 : 2.0,
+                      margin: EdgeInsets.only(right: i < imgCount - 1 ? 2 : 0),
+                      decoration: BoxDecoration(
+                        color: _mainImageIndex == i
+                            ? const Color(0xFF1A1A1A)
+                            : const Color(0xFFCCCCCC),
+                      ),
                     ),
                   );
                 }),
               ),
             ),
-          // 이미지 번호 (우상단)
+          // ── 탑텐 스타일: 우하단 이미지 카운터 (작고 심플) ──
           Positioned(
-            top: 12, right: 14,
+            bottom: 12, right: 14,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.black.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                '${_mainImageIndex + 1} / ${product.images.isEmpty ? 1 : product.images.length}',
-                style: const TextStyle(color: Colors.white, fontSize: 11),
+                '${_mainImageIndex + 1} / $imgCount',
+                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -1076,22 +1076,21 @@ $productUrl
     );
   }
 
-  // ══ 썸네일 바 (클릭 → 메인 이미지 교체) ══
+  // ══ 탑텐 스타일: 썸네일 바 (심플 정사각형, 선택 시 검정 테두리) ══
   Widget _buildThumbnailBar(ProductModel product) {
     if (product.images.length <= 1) return const SizedBox.shrink();
     return Container(
-      height: 80,
-      color: const Color(0xFFF7F8FA),
+      height: 78,
+      color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: product.images.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, __) => const SizedBox(width: 6),
         itemBuilder: (_, i) {
           final selected = _mainImageIndex == i;
           return GestureDetector(
             onTap: () {
-              // 썸네일 클릭 → 메인 이미지 교체
               _pageCtrl.animateToPage(i,
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut);
@@ -1099,49 +1098,29 @@ $productUrl
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: 60,
+              width: 58,
+              height: 62,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: selected ? AppColors.primary : Colors.transparent,
-                  width: 2.5,
+                  color: selected ? const Color(0xFF1A1A1A) : const Color(0xFFEEEEEE),
+                  width: selected ? 2.0 : 1.0,
                 ),
-                boxShadow: selected
-                    ? [BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.35),
-                        blurRadius: 8)]
-                    : null,
               ),
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(5.5),
-                    child: Image.network(
-                      product.images[i],
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                      cacheWidth: 150,
-                      gaplessPlayback: true,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFFEEEEEE),
-                        child: const Icon(Icons.image, size: 20, color: Color(0xFFCCCCCC)),
-                      ),
-                    ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: Image.network(
+                  product.images[i],
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                  cacheWidth: 150,
+                  gaplessPlayback: true,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: const Color(0xFFEEEEEE),
+                    child: const Icon(Icons.image, size: 20, color: Color(0xFFCCCCCC)),
                   ),
-                  // 선택된 썸네일 오버레이
-                  if (selected)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(5.5),
-                      child: Container(
-                        color: AppColors.primary.withValues(alpha: 0.15),
-                        child: const Center(
-                          child: Icon(Icons.check_circle_rounded,
-                              color: AppColors.primary, size: 20),
-                        ),
-                      ),
-                    ),
-                ],
+                ),
               ),
             ),
           );
@@ -1206,7 +1185,7 @@ $productUrl
   }
 
   // ═══════════════════════════════════════
-  // 기본 정보
+  // 기본 정보 (탑텐 스타일)
   // ═══════════════════════════════════════
   Widget _buildBasicInfo(ProductModel product) {
     final discount = product.originalPrice != null && product.originalPrice! > product.price
@@ -1214,207 +1193,303 @@ $productUrl
     final isAdmin = context.read<UserProvider>().isAdmin;
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 디자인 이미지 셀린 (카테고리 위) ──
-          _buildDesignImageSection(product, isAdmin),
-          // 카테고리 + 배지
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(3),
-                  border: Border.all(color: const Color(0xFFDDDDDD)),
-                ),
-                child: Text(product.category, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF666666))),
-              ),
-              // ── 기성품 / 단체주문 전용 구분 배지 ──
-              if (!product.isGroupOnly) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.shopping_bag_rounded, size: 10, color: Colors.white),
-                      const SizedBox(width: 3),
-                      Text(loc.readyMadeLabel,
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1565C0).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(3),
-                    border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.local_shipping_rounded, size: 10, color: Color(0xFF1565C0)),
-                      const SizedBox(width: 3),
-                      const Text('2~3일 배송',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-                    ],
-                  ),
-                ),
-              ] else ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF4A148C), Color(0xFF6A1B9A)],
+          // ── 디자인 이미지 섹션 ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: _buildDesignImageSection(product, isAdmin),
+          ),
+
+          // ── 탑텐 스타일: 브랜드 + 상품명 + 가격 영역 ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 브랜드명 + 카테고리 태그 한줄
+                Row(
+                  children: [
+                    const Text(
+                      '2FIT KOREA',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF888888),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.0,
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(3),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0F0F0),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      child: Text(
+                        product.category,
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF666666)),
+                      ),
+                    ),
+                    if (product.isNew) ...[
+                      const SizedBox(width: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(3)),
+                        child: const Text('NEW', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5)),
+                      ),
+                    ],
+                    if (product.isSale) ...[
+                      const SizedBox(width: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(3)),
+                        child: const Text('SALE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5)),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // 상품명 (탑텐 스타일 큰 폰트)
+                Text(
+                  product.localizedName(_lang),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1A1A1A),
+                    height: 1.3,
+                    letterSpacing: -0.3,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                ),
+                const SizedBox(height: 8),
+
+                // 섬유 혼용율 인라인
+                _buildFiberRatioInline(product),
+
+                // 별점 (있을 때만)
+                if (product.rating > 0 && product.reviewCount > 0) ...[
+                  const SizedBox(height: 10),
+                  Row(
                     children: [
-                      const Icon(Icons.groups_rounded, size: 10, color: Colors.white),
-                      const SizedBox(width: 3),
-                      Text(loc.groupOrderLabel,
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white)),
+                      Row(
+                        children: List.generate(5, (i) => Icon(
+                          Icons.star_rounded,
+                          size: 14,
+                          color: i < product.rating.floor() ? const Color(0xFFFFB800) : const Color(0xFFE0E0E0),
+                        )),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        product.rating.toStringAsFixed(1),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF333333)),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        loc.productReviewCountLabel(product.reviewCount),
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
+                      ),
                     ],
                   ),
+                ],
+
+                const SizedBox(height: 16),
+
+                // ── 탑텐 스타일: 가격 영역 ──
+                if (product.originalPrice != null && product.originalPrice! > product.price) ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE53935),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '$discount%',
+                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${_fmt(product.originalPrice!)}${loc.wonUnit}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFFBBBBBB),
+                          decoration: TextDecoration.lineThrough,
+                          decorationColor: Color(0xFFBBBBBB),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    '${_fmt(product.price)}${loc.wonUnit}',
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1A1A1A),
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ] else ...[
+                  Text(
+                    '${_fmt(product.price)}${loc.wonUnit}',
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF1A1A1A),
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Text(
+                  '(부가세 포함)',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF999999)),
                 ),
               ],
-              if (product.isNew) ...[const SizedBox(width: 6), _tag('NEW', AppColors.primary)],
-              if (product.isSale) ...[const SizedBox(width: 6), _tag('SALE', AppColors.accent)],
-              if (product.isFreeShipping) ...[const SizedBox(width: 6), _tag(loc.freeShipping, const Color(0xFF43A047))],
-            ],
+            ),
           ),
-          const SizedBox(height: 10),
-          // 브랜드
-          const Text('2FIT KOREA', style: TextStyle(fontSize: 12, color: Color(0xFF888888), fontWeight: FontWeight.w600, letterSpacing: 0.5)),
-          const SizedBox(height: 4),
-          // 상품명
-          Text(product.localizedName(_lang),
-              maxLines: 3, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), height: 1.2)),
-          const SizedBox(height: 8),
-          // ── 섬유 혼용율 한줄 요약 (상품명 아래 표시) ──
-          _buildFiberRatioInline(product),
-          const SizedBox(height: 6),
 
-          // ── 기성품 타이즈/싱글렛세트: 하의 색상 선택 안내 배너 (해당 카테고리만 표시) ──
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFF0F0F0)),
+
+          // ── 탑텐 스타일: 상품 태그 조합 ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                if (!product.isGroupOnly) ...[
+                  _toptenTag(Icons.shopping_bag_outlined, loc.readyMadeLabel, const Color(0xFF1A1A1A)),
+                  _toptenTag(Icons.local_shipping_outlined, '2~3일 배송', const Color(0xFF1565C0)),
+                  if (product.isFreeShipping)
+                    _toptenTag(Icons.card_giftcard_rounded, loc.freeShipping, const Color(0xFF2E7D32)),
+                ] else ...[
+                  _toptenTag(Icons.groups_rounded, loc.groupOrderLabel, const Color(0xFF4A148C)),
+                ],
+              ],
+            ),
+          ),
+
+          // ── 타이즈/싱글렛세트 하의 색상 안내 ──
           if (!product.isGroupOnly && _showBottomColorBadge(product)) ...[
-            _buildColorInfoBadge(product),
             const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: _buildColorInfoBadge(product),
+            ),
           ],
 
-          // 가격 영역
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (product.originalPrice != null && product.originalPrice! > product.price) ...[
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F5),
-                            borderRadius: BorderRadius.circular(3),
-                            border: Border.all(color: const Color(0xFFDDDDDD)),
-                          ),
-                          child: const Text('정가',
-                              style: TextStyle(fontSize: 10, color: Color(0xFF999999), fontWeight: FontWeight.w600)),
-                        ),
-                        const SizedBox(width: 6),
-                        Text('${_fmt(product.originalPrice!)}${loc.wonUnit}',
-                            style: const TextStyle(fontSize: 15, color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough, decorationColor: Color(0xFFAAAAAA))),
-                        const SizedBox(width: 8),
-                        if (discount > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                            decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(4)),
-                            child: Text('$discount% OFF', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE53935).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(3),
-                            border: Border.all(color: const Color(0xFFE53935).withValues(alpha: 0.4)),
-                          ),
-                          child: const Text('할인가',
-                              style: TextStyle(fontSize: 10, color: Color(0xFFE53935), fontWeight: FontWeight.w700)),
-                        ),
-                        const SizedBox(width: 6),
-                        Text('${_fmt(product.price)}${loc.wonUnit}',
-                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
-                      ],
-                    ),
-                  ] else ...[
-                    Text('${_fmt(product.price)}${loc.wonUnit}',
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
-                  ],
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // 별점 - 실제 리뷰가 있을 때만 표시
-          if (product.rating > 0 && product.reviewCount > 0)
-          Row(
-            children: [
-              Row(
-                children: List.generate(5, (i) => Icon(Icons.star_rounded,
-                    size: 16,
-                    color: i < product.rating.floor() ? const Color(0xFFFFD600) : const Color(0xFFE0E0E0))),
-              ),
-              const SizedBox(width: 6),
-              Text('${product.rating}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF333333))),
-              const SizedBox(width: 4),
-              Text(loc.productReviewCountLabel(product.reviewCount), style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
-            ],
-          ),
-          const SizedBox(height: 14),
-          // 배송/혜택 정보
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF9F9F9),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFEEEEEE)),
-            ),
-            child: Column(
-              children: [
-                _infoRow(Icons.local_shipping_outlined, loc.shippingLabel,
-                    product.isFreeShipping ? loc.freeShipping : loc.basicShippingFeeInfo),
-                const SizedBox(height: 8),
-                _infoRow(Icons.access_time_rounded, loc.dispatchLabel,
-                    loc.dispatchDaysInfo),
-                const SizedBox(height: 8),
-                _infoRow(Icons.stars_rounded, loc.pointLabel,
-                    loc.pointAccumulateInfo),
-                const SizedBox(height: 8),
-                _infoRow(Icons.swap_horiz_rounded, loc.exchangeReturnLabel,
-                    loc.exchangeReturnInfo),
-              ],
-            ),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFF0F0F0)),
+
+          // ── 탑텐 스타일: 배송/혜택 정보 라인형 ──
+          _buildToptenShippingInfo(product),
+        ],
+      ),
+    );
+  }
+
+  // ── 탑텐 스타일: 태그 위젯 ──
+  Widget _toptenTag(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
           ),
         ],
       ),
+    );
+  }
+
+  // ── 탑텐 스타일: 배송/혜택 정보 심플 라인형 ──
+  Widget _buildToptenShippingInfo(ProductModel product) {
+    final items = [
+      {
+        'icon': Icons.local_shipping_outlined,
+        'label': loc.shippingLabel,
+        'value': product.isFreeShipping ? loc.freeShipping : loc.basicShippingFeeInfo,
+        'highlight': product.isFreeShipping,
+      },
+      {
+        'icon': Icons.access_time_rounded,
+        'label': loc.dispatchLabel,
+        'value': loc.dispatchDaysInfo,
+        'highlight': false,
+      },
+      {
+        'icon': Icons.stars_rounded,
+        'label': loc.pointLabel,
+        'value': loc.pointAccumulateInfo,
+        'highlight': false,
+      },
+      {
+        'icon': Icons.swap_horiz_rounded,
+        'label': loc.exchangeReturnLabel,
+        'value': loc.exchangeReturnInfo,
+        'highlight': false,
+      },
+    ];
+    return Column(
+      children: items.asMap().entries.map((entry) {
+        final r = entry.value;
+        final isHighlight = r['highlight'] as bool;
+        final isLast = entry.key == items.length - 1;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: isLast ? Colors.transparent : const Color(0xFFF0F0F0),
+                width: 1,
+              ),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(r['icon'] as IconData, size: 15, color: isHighlight ? const Color(0xFF2E7D32) : const Color(0xFF999999)),
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 52,
+                child: Text(
+                  r['label'] as String,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF999999), fontWeight: FontWeight.w500),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  r['value'] as String,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isHighlight ? const Color(0xFF2E7D32) : const Color(0xFF333333),
+                    fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -4028,157 +4103,171 @@ $productUrl
       );
 
   // ═══════════════════════════════════════════════════════════
-  // 하단 바
+  // 하단 바 (탑텐 스타일)
   // ═══════════════════════════════════════════════════════════
   Widget _buildBottomBar(ProductModel product) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
       decoration: BoxDecoration(
         color: Colors.white,
+        border: const Border(top: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
         boxShadow: [BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 16,
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
             offset: const Offset(0, -4))],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (product.isGroupOnly) ...[
-            // ── 단체주문 전용: 단체주문 버튼만 ──
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.groups_rounded, color: Colors.white, size: 20),
-                label: Text(loc.groupOrderBtn,
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4A148C),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  elevation: 0,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (product.isGroupOnly) ...[
+                // ── 단체주문 전용 ──
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.groups_rounded, color: Colors.white, size: 20),
+                    label: Text(loc.groupOrderBtn,
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4A148C),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
+                    ),
+                    onPressed: () => _showGroupOrderGuide(product),
+                  ),
                 ),
-                onPressed: () => _showGroupOrderGuide(product),
-              ),
-            ),
-          ] else if (product.stockCount <= 0) ...[
-            // ── 기성품 품절: 재입고 알림 버튼 ──
-            Consumer<UserProvider>(
-              builder: (_, up, __) {
-                return Column(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFDDDDDD)),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.remove_shopping_cart_rounded, size: 16, color: Color(0xFFAAAAAA)),
-                          SizedBox(width: 6),
-                          Text('현재 품절된 상품입니다', style: TextStyle(fontSize: 13, color: Color(0xFFAAAAAA), fontWeight: FontWeight.w600)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.notifications_active_rounded, size: 18, color: Colors.white),
-                        label: const Text('재입고 알림 신청', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1565C0),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          elevation: 0,
-                        ),
-                        onPressed: () => _showRestockAlert(product, up),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ] else ...[
-            Row(
-              children: [
-                // 찜 버튼
+              ] else if (product.stockCount <= 0) ...[
+                // ── 품절 상태 ──
                 Consumer<UserProvider>(
                   builder: (_, up, __) {
-                    final isWish = up.isInWishlist(product.id);
-                    return Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color: isWish ? Colors.redAccent : const Color(0xFFDDDDDD)),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          isWish ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                          color: isWish ? Colors.redAccent : const Color(0xFF888888),
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 9),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.remove_shopping_cart_outlined, size: 15, color: Color(0xFFAAAAAA)),
+                              SizedBox(width: 6),
+                              Text('현재 품절된 상품입니다', style: TextStyle(fontSize: 13, color: Color(0xFFAAAAAA), fontWeight: FontWeight.w600)),
+                            ],
+                          ),
                         ),
-                        onPressed: () {
-                          if (up.isLoggedIn) {
-                            up.toggleWishlist(product.id);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(loc.loginRequired)),
-                            );
-                          }
-                        },
-                      ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton.icon(
+                            icon: const Icon(Icons.notifications_active_rounded, size: 17, color: Colors.white),
+                            label: const Text('재입고 알림 신청', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1A1A1A),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              elevation: 0,
+                            ),
+                            onPressed: () => _showRestockAlert(product, up),
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
-                const SizedBox(width: 10),
-                // 장바구니 담기
-                Expanded(
-                  child: SizedBox(
-                    height: 52,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFCCCCCC), width: 1.5),
-                        foregroundColor: const Color(0xFF1A1A1A),
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: () => _addToCart(product),
-                      child: Text(loc.addToCart,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+              ] else ...[
+                // ── 탑텐 스타일: 찜 + 장바구니 + 바로구매 ──
+                Row(
+                  children: [
+                    // 찜 버튼 (탑텐: 하트 아이콘만 + 테두리)
+                    Consumer<UserProvider>(
+                      builder: (_, up, __) {
+                        final isWish = up.isInWishlist(product.id);
+                        return GestureDetector(
+                          onTap: () {
+                            if (up.isLoggedIn) {
+                              up.toggleWishlist(product.id);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(loc.loginRequired)),
+                              );
+                            }
+                          },
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: isWish ? const Color(0xFFFFF0F0) : Colors.white,
+                              border: Border.all(
+                                color: isWish ? Colors.redAccent : const Color(0xFFDDDDDD),
+                                width: 1.5,
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              isWish ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                              color: isWish ? Colors.redAccent : const Color(0xFF888888),
+                              size: 22,
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                // 바로 구매
-                Expanded(
-                  child: SizedBox(
-                    height: 52,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1A1A1A),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                        elevation: 0,
+                    const SizedBox(width: 8),
+                    // 장바구니 버튼 (탑텐: 아웃라인 + 텍스트)
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF1A1A1A), width: 1.5),
+                            foregroundColor: const Color(0xFF1A1A1A),
+                            backgroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                          onPressed: () => _addToCart(product),
+                          child: Text(
+                            loc.addToCart,
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF1A1A1A)),
+                          ),
+                        ),
                       ),
-                      onPressed: () => _showBuyNowSheet(product),
-                      child: Text(loc.buyNow,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 15,
-                              color: Colors.white)),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    // 바로구매 버튼 (탑텐: 블랙 솔리드)
+                    Expanded(
+                      flex: 2,
+                      child: SizedBox(
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF1A1A1A),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
+                          onPressed: () => _showBuyNowSheet(product),
+                          child: Text(
+                            loc.buyNow,
+                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
