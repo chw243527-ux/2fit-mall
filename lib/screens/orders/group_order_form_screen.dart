@@ -3942,7 +3942,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           style: TextStyle(fontSize: 11, color: Color(0xFF666666), fontWeight: FontWeight.w400),
                         ),
                         const TextSpan(
-                          text: '· 별도 이야기 없으면 매년 2월 1일 홈페이지 업로드 설명으로 변경됩니다.\n',
+                          text: '· 별도 이야기 없으면 매년 2월 1일 홈페이지에 업로드로 변경됩니다.\n',
                           style: TextStyle(fontSize: 11, color: Color(0xFF666666), fontWeight: FontWeight.w400),
                         ),
                         const TextSpan(
