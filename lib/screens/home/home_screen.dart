@@ -994,123 +994,104 @@ class _HomeScreenState extends State<HomeScreen>
                 }
               }
 
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  // ── 배경: 동영상(Web, order==0) or 이미지 ──
-                  if (videoUrl != null)
-                    Positioned.fill(
-                      child: Container(
-                        color: Colors.black,
-                        child: Center(
-                          child: AspectRatio(
-                            aspectRatio: 16 / 9,
-                            child: VideoBannerWidget(
-                              videoUrl: videoUrl,
-                              thumbnailUrl: b.imageUrl,
-                              onTap: onTap,
-                              onProductTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const ProductListScreen()),
+              // PC 배너: AspectRatio(16:9) 안에 영상 + 오버레이 텍스트 함께 배치
+              return Container(
+                color: Colors.black,
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        // ── 배경 ──
+                        if (videoUrl != null)
+                          VideoBannerWidget(
+                            videoUrl: videoUrl,
+                            thumbnailUrl: b.imageUrl,
+                            onTap: onTap,
+                            onProductTap: () => Navigator.push(context,
+                              MaterialPageRoute(builder: (_) => const ProductListScreen())),
+                          )
+                        else if (b.imageUrl.isNotEmpty)
+                          GestureDetector(
+                            onTap: onTap,
+                            child: Image.network(b.imageUrl,
+                              fit: BoxFit.cover, width: double.infinity, height: double.infinity,
+                              errorBuilder: (_, __, ___) => Container(color: const Color(0xFF2A2A2A))),
+                          )
+                        else
+                          GestureDetector(onTap: onTap,
+                            child: Container(color: const Color(0xFF1A1A1A))),
+
+                        // ── 그라데이션 오버레이 ──
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  stops: const [0.3, 0.6, 1.0],
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withValues(alpha: 0.40),
+                                    Colors.black.withValues(alpha: 0.82),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    )
-                  else if (b.imageUrl.isNotEmpty)
-                    Positioned.fill(
-                      child: GestureDetector(
-                        onTap: onTap,
-                        child: Image.network(
-                          b.imageUrl,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.center,
-                          width: double.infinity,
-                          height: double.infinity,
-                          loadingBuilder: (_, child, progress) => progress == null
-                              ? child
-                              : Container(
-                                  color: const Color(0xFF1A1A1A),
-                                  child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2)),
+
+                        // ── 텍스트 + CTA (왼쪽 하단, AspectRatio 안) ──
+                        Positioned(
+                          left: 60, bottom: 52,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (b.tag.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                                  decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(3)),
+                                  child: Text(b.tag,
+                                    style: const TextStyle(color: Colors.white, fontSize: 11,
+                                        fontWeight: FontWeight.w800, letterSpacing: 2.2)),
                                 ),
-                          errorBuilder: (_, __, ___) => Container(
-                            color: const Color(0xFF2A2A2A),
-                            child: const Center(child: Icon(Icons.image_not_supported_rounded, color: Colors.white24, size: 48)),
+                              if (b.tag.isNotEmpty) const SizedBox(height: 16),
+                              if (title.isNotEmpty)
+                                Text(title,
+                                  style: const TextStyle(color: Colors.white, fontSize: 46,
+                                      fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.5)),
+                              if (title.isNotEmpty) const SizedBox(height: 24),
+                              if (cta.isNotEmpty)
+                                GestureDetector(
+                                  onTap: onTap,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(6),
+                                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2),
+                                          blurRadius: 14, offset: const Offset(0, 4))],
+                                    ),
+                                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                      Icon(ctaIcon, size: 17, color: accent),
+                                      const SizedBox(width: 10),
+                                      Text(cta,
+                                        style: const TextStyle(color: Color(0xFF111111),
+                                            fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
+                                    ]),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                      ),
-                    )
-                  else
-                    Positioned.fill(
-                      child: GestureDetector(
-                        onTap: onTap,
-                        child: Container(color: const Color(0xFF1A1A1A)),
-                      ),
+                      ],
                     ),
-
-                    // 하단 그라데이션
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              stops: const [0.3, 0.6, 1.0],
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.45),
-                                Colors.black.withValues(alpha: 0.88),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // 텍스트 + CTA (왼쪽 하단)
-                    Positioned(
-                      left: 60, bottom: 52,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (b.tag.isNotEmpty)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                              decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(3)),
-                              child: Text(b.tag,
-                                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 2.2)),
-                            ),
-                          if (b.tag.isNotEmpty) const SizedBox(height: 16),
-                          if (title.isNotEmpty)
-                            Text(title,
-                              style: const TextStyle(color: Colors.white, fontSize: 52, fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.5)),
-                          if (title.isNotEmpty) const SizedBox(height: 24),
-                          if (cta.isNotEmpty)
-                            GestureDetector(
-                              onTap: onTap,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(6),
-                                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 14, offset: const Offset(0, 4))],
-                                ),
-                                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                  Icon(ctaIcon, size: 17, color: accent),
-                                  const SizedBox(width: 10),
-                                  Text(cta,
-                                    style: const TextStyle(color: Color(0xFF111111), fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
-                                ]),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
+                  ),
+                ),
+              );
             },
           ),
           // 우측 세로 점 인디케이터
@@ -3708,174 +3689,169 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // ── 배경: 동영상(videoUrl 있을 때) or 이미지 ──
-        if (videoUrl != null)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black,   // 레터박스 영역 검은 배경
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: 16 / 9, // 영상 원본 비율 고정 → 잘림 없음
-                  child: VideoBannerWidget(
-                    videoUrl: videoUrl,
-                    thumbnailUrl: imageUrl,
-                    onTap: onTap,
-                    onProductTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ProductListScreen()),
-                    ),
+    // ── 배너 아이템: 영상/이미지 + 텍스트 오버레이를 16:9 비율 안에 함께 배치 ──
+    Widget buildVideoWithOverlay() {
+      return Container(
+        color: Colors.black,
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                // ── 배경 영상 ──
+                VideoBannerWidget(
+                  videoUrl: videoUrl!,
+                  thumbnailUrl: imageUrl,
+                  onTap: onTap,
+                  onProductTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ProductListScreen()),
                   ),
                 ),
-              ),
+                // ── 텍스트/CTA 오버레이 (영상 안 하단) ──
+                Positioned(
+                  left: 0, right: 0, bottom: 0,
+                  child: _buildBannerOverlay(
+                    banner: banner, title: title, cta: cta,
+                    ctaIcon: ctaIcon, accent: accent, onTap: onTap,
+                  ),
+                ),
+              ],
             ),
-          )
-        else if (imageUrl.isNotEmpty)
-          Positioned.fill(
-            child: GestureDetector(
+          ),
+        ),
+      );
+    }
+
+    Widget buildImageBanner() {
+      return Container(
+        color: const Color(0xFF111111),
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                GestureDetector(
+                  onTap: onTap,
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    width: double.infinity,
+                    height: double.infinity,
+                    loadingBuilder: (_, child, progress) => progress == null
+                        ? child
+                        : Container(color: const Color(0xFF1A1A1A),
+                            child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2))),
+                    errorBuilder: (_, __, ___) => Container(color: const Color(0xFF2A2A2A),
+                        child: const Center(child: Icon(Icons.image_not_supported_rounded, color: Colors.white24, size: 48))),
+                  ),
+                ),
+                Positioned(
+                  left: 0, right: 0, bottom: 0,
+                  child: _buildBannerOverlay(
+                    banner: banner, title: title, cta: cta,
+                    ctaIcon: ctaIcon, accent: accent, onTap: onTap,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (videoUrl != null) return buildVideoWithOverlay();
+    if (imageUrl.isNotEmpty) return buildImageBanner();
+    return GestureDetector(onTap: onTap, child: Container(color: const Color(0xFF1A1A1A)));
+  }
+
+  // ── 배너 하단 텍스트/CTA 오버레이 (공통) ──
+  Widget _buildBannerOverlay({
+    required BannerModel banner,
+    required String title,
+    required String cta,
+    required IconData ctaIcon,
+    required Color accent,
+    required VoidCallback onTap,
+  }) {
+    final w = MediaQuery.of(context).size.width;
+    final isTablet = w >= 600 && w < 1024;
+    final isPc = w >= 1024;
+
+    // 화면 너비 기준 비율 조정 (모바일 작은 화면에서 텍스트 겹침 방지)
+    final screenW2 = MediaQuery.of(context).size.width;
+    final isSmallMobile = screenW2 < 380; // 아이폰 SE 등 소형 기기
+
+    final hPad      = isPc ? 60.0 : isTablet ? 36.0 : 16.0;
+    final titleSize = isPc ? 48.0 : isTablet ? 34.0 : (isSmallMobile ? 20.0 : 22.0);
+    final tagSize   = isPc ? 12.0 : isTablet ? 10.0 : 9.0;
+    final ctaSize   = isPc ? 15.0 : isTablet ? 13.0 : 12.0;
+    final ctaVPad   = isPc ? 14.0 : isTablet ? 12.0 : 10.0;
+    final ctaHPad   = isPc ? 26.0 : isTablet ? 20.0 : 16.0;
+    final bottomPad = isPc ? 48.0 : isTablet ? 32.0 : 18.0;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(hPad, 0, hPad, bottomPad),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: const [0.0, 0.5, 1.0],
+          colors: [
+            Colors.transparent,
+            Colors.black.withValues(alpha: 0.35),
+            Colors.black.withValues(alpha: 0.78),
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (banner.tag.isNotEmpty)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: tagSize + 1, vertical: 3),
+              decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(2)),
+              child: Text(banner.tag,
+                style: TextStyle(color: Colors.white, fontSize: tagSize,
+                    fontWeight: FontWeight.w800, letterSpacing: 1.8)),
+            ),
+          if (banner.tag.isNotEmpty) SizedBox(height: isTablet || isPc ? 16 : 10),
+          if (title.isNotEmpty)
+            Text(title,
+              style: TextStyle(color: Colors.white, fontSize: titleSize,
+                  fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.3)),
+          if (title.isNotEmpty) SizedBox(height: isTablet || isPc ? 28 : 16),
+          if (cta.isNotEmpty)
+            GestureDetector(
               onTap: onTap,
               child: Container(
-                color: const Color(0xFF111111), // 여백 배경
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.contain,        // 잘리지 않고 전체 표시
-                  alignment: Alignment.center,
-                  width: double.infinity,
-                  height: double.infinity,
-                  loadingBuilder: (_, child, progress) => progress == null
-                      ? child
-                      : Container(
-                          color: const Color(0xFF1A1A1A),
-                          child: const Center(
-                            child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
-                          ),
-                        ),
-                  errorBuilder: (_, __, ___) => Container(
-                    color: const Color(0xFF2A2A2A),
-                    child: const Center(child: Icon(Icons.image_not_supported_rounded, color: Colors.white24, size: 48)),
-                  ),
+                padding: EdgeInsets.symmetric(horizontal: ctaHPad, vertical: ctaVPad),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: [BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 12, offset: const Offset(0, 4))],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(ctaIcon, size: ctaSize + 3, color: accent),
+                    const SizedBox(width: 10),
+                    Text(cta,
+                      style: TextStyle(color: const Color(0xFF111111),
+                          fontSize: ctaSize, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
+                  ],
                 ),
               ),
             ),
-          )
-        else
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: onTap,
-              child: Container(color: const Color(0xFF1A1A1A)),
-            ),
-          ),
-
-
-
-          // ── 콘텐츠 (하단 고정, 모바일만 표시) ──
-          Positioned(
-            left: 0, right: 0, bottom: 0,
-            child: LayoutBuilder(
-              builder: (ctx, cons) {
-                final w = MediaQuery.of(ctx).size.width;
-                final isTablet = w >= 600 && w < 1024;
-                final isPc = w >= 1024;
-
-                final hPad = isPc ? 60.0 : isTablet ? 36.0 : 20.0;
-                final titleSize = isPc ? 52.0 : isTablet ? 40.0 : 32.0;
-                final tagSize = isPc ? 13.0 : isTablet ? 11.0 : 10.0;
-                final ctaSize = isPc ? 16.0 : isTablet ? 14.0 : 13.0;
-                final ctaVPad = isPc ? 16.0 : isTablet ? 15.0 : 14.0;
-                final ctaHPad = isPc ? 28.0 : isTablet ? 22.0 : 18.0;
-                final bottomPad = isPc ? 48.0 : isTablet ? 36.0 : 28.0;
-                return Container(
-                  padding: EdgeInsets.fromLTRB(hPad, 0, hPad, bottomPad),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      stops: const [0.0, 0.45, 1.0],
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.45),
-                        Colors.black.withValues(alpha: 0.85),
-                      ],
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (banner.tag.isNotEmpty)
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: tagSize - 1, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: accent,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                          child: Text(
-                            banner.tag,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: tagSize,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.8,
-                            ),
-                          ),
-                        ),
-                      if (banner.tag.isNotEmpty) SizedBox(height: isTablet || isPc ? 16 : 12),
-                      if (title.isNotEmpty)
-                        Text(
-                          title,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: titleSize,
-                            fontWeight: FontWeight.w900,
-                            height: 1.15,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                      if (title.isNotEmpty) SizedBox(height: isTablet || isPc ? 28 : 20),
-                      if (cta.isNotEmpty)
-                        GestureDetector(
-                          onTap: onTap,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: ctaHPad, vertical: ctaVPad),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(6),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.18),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(ctaIcon, size: ctaSize + 3, color: accent),
-                                const SizedBox(width: 10),
-                                Text(
-                                  cta,
-                                  style: TextStyle(
-                                    color: const Color(0xFF111111),
-                                    fontSize: ctaSize,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
         ],
-      );
+      ),
+    );
   }
 
   // ────────────────────────────────────────────
