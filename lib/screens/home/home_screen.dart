@@ -932,7 +932,7 @@ class _HomeScreenState extends State<HomeScreen>
 
           // ── 배너 (NavBar 아래 남은 공간 전체) ──
           Expanded(
-            child: bannerProv.loading
+            child: (bannerProv.loading && activeBanners.isEmpty)
                 ? const ColoredBox(
                     color: Color(0xFF111111),
                     child: Center(
@@ -995,10 +995,57 @@ class _HomeScreenState extends State<HomeScreen>
               }
 
               // PC 배너: 컨테이너 전체 꽉 채움 (AspectRatio 없음)
+              // ── 텍스트+CTA 오버레이: 배경과 독립 레이어 → 항상 즉시 표시 ──
+              final pcTextOverlay = Positioned(
+                left: 60, bottom: 52,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (b.tag.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(3)),
+                        child: Text(b.tag,
+                          style: const TextStyle(color: Colors.white, fontSize: 11,
+                              fontWeight: FontWeight.w800, letterSpacing: 2.2)),
+                      ),
+                    if (b.tag.isNotEmpty) const SizedBox(height: 16),
+                    if (title.isNotEmpty)
+                      Text(title,
+                        style: const TextStyle(color: Colors.white, fontSize: 46,
+                            fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.5)),
+                    if (title.isNotEmpty) const SizedBox(height: 24),
+                    if (cta.isNotEmpty)
+                      GestureDetector(
+                        onTap: onTap,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 14, offset: const Offset(0, 4))],
+                          ),
+                          child: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Icon(ctaIcon, size: 17, color: accent),
+                            const SizedBox(width: 10),
+                            Text(cta,
+                              style: const TextStyle(color: Color(0xFF111111),
+                                  fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
+                          ]),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  // ── 배경 ──
+                  // ── 배경색 (이미지/비디오 로딩 전 placeholder) ──
+                  const ColoredBox(color: Color(0xFF111111)),
+                  // ── 배경 미디어 ──
                   if (videoUrl != null)
                     VideoBannerWidget(
                       videoUrl: videoUrl,
@@ -1012,6 +1059,7 @@ class _HomeScreenState extends State<HomeScreen>
                       onTap: onTap,
                       child: Image.network(b.imageUrl,
                         fit: BoxFit.cover, width: double.infinity, height: double.infinity,
+                        // loadingBuilder 제거 → 배경색이 placeholder 역할
                         errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF2A2A2A))),
                     )
                   else
@@ -1038,50 +1086,8 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
 
-                  // ── 텍스트 + CTA (왼쪽 하단) ──
-                  Positioned(
-                    left: 60, bottom: 52,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (b.tag.isNotEmpty)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                            decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(3)),
-                            child: Text(b.tag,
-                              style: const TextStyle(color: Colors.white, fontSize: 11,
-                                  fontWeight: FontWeight.w800, letterSpacing: 2.2)),
-                          ),
-                        if (b.tag.isNotEmpty) const SizedBox(height: 16),
-                        if (title.isNotEmpty)
-                          Text(title,
-                            style: const TextStyle(color: Colors.white, fontSize: 46,
-                                fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.5)),
-                        if (title.isNotEmpty) const SizedBox(height: 24),
-                        if (cta.isNotEmpty)
-                          GestureDetector(
-                            onTap: onTap,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(6),
-                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 14, offset: const Offset(0, 4))],
-                              ),
-                              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                                Icon(ctaIcon, size: 17, color: accent),
-                                const SizedBox(width: 10),
-                                Text(cta,
-                                  style: const TextStyle(color: Color(0xFF111111),
-                                      fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
-                              ]),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                  // ── 텍스트 + CTA: 배경 로딩과 무관하게 즉시 표시 ──
+                  pcTextOverlay,
                 ],
               );
             },
@@ -1351,10 +1357,7 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Image.network(
                       imageUrl,
                       fit: BoxFit.cover,
-                      loadingBuilder: (_, child, progress) => progress == null
-                          ? child
-                          : Container(color: const Color(0xFF111111),
-                              child: const Center(child: CircularProgressIndicator(color: Colors.white54, strokeWidth: 2))),
+                      // loadingBuilder 제거 → 배경색이 placeholder 역할, 텍스트 즉시 표시
                       errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
                     ),
                   ),
@@ -2327,8 +2330,8 @@ class _HomeScreenState extends State<HomeScreen>
     // PC/태블릿/모바일 모두 동일 공식 → 디바이스 너비에 맞게 자동 조절
     final bannerH = screenW * 9 / 16;
 
-    // Firestore 로딩 중이거나 배너 없어도 → 로컬 asset 동영상 즉시 표시
-    if (bannerProv.loading || activeBanners.isEmpty) {
+    // Firestore 데이터가 아직 없을 때만 → 로컬 asset 동영상 표시
+    if (bannerProv.loading && activeBanners.isEmpty) {
       return SizedBox(
         height: bannerH,
         child: Stack(
@@ -2345,15 +2348,6 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
             ),
-            // Firestore 로딩 중이면 하단에 가벼운 인디케이터만
-            if (bannerProv.loading)
-              const Positioned(
-                right: 16, bottom: 16,
-                child: SizedBox(
-                  width: 16, height: 16,
-                  child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
-                ),
-              ),
           ],
         ),
       );

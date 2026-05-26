@@ -3100,19 +3100,7 @@ $productUrl
                           width: double.infinity,
                           fit: BoxFit.contain,
                           cacheWidth: 800,
-                          loadingBuilder: (_, child, progress) => progress == null
-                              ? child
-                              : Container(
-                                  height: 200,
-                                  color: const Color(0xFFF5F5F5),
-                                  child: const Center(
-                                    child: SizedBox(
-                                      width: 24, height: 24,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2, color: Color(0xFF888888)),
-                                    ),
-                                  ),
-                                ),
+                          // loadingBuilder 제거 → 배경색이 placeholder 역할, 텍스트 즉시 표시
                           errorBuilder: (_, __, ___) => Container(
                             height: 80,
                             color: const Color(0xFFEEEEEE),
@@ -3183,19 +3171,7 @@ $productUrl
                 width: double.infinity,
                 fit: BoxFit.contain,
                 cacheWidth: 800,
-                loadingBuilder: (_, child, progress) => progress == null
-                    ? child
-                    : Container(
-                        height: 200,
-                        color: const Color(0xFFF5F5F5),
-                        child: const Center(
-                          child: SizedBox(
-                            width: 24, height: 24,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Color(0xFF888888)),
-                          ),
-                        ),
-                      ),
+                // loadingBuilder 제거 → 배경색이 placeholder 역할, 텍스트 즉시 표시
                 errorBuilder: (_, __, ___) => Container(
                   height: 80,
                   color: const Color(0xFFEEEEEE),
