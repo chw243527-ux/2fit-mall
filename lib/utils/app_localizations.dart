@@ -3612,32 +3612,32 @@ class AppLocalizations {
     case AppLanguage.mongolian:return '• Бүсний өнгийг өөрчлөх боломжтой (хэлбэр/дизайн өөрчлөх боломжгүй)';
   }}
   String get groupOrderGuideExclusiveTitle { switch (language) {
-    case AppLanguage.korean:   return '1년 독점 사용권 (+80,000원)';
-    case AppLanguage.english:  return '1-Year Exclusive License (+₩80,000)';
-    case AppLanguage.japanese: return '1年独占使用権（+80,000ウォン）';
-    case AppLanguage.chinese:  return '1年独家使用权（+80,000韩元）';
-    case AppLanguage.mongolian:return '1 жилийн онцгой эрх (+80,000₩)';
+    case AppLanguage.korean:   return '1년 독점 사용권 (무료)';
+    case AppLanguage.english:  return '1-Year Exclusive License (FREE)';
+    case AppLanguage.japanese: return '1年独占使用権（無料）';
+    case AppLanguage.chinese:  return '1年独家使用权（免费）';
+    case AppLanguage.mongolian:return '1 жилийн онцгой эрх (үнэгүй)';
   }}
   String get groupOrderGuideExclusive1 { switch (language) {
-    case AppLanguage.korean:   return '• 추가 8만원 결제 시 해당 디자인을 1년간 타인에게 배포하지 않습니다.';
-    case AppLanguage.english:  return '• Pay extra ₩80,000 to keep the design exclusive for 1 year.';
-    case AppLanguage.japanese: return '• 追加8万ウォン支払いで、そのデザインを1年間他者に配布しません。';
-    case AppLanguage.chinese:  return '• 额外支付8万韩元，该设计1年内不向他人分发。';
-    case AppLanguage.mongolian:return '• Нэмэлт 80,000₩ төлвөл дизайныг 1 жилийн хугацаанд бусдад өгөхгүй.';
+    case AppLanguage.korean:   return '• 1년 독점 사용권 무료 제공 — 해당 디자인을 1년간 타인에게 배포하지 않습니다.';
+    case AppLanguage.english:  return '• 1-year exclusive license provided FREE — design will not be shared with others for 1 year.';
+    case AppLanguage.japanese: return '• 1年独占使用権無料提供 — そのデザインを1年間他者に配布しません。';
+    case AppLanguage.chinese:  return '• 1年独家使用权免费提供 — 该设计1年内不向他人分发。';
+    case AppLanguage.mongolian:return '• 1 жилийн онцгой эрх үнэгүй — дизайныг 1 жилийн хугацаанд бусдад өгөхгүй.';
   }}
   String get groupOrderGuideExclusive2 { switch (language) {
-    case AppLanguage.korean:   return '• 1년 이후에는 2FIT 쇼핑몰에서 판매될 수 있습니다.';
-    case AppLanguage.english:  return '• After 1 year, the design may be sold in the 2FIT mall.';
-    case AppLanguage.japanese: return '• 1年後は2FITショッピングモールで販売される場合があります。';
-    case AppLanguage.chinese:  return '• 1年后可能在2FIT商城出售。';
-    case AppLanguage.mongolian:return '• 1 жилийн дараа 2FIT дэлгүүрт зарагдаж болно.';
+    case AppLanguage.korean:   return '• 별도 이야기 없으면 매년 2월 1일 홈페이지에 업로드 설명으로 변경됩니다.';
+    case AppLanguage.english:  return '• Unless otherwise agreed, design description will be updated to the website every Feb 1.';
+    case AppLanguage.japanese: return '• 別途の話し合いがない限り、毎年2月1日にホームページにアップロード説明へ変更されます。';
+    case AppLanguage.chinese:  return '• 如无另行协商，每年2月1日将变更为网站上传说明。';
+    case AppLanguage.mongolian:return '• Тусгайлан тохиролцоогүй тохиолдолд жил бүрийн 2-р сарын 1-нд вэбсайтад байршуулах тайлбар болгон өөрчлөгдөнө.';
   }}
   String get groupOrderGuideExclusive3 { switch (language) {
-    case AppLanguage.korean:   return '• 선택 사항이며, 미선택 시 디자인은 공유될 수 있습니다.';
-    case AppLanguage.english:  return '• Optional; if not selected, the design may be shared.';
-    case AppLanguage.japanese: return '• 任意であり、未選択の場合デザインは共有される可能性があります。';
-    case AppLanguage.chinese:  return '• 为可选项，未选择时设计可能被共享。';
-    case AppLanguage.mongolian:return '• Заавал биш; сонгоогүй тохиолдолд дизайн хуваалцагдаж болно.';
+    case AppLanguage.korean:   return '• 같은 디자인을 원할 경우 색상만 변경 가능하며, 같은 색상으로는 제작 불가합니다.';
+    case AppLanguage.english:  return '• If same design is requested, only color change is allowed — same color not available.';
+    case AppLanguage.japanese: return '• 同じデザインを希望の場合、色変更のみ可能で、同じ色での製作は不可です。';
+    case AppLanguage.chinese:  return '• 若需要相同设计，仅可更改颜色，同色无法制作。';
+    case AppLanguage.mongolian:return '• Ижил дизайн хүсвэл зөвхөн өнгийг өөрчлөх боломжтой, ижил өнгөөр үйлдвэрлэх боломжгүй.';
   }}
   String get groupOrderGuideDiscountTitle { switch (language) {
     case AppLanguage.korean:   return '수량 할인';
@@ -3676,25 +3676,25 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Бүсний сонголт';
   }}
   String get groupOrderGuideWaistband1 { switch (language) {
-    case AppLanguage.korean:   return '• 허리밴드 각각 색상 변경 가능 (추가비용 50,000원)';
-    case AppLanguage.english:  return '• Individual waistband color change available (+₩50,000)';
-    case AppLanguage.japanese: return '• ウエストバンドのカラー変更可能（追加料金50,000ウォン）';
-    case AppLanguage.chinese:  return '• 每条腰带可单独变色（附加费用50,000韩元）';
-    case AppLanguage.mongolian:return '• Бүс тус бүрийн өнгийг өөрчлөх боломжтой (+50,000 вон)';
+    case AppLanguage.korean:   return '• 허리밴드 디자인 색상 변경 전부 무료';
+    case AppLanguage.english:  return '• Waistband design & color change: all FREE';
+    case AppLanguage.japanese: return '• ウエストバンドデザイン・カラー変更：すべて無料';
+    case AppLanguage.chinese:  return '• 腰带设计颜色变更全部免费';
+    case AppLanguage.mongolian:return '• Бүсний дизайн, өнгийг өөрчлөх: бүгд үнэгүй';
   }}
   String get groupOrderGuideWaistband2 { switch (language) {
-    case AppLanguage.korean:   return '• 허리밴드 디자인 변경 가능 (추가비용 50,000원)';
-    case AppLanguage.english:  return '• Individual waistband design change available (+₩50,000)';
-    case AppLanguage.japanese: return '• ウエストバンドのデザイン変更可能（追加料金50,000ウォン）';
-    case AppLanguage.chinese:  return '• 每条腰带可单独变设计（附加费用50,000韩元）';
-    case AppLanguage.mongolian:return '• Бүс тус бүрийн дизайныг өөрчлөх боломжтой (+50,000 вон)';
+    case AppLanguage.korean:   return '• 로고는 AI 원본 파일 첨부 필수 (AI, EPS, SVG 형식)';
+    case AppLanguage.english:  return '• Logo AI original file attachment required (AI, EPS, SVG format)';
+    case AppLanguage.japanese: return '• ロゴはAIオリジナルファイル添付必須（AI・EPS・SVG形式）';
+    case AppLanguage.chinese:  return '• 徽标需附上AI原始文件（AI、EPS、SVG格式）';
+    case AppLanguage.mongolian:return '• Лого AI эх файл заавал хавсаргах (AI, EPS, SVG формат)';
   }}
   String get groupOrderGuideWaistband3 { switch (language) {
-    case AppLanguage.korean:   return '• 색상 + 디자인 동시 변경: 추가비용 70,000원';
-    case AppLanguage.english:  return '• Color + design change together: +₩70,000';
-    case AppLanguage.japanese: return '• カラー＋デザイン同時変更：追加料金70,000ウォン';
-    case AppLanguage.chinese:  return '• 颜色+设计同时变更：附加费用70,000韩元';
-    case AppLanguage.mongolian:return '• Өнгө + дизайн хамт өөрчлөх: +70,000 вон';
+    case AppLanguage.korean:   return '• 원하는 옷 디자인의 앞·뒤 사진을 첨부하면 원하는 디자인으로 제작 가능';
+    case AppLanguage.english:  return '• Attach front & back photos of your desired design for custom production';
+    case AppLanguage.japanese: return '• 希望する服のデザインの前後写真を添付すれば、希望のデザインで製作可能';
+    case AppLanguage.chinese:  return '• 附上所需服装设计的正反面照片，可按要求定制';
+    case AppLanguage.mongolian:return '• Хүссэн хувцасны дизайны өмнөд, ардын зургийг хавсаргавал хүссэн дизайнаар үйлдвэрлэх боломжтой';
   }}
   String get groupOrderGuideAdditionalTitle { switch (language) {
     case AppLanguage.korean:   return '추가 주문 안내';
@@ -3840,18 +3840,18 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Солих/буцаах бодлого';
   }}
   String get groupOrderGuideExchange1 { switch (language) {
-    case AppLanguage.korean:   return '• 의류 자체 불량 외 교환·환불은 불가합니다.';
-    case AppLanguage.english:  return '• No exchange/return except for product defects.';
-    case AppLanguage.japanese: return '• 衣類自体の不良以外、交換・返金は不可です。';
-    case AppLanguage.chinese:  return '• 除服装本身质量问题外，不可换货·退款。';
-    case AppLanguage.mongolian:return '• Бүтээгдэхүүний гэмтлээс бусад тохиолдолд солих/буцаах боломжгүй.';
+    case AppLanguage.korean:   return '• 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불은 불가합니다.';
+    case AppLanguage.english:  return '• Custom (group) orders: No exchange/return except for product defects.';
+    case AppLanguage.japanese: return '• カスタム（団体）注文：衣類自体の不良以外、交換・返金は不可です。';
+    case AppLanguage.chinese:  return '• 定制（团体）订单：除服装本身质量问题外，不可换货·退款。';
+    case AppLanguage.mongolian:return '• Захиалгат (бүлгийн) захиалга: Бүтээгдэхүүний гэмтлээс бусад тохиолдолд солих/буцаах боломжгүй.';
   }}
   String get groupOrderGuideExchange2 { switch (language) {
-    case AppLanguage.korean:   return '• 커스텀 마킹이 포함된 경우 교환·환불이 불가합니다.';
-    case AppLanguage.english:  return '• No exchange/return for custom-marked items.';
-    case AppLanguage.japanese: return '• カスタムマーキングが含まれる場合、交換・返金は不可です。';
-    case AppLanguage.chinese:  return '• 包含定制标记的情况下，不可换货·退款。';
-    case AppLanguage.mongolian:return '• Захиалгат тэмдэглэгээтэй бол солих/буцаах боломжгүй.';
+    case AppLanguage.korean:   return '• 기성품: 제품 수령 후 3일 이내 교환·환불 가능합니다.';
+    case AppLanguage.english:  return '• Ready-made items: Exchange/return available within 3 days of receipt.';
+    case AppLanguage.japanese: return '• 既製品：製品受領後3日以内に交換・返金が可能です。';
+    case AppLanguage.chinese:  return '• 成品：收到产品后3日内可换货·退款。';
+    case AppLanguage.mongolian:return '• Бэлэн бүтээгдэхүүн: Хүлээн авснаас хойш 3 хоногийн дотор солих/буцаах боломжтой.';
   }}
   String get groupOrderGuideViewOrderGuide { switch (language) {
     case AppLanguage.korean:   return '주문 안내 보기';

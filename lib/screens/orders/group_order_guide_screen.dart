@@ -312,6 +312,63 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           ),
           const SizedBox(height: 24),
 
+          // ── 커스텀 옵션 (허리밴드·로고·디자인 제작) ──
+          _SectionHeader2('✂️', '커스텀 옵션'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFA5D6A7)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 허리밴드 무료
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('🎨', style: TextStyle(fontSize: 15)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(loc.groupOrderGuideWaistband1,
+                          style: const TextStyle(fontSize: 13, height: 1.7, fontWeight: FontWeight.w700,
+                              color: Color(0xFF2E7D32))),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                // 로고 AI 원본파일 필수
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('📎', style: TextStyle(fontSize: 15)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(loc.groupOrderGuideWaistband2,
+                          style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF555555))),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                // 앞뒤 사진 첨부 제작
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('👕', style: TextStyle(fontSize: 15)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(loc.groupOrderGuideWaistband3,
+                          style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF555555))),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
           // 디자인 독점 사용 옵션
           _SectionHeader2('🔒', loc.groupOrderExclusiveTitle),
           const SizedBox(height: 12),
@@ -330,17 +387,31 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                   children: [
                     const Text('💎', style: TextStyle(fontSize: 16)),
                     const SizedBox(width: 8),
-                    Text(loc.groupOrderGuideExclusiveTitle,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, height: 1.6)),
+                    Expanded(
+                      child: Text(loc.groupOrderGuideExclusiveTitle,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, height: 1.6,
+                              color: Color(0xFF6A1B9A))),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(loc.groupOrderGuideExclusive1,
-                    style: const TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF555555))),
+                    style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF555555))),
+                const SizedBox(height: 4),
                 Text(loc.groupOrderGuideExclusive2,
-                    style: const TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF555555))),
-                Text(loc.groupOrderGuideExclusive3,
-                    style: const TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF888888))),
+                    style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF555555))),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF3E0),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFFFCC02)),
+                  ),
+                  child: Text(loc.groupOrderGuideExclusive3,
+                      style: const TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF7B3F00),
+                          fontWeight: FontWeight.w600)),
+                ),
               ],
             ),
           );}),
@@ -390,10 +461,40 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
               return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(loc.groupOrderGuideExchange1,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-                Text(loc.groupOrderGuideExchange2,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
+                // 기성품 교환환불 (초록 강조)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFA5D6A7)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('✅', style: TextStyle(fontSize: 14)),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(loc.groupOrderGuideExchange2,
+                            style: const TextStyle(fontSize: 13, height: 1.7,
+                                fontWeight: FontWeight.w700, color: Color(0xFF2E7D32))),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // 커스텀 주문 불가
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('❌', style: TextStyle(fontSize: 14)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(loc.groupOrderGuideExchange1,
+                          style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF555555))),
+                    ),
+                  ],
+                ),
               ],
             );}),
           ),
