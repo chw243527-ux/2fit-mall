@@ -3560,7 +3560,8 @@ class _HomeScreenState extends State<HomeScreen>
     final mq = MediaQuery.of(context);
     final bannerHeight = mq.size.height - mq.viewPadding.bottom;
 
-    if (bannerProv.loading) {
+    // 배너 데이터가 아직 없을 때만 로딩 스피너 표시 (데이터 있으면 바로 렌더링)
+    if (bannerProv.loading && activeBanners.isEmpty) {
       return SizedBox(
         height: bannerHeight,
         child: const ColoredBox(
@@ -3658,6 +3659,15 @@ class _HomeScreenState extends State<HomeScreen>
       }
     }
 
+    // ── 공통: 텍스트/CTA 오버레이 (배경과 독립 레이어 → 항상 즉시 표시) ──
+    final overlayWidget = Positioned(
+      left: 0, right: 0, bottom: 0,
+      child: _buildBannerOverlay(
+        banner: banner, title: title, cta: cta,
+        ctaIcon: ctaIcon, accent: accent, onTap: onTap,
+      ),
+    );
+
     // ── 배너 아이템: 컨테이너 전체를 꽉 채움 (AspectRatio 래퍼 없음) ──
     Widget buildVideoWithOverlay() {
       return Stack(
@@ -3673,14 +3683,8 @@ class _HomeScreenState extends State<HomeScreen>
               MaterialPageRoute(builder: (_) => const ProductListScreen()),
             ),
           ),
-          // ── 텍스트/CTA 오버레이 (하단) ──
-          Positioned(
-            left: 0, right: 0, bottom: 0,
-            child: _buildBannerOverlay(
-              banner: banner, title: title, cta: cta,
-              ctaIcon: ctaIcon, accent: accent, onTap: onTap,
-            ),
-          ),
+          // ── 텍스트/CTA: 비디오 로딩과 무관하게 즉시 표시 ──
+          overlayWidget,
         ],
       );
     }
@@ -3689,6 +3693,8 @@ class _HomeScreenState extends State<HomeScreen>
       return Stack(
         fit: StackFit.expand,
         children: [
+          // ── 배경색 (이미지 로드 전에도 오버레이가 보이도록 배경 확보) ──
+          const ColoredBox(color: Color(0xFF111111)),
           GestureDetector(
             onTap: onTap,
             child: Image.network(
@@ -3697,21 +3703,13 @@ class _HomeScreenState extends State<HomeScreen>
               alignment: Alignment.center,
               width: double.infinity,
               height: double.infinity,
-              loadingBuilder: (_, child, progress) => progress == null
-                  ? child
-                  : const ColoredBox(color: Color(0xFF1A1A1A),
-                      child: Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2))),
+              // loadingBuilder 스피너 제거 → 배경색이 placeholder 역할
               errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF2A2A2A),
                   child: Center(child: Icon(Icons.image_not_supported_rounded, color: Colors.white24, size: 48))),
             ),
           ),
-          Positioned(
-            left: 0, right: 0, bottom: 0,
-            child: _buildBannerOverlay(
-              banner: banner, title: title, cta: cta,
-              ctaIcon: ctaIcon, accent: accent, onTap: onTap,
-            ),
-          ),
+          // ── 텍스트/CTA: 이미지 로딩과 무관하게 즉시 표시 ──
+          overlayWidget,
         ],
       );
     }

@@ -1370,7 +1370,7 @@ class SizeProfileProvider extends ChangeNotifier {
 /// HomeScreen·AdminScreen 양쪽이 동일한 데이터를 참조한다.
 class BannerProvider extends ChangeNotifier {
   List<BannerModel> _banners = [];
-  bool _loading = true;
+  bool _loading = false;
   String? _error;
   StreamSubscription<List<BannerModel>>? _bannerSub;
 
