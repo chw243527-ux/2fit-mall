@@ -2328,14 +2328,21 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildCompactBanner(AppLocalizations loc) {
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
-    // 배너 높이: 동영상 16:9 비율에 맞춰 화면 너비 기준으로 정확히 계산
-    // 모바일(<600): 너비 × 9/16 (16:9 정비율, 전체 화면 가득)
-    // 태블릿(600~1024): 너비 × 9/16 (16:9 정비율)
-    // PC(≥1024): 너비 × 9/16 (16:9 정비율, 와이드 꽉 채우기)
+    // 배너 높이: 동영상 16:9 비율 + 방향(orientation) 반응형 계산
     final screenW = MediaQuery.of(context).size.width;
     final screenH = MediaQuery.of(context).size.height;
-    // 16:9 정비율 높이
-    final double bannerH = (screenW * 9 / 16).clamp(screenH * 0.30, screenH * 0.90);
+    final isPortrait = screenH > screenW; // 세로모드 여부
+    final isTablet   = screenW >= 600;    // 태블릿 이상 여부
+
+    double bannerH;
+    if (isTablet && isPortrait) {
+      // 태블릿 세로모드: 화면 높이의 45% — 세로로 길어 16:9 그대로 쓰면 너무 작아 보임
+      bannerH = screenH * 0.45;
+    } else {
+      // 모바일 / 태블릿 가로모드 / PC: 16:9 정비율
+      bannerH = screenW * 9 / 16;
+    }
+    bannerH = bannerH.clamp(screenH * 0.28, screenH * 0.90);
 
     // 모바일에서만 오버레이 헤더 표시 (PC/태블릿은 MainScreen NavBar 사용)
     final isMobile = screenW < 600;
