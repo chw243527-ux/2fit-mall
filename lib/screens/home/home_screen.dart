@@ -2100,13 +2100,20 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildMobileLayout(AppLocalizations loc) {
     final pp = context.watch<ProductProvider>();
     final groupProds = pp.groupOnlyProducts;
+    final isMobileW = MediaQuery.of(context).size.width < 600;
 
     return Stack(
       children: [
         // ── 전체 스크롤 컨텐츠 ──
-        CustomScrollView(
-          slivers: [
-            // ── ① 배너 슬라이더 (헤더 포함) ──
+        Column(
+          children: [
+            // ── ① 흰 배경 고정 헤더 (모바일만) ──
+            if (isMobileW) SafeArea(bottom: false, child: _buildFixedHeader(loc)),
+            // ── ② 나머지 스크롤 영역 ──
+            Expanded(
+              child: CustomScrollView(
+                slivers: [
+            // ── ① 배너 슬라이더 (오버레이 헤더 없음) ──
             SliverToBoxAdapter(child: _buildCompactBanner(loc)),
             // ── ② 단체주문 전용 상품 헤더 ──
             SliverToBoxAdapter(child: _buildGroupSectionHeader(loc, groupProds.length)),
@@ -2138,6 +2145,9 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             // 하단 여백
             const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                ],
+              ),
+            ),
           ],
         ),
         // ── FAB 채팅버튼 ──
@@ -2341,16 +2351,9 @@ class _HomeScreenState extends State<HomeScreen>
       // 모바일: 16:9 정비율 (너비 = 화면 너비) → 화면 높이의 최대 90%까지 허용
       bannerH = screenW * 9 / 16;
     }
-    // 최소/최대 안전 범위 — 모바일은 최대 90% 허용
-    bannerH = bannerH.clamp(screenH * 0.22, isPC ? screenH * 0.75 : screenH * 0.90);
-
-    // 모바일에서만 오버레이 헤더 표시 (PC/태블릿은 MainScreen NavBar 사용)
-    final isMobile = screenW < 600;
-
-    // 헤더 높이 = 상단 시스템바(statusBar) + 56px 헤더
-    // → 배너 영상이 헤더 아래에서 시작하도록 상단 패딩 적용
-    final statusBarH = mq.viewPadding.top;
-    final headerH    = isMobile ? statusBarH + 56.0 : 0.0;
+    // 최소/최대 안전 범위
+    // 모바일: 헤더가 별도 존재하므로 배너는 잔여 화면 채우기 (최대 60%)
+    bannerH = bannerH.clamp(screenH * 0.20, isPC ? screenH * 0.75 : screenH * 0.60);
 
     // Firestore 로딩 중이거나 배너 없어도 → 로컬 asset 동영상 즉시 표시
     if (bannerProv.loading || activeBanners.isEmpty) {
@@ -2358,23 +2361,20 @@ class _HomeScreenState extends State<HomeScreen>
         height: bannerH,
         child: Stack(
           children: [
-            // 로컬 asset 동영상 — 헤더 아래부터 시작
+            // 로컬 asset 동영상 — 헤더 없이 바로 시작
             Positioned.fill(
               child: Container(
                 color: Colors.black,
-                child: Padding(
-                  padding: EdgeInsets.only(top: headerH),
-                  child: Center(
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
-                      child: VideoBannerWidget(
-                        videoUrl: 'assets/images/banner_video.mp4',
-                        thumbnailUrl: null,
-                        onTap: null,
-                        onProductTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ProductListScreen()),
-                        ),
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: VideoBannerWidget(
+                      videoUrl: 'assets/images/banner_video.mp4',
+                      thumbnailUrl: null,
+                      onTap: null,
+                      onProductTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProductListScreen()),
                       ),
                     ),
                   ),
@@ -2390,8 +2390,6 @@ class _HomeScreenState extends State<HomeScreen>
                   child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
                 ),
               ),
-            if (isMobile)
-              Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
           ],
         ),
       );
@@ -2401,9 +2399,8 @@ class _HomeScreenState extends State<HomeScreen>
       height: bannerH,
       child: Stack(
         children: [
-          // 배너 슬라이더 — 헤더 아래부터 시작
-          Positioned(
-            top: headerH, left: 0, right: 0, bottom: 0,
+          // 배너 슬라이더 — 헤더 없이 꽉 채워 시작
+          Positioned.fill(
             child: PageView.builder(
               controller: _mobileBannerCtrl,
               onPageChanged: (i) => setState(() => _bannerIndex = i),
@@ -2411,9 +2408,6 @@ class _HomeScreenState extends State<HomeScreen>
               itemBuilder: (_, i) => _buildFullBannerItem(activeBanners[i], i, loc),
             ),
           ),
-          // 상단 오버레이 헤더 (모바일만) — 항상 최상단
-          if (isMobile)
-            Positioned(top: 0, left: 0, right: 0, child: _buildOverlayHeader(loc)),
           // 우측 세로 인디케이터
           Positioned(
             right: 12, top: 0, bottom: 0,
