@@ -3626,7 +3626,7 @@ class AppLocalizations {
     case AppLanguage.mongolian:return '• 1 жилийн онцгой эрх үнэгүй — дизайныг 1 жилийн хугацаанд бусдад өгөхгүй.';
   }}
   String get groupOrderGuideExclusive2 { switch (language) {
-    case AppLanguage.korean:   return '• 별도 이야기 없으면 매년 2월 1일 홈페이지에 업로드로 변경됩니다.';
+    case AppLanguage.korean:   return '• 별도 이야기 없으면 매년 2월 1일 홈페이지에 업로드 됩니다.';
     case AppLanguage.english:  return '• Unless otherwise agreed, design description will be updated to the website every Feb 1.';
     case AppLanguage.japanese: return '• 別途の話し合いがない限り、毎年2月1日にホームページにアップロード説明へ変更されます。';
     case AppLanguage.chinese:  return '• 如无另行协商，每年2月1日将变更为网站上传说明。';
