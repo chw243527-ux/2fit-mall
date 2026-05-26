@@ -1003,6 +1003,10 @@ class _HomeScreenState extends State<HomeScreen>
                       videoUrl: videoUrl,
                       thumbnailUrl: b.imageUrl,
                       onTap: onTap,
+                      onProductTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                      ),
                     )
                   else if (b.imageUrl.isNotEmpty)
                     Positioned.fill(
@@ -2357,6 +2361,10 @@ class _HomeScreenState extends State<HomeScreen>
                 videoUrl: 'assets/assets/images/banner_video.mp4',
                 thumbnailUrl: null,
                 onTap: null,
+                onProductTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                ),
               ),
             ),
             // Firestore 로딩 중이면 하단에 가벼운 인디케이터만
@@ -3682,6 +3690,11 @@ class _HomeScreenState extends State<HomeScreen>
             videoUrl: videoUrl,           // 폴백용 Firebase URL
             thumbnailUrl: imageUrl,       // poster 이미지 (로드 전 표시)
             onTap: onTap,
+            // 영상 종료 후 CTA 버튼 → 전체 상품 목록으로 이동
+            onProductTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProductListScreen()),
+            ),
           )
         else if (imageUrl.isNotEmpty)
           Positioned.fill(

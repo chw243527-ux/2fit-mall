@@ -6,12 +6,14 @@ class VideoBannerWidget extends StatelessWidget {
   final String videoUrl;
   final String? thumbnailUrl;
   final VoidCallback? onTap;
+  final VoidCallback? onProductTap; // 웹 전용 — 모바일에서는 무시
 
   const VideoBannerWidget({
     super.key,
     required this.videoUrl,
     this.thumbnailUrl,
     this.onTap,
+    this.onProductTap,
   });
 
   @override
