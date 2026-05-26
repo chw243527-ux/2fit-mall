@@ -143,35 +143,52 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
-    // PC 웹이면 PC 전용 레이아웃 사용
-    if (isPcWeb(context)) return _buildPcLayout(product, isAdmin, loc);
+    // 모바일 / 태블릿 / PC 모두 동일한 탑텐 스타일 레이아웃 사용
+    // PC/태블릿(900px 이상)에서는 콘텐츠 최대 너비 900px 제한 + 중앙 정렬
+    final screenW = MediaQuery.of(context).size.width;
+    final isWide  = screenW >= 900;
+    final contentW = isWide ? 900.0 : screenW;
 
     return wrapWithPopScope(context, Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isWide ? const Color(0xFFF0F0F0) : Colors.white,
       body: Stack(
         children: [
-          CustomScrollView(
-            controller: _scrollCtrl,
-            cacheExtent: 1200, // 미리 렌더링 범위 확대
-            slivers: [
-              _buildSliverAppBarOnly(product),
-              SliverToBoxAdapter(child: _buildImageSlider(product)),
-              SliverToBoxAdapter(child: _buildThumbnailBar(product)),
-              SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
-              SliverToBoxAdapter(child: _buildBasicInfo(product)),
-              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
-              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
-              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
-              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
-              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection6SizeChart(product, isAdmin))),
-              SliverToBoxAdapter(child: RepaintBoundary(child: _buildReviewSection(product))),
-              SliverToBoxAdapter(child: _buildWashingTipSection(product)),
-              const SliverToBoxAdapter(child: SizedBox(height: 120)),
-            ],
+          // ── PC/태블릿: 양쪽 여백을 회색으로 채워 중앙 카드 느낌 ──
+          if (isWide)
+            Positioned.fill(child: const ColoredBox(color: Color(0xFFF0F0F0))),
+          // ── 실제 콘텐츠: 너비 제한 + 중앙 정렬 ──
+          Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: contentW,
+              child: CustomScrollView(
+                controller: _scrollCtrl,
+                cacheExtent: 1200,
+                slivers: [
+                  _buildSliverAppBarOnly(product),
+                  SliverToBoxAdapter(child: _buildImageSlider(product)),
+                  SliverToBoxAdapter(child: _buildThumbnailBar(product)),
+                  SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
+                  SliverToBoxAdapter(child: _buildBasicInfo(product)),
+                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
+                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
+                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
+                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
+                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection6SizeChart(product, isAdmin))),
+                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildReviewSection(product))),
+                  SliverToBoxAdapter(child: _buildWashingTipSection(product)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                ],
+              ),
+            ),
           ),
-          Positioned(
-            bottom: 0, left: 0, right: 0,
-            child: _buildBottomBar(product),
+          // ── 하단 구매 버튼: PC/태블릿에서도 중앙 너비에 맞춰 배치 ──
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: SizedBox(
+              width: contentW,
+              child: _buildBottomBar(product),
+            ),
           ),
         ],
       ),
@@ -746,13 +763,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 이미지 슬라이더 (탑텐 스타일: 전체화면형, 하단 바 인디케이터) ──
   Widget _buildImageSlider(ProductModel product) {
-    final screenW = MediaQuery.of(context).size.width;
-    // 4:5 비율로 컨테이너 고정 → 세로형 상품 사진 전신 표시
-    final imgH = screenW * (5 / 4);
     final imgCount = product.images.isNotEmpty ? product.images.length : 1;
 
+    // LayoutBuilder로 실제 부모 너비 기준 → PC/태블릿/모바일 모두 자동 대응
+    return LayoutBuilder(
+      builder: (_, constraints) {
+        final w = constraints.maxWidth;
+        final imgH = w * (5 / 4); // 4:5 비율 고정
+
     return Container(
-      width: screenW,
+      width: w,
       height: imgH,
       color: const Color(0xFFF8F8F8),
       child: Stack(
@@ -770,7 +790,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     ? Image.network(
                         url,
                         fit: BoxFit.contain,
-                        width: screenW,
+                        width: w,
                         height: imgH,
                         gaplessPlayback: true,
                         filterQuality: FilterQuality.high,
@@ -818,6 +838,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           ),
         ],
       ),
+    );
+      }, // LayoutBuilder builder
     );
   }
 
