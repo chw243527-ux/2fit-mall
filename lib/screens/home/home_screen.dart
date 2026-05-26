@@ -2514,21 +2514,24 @@ class _HomeScreenState extends State<HomeScreen>
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                    child: p.images.isNotEmpty
-                        ? Image.network(
-                            p.images.first,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: const Color(0xFFEEEEEE),
-                              child: const Icon(Icons.image_not_supported_outlined, color: Color(0xFFBBBBBB), size: 36),
-                            ),
-                          )
-                        : Container(
-                            color: const Color(0xFFEEEEEE),
-                            child: const Icon(Icons.image_not_supported_outlined, color: Color(0xFFBBBBBB), size: 36),
-                          ),
+                    child: Container(
+                      width: double.infinity,
+                      height: double.infinity,
+                      color: const Color(0xFFF8F8F8), // 여백 배경 (흰색 계열)
+                      child: p.images.isNotEmpty
+                          ? Image.network(
+                              p.images.first,
+                              fit: BoxFit.contain,   // 이미지 전체 표시 (잘림 없음)
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.image_not_supported_outlined,
+                                color: Color(0xFFBBBBBB), size: 36),
+                            )
+                          : const Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Color(0xFFBBBBBB), size: 36),
+                    ),
                   ),
                   // GROUP ONLY 배지
                   Positioned(
