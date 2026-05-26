@@ -165,6 +165,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection6SizeChart(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildReviewSection(product))),
+              SliverToBoxAdapter(child: _buildWashingTipSection(product)),
               const SliverToBoxAdapter(child: SizedBox(height: 120)),
             ],
           ),
@@ -1781,9 +1782,30 @@ $productUrl
             product.colors.join(', '),
             style: const TextStyle(fontSize: 13, color: Color(0xFF444444), height: 1.8),
           ),
-          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
 
-          // ─ WASHING TIP
+  // 세탁 주의사항 리스트
+  static const List<String> _washingTips = [
+    '세제를 풀어 놓은 물에 담가 두지 마시고 세탁 시 수축 및 변형 방지를 위해 찬물 세탁을 권장합니다.',
+    '땀과 물에 젖었을 경우 즉시 세탁하십시오.',
+    '세탁 시 지퍼나 단추를 잠근 상태에서 세탁하여 주십시오.',
+    '흰색 제품과 유색 제품은 반드시 구분하여 별도 세탁하십시오.',
+    '이염 방지를 위해 색상이 있는 옷은 단독 세탁 권장 드리며, 염소, xs백 제품은 사용하지 않는 것을 권장 드립니다.',
+    '탈수 시 약하게 짜시고 탈수 후 뭉친 상태로 두시면 이염이 될 수 있으니 바로 건조하여 주십시오.',
+    '열풍 건조는 제품 수축의 원인이 될 수 있으므로 열풍 건조를 하지 마십시오.',
+  ];
+
+  // ── 최하단 WASHING TIP 독립 섹션 ──
+  Widget _buildWashingTipSection(ProductModel product) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           const Divider(height: 1, color: Color(0xFFEEEEEE)),
           const SizedBox(height: 20),
           Row(
@@ -1824,17 +1846,6 @@ $productUrl
       ),
     );
   }
-
-  // 세탁 주의사항 리스트
-  static const List<String> _washingTips = [
-    '세제를 풀어 놓은 물에 담가 두지 마시고 세탁 시 수축 및 변형 방지를 위해 찬물 세탁을 권장합니다.',
-    '땀과 물에 젖었을 경우 즉시 세탁하십시오.',
-    '세탁 시 지퍼나 단추를 잠근 상태에서 세탁하여 주십시오.',
-    '흰색 제품과 유색 제품은 반드시 구분하여 별도 세탁하십시오.',
-    '이염 방지를 위해 색상이 있는 옷은 단독 세탁 권장 드리며, 염소, xs백 제품은 사용하지 않는 것을 권장 드립니다.',
-    '탈수 시 약하게 짜시고 탈수 후 뭉친 상태로 두시면 이염이 될 수 있으니 바로 건조하여 주십시오.',
-    '열풍 건조는 제품 수축의 원인이 될 수 있으므로 열풍 건조를 하지 마십시오.',
-  ];
 
   Widget _infoBlockTitle(String title) {
     return Text(
