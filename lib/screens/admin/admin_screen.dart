@@ -10463,8 +10463,27 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                       _selTightsSub = '';
                     }
                   }), ac: const Color(0xFF6A1B9A)),
-                  _chip('활성화', _isActive, (v) => setState(() => _isActive = v), ac: Colors.green),
+                  _chip('활성화(판매중)', _isActive, (v) => setState(() => _isActive = v), ac: Colors.green),
                 ]),
+                // 신규 등록 시 활성화 안내 메시지
+                if (!_isEdit)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6, bottom: 2),
+                    child: Row(children: [
+                      Icon(Icons.check_circle_rounded, size: 13, color: _isActive ? Colors.green : const Color(0xFFBBBBBB)),
+                      const SizedBox(width: 4),
+                      Text(
+                        _isActive
+                            ? '등록 즉시 판매 가능 상태로 활성화됩니다'
+                            : '비활성화 상태로 등록됩니다 (목록에 표시 안 됨)',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: _isActive ? Colors.green.shade700 : const Color(0xFF888888),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ]),
+                  ),
                 const SizedBox(height: 8),
               ]),
             ),

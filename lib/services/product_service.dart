@@ -964,12 +964,42 @@ class ProductService {
 
   static Future<void> addProduct(ProductModel product) async {
     if (!_loaded) await _loadFromFirestore();
-    _products.add(product);
+    // isActive=true, stockCount 기본값 보장
+    final safeProduct = product.stockCount > 0 && product.isActive
+        ? product
+        : ProductModel(
+            id: product.id,
+            name: product.name,
+            category: product.category,
+            subCategory: product.subCategory,
+            price: product.price,
+            originalPrice: product.originalPrice,
+            description: product.description,
+            images: product.images,
+            sizes: product.sizes,
+            colors: product.colors,
+            material: product.material,
+            isNew: product.isNew,
+            isSale: product.isSale,
+            isFreeShipping: product.isFreeShipping,
+            isGroupOnly: product.isGroupOnly,
+            isActive: true,                          // 항상 활성화
+            rating: product.rating,
+            reviewCount: product.reviewCount,
+            stockCount: product.stockCount > 0 ? product.stockCount : 100,  // 최소 100
+            createdAt: product.createdAt,
+            sectionImages: product.sectionImages,
+            nameTranslations: product.nameTranslations,
+            descriptionTranslations: product.descriptionTranslations,
+          );
+    _products.add(safeProduct);
+    _allProducts.add(safeProduct);               // 관리자 목록에도 즉시 반영
     _cache = List.from(_products);
     await _persistToLocal();
     // Firestore에도 저장
     try {
-      await _db.collection('products').doc(product.id).set(product.toJson());
+      await _db.collection('products').doc(safeProduct.id).set(safeProduct.toJson());
+      if (kDebugMode) debugPrint('✅ Firestore 상품 등록 완료: ${safeProduct.id} (isActive=true, stockCount=${safeProduct.stockCount})');
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ Firestore 상품 저장 실패: $e');
     }
@@ -978,8 +1008,15 @@ class ProductService {
   static Future<bool> updateProduct(ProductModel updated) async {
     if (!_loaded) await _loadFromFirestore();
     final idx = _products.indexWhere((p) => p.id == updated.id);
-    if (idx < 0) return false;
-    _products[idx] = updated;
+    if (idx >= 0) _products[idx] = updated;
+    // _allProducts도 동기화
+    final allIdx = _allProducts.indexWhere((p) => p.id == updated.id);
+    if (allIdx >= 0) {
+      _allProducts[allIdx] = updated;
+    } else {
+      _allProducts.add(updated);
+    }
+    if (idx < 0 && allIdx < 0) return false;
     _cache = List.from(_products);
     await _persistToLocal();
     // Firestore 업데이트
