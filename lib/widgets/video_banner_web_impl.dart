@@ -40,7 +40,6 @@ class VideoBannerWidget extends StatefulWidget {
 
 class _VideoBannerWidgetState extends State<VideoBannerWidget> {
   late String _viewType;
-  bool _isMuted = true;
   Timer? _playRetryTimer;
 
   String get _effectiveVideoUrl => VideoBannerWidget.localAssetVideo;
@@ -125,56 +124,11 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
     });
   }
 
-  void toggleMute() {
-    final video = _videoElements[_viewType];
-    if (video == null) return;
-    setState(() {
-      _isMuted = !_isMuted;
-      video.muted = _isMuted;
-      video.volume = _isMuted ? 0.0 : 1.0;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    final screenW = MediaQuery.of(context).size.width;
-    final isMobile = screenW < 600;
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // ── HTML video 엘리먼트 ──
-        GestureDetector(
-          onTap: widget.onTap,
-          child: HtmlElementView(viewType: _viewType),
-        ),
-
-        // ── 음소거 토글 버튼 (우하단) ──
-        Positioned(
-          right: isMobile ? 16 : 20,
-          bottom: isMobile ? 24 : 28,
-          child: GestureDetector(
-            onTap: toggleMute,
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.45),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  width: 1,
-                ),
-              ),
-              child: Icon(
-                _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-          ),
-        ),
-      ],
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: HtmlElementView(viewType: _viewType),
     );
   }
 }
