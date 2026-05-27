@@ -124,8 +124,145 @@ class _HomeScreenState extends State<HomeScreen>
   final GlobalKey<ScaffoldState> _pcScaffoldKey = GlobalKey<ScaffoldState>();
 
   Widget _buildPcLayout(AppLocalizations loc) {
-    // 홈화면: 배너만 표시 (전체 화면 높이 풀스크린)
-    return _buildPcBannerOnly(loc);
+    final bannerProv = context.watch<BannerProvider>();
+    final activeBanners = bannerProv.activeBanners;
+
+    // PC: NavBar 고정 + [배너(뷰포트 100vh) + 스크롤 섹션] 전체 스크롤
+    return Scaffold(
+      key: _pcScaffoldKey,
+      backgroundColor: Colors.white,
+      drawer: AppDrawer(onNavigateToMyPage: () => widget.onNavigate?.call(3)),
+      floatingActionButton: _buildChatFAB(loc),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: Column(
+        children: [
+          // ── PC NavBar (상단 고정) ──
+          _buildPcNavBar(loc),
+          // ── 스크롤 영역 전체 ──
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // ── ① 배너: 뷰포트 높이 전체 ──
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height - _kPcNavBarHeight,
+                    child: activeBanners.isEmpty
+                        ? _buildPcLocalBanner(loc)
+                        : _buildPcBannerBody(loc, activeBanners),
+                  ),
+                  // ── ② 단체주문 섹션 ──
+                  _buildPcHomeSectionWrapper(
+                    child: _buildPcGroupOrderSectionV2(loc),
+                  ),
+                  // ── ③ 베스트 상품 ──
+                  _buildPcHomeSectionWrapper(
+                    color: const Color(0xFFFAFAFA),
+                    child: _buildBestSection(loc),
+                  ),
+                  // ── ④ 신상품 ──
+                  _buildPcHomeSectionWrapper(
+                    child: _buildNewArrivalsSection(loc),
+                  ),
+                  const SizedBox(height: 60),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // PC NavBar 높이 상수
+  static const double _kPcNavBarHeight = 64.0;
+
+  // PC 섹션 공통 래퍼 (maxWidth 1280 + 좌우 패딩 + 배경색)
+  Widget _buildPcHomeSectionWrapper({required Widget child, Color color = Colors.white}) {
+    return Container(
+      color: color,
+      width: double.infinity,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // PC 단체주문 섹션 (홈용 5컬럼 그리드)
+  Widget _buildPcGroupOrderSectionV2(AppLocalizations loc) {
+    final pp = context.watch<ProductProvider>();
+    List<ProductModel> allProds = pp.products.isNotEmpty
+        ? pp.products
+        : ProductService.getAllProductsSync();
+    final groupProds = allProds
+        .where((p) => p.isGroupOnly && p.isActive)
+        .toList()
+      ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('GROUP ORDER', style: TextStyle(
+                  fontSize: 10, fontWeight: FontWeight.w800,
+                  color: Color(0xFFFF6B35), letterSpacing: 2.5,
+                )),
+                const SizedBox(height: 4),
+                Text(loc.homeGroupOnly, style: const TextStyle(
+                  fontSize: 28, fontWeight: FontWeight.w900,
+                  color: Color(0xFF111111), letterSpacing: -0.5, height: 1.1,
+                )),
+              ],
+            ),
+            const Spacer(),
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const ProductListScreen(initialCategory: '단체주문'))),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF111111),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+                child: const Text('VIEW ALL', style: TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w900,
+                  color: Colors.white, letterSpacing: 1.5,
+                )),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        if (groupProds.isEmpty)
+          const SizedBox(
+            height: 120,
+            child: Center(child: Text('단체주문 상품 준비 중',
+                style: TextStyle(color: Color(0xFFAAAAAA), fontSize: 14))),
+          )
+        else
+          LayoutBuilder(builder: (ctx, constraints) {
+            const cols = 5;
+            const sp = 16.0;
+            final cardW = (constraints.maxWidth - sp * (cols - 1)) / cols;
+            return Wrap(
+              spacing: sp, runSpacing: sp,
+              children: groupProds.take(5).map((p) =>
+                SizedBox(width: cardW, child: _buildPcHomeProductCard(p))
+              ).toList(),
+            );
+          }),
+      ],
+    );
   }
 
   // ── PC 카테고리 드로어 (햄버거 버튼으로 열림) ──
@@ -2176,10 +2313,12 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ─── 모바일 레이아웃 ────────────────────────────
+  // ─── 모바일 / 태블릿 레이아웃 (<900px) ──────────────────
   Widget _buildMobileLayout(AppLocalizations loc) {
     final pp = context.watch<ProductProvider>();
-    final isMobileW = MediaQuery.of(context).size.width < 600;
+    final screenW = MediaQuery.of(context).size.width;
+    final isMobile  = screenW < 600;          // <600: 모바일
+    final isTablet  = screenW >= 600;         // 600~899: 태블릿
 
     // Firestore 로딩 중이면 로컬 캐시에서 즉시 폴백 → 스피너 없이 바로 표시
     final groupProds = pp.groupOnlyProducts.isNotEmpty
@@ -2188,10 +2327,8 @@ class _HomeScreenState extends State<HomeScreen>
             .where((p) => p.isGroupOnly && p.isActive)
             .toList();
 
-    // 인기순 정렬 (salesCount 내림차순)
     final sortedGroupProds = [...groupProds]
       ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
-    // 미리보기: 상위 5개, 전체보기 클릭 시 전체 표시
     const previewCount = 5;
     final previewProds = sortedGroupProds.take(previewCount).toList();
     final hasMore = sortedGroupProds.length > previewCount;
@@ -2200,31 +2337,43 @@ class _HomeScreenState extends State<HomeScreen>
       children: [
         Column(
           children: [
-            // ── ① 고정 헤더 (모바일) ──
-            if (isMobileW) SafeArea(bottom: false, child: _buildFixedHeader(loc)),
-            // ── ② 스크롤 영역 ──
+            // ── 헤더 ──
+            // 모바일(<600): 기존 고정 헤더
+            if (isMobile)
+              SafeArea(bottom: false, child: _buildFixedHeader(loc)),
+            // 태블릿(600~899): PC NavBar 스타일 헤더
+            if (isTablet)
+              _buildPcNavBar(loc),
+
+            // ── 스크롤 영역 ──
             Expanded(
               child: CustomScrollView(
                 slivers: [
-            // ── 배너 ──
-            SliverToBoxAdapter(child: _buildCompactBanner(loc)),
+                  // ── 배너 ──
+                  SliverToBoxAdapter(child: _buildCompactBanner(loc)),
 
-            // ── 단체주문 전용 헤더 ──
-            SliverToBoxAdapter(child: _buildGroupSectionHeader(loc, groupProds.length)),
+                  // ── 단체주문 전용 헤더 ──
+                  SliverToBoxAdapter(
+                      child: _buildGroupSectionHeader(loc, groupProds.length)),
 
-            // ── 단체주문 상품: 인기순 5개 가로 진열 + 전체보기 ──
-            // 스피너 제거 → 로컬 캐시 즉시 표시, Firestore 로드 후 자동 갱신
-            if (groupProds.isEmpty)
-              SliverToBoxAdapter(child: _buildGroupEmptyState(loc))
-            else
-              SliverToBoxAdapter(
-                child: _buildGroupProductsRow(loc, previewProds, hasMore, sortedGroupProds),
-              ),
+                  // ── 단체주문 상품 ──
+                  if (groupProds.isEmpty)
+                    SliverToBoxAdapter(child: _buildGroupEmptyState(loc))
+                  else
+                    SliverToBoxAdapter(
+                      child: _buildGroupProductsRow(
+                          loc, previewProds, hasMore, sortedGroupProds),
+                    ),
 
-            // ── 베스트 상품 섹션 ──
-            SliverToBoxAdapter(child: _buildBestSection(loc)),
+                  // ── 베스트 상품 ──
+                  SliverToBoxAdapter(child: _buildBestSection(loc)),
 
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                  // 태블릿: 신상품도 추가
+                  if (isTablet)
+                    SliverToBoxAdapter(child: _buildNewArrivalsSection(loc)),
+
+                  SliverToBoxAdapter(
+                      child: SizedBox(height: isMobile ? 80 : 48)),
                 ],
               ),
             ),

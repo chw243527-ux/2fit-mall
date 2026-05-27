@@ -142,10 +142,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   @override
   Widget build(BuildContext context) {
     final isAdmin = context.watch<UserProvider>().isAdmin;
-
-    // ProductProvider를 watch → 상품 기본 정보(가격, 이름 등) 변경 시 즉시 반영
-    // ⚠️ _sectionImages는 build()에서 절대 덮어쓰지 않음
-    //    (덮어쓰면 업로드/삭제 직후 setState가 무효화됨)
     final productProvider = context.watch<ProductProvider>();
     final liveProduct = productProvider.products
         .firstWhere((p) => p.id == widget.product.id, orElse: () => widget.product);
@@ -153,62 +149,253 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
-    // PC/모바일 모두 전체 너비 사용 (좌우 여백 없음)
+    final screenW = MediaQuery.of(context).size.width;
+    final isPc     = screenW >= 900;
+    final isTablet = screenW >= 600 && screenW < 900;
+
+    if (isPc) return _buildPcDetailLayout(context, product, isAdmin);
+    if (isTablet) return _buildTabletDetailLayout(context, product, isAdmin);
+    return _buildMobileDetailLayout(context, product, isAdmin);
+  }
+
+  // ── 모바일 상세 (<600px) — 기존 레이아웃 그대로 ──
+  Widget _buildMobileDetailLayout(BuildContext context, ProductModel product, bool isAdmin) {
     return wrapWithPopScope(context, Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // ── 콘텐츠: 전체 너비 ──
           CustomScrollView(
             controller: _scrollCtrl,
             cacheExtent: 1200,
             slivers: [
-              // ① 앱바
               _buildSliverAppBarOnly(product),
-              // ② 이미지 슬라이더 + 썸네일 바
               SliverToBoxAdapter(child: _buildImageSlider(product)),
               SliverToBoxAdapter(child: _buildThumbnailBar(product)),
-              // ③ 기본정보 (브랜드명/상품명/별점/가격/색상/시즌/해시태그/배송비/포인트)
               SliverToBoxAdapter(child: _buildBasicInfo(product)),
-              // ④ 두꺼운 회색 구분선 + 브랜드 로고 섹션
               SliverToBoxAdapter(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
-                    _buildToptenBrandSection(product),
-                    const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
-                  ],
-                ),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
+                  _buildToptenBrandSection(product),
+                  const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
+                ]),
               ),
-              // ⑤ 탭바 (sticky — 스크롤해도 앱바 바로 아래 고정)
               SliverPersistentHeader(
                 pinned: true,
                 delegate: _ToptenTabBarDelegate(_buildToptenTabBar()),
               ),
-              // ⑥ 영문 대제목 + 메인 상품 이미지 배너
               SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
-              // ⑦ INFO / PRODUCT / MATERIAL / COLOR 블록
               SliverToBoxAdapter(child: KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product))),
-              // ⑧ 어드민 업로드 섹션 이미지들
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
-              // ⑨ 사이즈 차트
               SliverToBoxAdapter(child: RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin))),
-              // ⑩ WASHING TIP
               SliverToBoxAdapter(child: KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product))),
-              // ⑪ 리뷰 섹션 (최하단)
               SliverToBoxAdapter(child: RepaintBoundary(key: _keyReview, child: _buildReviewSection(product))),
-              // 하단 여백
               const SliverToBoxAdapter(child: SizedBox(height: 120)),
             ],
           ),
-          // ── 하단 구매 버튼 ──
           Align(
             alignment: Alignment.bottomCenter,
             child: _buildBottomBar(product),
+          ),
+        ],
+      ),
+    ));
+  }
+
+  // ── 태블릿 상세 (600~899px) — 중앙 정렬 + 최대폭 720 ──
+  Widget _buildTabletDetailLayout(BuildContext context, ProductModel product, bool isAdmin) {
+    return wrapWithPopScope(context, Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: Stack(
+        children: [
+          CustomScrollView(
+            controller: _scrollCtrl,
+            cacheExtent: 1200,
+            slivers: [
+              _buildSliverAppBarOnly(product),
+              // 콘텐츠 영역 maxWidth 720 중앙 정렬
+              SliverToBoxAdapter(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: Container(
+                      color: Colors.white,
+                      child: Column(
+                        children: [
+                          _buildImageSlider(product),
+                          _buildThumbnailBar(product),
+                          _buildBasicInfo(product),
+                          const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
+                          _buildToptenBrandSection(product),
+                          const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
+                          _buildMobileDesignImageBanner(product),
+                          KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product)),
+                          RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
+                          RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
+                          RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
+                          RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
+                          RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
+                          KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product)),
+                          RepaintBoundary(key: _keyReview, child: _buildReviewSection(product)),
+                          const SizedBox(height: 120),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: _buildBottomBar(product),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ));
+  }
+
+  // ── PC 상세 (≥900px) — 2컬럼: 좌 이미지 고정 / 우 정보+스크롤 ──
+  Widget _buildPcDetailLayout(BuildContext context, ProductModel product, bool isAdmin) {
+    final screenW = MediaQuery.of(context).size.width;
+    final screenH = MediaQuery.of(context).size.height;
+    // 전체 최대 1280, 좌우 나눔: 이미지 45% / 정보 55%
+    final contentW = screenW.clamp(900.0, 1280.0);
+    final imgColW  = contentW * 0.45;
+    final infoColW = contentW * 0.55;
+
+    return wrapWithPopScope(context, Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: Column(
+        children: [
+          // ── 상단 앱바 (전체 너비) ──
+          Material(
+            color: Colors.white,
+            elevation: 0.5,
+            child: SafeArea(
+              bottom: false,
+              child: SizedBox(
+                height: 56,
+                child: Row(
+                  children: [
+                    // 뒤로가기
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_rounded, size: 18, color: Color(0xFF1A1A1A)),
+                      onPressed: () => goBackOrHome(context),
+                    ),
+                    // 홈
+                    _appBarIconBtn(
+                      icon: Icons.home_outlined,
+                      onTap: () => Navigator.pushAndRemoveUntil(context,
+                        MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 0)),
+                        (r) => false),
+                    ),
+                    _appBarIconBtn(
+                      icon: Icons.search_rounded,
+                      onTap: () => Navigator.pushAndRemoveUntil(context,
+                        MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 1)),
+                        (r) => false),
+                    ),
+                    _appBarIconBtn(
+                      icon: Icons.shopping_bag_outlined,
+                      onTap: () => Navigator.pushAndRemoveUntil(context,
+                        MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 2)),
+                        (r) => false),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // ── 본문: 2컬럼 ──
+          Expanded(
+            child: Center(
+              child: SizedBox(
+                width: contentW,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── 좌: 이미지 슬라이더 (스크롤해도 고정) ──
+                    SizedBox(
+                      width: imgColW,
+                      height: screenH - 56,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _buildImageSlider(product),
+                            _buildThumbnailBar(product),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // 세로 구분선
+                    Container(width: 1, color: const Color(0xFFEEEEEE)),
+                    // ── 우: 상품 정보 + 스크롤 ──
+                    SizedBox(
+                      width: infoColW - 1,
+                      height: screenH - 56,
+                      child: Stack(
+                        children: [
+                          CustomScrollView(
+                            controller: _scrollCtrl,
+                            cacheExtent: 1200,
+                            slivers: [
+                              SliverToBoxAdapter(child: Container(
+                                color: Colors.white,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // 기본 정보
+                                    _buildBasicInfo(product),
+                                    const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
+                                    _buildToptenBrandSection(product),
+                                    const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
+                                  ],
+                                ),
+                              )),
+                              // 탭바 sticky
+                              SliverPersistentHeader(
+                                pinned: true,
+                                delegate: _ToptenTabBarDelegate(_buildToptenTabBar()),
+                              ),
+                              SliverToBoxAdapter(child: Container(
+                                color: Colors.white,
+                                child: Column(
+                                  children: [
+                                    _buildMobileDesignImageBanner(product),
+                                    KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product)),
+                                    RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
+                                    RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
+                                    RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
+                                    RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
+                                    RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
+                                    KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product)),
+                                    RepaintBoundary(key: _keyReview, child: _buildReviewSection(product)),
+                                    const SizedBox(height: 120),
+                                  ],
+                                ),
+                              )),
+                            ],
+                          ),
+                          // 구매 버튼 (우측 컬럼 하단 고정)
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: _buildBottomBar(product),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
