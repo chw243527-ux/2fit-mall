@@ -206,11 +206,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
                   // ⑨ 사이즈 차트
                   SliverToBoxAdapter(child: RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin))),
-                  // ⑩ 리뷰 섹션
-                  SliverToBoxAdapter(child: RepaintBoundary(key: _keyReview, child: _buildReviewSection(product))),
-                  // ⑪ WASHING TIP (최하단)
+                  // ⑩ WASHING TIP
                   SliverToBoxAdapter(child: KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product))),
-                  // ⑪ 하단 여백
+                  // ⑪ 리뷰 섹션 (최하단)
+                  SliverToBoxAdapter(child: RepaintBoundary(key: _keyReview, child: _buildReviewSection(product))),
+                  // 하단 여백
                   const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
               ),
@@ -1171,8 +1171,8 @@ $productUrl
     final tabs = [
       ('상품정보', 0, _keyInfo),
       ('사이즈',   1, _keySize),
-      ('리뷰',     2, _keyReview),
-      ('세탁',     3, _keyWashing),
+      ('세탁',     2, _keyWashing),
+      ('리뷰',     3, _keyReview),
     ];
     return Container(
       color: Colors.white,
@@ -2601,22 +2601,21 @@ $productUrl
       'https://firebasestorage.googleapis.com/v0/b/fit-mall.firebasestorage.app/o/section_images%2Flength_female_default.jpg?alt=media';
 
   Widget _buildGenderLengthImageSection(bool isAdmin) {
-    // 기존 통합키 s2_length 이미지도 표시 (하위호환)
     final legacyImgs = _sectionImages['s2_length'] ?? [];
     final maleImgs   = _sectionImages['s2_length_male'] ?? [];
     final femaleImgs = _sectionImages['s2_length_female'] ?? [];
 
-    // 이미지 없으면 기본 이미지 사용 (항상 표시)
-    final effectiveMaleImgs   = maleImgs.isNotEmpty ? maleImgs : (legacyImgs.isNotEmpty ? legacyImgs : [_defaultMaleLengthImg]);
-    final effectiveFemaleImgs = femaleImgs.isNotEmpty ? femaleImgs : [_defaultFemaleLengthImg];
-
-    // 항상 표시
+    // 통합 이미지: 남녀 구분 없이 표시할 이미지 목록
+    // 우선순위: s2_length_male → legacy → defaultMale
+    final effectiveImgs = maleImgs.isNotEmpty
+        ? maleImgs
+        : (legacyImgs.isNotEmpty ? legacyImgs : [_defaultMaleLengthImg]);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── 섹션 헤더 ──
-        if (isAdmin)
+        if (isAdmin) ...[
+          // 관리자: 남녀 별도 업로드 UI 유지
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
@@ -2633,11 +2632,7 @@ $productUrl
               ],
             ),
           ),
-
-        if (isAdmin) const SizedBox(height: 10),
-
-        // ── 남자 섹션 ──
-        ...[
+          const SizedBox(height: 10),
           _buildGenderImageHeader(
             icon: Icons.male_rounded,
             label: loc.maleLengthRef,
@@ -2645,15 +2640,7 @@ $productUrl
             bgColor: const Color(0xFFE3F2FD),
           ),
           const SizedBox(height: 6),
-          // 관리자: 업로드 UI 표시 / 일반: effectiveMaleImgs 표시
-          if (isAdmin)
-            _buildAdminImageSection('s2_length_male', '남자 하의길이 참조 이미지', isAdmin)
-          else
-            _buildStaticImageList(effectiveMaleImgs),
-        ],
-
-        // ── 여자 섹션 ──
-        ...[
+          _buildAdminImageSection('s2_length_male', '남자 하의길이 참조 이미지', isAdmin),
           const SizedBox(height: 12),
           _buildGenderImageHeader(
             icon: Icons.female_rounded,
@@ -2662,10 +2649,11 @@ $productUrl
             bgColor: const Color(0xFFFCE4EC),
           ),
           const SizedBox(height: 6),
-          if (isAdmin)
-            _buildAdminImageSection('s2_length_female', '여자 하의길이 참조 이미지', isAdmin)
-          else
-            _buildStaticImageList(effectiveFemaleImgs),
+          _buildAdminImageSection('s2_length_female', '여자 하의길이 참조 이미지', isAdmin),
+        ] else ...[
+          // 일반 유저: 남녀 구분 없이 이미지만 표시
+          _buildStaticImageList(effectiveImgs),
+          if (femaleImgs.isNotEmpty) _buildStaticImageList(femaleImgs),
         ],
       ],
     );

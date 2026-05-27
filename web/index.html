@@ -199,14 +199,18 @@
     });
 
     // Flutter 첫 프레임 완료 → 로딩화면 제거
-    window.addEventListener('flutter-first-frame', function() {
+    function removeLoadingScreen() {
       var el = document.getElementById('loading-screen');
       if (el) {
         el.style.transition = 'opacity 0.3s';
         el.style.opacity = '0';
-        setTimeout(function() { if (el.parentNode) el.remove(); }, 300);
+        setTimeout(function() { if (el && el.parentNode) el.remove(); }, 300);
       }
-    });
+    }
+    window.addEventListener('flutter-first-frame', removeLoadingScreen);
+
+    // 안전장치: 10초 후에도 flutter-first-frame 없으면 강제 제거
+    setTimeout(removeLoadingScreen, 10000);
   </script>
 
   <script src="flutter_bootstrap.js" async></script>
