@@ -42,15 +42,9 @@ class VideoBannerWidget extends StatefulWidget {
   State<VideoBannerWidget> createState() => _VideoBannerWidgetState();
 }
 
-class _VideoBannerWidgetState extends State<VideoBannerWidget>
-    with SingleTickerProviderStateMixin {
+class _VideoBannerWidgetState extends State<VideoBannerWidget> {
   late String _viewType;
   Timer? _playRetryTimer;
-
-  // 영상 준비 여부 → true가 되면 opacity 1로 페이드인
-  bool _videoReady = false;
-  late AnimationController _fadeCtrl;
-  late Animation<double> _fadeAnim;
 
   /// Firestore videoUrl → 실제 재생할 src 결정
   String get _resolvedSrc {
@@ -65,57 +59,48 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget>
   void initState() {
     super.initState();
 
-    // 페이드인 컨트롤러 (0→1, 400ms)
-    _fadeCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeIn);
-
     _viewType = 'video-banner-${DateTime.now().microsecondsSinceEpoch}';
+
+    // ① 뷰 팩토리 즉시 등록 (video 엘리먼트 생성 + 버퍼링 즉시 시작)
     _registerVideoView();
 
-    // DOM 삽입 후 재생 시도
+    // ② postFrameCallback: DOM 삽입 직후 play() 강제 호출
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryPlay());
   }
 
-  /// canplay/loadeddata 이벤트가 오면 videoReady = true → 페이드인
-  void _onVideoReady() {
-    if (!mounted) return;
-    if (!_videoReady) {
-      setState(() => _videoReady = true);
-      _fadeCtrl.forward();
-    }
-  }
-
+  /// DOM 삽입 대기 → 즉시 play() 강제 호출
+  /// 폴링 간격 16ms (≈ 1 프레임) 로 최소화
   void _tryPlay() {
+    if (!mounted) return;
     final video = _videoElements[_viewType];
     if (video == null) {
-      // DOM 아직 삽입 전 → 짧은 주기로 재시도
-      _playRetryTimer = Timer(const Duration(milliseconds: 100), _tryPlay);
+      // DOM 아직 미삽입 → 16ms 후 재시도 (1프레임 단위)
+      _playRetryTimer = Timer(const Duration(milliseconds: 16), _tryPlay);
       return;
     }
-    // 이미 재생 중이면 ready 처리
-    if (!video.paused) {
-      _onVideoReady();
-      return;
-    }
-    // readyState >= HAVE_FUTURE_DATA(3) 이면 즉시 재생 가능
-    if (video.readyState >= 3) {
-      video.play().then((_) => _onVideoReady()).catchError((_) {
-        video.muted = true;
-        video.play().then((_) => _onVideoReady()).catchError((_) {});
+
+    // 이미 재생 중이면 종료
+    if (!video.paused) return;
+
+    // readyState 무관하게 즉시 play() 시도
+    // 브라우저가 준비되는 즉시 재생 시작 (버퍼 없어도 시작 요청)
+    video.play().catchError((_) {
+      // 자동재생 차단 시 muted 보장 후 재시도
+      video.muted = true;
+      video.play().catchError((_) {
+        // 최후 수단: 250ms 후 한 번 더
+        _playRetryTimer = Timer(const Duration(milliseconds: 250), () {
+          if (mounted) {
+            _videoElements[_viewType]?.play().catchError((_) {});
+          }
+        });
       });
-    } else {
-      // 아직 버퍼 없음 → canplay 이벤트로 처리하고 50ms 후 재확인
-      _playRetryTimer = Timer(const Duration(milliseconds: 50), _tryPlay);
-    }
+    });
   }
 
   @override
   void dispose() {
     _playRetryTimer?.cancel();
-    _fadeCtrl.dispose();
     _videoElements.remove(_viewType);
     super.dispose();
   }
@@ -125,6 +110,7 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget>
     _registeredVideoViews.add(_viewType);
 
     final src = _resolvedSrc;
+    final thumb = widget.thumbnailUrl;
 
     // ignore: avoid_web_libraries_in_flutter
     ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) {
@@ -140,19 +126,18 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget>
         ..style.height = '100%'
         ..style.objectFit = 'cover'
         ..style.objectPosition = 'center center'
-        ..style.backgroundColor = 'transparent'   // 검은 배경 제거
+        ..style.backgroundColor = 'transparent'
         ..style.display = 'block'
         ..style.pointerEvents = 'none';
 
-      // 썸네일 poster 설정 → 첫 프레임 검은화면 방지
-      final thumb = widget.thumbnailUrl;
+      // poster → 첫 프레임 썸네일 (검은화면 완전 방지)
       if (thumb != null && thumb.isNotEmpty) {
         video.poster = thumb;
       }
 
       _videoElements[_viewType] = video;
 
-      // 버퍼 준비 되면 재생 + 페이드인
+      // canplay → 버퍼 준비 즉시 재생
       video.onCanPlay.listen((_) {
         if (video.paused) {
           video.play().catchError((_) {
@@ -160,17 +145,12 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget>
             video.play().catchError((_) {});
           });
         }
-        _onVideoReady();
       });
 
-      // 데이터 로드 완료 → 재생 보장
+      // loadeddata → 재생 보장
       video.onLoadedData.listen((_) {
         if (video.paused) video.play().catchError((_) {});
-        _onVideoReady();
       });
-
-      // 재생 시작됨 → 확실한 ready 처리
-      video.onPlay.listen((_) => _onVideoReady());
 
       // loop=true 유지 + ended 이중 보장
       video.onEnded.listen((_) {
@@ -182,7 +162,7 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget>
         if (kDebugMode) debugPrint('VideoBanner: 영상 로드 실패 ($src)');
       });
 
-      // DOM 부착 직전 load() 호출 → 즉시 버퍼링 시작
+      // ★ DOM 부착 전 load() → 네트워크 요청 즉시 시작
       video.load();
 
       return video;
@@ -191,31 +171,12 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget>
 
   @override
   Widget build(BuildContext context) {
+    // FadeTransition 완전 제거 → HtmlElementView 즉시 opacity 1 표시
+    // poster(썸네일)가 첫 프레임 역할 → 검은화면 없음
     return GestureDetector(
       onTap: widget.onTap,
       child: SizedBox.expand(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // ── 썸네일 placeholder: 영상 준비 전 검은화면 방지 ──
-            if (!_videoReady && widget.thumbnailUrl != null && widget.thumbnailUrl!.isNotEmpty)
-              Image.network(
-                widget.thumbnailUrl!,
-                fit: BoxFit.cover,
-                width: double.infinity,
-                height: double.infinity,
-                errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF1A1A1A)),
-              )
-            else if (!_videoReady)
-              const ColoredBox(color: Color(0xFF1A1A1A)),
-
-            // ── 비디오 레이어: 준비되면 페이드인 ──
-            FadeTransition(
-              opacity: _fadeAnim,
-              child: HtmlElementView(viewType: _viewType),
-            ),
-          ],
-        ),
+        child: HtmlElementView(viewType: _viewType),
       ),
     );
   }

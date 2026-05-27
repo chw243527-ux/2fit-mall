@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
@@ -51,9 +50,8 @@ class _SplashScreenState extends State<SplashScreen>
 
     _animController.forward();
 
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 900), _checkAutoLogin);  // 2200→900
-    });
+    // delay 완전 제거 → Firebase 응답 즉시 전환 (애니메이션은 독립 실행)
+    _checkAutoLogin();
   }
 
   /// Firebase 자동로그인 확인 후 라우팅
