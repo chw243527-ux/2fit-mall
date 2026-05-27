@@ -2177,6 +2177,12 @@ class _HomeScreenState extends State<HomeScreen>
     final groupProds = pp.groupOnlyProducts;
     final isMobileW = MediaQuery.of(context).size.width < 600;
 
+    // 인기순 상품 (salesCount 내림차순, 최대 5개 미리보기)
+    final allProds = pp.groupOnlyProducts.isNotEmpty ? pp.groupOnlyProducts : pp.products;
+    final popularProds = [...allProds]
+      ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
+    final previewProds = popularProds.take(5).toList();
+
     return Stack(
       children: [
         // ── 전체 스크롤 컨텐츠 ──
@@ -2188,11 +2194,15 @@ class _HomeScreenState extends State<HomeScreen>
             Expanded(
               child: CustomScrollView(
                 slivers: [
-            // ── ① 배너 슬라이더 (오버레이 헤더 없음) ──
+            // ── ① 배너 슬라이더 ──
             SliverToBoxAdapter(child: _buildCompactBanner(loc)),
-            // ── ② 단체주문 전용 상품 헤더 ──
+
+            // ── ② 인기 상품 가로 5개 미리보기 ──
+            SliverToBoxAdapter(child: _buildPopularProductsRow(loc, previewProds)),
+
+            // ── ③ 단체주문 전용 상품 헤더 ──
             SliverToBoxAdapter(child: _buildGroupSectionHeader(loc, groupProds.length)),
-            // ── ③ 상품 그리드 ──
+            // ── ④ 단체주문 상품 그리드 ──
             if (pp.isGroupOnlyLoading && groupProds.isEmpty)
               const SliverToBoxAdapter(
                 child: Padding(
@@ -2232,6 +2242,168 @@ class _HomeScreenState extends State<HomeScreen>
           child: _buildChatFAB(loc),
         ),
       ],
+    );
+  }
+
+  // ── 인기 상품 가로 5개 미리보기 + 전체보기 버튼 ──
+  Widget _buildPopularProductsRow(AppLocalizations loc, List<ProductModel> prods) {
+    if (prods.isEmpty) return const SizedBox.shrink();
+
+    void goAll() => Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProductListScreen(initialSortBy: '인기순')),
+    );
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── 섹션 헤더 ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 12, 14),
+            child: Row(
+              children: [
+                const Text('인기 상품',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800,
+                      color: Color(0xFF111111), letterSpacing: -0.3)),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE53935),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: const Text('BEST',
+                    style: TextStyle(color: Colors.white, fontSize: 9,
+                        fontWeight: FontWeight.w800, letterSpacing: 1.0)),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: goAll,
+                  child: Row(
+                    children: const [
+                      Text('전체보기',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                            color: Color(0xFF666666))),
+                      SizedBox(width: 2),
+                      Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Color(0xFF999999)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // ── 가로 스크롤 상품 5개 ──
+          SizedBox(
+            height: 200,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: prods.length,
+              itemBuilder: (_, i) => _buildPopularProductCard(prods[i]),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // ── 전체보기 버튼 ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
+            child: GestureDetector(
+              onTap: goAll,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFE0E0E0)),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('전체 상품 보기',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                          color: Color(0xFF333333), letterSpacing: 0.2)),
+                    SizedBox(width: 6),
+                    Icon(Icons.arrow_forward_rounded, size: 15, color: Color(0xFF555555)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const Divider(height: 1, color: Color(0xFFF0F0F0)),
+        ],
+      ),
+    );
+  }
+
+  // ── 인기 상품 카드 (가로 스크롤용, 컴팩트) ──
+  Widget _buildPopularProductCard(ProductModel p) {
+    final cardW = (MediaQuery.of(context).size.width - 12 * 2 - 8 * 4) / 5;
+    final discount = p.originalPrice != null && p.originalPrice! > p.price
+        ? ((1 - p.price / p.originalPrice!) * 100).round()
+        : 0;
+
+    return GestureDetector(
+      onTap: () => Navigator.push(context,
+        MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
+      child: Container(
+        width: cardW.clamp(80.0, 160.0),
+        margin: const EdgeInsets.only(right: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 이미지
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    p.images.isNotEmpty
+                      ? Image.network(p.images.first, fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: const Color(0xFFF0F0F0),
+                            child: const Icon(Icons.image_not_supported_rounded,
+                                color: Colors.white54, size: 28)))
+                      : Container(color: const Color(0xFFF0F0F0)),
+                    // 할인율 뱃지
+                    if (discount > 0)
+                      Positioned(
+                        top: 5, left: 5,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53935),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text('$discount%',
+                            style: const TextStyle(color: Colors.white, fontSize: 9,
+                                fontWeight: FontWeight.w800)),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            // 상품명
+            Text(p.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600,
+                  color: Color(0xFF222222), height: 1.3)),
+            const SizedBox(height: 3),
+            // 가격
+            Text(
+              '${p.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800,
+                  color: Color(0xFF111111)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -2416,6 +2588,12 @@ class _HomeScreenState extends State<HomeScreen>
         context,
         MaterialPageRoute(builder: (_) => const ProductListScreen()),
       );
+      // 배너 높이 비례 텍스트 크기 (스크린샷 기준: bannerH≈580 → title≈62px)
+      final titleSize = (bannerH * 0.107).clamp(28.0, 72.0);
+      final tagSize   = (bannerH * 0.018).clamp(8.0, 14.0);
+      final ctaSize   = (bannerH * 0.026).clamp(11.0, 18.0);
+      final hPad      = screenW < 600 ? 16.0 : 36.0;
+      final bottomPad = (bannerH * 0.045).clamp(14.0, 48.0);
       return SizedBox(
         width: double.infinity,
         height: bannerH,
@@ -2433,7 +2611,7 @@ class _HomeScreenState extends State<HomeScreen>
             Positioned(
               left: 0, right: 0, bottom: 0,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+                padding: EdgeInsets.fromLTRB(hPad, 0, hPad, bottomPad),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -2452,30 +2630,31 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     // 태그
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: EdgeInsets.symmetric(horizontal: tagSize, vertical: 3),
                       decoration: BoxDecoration(
                         color: const Color(0xFFE53935),
                         borderRadius: BorderRadius.circular(2),
                       ),
-                      child: const Text('2FIT KOREA',
-                        style: TextStyle(color: Colors.white, fontSize: 9,
+                      child: Text('2FIT KOREA',
+                        style: TextStyle(color: Colors.white, fontSize: tagSize,
                             fontWeight: FontWeight.w800, letterSpacing: 1.8)),
                     ),
-                    const SizedBox(height: 10),
-                    // 메인 타이틀
+                    SizedBox(height: bannerH * 0.018),
+                    // 메인 타이틀 (bannerH 비례)
                     Text(
                       loc.language == AppLanguage.korean
                           ? '함께 달리는\n2FIT'
                           : 'Run Together\nwith 2FIT',
-                      style: const TextStyle(color: Colors.white, fontSize: 22,
-                          fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.3),
+                      style: TextStyle(color: Colors.white, fontSize: titleSize,
+                          fontWeight: FontWeight.w900, height: 1.1, letterSpacing: -0.5),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: bannerH * 0.032),
                     // CTA 버튼
                     GestureDetector(
                       onTap: goShop,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: ctaSize + 4, vertical: ctaSize * 0.75),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(6),
@@ -2486,12 +2665,13 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.arrow_forward_rounded, size: 15, color: Color(0xFFE53935)),
-                            const SizedBox(width: 10),
+                            Icon(Icons.arrow_forward_rounded,
+                              size: ctaSize + 2, color: const Color(0xFFE53935)),
+                            const SizedBox(width: 8),
                             Text(
                               loc.language == AppLanguage.korean ? '쇼핑하러 가기' : 'Shop Now',
-                              style: const TextStyle(color: Color(0xFF111111),
-                                  fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                              style: TextStyle(color: const Color(0xFF111111),
+                                  fontSize: ctaSize, fontWeight: FontWeight.w800, letterSpacing: 0.3),
                             ),
                           ],
                         ),
