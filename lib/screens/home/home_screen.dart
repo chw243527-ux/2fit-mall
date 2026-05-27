@@ -2175,8 +2175,14 @@ class _HomeScreenState extends State<HomeScreen>
   // ─── 모바일 레이아웃 ────────────────────────────
   Widget _buildMobileLayout(AppLocalizations loc) {
     final pp = context.watch<ProductProvider>();
-    final groupProds = pp.groupOnlyProducts;
     final isMobileW = MediaQuery.of(context).size.width < 600;
+
+    // Firestore 로딩 중이면 로컬 캐시에서 즉시 폴백 → 스피너 없이 바로 표시
+    final groupProds = pp.groupOnlyProducts.isNotEmpty
+        ? pp.groupOnlyProducts
+        : ProductService.getAllProductsSync()
+            .where((p) => p.isGroupOnly && p.isActive)
+            .toList();
 
     // 인기순 정렬 (salesCount 내림차순)
     final sortedGroupProds = [...groupProds]
@@ -2203,15 +2209,8 @@ class _HomeScreenState extends State<HomeScreen>
             SliverToBoxAdapter(child: _buildGroupSectionHeader(loc, groupProds.length)),
 
             // ── 단체주문 상품: 인기순 5개 가로 진열 + 전체보기 ──
-            if (pp.isGroupOnlyLoading && groupProds.isEmpty)
-              const SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40),
-                  child: Center(child: CircularProgressIndicator(
-                      color: Color(0xFF6A1B9A), strokeWidth: 2)),
-                ),
-              )
-            else if (groupProds.isEmpty)
+            // 스피너 제거 → 로컬 캐시 즉시 표시, Firestore 로드 후 자동 갱신
+            if (groupProds.isEmpty)
               SliverToBoxAdapter(child: _buildGroupEmptyState(loc))
             else
               SliverToBoxAdapter(
