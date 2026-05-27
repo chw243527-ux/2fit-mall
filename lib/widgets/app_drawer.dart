@@ -725,20 +725,20 @@ class _AppDrawerState extends State<AppDrawer> {
             top: 14,
             bottom: MediaQuery.of(context).padding.bottom + 14,
           ),
-          decoration: BoxDecoration(
-            color: const Color(0xFF111111),
+          decoration: const BoxDecoration(
+            color: Colors.white,
             border: Border(
-              top: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+              top: BorderSide(color: Color(0xFFEEEEEE)),
             ),
           ),
           child: Row(
             children: [
-              Text(
+              const Text(
                 '© 2024 2FIT KOREA',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.25),
+                  color: Color(0xFFCCCCCC),
                   letterSpacing: 1.2,
                 ),
               ),
@@ -749,12 +749,12 @@ class _AppDrawerState extends State<AppDrawer> {
                     userProvider.logout();
                     Navigator.pop(context);
                   },
-                  child: Text(
+                  child: const Text(
                     'LOG OUT',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white.withValues(alpha: 0.45),
+                      color: Color(0xFFAAAAAA),
                       letterSpacing: 1.5,
                     ),
                   ),
@@ -772,8 +772,8 @@ class _AppDrawerState extends State<AppDrawer> {
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF111111),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
         padding: const EdgeInsets.fromLTRB(24, 20, 24, 36),
         child: Column(
@@ -786,7 +786,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 width: 36, height: 3,
                 margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
+                  color: const Color(0xFFDDDDDD),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -794,61 +794,58 @@ class _AppDrawerState extends State<AppDrawer> {
             const Text(
               '2FIT KOREA',
               style: TextStyle(
-                color: Colors.white,
+                color: Color(0xFF111111),
                 fontSize: 22,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2,
               ),
             ),
             const SizedBox(height: 4),
-            Text(
+            const Text(
               'SPORTS & FITNESS WEAR',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.4),
+                color: Color(0xFFAAAAAA),
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2,
               ),
             ),
             const SizedBox(height: 20),
-            Container(
-              height: 1,
-              color: Colors.white.withValues(alpha: 0.1),
-            ),
+            const Divider(color: Color(0xFFEEEEEE), height: 1),
             const SizedBox(height: 20),
             Consumer<LanguageProvider>(builder: (_, lp, __) => Text(
               lp.loc.brandDescription,
               style: const TextStyle(
                 fontSize: 13,
                 height: 1.8,
-                color: Color(0x99FFFFFF),
+                color: Color(0xFF555555),
               ),
             )),
             const SizedBox(height: 16),
             // 전화 / 이메일
             Row(
               children: [
-                Icon(Icons.phone_rounded,
-                    size: 14, color: Colors.white.withValues(alpha: 0.4)),
+                const Icon(Icons.phone_rounded,
+                    size: 14, color: Color(0xFFAAAAAA)),
                 const SizedBox(width: 8),
-                Text(
+                const Text(
                   '010-7227-6914',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.75),
+                    color: Color(0xFF333333),
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.email_rounded,
-                    size: 14, color: Colors.white.withValues(alpha: 0.4)),
+                const Icon(Icons.email_rounded,
+                    size: 14, color: Color(0xFFAAAAAA)),
                 const SizedBox(width: 8),
-                Text(
+                const Text(
                   'chw243527@gmail.com',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.75),
+                    color: Color(0xFF333333),
                   ),
                 ),
               ],
@@ -857,14 +854,14 @@ class _AppDrawerState extends State<AppDrawer> {
             // CS 운영시간
             Row(
               children: [
-                Icon(Icons.access_time_rounded,
-                    size: 14, color: Colors.white.withValues(alpha: 0.4)),
+                const Icon(Icons.access_time_rounded,
+                    size: 14, color: Color(0xFFAAAAAA)),
                 const SizedBox(width: 8),
-                Text(
+                const Text(
                   '평일 10:00-18:00  |  토·일·공휴일 휴무',
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.white.withValues(alpha: 0.55),
+                    color: Color(0xFF888888),
                   ),
                 ),
               ],
@@ -874,11 +871,11 @@ class _AppDrawerState extends State<AppDrawer> {
             Row(
               children: [
                 const SizedBox(width: 22),
-                Text(
+                const Text(
                   '점심시간 12:00-14:00 제외',
                   style: TextStyle(
                     fontSize: 10,
-                    color: Colors.white.withValues(alpha: 0.4),
+                    color: Color(0xFFAAAAAA),
                   ),
                 ),
               ],

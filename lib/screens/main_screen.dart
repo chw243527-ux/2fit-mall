@@ -232,7 +232,7 @@ class _PcLayoutState extends State<_PcLayout> {
         children: [
           // 헤더
           Container(
-            color: const Color(0xFF111111),
+            color: Colors.white,
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 12,
               left: 20, right: 8, bottom: 16,
@@ -242,13 +242,13 @@ class _PcLayoutState extends State<_PcLayout> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.category_rounded, color: Colors.white70, size: 18),
+                    const Icon(Icons.category_rounded, color: Color(0xFF888888), size: 18),
                     const SizedBox(width: 8),
                     Text(loc.categoryLabel,
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+                        style: const TextStyle(color: Color(0xFF111111), fontSize: 16, fontWeight: FontWeight.w800)),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 20),
+                      icon: const Icon(Icons.close_rounded, color: Color(0xFF555555), size: 20),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -263,17 +263,18 @@ class _PcLayoutState extends State<_PcLayout> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
+                      color: const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE0E0E0)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.person_outline_rounded, color: Colors.white70, size: 16),
+                        const Icon(Icons.person_outline_rounded, color: Color(0xFF555555), size: 16),
                         const SizedBox(width: 8),
                         Text(loc.myPageLabel,
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                            style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 13, fontWeight: FontWeight.w700)),
                         const Spacer(),
-                        const Icon(Icons.chevron_right_rounded, color: Colors.white38, size: 16),
+                        const Icon(Icons.chevron_right_rounded, color: Color(0xFFBBBBBB), size: 16),
                       ],
                     ),
                   ),
@@ -281,6 +282,7 @@ class _PcLayoutState extends State<_PcLayout> {
               ],
             ),
           ),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
           // 전체 상품 링크
           ListTile(
             leading: const Icon(Icons.grid_view_rounded, size: 20, color: Color(0xFF1A1A1A)),
