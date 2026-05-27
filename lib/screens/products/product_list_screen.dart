@@ -371,16 +371,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  // ── 그리드 뷰 — 너비에 따라 컬럼 수 자동 조절 ──
+  // ── 그리드 뷰 — Wrap으로 교체 (카드 실제 높이 유지, 이미지 잘림 없음) ──
   Widget _buildGridView(List<ProductModel> products) {
     return LayoutBuilder(
       builder: (ctx, constraints) {
-        final w = constraints.maxWidth;
-        // 너비 기준 컬럼 수: 320↑=2, 600↑=3, 900↑=4, 1200↑=5
-        final cols = w >= 1200 ? 5 : w >= 900 ? 4 : w >= 600 ? 3 : 2;
-        const spacing = 10.0;
-        const padding = 12.0;
-        final cardW = (w - padding * 2 - spacing * (cols - 1)) / cols;
+        const cols = 2;
+        const spacing = 8.0;
+        const padding = 10.0;
+        final cardW = (constraints.maxWidth - padding * 2 - spacing * (cols - 1)) / cols;
         return Padding(
           padding: const EdgeInsets.all(padding),
           child: Wrap(

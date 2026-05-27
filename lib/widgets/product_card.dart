@@ -6,7 +6,6 @@ import '../screens/products/product_detail_screen.dart';
 
 // ignore: unused_import
 import '../utils/app_localizations.dart';
-
 class ProductCard extends StatelessWidget {
   final ProductModel product;
   final bool isHorizontal;
@@ -15,44 +14,35 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // RepaintBoundary: 이 카드만 독립 레이어 → 스크롤 시 다른 카드 repaint 방지
     return RepaintBoundary(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // 카드 너비에 비례한 스케일 팩터 (기준: 180px)
-          final cardW = constraints.maxWidth;
-          final scale = (cardW / 180.0).clamp(0.7, 2.0);
-
-          return GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
-            ),
-            child: Container(
-              decoration: const BoxDecoration(color: Colors.white),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildImage(context, scale),
-                  _buildInfo(context, scale),
-                ],
-              ),
-            ),
-          );
-        },
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+        ),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildImage(context),
+              _buildInfo(context),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildImage(BuildContext context, double scale) {
+  Widget _buildImage(BuildContext context) {
     final loc = context.watch<LanguageProvider>().loc;
-    // 디코딩 크기: 카드가 클수록 더 높은 해상도
-    final cacheW = (400 * scale).round().clamp(200, 800);
-    final cacheH = (500 * scale).round().clamp(250, 1000);
-
     return Stack(
       children: [
-        // 이미지: 4:5 세로형 비율
+        // 이미지: 4:5 세로형 비율 — 전신 모델 사진 잘림 없음
         AspectRatio(
           aspectRatio: 4 / 5,
           child: Container(
@@ -64,42 +54,41 @@ class ProductCard extends StatelessWidget {
                     width: double.infinity,
                     height: double.infinity,
                     filterQuality: FilterQuality.medium,
-                    cacheWidth: cacheW,
-                    cacheHeight: cacheH,
+                    // 썸네일 크기로 디코딩 → 메모리 절약 + 로딩 속도 향상
+                    cacheWidth: 400,
+                    cacheHeight: 500,
                     errorBuilder: (_, __, ___) => _placeholder(),
                   )
                 : _placeholder(),
           ),
         ),
-        // 배지 (좌상단)
+        // 배지 그룹 (좌상단)
         Positioned(
-          top: 0, left: 0,
+          top: 0,
+          left: 0,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (product.isNew)
-                _badge('NEW', Colors.white, const Color(0xFF111111), scale),
+                _badge('NEW', Colors.white, const Color(0xFF111111)),
               if (product.isSale && product.discountPercent > 0)
-                _badge('−${product.discountPercent}%',
-                    const Color(0xFFFF0000), Colors.white, scale),
+                _badge('−${product.discountPercent}%', const Color(0xFFFF0000), Colors.white),
             ],
           ),
         ),
         // 무료배송 (우하단)
         if (product.isFreeShipping)
           Positioned(
-            bottom: 0, right: 0,
+            bottom: 0,
+            right: 0,
             child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: (6 * scale).clamp(4, 10),
-                vertical: (3 * scale).clamp(2, 5),
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
               color: const Color(0xFF111111),
               child: Text(
                 loc.freeBadge,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
-                  fontSize: (8 * scale).clamp(7, 12),
+                  fontSize: 8,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1,
                 ),
@@ -119,18 +108,15 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _badge(String text, Color bg, Color fg, double scale) {
+  Widget _badge(String text, Color bg, Color fg) {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: (6 * scale).clamp(4, 10),
-        vertical: (3 * scale).clamp(2, 5),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       color: bg,
       child: Text(
         text,
         style: TextStyle(
           color: fg,
-          fontSize: (9 * scale).clamp(7, 14),
+          fontSize: 9,
           fontWeight: FontWeight.w900,
           letterSpacing: 0.8,
         ),
@@ -138,70 +124,65 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfo(BuildContext context, double scale) {
+  Widget _buildInfo(BuildContext context) {
     final langProvider = context.watch<LanguageProvider>();
     final loc = langProvider.loc;
     final lang = langProvider.language;
-
-    final hPad = (6 * scale).clamp(4.0, 14.0);
-    final vPad = (8 * scale).clamp(5.0, 16.0);
-    final nameSize = (12 * scale).clamp(10.0, 18.0);
-    final labelSize = (9 * scale).clamp(8.0, 13.0);
-    final priceSize = (15 * scale).clamp(12.0, 22.0);
-    final wonSize = (11 * scale).clamp(9.0, 16.0);
-    final starSize = (11 * scale).clamp(9.0, 15.0);
-    final reviewSize = (10 * scale).clamp(8.0, 14.0);
-
     return Padding(
-      padding: EdgeInsets.fromLTRB(hPad, vPad, hPad, vPad + 2),
+      padding: const EdgeInsets.fromLTRB(6, 8, 6, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 상품명
+          // 상품명 — 2줄까지 허용
           Text(
             product.localizedName(lang),
-            style: TextStyle(
-              fontSize: nameSize,
+            style: const TextStyle(
+              fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: const Color(0xFF111111),
+              color: Color(0xFF111111),
               height: 1.3,
               letterSpacing: 0.1,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
+            softWrap: true,
           ),
-          SizedBox(height: (5 * scale).clamp(3, 10)),
-          // 정가 (취소선)
+          const SizedBox(height: 5),
+          // 가격 행
           if (product.originalPrice != null && product.originalPrice! > product.price) ...[
+            // 정가 (취소선)
             Row(
               children: [
-                Text('정가 ',
-                  style: TextStyle(fontSize: labelSize,
-                    color: Colors.black.withValues(alpha: 0.4), fontWeight: FontWeight.w500)),
+                Text(
+                  '정가 ',
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.black.withValues(alpha: 0.4),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 Text(
                   '${_formatPrice(product.originalPrice!)}${loc.productWonUnit}',
                   style: TextStyle(
-                    fontSize: labelSize + 1,
+                    fontSize: 10,
                     color: Colors.black.withValues(alpha: 0.4),
                     decoration: TextDecoration.lineThrough,
                     decorationColor: Colors.black.withValues(alpha: 0.4),
                   ),
                 ),
-                SizedBox(width: (4 * scale).clamp(2, 8)),
+                const SizedBox(width: 4),
+                // 할인율 뱃지
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: (4 * scale).clamp(3, 7),
-                    vertical: (1 * scale).clamp(1, 3),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE53935),
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
                     '${(((product.originalPrice! - product.price) / product.originalPrice!) * 100).round()}%',
-                    style: TextStyle(
-                      fontSize: labelSize,
+                    style: const TextStyle(
+                      fontSize: 9,
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
                     ),
@@ -209,21 +190,25 @@ class ProductCard extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: (2 * scale).clamp(1, 4)),
+            const SizedBox(height: 2),
           ],
-          // 판매가
           Row(
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
               if (product.originalPrice != null && product.originalPrice! > product.price)
-                Text('할인가 ',
-                  style: TextStyle(fontSize: labelSize,
-                    color: const Color(0xFFE53935), fontWeight: FontWeight.w700)),
+                Text(
+                  '할인가 ',
+                  style: const TextStyle(
+                    fontSize: 9,
+                    color: Color(0xFFE53935),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               Text(
                 _formatPrice(product.price),
                 style: TextStyle(
-                  fontSize: priceSize,
+                  fontSize: 15,
                   fontWeight: FontWeight.w900,
                   color: (product.originalPrice != null && product.originalPrice! > product.price)
                       ? const Color(0xFFE53935)
@@ -231,11 +216,11 @@ class ProductCard extends StatelessWidget {
                   letterSpacing: -0.3,
                 ),
               ),
-              SizedBox(width: (2 * scale).clamp(1, 4)),
+              const SizedBox(width: 2),
               Text(
                 loc.productWonUnit,
                 style: TextStyle(
-                  fontSize: wonSize,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: (product.originalPrice != null && product.originalPrice! > product.price)
                       ? const Color(0xFFE53935)
@@ -246,17 +231,27 @@ class ProductCard extends StatelessWidget {
           ),
           // 별점
           if (product.rating > 0 && product.reviewCount > 0) ...[
-            SizedBox(height: (4 * scale).clamp(2, 8)),
+            const SizedBox(height: 4),
             Row(
               children: [
-                Icon(Icons.star_rounded, size: starSize, color: const Color(0xFF111111)),
-                SizedBox(width: (2 * scale).clamp(1, 4)),
-                Text('${product.rating}',
-                  style: TextStyle(fontSize: reviewSize,
-                    fontWeight: FontWeight.w700, color: const Color(0xFF111111))),
-                SizedBox(width: (3 * scale).clamp(2, 6)),
-                Text('(${product.reviewCount})',
-                  style: TextStyle(fontSize: reviewSize, color: const Color(0xFF888888))),
+                const Icon(Icons.star_rounded, size: 11, color: Color(0xFF111111)),
+                const SizedBox(width: 2),
+                Text(
+                  '${product.rating}',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111111),
+                  ),
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  '(${product.reviewCount})',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFF888888),
+                  ),
+                ),
               ],
             ),
           ],
