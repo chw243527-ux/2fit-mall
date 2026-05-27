@@ -9537,6 +9537,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   late final TextEditingController _sizesCtrl;
   late final TextEditingController _stockCtrl;
   late final TextEditingController _urlCtrl;
+  late final TextEditingController _materialCtrl;   // 소재 직접 입력
+  late final TextEditingController _bottomLengthCtrl; // 하의길이 직접 입력
 
   // ── 자동번역 상태
   Map<String, String> _nameTranslations = {};
@@ -9644,6 +9646,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _sizesCtrl = TextEditingController(text: (e?.sizes ?? ['S','M','L','XL']).join(', '));
     _stockCtrl = TextEditingController(text: e?.stockCount.toString() ?? '100');
     _urlCtrl = TextEditingController();
+    _materialCtrl = TextEditingController(text: e?.material ?? '');
+    _bottomLengthCtrl = TextEditingController(text: e?.bottomLength ?? '');
 
     // 기존 번역 로드
     if (e != null && e.nameTranslations.isNotEmpty) {
@@ -9714,6 +9718,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _nameCtrl.dispose(); _productCodeCtrl.dispose(); _priceCtrl.dispose(); _origPriceCtrl.dispose();
     _descCtrl.dispose(); _sizesCtrl.dispose();
     _stockCtrl.dispose(); _urlCtrl.dispose();
+    _materialCtrl.dispose(); _bottomLengthCtrl.dispose();
     super.dispose();
   }
 
@@ -9860,6 +9865,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       images: images,
       sizes: _sizesCtrl.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
       colors: _selectedColors.toList(),
+      material: _materialCtrl.text.trim(),
+      bottomLength: _bottomLengthCtrl.text.trim(),
       isNew: _isNew, isSale: _isSale, isFreeShipping: _isFreeShip, isGroupOnly: _isGroupOnly,
       stockCount: int.tryParse(_stockCtrl.text) ?? 100,
       isActive: _isActive,
@@ -10354,6 +10361,76 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                 _lbl('사이즈 (쉼표 구분)'),
                 _field(_sizesCtrl, 'S, M, L, XL'),
                 const SizedBox(height: 14),
+
+                // ── 소재 직접 입력
+                _lbl('소재 정보 (직접 입력 시 카테고리 기본값 덮어씀)'),
+                TextField(
+                  controller: _materialCtrl,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: '예) 폴리에스터 92% / 라이크라 8%\n비워두면 카테고리 기본 소재가 자동 표시됩니다',
+                    hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
+                    filled: true,
+                    fillColor: const Color(0xFFF5F5F5),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.all(14),
+                    prefixIcon: const Padding(
+                      padding: EdgeInsets.only(left: 12, right: 8, top: 14),
+                      child: Icon(Icons.science_outlined, size: 18, color: Color(0xFF888888)),
+                    ),
+                    prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // 카테고리별 기본 소재 안내
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F7FF),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFBBDEFB)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.auto_fix_high, size: 13, color: Color(0xFF1565C0)),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          () {
+                            final isSingletSet = _selCat == '세트' || _selSubCat.contains('싱글렛세트');
+                            final isSingletTop = !isSingletSet && (_selCat == '상의' || _selSubCat.contains('싱글렛'));
+                            final isTaiz = _selSubCat.contains('타이즈') || _selCat == '하의';
+                            if (isSingletSet) return '자동: 상의 폴리에스터 92%/라이크라 8% + 하의 나일론 75%/라이크라 25%';
+                            if (isSingletTop) return '자동: 폴리에스터 92% / 라이크라 8%';
+                            if (isTaiz) return '자동: 나일론 75% / 라이크라 25%';
+                            return '자동: 비어있으면 기본값 78% Nylon, 22% Spandex';
+                          }(),
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF1565C0)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // ── 하의길이 직접 입력
+                if (_selCat == '하의' || _selCat == '세트' || _selSubCat.contains('싱글렛세트') || _selSubCat.contains('타이즈')) ...[  
+                  _lbl('하의길이 (직접 입력 시 기본값 덮어씀)'),
+                  TextField(
+                    controller: _bottomLengthCtrl,
+                    decoration: InputDecoration(
+                      hintText: '비워두면 자동 표시 (싱글렛세트: 남5부/여2.5부, 타이즈: 서브카테고리 값)',
+                      hintStyle: const TextStyle(fontSize: 11, color: Color(0xFFAAAAAA)),
+                      filled: true,
+                      fillColor: const Color(0xFFF5F5F5),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      isDense: true,
+                      prefixIcon: const Icon(Icons.straighten, size: 18, color: Color(0xFF888888)),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
 
                 // ── 색상 선택 (twoFitColors 체크박스 그리드)
                 Row(children: [

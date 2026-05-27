@@ -32,6 +32,8 @@ class ProductModel {
   final Map<String, String> nameTranslations;
   // 다국어 상품 설명 번역 (key: 'en','ja','zh','mn')
   final Map<String, String> descriptionTranslations;
+  // 관리자 직접 입력 하의길이 (비어있으면 카테고리 기본값 자동 적용)
+  final String bottomLength;
 
   ProductModel({
     required this.id,
@@ -59,6 +61,7 @@ class ProductModel {
     this.sectionImages = const {},
     this.nameTranslations = const {},
     this.descriptionTranslations = const {},
+    this.bottomLength = '',
   });
 
   /// 현재 언어에 맞는 상품명 반환 (번역 없으면 원본 한국어 사용)
@@ -117,6 +120,7 @@ class ProductModel {
       sectionImages: sectionImages,
       nameTranslations: nameTranslations ?? this.nameTranslations,
       descriptionTranslations: descriptionTranslations ?? this.descriptionTranslations,
+      bottomLength: bottomLength,
     );
   }
 
@@ -161,6 +165,7 @@ class ProductModel {
       sizes: List<String>.from(json['sizes'] as List),
       colors: List<String>.from(json['colors'] as List),
       material: json['material'] as String? ?? '78% Nylon, 22% Spandex',
+      bottomLength: json['bottomLength'] as String? ?? '',
       isNew: json['isNew'] as bool? ?? false,
       isSale: json['isSale'] as bool? ?? false,
       isFreeShipping: json['isFreeShipping'] as bool? ?? false,
@@ -195,6 +200,7 @@ class ProductModel {
       'sizes': sizes,
       'colors': colors,
       'material': material,
+      'bottomLength': bottomLength,
       'isNew': isNew,
       'isSale': isSale,
       'isFreeShipping': isFreeShipping,
@@ -225,6 +231,7 @@ class ProductModel {
       sectionImages: newSectionImages,
       nameTranslations: nameTranslations,
       descriptionTranslations: descriptionTranslations,
+      bottomLength: bottomLength,
     );
   }
 }

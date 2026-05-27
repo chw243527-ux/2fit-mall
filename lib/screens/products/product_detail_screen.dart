@@ -1220,19 +1220,21 @@ $productUrl
     final isGroupOnly = product.isGroupOnly;
 
     // ── 1) MATERIAL: 카테고리별 소재 텍스트 ─────────────────────
-    // 섹션2 소재표에 표시된 값을 그대로 사용
+    // 우선순위: ① 관리자 직접 입력값(material) → ② 카테고리 기본값
     String materialText;
-    if (isSingletSet) {
-      // 싱글렛세트: 상의(폴리에스터 92%/라이크라 8%) + 하의(나일론 75%/라이크라 25%)
+    // 기본값('78% Nylon...')이 아닌 실제 입력값이 있으면 최우선 사용
+    final hasCustomMaterial = product.material.isNotEmpty &&
+        product.material != '78% Nylon, 22% Spandex / 4-way Stretch' &&
+        product.material != '78% Nylon, 22% Spandex';
+    if (hasCustomMaterial) {
+      materialText = product.material;
+    } else if (isSingletSet) {
       materialText = '상의: 폴리에스터 92% / 라이크라 8%\n하의: 나일론 75% / 라이크라 25%';
     } else if (isSingletTop) {
-      // 싱글렛 상의 단품
       materialText = '폴리에스터 92% / 라이크라 8%';
     } else if (isTaiz) {
-      // 하의 타이즈 (골지원단)
       materialText = '나일론 75% / 라이크라 25%';
     } else if (product.material.isNotEmpty) {
-      // 그 외: 상품에 등록된 소재값 그대로
       materialText = product.material;
     } else {
       materialText = '78% Nylon, 22% Spandex / 4-way Stretch';
@@ -1318,13 +1320,16 @@ $productUrl
     }
 
     // ── 3) PRODUCT 테이블 행: 하의길이 행 추가 ──────────────────
-    // 싱글렛세트 기성품: 남자 5부 고정 / 여자 2.5부 고정
-    // 하의 타이즈 기성품: K/PP에 따라 표시
+    // 우선순위: ① 관리자 직접 입력값(bottomLength) → ② 카테고리 기본값
     String? bottomLengthValue;
-    if (!isGroupOnly && isSingletSet) {
+    if (product.bottomLength.isNotEmpty) {
+      // 관리자가 직접 입력한 값 최우선 사용
+      bottomLengthValue = product.bottomLength;
+    } else if (!isGroupOnly && isSingletSet) {
+      // 싱글렛세트 기성품 기본값
       bottomLengthValue = '남성: 5부 고정  /  여성: 2.5부 고정';
     } else if (!isGroupOnly && isTaiz) {
-      // 일반 하의 타이즈 기성품 (subCategory에 길이 정보 있으면 사용)
+      // 하의 타이즈 기성품: subCategory에 길이 정보 있으면 사용
       final lengthLabel = sub.contains('9부') ? '9부'
           : sub.contains('5부') ? '5부'
           : sub.contains('4부') ? '4부'
