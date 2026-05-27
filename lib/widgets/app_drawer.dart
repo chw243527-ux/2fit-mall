@@ -146,7 +146,7 @@ class _AppDrawerState extends State<AppDrawer> {
 
     return Drawer(
       width: MediaQuery.of(context).size.width * 0.82,
-      backgroundColor: const Color(0xFF111111), // Nike black
+      backgroundColor: Colors.white,
       child: Column(
         children: [
           _buildHeader(context),
@@ -216,7 +216,7 @@ class _AppDrawerState extends State<AppDrawer> {
   Widget _nikeRule() => Container(
         height: 1,
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        color: Colors.white.withValues(alpha: 0.08),
+        color: const Color(0xFFEEEEEE),
       );
 
   // ── 헤더: 순수 블랙 배경, 흰 로고/텍스트 ──
@@ -232,37 +232,28 @@ class _AppDrawerState extends State<AppDrawer> {
             right: 12,
             bottom: 20,
           ),
-          color: const Color(0xFF111111),
+          color: Colors.white,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 상단: 로고 + X버튼
               Row(
                 children: [
-                  // 로고 텍스트 (나이키처럼 볼드 wordmark)
                   SizedBox(
                     height: 36,
                     child: Image.asset(
-                      'assets/images/logo_2fit_white.png',
+                      'assets/images/logo_2fit.png',
                       fit: BoxFit.contain,
                       errorBuilder: (_, __, ___) => Image.asset(
-                        'assets/images/logo_2fit.png',
+                        'assets/images/2fit_logo.png',
                         fit: BoxFit.contain,
-                        color: Colors.white,
-                        colorBlendMode: BlendMode.srcIn,
-                        errorBuilder: (_, __, ___) => Image.asset(
-                          'assets/images/2fit_logo.png',
-                          fit: BoxFit.contain,
-                          color: Colors.white,
-                          colorBlendMode: BlendMode.srcIn,
-                          errorBuilder: (_, __, ___) => const Text(
-                            '2FIT',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 3,
-                            ),
+                        errorBuilder: (_, __, ___) => const Text(
+                          '2FIT',
+                          style: TextStyle(
+                            color: Color(0xFF111111),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 3,
                           ),
                         ),
                       ),
@@ -271,7 +262,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close_rounded,
-                        color: Colors.white70, size: 22),
+                        color: Color(0xFF555555), size: 22),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -288,17 +279,15 @@ class _AppDrawerState extends State<AppDrawer> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.25),
-                    ),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
                   ),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.person_outline_rounded,
-                        color: Colors.white,
+                        color: Color(0xFF1A1A1A),
                         size: 18,
                       ),
                       const SizedBox(width: 10),
@@ -306,7 +295,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         builder: (_, lp, __) => Text(
                           lp.loc.navMyPage,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Color(0xFF1A1A1A),
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.3,
@@ -314,9 +303,9 @@ class _AppDrawerState extends State<AppDrawer> {
                         ),
                       ),
                       const Spacer(),
-                      Icon(
+                      const Icon(
                         Icons.arrow_forward_ios_rounded,
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: Color(0xFF999999),
                         size: 14,
                       ),
                     ],
@@ -332,7 +321,8 @@ class _AppDrawerState extends State<AppDrawer> {
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5),
+                        color: const Color(0xFF111111),
+                        border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
                       ),
                       child: Center(
                         child: Text(
@@ -353,7 +343,7 @@ class _AppDrawerState extends State<AppDrawer> {
                           Text(
                             user.name,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Color(0xFF1A1A1A),
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 0.3,
@@ -362,8 +352,8 @@ class _AppDrawerState extends State<AppDrawer> {
                           const SizedBox(height: 2),
                           Text(
                             user.email,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.5),
+                            style: const TextStyle(
+                              color: Color(0xFF999999),
                               fontSize: 11,
                             ),
                           ),
@@ -373,7 +363,6 @@ class _AppDrawerState extends State<AppDrawer> {
                   ],
                 ),
               ] else ...[
-                // 비로그인 — Nike 스타일 버튼
                 GestureDetector(
                   onTap: () {
                     Navigator.pop(context);
@@ -385,7 +374,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       Text(
                         loc.loginSignup,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: Color(0xFF1A1A1A),
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
@@ -396,12 +385,12 @@ class _AppDrawerState extends State<AppDrawer> {
                         width: 22,
                         height: 22,
                         decoration: const BoxDecoration(
-                          color: Colors.white,
+                          color: Color(0xFF111111),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.arrow_forward_rounded,
-                          color: Color(0xFF111111),
+                          color: Colors.white,
                           size: 13,
                         ),
                       ),
@@ -416,30 +405,30 @@ class _AppDrawerState extends State<AppDrawer> {
     );
   }
 
-  // ── 섹션 레이블 (ALLCAPS, 흰색, 작은 회색) ──
+  // ── 섹션 레이블 ──
   Widget _sectionLabel(String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 16, 6),
       child: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w900,
-          color: Colors.white.withValues(alpha: 0.35),
+          color: Color(0xFFAAAAAA),
           letterSpacing: 2.5,
         ),
       ),
     );
   }
 
-  // ── 카테고리 타일 (Expansion) — 나이키 올블랙 스타일 ──
+  // ── 카테고리 타일 ──
   Widget _buildCategoryTile(BuildContext context, int index, CategoryData cat) {
     final isExpanded = _expandedIndex == index;
     return Column(
       children: [
         InkWell(
-          splashColor: Colors.white.withValues(alpha: 0.04),
-          highlightColor: Colors.white.withValues(alpha: 0.03),
+          splashColor: const Color(0x0F111111),
+          highlightColor: const Color(0x07111111),
           onTap: () => setState(() {
             _expandedIndex = isExpanded ? null : index;
           }),
@@ -451,9 +440,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 Icon(
                   cat.icon,
                   size: 18,
-                  color: isExpanded
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.45),
+                  color: isExpanded ? cat.color : const Color(0xFF888888),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -462,9 +449,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: isExpanded ? FontWeight.w800 : FontWeight.w500,
-                      color: isExpanded
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.75),
+                      color: isExpanded ? const Color(0xFF111111) : const Color(0xFF333333),
                       letterSpacing: isExpanded ? 0.3 : 0,
                     ),
                   ),
@@ -485,12 +470,12 @@ class _AppDrawerState extends State<AppDrawer> {
                       ),
                     );
                   },
-                  child: Text(
+                  child: const Text(
                     'ALL',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white.withValues(alpha: 0.35),
+                      color: Color(0xFFBBBBBB),
                       letterSpacing: 1.5,
                     ),
                   ),
@@ -502,7 +487,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   child: Icon(
                     Icons.keyboard_arrow_down_rounded,
                     size: 18,
-                    color: Colors.white.withValues(alpha: isExpanded ? 0.9 : 0.35),
+                    color: isExpanded ? const Color(0xFF555555) : const Color(0xFFBBBBBB),
                   ),
                 ),
               ],
@@ -522,14 +507,14 @@ class _AppDrawerState extends State<AppDrawer> {
     );
   }
 
-  // ── 서브 카테고리 (인덴트, 밑줄 없음) ──
+  // ── 서브 카테고리 ──
   Widget _buildSubCategories(BuildContext context, CategoryData cat) {
     return Container(
-      color: const Color(0xFF1A1A1A), // 살짝 밝은 블랙
+      color: const Color(0xFFF8F8F8),
       child: Column(
         children: cat.subCategories.map((sub) {
           return InkWell(
-            splashColor: Colors.white.withValues(alpha: 0.04),
+            splashColor: const Color(0x0F111111),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -548,16 +533,16 @@ class _AppDrawerState extends State<AppDrawer> {
                   Container(
                     width: 2,
                     height: 14,
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: const Color(0xFFDDDDDD),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       sub.name,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.65),
+                        color: Color(0xFF555555),
                         letterSpacing: 0.2,
                       ),
                     ),
@@ -604,8 +589,8 @@ class _AppDrawerState extends State<AppDrawer> {
     String? badge,
   }) {
     return InkWell(
-      splashColor: Colors.white.withValues(alpha: 0.04),
-      highlightColor: Colors.white.withValues(alpha: 0.03),
+      splashColor: const Color(0x0F111111),
+      highlightColor: const Color(0x07111111),
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -614,16 +599,16 @@ class _AppDrawerState extends State<AppDrawer> {
             Icon(
               icon,
               size: 18,
-              color: Colors.white.withValues(alpha: 0.55),
+              color: const Color(0xFF888888),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white.withValues(alpha: 0.75),
+                  color: Color(0xFF333333),
                 ),
               ),
             ),
@@ -643,10 +628,10 @@ class _AppDrawerState extends State<AppDrawer> {
                   ),
                 ),
               ),
-            Icon(
+            const Icon(
               Icons.chevron_right_rounded,
               size: 16,
-              color: Colors.white.withValues(alpha: 0.25),
+              color: Color(0xFFCCCCCC),
             ),
           ],
         ),
