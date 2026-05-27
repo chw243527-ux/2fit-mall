@@ -932,19 +932,18 @@ class _HomeScreenState extends State<HomeScreen>
 
           // ── 배너 (NavBar 아래 남은 공간 전체) ──
           Expanded(
-            child: (bannerProv.loading && activeBanners.isEmpty)
-                ? const ColoredBox(
-                    color: Color(0xFF111111),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                          color: Colors.white30, strokeWidth: 2)))
-                : activeBanners.isEmpty
-                    ? const ColoredBox(
-                        color: Color(0xFF111111),
-                        child: Center(
-                          child: Text('배너 없음',
-                              style: TextStyle(color: Colors.white38))))
-                    : _buildPcBannerBody(loc, activeBanners),
+            child: activeBanners.isEmpty
+                // Firestore 로딩 중 또는 배너 없을 때 → 로컬 asset 동영상 즉시 표시
+                ? VideoBannerWidget(
+                    videoUrl: 'assets/images/banner_video.mp4',
+                    thumbnailUrl: null,
+                    onTap: null,
+                    onProductTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                    ),
+                  )
+                : _buildPcBannerBody(loc, activeBanners),
           ),
         ],
       ),
@@ -2330,25 +2329,21 @@ class _HomeScreenState extends State<HomeScreen>
     // PC/태블릿/모바일 모두 동일 공식 → 디바이스 너비에 맞게 자동 조절
     final bannerH = screenW * 9 / 16;
 
-    // Firestore 데이터가 아직 없을 때만 → 로컬 asset 동영상 표시
-    if (bannerProv.loading && activeBanners.isEmpty) {
+    // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 즉시 표시
+    // (loading 여부 무관하게 activeBanners가 비어있으면 항상 로컬 동영상)
+    if (activeBanners.isEmpty) {
       return SizedBox(
         height: bannerH,
-        child: Stack(
-          children: [
-            // 로컬 asset 동영상 — 컨테이너 전체를 꽉 채움
-            Positioned.fill(
-              child: VideoBannerWidget(
-                videoUrl: 'assets/images/banner_video.mp4',
-                thumbnailUrl: null,
-                onTap: null,
-                onProductTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProductListScreen()),
-                ),
-              ),
+        child: Positioned.fill(
+          child: VideoBannerWidget(
+            videoUrl: 'assets/images/banner_video.mp4',
+            thumbnailUrl: null,
+            onTap: null,
+            onProductTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProductListScreen()),
             ),
-          ],
+          ),
         ),
       );
     }
@@ -3554,23 +3549,20 @@ class _HomeScreenState extends State<HomeScreen>
     final mq = MediaQuery.of(context);
     final bannerHeight = mq.size.height - mq.viewPadding.bottom;
 
-    // 배너 데이터가 아직 없을 때만 로딩 스피너 표시 (데이터 있으면 바로 렌더링)
-    if (bannerProv.loading && activeBanners.isEmpty) {
-      return SizedBox(
-        height: bannerHeight,
-        child: const ColoredBox(
-          color: Color(0xFF111111),
-          child: Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2)),
-        ),
-      );
-    }
-
+    // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 즉시 표시
     if (activeBanners.isEmpty) {
       return SizedBox(
         height: bannerHeight,
-        child: const ColoredBox(
-          color: Color(0xFF111111),
-          child: Center(child: Text('배너 없음', style: TextStyle(color: Colors.white38))),
+        child: Positioned.fill(
+          child: VideoBannerWidget(
+            videoUrl: 'assets/images/banner_video.mp4',
+            thumbnailUrl: null,
+            onTap: null,
+            onProductTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProductListScreen()),
+            ),
+          ),
         ),
       );
     }

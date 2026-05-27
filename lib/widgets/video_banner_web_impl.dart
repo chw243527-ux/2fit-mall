@@ -102,12 +102,15 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
         ..src = src
         ..autoplay = true
         ..muted = true
-        ..loop = true                // ← loop ON: 끝나면 처음부터 반복 재생
+        ..loop = true
         ..setAttribute('playsinline', 'true')
         ..setAttribute('preload', 'auto')
+        ..setAttribute('webkit-playsinline', 'true')
+        // 즉시 로드 시작 — 화면에 붙기 전부터 버퍼링
+        ..load()
         ..style.width = '100%'
         ..style.height = '100%'
-        ..style.objectFit = 'cover'            // 컨테이너 꽉 채움 (비율 유지, 잘림 없음)
+        ..style.objectFit = 'cover'
         ..style.objectPosition = 'center center'
         ..style.backgroundColor = '#000000'
         ..style.display = 'block'

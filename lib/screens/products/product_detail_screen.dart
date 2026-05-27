@@ -3355,6 +3355,22 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   // 섹션 1: PERFORMANCE — 탑텐 스타일 모노크롬 특징 리스트
   // ═══════════════════════════════════════════════════════════
+  // ── 골지 타이즈 소재 행 반환 (나일론 75% / 라이크라 25%) ──
+  List<String>? _getGoljiTaizFiberRow() {
+    switch (loc.language) {
+      case AppLanguage.english:
+        return ['Golgi Tights (Bottom)', 'Nylon 75%', 'Lycra 25%'];
+      case AppLanguage.japanese:
+        return ['ゴルジタイツ (下)', 'ナイロン 75%', 'ライクラ 25%'];
+      case AppLanguage.chinese:
+        return ['罗纹紧身裤 (下衣)', '尼龙 75%', '莱卡 25%'];
+      case AppLanguage.mongolian:
+        return ['Голжи хачиг (Доод)', 'Нейлон 75%', 'Лайкра 25%'];
+      default:
+        return ['골지 타이즈 (하의)', '나일론 75%', '라이크라 25%'];
+    }
+  }
+
   // ── 싱글렛 상의 소재 행 반환 (폴리에스터 92% / 라이크라 8%) ──
   List<String>? _getSingletTopFiberRow() {
     // 언어별로 싱글렛 상의 소재 행 반환
@@ -3580,6 +3596,15 @@ $productUrl
     // 싱글렛 상의 소재 행 (폴리에스터 92% / 라이크라 8%)
     final singletTopRow = _getSingletTopFiberRow();
 
+    // 골지 타이즈 카테고리 판별 (하의 타이즈)
+    final isGoljiTaiz =
+        product.subCategory.contains('타이즈') ||
+        product.name.contains('타이즈') ||
+        product.category == '하의' ||
+        product.subCategory.contains('골지');
+    // 골지 타이즈 소재 행 (나일론 75% / 라이크라 25%)
+    final goljiTaizRow = _getGoljiTaizFiberRow();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -3718,6 +3743,37 @@ $productUrl
                         ],
                       ),
                     ),
+                    // 골지 타이즈: 소재 행 강조 표시 (최상단, 파란 배지)
+                    if (isGoljiTaiz && goljiTaizRow != null)
+                      Container(
+                        color: const Color(0xFFE8F5E9),
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                        child: Row(
+                          children: [
+                            Expanded(flex: 5, child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF1B5E20),
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                  child: const Text('하의', style: TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800)),
+                                ),
+                                Flexible(child: Text(goljiTaizRow[0],
+                                  style: const TextStyle(fontSize: 11, color: Color(0xFF333333), fontWeight: FontWeight.w600))),
+                              ],
+                            )),
+                            Expanded(flex: 4, child: Text(goljiTaizRow[1],
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A), fontWeight: FontWeight.w800),
+                              textAlign: TextAlign.center)),
+                            Expanded(flex: 3, child: Text(goljiTaizRow[2],
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w600),
+                              textAlign: TextAlign.center)),
+                          ],
+                        ),
+                      ),
                     // 싱글렛/싱글렛세트: 상의 소재 행 강조 표시 (최상단)
                     if (isSingletProduct && singletTopRow != null)
                       Container(
@@ -3883,8 +3939,8 @@ $productUrl
   // 섹션 5: COLOR LINE — 탑텐 스타일 컬러 차트
   // ═══════════════════════════════════════════════════════════
   Widget _buildSection5GoljiColors(ProductModel product, bool isAdmin) {
-    // ── 섹션5 컬러 데이터
-    final goljiColors = [
+    // ── 골지원단 19색 전체 데이터
+    final allGoljiColors = [
       {'code': 'K',  'name': '블랙',       'hex': 0xFF1A1A1A},
       {'code': 'N',  'name': '네이비',      'hex': 0xFF0D1B4F},
       {'code': 'W',  'name': '화이트',      'hex': 0xFFF5F5F5},
@@ -3906,6 +3962,14 @@ $productUrl
       {'code': 'FG', 'name': '형광그린',    'hex': 0xFF88EE00},
     ];
 
+    // 기성품 하의 선택 가능 색상 (K=블랙, PP=퍼플네이비)
+    final readyMadeBottomColors = allGoljiColors
+        .where((c) => c['code'] == 'K' || c['code'] == 'PP')
+        .toList();
+
+    // 단체주문 여부
+    final isGroupOnly = product.isGroupOnly;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -3917,45 +3981,166 @@ $productUrl
             child: _buildAdminImageSection('s5', '섹션5 골지 원단 색상', isAdmin),
           ),
 
-        // ── 골지 색상 차트 (이전 스타일 유지)
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 6,
-                  crossAxisSpacing: 6,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.78,
-                ),
-                itemCount: goljiColors.length,
-                itemBuilder: (_, i) {
-                  final c = goljiColors[i];
-                  final hexVal = c['hex'] as int;
-                  final swatchColor = Color(hexVal);
-                  final isLight = swatchColor.computeLuminance() > 0.5;
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      RibColorSwatch(color: swatchColor, size: 42, isLight: isLight),
-                      const SizedBox(height: 3),
-                      Text(
-                        c['code'] as String,
-                        style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Color(0xFF222222)),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ],
-          ),
+        // ── 섹션5 헤더 배너
+        _sectionHeaderBanner(
+          engTitle: 'COLOR LINE',
+          engSub: 'SECTION 05',
+          korSub: isGroupOnly
+              ? '골지원단 19가지 색상 라인업\n원하는 색상으로 커스텀 제작 가능'
+              : '기성품 색상 안내\n상의는 디자인 색상 그대로, 하의는 K · PP 선택 가능',
+          bgColor: const Color(0xFF0D0D0D),
+          trailingIcon: const Icon(Icons.palette_outlined, size: 36, color: Color(0x55FFFFFF)),
         ),
+        const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
+
+        // ── 단체주문: 전체 19색 표시
+        if (isGroupOnly) ...[
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A148C),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text('단체주문 전용', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+              ),
+              const SizedBox(width: 8),
+              const Text('골지원단 전색상 선택 가능 (19색)',
+                style: TextStyle(fontSize: 12, color: Color(0xFF555555), fontWeight: FontWeight.w500)),
+            ]),
+          ),
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 20),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 6,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 10,
+                childAspectRatio: 0.75,
+              ),
+              itemCount: allGoljiColors.length,
+              itemBuilder: (_, i) {
+                final c = allGoljiColors[i];
+                final hexVal = c['hex'] as int;
+                final swatchColor = Color(hexVal);
+                final isLight = swatchColor.computeLuminance() > 0.5;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RibColorSwatch(color: swatchColor, size: 42, isLight: isLight),
+                    const SizedBox(height: 3),
+                    Text(c['code'] as String,
+                      style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Color(0xFF222222)),
+                      textAlign: TextAlign.center),
+                    Text(c['name'] as String,
+                      style: const TextStyle(fontSize: 7.5, color: Color(0xFF888888)),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  ],
+                );
+              },
+            ),
+          ),
+        ]
+        // ── 기성품: 상의 고정 + 하의 K/PP 선택
+        else ...[
+          // 상의 안내
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A1A),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text('상의', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(child: Text('디자인 색상 그대로 진행',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF1A1A1A), fontWeight: FontWeight.w700))),
+                ]),
+                const SizedBox(height: 6),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F8F8),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFEEEEEE)),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF888888)),
+                    const SizedBox(width: 8),
+                    const Expanded(child: Text(
+                      '기성품 상의는 선택하신 디자인 색상으로 제작되며\n별도 색상 변경이 불가합니다.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF666666), height: 1.5),
+                    )),
+                  ]),
+                ),
+                const SizedBox(height: 16),
+                // 하의 색상 선택
+                Row(children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1976D2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text('하의', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(child: Text('K (블랙) 또는 PP (퍼플네이비) 선택',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF1A1A1A), fontWeight: FontWeight.w700))),
+                ]),
+                const SizedBox(height: 10),
+                Row(
+                  children: readyMadeBottomColors.map((c) {
+                    final hexVal = c['hex'] as int;
+                    final swatchColor = Color(hexVal);
+                    final isLight = swatchColor.computeLuminance() > 0.5;
+                    return Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFDDDDDD)),
+                        ),
+                        child: Row(children: [
+                          RibColorSwatch(color: swatchColor, size: 36, isLight: isLight),
+                          const SizedBox(width: 10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(c['code'] as String,
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+                              Text(c['name'] as String,
+                                style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                            ],
+                          ),
+                        ]),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
