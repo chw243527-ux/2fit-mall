@@ -111,7 +111,11 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
-    // PC/태블릿/모바일 모두 동일한 모바일 레이아웃 사용
+    final w = MediaQuery.of(context).size.width;
+    // PC(≥900px): PC NavBar + 풀스크린 배너 레이아웃
+    if (w >= kPcBreakpoint) return _buildPcLayout(loc);
+    // 모바일(<600) + 태블릿(600~899): 모바일 기반 레이아웃
+    // 태블릿은 _buildMobileLayout 내부 isMobileW 분기가 헤더 자동 처리
     return _buildMobileLayout(loc);
   }
 
@@ -2245,8 +2249,12 @@ class _HomeScreenState extends State<HomeScreen>
     );
 
     final screenW = MediaQuery.of(context).size.width;
-    // 가로 5개: 양쪽 패딩 12 + 카드 간격 8×4 = 56, 나머지를 5등분
-    final cardW = ((screenW - 24 - 32) / 5).clamp(72.0, 150.0);
+    // 반응형 카드 수: 태블릿(600~899)은 4개, 모바일(<600)은 5개
+    // 양쪽 패딩 12×2=24, 카드 간격 8×(n-1)
+    final isTabletW = screenW >= 600;
+    final colCount  = isTabletW ? 4 : 5;
+    final cardW = ((screenW - 24 - 8 * (colCount - 1)) / colCount)
+        .clamp(72.0, isTabletW ? 200.0 : 150.0);
     final imgH  = cardW * 1.25; // 4:5 비율
 
     return Container(
