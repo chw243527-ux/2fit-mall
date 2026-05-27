@@ -2221,6 +2221,9 @@ class _HomeScreenState extends State<HomeScreen>
                 child: _buildGroupProductsRow(loc, previewProds, hasMore, sortedGroupProds),
               ),
 
+            // ── 베스트 상품 섹션 ──
+            SliverToBoxAdapter(child: _buildBestSection(loc)),
+
             const SliverToBoxAdapter(child: SizedBox(height: 80)),
                 ],
               ),
