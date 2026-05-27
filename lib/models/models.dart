@@ -24,6 +24,8 @@ class ProductModel {
   final int salesCount;
   final bool isActive;
   final DateTime createdAt;
+  // 관리자가 직접 입력하는 상품번호 (예: SA0001, TZ001)
+  final String productCode;
   // 섹션별 관리자 업로드 이미지 (key: 's1','s2','s3','s4','s5','s6')
   final Map<String, List<String>> sectionImages;
   // 다국어 상품명 번역 (key: 'en','ja','zh','mn')
@@ -53,6 +55,7 @@ class ProductModel {
     this.salesCount = 0,
     this.isActive = true,
     required this.createdAt,
+    this.productCode = '',
     this.sectionImages = const {},
     this.nameTranslations = const {},
     this.descriptionTranslations = const {},
@@ -110,6 +113,7 @@ class ProductModel {
       isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping,
       isGroupOnly: isGroupOnly, rating: rating, reviewCount: reviewCount,
       stockCount: stockCount, salesCount: salesCount, isActive: isActive, createdAt: createdAt,
+      productCode: productCode,
       sectionImages: sectionImages,
       nameTranslations: nameTranslations ?? this.nameTranslations,
       descriptionTranslations: descriptionTranslations ?? this.descriptionTranslations,
@@ -167,6 +171,7 @@ class ProductModel {
       salesCount: json['salesCount'] as int? ?? 0,
       isActive: json['isActive'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      productCode: json['productCode'] as String? ?? '',
       sectionImages: parseSectionImages(json['sectionImages']),
       nameTranslations: json['nameTranslations'] != null
           ? Map<String, String>.from(json['nameTranslations'] as Map)
@@ -200,6 +205,7 @@ class ProductModel {
       'salesCount': salesCount,
       'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
+      'productCode': productCode,
       'sectionImages': sectionImages,
       'nameTranslations': nameTranslations,
       'descriptionTranslations': descriptionTranslations,
@@ -215,6 +221,7 @@ class ProductModel {
       isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping, isGroupOnly: isGroupOnly,
       rating: rating, reviewCount: reviewCount, stockCount: stockCount, salesCount: salesCount,
       isActive: isActive, createdAt: createdAt,
+      productCode: productCode,
       sectionImages: newSectionImages,
       nameTranslations: nameTranslations,
       descriptionTranslations: descriptionTranslations,

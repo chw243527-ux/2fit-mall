@@ -9530,6 +9530,7 @@ class _ProductFormDialog extends StatefulWidget {
 class _ProductFormDialogState extends State<_ProductFormDialog> {
   // ── 텍스트 컨트롤러
   late final TextEditingController _nameCtrl;
+  late final TextEditingController _productCodeCtrl;
   late final TextEditingController _priceCtrl;
   late final TextEditingController _origPriceCtrl;
   late final TextEditingController _descCtrl;
@@ -9636,6 +9637,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     super.initState();
     final e = widget.existing;
     _nameCtrl = TextEditingController(text: e?.name ?? '');
+    _productCodeCtrl = TextEditingController(text: e?.productCode ?? '');
     _priceCtrl = TextEditingController(text: e?.price.toStringAsFixed(0) ?? '');
     _origPriceCtrl = TextEditingController(text: e?.originalPrice?.toStringAsFixed(0) ?? '');
     _descCtrl = TextEditingController(text: e?.description ?? '');
@@ -9709,7 +9711,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
 
   @override
   void dispose() {
-    _nameCtrl.dispose(); _priceCtrl.dispose(); _origPriceCtrl.dispose();
+    _nameCtrl.dispose(); _productCodeCtrl.dispose(); _priceCtrl.dispose(); _origPriceCtrl.dispose();
     _descCtrl.dispose(); _sizesCtrl.dispose();
     _stockCtrl.dispose(); _urlCtrl.dispose();
     super.dispose();
@@ -9846,6 +9848,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     final product = ProductModel(
       id: widget.existing?.id ?? 'p_${DateTime.now().millisecondsSinceEpoch}',
       name: productName,
+      productCode: _productCodeCtrl.text.trim(),
       category: _selCat,
       // 타이즈인 경우 서브카테고리에 길이 포함 (예: "타이즈 9부")
       subCategory: _selSubCat == '타이즈' && _selTightsSub.isNotEmpty
@@ -9973,6 +9976,22 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     ),
                   ),
                 ],
+                const SizedBox(height: 14),
+
+                // ── 상품번호 (관리자 직접 입력)
+                _lbl('상품번호 (상세페이지에 표시됨, 예: SA0001)'),
+                TextField(
+                  controller: _productCodeCtrl,
+                  decoration: InputDecoration(
+                    hintText: '상품번호 입력 (예: SA0001, TZ001)',
+                    filled: true,
+                    fillColor: const Color(0xFFF5F5F5),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    isDense: true,
+                    prefixIcon: const Icon(Icons.tag, size: 18, color: Color(0xFF888888)),
+                  ),
+                ),
                 const SizedBox(height: 14),
 
                 // ── 카테고리 + 하위카테고리

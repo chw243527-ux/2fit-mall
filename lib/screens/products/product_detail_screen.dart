@@ -941,9 +941,9 @@ $productUrl
           ),
 
           // ═══════════════════════════════════════════════
-          // 탑텐 스타일: 색상 선택 원형 그리드
+          // 탑텐 스타일: 색상 선택 원형 그리드 (단체주문 상품은 색상 선택 UI 없음)
           // ═══════════════════════════════════════════════
-          if (product.colors.isNotEmpty) ...[
+          if (product.colors.isNotEmpty && !product.isGroupOnly) ...[
             const SizedBox(height: 18),
             const Divider(height: 1, color: Color(0xFFF5F5F5)),
             _buildToptenColorSection(product),
@@ -955,7 +955,7 @@ $productUrl
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
             child: Text(
-              '시즌 : SS26  |  상품번호 : ${product.id.toUpperCase()}',
+              '시즌 : SS26  |  상품번호 : ${product.productCode.isNotEmpty ? product.productCode.toUpperCase() : product.id.toUpperCase()}',
               style: const TextStyle(fontSize: 11, color: Color(0xFFAAAAAA), fontWeight: FontWeight.w400),
             ),
           ),
@@ -1119,7 +1119,7 @@ $productUrl
                   Text(
                     product.isFreeShipping
                         ? '무료배송'
-                        : '3,000원 (39,900원 이상 구매시 무료)',
+                        : '4,000원 (300,000원 이상 구매시 무료)',
                     style: TextStyle(
                       fontSize: 13,
                       color: product.isFreeShipping ? const Color(0xFF2E7D32) : const Color(0xFF1A1A1A),
@@ -1131,33 +1131,12 @@ $productUrl
                       '(도서산간 배송시 3,000원 추가)',
                       style: TextStyle(fontSize: 11, color: Color(0xFFAAAAAA)),
                     ),
+                  // 포인트 섹션 제거됨 (요청 반영)
                 ],
               ),
             ),
           ],
         ),
-      ),
-      const Divider(height: 1, color: Color(0xFFF5F5F5), indent: 16, endIndent: 16),
-      // 포인트 행
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-        child: Row(children: [
-          const SizedBox(
-            width: 44,
-            child: Row(children: [
-              Text('포인트', style: TextStyle(fontSize: 13, color: Color(0xFF888888), fontWeight: FontWeight.w500)),
-              SizedBox(width: 3),
-              Icon(Icons.help_outline_rounded, size: 13, color: Color(0xFFBBBBBB)),
-            ]),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            '최대 ${((product.price * 0.01)).toStringAsFixed(0)}P 적립',
-            style: const TextStyle(fontSize: 13, color: Color(0xFF1976D2), fontWeight: FontWeight.w600),
-          ),
-          const Spacer(),
-          const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFFBBBBBB)),
-        ]),
       ),
     ]);
   }
@@ -1170,6 +1149,7 @@ $productUrl
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(children: [
           // 브랜드 로고 박스 (검정 사각형)
+          // 브랜드 로고: 홈 상단과 동일한 logo_2fit.png 이미지 사용
           Container(
             width: 50,
             height: 50,
@@ -1177,14 +1157,18 @@ $productUrl
               color: const Color(0xFF1A1A1A),
               borderRadius: BorderRadius.circular(6),
             ),
-            alignment: Alignment.center,
-            child: const Text(
-              '2FIT',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.5,
+            padding: const EdgeInsets.all(6),
+            child: Image.asset(
+              'assets/images/logo_2fit.png',
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const Text(
+                '2FIT',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ),
@@ -1292,7 +1276,7 @@ $productUrl
           _infoLabelRow('제품명', product.localizedName(_lang)),
           if (product.subCategory.isNotEmpty)
             _infoLabelRow('분류', product.subCategory),
-          _infoLabelRow('상품코드', product.id.toUpperCase()),
+          _infoLabelRow('상품코드', product.productCode.isNotEmpty ? product.productCode.toUpperCase() : product.id.toUpperCase()),
           const SizedBox(height: 24),
 
           // ─ MATERIAL (소재 정보가 있을 때만)

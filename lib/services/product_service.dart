@@ -988,6 +988,7 @@ class ProductService {
             reviewCount: product.reviewCount,
             stockCount: product.stockCount > 0 ? product.stockCount : 100,  // 최소 100
             createdAt: product.createdAt,
+            productCode: product.productCode,
             sectionImages: product.sectionImages,
             nameTranslations: product.nameTranslations,
             descriptionTranslations: product.descriptionTranslations,
@@ -1060,7 +1061,7 @@ class ProductService {
       isGroupOnly: p.isGroupOnly, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount,
       stockCount: newStock,
-      createdAt: p.createdAt, sectionImages: p.sectionImages,
+      createdAt: p.createdAt, productCode: p.productCode, sectionImages: p.sectionImages,
       nameTranslations: p.nameTranslations,
       descriptionTranslations: p.descriptionTranslations,
     );
@@ -1094,7 +1095,7 @@ class ProductService {
       isNew: p.isNew, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
       isGroupOnly: p.isGroupOnly, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
-      createdAt: p.createdAt, sectionImages: newMap,
+      createdAt: p.createdAt, productCode: p.productCode, sectionImages: newMap,
       nameTranslations: p.nameTranslations,
       descriptionTranslations: p.descriptionTranslations,
     );
@@ -1123,7 +1124,7 @@ class ProductService {
       isNew: p.isNew, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
       isGroupOnly: p.isGroupOnly, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
-      createdAt: p.createdAt, sectionImages: p.sectionImages,
+      createdAt: p.createdAt, productCode: p.productCode, sectionImages: p.sectionImages,
       nameTranslations: p.nameTranslations,
       descriptionTranslations: p.descriptionTranslations,
     );
