@@ -111,7 +111,9 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
-    // PC/태블릿/모바일 모두 동일한 모바일 레이아웃 사용
+    final w = MediaQuery.of(context).size.width;
+    // 900px 이상 → PC/태블릿 레이아웃, 미만 → 모바일
+    if (w >= kPcBreakpoint) return _buildPcLayout(loc);
     return _buildMobileLayout(loc);
   }
 
@@ -120,8 +122,79 @@ class _HomeScreenState extends State<HomeScreen>
   final GlobalKey<ScaffoldState> _pcScaffoldKey = GlobalKey<ScaffoldState>();
 
   Widget _buildPcLayout(AppLocalizations loc) {
-    // 홈화면: 배너만 표시 (전체 화면 높이 풀스크린)
-    return _buildPcBannerOnly(loc);
+    final bannerProv = context.watch<BannerProvider>();
+    final activeBanners = bannerProv.activeBanners;
+    final screenH = MediaQuery.of(context).size.height;
+    final bannerH = (screenH * 0.72).clamp(400.0, 760.0); // 화면 높이 72%, 최대 760
+
+    return Scaffold(
+      key: _pcScaffoldKey,
+      backgroundColor: const Color(0xFFF7F7F7),
+      drawer: AppDrawer(onNavigateToMyPage: () => widget.onNavigate?.call(3)),
+      floatingActionButton: _buildChatFAB(loc),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: Column(
+        children: [
+          // ── 상단 NavBar (고정) ──
+          _buildPcNavBar(loc),
+          // ── 스크롤 가능한 본문 ──
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                children: [
+                  // ── 풀너비 배너 (NavBar 바로 아래) ──
+                  SizedBox(
+                    width: double.infinity,
+                    height: bannerH,
+                    child: activeBanners.isEmpty
+                        ? _buildPcLocalBanner(loc)
+                        : _buildPcBannerBody(loc, activeBanners),
+                  ),
+
+                  // ── 본문 컨텐츠 (최대 1280px 중앙 정렬) ──
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1280),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 32),
+                            // 공지 배너
+                            _buildNoticeBanner(),
+                            const SizedBox(height: 24),
+                            // 퀵메뉴
+                            _buildQuickMenuBar(loc),
+                            const SizedBox(height: 32),
+                            // 단체주문 섹션 (반응형 그리드)
+                            _buildGroupOrderSection(loc),
+                            const SizedBox(height: 32),
+                            // 신상품
+                            _buildNewArrivalsSection(loc),
+                            const SizedBox(height: 32),
+                            // 베스트 상품
+                            _buildBestSection(loc),
+                            const SizedBox(height: 32),
+                            // 브랜드 피처
+                            _buildBrandFeatureSection(),
+                            const SizedBox(height: 48),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // ── 푸터 ──
+                  _buildPcFooter(loc),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ── PC 카테고리 드로어 (햄버거 버튼으로 열림) ──
