@@ -2601,21 +2601,19 @@ $productUrl
       'https://firebasestorage.googleapis.com/v0/b/fit-mall.firebasestorage.app/o/section_images%2Flength_female_default.jpg?alt=media';
 
   Widget _buildGenderLengthImageSection(bool isAdmin) {
-    final legacyImgs = _sectionImages['s2_length'] ?? [];
-    final maleImgs   = _sectionImages['s2_length_male'] ?? [];
-    final femaleImgs = _sectionImages['s2_length_female'] ?? [];
-
-    // 통합 이미지: 남녀 구분 없이 표시할 이미지 목록
-    // 우선순위: s2_length_male → legacy → defaultMale
-    final effectiveImgs = maleImgs.isNotEmpty
-        ? maleImgs
-        : (legacyImgs.isNotEmpty ? legacyImgs : [_defaultMaleLengthImg]);
+    // 통합 키 's2_length' 하나로 관리 (남녀 구분 없음)
+    final imgs = _sectionImages['s2_length'] ?? [];
+    // 기존 남자키 데이터도 폴백으로 사용
+    final legacyMale = _sectionImages['s2_length_male'] ?? [];
+    final effectiveImgs = imgs.isNotEmpty
+        ? imgs
+        : (legacyMale.isNotEmpty ? legacyMale : [_defaultMaleLengthImg]);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (isAdmin) ...[
-          // 관리자: 남녀 별도 업로드 UI 유지
+          // 관리자: 단일 업로드 섹션
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
@@ -2633,27 +2631,10 @@ $productUrl
             ),
           ),
           const SizedBox(height: 10),
-          _buildGenderImageHeader(
-            icon: Icons.male_rounded,
-            label: loc.maleLengthRef,
-            color: const Color(0xFF1565C0),
-            bgColor: const Color(0xFFE3F2FD),
-          ),
-          const SizedBox(height: 6),
-          _buildAdminImageSection('s2_length_male', '남자 하의길이 참조 이미지', isAdmin),
-          const SizedBox(height: 12),
-          _buildGenderImageHeader(
-            icon: Icons.female_rounded,
-            label: loc.femaleLengthRef,
-            color: const Color(0xFFAD1457),
-            bgColor: const Color(0xFFFCE4EC),
-          ),
-          const SizedBox(height: 6),
-          _buildAdminImageSection('s2_length_female', '여자 하의길이 참조 이미지', isAdmin),
+          _buildAdminImageSection('s2_length', '하의길이 참조 이미지', isAdmin),
         ] else ...[
-          // 일반 유저: 남녀 구분 없이 이미지만 표시
+          // 일반 유저: 이미지만 표시
           _buildStaticImageList(effectiveImgs),
-          if (femaleImgs.isNotEmpty) _buildStaticImageList(femaleImgs),
         ],
       ],
     );
