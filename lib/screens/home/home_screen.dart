@@ -2177,232 +2177,192 @@ class _HomeScreenState extends State<HomeScreen>
     final groupProds = pp.groupOnlyProducts;
     final isMobileW = MediaQuery.of(context).size.width < 600;
 
-    // 인기순 상품 (salesCount 내림차순, 최대 5개 미리보기)
-    final allProds = pp.groupOnlyProducts.isNotEmpty ? pp.groupOnlyProducts : pp.products;
-    final popularProds = [...allProds]
+    // 인기순 정렬 (salesCount 내림차순)
+    final sortedGroupProds = [...groupProds]
       ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
-    final previewProds = popularProds.take(5).toList();
+    // 미리보기: 상위 5개, 전체보기 클릭 시 전체 표시
+    const previewCount = 5;
+    final previewProds = sortedGroupProds.take(previewCount).toList();
+    final hasMore = sortedGroupProds.length > previewCount;
 
     return Stack(
       children: [
-        // ── 전체 스크롤 컨텐츠 ──
         Column(
           children: [
-            // ── ① 흰 배경 고정 헤더 (모바일만) ──
+            // ── ① 고정 헤더 (모바일) ──
             if (isMobileW) SafeArea(bottom: false, child: _buildFixedHeader(loc)),
-            // ── ② 나머지 스크롤 영역 ──
+            // ── ② 스크롤 영역 ──
             Expanded(
               child: CustomScrollView(
                 slivers: [
-            // ── ① 배너 슬라이더 ──
+            // ── 배너 ──
             SliverToBoxAdapter(child: _buildCompactBanner(loc)),
 
-            // ── ② 인기 상품 가로 5개 미리보기 ──
-            SliverToBoxAdapter(child: _buildPopularProductsRow(loc, previewProds)),
-
-            // ── ③ 단체주문 전용 상품 헤더 ──
+            // ── 단체주문 전용 헤더 ──
             SliverToBoxAdapter(child: _buildGroupSectionHeader(loc, groupProds.length)),
-            // ── ④ 단체주문 상품 그리드 ──
+
+            // ── 단체주문 상품: 인기순 5개 가로 진열 + 전체보기 ──
             if (pp.isGroupOnlyLoading && groupProds.isEmpty)
               const SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.symmetric(vertical: 40),
-                  child: Center(child: CircularProgressIndicator(color: Color(0xFF6A1B9A), strokeWidth: 2)),
+                  child: Center(child: CircularProgressIndicator(
+                      color: Color(0xFF6A1B9A), strokeWidth: 2)),
                 ),
               )
             else if (groupProds.isEmpty)
               SliverToBoxAdapter(child: _buildGroupEmptyState(loc))
             else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
-                sliver: SliverGrid(
-                  delegate: SliverChildBuilderDelegate(
-                    (_, i) => _buildGroupProductCard(groupProds[i]),
-                    childCount: groupProds.length,
-                  ),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 0.68,
-                  ),
-                ),
+              SliverToBoxAdapter(
+                child: _buildGroupProductsRow(loc, previewProds, hasMore, sortedGroupProds),
               ),
-            // 하단 여백
+
             const SliverToBoxAdapter(child: SizedBox(height: 80)),
                 ],
               ),
             ),
           ],
         ),
-        // ── FAB 채팅버튼 ──
+        // ── FAB ──
         Positioned(
-          right: 16,
-          bottom: 16,
+          right: 16, bottom: 16,
           child: _buildChatFAB(loc),
         ),
       ],
     );
   }
 
-  // ── 인기 상품 가로 5개 미리보기 + 전체보기 버튼 ──
-  Widget _buildPopularProductsRow(AppLocalizations loc, List<ProductModel> prods) {
-    if (prods.isEmpty) return const SizedBox.shrink();
-
+  // ── 단체주문 상품 가로 5개 진열 + 전체보기 버튼 ──
+  Widget _buildGroupProductsRow(
+    AppLocalizations loc,
+    List<ProductModel> previewProds,
+    bool hasMore,
+    List<ProductModel> allGroupProds,
+  ) {
     void goAll() => Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const ProductListScreen(initialSortBy: '인기순')),
+      MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()),
     );
+
+    final screenW = MediaQuery.of(context).size.width;
+    // 가로 5개: 양쪽 패딩 12 + 카드 간격 8×4 = 56, 나머지를 5등분
+    final cardW = ((screenW - 24 - 32) / 5).clamp(72.0, 150.0);
+    final imgH  = cardW * 1.25; // 4:5 비율
 
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 섹션 헤더 ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 12, 14),
-            child: Row(
-              children: [
-                const Text('인기 상품',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800,
-                      color: Color(0xFF111111), letterSpacing: -0.3)),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE53935),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: const Text('BEST',
-                    style: TextStyle(color: Colors.white, fontSize: 9,
-                        fontWeight: FontWeight.w800, letterSpacing: 1.0)),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: goAll,
-                  child: Row(
-                    children: const [
-                      Text('전체보기',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
-                            color: Color(0xFF666666))),
-                      SizedBox(width: 2),
-                      Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Color(0xFF999999)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // ── 가로 스크롤 상품 5개 ──
+          // 가로 스크롤 상품 목록
           SizedBox(
-            height: 200,
+            height: imgH + 58, // 이미지 + 텍스트 영역
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: prods.length,
-              itemBuilder: (_, i) => _buildPopularProductCard(prods[i]),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // ── 전체보기 버튼 ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
-            child: GestureDetector(
-              onTap: goAll,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 13),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFE0E0E0)),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('전체 상품 보기',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
-                          color: Color(0xFF333333), letterSpacing: 0.2)),
-                    SizedBox(width: 6),
-                    Icon(Icons.arrow_forward_rounded, size: 15, color: Color(0xFF555555)),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const Divider(height: 1, color: Color(0xFFF0F0F0)),
-        ],
-      ),
-    );
-  }
-
-  // ── 인기 상품 카드 (가로 스크롤용, 컴팩트) ──
-  Widget _buildPopularProductCard(ProductModel p) {
-    final cardW = (MediaQuery.of(context).size.width - 12 * 2 - 8 * 4) / 5;
-    final discount = p.originalPrice != null && p.originalPrice! > p.price
-        ? ((1 - p.price / p.originalPrice!) * 100).round()
-        : 0;
-
-    return GestureDetector(
-      onTap: () => Navigator.push(context,
-        MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-      child: Container(
-        width: cardW.clamp(80.0, 160.0),
-        margin: const EdgeInsets.only(right: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 이미지
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    p.images.isNotEmpty
-                      ? Image.network(p.images.first, fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: const Color(0xFFF0F0F0),
-                            child: const Icon(Icons.image_not_supported_rounded,
-                                color: Colors.white54, size: 28)))
-                      : Container(color: const Color(0xFFF0F0F0)),
-                    // 할인율 뱃지
-                    if (discount > 0)
-                      Positioned(
-                        top: 5, left: 5,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE53935),
-                            borderRadius: BorderRadius.circular(3),
+              itemCount: previewProds.length,
+              itemBuilder: (_, i) {
+                final p = previewProds[i];
+                final discount = p.originalPrice != null && p.originalPrice! > p.price
+                    ? ((1 - p.price / p.originalPrice!) * 100).round()
+                    : 0;
+                return GestureDetector(
+                  onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
+                  child: Container(
+                    width: cardW,
+                    margin: const EdgeInsets.only(right: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 이미지
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Stack(
+                            children: [
+                              SizedBox(
+                                width: cardW, height: imgH,
+                                child: p.images.isNotEmpty
+                                  ? Image.network(p.images.first, fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        color: const Color(0xFFF0F0F0),
+                                        child: const Icon(Icons.image_not_supported_rounded,
+                                          color: Colors.white54, size: 28)))
+                                  : Container(color: const Color(0xFFF0F0F0),
+                                      child: const Icon(Icons.image_not_supported_rounded,
+                                        color: Colors.white54, size: 28)),
+                              ),
+                              if (discount > 0)
+                                Positioned(
+                                  top: 5, left: 5,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE53935),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    child: Text('$discount%',
+                                      style: const TextStyle(color: Colors.white,
+                                          fontSize: 9, fontWeight: FontWeight.w800)),
+                                  ),
+                                ),
+                            ],
                           ),
-                          child: Text('$discount%',
-                            style: const TextStyle(color: Colors.white, fontSize: 9,
-                                fontWeight: FontWeight.w800)),
                         ),
+                        const SizedBox(height: 6),
+                        // 상품명
+                        Text(p.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600,
+                              color: Color(0xFF222222), height: 1.3)),
+                        const SizedBox(height: 2),
+                        // 가격
+                        Text(
+                          '${p.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800,
+                              color: Color(0xFF111111)),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // 전체보기 버튼 (상품이 5개 초과일 때만)
+          if (hasMore)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
+              child: GestureDetector(
+                onTap: goAll,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '전체 상품 보기 (${allGroupProds.length}개)',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                            color: Color(0xFF333333), letterSpacing: 0.2),
                       ),
-                  ],
+                      const SizedBox(width: 6),
+                      const Icon(Icons.arrow_forward_rounded, size: 15, color: Color(0xFF555555)),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 6),
-            // 상품명
-            Text(p.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600,
-                  color: Color(0xFF222222), height: 1.3)),
-            const SizedBox(height: 3),
-            // 가격
-            Text(
-              '${p.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800,
-                  color: Color(0xFF111111)),
-            ),
-          ],
-        ),
+            )
+          else
+            const SizedBox(height: 20),
+        ],
       ),
     );
   }
