@@ -3899,81 +3899,56 @@ $productUrl
       children: [
         // ── 섹션5 어드민 이미지
         if (isAdmin || (_sectionImages['s5'] ?? []).isNotEmpty)
-          isAdmin
-              ? Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: _buildAdminImageSection('s5', '섹션5 컬러 라인업', isAdmin),
-                )
-              : Column(
-                  children: (_sectionImages['s5'] ?? []).map((url) =>
-                    Image.network(url, width: double.infinity, fit: BoxFit.fitWidth,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-                  ).toList(),
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: _buildAdminImageSection('s5', '섹션5 골지 원단 색상', isAdmin),
+          ),
+
+        // ── 골지 색상 차트 (이전 스타일 유지)
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _sectionHeader('05', loc.section05Title, loc.section05Sub),
+              const SizedBox(height: 4),
+              Text(
+                loc.section05Desc,
+                style: const TextStyle(fontSize: 10.5, color: Color(0xFF666666), height: 1.5),
+              ),
+              const SizedBox(height: 12),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 6,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 0.78,
                 ),
-
-        // ── 탑텐 스타일: COLOR LINE-UP 헤더 (연한 회색 배경)
-        Container(
-          color: const Color(0xFFF8F8F8),
-          padding: const EdgeInsets.fromLTRB(20, 32, 20, 8),
-          child: _sectionHeader('05', 'COLOR\nLINE-UP', loc.section05Sub),
-        ),
-        Container(
-          color: const Color(0xFFF8F8F8),
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
-          child: Text(loc.section05Desc,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF888888), height: 1.5)),
-        ),
-
-        // ── 탑텐 스타일: 컬러 스와치 그리드 (8열, 원형 + 코드)
-        Container(
-          color: const Color(0xFFF8F8F8),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 6,
-              crossAxisSpacing: 4,
-              mainAxisSpacing: 14,
-              childAspectRatio: 0.82,
-            ),
-            itemCount: goljiColors.length,
-            itemBuilder: (_, i) {
-              final c = goljiColors[i];
-              final hexVal = c['hex'] as int;
-              final swatchColor = Color(hexVal);
-              final isLight = swatchColor.computeLuminance() > 0.5;
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 탑텐 스타일: 원형 색상 도트 (테두리 강조)
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: swatchColor,
-                      border: Border.all(
-                        color: isLight ? const Color(0xFFDDDDDD) : Colors.transparent,
-                        width: 1,
+                itemCount: goljiColors.length,
+                itemBuilder: (_, i) {
+                  final c = goljiColors[i];
+                  final hexVal = c['hex'] as int;
+                  final swatchColor = Color(hexVal);
+                  final isLight = swatchColor.computeLuminance() > 0.5;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RibColorSwatch(color: swatchColor, size: 42, isLight: isLight),
+                      const SizedBox(height: 3),
+                      Text(
+                        c['code'] as String,
+                        style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Color(0xFF222222)),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  // 코드 텍스트
-                  Text(
-                    c['code'] as String,
-                    style: const TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF333333),
-                      letterSpacing: 0.3,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              );
-            },
+                    ],
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ],
