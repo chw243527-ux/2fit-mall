@@ -51,6 +51,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 탭 ──
   late TabController _tabCtrl;
+  int _selectedTabIndex = 0;
+
+  // ── 섹션 스크롤 키 ──
+  final GlobalKey _keyInfo     = GlobalKey();
+  final GlobalKey _keySize     = GlobalKey();
+  final GlobalKey _keyReview   = GlobalKey();
+  final GlobalKey _keyWashing  = GlobalKey();
 
   // ── 로컬 섹션 이미지 캐시 (관리자 업로드 시 즉시 반영) ──
   late Map<String, List<String>> _sectionImages;
@@ -191,17 +198,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   // ⑥ 영문 대제목 + 메인 상품 이미지 배너
                   SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
                   // ⑦ INFO / PRODUCT / MATERIAL / COLOR 블록
-                  SliverToBoxAdapter(child: _buildToptenInfoSection(product)),
+                  SliverToBoxAdapter(child: KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product))),
                   // ⑧ 어드민 업로드 섹션 이미지들
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
-                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection6SizeChart(product, isAdmin))),
-                  // ⑨ 리뷰 섹션
-                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildReviewSection(product))),
-                  // ⑩ WASHING TIP (최하단)
-                  SliverToBoxAdapter(child: _buildWashingTipSection(product)),
+                  // ⑨ 사이즈 차트
+                  SliverToBoxAdapter(child: RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin))),
+                  // ⑩ 리뷰 섹션
+                  SliverToBoxAdapter(child: RepaintBoundary(key: _keyReview, child: _buildReviewSection(product))),
+                  // ⑪ WASHING TIP (최하단)
+                  SliverToBoxAdapter(child: KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product))),
                   // ⑪ 하단 여백
                   const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
@@ -544,46 +552,11 @@ $productUrl
     final designImgs = _sectionImages['design'] ?? [];
     if (designImgs.isEmpty) return const SizedBox.shrink();
 
-    // 탑텐 스타일: 풀너비 세로 스택 이미지 + 상단 영문 대제목 오버레이
+    // 풀너비 이미지 세로 스택
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── 상단 영문 대제목 헤더 (탑텐 스타일)
-        Container(
-          width: double.infinity,
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(width: 28, height: 2, color: const Color(0xFF1A1A1A)),
-              const SizedBox(height: 14),
-              Text(
-                product.localizedName(_lang).toUpperCase(),
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1A1A1A),
-                  letterSpacing: -0.5,
-                  height: 1.1,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                product.localizedDescription(_lang),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF888888),
-                  height: 1.6,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // ── 풀너비 이미지 세로 스택 (탑텐 스타일: 가로폭 꽉 채움)
+        // ── 풀너비 이미지 세로 스택
         ...designImgs.asMap().entries.map((entry) {
           final i = entry.key;
           final url = entry.value;
@@ -1182,41 +1155,62 @@ $productUrl
   }
 
   // ── 탑텐 스타일: 상품정보 탭바 (상품정보/사이즈/리뷰/추천/문의) ──
-  Widget _buildToptenTabBar() {
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
-      ),
-      child: Row(children: [
-        _toptenTabItem('상품정보', true),
-        _toptenTabItem('사이즈', false),
-        _toptenTabItem('리뷰', false),
-        _toptenTabItem('추천', false),
-        _toptenTabItem('문의', false),
-      ]),
+  // 탭 클릭 → 해당 섹션으로 즉시 스크롤
+  void _scrollToSection(GlobalKey key) {
+    final ctx = key.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOut,
+      alignment: 0.0,
     );
   }
 
-  Widget _toptenTabItem(String label, bool selected) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 13),
-        child: Column(children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-              color: selected ? const Color(0xFF1A1A1A) : const Color(0xFF999999),
+  Widget _buildToptenTabBar() {
+    final tabs = [
+      ('상품정보', 0, _keyInfo),
+      ('사이즈',   1, _keySize),
+      ('리뷰',     2, _keyReview),
+      ('세탁',     3, _keyWashing),
+    ];
+    return Container(
+      color: Colors.white,
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1)),
+      ),
+      child: Row(
+        children: tabs.map((t) {
+          final label = t.$1;
+          final idx   = t.$2;
+          final key   = t.$3;
+          final sel   = _selectedTabIndex == idx;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() => _selectedTabIndex = idx);
+                _scrollToSection(key);
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                child: Column(children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
+                      color: sel ? const Color(0xFF1A1A1A) : const Color(0xFF999999),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  Container(height: 2, color: sel ? const Color(0xFF1A1A1A) : Colors.transparent),
+                ]),
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          Container(
-            height: 2,
-            color: selected ? const Color(0xFF1A1A1A) : Colors.transparent,
-          ),
-        ]),
+          );
+        }).toList(),
       ),
     );
   }
@@ -1235,33 +1229,7 @@ $productUrl
           // ── 상단 구분선
           Container(height: 1, color: const Color(0xFFE8E8E8)),
 
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 32, 20, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── 섹션 헤더: 검정 라인 + PRODUCT INFO 대제목
-                Container(width: 28, height: 2, color: const Color(0xFF1A1A1A)),
-                const SizedBox(height: 14),
-                const Text(
-                  'PRODUCT INFO',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1A1A1A),
-                    letterSpacing: -0.5,
-                    height: 1.1,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  '제품 상세 정보',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w400, letterSpacing: 0.2),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 8),
 
           // ── INFO 블록: 제품 설명
           _toptenInfoBlock(
@@ -1365,58 +1333,8 @@ $productUrl
           color: const Color(0xFFE0E0E0),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 번호 + 라벨 행
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    num,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFFBBBBBB),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  // 영문 태그 박스
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF333333), width: 1),
-                      color: Colors.transparent,
-                    ),
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1A1A1A),
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    labelSub,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF999999),
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              // 컨텐츠
-              content,
-            ],
-          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          child: content,
         ),
         if (isLast) const SizedBox(height: 8),
       ],
@@ -1517,33 +1435,7 @@ $productUrl
           // ── 상단 굵은 구분선
           Container(height: 2, color: const Color(0xFF1A1A1A)),
 
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 32, 20, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── 섹션 헤더
-                Container(width: 28, height: 2, color: const Color(0xFF1A1A1A)),
-                const SizedBox(height: 14),
-                const Text(
-                  'CARE GUIDE',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1A1A1A),
-                    letterSpacing: -0.5,
-                    height: 1.1,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  '세탁 및 관리 방법',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w400, letterSpacing: 0.2),
-                ),
-                const SizedBox(height: 28),
-              ],
-            ),
-          ),
+          const SizedBox(height: 8),
 
           // ── 세탁 가이드 아이콘 그리드
           Padding(
@@ -1597,25 +1489,7 @@ $productUrl
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 서브 헤더
-                Row(
-                  children: [
-                    Container(width: 14, height: 1.5, color: const Color(0xFF1A1A1A)),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'WASHING TIP',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF1A1A1A),
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // 팁 번호 리스트
+                // 팁 리스트
                 ..._washingTips.asMap().entries.map((entry) {
                   final tip = entry.value;
                   final isLast = entry.key == _washingTips.length - 1;
@@ -3496,12 +3370,6 @@ $productUrl
                     ).toList(),
                   ),
           ),
-        // ── 탑텐 스타일: PERFORMANCE 섹션 헤더 (흰 배경 + 검정)
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 32, 20, 8),
-          child: _sectionHeader('01', 'PERFORMANCE', '퍼포먼스 핵심 기능'),
-        ),
         // ── 특징 리스트: 탑텐 스타일 (분리선 + 영문 태그 + 제목 + 설명)
         Container(
           color: Colors.white,
@@ -3618,12 +3486,6 @@ $productUrl
                   ).toList(),
                 ),
 
-        // ── 탑텐 스타일: MATERIAL 섹션 헤더
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 32, 20, 8),
-          child: _sectionHeader('02', 'MATERIAL', loc.section02Sub),
-        ),
 
         // ── 기술 특징 리스트 (분리선)
         Container(
@@ -3795,12 +3657,6 @@ $productUrl
                   ).toList(),
                 ),
 
-        // ── 탑텐 스타일: POCKET SYSTEM 헤더
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 32, 20, 8),
-          child: _sectionHeader('03', 'POCKET SYSTEM', loc.section03Sub),
-        ),
 
         // ── 포켓 기능 리스트
         Container(
@@ -3906,13 +3762,6 @@ $productUrl
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _sectionHeader('05', loc.section05Title, loc.section05Sub),
-              const SizedBox(height: 4),
-              Text(
-                loc.section05Desc,
-                style: const TextStyle(fontSize: 10.5, color: Color(0xFF666666), height: 1.5),
-              ),
-              const SizedBox(height: 12),
               GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -4940,40 +4789,9 @@ $productUrl
 
   // ─── 공통 섹션 헤더 ───
   // ── 탑텐 스타일 섹션 헤더: 얇은 상단 라인 + 영문 대제목 + 한글 서브 ──
-  Widget _sectionHeader(String num, String title, String sub) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 상단 포인트 라인
-          Container(
-            width: 28,
-            height: 2,
-            color: const Color(0xFF1A1A1A),
-          ),
-          const SizedBox(height: 14),
-          // 영문 대제목
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF1A1A1A),
-              letterSpacing: -0.5,
-              height: 1.1,
-            ),
-          ),
-          const SizedBox(height: 6),
-          // 한글 서브
-          Text(
-            sub,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Color(0xFF888888),
-              fontWeight: FontWeight.w400,
-              letterSpacing: 0.2,
-            ),
-          ),
-        ],
-      );
+  // _sectionHeader: 검정 포인트 라인만 표시 (텍스트 제거)
+  Widget _sectionHeader(String num, String title, String sub) =>
+      Container(width: 28, height: 2, color: const Color(0xFF1A1A1A));
 
   // ─── 사이즈 가이드 ───
   // ignore: unused_element
