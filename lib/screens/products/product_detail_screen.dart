@@ -1442,27 +1442,88 @@ $productUrl
     );
   }
 
-  // ── 색상 코드 칩 가로 나열 ──
+  // ── 색상 코드 칩: 컬러 도트 + 코드 + 한글명 ──
+  // AppColorPalette.registeredColors(골지 19색)에서 hex·한글명 자동 조회
   Widget _infoColorChipRow(List<String> codes) {
+    // 코드 → {hex, 한글명} 빠른 조회 맵
+    final palette = {
+      for (final c in AppColorPalette.registeredColors)
+        (c['code'] as String): c,
+    };
+
     return Wrap(
       spacing: 6,
       runSpacing: 6,
-      children: codes.map((c) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFCCCCCC)),
-          color: Colors.white,
-        ),
-        child: Text(
-          c.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF333333),
-            letterSpacing: 0.5,
+      children: codes.map((rawCode) {
+        final code = rawCode.trim().toUpperCase();
+        final info = palette[code];
+        final hex  = info?['hex'] as int?;
+        final name = info?['name'] as String?;         // 'K (블랙)' 형식
+        // 괄호 안 한글명 추출: 'K (블랙)' → '블랙'
+        final korLabel = name != null && name.contains('(')
+            ? name.substring(name.indexOf('(') + 1, name.lastIndexOf(')'))
+            : null;
+        final dotColor = hex != null ? Color(hex) : const Color(0xFFCCCCCC);
+        final isLight  = dotColor.computeLuminance() > 0.72;
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFFDDDDDD)),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
           ),
-        ),
-      )).toList(),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 컬러 도트
+              Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isLight
+                        ? const Color(0xFFCCCCCC)
+                        : Colors.transparent,
+                    width: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 색상 코드 (굵게)
+                  Text(
+                    code,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A),
+                      letterSpacing: 0.5,
+                      height: 1.2,
+                    ),
+                  ),
+                  // 한글명 (있을 때만)
+                  if (korLabel != null)
+                    Text(
+                      korLabel,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFF888888),
+                        height: 1.2,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
