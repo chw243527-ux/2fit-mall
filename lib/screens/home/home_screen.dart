@@ -933,18 +933,8 @@ class _HomeScreenState extends State<HomeScreen>
           // ── 배너 (NavBar 아래 남은 공간 전체) ──
           Expanded(
             child: activeBanners.isEmpty
-                // Firestore 로딩 중 또는 배너 없을 때 → 로컬 asset 동영상 즉시 표시
-                ? SizedBox.expand(
-                    child: VideoBannerWidget(
-                      videoUrl: 'assets/images/banner_video.mp4',
-                      thumbnailUrl: null,
-                      onTap: null,
-                      onProductTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ProductListScreen()),
-                      ),
-                    ),
-                  )
+                // Firestore 로딩 중 또는 배너 없을 때 → 로컬 asset 동영상 + 텍스트 즉시 표시
+                ? _buildPcLocalBanner(loc)
                 : _buildPcBannerBody(loc, activeBanners),
           ),
         ],
@@ -1119,6 +1109,95 @@ class _HomeScreenState extends State<HomeScreen>
       );
   }
   // end _buildPcBannerBody
+
+  // ── PC 로컬 asset 배너 (Firestore 배너 없을 때 즉시 표시) ──
+  Widget _buildPcLocalBanner(AppLocalizations loc) {
+    void goShop() => Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProductListScreen()),
+    );
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // ── 배경 영상 ──
+        VideoBannerWidget(
+          videoUrl: 'assets/images/banner_video.mp4',
+          thumbnailUrl: null,
+          onTap: goShop,
+          onProductTap: goShop,
+        ),
+        // ── 텍스트 오버레이 ──
+        Positioned(
+          left: 0, right: 0, bottom: 0,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(60, 0, 60, 48),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0.0, 0.4, 1.0],
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.3),
+                  Colors.black.withValues(alpha: 0.75),
+                ],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE53935),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                  child: const Text('2FIT KOREA',
+                    style: TextStyle(color: Colors.white, fontSize: 12,
+                        fontWeight: FontWeight.w800, letterSpacing: 1.8)),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  loc.language == AppLanguage.korean
+                      ? '함께 달리는\n2FIT'
+                      : 'Run Together\nwith 2FIT',
+                  style: const TextStyle(color: Colors.white, fontSize: 48,
+                      fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.5),
+                ),
+                const SizedBox(height: 28),
+                GestureDetector(
+                  onTap: goShop,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                      boxShadow: [BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.18),
+                        blurRadius: 12, offset: const Offset(0, 4))],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.arrow_forward_rounded, size: 18, color: Color(0xFFE53935)),
+                        const SizedBox(width: 10),
+                        Text(
+                          loc.language == AppLanguage.korean ? '쇼핑하러 가기' : 'Shop Now',
+                          style: const TextStyle(color: Color(0xFF111111),
+                              fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   // ignore: unused_element
   Widget _unusedLegacyPcBanner() => const SizedBox.shrink();
@@ -2331,20 +2410,98 @@ class _HomeScreenState extends State<HomeScreen>
     // PC/태블릿/모바일 모두 동일 공식 → 디바이스 너비에 맞게 자동 조절
     final bannerH = screenW * 9 / 16;
 
-    // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 즉시 표시
-    // (loading 여부 무관하게 activeBanners가 비어있으면 항상 로컬 동영상)
+    // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 오버레이 즉시 표시
     if (activeBanners.isEmpty) {
+      void goShop() => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ProductListScreen()),
+      );
       return SizedBox(
         width: double.infinity,
         height: bannerH,
-        child: VideoBannerWidget(
-          videoUrl: 'assets/images/banner_video.mp4',
-          thumbnailUrl: null,
-          onTap: null,
-          onProductTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ProductListScreen()),
-          ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // ── 배경 영상 ──
+            VideoBannerWidget(
+              videoUrl: 'assets/images/banner_video.mp4',
+              thumbnailUrl: null,
+              onTap: goShop,
+              onProductTap: goShop,
+            ),
+            // ── 텍스트 오버레이 (영상과 동시에 즉시 표시) ──
+            Positioned(
+              left: 0, right: 0, bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.0, 0.45, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.35),
+                      Colors.black.withValues(alpha: 0.78),
+                    ],
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 태그
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE53935),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: const Text('2FIT KOREA',
+                        style: TextStyle(color: Colors.white, fontSize: 9,
+                            fontWeight: FontWeight.w800, letterSpacing: 1.8)),
+                    ),
+                    const SizedBox(height: 10),
+                    // 메인 타이틀
+                    Text(
+                      loc.language == AppLanguage.korean
+                          ? '함께 달리는\n2FIT'
+                          : 'Run Together\nwith 2FIT',
+                      style: const TextStyle(color: Colors.white, fontSize: 22,
+                          fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.3),
+                    ),
+                    const SizedBox(height: 16),
+                    // CTA 버튼
+                    GestureDetector(
+                      onTap: goShop,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.18),
+                            blurRadius: 12, offset: const Offset(0, 4))],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.arrow_forward_rounded, size: 15, color: Color(0xFFE53935)),
+                            const SizedBox(width: 10),
+                            Text(
+                              loc.language == AppLanguage.korean ? '쇼핑하러 가기' : 'Shop Now',
+                              style: const TextStyle(color: Color(0xFF111111),
+                                  fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -3550,19 +3707,95 @@ class _HomeScreenState extends State<HomeScreen>
     final mq = MediaQuery.of(context);
     final bannerHeight = mq.size.height - mq.viewPadding.bottom;
 
-    // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 즉시 표시
+    // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 즉시 표시
     if (activeBanners.isEmpty) {
+      void goShop() => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ProductListScreen()),
+      );
       return SizedBox(
         width: double.infinity,
         height: bannerHeight,
-        child: VideoBannerWidget(
-          videoUrl: 'assets/images/banner_video.mp4',
-          thumbnailUrl: null,
-          onTap: null,
-          onProductTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ProductListScreen()),
-          ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // ── 배경 영상 ──
+            VideoBannerWidget(
+              videoUrl: 'assets/images/banner_video.mp4',
+              thumbnailUrl: null,
+              onTap: goShop,
+              onProductTap: goShop,
+            ),
+            // ── 텍스트 오버레이 (영상과 동시에 즉시 표시) ──
+            Positioned(
+              left: 0, right: 0, bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const [0.0, 0.45, 1.0],
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.35),
+                      Colors.black.withValues(alpha: 0.78),
+                    ],
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE53935),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: const Text('2FIT KOREA',
+                        style: TextStyle(color: Colors.white, fontSize: 9,
+                            fontWeight: FontWeight.w800, letterSpacing: 1.8)),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      loc.language == AppLanguage.korean
+                          ? '함께 달리는\n2FIT'
+                          : 'Run Together\nwith 2FIT',
+                      style: const TextStyle(color: Colors.white, fontSize: 26,
+                          fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.3),
+                    ),
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: goShop,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.18),
+                            blurRadius: 12, offset: const Offset(0, 4))],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.arrow_forward_rounded, size: 15, color: Color(0xFFE53935)),
+                            const SizedBox(width: 10),
+                            Text(
+                              loc.language == AppLanguage.korean ? '쇼핑하러 가기' : 'Shop Now',
+                              style: const TextStyle(color: Color(0xFF111111),
+                                  fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
