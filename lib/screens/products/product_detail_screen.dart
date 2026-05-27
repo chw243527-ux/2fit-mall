@@ -303,7 +303,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     return Container(
       width: w,
       height: imgH,
-      color: const Color(0xFFF8F8F8),
+      color: Colors.white,
       child: Stack(
         children: [
           // 메인 PageView
@@ -1228,7 +1228,7 @@ $productUrl
         : product.id.toUpperCase();
 
     return Container(
-      color: const Color(0xFFF8F8F8),
+      color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1556,7 +1556,7 @@ $productUrl
               crossAxisSpacing: 1,
               childAspectRatio: 1.15,
               children: washGuide.map((g) => Container(
-                color: const Color(0xFFF8F8F8),
+                color: const Color(0xFFF2F2F2),
                 padding: const EdgeInsets.all(14),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1617,9 +1617,8 @@ $productUrl
 
                 // 팁 번호 리스트
                 ..._washingTips.asMap().entries.map((entry) {
-                  final i = entry.key;
                   final tip = entry.value;
-                  final isLast = i == _washingTips.length - 1;
+                  final isLast = entry.key == _washingTips.length - 1;
                   return Column(
                     children: [
                       Padding(
@@ -1627,17 +1626,12 @@ $productUrl
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // 번호
-                            Text(
-                              (i + 1).toString().padLeft(2, '0'),
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFFCCCCCC),
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
+                            const Text('·', style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFFBBBBBB),
+                              height: 1.2,
+                            )),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 tip,
@@ -3624,16 +3618,16 @@ $productUrl
                   ).toList(),
                 ),
 
-        // ── 탑텐 스타일: MATERIAL 섹션 헤더 (연한 회색 배경)
+        // ── 탑텐 스타일: MATERIAL 섹션 헤더
         Container(
-          color: const Color(0xFFF8F8F8),
+          color: Colors.white,
           padding: const EdgeInsets.fromLTRB(20, 32, 20, 8),
           child: _sectionHeader('02', 'MATERIAL', loc.section02Sub),
         ),
 
-        // ── 기술 특징 리스트 (연한 회색 배경, 분리선)
+        // ── 기술 특징 리스트 (분리선)
         Container(
-          color: const Color(0xFFF8F8F8),
+          color: Colors.white,
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           child: Column(
             children: techRows.asMap().entries.map((entry) {
@@ -3707,7 +3701,7 @@ $productUrl
 
         // ── 섬유 혼용율 표 (탑텐 스타일: 검정 헤더 + 흰 배경 + 검정 구분선)
         Container(
-          color: const Color(0xFFF8F8F8),
+          color: Colors.white,
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
