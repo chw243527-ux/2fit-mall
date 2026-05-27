@@ -165,18 +165,44 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 controller: _scrollCtrl,
                 cacheExtent: 1200,
                 slivers: [
+                  // ① 앱바
                   _buildSliverAppBarOnly(product),
+                  // ② 이미지 슬라이더 + 썸네일 바
                   SliverToBoxAdapter(child: _buildImageSlider(product)),
                   SliverToBoxAdapter(child: _buildThumbnailBar(product)),
-                  SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
+                  // ③ 기본정보 (브랜드명/상품명/별점/가격/색상/시즌/해시태그/배송비/포인트)
                   SliverToBoxAdapter(child: _buildBasicInfo(product)),
+                  // ④ 두꺼운 회색 구분선 + 브랜드 로고 섹션
+                  SliverToBoxAdapter(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
+                        _buildToptenBrandSection(product),
+                        const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
+                      ],
+                    ),
+                  ),
+                  // ⑤ 탭바 (sticky — 스크롤해도 앱바 바로 아래 고정)
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _ToptenTabBarDelegate(_buildToptenTabBar()),
+                  ),
+                  // ⑥ 영문 대제목 + 메인 상품 이미지 배너
+                  SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
+                  // ⑦ INFO / PRODUCT / MATERIAL / COLOR 블록
+                  SliverToBoxAdapter(child: _buildToptenInfoSection(product)),
+                  // ⑧ 어드민 업로드 섹션 이미지들
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection6SizeChart(product, isAdmin))),
+                  // ⑨ 리뷰 섹션
                   SliverToBoxAdapter(child: RepaintBoundary(child: _buildReviewSection(product))),
+                  // ⑩ WASHING TIP (최하단)
                   SliverToBoxAdapter(child: _buildWashingTipSection(product)),
+                  // ⑪ 하단 여백
                   const SliverToBoxAdapter(child: SizedBox(height: 120)),
                 ],
               ),
@@ -954,26 +980,6 @@ $productUrl
           // ═══════════════════════════════════════════════
           const Divider(height: 1, color: Color(0xFFF0F0F0)),
           _buildToptenShippingSection(product),
-
-          // ═══════════════════════════════════════════════
-          // 탑텐 스타일: 브랜드 로고 섹션
-          // ═══════════════════════════════════════════════
-          const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
-          _buildToptenBrandSection(product),
-          const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
-
-          // ═══════════════════════════════════════════════
-          // 탑텐 스타일: 고정 탭바 (상품정보/사이즈/리뷰/추천/문의)
-          // ═══════════════════════════════════════════════
-          _buildToptenTabBar(),
-
-          // ═══════════════════════════════════════════════
-          // 탑텐 스타일: 상품 설명 섹션 (INFO/PRODUCT/MATERIAL/COLOR/WASHING TIP)
-          // ═══════════════════════════════════════════════
-          _buildToptenInfoSection(product),
-
-          // ─ 섹션별 상품 이미지 (어드민 업로드 이미지)
-          _buildToptenShippingInfo(product),
         ],
       ),
     );
@@ -8610,4 +8616,25 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
       ),
     );
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 탑텐 탭바 Sticky Header Delegate
+// ══════════════════════════════════════════════════════════════
+class _ToptenTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget tabBar;
+  const _ToptenTabBarDelegate(this.tabBar);
+
+  @override
+  double get minExtent => 46.0;
+  @override
+  double get maxExtent => 46.0;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return tabBar;
+  }
+
+  @override
+  bool shouldRebuild(_ToptenTabBarDelegate oldDelegate) => false;
 }
