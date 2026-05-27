@@ -934,13 +934,15 @@ class _HomeScreenState extends State<HomeScreen>
           Expanded(
             child: activeBanners.isEmpty
                 // Firestore 로딩 중 또는 배너 없을 때 → 로컬 asset 동영상 즉시 표시
-                ? VideoBannerWidget(
-                    videoUrl: 'assets/images/banner_video.mp4',
-                    thumbnailUrl: null,
-                    onTap: null,
-                    onProductTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                ? SizedBox.expand(
+                    child: VideoBannerWidget(
+                      videoUrl: 'assets/images/banner_video.mp4',
+                      thumbnailUrl: null,
+                      onTap: null,
+                      onProductTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProductListScreen()),
+                      ),
                     ),
                   )
                 : _buildPcBannerBody(loc, activeBanners),
@@ -2333,16 +2335,15 @@ class _HomeScreenState extends State<HomeScreen>
     // (loading 여부 무관하게 activeBanners가 비어있으면 항상 로컬 동영상)
     if (activeBanners.isEmpty) {
       return SizedBox(
+        width: double.infinity,
         height: bannerH,
-        child: Positioned.fill(
-          child: VideoBannerWidget(
-            videoUrl: 'assets/images/banner_video.mp4',
-            thumbnailUrl: null,
-            onTap: null,
-            onProductTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProductListScreen()),
-            ),
+        child: VideoBannerWidget(
+          videoUrl: 'assets/images/banner_video.mp4',
+          thumbnailUrl: null,
+          onTap: null,
+          onProductTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ProductListScreen()),
           ),
         ),
       );
@@ -3552,16 +3553,15 @@ class _HomeScreenState extends State<HomeScreen>
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 즉시 표시
     if (activeBanners.isEmpty) {
       return SizedBox(
+        width: double.infinity,
         height: bannerHeight,
-        child: Positioned.fill(
-          child: VideoBannerWidget(
-            videoUrl: 'assets/images/banner_video.mp4',
-            thumbnailUrl: null,
-            onTap: null,
-            onProductTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProductListScreen()),
-            ),
+        child: VideoBannerWidget(
+          videoUrl: 'assets/images/banner_video.mp4',
+          thumbnailUrl: null,
+          onTap: null,
+          onProductTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ProductListScreen()),
           ),
         ),
       );

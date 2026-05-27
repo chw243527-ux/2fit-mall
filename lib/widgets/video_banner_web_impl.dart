@@ -152,7 +152,9 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: widget.onTap,
-      child: HtmlElementView(viewType: _viewType),
+      child: SizedBox.expand(
+        child: HtmlElementView(viewType: _viewType),
+      ),
     );
   }
 }
