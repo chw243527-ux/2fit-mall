@@ -544,103 +544,71 @@ $productUrl
     final designImgs = _sectionImages['design'] ?? [];
     if (designImgs.isEmpty) return const SizedBox.shrink();
 
-    return Container(
-      color: const Color(0xFFF8F4FF),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 헤더
-          Row(children: [
-            Container(
-              width: 3, height: 14,
-              decoration: BoxDecoration(
-                color: const Color(0xFF4A148C),
-                borderRadius: BorderRadius.circular(2),
+    // 탑텐 스타일: 풀너비 세로 스택 이미지 + 상단 영문 대제목 오버레이
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── 상단 영문 대제목 헤더 (탑텐 스타일)
+        Container(
+          width: double.infinity,
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(20, 28, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(width: 28, height: 2, color: const Color(0xFF1A1A1A)),
+              const SizedBox(height: 14),
+              Text(
+                product.localizedName(_lang).toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1A1A1A),
+                  letterSpacing: -0.5,
+                  height: 1.1,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            const Text('디자인 이미지',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
-                    color: Color(0xFF4A148C))),
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4A148C).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+              const SizedBox(height: 8),
+              Text(
+                product.localizedDescription(_lang),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF888888),
+                  height: 1.6,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
-              child: Text('${designImgs.length}장',
-                  style: const TextStyle(fontSize: 10,
-                      color: Color(0xFF4A148C), fontWeight: FontWeight.w700)),
-            ),
-          ]),
-          const SizedBox(height: 10),
-          // 가로 스크롤 이미지 목록
-          SizedBox(
-            height: 110,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: designImgs.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (_, i) => GestureDetector(
-                onTap: () => _showDesignLightbox(designImgs, i),
-                child: Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        designImgs[i],
-                        width: 110, height: 110, fit: BoxFit.cover,
-                        cacheWidth: 300,
-                        errorBuilder: (_, __, ___) => Container(
-                          width: 110, height: 110,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEEEEEE),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(Icons.broken_image_outlined,
-                              color: Color(0xFFAAAAAA)),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      right: 5, bottom: 5,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: const Icon(Icons.zoom_in_rounded,
-                            size: 13, color: Colors.white),
-                      ),
-                    ),
-                    if (i == 0)
-                      Positioned(
-                        left: 5, top: 5,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF4A148C),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text('대표',
-                              style: TextStyle(fontSize: 9,
-                                  color: Colors.white, fontWeight: FontWeight.w700)),
-                        ),
-                      ),
-                  ],
+            ],
+          ),
+        ),
+        // ── 풀너비 이미지 세로 스택 (탑텐 스타일: 가로폭 꽉 채움)
+        ...designImgs.asMap().entries.map((entry) {
+          final i = entry.key;
+          final url = entry.value;
+          return GestureDetector(
+            onTap: () => _showDesignLightbox(designImgs, i),
+            child: Container(
+              width: double.infinity,
+              color: const Color(0xFFF5F5F5),
+              child: Image.network(
+                url,
+                width: double.infinity,
+                fit: BoxFit.fitWidth,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 200,
+                  color: const Color(0xFFEEEEEE),
+                  child: const Center(
+                    child: Icon(Icons.broken_image_outlined,
+                        size: 40, color: Color(0xFFCCCCCC)),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text('탭하면 원본 크기로 볼 수 있습니다',
-              style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
-        ],
-      ),
+          );
+        }),
+      ],
     );
   }
 
@@ -1255,49 +1223,265 @@ $productUrl
 
   // ── 탑텐 스타일: 상품 상세 정보 (INFO/PRODUCT/MATERIAL/COLOR/WASHING TIP) ──
   Widget _buildToptenInfoSection(ProductModel product) {
+    final productCode = product.productCode.isNotEmpty
+        ? product.productCode.toUpperCase()
+        : product.id.toUpperCase();
+
     return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+      color: const Color(0xFFF8F8F8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ─ INFO
-          _infoBlockTitle('INFO'),
-          const SizedBox(height: 10),
-          Text(
-            product.localizedDescription(_lang),
-            style: const TextStyle(fontSize: 13, color: Color(0xFF444444), height: 1.8, fontWeight: FontWeight.w400),
-          ),
-          const SizedBox(height: 24),
+          // ── 상단 구분선
+          Container(height: 1, color: const Color(0xFFE8E8E8)),
 
-          // ─ PRODUCT
-          _infoBlockTitle('PRODUCT'),
-          const SizedBox(height: 10),
-          _infoLabelRow('제품명', product.localizedName(_lang)),
-          if (product.subCategory.isNotEmpty)
-            _infoLabelRow('분류', product.subCategory),
-          _infoLabelRow('상품코드', product.productCode.isNotEmpty ? product.productCode.toUpperCase() : product.id.toUpperCase()),
-          const SizedBox(height: 24),
-
-          // ─ MATERIAL (소재 정보가 있을 때만)
-          if (product.material != null && product.material!.isNotEmpty) ...[
-            _infoBlockTitle('MATERIAL'),
-            const SizedBox(height: 10),
-            Text(
-              product.material!,
-              style: const TextStyle(fontSize: 13, color: Color(0xFF444444), height: 1.8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 32, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── 섹션 헤더: 검정 라인 + PRODUCT INFO 대제목
+                Container(width: 28, height: 2, color: const Color(0xFF1A1A1A)),
+                const SizedBox(height: 14),
+                const Text(
+                  'PRODUCT INFO',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1A1A1A),
+                    letterSpacing: -0.5,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  '제품 상세 정보',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w400, letterSpacing: 0.2),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-          ],
+          ),
+          const SizedBox(height: 28),
 
-          // ─ COLOR
-          _infoBlockTitle('COLOR'),
-          const SizedBox(height: 10),
-          Text(
-            product.colors.join(', '),
-            style: const TextStyle(fontSize: 13, color: Color(0xFF444444), height: 1.8),
+          // ── INFO 블록: 제품 설명
+          _toptenInfoBlock(
+            num: '01',
+            label: 'INFO',
+            labelSub: '제품 설명',
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.localizedDescription(_lang),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF444444),
+                    height: 1.85,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── PRODUCT 블록: 제품 기본 정보 테이블
+          _toptenInfoBlock(
+            num: '02',
+            label: 'PRODUCT',
+            labelSub: '제품 기본 정보',
+            content: _toptenInfoTable([
+              ('제품명', product.localizedName(_lang)),
+              if (product.subCategory.isNotEmpty) ('분류', product.subCategory),
+              ('상품코드', productCode),
+              ('시즌', 'SS26'),
+            ]),
+          ),
+
+          // ── MATERIAL 블록: 소재 정보
+          if (product.material != null && product.material!.isNotEmpty)
+            _toptenInfoBlock(
+              num: '03',
+              label: 'MATERIAL',
+              labelSub: '소재 정보',
+              content: Text(
+                product.material!,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF444444),
+                  height: 1.85,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ),
+
+          // ── COLOR 블록: 색상 정보
+          _toptenInfoBlock(
+            num: product.material != null && product.material!.isNotEmpty ? '04' : '03',
+            label: 'COLOR',
+            labelSub: '색상 라인업',
+            content: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: product.colors.map((c) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFCCCCCC)),
+                  color: Colors.white,
+                ),
+                child: Text(
+                  c.toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF333333),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              )).toList(),
+            ),
+            isLast: true,
           ),
         ],
+      ),
+    );
+  }
+
+  // ── 탑텐 스타일: 번호+라벨+컨텐츠 블록
+  Widget _toptenInfoBlock({
+    required String num,
+    required String label,
+    required String labelSub,
+    required Widget content,
+    bool isLast = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 상단 분리선
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          height: 1,
+          color: const Color(0xFFE0E0E0),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 번호 + 라벨 행
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    num,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFFBBBBBB),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // 영문 태그 박스
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF333333), width: 1),
+                      color: Colors.transparent,
+                    ),
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A1A),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    labelSub,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF999999),
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              // 컨텐츠
+              content,
+            ],
+          ),
+        ),
+        if (isLast) const SizedBox(height: 8),
+      ],
+    );
+  }
+
+  // ── 탑텐 스타일: 키-값 테이블
+  Widget _toptenInfoTable(List<(String, String)> rows) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+        color: Colors.white,
+      ),
+      child: Column(
+        children: rows.asMap().entries.map((entry) {
+          final i = entry.key;
+          final row = entry.value;
+          final isLast = i == rows.length - 1;
+          return Container(
+            decoration: BoxDecoration(
+              border: isLast
+                  ? null
+                  : const Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
+              color: i.isEven ? Colors.white : const Color(0xFFFAFAFA),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 라벨 셀
+                Container(
+                  width: 80,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                  decoration: const BoxDecoration(
+                    border: Border(right: BorderSide(color: Color(0xFFE0E0E0))),
+                    color: Color(0xFFF5F5F5),
+                  ),
+                  child: Text(
+                    row.$1,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF666666),
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+                // 값 셀
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                    child: Text(
+                      row.$2,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF222222),
+                        letterSpacing: 0.1,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -1313,47 +1497,185 @@ $productUrl
     '열풍 건조는 제품 수축의 원인이 될 수 있으므로 열풍 건조를 하지 마십시오.',
   ];
 
-  // ── 최하단 WASHING TIP 독립 섹션 ──
+  // ── 최하단 WASHING TIP 독립 섹션 (탑텐 스타일) ──
   Widget _buildWashingTipSection(ProductModel product) {
+    // 아이콘+설명 세탁 가이드 항목
+    final washGuide = [
+      (Icons.water_drop_outlined,      '찬물 세탁',    '30°C 이하 찬물 사용 권장'),
+      (Icons.front_hand_outlined,      '손세탁 권장',  '세탁기 사용 시 단독 세탁'),
+      (Icons.air_outlined,             '자연 건조',    '열풍 건조 금지 — 수축 원인'),
+      (Icons.lock_outline_rounded,     '지퍼/단추 잠금', '세탁 전 지퍼·단추를 잠근 후 세탁'),
+      (Icons.color_lens_outlined,      '색상 분리',    '흰색·유색 제품 반드시 분리 세탁'),
+      (Icons.timer_outlined,           '즉시 세탁',    '땀·물에 젖은 즉시 세탁'),
+    ];
+
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _infoBlockTitle('WASHING TIP'),
-              const Text('세탁 시 주의사항', style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ..._washingTips.map((tip) => Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Text('- $tip', style: const TextStyle(fontSize: 12, color: Color(0xFF666666), height: 1.6)),
-          )),
-          const SizedBox(height: 16),
-          // 주의사항 박스
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8F8F8),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Row(
+          // ── 상단 굵은 구분선
+          Container(height: 2, color: const Color(0xFF1A1A1A)),
+
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 32, 20, 0),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF888888)),
-                SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 사항을 준수 바랍니다.',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.6),
+                // ── 섹션 헤더
+                Container(width: 28, height: 2, color: const Color(0xFF1A1A1A)),
+                const SizedBox(height: 14),
+                const Text(
+                  'CARE GUIDE',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1A1A1A),
+                    letterSpacing: -0.5,
+                    height: 1.1,
                   ),
                 ),
+                const SizedBox(height: 4),
+                const Text(
+                  '세탁 및 관리 방법',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w400, letterSpacing: 0.2),
+                ),
+                const SizedBox(height: 28),
+              ],
+            ),
+          ),
+
+          // ── 세탁 가이드 아이콘 그리드
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: GridView.count(
+              crossAxisCount: 3,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 1,
+              crossAxisSpacing: 1,
+              childAspectRatio: 1.15,
+              children: washGuide.map((g) => Container(
+                color: const Color(0xFFF8F8F8),
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(g.$1, size: 22, color: const Color(0xFF333333)),
+                    const SizedBox(height: 8),
+                    Text(
+                      g.$2,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A1A),
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      g.$3,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        color: Color(0xFF888888),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              )).toList(),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // ── WASHING TIP 상세 리스트
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 서브 헤더
+                Row(
+                  children: [
+                    Container(width: 14, height: 1.5, color: const Color(0xFF1A1A1A)),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'WASHING TIP',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A1A),
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // 팁 번호 리스트
+                ..._washingTips.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final tip = entry.value;
+                  final isLast = i == _washingTips.length - 1;
+                  return Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 번호
+                            Text(
+                              (i + 1).toString().padLeft(2, '0'),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFCCCCCC),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                tip,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF555555),
+                                  height: 1.65,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (!isLast)
+                        const Divider(height: 1, thickness: 1, color: Color(0xFFF0F0F0)),
+                    ],
+                  );
+                }),
+
+                const SizedBox(height: 20),
+
+                // ── 하단 주의사항 박스 (탑텐 스타일: 검정 좌측 라인)
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF5F5F5),
+                    border: Border(
+                      left: BorderSide(color: Color(0xFF1A1A1A), width: 2),
+                    ),
+                  ),
+                  child: const Text(
+                    '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF666666), height: 1.65),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -1362,25 +1684,45 @@ $productUrl
     );
   }
 
+  // 탑텐 스타일: 섹션 내 소타이틀 (기존 _infoBlockTitle 대체)
   Widget _infoBlockTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A), letterSpacing: 0.5),
+    return Row(
+      children: [
+        Container(width: 12, height: 1.5, color: const Color(0xFF1A1A1A)),
+        const SizedBox(width: 7),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF1A1A1A),
+            letterSpacing: 1.2,
+          ),
+        ),
+      ],
     );
   }
 
+  // 탑텐 스타일: 키-값 한 줄 (기존 _infoLabelRow 대체)
   Widget _infoLabelRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 60,
-            child: Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF888888), fontWeight: FontWeight.w500)),
+            width: 72,
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF999999), fontWeight: FontWeight.w500, letterSpacing: 0.1),
+            ),
           ),
+          Container(width: 1, height: 14, color: const Color(0xFFDDDDDD), margin: const EdgeInsets.only(top: 1, right: 12)),
           Expanded(
-            child: Text(value, style: const TextStyle(fontSize: 13, color: Color(0xFF444444), fontWeight: FontWeight.w400)),
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF222222), fontWeight: FontWeight.w500),
+            ),
           ),
         ],
       ),
@@ -3130,589 +3472,470 @@ $productUrl
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 섹션 1: 메인 배너 (2FIT 싱글렛 특화)
+  // 섹션 1: PERFORMANCE — 탑텐 스타일 모노크롬 특징 리스트
   // ═══════════════════════════════════════════════════════════
   Widget _buildSection1Banner(ProductModel product, bool isAdmin) {
-    final isSinglet = product.name.contains('싱글렛') || product.category == '상의';
-
-    // 4가지 핵심 특징 - 큰 텍스트 + 통일된 이모지
     final features = [
-      {
-        'emoji': '⚡',
-        'title': loc.feat1Title,
-        'desc': loc.feat1Desc,
-        'tag': 'ULTRA LIGHT',
-      },
-      {
-        'emoji': '🧵',
-        'title': loc.feat2Title,
-        'desc': loc.feat2Desc,
-        'tag': 'SEAMLESS',
-      },
-      {
-        'emoji': '🏃',
-        'title': loc.feat3Title,
-        'desc': loc.feat3Desc,
-        'tag': 'A-TYPE RACERBACK',
-      },
-      {
-        'emoji': '🥇',
-        'title': loc.feat4Title,
-        'desc': loc.feat4Desc,
-        'tag': 'ELITE WEAR',
-      },
+      {'tag': 'ULTRA LIGHT',      'title': loc.feat1Title, 'desc': loc.feat1Desc},
+      {'tag': 'SEAMLESS',         'title': loc.feat2Title, 'desc': loc.feat2Desc},
+      {'tag': 'A-TYPE RACERBACK', 'title': loc.feat3Title, 'desc': loc.feat3Desc},
+      {'tag': 'ELITE WEAR',       'title': loc.feat4Title, 'desc': loc.feat4Desc},
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── 섹션1 이미지 업로드 (카드 위) ──
+        // ── 섹션1 어드민 이미지 (풀너비, 이미지가 있으면 표시)
         if (isAdmin || (_sectionImages['s1'] ?? []).isNotEmpty)
           Container(
-            color: const Color(0xFFF5F7FF),
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: _buildAdminImageSection('s1', '섹션1 메인 배너', isAdmin),
-          ),
-        Container(
-          margin: const EdgeInsets.only(top: 8),
-          color: const Color(0xFFF5F7FF),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 상단 헤더 배경 이미지 영역
-              Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFE3EAFF), Color(0xFFCDD8FF)],
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 섹션 라벨
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white24),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text('SECTION 01',
-                      style: TextStyle(
-                          color: Colors.white38, fontSize: 9, letterSpacing: 1.5)),
-                ),
-                const SizedBox(height: 5),
-                // 메인 타이틀
-                Text(
-                  isSinglet ? '2FIT 싱글렛' : product.localizedName(_lang),
-                  style: const TextStyle(
-                      color: Color(0xFF1A1A3E),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.5,
-                      height: 1.15),
-                ),
-                const SizedBox(height: 6),
-                // 서브타이틀
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFB0BEFF)),
-                  ),
-                  child: Text(
-                    isSinglet
-                        ? '경기력을 극대화하는 퍼포먼스 싱글렛 · No.1 엘리트 스포츠웨어'
-                        : product.localizedDescription(_lang),
-                    style: const TextStyle(
-                        color: Color(0xFF3A3A6E), fontSize: 11, height: 1.45),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // 핵심 특징 4가지 카드
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
-            child: Column(
-              children: features.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final f = entry.value;
-                return Container(
-                  margin: EdgeInsets.only(top: idx == 0 ? 0 : 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFCDD5FF)),
-                  ),
-                  child: Row(
-                    children: [
-                      // 이모지 아이콘
-                      Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEEF1FF),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Center(
-                          child: Text(f['emoji']!,
-                              style: const TextStyle(fontSize: 12)),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // 태그 + 제목
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(f['title']!,
-                                  style: const TextStyle(
-                                      color: Color(0xFF1A1A3E),
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w800)),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF2979FF).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(f['tag']!,
-                                  style: const TextStyle(
-                                      color: Color(0xFF2962FF),
-                                      fontSize: 7.5,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.4)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // 섹션 2: 소재 및 기술 + 섬유 혼용율 표
-  // ═══════════════════════════════════════════════════════════
-  Widget _buildSection2Material(ProductModel product, bool isAdmin) {
-    final badges = [
-      {'icon': '🧬', 'label': loc.badgeSeamless},
-      {'icon': '💧', 'label': loc.badgeFastAbsorb},
-      {'icon': '🌬️', 'label': loc.badgeFastDry},
-      {'icon': '🪶', 'label': loc.badgeUltraLight},
-      {'icon': '🏅', 'label': loc.badgeElite},
-    ];
-
-    // 기능별 상세 설명
-    final techDetails = [
-      {
-        'icon': '💧',
-        'title': loc.techAbsorbTitle,
-        'desc': loc.techAbsorbDesc,
-      },
-      {
-        'icon': '🌬️',
-        'title': loc.techDryTitle,
-        'desc': loc.techDryDesc,
-      },
-    ];
-
-    // 섬유 혼용율 테이블
-    final fiberTable = loc.fiberTableData;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ── 섹션2 이미지 업로드 (카드 위) ──
-        if (isAdmin || (_sectionImages['s2'] ?? []).isNotEmpty)
-          Container(
-            color: const Color(0xFFF7F8FA),
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: _buildAdminImageSection('s2', '섹션2 소재 및 기술', isAdmin),
-          ),
-        Container(
-          color: const Color(0xFFF7F8FA),
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _sectionHeader('02', loc.section02Title, loc.section02Sub),
-          const SizedBox(height: 10),
-
-          // 뱃지 행
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: badges.map((b) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 4, offset: const Offset(0, 2))],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(b['icon']!, style: const TextStyle(fontSize: 13)),
-                  const SizedBox(width: 4),
-                  Text(b['label']!,
-                      style: const TextStyle(
-                          fontSize: 11, fontWeight: FontWeight.w700)),
-                ],
-              ),
-            )).toList(),
-          ),
-
-          const SizedBox(height: 10),
-
-          // 흡수/건조 기술 상세 설명
-          ...techDetails.map((t) => Container(
-            margin: const EdgeInsets.only(bottom: 6),
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE8EAF6)),
-              boxShadow: [BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 4, offset: const Offset(0, 1))],
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1565C0).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Text(t['icon']!, style: const TextStyle(fontSize: 15)),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(t['title']!,
-                          style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: Color(0xFF1A1A1A))),
-                      const SizedBox(height: 2),
-                      Text(t['desc']!,
-                          style: const TextStyle(
-                              fontSize: 10.5,
-                              color: Color(0xFF666666),
-                              height: 1.45)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          )),
-
-          const SizedBox(height: 10),
-
-          // ── 하의길이 참조 이미지 — 하의(타이즈 포함) 또는 싱글렛세트 상품에만 항상 표시 ──
-          if (_isBottomOrSingletSetProduct(product)) ...[
-            _buildGenderLengthImageSection(isAdmin),
-            const SizedBox(height: 10),
-          ],
-
-          // ── 소재혼용율 위 이미지 업로드 ──
-          if (isAdmin || (_sectionImages['s2_fiber'] ?? []).isNotEmpty) ...[
-            _buildAdminImageSection('s2_fiber', '소재혼용율 이미지', isAdmin),
-            const SizedBox(height: 10),
-          ],
-
-          // ── 섬유 혼용율 표 ──
-          Text(loc.fiberMixRatio,
-              style: const TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
-          const SizedBox(height: 2),
-          Text(loc.productFabricCompositionNote,
-              style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA))),
-          const SizedBox(height: 8),
-
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 6, offset: const Offset(0, 2))],
-            ),
-            child: Column(
-              children: [
-                // 테이블 헤더
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          flex: 5,
-                          child: Text(loc.fiberCategory,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 11))),
-                      Expanded(
-                          flex: 4,
-                          child: Text(loc.fiberMainMaterial,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 11),
-                              textAlign: TextAlign.center)),
-                      Expanded(
-                          flex: 3,
-                          child: Text(loc.fiberMix,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 11),
-                              textAlign: TextAlign.center)),
-                    ],
-                  ),
-                ),
-                // 테이블 행
-                ...fiberTable.asMap().entries.map((e) {
-                  final row = e.value;
-                  final even = e.key % 2 == 0;
-                  final isLast = e.key == fiberTable.length - 1;
-                  return Container(
-                    padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: even ? Colors.white : const Color(0xFFF9FAFB),
-                      borderRadius: isLast
-                          ? const BorderRadius.vertical(bottom: Radius.circular(10))
-                          : BorderRadius.zero,
-                      border: const Border(
-                        top: BorderSide(color: Color(0xFFEEEEEE), width: 0.5),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            flex: 5,
-                            child: Text(row[0],
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    height: 1.5,
-                                    color: Color(0xFF333333)))),
-                        Expanded(
-                            flex: 4,
-                            child: Text(row[1],
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF1565C0),
-                                    fontWeight: FontWeight.w700),
-                                textAlign: TextAlign.center)),
-                        Expanded(
-                            flex: 3,
-                            child: Text(row[2],
-                                style: const TextStyle(
-                                    fontSize: 11, color: Color(0xFF888888)),
-                                textAlign: TextAlign.center)),
-                      ],
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-          // ── 시선표 ──
-          if (isAdmin || (_sectionImages['s2'] ?? []).isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-              child: _buildAdminImageSection('s2', '섹션2 소재 및 기술', isAdmin),
-            ),
-        ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // 섹션 3: 포켓 특성 (소재 설명 아래 배치)
-  // ═══════════════════════════════════════════════════════════
-  Widget _buildSection3Pocket(ProductModel product, bool isAdmin) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (isAdmin || (_sectionImages['s3'] ?? []).isNotEmpty)
-          Container(
             color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: _buildAdminImageSection('s3', '섹션3 포켓 특성', isAdmin),
+            padding: EdgeInsets.fromLTRB(0, isAdmin ? 12 : 0, 0, 0),
+            child: isAdmin
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _buildAdminImageSection('s1', '섹션1 메인 배너', isAdmin),
+                  )
+                : Column(
+                    children: (_sectionImages['s1'] ?? []).map((url) =>
+                      Image.network(url, width: double.infinity, fit: BoxFit.fitWidth,
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                    ).toList(),
+                  ),
           ),
+        // ── 탑텐 스타일: PERFORMANCE 섹션 헤더 (흰 배경 + 검정)
         Container(
           color: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+          padding: const EdgeInsets.fromLTRB(20, 32, 20, 8),
+          child: _sectionHeader('01', 'PERFORMANCE', '퍼포먼스 핵심 기능'),
+        ),
+        // ── 특징 리스트: 탑텐 스타일 (분리선 + 영문 태그 + 제목 + 설명)
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _sectionHeader('03', loc.section03Title, loc.section03Sub),
-              const SizedBox(height: 10),
-
-          // 포켓 특성 (45도 후방입구 카드 제거)
-          _buildPocketFeatureTile(
-            icon: Icons.location_on_rounded,
-            color: const Color(0xFF1565C0),
-            title: loc.pocketTile1Title,
-            desc: loc.pocketTile1Desc,
-          ),
-          // pocketTile2 (45° 뒤 방향 입구) 제거됨
-          _buildPocketFeatureTile(
-            icon: Icons.smartphone_rounded,
-            color: const Color(0xFF1B5E20),
-            title: loc.pocketTile3Title,
-            desc: loc.pocketTile3Desc,
-          ),
-          _buildPocketFeatureTile(
-            icon: Icons.water_drop_rounded,
-            color: const Color(0xFFE65100),
-            title: loc.pocketTile4Title,
-            desc: loc.pocketTile4Desc,
-          ),
-        ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPocketFeatureTile({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String desc,
-  }) =>
-      Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF7F8FA),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
+            children: features.asMap().entries.map((entry) {
+              final i = entry.key;
+              final f = entry.value;
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
-                  const SizedBox(height: 5),
-                  Text(desc,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 12, color: Color(0xFF666666), height: 1.6)),
+                  if (i > 0) const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 번호
+                        SizedBox(
+                          width: 28,
+                          child: Text(
+                            '0${i + 1}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFFCCCCCC),
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 영문 태그
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: const Color(0xFF1A1A1A)),
+                                ),
+                                child: Text(
+                                  f['tag']!,
+                                  style: const TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF1A1A1A),
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              // 제목
+                              Text(
+                                f['title']!,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF1A1A1A),
+                                  height: 1.3,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              // 설명
+                              Text(
+                                f['desc']!,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF777777),
+                                  height: 1.6,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
-              ),
-            ),
-          ],
+              );
+            }).toList(),
+          ),
         ),
-      );
+      ],
+    );
+  }
 
   // ═══════════════════════════════════════════════════════════
-  // 섹션 5: 골지 원단 색상 안내 (사이즈 차트 위)
+  // 섹션 2: MATERIAL — 탑텐 스타일 소재/기술 + 섬유 혼용율 표
   // ═══════════════════════════════════════════════════════════
-  Widget _buildSection5GoljiColors(ProductModel product, bool isAdmin) {
-    // 이미지 기준 골지 원단 색상 전체 목록 (코드 + 색상명 + hex)
-    final goljiColors = [
-      {'code': 'K',  'name': '블랙',         'hex': 0xFF1A1A1A},
-      {'code': 'N',  'name': '네이비',        'hex': 0xFF0D1B4F},
-      {'code': 'W',  'name': '화이트',        'hex': 0xFFF5F5F5},
-      {'code': 'G',  'name': '그레이',        'hex': 0xFF9E9E9E},
-      {'code': 'DG', 'name': '다크그레이',    'hex': 0xFF424242},
-      {'code': 'SB', 'name': '스카이블루',    'hex': 0xFF90CAF9},
-      {'code': 'B',  'name': '블루',          'hex': 0xFF1A4DB3},
-      {'code': 'DB', 'name': '다크블루',      'hex': 0xFF2C3D6E},
-      {'code': 'SP', 'name': '스킨핑크',      'hex': 0xFFE8C8C0},
-      {'code': 'LP', 'name': '라이트핑크',    'hex': 0xFFE8A8B0},
-      {'code': 'IO', 'name': '아이보리',      'hex': 0xFFD4CFC4},
-      {'code': 'LG', 'name': '라이트그레이',  'hex': 0xFFBDBDBD},
-      {'code': 'R',  'name': '레드',          'hex': 0xFFCC1111},
-      {'code': 'PP', 'name': '퍼플네이비',    'hex': 0xFF1B1B3A},
-      {'code': 'ND', 'name': '올리브그린',    'hex': 0xFF4A5240},
-      {'code': 'BB', 'name': '틸블루',        'hex': 0xFF0F6B7A},
-      {'code': 'FP', 'name': '형광핑크',      'hex': 0xFFFF1493},
-      {'code': 'FO', 'name': '형광오렌지',    'hex': 0xFFFF6600},
-      {'code': 'FG', 'name': '형광그린',      'hex': 0xFF88EE00},
+  Widget _buildSection2Material(ProductModel product, bool isAdmin) {
+    final fiberTable = loc.fiberTableData;
+    final techRows = [
+      {'label': 'SEAMLESS', 'desc': loc.feat2Title, 'sub': loc.feat2Desc},
+      {'label': 'FAST DRY',  'desc': loc.techDryTitle,  'sub': loc.techDryDesc},
+      {'label': 'MOISTURE',  'desc': loc.techAbsorbTitle,'sub': loc.techAbsorbDesc},
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (isAdmin || (_sectionImages['s5'] ?? []).isNotEmpty)
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: _buildAdminImageSection('s5', '섹션5 골지 원단 색상', isAdmin),
-          ),
+        // ── 섹션2 어드민 이미지
+        if (isAdmin || (_sectionImages['s2'] ?? []).isNotEmpty)
+          isAdmin
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: _buildAdminImageSection('s2', '섹션2 소재 및 기술', isAdmin),
+                )
+              : Column(
+                  children: (_sectionImages['s2'] ?? []).map((url) =>
+                    Image.network(url, width: double.infinity, fit: BoxFit.fitWidth,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                  ).toList(),
+                ),
+
+        // ── 탑텐 스타일: MATERIAL 섹션 헤더 (연한 회색 배경)
         Container(
-          color: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+          color: const Color(0xFFF8F8F8),
+          padding: const EdgeInsets.fromLTRB(20, 32, 20, 8),
+          child: _sectionHeader('02', 'MATERIAL', loc.section02Sub),
+        ),
+
+        // ── 기술 특징 리스트 (연한 회색 배경, 분리선)
+        Container(
+          color: const Color(0xFFF8F8F8),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          child: Column(
+            children: techRows.asMap().entries.map((entry) {
+              final i = entry.key;
+              final t = entry.value;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (i > 0) const Divider(height: 1, color: Color(0xFFE8E8E8)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 28,
+                          child: Text('0${i + 1}',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900,
+                                color: Color(0xFFCCCCCC), letterSpacing: 1)),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF555555))),
+                                child: Text(t['label']!,
+                                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
+                                      color: Color(0xFF555555), letterSpacing: 1.2)),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(t['desc']!,
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800,
+                                    color: Color(0xFF1A1A1A), height: 1.3)),
+                              const SizedBox(height: 5),
+                              Text(t['sub']!,
+                                style: const TextStyle(fontSize: 12, color: Color(0xFF777777),
+                                    height: 1.6, fontWeight: FontWeight.w400)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+
+        // ── 하의길이 참조 이미지 (하의/싱글렛세트만)
+        if (_isBottomOrSingletSetProduct(product)) ...[
+          _buildGenderLengthImageSection(isAdmin),
+        ],
+
+        // ── 소재혼용율 위 이미지
+        if (isAdmin || (_sectionImages['s2_fiber'] ?? []).isNotEmpty)
+          isAdmin
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  child: _buildAdminImageSection('s2_fiber', '소재혼용율 이미지', isAdmin),
+                )
+              : Column(
+                  children: (_sectionImages['s2_fiber'] ?? []).map((url) =>
+                    Image.network(url, width: double.infinity, fit: BoxFit.fitWidth,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                  ).toList(),
+                ),
+
+        // ── 섬유 혼용율 표 (탑텐 스타일: 검정 헤더 + 흰 배경 + 검정 구분선)
+        Container(
+          color: const Color(0xFFF8F8F8),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _sectionHeader('05', loc.section05Title, loc.section05Sub),
-          const SizedBox(height: 4),
-          Text(
-            loc.section05Desc,
-            style: const TextStyle(fontSize: 10.5, color: Color(0xFF666666), height: 1.5),
+              // 표 제목
+              const Text('FABRIC COMPOSITION',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900,
+                    color: Color(0xFF1A1A1A), letterSpacing: 1.5)),
+              const SizedBox(height: 4),
+              Text(loc.productFabricCompositionNote,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF999999))),
+              const SizedBox(height: 16),
+              // 표
+              Container(
+                decoration: BoxDecoration(border: Border.all(color: const Color(0xFFDDDDDD))),
+                child: Column(
+                  children: [
+                    // 헤더행
+                    Container(
+                      color: const Color(0xFF1A1A1A),
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      child: Row(
+                        children: [
+                          Expanded(flex: 5, child: Text(loc.fiberCategory,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11))),
+                          Expanded(flex: 4, child: Text(loc.fiberMainMaterial,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11),
+                            textAlign: TextAlign.center)),
+                          Expanded(flex: 3, child: Text(loc.fiberMix,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11),
+                            textAlign: TextAlign.center)),
+                        ],
+                      ),
+                    ),
+                    // 데이터행
+                    ...fiberTable.asMap().entries.map((e) {
+                      final row = e.value;
+                      final even = e.key % 2 == 0;
+                      return Container(
+                        color: even ? Colors.white : const Color(0xFFF8F8F8),
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                        child: Row(
+                          children: [
+                            Expanded(flex: 5, child: Text(row[0],
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF333333)))),
+                            Expanded(flex: 4, child: Text(row[1],
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A),
+                                  fontWeight: FontWeight.w700),
+                              textAlign: TextAlign.center)),
+                            Expanded(flex: 3, child: Text(row[2],
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                              textAlign: TextAlign.center)),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          GridView.builder(
+        ),
+      ],
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 섹션 3: POCKET SYSTEM — 탑텐 스타일 기능 리스트
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildSection3Pocket(ProductModel product, bool isAdmin) {
+    final pockets = [
+      {'tag': 'BACK POCKET',    'title': loc.pocketTile1Title, 'desc': loc.pocketTile1Desc},
+      {'tag': 'PHONE FIT',      'title': loc.pocketTile3Title, 'desc': loc.pocketTile3Desc},
+      {'tag': 'WATER RESIST',   'title': loc.pocketTile4Title, 'desc': loc.pocketTile4Desc},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── 섹션3 어드민 이미지
+        if (isAdmin || (_sectionImages['s3'] ?? []).isNotEmpty)
+          isAdmin
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: _buildAdminImageSection('s3', '섹션3 포켓 특성', isAdmin),
+                )
+              : Column(
+                  children: (_sectionImages['s3'] ?? []).map((url) =>
+                    Image.network(url, width: double.infinity, fit: BoxFit.fitWidth,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                  ).toList(),
+                ),
+
+        // ── 탑텐 스타일: POCKET SYSTEM 헤더
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(20, 32, 20, 8),
+          child: _sectionHeader('03', 'POCKET SYSTEM', loc.section03Sub),
+        ),
+
+        // ── 포켓 기능 리스트
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          child: Column(
+            children: pockets.asMap().entries.map((entry) {
+              final i = entry.key;
+              final p = entry.value;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (i > 0) const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 28,
+                          child: Text('0${i + 1}',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900,
+                                color: Color(0xFFCCCCCC), letterSpacing: 1)),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1A1A1A))),
+                                child: Text(p['tag']!,
+                                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
+                                      color: Color(0xFF1A1A1A), letterSpacing: 1.2)),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(p['title']!,
+                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800,
+                                    color: Color(0xFF1A1A1A), height: 1.3)),
+                              const SizedBox(height: 5),
+                              Text(p['desc']!,
+                                style: const TextStyle(fontSize: 12, color: Color(0xFF777777),
+                                    height: 1.6, fontWeight: FontWeight.w400)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ※ _buildPocketFeatureTile 제거됨 (탑텐 스타일 인라인으로 교체)
+
+    // ═══════════════════════════════════════════════════════════
+  // 섹션 5: COLOR LINE — 탑텐 스타일 컬러 차트
+  // ═══════════════════════════════════════════════════════════
+  Widget _buildSection5GoljiColors(ProductModel product, bool isAdmin) {
+    final goljiColors = [
+      {'code': 'K',  'name': '블랙',       'hex': 0xFF1A1A1A},
+      {'code': 'N',  'name': '네이비',      'hex': 0xFF0D1B4F},
+      {'code': 'W',  'name': '화이트',      'hex': 0xFFF5F5F5},
+      {'code': 'G',  'name': '그레이',      'hex': 0xFF9E9E9E},
+      {'code': 'DG', 'name': '다크그레이',  'hex': 0xFF424242},
+      {'code': 'SB', 'name': '스카이블루',  'hex': 0xFF90CAF9},
+      {'code': 'B',  'name': '블루',        'hex': 0xFF1A4DB3},
+      {'code': 'DB', 'name': '다크블루',    'hex': 0xFF2C3D6E},
+      {'code': 'SP', 'name': '스킨핑크',    'hex': 0xFFE8C8C0},
+      {'code': 'LP', 'name': '라이트핑크',  'hex': 0xFFE8A8B0},
+      {'code': 'IO', 'name': '아이보리',    'hex': 0xFFD4CFC4},
+      {'code': 'LG', 'name': '라이트그레이','hex': 0xFFBDBDBD},
+      {'code': 'R',  'name': '레드',        'hex': 0xFFCC1111},
+      {'code': 'PP', 'name': '퍼플네이비',  'hex': 0xFF1B1B3A},
+      {'code': 'ND', 'name': '올리브그린',  'hex': 0xFF4A5240},
+      {'code': 'BB', 'name': '틸블루',      'hex': 0xFF0F6B7A},
+      {'code': 'FP', 'name': '형광핑크',    'hex': 0xFFFF1493},
+      {'code': 'FO', 'name': '형광오렌지',  'hex': 0xFFFF6600},
+      {'code': 'FG', 'name': '형광그린',    'hex': 0xFF88EE00},
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── 섹션5 어드민 이미지
+        if (isAdmin || (_sectionImages['s5'] ?? []).isNotEmpty)
+          isAdmin
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: _buildAdminImageSection('s5', '섹션5 컬러 라인업', isAdmin),
+                )
+              : Column(
+                  children: (_sectionImages['s5'] ?? []).map((url) =>
+                    Image.network(url, width: double.infinity, fit: BoxFit.fitWidth,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink()),
+                  ).toList(),
+                ),
+
+        // ── 탑텐 스타일: COLOR LINE-UP 헤더 (연한 회색 배경)
+        Container(
+          color: const Color(0xFFF8F8F8),
+          padding: const EdgeInsets.fromLTRB(20, 32, 20, 8),
+          child: _sectionHeader('05', 'COLOR\nLINE-UP', loc.section05Sub),
+        ),
+        Container(
+          color: const Color(0xFFF8F8F8),
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+          child: Text(loc.section05Desc,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF888888), height: 1.5)),
+        ),
+
+        // ── 탑텐 스타일: 컬러 스와치 그리드 (8열, 원형 + 코드)
+        Container(
+          color: const Color(0xFFF8F8F8),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 6,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 10,
-              childAspectRatio: 0.78,
+              crossAxisSpacing: 4,
+              mainAxisSpacing: 14,
+              childAspectRatio: 0.82,
             ),
             itemCount: goljiColors.length,
             itemBuilder: (_, i) {
@@ -3723,18 +3946,34 @@ $productUrl
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  RibColorSwatch(color: swatchColor, size: 42, isLight: isLight),
-                  const SizedBox(height: 3),
+                  // 탑텐 스타일: 원형 색상 도트 (테두리 강조)
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: swatchColor,
+                      border: Border.all(
+                        color: isLight ? const Color(0xFFDDDDDD) : Colors.transparent,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  // 코드 텍스트
                   Text(
                     c['code'] as String,
-                    style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Color(0xFF222222)),
+                    style: const TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF333333),
+                      letterSpacing: 0.3,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],
               );
             },
-          ),
-        ],
           ),
         ),
       ],
@@ -4731,23 +4970,39 @@ $productUrl
   }
 
   // ─── 공통 섹션 헤더 ───
+  // ── 탑텐 스타일 섹션 헤더: 얇은 상단 라인 + 영문 대제목 + 한글 서브 ──
   Widget _sectionHeader(String num, String title, String sub) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('SECTION $num',
-              style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFFAAAAAA),
-                  letterSpacing: 2)),
+          // 상단 포인트 라인
+          Container(
+            width: 28,
+            height: 2,
+            color: const Color(0xFF1A1A1A),
+          ),
+          const SizedBox(height: 14),
+          // 영문 대제목
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1A1A1A),
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF1A1A1A))),
-          const SizedBox(height: 4),
-          Text(sub, style: const TextStyle(fontSize: 13, color: Color(0xFF888888))),
+          // 한글 서브
+          Text(
+            sub,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF888888),
+              fontWeight: FontWeight.w400,
+              letterSpacing: 0.2,
+            ),
+          ),
         ],
       );
 
