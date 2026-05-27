@@ -49,6 +49,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   String _singletGender = '남'; // '남' or '여'
   String _singletType = 'A';   // 'A' or 'B' (A타입 레이서백 / B타입 스쿱넥)
 
+  // ── 기성품 원단 선택 (일반원단 / 심리스) ──
+  String _selectedFabricType = '일반원단'; // '일반원단' or '심리스'
+
   // ── 탭 ──
   late TabController _tabCtrl;
   int _selectedTabIndex = 0;
@@ -150,79 +153,62 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
 
-    // 모바일 / 태블릿 / PC 모두 동일한 탑텐 스타일 레이아웃 사용
-    // PC/태블릿(900px 이상)에서는 콘텐츠 최대 너비 900px 제한 + 중앙 정렬
-    final screenW = MediaQuery.of(context).size.width;
-    final isWide  = screenW >= 900;
-    final contentW = isWide ? 900.0 : screenW;
-
+    // PC/모바일 모두 전체 너비 사용 (좌우 여백 없음)
     return wrapWithPopScope(context, Scaffold(
-      backgroundColor: isWide ? const Color(0xFFF0F0F0) : Colors.white,
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // ── PC/태블릿: 양쪽 여백을 회색으로 채워 중앙 카드 느낌 ──
-          if (isWide)
-            Positioned.fill(child: const ColoredBox(color: Color(0xFFF0F0F0))),
-          // ── 실제 콘텐츠: 너비 제한 + 중앙 정렬 ──
-          Align(
-            alignment: Alignment.topCenter,
-            child: SizedBox(
-              width: contentW,
-              child: CustomScrollView(
-                controller: _scrollCtrl,
-                cacheExtent: 1200,
-                slivers: [
-                  // ① 앱바
-                  _buildSliverAppBarOnly(product),
-                  // ② 이미지 슬라이더 + 썸네일 바
-                  SliverToBoxAdapter(child: _buildImageSlider(product)),
-                  SliverToBoxAdapter(child: _buildThumbnailBar(product)),
-                  // ③ 기본정보 (브랜드명/상품명/별점/가격/색상/시즌/해시태그/배송비/포인트)
-                  SliverToBoxAdapter(child: _buildBasicInfo(product)),
-                  // ④ 두꺼운 회색 구분선 + 브랜드 로고 섹션
-                  SliverToBoxAdapter(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
-                        _buildToptenBrandSection(product),
-                        const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
-                      ],
-                    ),
-                  ),
-                  // ⑤ 탭바 (sticky — 스크롤해도 앱바 바로 아래 고정)
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _ToptenTabBarDelegate(_buildToptenTabBar()),
-                  ),
-                  // ⑥ 영문 대제목 + 메인 상품 이미지 배너
-                  SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
-                  // ⑦ INFO / PRODUCT / MATERIAL / COLOR 블록
-                  SliverToBoxAdapter(child: KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product))),
-                  // ⑧ 어드민 업로드 섹션 이미지들
-                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
-                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
-                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
-                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
-                  // ⑨ 사이즈 차트
-                  SliverToBoxAdapter(child: RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin))),
-                  // ⑩ WASHING TIP
-                  SliverToBoxAdapter(child: KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product))),
-                  // ⑪ 리뷰 섹션 (최하단)
-                  SliverToBoxAdapter(child: RepaintBoundary(key: _keyReview, child: _buildReviewSection(product))),
-                  // 하단 여백
-                  const SliverToBoxAdapter(child: SizedBox(height: 120)),
-                ],
+          // ── 콘텐츠: 전체 너비 ──
+          CustomScrollView(
+            controller: _scrollCtrl,
+            cacheExtent: 1200,
+            slivers: [
+              // ① 앱바
+              _buildSliverAppBarOnly(product),
+              // ② 이미지 슬라이더 + 썸네일 바
+              SliverToBoxAdapter(child: _buildImageSlider(product)),
+              SliverToBoxAdapter(child: _buildThumbnailBar(product)),
+              // ③ 기본정보 (브랜드명/상품명/별점/가격/색상/시즌/해시태그/배송비/포인트)
+              SliverToBoxAdapter(child: _buildBasicInfo(product)),
+              // ④ 두꺼운 회색 구분선 + 브랜드 로고 섹션
+              SliverToBoxAdapter(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
+                    _buildToptenBrandSection(product),
+                    const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
+                  ],
+                ),
               ),
-            ),
+              // ⑤ 탭바 (sticky — 스크롤해도 앱바 바로 아래 고정)
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _ToptenTabBarDelegate(_buildToptenTabBar()),
+              ),
+              // ⑥ 영문 대제목 + 메인 상품 이미지 배너
+              SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
+              // ⑦ INFO / PRODUCT / MATERIAL / COLOR 블록
+              SliverToBoxAdapter(child: KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product))),
+              // ⑧ 어드민 업로드 섹션 이미지들
+              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
+              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
+              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
+              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
+              // ⑨ 사이즈 차트
+              SliverToBoxAdapter(child: RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin))),
+              // ⑩ WASHING TIP
+              SliverToBoxAdapter(child: KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product))),
+              // ⑪ 리뷰 섹션 (최하단)
+              SliverToBoxAdapter(child: RepaintBoundary(key: _keyReview, child: _buildReviewSection(product))),
+              // 하단 여백
+              const SliverToBoxAdapter(child: SizedBox(height: 120)),
+            ],
           ),
-          // ── 하단 구매 버튼: PC/태블릿에서도 중앙 너비에 맞춰 배치 ──
+          // ── 하단 구매 버튼 ──
           Align(
             alignment: Alignment.bottomCenter,
-            child: SizedBox(
-              width: contentW,
-              child: _buildBottomBar(product),
-            ),
+            child: _buildBottomBar(product),
           ),
         ],
       ),
@@ -1089,38 +1075,33 @@ $productUrl
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(children: [
-          // 브랜드 로고 박스 (검정 사각형)
-          // 브랜드 로고: 홈 상단과 동일한 logo_2fit.png 이미지 사용
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            padding: const EdgeInsets.all(6),
+          // 브랜드 로고 — logo_2fit_text.png 이미지
+          SizedBox(
+            width: 90,
+            height: 40,
             child: Image.asset(
-              'assets/images/logo_2fit.png',
+              'assets/images/logo_2fit_text.png',
               fit: BoxFit.contain,
+              alignment: Alignment.centerLeft,
               errorBuilder: (_, __, ___) => const Text(
                 '2FIT',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
+                  color: Color(0xFF1A1A1A),
+                  fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
+                  letterSpacing: -0.5,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           // 브랜드명 텍스트
           GestureDetector(
             onTap: () {},
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('2핏', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                Text('2FIT', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A), letterSpacing: -0.3)),
                 Text('2FIT KOREA', style: TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w400, letterSpacing: 0.5)),
               ],
             ),
@@ -2111,6 +2092,53 @@ $productUrl
     );
   }
 
+  // ── 원단 타입 선택 버튼 (일반원단 / 심리스) ──
+  Widget _fabricTypeBtn(String type, String subLabel, IconData icon) {
+    final sel = _selectedFabricType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedFabricType = type),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+          decoration: BoxDecoration(
+            color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFF8F8F8),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFDDDDDD),
+              width: sel ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 20, color: sel ? Colors.white : const Color(0xFF555555)),
+              const SizedBox(height: 6),
+              Text(
+                type,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: sel ? Colors.white : const Color(0xFF1A1A1A),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subLabel,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: sel ? Colors.white.withValues(alpha: 0.7) : const Color(0xFF999999),
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ═══════════════════════════════════════
   // 구매 방식 선택 (인라인 섹션)
   // ═══════════════════════════════════════
@@ -2415,6 +2443,22 @@ $productUrl
             Text(loc.purchaseType,
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
             const SizedBox(height: 8),
+          ],
+
+          // ── 기성품 원단 선택 버튼 (일반원단 / 심리스) ──
+          if (!product.isGroupOnly) ...[
+            const SizedBox(height: 4),
+            const Divider(height: 1, color: Color(0xFFF0F0F0)),
+            const SizedBox(height: 10),
+            Text('원단 선택',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+            const SizedBox(height: 8),
+            Row(children: [
+              _fabricTypeBtn('일반원단', '기본 기능성 원단', Icons.layers_outlined),
+              const SizedBox(width: 8),
+              _fabricTypeBtn('심리스', '봉제선 없는 심리스', Icons.auto_awesome_outlined),
+            ]),
+            const SizedBox(height: 10),
           ],
 
           // ── 구매방식 버튼: 단체주문 전용 → 단체주문 1개, 기성품 → 기성품 1개 ──
@@ -3311,6 +3355,86 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   // 섹션 1: PERFORMANCE — 탑텐 스타일 모노크롬 특징 리스트
   // ═══════════════════════════════════════════════════════════
+  // ── 싱글렛 상의 소재 행 반환 (폴리에스터 92% / 라이크라 8%) ──
+  List<String>? _getSingletTopFiberRow() {
+    // 언어별로 싱글렛 상의 소재 행 반환
+    switch (loc.language) {
+      case AppLanguage.english:
+        return ['Singlet (Top)', 'Polyester 92%', 'Lycra 8%'];
+      case AppLanguage.japanese:
+        return ['シングレット (上)', 'ポリエステル 92%', 'ライクラ 8%'];
+      case AppLanguage.chinese:
+        return ['背心 (上衣)', '聚酯纤维 92%', '莱卡 8%'];
+      case AppLanguage.mongolian:
+        return ['Сингэлет (Дээд)', 'Полиэстер 92%', 'Лайкра 8%'];
+      default:
+        return ['싱글렛 상의', '폴리에스터 92%', '라이크라 8%'];
+    }
+  }
+
+  // ── 공통: 섹션 헤더 배너 (검정 배경 + 영문 대제목 + 한글 서브) ──
+  Widget _sectionHeaderBanner({
+    required String engTitle,
+    required String engSub,
+    required String korSub,
+    Color bgColor = const Color(0xFF1A1A1A),
+    Color textColor = Colors.white,
+    Widget? trailingIcon,
+  }) {
+    return Container(
+      width: double.infinity,
+      color: bgColor,
+      padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 영문 서브 태그
+                Text(
+                  engSub,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: textColor.withValues(alpha: 0.45),
+                    letterSpacing: 2.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // 영문 대제목
+                Text(
+                  engTitle,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: textColor,
+                    letterSpacing: -0.5,
+                    height: 1.1,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // 한글 설명
+                Text(
+                  korSub,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: textColor.withValues(alpha: 0.55),
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.2,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (trailingIcon != null) trailingIcon,
+        ],
+      ),
+    );
+  }
+
   Widget _buildSection1Banner(ProductModel product, bool isAdmin) {
     final features = [
       {'tag': 'ULTRA LIGHT',      'title': loc.feat1Title, 'desc': loc.feat1Desc},
@@ -3322,6 +3446,14 @@ $productUrl
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── 섹션1 헤더 배너
+        _sectionHeaderBanner(
+          engTitle: 'PERFORMANCE',
+          engSub: 'SECTION 01',
+          korSub: '고성능 스포츠 소재와 기술이 만든\n최상위 퍼포먼스 웨어',
+          trailingIcon: const Icon(Icons.bolt_rounded, size: 36, color: Color(0x55FFFFFF)),
+        ),
+        const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
         // ── 섹션1 어드민 이미지 (풀너비, 이미지가 있으면 표시)
         if (isAdmin || (_sectionImages['s1'] ?? []).isNotEmpty)
           Container(
@@ -3438,9 +3570,28 @@ $productUrl
       {'label': 'MOISTURE',  'desc': loc.techAbsorbTitle,'sub': loc.techAbsorbDesc},
     ];
 
+    // 싱글렛/싱글렛세트 카테고리 판별
+    final isSingletProduct =
+        product.category.contains('싱글렛') ||
+        product.subCategory.contains('싱글렛') ||
+        product.name.contains('싱글렛') ||
+        (product.category == '상의' &&
+            (product.subCategory.contains('싱글렛') || product.name.contains('singlet')));
+    // 싱글렛 상의 소재 행 (폴리에스터 92% / 라이크라 8%)
+    final singletTopRow = _getSingletTopFiberRow();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── 섹션2 헤더 배너
+        _sectionHeaderBanner(
+          engTitle: 'MATERIAL',
+          engSub: 'SECTION 02',
+          korSub: '고급 원단과 기능성 소재로 완성한\n쾌적하고 지속 가능한 착용감',
+          bgColor: const Color(0xFF212121),
+          trailingIcon: const Icon(Icons.layers_rounded, size: 36, color: Color(0x55FFFFFF)),
+        ),
+        const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
         // ── 섹션2 어드민 이미지
         if (isAdmin || (_sectionImages['s2'] ?? []).isNotEmpty)
           isAdmin
@@ -3567,6 +3718,38 @@ $productUrl
                         ],
                       ),
                     ),
+                    // 싱글렛/싱글렛세트: 상의 소재 행 강조 표시 (최상단)
+                    if (isSingletProduct && singletTopRow != null)
+                      Container(
+                        color: const Color(0xFFFFF8E1),
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                        child: Row(
+                          children: [
+                            Expanded(flex: 5, child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFF6F00),
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                  child: const Text('상의', style: TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800)),
+                                ),
+                                Flexible(child: Text(singletTopRow[0],
+                                  style: const TextStyle(fontSize: 11, color: Color(0xFF333333), fontWeight: FontWeight.w600))),
+                              ],
+                            )),
+                            Expanded(flex: 4, child: Text(singletTopRow[1],
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A),
+                                  fontWeight: FontWeight.w800),
+                              textAlign: TextAlign.center)),
+                            Expanded(flex: 3, child: Text(singletTopRow[2],
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w600),
+                              textAlign: TextAlign.center)),
+                          ],
+                        ),
+                      ),
                     // 데이터행
                     ...fiberTable.asMap().entries.map((e) {
                       final row = e.value;
@@ -3612,6 +3795,15 @@ $productUrl
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── 섹션3 헤더 배너
+        _sectionHeaderBanner(
+          engTitle: 'POCKET\nSYSTEM',
+          engSub: 'SECTION 03',
+          korSub: '실용적인 수납 설계와 방수 기능으로\n운동 중에도 완벽한 편의성',
+          bgColor: const Color(0xFF1C2B3A),
+          trailingIcon: const Icon(Icons.inventory_2_rounded, size: 36, color: Color(0x55FFFFFF)),
+        ),
+        const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
         // ── 섹션3 어드민 이미지
         if (isAdmin || (_sectionImages['s3'] ?? []).isNotEmpty)
           isAdmin
@@ -3691,6 +3883,7 @@ $productUrl
   // 섹션 5: COLOR LINE — 탑텐 스타일 컬러 차트
   // ═══════════════════════════════════════════════════════════
   Widget _buildSection5GoljiColors(ProductModel product, bool isAdmin) {
+    // ── 섹션5 컬러 데이터
     final goljiColors = [
       {'code': 'K',  'name': '블랙',       'hex': 0xFF1A1A1A},
       {'code': 'N',  'name': '네이비',      'hex': 0xFF0D1B4F},
