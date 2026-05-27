@@ -1050,7 +1050,8 @@ class _HomeScreenState extends State<HomeScreen>
                       onTap: onTap,
                       child: Image.network(b.imageUrl,
                         fit: BoxFit.cover, width: double.infinity, height: double.infinity,
-                        // loadingBuilder 제거 → 배경색이 placeholder 역할
+                        cacheWidth: 1200,
+                        filterQuality: FilterQuality.medium,
                         errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF2A2A2A))),
                     )
                   else
@@ -2283,7 +2284,10 @@ class _HomeScreenState extends State<HomeScreen>
                               SizedBox(
                                 width: cardW, height: imgH,
                                 child: p.images.isNotEmpty
-                                  ? Image.network(p.images.first, fit: BoxFit.cover,
+                                  ? Image.network(p.images.first,
+                                      fit: BoxFit.cover,
+                                      cacheWidth: 300,
+                                      cacheHeight: 375,
                                       errorBuilder: (_, __, ___) => Container(
                                         color: const Color(0xFFF0F0F0),
                                         child: const Icon(Icons.image_not_supported_rounded,
@@ -2755,7 +2759,8 @@ class _HomeScreenState extends State<HomeScreen>
         ? ((1 - p.price / p.originalPrice!) * 100).round()
         : 0;
 
-    return GestureDetector(
+    return RepaintBoundary(
+      child: GestureDetector(
       onTap: () => Navigator.push(context,
         MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
       child: Container(
@@ -2853,7 +2858,8 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
       ),
-    );
+    ),  // GestureDetector
+    );  // RepaintBoundary
   }
 
   // ── 단체주문 상품 없음 상태 ──

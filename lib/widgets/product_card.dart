@@ -14,23 +14,25 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
-      ),
-      child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          // Nike 스타일 — 완전 평탄, 테두리 없음
+    // RepaintBoundary: 이 카드만 독립 레이어 → 스크롤 시 다른 카드 repaint 방지
+    return RepaintBoundary(
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,  // 실제 내용 높이만큼만 차지
-          children: [
-            _buildImage(context),
-            _buildInfo(context),
-          ],
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildImage(context),
+              _buildInfo(context),
+            ],
+          ),
         ),
       ),
     );
@@ -52,6 +54,9 @@ class ProductCard extends StatelessWidget {
                     width: double.infinity,
                     height: double.infinity,
                     filterQuality: FilterQuality.medium,
+                    // 썸네일 크기로 디코딩 → 메모리 절약 + 로딩 속도 향상
+                    cacheWidth: 400,
+                    cacheHeight: 500,
                     errorBuilder: (_, __, ___) => _placeholder(),
                   )
                 : _placeholder(),

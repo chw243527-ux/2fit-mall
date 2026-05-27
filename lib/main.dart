@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -94,8 +95,22 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         title: '2FIT MALL',
         debugShowCheckedModeBanner: false,
         navigatorKey: navigatorKey,
+        // 웹에서 마우스/터치 드래그 스크롤 모두 활성화
+        scrollBehavior: const _AppScrollBehavior(),
         builder: (context, child) => child!,
         home: const _AppInit(),
+        // 전역 페이지 전환: 빠른 페이드 (끊김 없이)
+        theme: ThemeData(
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: {
+              TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+              TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+            },
+          ),
+        ),
         onGenerateRoute: (settings) {
           switch (settings.name) {
             case '/login':
@@ -188,6 +203,20 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
       ),
     );
   }
+}
+
+/// 웹/데스크톱에서 마우스 드래그 스크롤 활성화 + 물리적 스크롤 부드럽게
+class _AppScrollBehavior extends MaterialScrollBehavior {
+  const _AppScrollBehavior();
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.trackpad,
+  };
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) =>
+      const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
 }
 
 /// 앱 초기화 (자동 로그인 세션 복구)
