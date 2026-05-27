@@ -1202,41 +1202,173 @@ $productUrl
         ? product.productCode.toUpperCase()
         : product.id.toUpperCase();
 
+    final cat = product.category;
+    final sub = product.subCategory;
+    final name = product.name;
+
+    // ── 카테고리 판별 헬퍼 ──────────────────────────────────────
+    final isSingletSet =
+        cat == '세트' ||
+        sub.contains('싱글렛세트') ||
+        name.contains('싱글렛세트') ||
+        name.contains('싱글렛 세트');
+    final isSingletTop =
+        !isSingletSet &&
+        (cat == '상의' || sub.contains('싱글렛') || name.contains('싱글렛'));
+    final isTaiz =
+        sub.contains('타이즈') || name.contains('타이즈') || cat == '하의';
+    final isGroupOnly = product.isGroupOnly;
+
+    // ── 1) MATERIAL: 카테고리별 소재 텍스트 ─────────────────────
+    // 섹션2 소재표에 표시된 값을 그대로 사용
+    String materialText;
+    if (isSingletSet) {
+      // 싱글렛세트: 상의(폴리에스터 92%/라이크라 8%) + 하의(나일론 75%/라이크라 25%)
+      materialText = '상의: 폴리에스터 92% / 라이크라 8%\n하의: 나일론 75% / 라이크라 25%';
+    } else if (isSingletTop) {
+      // 싱글렛 상의 단품
+      materialText = '폴리에스터 92% / 라이크라 8%';
+    } else if (isTaiz) {
+      // 하의 타이즈 (골지원단)
+      materialText = '나일론 75% / 라이크라 25%';
+    } else if (product.material.isNotEmpty) {
+      // 그 외: 상품에 등록된 소재값 그대로
+      materialText = product.material;
+    } else {
+      materialText = '78% Nylon, 22% Spandex / 4-way Stretch';
+    }
+
+    // ── 2) COLOR: 카테고리/구매방식별 표시 ──────────────────────
+    // 단체주문: 골지 19색 모두 선택 가능
+    // 기성품 싱글렛세트: 상의=디자인 색상 고정, 하의=K/PP 선택
+    // 기성품 싱글렛(상의 단품): 제품 디자인 색상 그대로
+    // 하의 타이즈: K 또는 PP 선택
+    // 기타: 등록된 색상만
+    Widget colorContent;
+    if (isGroupOnly) {
+      // 단체주문 → 골지 19색 전체 적용 가능 안내
+      colorContent = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _infoColorBadge(
+            label: '단체주문 전용',
+            labelColor: const Color(0xFF4A148C),
+            text: '골지원단 19가지 색상 중 원하는 색상으로 자유롭게 제작 가능',
+          ),
+          const SizedBox(height: 8),
+          _infoColorChipRow(['K','N','W','G','DG','SB','B','DB','SP','LP','IO','LG','R','PP','ND','BB','FP','FO','FG']),
+        ],
+      );
+    } else if (isSingletSet) {
+      // 기성품 싱글렛세트: 상의 고정 / 하의 K·PP
+      colorContent = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _infoColorBadge(
+            label: '상의',
+            labelColor: const Color(0xFF1A1A1A),
+            text: '디자인 이미지 색상 및 디자인 그대로 유지 (변경 불가)',
+          ),
+          const SizedBox(height: 8),
+          _infoColorBadge(
+            label: '하의',
+            labelColor: const Color(0xFF1976D2),
+            text: 'K (블랙) 또는 PP (퍼플네이비) 중 1가지 선택',
+          ),
+          const SizedBox(height: 8),
+          _infoColorChipRow(['K', 'PP']),
+        ],
+      );
+    } else if (isSingletTop) {
+      // 기성품 싱글렛 상의 단품: 제품 디자인 색상 그대로
+      colorContent = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _infoColorBadge(
+            label: '기성품',
+            labelColor: const Color(0xFF1A1A1A),
+            text: '제품 디자인 색상 그대로 적용 (색상 변경 불가)',
+          ),
+          if (product.colors.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _infoColorChipRow(product.colors),
+          ],
+        ],
+      );
+    } else if (isTaiz) {
+      // 하의 타이즈: K 또는 PP 선택
+      colorContent = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _infoColorBadge(
+            label: '하의',
+            labelColor: const Color(0xFF1976D2),
+            text: 'K (블랙) 또는 PP (퍼플네이비) 중 1가지 선택',
+          ),
+          const SizedBox(height: 8),
+          _infoColorChipRow(['K', 'PP']),
+        ],
+      );
+    } else {
+      // 기타 카테고리: 등록된 색상만
+      colorContent = product.colors.isNotEmpty
+          ? _infoColorChipRow(product.colors)
+          : const Text('등록된 색상 정보가 없습니다.',
+              style: TextStyle(fontSize: 12, color: Color(0xFF888888)));
+    }
+
+    // ── 3) PRODUCT 테이블 행: 하의길이 행 추가 ──────────────────
+    // 싱글렛세트 기성품: 남자 5부 고정 / 여자 2.5부 고정
+    // 하의 타이즈 기성품: K/PP에 따라 표시
+    String? bottomLengthValue;
+    if (!isGroupOnly && isSingletSet) {
+      bottomLengthValue = '남성: 5부 고정  /  여성: 2.5부 고정';
+    } else if (!isGroupOnly && isTaiz) {
+      // 일반 하의 타이즈 기성품 (subCategory에 길이 정보 있으면 사용)
+      final lengthLabel = sub.contains('9부') ? '9부'
+          : sub.contains('5부') ? '5부'
+          : sub.contains('4부') ? '4부'
+          : sub.contains('3부') ? '3부'
+          : sub.contains('2.5부') ? '2.5부'
+          : sub.contains('숏쇼츠') ? '숏쇼츠'
+          : null;
+      if (lengthLabel != null) bottomLengthValue = lengthLabel;
+    }
+
+    // 블록 번호 동적 계산
+    int blockNum = 2;
+    final int productBlockNum = ++blockNum; // 02 PRODUCT (항상)
+    final int materialBlockNum = ++blockNum; // 03 MATERIAL (항상)
+    final int colorBlockNum = ++blockNum;   // 04 COLOR (항상)
+
     return Container(
       color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 상단 구분선
           Container(height: 1, color: const Color(0xFFE8E8E8)),
-
           const SizedBox(height: 8),
 
-          // ── INFO 블록: 제품 설명
+          // ── 01 INFO: 제품 설명
           _toptenInfoBlock(
             num: '01',
             label: 'INFO',
             labelSub: '제품 설명',
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.localizedDescription(_lang),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF444444),
-                    height: 1.85,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0.1,
-                  ),
-                ),
-              ],
+            content: Text(
+              product.localizedDescription(_lang),
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF444444),
+                height: 1.85,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 0.1,
+              ),
             ),
           ),
 
-          // ── PRODUCT 블록: 제품 기본 정보 테이블
+          // ── 02 PRODUCT: 제품 기본 정보 테이블
           _toptenInfoBlock(
-            num: '02',
+            num: productBlockNum.toString().padLeft(2, '0'),
             label: 'PRODUCT',
             labelSub: '제품 기본 정보',
             content: _toptenInfoTable([
@@ -1244,55 +1376,88 @@ $productUrl
               if (product.subCategory.isNotEmpty) ('분류', product.subCategory),
               ('상품코드', productCode),
               ('시즌', 'SS26'),
+              // 하의길이 행: 해당 카테고리만
+              if (bottomLengthValue != null) ('하의길이', bottomLengthValue),
             ]),
           ),
 
-          // ── MATERIAL 블록: 소재 정보
-          if (product.material != null && product.material!.isNotEmpty)
-            _toptenInfoBlock(
-              num: '03',
-              label: 'MATERIAL',
-              labelSub: '소재 정보',
-              content: Text(
-                product.material!,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF444444),
-                  height: 1.85,
-                  fontWeight: FontWeight.w400,
-                ),
+          // ── 03 MATERIAL: 카테고리별 소재 텍스트
+          _toptenInfoBlock(
+            num: materialBlockNum.toString().padLeft(2, '0'),
+            label: 'MATERIAL',
+            labelSub: '소재 정보',
+            content: Text(
+              materialText,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF444444),
+                height: 1.85,
+                fontWeight: FontWeight.w400,
               ),
             ),
+          ),
 
-          // ── COLOR 블록: 색상 정보
+          // ── 04 COLOR: 카테고리/구매방식별 색상 안내
           _toptenInfoBlock(
-            num: product.material != null && product.material!.isNotEmpty ? '04' : '03',
+            num: colorBlockNum.toString().padLeft(2, '0'),
             label: 'COLOR',
-            labelSub: '색상 라인업',
-            content: Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: product.colors.map((c) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFCCCCCC)),
-                  color: Colors.white,
-                ),
-                child: Text(
-                  c.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF333333),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              )).toList(),
-            ),
+            labelSub: '색상 안내',
+            content: colorContent,
             isLast: true,
           ),
         ],
       ),
+    );
+  }
+
+  // ── 색상 안내 배지 (라벨 + 설명 텍스트) ──
+  Widget _infoColorBadge({
+    required String label,
+    required Color labelColor,
+    required String text,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: labelColor,
+            borderRadius: BorderRadius.circular(3),
+          ),
+          child: Text(label,
+              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(text,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF444444), height: 1.5)),
+        ),
+      ],
+    );
+  }
+
+  // ── 색상 코드 칩 가로 나열 ──
+  Widget _infoColorChipRow(List<String> codes) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: codes.map((c) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFCCCCCC)),
+          color: Colors.white,
+        ),
+        child: Text(
+          c.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF333333),
+            letterSpacing: 0.5,
+          ),
+        ),
+      )).toList(),
     );
   }
 
