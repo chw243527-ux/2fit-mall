@@ -27,32 +27,32 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _animController = AnimationController(
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 700),  // 1800→700 빠른 등장
       vsync: this,
     );
     _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _animController,
-        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
       ),
     );
-    _scaleAnim = Tween<double>(begin: 0.85, end: 1.0).animate(
+    _scaleAnim = Tween<double>(begin: 0.92, end: 1.0).animate(
       CurvedAnimation(
         parent: _animController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack),
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
       ),
     );
     _progressAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _animController,
-        curve: const Interval(0.3, 0.95, curve: Curves.easeInOut),
+        curve: const Interval(0.2, 1.0, curve: Curves.easeInOut),
       ),
     );
 
     _animController.forward();
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 2200), _checkAutoLogin);
+      Future.delayed(const Duration(milliseconds: 900), _checkAutoLogin);  // 2200→900
     });
   }
 

@@ -1123,7 +1123,7 @@ class _HomeScreenState extends State<HomeScreen>
         // ── 배경 영상 ──
         VideoBannerWidget(
           videoUrl: 'assets/images/banner_video.mp4',
-          thumbnailUrl: null,
+          thumbnailUrl: 'assets/images/banner_custom_fit.jpg',
           onTap: goShop,
           onProductTap: goShop,
         ),
@@ -2567,7 +2567,7 @@ class _HomeScreenState extends State<HomeScreen>
             // ── 배경 영상 ──
             VideoBannerWidget(
               videoUrl: 'assets/images/banner_video.mp4',
-              thumbnailUrl: null,
+              thumbnailUrl: 'assets/images/banner_custom_fit.jpg',
               onTap: goShop,
               onProductTap: goShop,
             ),
@@ -3868,7 +3868,7 @@ class _HomeScreenState extends State<HomeScreen>
             // ── 배경 영상 ──
             VideoBannerWidget(
               videoUrl: 'assets/images/banner_video.mp4',
-              thumbnailUrl: null,
+              thumbnailUrl: 'assets/images/banner_custom_fit.jpg',
               onTap: goShop,
               onProductTap: goShop,
             ),
