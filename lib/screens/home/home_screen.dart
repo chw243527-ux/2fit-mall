@@ -4682,27 +4682,30 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ignore: unused_element
   Widget _buildBestSection(AppLocalizations loc) {
     final provider = context.watch<ProductProvider>();
 
-    // 판매 집계 로드 전 → 로딩 인디케이터 표시
-    if (!provider.salesCountsLoaded) {
-      return Container(
-        color: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        child: const Center(
-          child: SizedBox(
-            width: 24, height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFE53935)),
-          ),
-        ),
-      );
+    List<ProductModel> bestProds;
+
+    if (provider.salesCountsLoaded && provider.bestProducts.isNotEmpty) {
+      // ① 실구매 데이터 있음 → 실판매량 기준
+      bestProds = provider.bestProducts;
+    } else {
+      // ② 실구매 데이터 없음(로딩 중 or 판매 없음) → 활성 상품 중 salesCount/reviewCount 기준 정렬 폴백
+      List<ProductModel> allProds = provider.products.isNotEmpty
+          ? provider.products
+          : ProductService.getAllProductsSync();
+      bestProds = allProds
+          .where((p) => p.isActive)
+          .toList()
+        ..sort((a, b) {
+          final sa = b.salesCount.compareTo(a.salesCount);
+          if (sa != 0) return sa;
+          return b.reviewCount.compareTo(a.reviewCount);
+        });
+      bestProds = bestProds.take(10).toList();
     }
 
-    final bestProds = provider.bestProducts;
-
-    // 실제 구매 이력이 있는 베스트 상품이 없으면 섹션 자체를 숨김
     if (bestProds.isEmpty) return const SizedBox.shrink();
 
     return _buildProductSection(
