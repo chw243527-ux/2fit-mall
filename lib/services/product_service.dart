@@ -693,7 +693,7 @@ class ProductService {
   // ── 캐시 ──────────────────────────────────────────────────────
   static List<ProductModel> _cache = [];
   static bool _loaded = false;
-  static const String _prefKey = 'products_v5'; // v5: 더미 캐시 무효화 (isGroupOnly 적용)
+  static const String _prefKey = 'products_v6'; // v6: Firestore 신규 상품 반영 강제 갱신
 
   static void _ensureCache() {
     if (_cache.isEmpty) _cache = List.from(_products);
@@ -710,37 +710,35 @@ class ProductService {
           .collection('products')
           .where('isActive', isEqualTo: true)
           .get()
-          .timeout(const Duration(seconds: 8));
+          .timeout(const Duration(seconds: 10));
 
-      if (snapshot.docs.isNotEmpty) {
-        final firestoreProducts = snapshot.docs.map((doc) {
-          final data = doc.data();
-          // Firestore Timestamp → String 변환
-          if (data['createdAt'] is Timestamp) {
-            data['createdAt'] = (data['createdAt'] as Timestamp)
-                .toDate()
-                .toIso8601String();
-          }
-          return ProductModel.fromJson(data);
-        }).toList();
+      // Firestore 결과가 0개여도 "데이터 없음"으로 처리(더미 사용 X)
+      final firestoreProducts = snapshot.docs.map((doc) {
+        final data = doc.data();
+        // Firestore Timestamp → String 변환
+        if (data['createdAt'] is Timestamp) {
+          data['createdAt'] = (data['createdAt'] as Timestamp)
+              .toDate()
+              .toIso8601String();
+        }
+        return ProductModel.fromJson(data);
+      }).toList();
 
-        _products.clear();
-        _products.addAll(firestoreProducts);
-        _cache = List.from(_products);
-        _loaded = true;
-        if (kDebugMode) debugPrint('✅ Firestore 상품 ${firestoreProducts.length}개 로드');
-
-        // 로컬 캐시에도 저장 (오프라인 대비)
-        await _persistToLocal();
-        return;
-      } else {
-        // Firestore에 데이터가 없으면 더미 사용
-        if (kDebugMode) debugPrint('⚠️ Firestore 상품 0개 → 더미 데이터 사용');
+      _products.clear();
+      _products.addAll(firestoreProducts);
+      _cache = List.from(_products);
+      _loaded = true;
+      if (kDebugMode) {
+        debugPrint('✅ Firestore 상품 ${firestoreProducts.length}개 로드');
       }
+
+      // 로컬 캐시에도 저장 (오프라인 대비)
+      await _persistToLocal();
+      return;
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ Firestore 상품 로드 실패, 로컬 폴백: $e');
     }
-    // Firestore 실패 또는 데이터 없음 → 로컬 캐시 → 더미 데이터 순서로 폴백
+    // Firestore 실패 시만 로컬 캐시 → 더미 데이터 순서로 폴백
     await _loadFromLocal();
   }
 

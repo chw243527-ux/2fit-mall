@@ -4829,70 +4829,155 @@ class _HomeScreenState extends State<HomeScreen>
   // ────────────────────────────────────────────
   // 신상품 / 베스트 섹션
   // ────────────────────────────────────────────
+
+  /// 모든 활성 상품을 Firestore 우선으로 가져옴.
+  /// provider.products가 비어있으면 ProductService 캐시를 사용.
+  /// isGroupOnly는 필터하지 않음 — 상품 수가 적을 때 단체주문 상품도 노출.
+  List<ProductModel> _getAllActiveProducts(ProductProvider provider) {
+    final fromProvider = provider.products.where((p) => p.isActive).toList();
+    if (fromProvider.isNotEmpty) return fromProvider;
+    // Firestore 로드 전이면 로컬 캐시 사용
+    return ProductService.getAllProductsSync().where((p) => p.isActive).toList();
+  }
+
   // ignore: unused_element
   Widget _buildNewArrivalsSection(AppLocalizations loc) {
-    final provider = context.watch<ProductProvider>();
-    List<ProductModel> allProds = provider.products.isNotEmpty
-        ? provider.products
-        : ProductService.getAllProductsSync();
+    return Consumer<ProductProvider>(
+      builder: (context, provider, _) {
+        // Firestore 로딩 중이고 아직 상품이 없으면 스켈레톤 표시
+        if (provider.isLoading && provider.products.isEmpty) {
+          return _buildSectionSkeleton(loc.sectionNewArrival);
+        }
 
-    // isNew 상품 우선, 없으면 최근 등록순으로 폴백
-    List<ProductModel> products = allProds.where((p) => p.isNew && p.isActive).toList();
-    if (products.isEmpty) {
-      products = allProds.where((p) => p.isActive).toList();
-      products.sort((a, b) => (b.createdAt ?? DateTime(2000))
-          .compareTo(a.createdAt ?? DateTime(2000)));
-      products = products.take(10).toList();
-    }
+        final allProds = _getAllActiveProducts(provider);
 
-    return _buildProductSection(
-      title: loc.sectionNewArrival,
-      englishTitle: loc.sectionNewArrivalSub,
-      accentColor: const Color(0xFF1A1A1A),
-      products: products,
-      category: '이벤트',
-      viewAllLabel: loc.viewAll,
+        // ① isNew 상품 우선
+        List<ProductModel> products =
+            allProds.where((p) => p.isNew).toList();
+
+        // ② isNew 없으면 createdAt 최신순 정렬
+        if (products.isEmpty) {
+          products = [...allProds]
+            ..sort((a, b) => (b.createdAt ?? DateTime(2000))
+                .compareTo(a.createdAt ?? DateTime(2000)));
+          products = products.take(10).toList();
+        }
+
+        // ③ 여전히 비어있으면 섹션 숨김
+        if (products.isEmpty) return const SizedBox.shrink();
+
+        return _buildProductSection(
+          title: loc.sectionNewArrival,
+          englishTitle: loc.sectionNewArrivalSub,
+          accentColor: const Color(0xFF1A1A1A),
+          products: products,
+          category: '이벤트',
+          viewAllLabel: loc.viewAll,
+        );
+      },
     );
   }
 
   Widget _buildBestSection(AppLocalizations loc) {
-    final provider = context.watch<ProductProvider>();
+    return Consumer<ProductProvider>(
+      builder: (context, provider, _) {
+        // Firestore 로딩 중이고 아직 상품이 없으면 스켈레톤 표시
+        if (provider.isLoading && provider.products.isEmpty) {
+          return _buildSectionSkeleton(loc.sectionBestSeller);
+        }
 
-    List<ProductModel> bestProds;
+        List<ProductModel> bestProds;
 
-    if (provider.salesCountsLoaded && provider.bestProducts.isNotEmpty) {
-      // ① 실구매 데이터 있음 → 실판매량 기준
-      bestProds = provider.bestProducts;
-    } else {
-      // ② 항상 폴백: 전체 상품 중 salesCount/reviewCount 기준 정렬
-      List<ProductModel> allProds = provider.products.isNotEmpty
-          ? provider.products
-          : ProductService.getAllProductsSync();
-      // isGroupOnly 제외하고 일반 상품 위주로
-      final normal = allProds.where((p) => p.isActive && !p.isGroupOnly).toList();
-      final fallback = normal.isNotEmpty ? normal : allProds.where((p) => p.isActive).toList();
-      bestProds = [...fallback]
-        ..sort((a, b) {
-          final sa = b.salesCount.compareTo(a.salesCount);
-          if (sa != 0) return sa;
-          return b.reviewCount.compareTo(a.reviewCount);
-        });
-      bestProds = bestProds.take(10).toList();
-    }
+        if (provider.salesCountsLoaded && provider.bestProducts.isNotEmpty) {
+          // ① 실판매량 데이터 있음 → 실판매량 기준 베스트
+          bestProds = provider.bestProducts;
+        } else {
+          // ② 폴백: 활성 상품 전체에서 salesCount/reviewCount 정렬
+          final allProds = _getAllActiveProducts(provider);
 
-    // 여전히 비어있으면 전체 상품에서 앞 10개라도
-    if (bestProds.isEmpty) {
-      bestProds = ProductService.getAllProductsSync().take(10).toList();
-    }
-    if (bestProds.isEmpty) return const SizedBox.shrink();
+          // 일반 상품(non-group) 우선, 없으면 단체주문 포함 전체
+          final normal =
+              allProds.where((p) => !p.isGroupOnly).toList();
+          final pool = normal.isNotEmpty ? normal : allProds;
 
-    return _buildProductSection(
-      title: loc.sectionBestSeller,
-      englishTitle: loc.sectionBestSellerSub,
-      accentColor: const Color(0xFFE53935),
-      products: bestProds,
-      category: '전체',
-      viewAllLabel: loc.viewAll,
+          bestProds = [...pool]
+            ..sort((a, b) {
+              final sa = b.salesCount.compareTo(a.salesCount);
+              if (sa != 0) return sa;
+              return b.reviewCount.compareTo(a.reviewCount);
+            });
+          bestProds = bestProds.take(10).toList();
+        }
+
+        // ③ 여전히 비어있으면 섹션 숨김
+        if (bestProds.isEmpty) return const SizedBox.shrink();
+
+        return _buildProductSection(
+          title: loc.sectionBestSeller,
+          englishTitle: loc.sectionBestSellerSub,
+          accentColor: const Color(0xFFE53935),
+          products: bestProds,
+          category: '전체',
+          viewAllLabel: loc.viewAll,
+        );
+      },
+    );
+  }
+
+  /// 섹션 로딩 중 스켈레톤 (shimmer 효과)
+  Widget _buildSectionSkeleton(String title) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(height: 1, color: const Color(0xFFF0F0F0)),
+          const SizedBox(height: 20),
+          Container(
+            width: 120,
+            height: 22,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEEEEEE),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: List.generate(
+              2,
+              (i) => Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(right: i == 0 ? 8 : 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AspectRatio(
+                        aspectRatio: 1,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEEEEEE),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                          height: 14,
+                          color: const Color(0xFFEEEEEE)),
+                      const SizedBox(height: 4),
+                      Container(
+                          width: 60,
+                          height: 14,
+                          color: const Color(0xFFEEEEEE)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
