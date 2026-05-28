@@ -2491,9 +2491,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 border: Border.all(color: isSel ? _purple : color.withValues(alpha: 0.4)),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Container(width: 12, height: 12,
-                    decoration: BoxDecoration(color: color, shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.5)))),
+                RibColorSwatch(
+                  color: color,
+                  size: 14,
+                  isLight: isLight,
+                  borderRadius: 7,
+                ),
                 const SizedBox(width: 5),
                 Text(item['name']!,
                     style: TextStyle(

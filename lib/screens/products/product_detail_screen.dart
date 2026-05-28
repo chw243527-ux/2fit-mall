@@ -1140,32 +1140,27 @@ $productUrl
               ),
             ]),
             const SizedBox(height: 12),
-            // 원형 색상 버튼 그리드 — _goljiColorMap 공통 사용
+            // 원형 색상 버튼 그리드 — 골지 텍스처 원형 스와치
             Wrap(
               spacing: 10,
               runSpacing: 10,
               children: product.colors.map((colorName) {
                 final isSelected = _selectedColor == colorName;
                 final dotColor = _goljiColorMap[colorName] ?? const Color(0xFFCCCCCC);
-                final isLight = dotColor.computeLuminance() > 0.7;
+                final isLight = dotColor.computeLuminance() > 0.5;
                 return GestureDetector(
                   onTap: () => setSt(() => _selectedColor = colorName),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: isSelected
-                          ? Border.all(color: const Color(0xFF1A1A1A), width: 2)
-                          : Border.all(color: isLight ? const Color(0xFFDDDDDD) : Colors.transparent, width: 1),
-                    ),
-                    padding: isSelected ? const EdgeInsets.all(2) : EdgeInsets.zero,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: dotColor,
-                      ),
-                    ),
+                  child: RibColorSwatch(
+                    color: dotColor,
+                    size: 36,
+                    isSelected: isSelected,
+                    accentColor: const Color(0xFF1A1A1A),
+                    isLight: isLight,
+                    borderRadius: 18,
+                    child: isSelected
+                        ? Icon(Icons.check_rounded, size: 16,
+                            color: isLight ? Colors.black87 : Colors.white)
+                        : null,
                   ),
                 );
               }).toList(),
