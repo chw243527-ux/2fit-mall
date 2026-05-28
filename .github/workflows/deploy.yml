@@ -12,7 +12,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── Flutter SDK 캐시 (pubspec.lock 기반 → 의존성 변경 시에만 재설치) ──
+      # ── wrangler npx 캐시 (~/.npm 내 패키지) — Deploy 단계 속도 개선 ──
+      - name: Cache npm (wrangler)
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-wrangler-3.78.12
+
+      # ── Flutter SDK 캐시 ──
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -25,8 +32,7 @@ jobs:
       - name: Cache pub packages
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.pub-cache
+          path: ~/.pub-cache
           key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
           restore-keys: |
             pub-${{ runner.os }}-
@@ -56,7 +62,7 @@ jobs:
           fi
           echo "✅ Patched: renderer=html, main.dart.js?v=${BUILD_VER}"
 
-      # ── Cloudflare Pages 배포 (npx로 wrangler 설치 생략) ──
+      # ── Cloudflare Pages 배포 (npx + npm 캐시로 재설치 없음) ──
       - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
