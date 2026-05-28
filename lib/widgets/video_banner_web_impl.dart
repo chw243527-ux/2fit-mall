@@ -13,6 +13,17 @@ final Set<String> _registeredVideoViews = {};
 // HTML video 엘리먼트 레퍼런스
 final Map<String, html.VideoElement> _videoElements = {};
 
+/// 현재 마운트된 모든 비디오 배너를 처음부터 재시작
+/// 홈화면 pull-to-refresh 콜백에서 호출
+void restartAllVideoBanners() {
+  for (final video in _videoElements.values) {
+    try {
+      video.currentTime = 0;
+      video.play().catchError((_) {});
+    } catch (_) {}
+  }
+}
+
 /// Web용 비디오 배너 위젯
 /// - videoUrl이 'assets/images/banner_video.mp4' 이면 → 로컬 asset 재생
 /// - videoUrl이 http(s):// URL 이면 → 네트워크 스트리밍

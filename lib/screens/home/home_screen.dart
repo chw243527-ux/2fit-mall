@@ -141,6 +141,7 @@ class _HomeScreenState extends State<HomeScreen>
       color: const Color(0xFF1A1A2E),
       backgroundColor: Colors.white,
       onRefresh: () async {
+        restartAllVideoBanners(); // 배너 영상 첫 프레임부터 재시작
         await context.read<ProductProvider>().refresh();
       },
       child: CustomScrollView(
@@ -2391,6 +2392,7 @@ class _HomeScreenState extends State<HomeScreen>
                 color: const Color(0xFF1A1A2E),
                 backgroundColor: Colors.white,
                 onRefresh: () async {
+                  restartAllVideoBanners(); // 배너 영상 첫 프레임부터 재시작
                   await context.read<ProductProvider>().refresh();
                 },
                 child: CustomScrollView(

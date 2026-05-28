@@ -4,6 +4,9 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+/// 네이티브 stub: 웹 전용 함수이므로 no-op
+void restartAllVideoBanners() {}
+
 class VideoBannerWidget extends StatefulWidget {
   final String videoUrl;
   final String? thumbnailUrl;
