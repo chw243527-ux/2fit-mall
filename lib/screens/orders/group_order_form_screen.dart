@@ -603,13 +603,36 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   Future<void> _submitOrder({required bool isBuyNow}) async {
     if (!_validate()) return;
     final user    = context.read<UserProvider>().user;
-    final product = widget.product ?? ProductModel(
-      id: 'group_direct_${DateTime.now().millisecondsSinceEpoch}',
-      name: '단체주문', category: '단체주문', subCategory: '',
-      price: _unitPrice, originalPrice: _unitPrice,
-      description: '단체 직접 주문', images: [], sizes: [], colors: [],
-      material: '', stockCount: 999, createdAt: DateTime.now(),
-    );
+    // product.price 를 반드시 _unitPrice(기본가+심리스+9부+주머니 포함 인원당 단가)로 고정
+    // CartItem.unitPrice = product.price + extraPrice 이므로 extraPrice: 0 과 함께 사용해야 정확
+    final src = widget.product;
+    final product = src == null
+        ? ProductModel(
+            id: 'group_direct_${DateTime.now().millisecondsSinceEpoch}',
+            name: '단체주문', category: '단체주문', subCategory: '',
+            price: _unitPrice, originalPrice: _unitPrice,
+            description: '단체 직접 주문', images: [], sizes: [], colors: [],
+            material: '', stockCount: 999, createdAt: DateTime.now(),
+          )
+        : ProductModel(
+            // 원본 상품의 모든 메타데이터 유지, price 만 _unitPrice 로 교체
+            id: src.id, name: src.name,
+            category: src.category, subCategory: src.subCategory,
+            price: _unitPrice, originalPrice: _unitPrice,
+            description: src.description,
+            images: src.images, sizes: src.sizes, colors: src.colors,
+            material: src.material,
+            isNew: src.isNew, isSale: src.isSale,
+            isFreeShipping: src.isFreeShipping, isGroupOnly: src.isGroupOnly,
+            rating: src.rating, reviewCount: src.reviewCount,
+            stockCount: src.stockCount, salesCount: src.salesCount,
+            isActive: src.isActive, createdAt: src.createdAt,
+            productCode: src.productCode,
+            sectionImages: src.sectionImages,
+            nameTranslations: src.nameTranslations,
+            descriptionTranslations: src.descriptionTranslations,
+            bottomLength: src.bottomLength,
+          );
 
     // 상세페이지 디자인 이미지 (sectionImages['design'] 첫 번째 이미지)
     final designImg = (product.sectionImages['design'] ?? []).isNotEmpty
@@ -694,9 +717,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     final cart = context.read<CartProvider>();
     if (isBuyNow) {
       cart.clearCart();
+      // product.price = _unitPrice (모든 추가비용 포함) → extraPrice: 0 으로 이중계산 방지
       cart.addItem(product, '단체', _mainColorName ?? '기본',
           quantity: _totalCount,
-          extraPrice: _fabricExtra.toDouble(),
+          extraPrice: 0,
           customOptions: customOptions);
       if (!mounted) return;
       // 주문 전 사이즈 저장 제안
@@ -705,9 +729,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           MaterialPageRoute(builder: (_) => CheckoutScreen(cart: cart)));
     } else {
       // 장바구니에 담기 (기존 아이템 유지, 단체 상품 추가)
+      // product.price = _unitPrice (모든 추가비용 포함) → extraPrice: 0 으로 이중계산 방지
       cart.addItem(product, '단체', _mainColorName ?? '기본',
           quantity: _totalCount,
-          extraPrice: _fabricExtra.toDouble(),
+          extraPrice: 0,
           customOptions: customOptions);
       if (!mounted) return;
       // 장바구니 담기 후 사이즈 저장 제안
