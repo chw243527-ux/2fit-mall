@@ -1663,9 +1663,9 @@ class _PcSettingsTab extends StatelessWidget {
                   title: loc.mypageNotificationSection,
                   items: [
                     _PcSettingItem(icon: Icons.notifications_rounded, title: loc.mypageNotifOrder,
-                      trailing: Switch(value: true, onChanged: (_) {}, activeThumbColor: const Color(0xFF1565C0))),
+                      trailing: Switch(value: true, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0))))),
                     _PcSettingItem(icon: Icons.campaign_rounded, title: loc.mypageNotifMarketing,
-                      trailing: Switch(value: false, onChanged: (_) {}, activeThumbColor: const Color(0xFF1565C0))),
+                      trailing: Switch(value: false, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0))))),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -2826,7 +2826,7 @@ class _MobileSwitchItem extends StatelessWidget {
         child: Icon(icon, size: 16, color: Colors.blueGrey),
       ),
       title: Text(title, style: const TextStyle(fontSize: 14, color: Colors.black87)),
-      trailing: Switch(value: value, onChanged: onChanged, activeThumbColor: const Color(0xFF1565C0), materialTapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      trailing: Switch(value: value, onChanged: onChanged, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0)), materialTapTargetSize: MaterialTapTargetSize.shrinkWrap),
     );
   }
 }
