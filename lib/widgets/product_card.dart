@@ -73,6 +73,8 @@ class ProductCard extends StatelessWidget {
                 _badge('NEW', Colors.white, const Color(0xFF111111)),
               if (product.isSale && product.discountPercent > 0)
                 _badge('−${product.discountPercent}%', const Color(0xFFFF0000), Colors.white),
+              if (product.isGroupOnly)
+                _badge('단체전용', const Color(0xFF6A1B9A), Colors.white),
             ],
           ),
         ),
@@ -134,6 +136,26 @@ class ProductCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // 단체주문 전용 배지
+          if (product.isGroupOnly) ...[  
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(3),
+                border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.4)),
+              ),
+              child: const Text(
+                '단체주문 전용',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF6A1B9A),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
           // 상품명 — 2줄까지 허용
           Text(
             product.localizedName(lang),
