@@ -1242,6 +1242,18 @@ class _HomeScreenState extends State<HomeScreen>
               );
             },
           ),
+          // ── 좌측 상단 로고 (항상 표시) ──
+          Positioned(
+            left: 32, top: 28,
+            child: Image.asset(
+              'assets/images/logo_2fit_white.png',
+              height: 36,
+              errorBuilder: (_, __, ___) => const Text('2FIT',
+                style: TextStyle(color: Colors.white, fontSize: 20,
+                    fontWeight: FontWeight.w900, letterSpacing: 1)),
+            ),
+          ),
+
           // 우측 세로 점 인디케이터
           Positioned(
             right: 20, top: 0, bottom: 0,
@@ -1284,6 +1296,17 @@ class _HomeScreenState extends State<HomeScreen>
           thumbnailUrl: 'assets/images/banner_custom_fit.jpg',
           onTap: goShop,
           onProductTap: goShop,
+        ),
+        // ── 좌측 상단 로고 (항상 표시) ──
+        Positioned(
+          left: 32, top: 28,
+          child: Image.asset(
+            'assets/images/logo_2fit_white.png',
+            height: 36,
+            errorBuilder: (_, __, ___) => const Text('2FIT',
+              style: TextStyle(color: Colors.white, fontSize: 20,
+                  fontWeight: FontWeight.w900, letterSpacing: 1)),
+          ),
         ),
         // ── 텍스트 오버레이 ──
         Positioned(
