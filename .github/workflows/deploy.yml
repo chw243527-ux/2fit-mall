@@ -28,6 +28,15 @@ jobs:
       - name: Patch renderer to html
         run: sed -i 's/"renderer":"canvaskit"/"renderer":"html"/g' build/web/flutter_bootstrap.js
 
+      - name: Patch JS cache busting (append build number to main.dart.js)
+        run: |
+          BUILD_VER="${{ github.run_number }}"
+          # flutter_bootstrap.js 안의 main.dart.js 참조에 ?v=빌드번호 추가
+          sed -i "s/main\.dart\.js\"/main.dart.js?v=${BUILD_VER}\"/g" build/web/flutter_bootstrap.js
+          # index.html 안의 참조도 패치
+          sed -i "s/main\.dart\.js\"/main.dart.js?v=${BUILD_VER}\"/g" build/web/index.html
+          echo "Patched main.dart.js → main.dart.js?v=${BUILD_VER}"
+
       - name: Install wrangler (fixed version)
         run: npm install -g wrangler@3.78.12
 
