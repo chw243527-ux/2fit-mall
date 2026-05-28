@@ -10460,7 +10460,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     Icon(Icons.info_outline, size: 13, color: Color(0xFFE65100)),
                     SizedBox(width: 6),
                     Expanded(child: Text(
-                      '블랙 · 화이트 → 기본가  |  그 외 색상 → +₩20,000',
+                      '블랙(K) · 퍼플네이비(PP) → 기본가  |  그 외 색상 → +₩20,000',
                       style: TextStyle(fontSize: 11, color: Color(0xFFE65100), fontWeight: FontWeight.w600),
                     )),
                   ]),
@@ -10480,8 +10480,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                       final name = c['name'] as String;
                       final hexVal = c['hex'] as int;
                       final isSelected = _selectedColors.contains(name);
-                      // isFree: twoFitColors의 isFree 필드 사용 (블랙·화이트 = 기본가)
-                      final isFree = (c['isFree'] as bool?) ?? (name == '블랙' || name == '화이트');
+                      // isFree: twoFitColors의 isFree 필드 사용 (블랙·퍼플네이비 = 기본가)
+                      final isFree = (c['isFree'] as bool?) ?? (name == '블랙' || name == '퍼플네이비');
                       // isLight: computeLuminance 기반 (> 0.35 → 어두운 텍스트)
                       // Flutter Color.computeLuminance()와 동일한 WCAG 2.1 알고리즘
                       final color = Color(hexVal);

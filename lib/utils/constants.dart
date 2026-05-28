@@ -90,11 +90,11 @@ class AppConstants {
   // ── 2FIT 등록 색상 팔레트 ──
   // 골지원단 실물 촬영 이미지 픽셀 직접 추출 — median sampling (2026-05-28)
   // product_detail_screen.dart _goljiColorMap / allGoljiColors 와 완전 동일
-  // isFree 기준: 블랙(K) · 화이트(W) → +₩0 (기본가)
+  // isFree 기준: 블랙(K) · 퍼플네이비(PP) → +₩0 (기본가), 그 외 → +₩20,000
   static const List<Map<String, dynamic>> twoFitColors = [
     {'name': '블랙',       'nameEn': 'K (Black)',      'hex': 0xFF3A3A3A, 'isFree': true},
     {'name': '네이비',     'nameEn': 'N (Navy)',       'hex': 0xFF2A3668, 'isFree': false},
-    {'name': '화이트',     'nameEn': 'W (White)',      'hex': 0xFFF2F2F2, 'isFree': true},
+    {'name': '화이트',     'nameEn': 'W (White)',      'hex': 0xFFF2F2F2, 'isFree': false},
     {'name': '그레이',     'nameEn': 'G (Gray)',       'hex': 0xFF9E9E9E, 'isFree': false},
     {'name': '다크그레이', 'nameEn': 'DG (D.Gray)',    'hex': 0xFF424242, 'isFree': false},
     {'name': '스카이블루', 'nameEn': 'SB (Sky Blue)',  'hex': 0xFF92C9F8, 'isFree': false},
@@ -105,7 +105,7 @@ class AppConstants {
     {'name': '아이보리',   'nameEn': 'IO (Ivory)',     'hex': 0xFFD2CEC3, 'isFree': false},
     {'name': '라이트그레이','nameEn': 'LG (Lt.Gray)',  'hex': 0xFFBDBDBD, 'isFree': false},
     {'name': '레드',       'nameEn': 'R (Red)',        'hex': 0xFFE03430, 'isFree': false},
-    {'name': '퍼플네이비', 'nameEn': 'PP (PP Navy)',   'hex': 0xFF363752, 'isFree': false},
+    {'name': '퍼플네이비', 'nameEn': 'PP (PP Navy)',   'hex': 0xFF363752, 'isFree': true},
     {'name': '올리브그린', 'nameEn': 'ND (Olive)',     'hex': 0xFF4B5441, 'isFree': false},
     {'name': '틸블루',     'nameEn': 'BB (Teal Blue)', 'hex': 0xFF116977, 'isFree': false},
     {'name': '형광핑크',   'nameEn': 'FP (Neon Pink)', 'hex': 0xFFFD1691, 'isFree': false},
