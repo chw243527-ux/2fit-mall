@@ -159,7 +159,34 @@ jobs:
             --commit-dirty=true \
             --commit-message="deploy: build-${RUN_NUM} (${SHORT_SHA})"
 
-      # ── 10. 배포 성공 알림 (Summary) ─────────────────────
+      # ── 10. Cloudflare 캐시 purge (배포 직후 CDN 캐시 즉시 무효화) ────
+      - name: Purge Cloudflare cache
+        if: success()
+        run: |
+          # main.dart.js / flutter.js / flutter_bootstrap.js / index.html 즉시 purge
+          curl -s -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "files": [
+                "https://2fit-mall.co.kr/",
+                "https://2fit-mall.co.kr/index.html",
+                "https://2fit-mall.co.kr/main.dart.js",
+                "https://2fit-mall.co.kr/flutter.js",
+                "https://2fit-mall.co.kr/flutter_bootstrap.js",
+                "https://2fit-mall.co.kr/manifest.json"
+              ]
+            }' | python3 -c "
+          import sys, json
+          r = json.load(sys.stdin)
+          if r.get('success'):
+              print('✅ Cloudflare 캐시 purge 성공')
+          else:
+              print('⚠️  purge 응답:', json.dumps(r, ensure_ascii=False))
+          " || echo "⚠️  CLOUDFLARE_ZONE_ID 미설정 — purge 건너뜀 (배포는 완료)"
+
+      # ── 11. 배포 성공 알림 (Summary) ─────────────────────
       - name: Deployment summary
         if: success()
         run: |
