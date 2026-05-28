@@ -1122,25 +1122,6 @@ $productUrl
 
   // ── 탑텐 스타일: 색상 원형 그리드 선택 UI ──
   Widget _buildToptenColorSection(ProductModel product) {
-    // 색상명 → Color 매핑
-    final colorMap = {
-      'Black': const Color(0xFF1A1A1A), '블랙': const Color(0xFF1A1A1A),
-      'White': const Color(0xFFF8F8F8), '화이트': const Color(0xFFF8F8F8),
-      'Navy': const Color(0xFF1B3055), '네이비': const Color(0xFF1B3055),
-      'Gray': const Color(0xFF9E9E9E), '그레이': const Color(0xFF9E9E9E),
-      'Red': const Color(0xFFD32F2F), '레드': const Color(0xFFD32F2F),
-      'Blue': const Color(0xFF1565C0), '블루': const Color(0xFF1565C0),
-      'Pink': const Color(0xFFE91E8C), '핑크': const Color(0xFFE91E8C),
-      'Purple': const Color(0xFF7B1FA2), '퍼플': const Color(0xFF7B1FA2),
-      'Sky Blue': const Color(0xFF29B6F6), '스카이블루': const Color(0xFF29B6F6),
-      'Yellow': const Color(0xFFFBC02D), '옐로우': const Color(0xFFFBC02D),
-      'Green': const Color(0xFF388E3C), '그린': const Color(0xFF388E3C),
-      'Brown': const Color(0xFF795548), '브라운': const Color(0xFF795548),
-      'Beige': const Color(0xFFD7CCC8), '베이지': const Color(0xFFD7CCC8),
-      'K': const Color(0xFF1A1A1A), 'PP': const Color(0xFFF8F8F8),
-      '블랙': const Color(0xFF1A1A1A), '화이트': const Color(0xFFF8F8F8),
-    };
-
     String _selectedColor = product.colors.isNotEmpty ? product.colors.first : '';
 
     return StatefulBuilder(builder: (ctx, setSt) {
@@ -1159,13 +1140,13 @@ $productUrl
               ),
             ]),
             const SizedBox(height: 12),
-            // 원형 색상 버튼 그리드 (5개씩)
+            // 원형 색상 버튼 그리드 — _goljiColorMap 공통 사용
             Wrap(
               spacing: 10,
               runSpacing: 10,
               children: product.colors.map((colorName) {
                 final isSelected = _selectedColor == colorName;
-                final dotColor = colorMap[colorName] ?? const Color(0xFFCCCCCC);
+                final dotColor = _goljiColorMap[colorName] ?? const Color(0xFFCCCCCC);
                 final isLight = dotColor.computeLuminance() > 0.7;
                 return GestureDetector(
                   onTap: () => setSt(() => _selectedColor = colorName),
@@ -1174,11 +1155,9 @@ $productUrl
                     height: 36,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      // 선택된 색상: 외부 테두리 링
                       border: isSelected
                           ? Border.all(color: const Color(0xFF1A1A1A), width: 2)
                           : Border.all(color: isLight ? const Color(0xFFDDDDDD) : Colors.transparent, width: 1),
-                      // 선택된 경우 내부 여백을 위해 padding처럼 처리
                     ),
                     padding: isSelected ? const EdgeInsets.all(2) : EdgeInsets.zero,
                     child: Container(
@@ -1629,100 +1608,94 @@ $productUrl
     );
   }
 
-  // ── 골지 색상 코드 → 실제 색상 매핑 ──
+  // ── 전체 색상 코드 → 실제 색상 매핑 (기본정보 색상 선택 UI와 동일) ──
   static const Map<String, Color> _goljiColorMap = {
+    // 골지 코드
     'K':  Color(0xFF1A1A1A),  // 블랙
     'N':  Color(0xFF0D1B4F),  // 네이비
-    'W':  Color(0xFFF5F5F5),  // 화이트
+    'W':  Color(0xFFF8F8F8),  // 화이트
     'G':  Color(0xFFBDBDBD),  // 그레이
     'DG': Color(0xFF3C3C3C),  // 다크그레이
-    'SB': Color(0xFF1245A8),  // 스카이블루(로얄블루)
-    'B':  Color(0xFF3FA9F5),  // 블루(스카이블루)
+    'SB': Color(0xFF1245A8),  // 로얄블루
+    'B':  Color(0xFF3FA9F5),  // 스카이블루
     'DB': Color(0xFF1B4332),  // 다크그린
-    'SP': Color(0xFF26C9A0),  // 스피어민트(민트)
+    'SP': Color(0xFF26C9A0),  // 민트
     'LP': Color(0xFFEE82A2),  // 라이트핑크
     'IO': Color(0xFFFFFBEA),  // 아이보리
-    'LG': Color(0xFF43A047),  // 라임그린(그린)
+    'LG': Color(0xFF43A047),  // 라임그린
     'R':  Color(0xFFCC0000),  // 레드
-    'PP': Color(0xFF6D0E19),  // 퍼플(버건디)
-    'ND': Color(0xFF0047AB),  // 코발트(네이비다크)
+    'PP': Color(0xFF6D0E19),  // 버건디퍼플
+    'ND': Color(0xFF0047AB),  // 코발트
     'BB': Color(0xFF6D0E19),  // 버건디
     'FP': Color(0xFFFF1493),  // 형광핑크
     'FO': Color(0xFFFF5F00),  // 네온오렌지
     'FG': Color(0xFF39FF14),  // 형광그린
-    // 일반 색상명 매핑
+    // 영문 색상명
     'Black':    Color(0xFF1A1A1A),
-    'White':    Color(0xFFF5F5F5),
-    'Navy':     Color(0xFF0D1B4F),
-    'Gray':     Color(0xFFBDBDBD),
-    'Red':      Color(0xFFCC0000),
-    'Blue':     Color(0xFF1245A8),
-    'Pink':     Color(0xFFEE82A2),
+    'White':    Color(0xFFF8F8F8),
+    'Navy':     Color(0xFF1B3055),
+    'Gray':     Color(0xFF9E9E9E),
+    'Red':      Color(0xFFD32F2F),
+    'Blue':     Color(0xFF1565C0),
+    'Pink':     Color(0xFFE91E8C),
     'Purple':   Color(0xFF7B1FA2),
-    'Green':    Color(0xFF43A047),
-    'Yellow':   Color(0xFFFFD600),
-    'Orange':   Color(0xFFFF6B35),
+    'Sky Blue': Color(0xFF29B6F6),
+    'Green':    Color(0xFF388E3C),
+    'Yellow':   Color(0xFFFBC02D),
     'Brown':    Color(0xFF795548),
-    'Beige':    Color(0xFFF5E6C8),
+    'Beige':    Color(0xFFD7CCC8),
+    'Orange':   Color(0xFFFF6B35),
     'Mint':     Color(0xFF26C9A0),
+    // 한글 색상명
     '블랙':     Color(0xFF1A1A1A),
-    '화이트':   Color(0xFFF5F5F5),
-    '네이비':   Color(0xFF0D1B4F),
-    '그레이':   Color(0xFFBDBDBD),
-    '레드':     Color(0xFFCC0000),
-    '블루':     Color(0xFF1245A8),
-    '핑크':     Color(0xFFEE82A2),
+    '화이트':   Color(0xFFF8F8F8),
+    '네이비':   Color(0xFF1B3055),
+    '그레이':   Color(0xFF9E9E9E),
+    '레드':     Color(0xFFD32F2F),
+    '블루':     Color(0xFF1565C0),
+    '핑크':     Color(0xFFE91E8C),
     '퍼플':     Color(0xFF7B1FA2),
-    '그린':     Color(0xFF43A047),
-    '옐로우':   Color(0xFFFFD600),
+    '스카이블루': Color(0xFF29B6F6),
+    '그린':     Color(0xFF388E3C),
+    '옐로우':   Color(0xFFFBC02D),
+    '브라운':   Color(0xFF795548),
+    '베이지':   Color(0xFFD7CCC8),
     '민트':     Color(0xFF26C9A0),
   };
 
-  // ── 색상 코드 칩: 색상 원형 + 코드명 함께 표시 ──
+  // ── 색상 칩: _buildToptenColorSection과 동일한 원형 36px 스타일 ──
   Widget _infoColorChipRow(List<String> codes) {
     return Wrap(
-      spacing: 8,
-      runSpacing: 10,
+      spacing: 10,
+      runSpacing: 14,
       children: codes.map((c) {
-        final code = c.toUpperCase();
-        final dotColor = _goljiColorMap[c] ?? _goljiColorMap[code];
-        final hasDot = dotColor != null;
-        final isLight = hasDot && dotColor!.computeLuminance() > 0.75;
+        final dotColor = _goljiColorMap[c] ?? _goljiColorMap[c.toUpperCase()] ?? const Color(0xFFCCCCCC);
+        final isLight = dotColor.computeLuminance() > 0.7;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 색상 원형
+            // 기본정보 색상 원형과 동일: 36px, 밝은 색 테두리
             Container(
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: hasDot ? dotColor : const Color(0xFFEEEEEE),
+                color: dotColor,
                 border: Border.all(
-                  color: isLight ? const Color(0xFFCCCCCC) : Colors.transparent,
+                  color: isLight ? const Color(0xFFDDDDDD) : Colors.transparent,
                   width: 1,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 3,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
               ),
-              child: hasDot
-                  ? null
-                  : const Icon(Icons.help_outline, size: 14, color: Color(0xFFAAAAAA)),
             ),
-            const SizedBox(height: 4),
-            // 색상 코드 텍스트
+            const SizedBox(height: 5),
+            // 코드명
             Text(
-              code,
+              c.toUpperCase(),
               style: const TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF444444),
+                color: Color(0xFF555555),
                 letterSpacing: 0.3,
               ),
             ),
