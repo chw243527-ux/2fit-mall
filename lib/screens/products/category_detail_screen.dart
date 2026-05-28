@@ -853,7 +853,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         if (product.isNew) _tag('NEW', AppColors.primary),
                         if (product.isSale) _tag('SALE', AppColors.accent),
                         if (product.isFreeShipping) _tag(loc.freeShippingBadge, AppColors.success),
-                        if (product.isGroupOnly) _tag('단체주문 전용', const Color(0xFF6A1B9A)),
+                        if (product.isGroupOnly) _tag('5명이상 단체주문', const Color(0xFF6A1B9A)),
                       ],
                     ),
                     if (product.isNew || product.isSale || product.isFreeShipping || product.isGroupOnly)
@@ -1136,7 +1136,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         if (product.isNew) _tag('NEW', AppColors.primary),
                         if (product.isSale) _tag('SALE', AppColors.accent),
                         if (product.isFreeShipping) _tag(loc.freeShippingBadge, AppColors.success),
-                        if (product.isGroupOnly) _tag('단체주문 전용', const Color(0xFF6A1B9A)),
+                        if (product.isGroupOnly) _tag('5명이상 단체주문', const Color(0xFF6A1B9A)),
                       ],
                     ),
                     if (product.isNew || product.isSale || product.isFreeShipping || product.isGroupOnly)

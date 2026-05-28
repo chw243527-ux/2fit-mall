@@ -2155,7 +2155,7 @@ class _HomeScreenState extends State<HomeScreen>
                   color: const Color(0xFFFF6B35),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('GROUP ONLY',
+                child: const Text('5명이상 단체주문',
                     style: TextStyle(color: Colors.white, fontSize: 9,
                         fontWeight: FontWeight.w800, letterSpacing: 1.5)),
               ),
@@ -2677,7 +2677,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   borderRadius: BorderRadius.circular(3),
                                 ),
                                 child: const Text(
-                                  '단체주문 전용',
+                                  '5명이상 단체주문',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 9,
@@ -3412,7 +3412,7 @@ class _HomeScreenState extends State<HomeScreen>
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
-                    'GROUP ONLY',
+                    '5명이상 단체주문',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 9,

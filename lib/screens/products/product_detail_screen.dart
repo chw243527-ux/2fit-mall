@@ -1440,7 +1440,7 @@ $productUrl
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _infoColorBadge(
-            label: '단체주문 전용',
+            label: '5명이상 단체주문',
             labelColor: const Color(0xFF4A148C),
             text: '골지원단 19가지 색상 중 원하는 색상으로 자유롭게 제작 가능',
           ),
@@ -4362,7 +4362,7 @@ $productUrl
                   color: const Color(0xFF4A148C),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('단체주문 전용', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+                child: const Text('5명이상 단체주문', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
               ),
               const SizedBox(width: 8),
               const Text('골지원단 전색상 선택 가능 (19색)',

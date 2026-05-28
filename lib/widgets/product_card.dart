@@ -66,7 +66,7 @@ class ProductCard extends StatelessWidget {
     String badgeText;
     if (product.isGroupOnly) {
       badgeBg = const Color(0xFF6A1B9A);
-      badgeText = 'GROUP';
+      badgeText = '5명이상';
     } else if (product.isNew) {
       badgeBg = const Color(0xFF111111);
       badgeText = 'NEW';
@@ -228,7 +228,7 @@ class ProductCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(3),
               ),
               child: const Text(
-                '단체주문 전용',
+                '5명이상 단체주문',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 9,
