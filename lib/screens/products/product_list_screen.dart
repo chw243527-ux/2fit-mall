@@ -213,65 +213,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               children: [
-                // ── 일반 카테고리 탭 ──
-                ...AppConstants.categories.map((cat) {
-                  final isSel = _selectedCategory == cat && !_onlyBest && !_onlyNew;
-                  return GestureDetector(
-                    onTap: () {
-                      // 단체주문 탭: GroupOrderOnlyScreen으로 직접 이동
-                      if (cat == '단체주문') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()),
-                        );
-                        return;
-                      }
-                      setState(() {
-                        _selectedCategory = cat;
-                        _onlyBest = false;
-                        _onlyNew = false;
-                        _searchQuery = '';
-                        _searchController.clear();
-                      });
-                      provider.setCategory(cat);
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 150),
-                      margin: const EdgeInsets.only(right: 6),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: cat == '단체주문' ? 12 : 14,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: cat == '단체주문'
-                            ? const Color(0xFF6A1B9A)
-                            : isSel ? const Color(0xFF111111) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: cat == '단체주문'
-                              ? const Color(0xFF6A1B9A)
-                              : isSel ? const Color(0xFF111111) : const Color(0xFFDDDDDD),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (cat == '단체주문') ...[
-                            const Icon(Icons.groups_rounded, size: 13, color: Colors.white),
-                            const SizedBox(width: 4),
-                          ],
-                          Text(cat, style: TextStyle(
-                            fontSize: 12.5,
-                            fontWeight: (isSel || cat == '단체주문') ? FontWeight.w800 : FontWeight.w500,
-                            color: (isSel || cat == '단체주문') ? Colors.white : const Color(0xFF444444),
-                          )),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
+                // ── 순서: 전체 → 베스트 → 신상품 → 단체주문 → 나머지 카테고리 ──
 
-                // ── 베스트 상품 탭 ──
+                // [1] 전체 탭
+                _buildCatTab('전체', provider),
+
+                // [2] 베스트 탭
                 GestureDetector(
                   onTap: () {
                     setState(() {
@@ -313,7 +260,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                 ),
 
-                // ── 신상품 탭 ──
+                // [3] 신상품 탭
                 GestureDetector(
                   onTap: () {
                     setState(() {
@@ -354,11 +301,71 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ),
                   ),
                 ),
+
+                // [4] 나머지 카테고리 탭 (전체 제외)
+                ...AppConstants.categories
+                    .where((cat) => cat != '전체')
+                    .map((cat) => _buildCatTab(cat, provider)),
               ],
             ),
           ),
           Container(height: 1, color: const Color(0xFFF0F0F0)),
         ],
+      ),
+    );
+  }
+
+  // ── 일반 카테고리 탭 위젯 ──
+  Widget _buildCatTab(String cat, ProductProvider provider) {
+    final isSel = _selectedCategory == cat && !_onlyBest && !_onlyNew;
+    return GestureDetector(
+      onTap: () {
+        if (cat == '단체주문') {
+          Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()));
+          return;
+        }
+        setState(() {
+          _selectedCategory = cat;
+          _onlyBest = false;
+          _onlyNew = false;
+          _searchQuery = '';
+          _searchController.clear();
+        });
+        provider.setCategory(cat);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        margin: const EdgeInsets.only(right: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: cat == '단체주문' ? 12 : 14,
+          vertical: 4,
+        ),
+        decoration: BoxDecoration(
+          color: cat == '단체주문'
+              ? const Color(0xFF6A1B9A)
+              : isSel ? const Color(0xFF111111) : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: cat == '단체주문'
+                ? const Color(0xFF6A1B9A)
+                : isSel ? const Color(0xFF111111) : const Color(0xFFDDDDDD),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (cat == '단체주문') ...[
+              const Icon(Icons.groups_rounded, size: 13, color: Colors.white),
+              const SizedBox(width: 4),
+            ],
+            Text(cat, style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: (isSel || cat == '단체주문') ? FontWeight.w800 : FontWeight.w500,
+              color: (isSel || cat == '단체주문') ? Colors.white : const Color(0xFF444444),
+            )),
+          ],
+        ),
       ),
     );
   }
