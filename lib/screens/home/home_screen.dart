@@ -206,21 +206,9 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // PC 섹션 maxWidth 제한 래퍼 (자체 배경/패딩을 가진 섹션용 — 베스트·신상품)
-  // 섹션 배경색은 섹션 자체가 담당, 이 래퍼는 maxWidth 1280 + 중앙정렬만 제공
-  // LayoutBuilder가 유한한 constraints를 받을 수 있도록 SizedBox로 너비를 확정
-  Widget _buildPcSectionMaxWidthWrapper({required Widget child}) {
-    return LayoutBuilder(
-      builder: (ctx, outer) {
-        final w = outer.maxWidth.isFinite
-            ? outer.maxWidth.clamp(0.0, 1280.0)
-            : 1280.0;
-        return Center(
-          child: SizedBox(width: w, child: child),
-        );
-      },
-    );
-  }
+  // PC 섹션 래퍼 (가로 스크롤 섹션용 — 베스트·신상품)
+  // 섹션이 풀 너비 가로 스크롤을 사용하므로 width 제한 없이 그대로 반환
+  Widget _buildPcSectionMaxWidthWrapper({required Widget child}) => child;
 
   // PC 단체주문 섹션 (홈용 5컬럼 그리드)
   Widget _buildPcGroupOrderSectionV2(AppLocalizations loc) {
@@ -4897,7 +4885,6 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (products.isEmpty) return const SizedBox.shrink();
 
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
     return _buildProductSection(
       title: loc.sectionNewArrival,
       englishTitle: loc.sectionNewArrivalSub,
@@ -4905,7 +4892,7 @@ class _HomeScreenState extends State<HomeScreen>
       products: products,
       category: '이벤트',
       viewAllLabel: loc.viewAll,
-      isHorizontal: !isDesktop,
+      isHorizontal: true, // PC/모바일 모두 가로 스크롤
     );
   }
 
@@ -4933,7 +4920,6 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (bestProds.isEmpty) return const SizedBox.shrink();
 
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
     return _buildProductSection(
       title: loc.sectionBestSeller,
       englishTitle: loc.sectionBestSellerSub,
@@ -4941,7 +4927,7 @@ class _HomeScreenState extends State<HomeScreen>
       products: bestProds,
       category: '전체',
       viewAllLabel: loc.viewAll,
-      isHorizontal: !isDesktop,
+      isHorizontal: true, // PC/모바일 모두 가로 스크롤
     );
   }
 
@@ -5016,9 +5002,10 @@ class _HomeScreenState extends State<HomeScreen>
     final screenW = MediaQuery.of(context).size.width;
     final isTabletW = screenW >= 600;
 
-    // ── 카드 크기: 단체주문 컴팩트와 완전 동일 (모바일 40%, 태블릿 28%, 이미지 4:5)
-    final cardW = isTabletW ? screenW * 0.28 : screenW * 0.40;
-    final imgH  = cardW * (5 / 4); // 4:5 비율 (AspectRatio 4/5 → height = width * 5/4)
+    // ── 카드 크기: PC 220px 고정, 태블릿 28%, 모바일 40%
+    final isPc = screenW >= kPcBreakpoint;
+    final cardW = isPc ? 220.0 : (isTabletW ? screenW * 0.28 : screenW * 0.40);
+    final imgH  = cardW * (5 / 4); // 4:5 비율
 
     return Container(
       color: Colors.white,
