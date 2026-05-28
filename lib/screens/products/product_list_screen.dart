@@ -597,7 +597,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                   // 배지들
                   if (p.isGroupOnly) Positioned(top: 8, left: 8,
-                    child: _badge('5명이상 단체주문', const Color(0xFF6A1B9A))),
+                    child: _badge('단체전용', const Color(0xFF6A1B9A))),
                   if (p.isNew) Positioned(top: p.isGroupOnly ? 32 : 8, left: 8,
                     child: _badge('NEW', const Color(0xFF111111))),
                   if (discount > 0) Positioned(
@@ -635,7 +635,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         color: const Color(0xFF6A1B9A),
                         borderRadius: BorderRadius.circular(3),
                       ),
-                      child: const Text('5명이상 단체주문',
+                      child: const Text('단체주문 전용',
                         style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
                     ),
                   ],
@@ -719,7 +719,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      if (p.isGroupOnly) _badge('5명이상 단체주문', const Color(0xFF6A1B9A)),
+                      if (p.isGroupOnly) _badge('단체전용', const Color(0xFF6A1B9A)),
                       if (p.isGroupOnly) const SizedBox(width: 4),
                       if (p.isNew) _badge('NEW', const Color(0xFF111111)),
                       if (p.isNew) const SizedBox(width: 4),

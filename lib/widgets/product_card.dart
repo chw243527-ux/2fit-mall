@@ -18,8 +18,11 @@ class ProductCard extends StatelessWidget {
   /// true = 카드 너비가 외부(ListView)에서 결정됨 (가로 스크롤용)
   /// false = GridView 셀 크기에 맞게 채움 (기본)
   final bool isHorizontal;
+  /// false로 넘기면 _buildInfo()의 "단체주문 전용" 텍스트 배지를 숨김
+  /// (홈화면 단체주문 전용 섹션 카드에서 중복 표시 방지)
+  final bool showGroupBadge;
 
-  const ProductCard({super.key, required this.product, this.isHorizontal = false});
+  const ProductCard({super.key, required this.product, this.isHorizontal = false, this.showGroupBadge = true});
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +69,7 @@ class ProductCard extends StatelessWidget {
     String badgeText;
     if (product.isGroupOnly) {
       badgeBg = const Color(0xFF6A1B9A);
-      badgeText = '5명이상';
+      badgeText = 'GROUP';
     } else if (product.isNew) {
       badgeBg = const Color(0xFF111111);
       badgeText = 'NEW';
@@ -218,8 +221,8 @@ class ProductCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── 단체주문 전용 뱃지 ──
-          if (product.isGroupOnly) ...[
+          // ── 단체주문 전용 뱃지 (showGroupBadge=false 이면 숨김) ──
+          if (product.isGroupOnly && showGroupBadge) ...[
             Container(
               margin: const EdgeInsets.only(bottom: 5),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -228,7 +231,7 @@ class ProductCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(3),
               ),
               child: const Text(
-                '5명이상 단체주문',
+                '단체주문 전용',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 9,

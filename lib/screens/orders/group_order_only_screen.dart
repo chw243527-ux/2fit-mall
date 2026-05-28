@@ -499,7 +499,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         _heroCta(
                           icon: Icons.local_shipping_rounded,
                           label: '무료배송',
-                          sub: '5명이상 단체주문',
+                          sub: '단체전용',
                           color: const Color(0xFF2E7D32),
                         ),
                         const SizedBox(width: 12),
@@ -736,7 +736,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _gridBadge('5명이상 단체주문', const Color(0xFF4A148C)),
+                        _gridBadge('단체전용', const Color(0xFF4A148C)),
                         if (p.isSale) ...[
                           const SizedBox(height: 4),
                           _gridBadge('SALE', const Color(0xFFC62828)),
@@ -896,7 +896,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                   children: [
                     Row(
                       children: [
-                        _badge('5명이상 단체주문', const Color(0xFF4A148C)),
+                        _badge('단체전용', const Color(0xFF4A148C)),
                         if (p.isSale) ...[
                           const SizedBox(width: 4),
                           _badge('SALE', const Color(0xFFC62828)),

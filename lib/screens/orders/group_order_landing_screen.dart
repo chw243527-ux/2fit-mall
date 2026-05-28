@@ -174,7 +174,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                     style: TextStyle(color: Colors.white, fontSize: 22,
                         fontWeight: FontWeight.w900)),
                 const SizedBox(height: 6),
-                const Text('10인 이상 단체 맞춤 제작 전문\n최고의 품질로 특별한 유니폼을 만들어드립니다.',
+                const Text('5명 이상 단체 맞춤 제작 전문\n최고의 품질로 특별한 유니폼을 만들어드립니다.',
                     style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.5)),
               ],
             ),

@@ -257,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen>
             return Wrap(
               spacing: sp, runSpacing: sp,
               children: groupProds.take(5).map((p) =>
-                SizedBox(width: cardW, child: ProductCard(product: p))
+                SizedBox(width: cardW, child: ProductCard(product: p, showGroupBadge: false))
               ).toList(),
             );
           }),
@@ -2155,7 +2155,7 @@ class _HomeScreenState extends State<HomeScreen>
                   color: const Color(0xFFFF6B35),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('5명이상 단체주문',
+                child: const Text('GROUP ONLY',
                     style: TextStyle(color: Colors.white, fontSize: 9,
                         fontWeight: FontWeight.w800, letterSpacing: 1.5)),
               ),
@@ -2667,25 +2667,6 @@ class _HomeScreenState extends State<HomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // 단체주문 전용 배지
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 5),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF6A1B9A),
-                                  borderRadius: BorderRadius.circular(3),
-                                ),
-                                child: const Text(
-                                  '5명이상 단체주문',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.2,
-                                  ),
-                                ),
-                              ),
                               Text(p.name,
                                 maxLines: 2, overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
@@ -3058,7 +3039,7 @@ class _HomeScreenState extends State<HomeScreen>
               const Text('단체주문 전용 상품',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF111111), letterSpacing: -0.3)),
               const SizedBox(height: 2),
-              const Text('10인 이상 · 팀 맞춤 제작 · 무료배송',
+              const Text('5명 이상 · 팀 맞춤 제작 · 무료배송',
                 style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
             ],
           ),
@@ -3412,7 +3393,7 @@ class _HomeScreenState extends State<HomeScreen>
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
-                    '5명이상 단체주문',
+                    'GROUP ONLY',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 9,
@@ -3500,7 +3481,7 @@ class _HomeScreenState extends State<HomeScreen>
                   spacing: spacing,
                   runSpacing: spacing,
                   children: groupProducts.map((p) =>
-                    SizedBox(width: cardW, child: ProductCard(product: p))
+                    SizedBox(width: cardW, child: ProductCard(product: p, showGroupBadge: false))
                   ).toList(),
                 );
               },
