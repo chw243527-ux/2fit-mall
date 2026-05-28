@@ -8286,7 +8286,7 @@ class _AdminScreenState extends State<AdminScreen>
                 const Text('카테고리', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
-                  initialValue: category,
+                  value: category,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -8464,7 +8464,7 @@ class _AdminScreenState extends State<AdminScreen>
                 const Text('카테고리', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 DropdownButtonFormField<String>(
-                  initialValue: ['기본색', '포인트색', '시즌색'].contains(category) ? category : '기본색',
+                  value: ['기본색', '포인트색', '시즌색'].contains(category) ? category : '기본색',
                   decoration: InputDecoration(
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

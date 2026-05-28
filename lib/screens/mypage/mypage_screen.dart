@@ -1663,9 +1663,9 @@ class _PcSettingsTab extends StatelessWidget {
                   title: loc.mypageNotificationSection,
                   items: [
                     _PcSettingItem(icon: Icons.notifications_rounded, title: loc.mypageNotifOrder,
-                      trailing: Switch(value: true, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0))))),
+                      trailing: Switch(value: true, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0)))),  // Color + WidgetStatePropertyAll + Switch trailing + _PcSettingItem
                     _PcSettingItem(icon: Icons.campaign_rounded, title: loc.mypageNotifMarketing,
-                      trailing: Switch(value: false, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0))))),
+                      trailing: Switch(value: false, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0)))),  // Color + WidgetStatePropertyAll + Switch trailing + _PcSettingItem
                   ],
                 ),
                 const SizedBox(height: 20),
