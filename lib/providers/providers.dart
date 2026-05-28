@@ -1071,9 +1071,9 @@ class ProductProvider extends ChangeNotifier {
   }
 
   ProductProvider() {
-    // 즉시 더미 데이터 표시 (Firestore 로드 전에도 상품이 보이도록)
-    _products = ProductService.getAllProductsSync();
-    _adminProducts = ProductService.getAllProductsSync();
+    // 즉시 더미/캐시 데이터 표시 — 절대 빈 리스트 아님
+    _products = ProductService.getAllProductsGuaranteed();
+    _adminProducts = ProductService.getAllProductsGuaranteed();
     _loadCategory('전체');
     // 실제 판매 수 집계 비동기 로드
     _loadSalesCounts();

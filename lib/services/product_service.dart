@@ -1144,6 +1144,15 @@ class ProductService {
     return _cache;
   }
 
+  /// 절대 빈 리스트를 반환하지 않는 동기 접근자.
+  /// 캐시 → 더미 _products 순으로 폴백 → 항상 상품 반환 보장.
+  static List<ProductModel> getAllProductsGuaranteed() {
+    _ensureCache();
+    if (_cache.isNotEmpty) return _cache;
+    // 최후 보루: static 더미 리스트 직접 반환
+    return List.from(_products);
+  }
+
   static List<ProductModel> getProductsByCategorySync(String category) {
     _ensureCache();
     if (category == '전체') return _cache;

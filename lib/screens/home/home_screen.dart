@@ -4849,102 +4849,81 @@ class _HomeScreenState extends State<HomeScreen>
   // 신상품 / 베스트 섹션
   // ────────────────────────────────────────────
 
-  /// 모든 활성 상품을 Firestore 우선으로 가져옴.
-  /// provider → 로컬 캐시 → 더미 데이터 순서로 폴백.
+  /// provider → 캐시 → 더미 순으로 폴백. 절대 빈 리스트 반환 안 함.
   List<ProductModel> _getAllActiveProducts(ProductProvider provider) {
-    // ① provider (Firestore 로드 완료 시)
+    // ① Firestore 로드 완료된 provider 데이터
     final fromProvider = provider.products.where((p) => p.isActive).toList();
     if (fromProvider.isNotEmpty) return fromProvider;
-    // ② 로컬 캐시 (Firestore 실패 또는 로딩 중)
-    final fromCache = ProductService.getAllProductsSync();
-    if (fromCache.isNotEmpty) {
-      final active = fromCache.where((p) => p.isActive).toList();
-      if (active.isNotEmpty) return active;
-      // isActive 필터 없이 전체 반환 (isActive 기본값=true 이므로 거의 해당 없음)
-      return fromCache;
-    }
-    return [];
+    // ② 캐시 + 더미 — 절대 빈 리스트 없음
+    final guaranteed = ProductService.getAllProductsGuaranteed();
+    final active = guaranteed.where((p) => p.isActive).toList();
+    return active.isNotEmpty ? active : guaranteed;
   }
 
   // ignore: unused_element
   Widget _buildNewArrivalsSection(AppLocalizations loc) {
-    return Consumer<ProductProvider>(
-      builder: (context, provider, _) {
-        final allProds = _getAllActiveProducts(provider);
+    // provider 없이도 즉시 표시 — 캐시/더미로 먼저 렌더, Firestore 완료 시 rebuild
+    final provider = context.watch<ProductProvider>();
+    final allProds = _getAllActiveProducts(provider);
 
-        // 아직 아무 데이터도 없으면 스켈레톤
-        if (allProds.isEmpty) {
-          return _buildSectionSkeleton(loc.sectionNewArrival);
-        }
+    // ① isNew 상품 우선
+    List<ProductModel> products = allProds.where((p) => p.isNew).toList();
 
-        // ① isNew 상품 우선
-        List<ProductModel> products = allProds.where((p) => p.isNew).toList();
+    // ② isNew 없으면 createdAt 최신순 폴백
+    if (products.isEmpty) {
+      products = [...allProds]
+        ..sort((a, b) => (b.createdAt ?? DateTime(2000))
+            .compareTo(a.createdAt ?? DateTime(2000)));
+      products = products.take(10).toList();
+    }
 
-        // ② isNew 없으면 createdAt 최신순 폴백
-        if (products.isEmpty) {
-          products = [...allProds]
-            ..sort((a, b) => (b.createdAt ?? DateTime(2000))
-                .compareTo(a.createdAt ?? DateTime(2000)));
-          products = products.take(10).toList();
-        }
+    if (products.isEmpty) return const SizedBox.shrink();
 
-        if (products.isEmpty) return const SizedBox.shrink();
-
-        final isDesktop = MediaQuery.of(context).size.width >= 900;
-        return _buildProductSection(
-          title: loc.sectionNewArrival,
-          englishTitle: loc.sectionNewArrivalSub,
-          accentColor: const Color(0xFF1A1A1A),
-          products: products,
-          category: '이벤트',
-          viewAllLabel: loc.viewAll,
-          isHorizontal: !isDesktop,
-        );
-      },
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    return _buildProductSection(
+      title: loc.sectionNewArrival,
+      englishTitle: loc.sectionNewArrivalSub,
+      accentColor: const Color(0xFF1A1A1A),
+      products: products,
+      category: '이벤트',
+      viewAllLabel: loc.viewAll,
+      isHorizontal: !isDesktop,
     );
   }
 
   Widget _buildBestSection(AppLocalizations loc) {
-    return Consumer<ProductProvider>(
-      builder: (context, provider, _) {
-        final allProds = _getAllActiveProducts(provider);
+    final provider = context.watch<ProductProvider>();
+    final allProds = _getAllActiveProducts(provider);
 
-        // 아직 아무 데이터도 없으면 스켈레톤
-        if (allProds.isEmpty) {
-          return _buildSectionSkeleton(loc.sectionBestSeller);
-        }
+    List<ProductModel> bestProds;
 
-        List<ProductModel> bestProds;
+    if (provider.salesCountsLoaded && provider.bestProducts.isNotEmpty) {
+      // ① 실판매량 기준
+      bestProds = provider.bestProducts;
+    } else {
+      // ② 폴백: salesCount/reviewCount 정렬
+      final normal = allProds.where((p) => !p.isGroupOnly).toList();
+      final pool = normal.isNotEmpty ? normal : allProds;
+      bestProds = [...pool]
+        ..sort((a, b) {
+          final sa = b.salesCount.compareTo(a.salesCount);
+          if (sa != 0) return sa;
+          return b.reviewCount.compareTo(a.reviewCount);
+        });
+      bestProds = bestProds.take(10).toList();
+    }
 
-        if (provider.salesCountsLoaded && provider.bestProducts.isNotEmpty) {
-          // ① 실판매량 기준
-          bestProds = provider.bestProducts;
-        } else {
-          // ② 폴백: 전체 상품 salesCount/reviewCount 정렬
-          final normal = allProds.where((p) => !p.isGroupOnly).toList();
-          final pool = normal.isNotEmpty ? normal : allProds;
-          bestProds = [...pool]
-            ..sort((a, b) {
-              final sa = b.salesCount.compareTo(a.salesCount);
-              if (sa != 0) return sa;
-              return b.reviewCount.compareTo(a.reviewCount);
-            });
-          bestProds = bestProds.take(10).toList();
-        }
+    if (bestProds.isEmpty) return const SizedBox.shrink();
 
-        if (bestProds.isEmpty) return const SizedBox.shrink();
-
-        final isDesktop = MediaQuery.of(context).size.width >= 900;
-        return _buildProductSection(
-          title: loc.sectionBestSeller,
-          englishTitle: loc.sectionBestSellerSub,
-          accentColor: const Color(0xFFE53935),
-          products: bestProds,
-          category: '전체',
-          viewAllLabel: loc.viewAll,
-          isHorizontal: !isDesktop,
-        );
-      },
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+    return _buildProductSection(
+      title: loc.sectionBestSeller,
+      englishTitle: loc.sectionBestSellerSub,
+      accentColor: const Color(0xFFE53935),
+      products: bestProds,
+      category: '전체',
+      viewAllLabel: loc.viewAll,
+      isHorizontal: !isDesktop,
     );
   }
 
