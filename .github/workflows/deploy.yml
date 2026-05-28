@@ -12,47 +12,59 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # ── Flutter SDK 캐시 (pubspec.lock 기반 → 의존성 변경 시에만 재설치) ──
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.35.4'
           channel: 'stable'
           cache: true
+          cache-key: flutter-${{ runner.os }}-3.35.4
+
+      # ── pub 패키지 캐시 (pubspec.lock 해시 기반) ──
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
 
       - name: Get dependencies
         run: flutter pub get
 
+      # ── Flutter 웹 빌드 (pwa-strategy=none: SW 파일 생략 — 우리가 직접 관리) ──
       - name: Build web (release)
-        run: flutter build web --release --no-tree-shake-icons
+        run: |
+          flutter build web \
+            --release \
+            --no-tree-shake-icons \
+            --pwa-strategy=none
 
-      - name: Patch renderer to html
-        run: sed -i 's/"renderer":"canvaskit"/"renderer":"html"/g' build/web/flutter_bootstrap.js
-
-      - name: Patch JS cache busting (append build number to main.dart.js)
+      # ── 빌드 후 패치 (renderer + 캐시 버스팅) ──
+      - name: Patch build output
         run: |
           BUILD_VER="${{ github.run_number }}"
-          # flutter_bootstrap.js / flutter_service_worker.js / index.html 의
-          # main.dart.js 참조에 ?v=빌드번호 쿼리스트링 추가
-          # → CDN 캐시(max-age=31536000) 무효화, 항상 최신 JS 로드
+          # renderer: canvaskit → html
+          sed -i 's/"renderer":"canvaskit"/"renderer":"html"/g' build/web/flutter_bootstrap.js
+          # main.dart.js 참조에 ?v=빌드번호 추가 (CDN 캐시 무효화)
           sed -i "s/main\.dart\.js\"/main.dart.js?v=${BUILD_VER}\"/g" build/web/flutter_bootstrap.js
           sed -i "s/main\.dart\.js\"/main.dart.js?v=${BUILD_VER}\"/g" build/web/index.html
           if [ -f build/web/flutter_service_worker.js ]; then
-            sed -i "s/\"main\.dart\.js\"/\"main.dart.js?v=${BUILD_VER}\"/g" build/web/flutter_service_worker.js
-            sed -i "s/main\.dart\.js\"/main.dart.js?v=${BUILD_VER}\"/g" build/web/flutter_service_worker.js
+            sed -i "s/main\.dart\.js/main.dart.js?v=${BUILD_VER}/g" build/web/flutter_service_worker.js
           fi
-          echo "Patched main.dart.js → main.dart.js?v=${BUILD_VER}"
+          echo "✅ Patched: renderer=html, main.dart.js?v=${BUILD_VER}"
 
-      - name: Install wrangler (fixed version)
-        run: npm install -g wrangler@3.78.12
-
-      - name: Deploy to Cloudflare Pages (Production)
+      # ── Cloudflare Pages 배포 (npx로 wrangler 설치 생략) ──
+      - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           RUN_NUM="${{ github.run_number }}"
-          wrangler pages deploy build/web \
+          npx wrangler@3.78.12 pages deploy build/web \
             --project-name=twofit-mall \
             --branch=main \
             --commit-dirty=true \
