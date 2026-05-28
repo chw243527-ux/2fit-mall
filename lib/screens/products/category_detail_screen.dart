@@ -127,9 +127,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 controller: _tabController,
                 children: widget.subCategories.map((sub) {
                   final products = _getProducts(sub.filter);
-                  return _isGridView
-                      ? _buildProductGrid(products)
-                      : _buildProductList(products);
+                  return RefreshIndicator(
+                    color: widget.categoryColor,
+                    backgroundColor: Colors.white,
+                    onRefresh: () => context.read<ProductProvider>().refresh(),
+                    child: _isGridView
+                        ? _buildProductGrid(products)
+                        : _buildProductList(products),
+                  );
                 }).toList(),
               ),
             ),
@@ -492,7 +497,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                           controller: _tabController,
                           children: widget.subCategories.map((sub) {
                             final products = _getProducts(sub.filter);
-                            return _buildPcProductGrid(products);
+                            return RefreshIndicator(
+                              color: widget.categoryColor,
+                              backgroundColor: Colors.white,
+                              onRefresh: () => context.read<ProductProvider>().refresh(),
+                              child: _buildPcProductGrid(products),
+                            );
                           }).toList(),
                         ),
                       ),
@@ -788,6 +798,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
 
     if (_isGridView) {
       return GridView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 24),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 3,
@@ -800,6 +811,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       );
     } else {
       return ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 24),
         itemCount: products.length,
         itemBuilder: (context, i) => _buildPcListItem(context, products[i]),
@@ -1076,6 +1088,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       );
     }
     return GridView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(12),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -1201,6 +1214,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       );
     }
     return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(12),
       itemCount: products.length,
       itemBuilder: (context, i) => _buildListItem(context, products[i]),
