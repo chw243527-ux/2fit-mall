@@ -1676,30 +1676,24 @@ $productUrl
     '민트':       Color(0xFF26C9A0),
   };
 
-  // ── 색상 칩: _buildToptenColorSection과 동일한 원형 36px 스타일 ──
+  // ── 색상 칩: 골지 텍스처 원형 36px 스타일 ──
   Widget _infoColorChipRow(List<String> codes) {
     return Wrap(
       spacing: 10,
       runSpacing: 14,
       children: codes.map((c) {
         final dotColor = _goljiColorMap[c] ?? _goljiColorMap[c.toUpperCase()] ?? const Color(0xFFCCCCCC);
-        final isLight = dotColor.computeLuminance() > 0.7;
+        final isLight = dotColor.computeLuminance() > 0.5;
 
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 기본정보 색상 원형과 동일: 36px, 밝은 색 테두리
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: dotColor,
-                border: Border.all(
-                  color: isLight ? const Color(0xFFDDDDDD) : Colors.transparent,
-                  width: 1,
-                ),
-              ),
+            // 골지 텍스처 원형 스와치 (borderRadius=18 → 완전 원형)
+            RibColorSwatch(
+              color: dotColor,
+              size: 36,
+              isLight: isLight,
+              borderRadius: 18,
             ),
             const SizedBox(height: 5),
             // 코드명
