@@ -107,9 +107,10 @@ class _PersonEntry {
 
 class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     with SingleTickerProviderStateMixin {
-  static const Color _purple      = Color(0xFF6A1B9A);
-  static const Color _purpleLight = Color(0xFFF3E5F5);
-  static const Color _bg          = Color(0xFFF5F5F5);
+  // ── 탑텐 스타일 상수 ──
+  static const Color _purple      = Color(0xFF1A1A1A);  // 블랙 (탑텐 강조색)
+  static const Color _purpleLight = Color(0xFFF0F0F0);  // 라이트 그레이 배경
+  static const Color _bg          = Color(0xFFF8F8F8);  // 페이지 배경
 
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
 
@@ -120,7 +121,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   late TabController _colorTabCtrl;
   final _hexCtrl     = TextEditingController();
   String? _hexError;
-  Color  _hexPreview = const Color(0xFF6A1B9A);
+  Color  _hexPreview = const Color(0xFF1A1A1A);
 
   // ── 수량 ──
   int  _count        = 5;
@@ -791,75 +792,80 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF6A1B9A), Color(0xFF4A148C)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+      color: _purple,  // 순블랙
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Icon(Icons.groups_rounded, color: Colors.white70, size: 28),
-        const SizedBox(height: 8),
-        Text(_isAdditional ? '추가 제작 주문' : '단체 커스텀 주문',
-            style: const TextStyle(color: Colors.white,
-                fontSize: 18, fontWeight: FontWeight.w900)),
+        // 영문 서브타이틀
+        Text(
+          _isAdditional ? 'ADDITIONAL ORDER' : 'GROUP CUSTOM ORDER',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.5),
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2,
+          ),
+        ),
         const SizedBox(height: 4),
-        const Text('아래 폼을 작성하여 주문을 완료해 주세요.',
-            style: TextStyle(color: Colors.white70, fontSize: 12)),
-        const SizedBox(height: 14),
-        // ── 핵심 안내 칩 목록 ──
+        Text(
+          _isAdditional ? '추가 제작 주문' : '단체 커스텀 주문',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          '아래 폼을 작성하여 주문을 완료해 주세요.',
+          style: TextStyle(color: Colors.white60, fontSize: 12),
+        ),
+        const SizedBox(height: 16),
+        // ── 핵심 안내 칩 목록 (모노크롬 스타일) ──
         Wrap(
           spacing: 6, runSpacing: 6,
           children: [
-            _headerChip(Icons.check_circle_rounded, '허리밴드 디자인·색상 변경 무료', const Color(0xFF4CAF50)),
-            _headerChip(Icons.attach_file_rounded,  '로고 AI 원본파일 필수 (AI/EPS/SVG)', const Color(0xFFFFB300)),
-            _headerChip(Icons.photo_camera_outlined, '원하는 디자인 앞·뒤 사진 첨부 제작 가능', const Color(0xFF42A5F5)),
-            _headerChip(Icons.lock_outlined,         '1년 독점 사용권 무료 제공', const Color(0xFFCE93D8)),
+            _headerChip(Icons.check_circle_rounded, '허리밴드 디자인·색상 변경 무료'),
+            _headerChip(Icons.attach_file_rounded,  '로고 AI 원본파일 필수 (AI/EPS/SVG)'),
+            _headerChip(Icons.photo_camera_outlined, '앞·뒤 사진 첨부 제작 가능'),
+            _headerChip(Icons.lock_outlined,         '1년 독점 사용권 무료 제공'),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         // ── 교환·환불 핵심 안내 ──
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(8),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          color: Colors.white.withValues(alpha: 0.08),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Row(children: [
-              Icon(Icons.swap_horiz_rounded, color: Colors.white70, size: 14),
+              Icon(Icons.swap_horiz_rounded, color: Colors.white70, size: 13),
               SizedBox(width: 6),
               Text('교환·환불 안내',
-                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
+                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
             ]),
-            const SizedBox(height: 4),
-            const Text('✅ 기성품: 수령 후 3일 이내 교환·환불 가능',
-                style: TextStyle(color: Colors.white70, fontSize: 11, height: 1.5)),
-            const Text('❌ 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불 불가',
+            const SizedBox(height: 5),
+            const Text('▶  기성품: 수령 후 3일 이내 교환·환불 가능',
                 style: TextStyle(color: Colors.white60, fontSize: 11, height: 1.5)),
+            const Text('▶  커스텀(단체) 주문: 의류 자체 불량 외 교환·환불 불가',
+                style: TextStyle(color: Colors.white54, fontSize: 11, height: 1.5)),
           ]),
         ),
       ]),
     );
   }
 
-  // ── 헤더 안내 칩 ──
-  Widget _headerChip(IconData icon, String label, Color color) {
+  // ── 헤더 안내 칩 (화이트 테두리 스타일) ──
+  Widget _headerChip(IconData icon, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, color: color, size: 12),
+        Icon(icon, color: Colors.white70, size: 11),
         const SizedBox(width: 4),
         Text(label,
-            style: TextStyle(color: Colors.white, fontSize: 10,
-                fontWeight: FontWeight.w600)),
+            style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
       ]),
     );
   }
@@ -1026,7 +1032,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         'id': 2,
         'title': '디자인 유지 + 단체명 + 색상 변경',
         'desc': '기존 디자인 유지 + 단체명(전면) + 색상 변경',
-        'badgeColor': const Color(0xFF6A1B9A), // 보라
+        'badgeColor': const Color(0xFF1A1A1A), // 블랙
         'condMin': 5,
         'condLabel': '5명↑',
       },
@@ -1351,7 +1357,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             // 구분선
             Container(
               height: 1,
-              color: const Color(0xFF4A148C).withValues(alpha: 0.1),
+              color: const Color(0xFF1A1A1A).withValues(alpha: 0.1),
               margin: const EdgeInsets.only(bottom: 12),
             ),
             // 헤더
@@ -1360,7 +1366,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 decoration: BoxDecoration(color: _purple, borderRadius: BorderRadius.circular(2))),
               const SizedBox(width: 8),
               const Text('디자인 이미지',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF4A148C))),
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
               const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -1865,21 +1871,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.25)),
+            border: Border.all(color: const Color(0xFF1A1A1A).withValues(alpha: 0.2)),
           ),
           child: Column(children: [
             // 헤더
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF6A1B9A).withValues(alpha: 0.08),
+                color: const Color(0xFFF8F8F8),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
               ),
               child: Row(children: [
-                const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF6A1B9A)),
+                const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF1A1A1A)),
                 const SizedBox(width: 6),
                 const Text('색상 적용 안내',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF4A148C))),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
               ]),
             ),
             // 내용
@@ -2769,26 +2775,26 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF3E5F5),
+            color: const Color(0xFFF0F0F0),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFCE93D8)),
+            border: Border.all(color: const Color(0xFFCCCCCC)),
           ),
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF6A1B9A)),
+                Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF1A1A1A)),
                 SizedBox(width: 5),
                 Text('업로드 안내',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
               ]),
               SizedBox(height: 5),
               Text('• 원하는 문구(텍스트) 또는 무늬(패턴)가 담긴 이미지를 업로드해 주세요.',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF444444), height: 1.5)),
               Text('• 로고, 팀명, 숫자, 그래픽 무늬 등 허리밴드에 넣고 싶은 디자인 참고 이미지도 가능합니다.',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF444444), height: 1.5)),
               Text('• 선택사항이며 최대 3장까지 업로드할 수 있습니다.',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF4A148C), height: 1.5)),
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF444444), height: 1.5)),
             ],
           ),
         ),
@@ -2834,10 +2840,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 child: Container(
                   width: 90, height: 90,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF3E5F5),
+                    color: const Color(0xFFF8F8F8),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: _purple.withValues(alpha: 0.4),
+                      color: const Color(0xFF1A1A1A).withValues(alpha: 0.3),
                       width: 1.5,
                       style: BorderStyle.solid,
                     ),
@@ -3380,7 +3386,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
             // ① 성인/주니어 구분 선택
             Row(children: [
-              const Icon(Icons.person_outline_rounded, size: 14, color: Color(0xFF6A1B9A)),
+              const Icon(Icons.person_outline_rounded, size: 14, color: Color(0xFF1A1A1A)),
               const SizedBox(width: 5),
               const Text('사이즈 구분', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
               const SizedBox(width: 10),
@@ -3890,7 +3896,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           margin: const EdgeInsets.only(top: 4, bottom: 4),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: _exclusiveDesign ? const Color(0xFFF3E5F5) : const Color(0xFFFAFAFA),
+            color: _exclusiveDesign ? const Color(0xFFF0F0F0) : const Color(0xFFFAFAFA),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: _exclusiveDesign ? _purple : Colors.grey.shade300,
@@ -4183,26 +4189,27 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     final safeBottom = MediaQuery.of(context).padding.bottom;
     return Container(
       padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + safeBottom),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -2))],
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -2))],
       ),
       child: Row(children: [
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min, children: [
-            Text('$_totalCount명', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            Text('$_totalCount명', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
             Text('${_fmt(_finalPrice)}원',
                 style: const TextStyle(fontSize: 16,
-                    fontWeight: FontWeight.w900, color: _purple)),
+                    fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
           ]),
         ),
         OutlinedButton(
           onPressed: () => _submitOrder(isBuyNow: false),
           style: OutlinedButton.styleFrom(
-            foregroundColor: _purple,
-            side: const BorderSide(color: _purple),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            foregroundColor: const Color(0xFF1A1A1A),
+            side: const BorderSide(color: Color(0xFF1A1A1A)),
+            shape: const RoundedRectangleBorder(),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),
           child: const Text('장바구니',
@@ -4212,9 +4219,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ElevatedButton(
           onPressed: () => _submitOrder(isBuyNow: true),
           style: ElevatedButton.styleFrom(
-            backgroundColor: _purple,
+            backgroundColor: const Color(0xFF1A1A1A),
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: const RoundedRectangleBorder(),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             elevation: 0,
           ),
@@ -4318,18 +4325,25 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   Widget _card({required String title, required IconData icon, required Widget child}) {
     return Container(
       margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       color: Colors.white,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(icon, color: _purple, size: 18),
-          const SizedBox(width: 8),
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A1A1A))),
-        ]),
-        const Divider(height: 16),
+        // 탑텐 스타일 섹션 헤더: 좌측 3px 블랙 보더
+        Container(
+          padding: const EdgeInsets.fromLTRB(10, 2, 0, 2),
+          decoration: const BoxDecoration(
+            border: Border(left: BorderSide(color: Color(0xFF1A1A1A), width: 3)),
+          ),
+          child: Row(children: [
+            Icon(icon, color: const Color(0xFF1A1A1A), size: 16),
+            const SizedBox(width: 7),
+            Text(title,
+                style: const TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w900,
+                    color: Color(0xFF1A1A1A), letterSpacing: -0.2)),
+          ]),
+        ),
+        const SizedBox(height: 14),
         child,
       ]),
     );
