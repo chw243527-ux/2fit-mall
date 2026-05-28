@@ -2356,13 +2356,13 @@ class _HomeScreenState extends State<HomeScreen>
                   SliverToBoxAdapter(
                       child: _buildGroupSectionHeader(loc, groupProds.length)),
 
-                  // ── 단체주문 상품 ──
+                  // ── 단체주문 상품 (가로 스크롤 컴팩트 3개) ──
                   if (groupProds.isEmpty)
                     SliverToBoxAdapter(child: _buildGroupEmptyState(loc))
                   else
                     SliverToBoxAdapter(
-                      child: _buildGroupProductsRow(
-                          loc, previewProds, hasMore, sortedGroupProds),
+                      child: _buildGroupProductsCompact(
+                          loc, sortedGroupProds),
                     ),
 
                   // ── 베스트 상품 ──
@@ -2524,6 +2524,169 @@ class _HomeScreenState extends State<HomeScreen>
             )
           else
             const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  // ── 단체주문 컴팩트 가로 스크롤 (홈화면 미리보기 — 3개 고정) ──
+  Widget _buildGroupProductsCompact(
+    AppLocalizations loc,
+    List<ProductModel> allGroupProds,
+  ) {
+    final preview = allGroupProds.take(5).toList();
+    final screenW = MediaQuery.of(context).size.width;
+    final isTabletW = screenW >= 600;
+    // 카드 너비: 모바일은 화면의 40%, 태블릿은 28%
+    final cardW = isTabletW ? screenW * 0.28 : screenW * 0.40;
+    final imgH  = cardW * 1.25; // 4:5 비율
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: imgH + 64,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: preview.length + 1, // +1 = 전체보기 카드
+              itemBuilder: (_, i) {
+                // 마지막 아이템: 전체보기 카드
+                if (i == preview.length) {
+                  return GestureDetector(
+                    onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen())),
+                    child: Container(
+                      width: cardW * 0.75,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3E5F5),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.25)),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 44, height: 44,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6A1B9A),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 22),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            '전체보기\n${allGroupProds.length}개',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w800,
+                              color: Color(0xFF6A1B9A), height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+                final p = preview[i];
+                final discount = p.originalPrice != null && p.originalPrice! > p.price
+                    ? ((1 - p.price / p.originalPrice!) * 100).round() : 0;
+                return GestureDetector(
+                  onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
+                  child: Container(
+                    width: cardW,
+                    margin: const EdgeInsets.only(right: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFEEEEEE)),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 6, offset: const Offset(0, 2)),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 이미지
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                          child: Stack(
+                            children: [
+                              SizedBox(
+                                width: cardW, height: imgH,
+                                child: Container(
+                                  color: const Color(0xFFF8F8F8),
+                                  child: p.images.isNotEmpty
+                                    ? Image.network(p.images.first,
+                                        fit: BoxFit.contain,
+                                        width: double.infinity, height: double.infinity,
+                                        errorBuilder: (_, __, ___) => const Icon(
+                                          Icons.image_not_supported_rounded,
+                                          color: Color(0xFFCCCCCC), size: 28))
+                                    : const Icon(Icons.image_not_supported_rounded,
+                                        color: Color(0xFFCCCCCC), size: 28),
+                                ),
+                              ),
+                              Positioned(
+                                top: 6, left: 6,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF6A1B9A),
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                  child: const Text('GROUP',
+                                    style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900)),
+                                ),
+                              ),
+                              if (discount > 0)
+                                Positioned(
+                                  top: 6, right: 6,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE53935),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    child: Text('$discount%',
+                                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        // 상품 정보
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(p.name,
+                                maxLines: 2, overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                                  color: Color(0xFF111111), height: 1.3)),
+                              const SizedBox(height: 3),
+                              Text(
+                                '${_fmtGroupPrice(p.price)}원',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900,
+                                  color: Color(0xFF111111)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
