@@ -4158,15 +4158,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       icon: Icons.receipt_long_outlined,
       child: Column(children: [
         // ── 인원당 단가 구성 ──
+        if (_hasPocket)
+          _sumRow('주머니 추가', '+${_fmt(_pocketPrice)}원/인',
+              valueColor: const Color(0xFFE65100)),
         _sumRow('기본 단가', '${_fmt(_basePrice)}원/인'),
         if (_fabricExtra > 0)
           _sumRow('  ↳ 심리스(무봉제) 추가', '+${_fmt(_fabricExtra)}원/인',
               valueColor: const Color(0xFFE65100)),
         if (_isTights9)
           _sumRow('  ↳ 타이즈 9부 추가', '+${_fmt(_tights9Price)}원/인',
-              valueColor: const Color(0xFFE65100)),
-        if (_hasPocket)
-          _sumRow('  ↳ 주머니 추가', '+${_fmt(_pocketPrice)}원/인',
               valueColor: const Color(0xFFE65100)),
         _sumRow('인원당 단가 합계', '${_fmt(_unitPrice)}원/인', isSub: true),
         const SizedBox(height: 4),
