@@ -8306,7 +8306,7 @@ class _AdminScreenState extends State<AdminScreen>
                           Switch(
                             value: hasImage,
                             onChanged: (v) => setS(() => hasImage = v),
-                            activeThumbColor: const Color(0xFF1A1A2E),
+                            thumbColor: const WidgetStatePropertyAll(Color(0xFF1A1A2E)),
                           ),
                         ],
                       ),
@@ -8319,7 +8319,7 @@ class _AdminScreenState extends State<AdminScreen>
                           Switch(
                             value: buttonCard,
                             onChanged: (v) => setS(() => buttonCard = v),
-                            activeThumbColor: const Color(0xFF1A1A2E),
+                            thumbColor: const WidgetStatePropertyAll(Color(0xFF1A1A2E)),
                           ),
                         ],
                       ),
@@ -8332,7 +8332,7 @@ class _AdminScreenState extends State<AdminScreen>
                           Switch(
                             value: active,
                             onChanged: (v) => setS(() => active = v),
-                            activeThumbColor: const Color(0xFF43A047),
+                            thumbColor: const WidgetStatePropertyAll(Color(0xFF43A047)),
                           ),
                         ],
                       ),
@@ -8529,7 +8529,7 @@ class _AdminScreenState extends State<AdminScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF555555))),
-        Switch(value: value, onChanged: onChanged, activeThumbColor: const Color(0xFF1A1A2E)),
+        Switch(value: value, onChanged: onChanged, thumbColor: const WidgetStatePropertyAll(Color(0xFF1A1A2E))),
       ],
     );
   }
