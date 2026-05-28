@@ -15343,11 +15343,11 @@ class AppLocalizations {
 
   // ── 주머니 섹션 ───────────────────────────────────────────────
   String get pocketPriceNotice { switch (language) {
-    case AppLanguage.english:  return 'Selecting a pocket adds +₩10,000.';
-    case AppLanguage.japanese: return 'ポケット選択時に+10,000ウォンが追加されます。';
-    case AppLanguage.chinese:  return '选择口袋时，将额外收费 +10,000韩元。';
-    case AppLanguage.mongolian:return 'Халтай сонгосон тохиолдолд +₩10,000 нэмэгдэнэ.';
-    default: return '주머니 선택 시 +10,000원이 추가됩니다.';
+    case AppLanguage.english:  return 'Selecting a pocket adds +₩10,000 per person.';
+    case AppLanguage.japanese: return 'ポケット選択時に1人あたり+10,000ウォンが追加されます。';
+    case AppLanguage.chinese:  return '选择口袋时，每人额外收费 +10,000韩元。';
+    case AppLanguage.mongolian:return 'Халтай сонгосон тохиолдолд нэг хүнд +₩10,000 нэмэгдэнэ.';
+    default: return '주머니 선택 시 인원당 +10,000원이 추가됩니다.';
   }}
   String get pocketNone { switch (language) {
     case AppLanguage.english:  return 'No Pocket';
@@ -15371,11 +15371,11 @@ class AppLocalizations {
     default: return '주머니 있음';
   }}
   String get pocketYesSubtitle { switch (language) {
-    case AppLanguage.english:  return '+₩10,000';
-    case AppLanguage.japanese: return '+10,000ウォン';
-    case AppLanguage.chinese:  return '+10,000韩元';
-    case AppLanguage.mongolian:return '+₩10,000';
-    default: return '+10,000원';
+    case AppLanguage.english:  return '+₩10,000/person';
+    case AppLanguage.japanese: return '+10,000ウォン/人';
+    case AppLanguage.chinese:  return '+10,000韩元/人';
+    case AppLanguage.mongolian:return '+₩10,000/хүн';
+    default: return '+10,000원/인';
   }}
   String get pocketAddLabel { switch (language) {
     case AppLanguage.english:  return 'Pocket Add-on';

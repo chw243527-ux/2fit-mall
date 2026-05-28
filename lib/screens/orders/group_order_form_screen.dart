@@ -222,15 +222,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   double get _basePrice    => widget.product?.price ?? 0.0;
   // 타이즈 9부 선택 여부
   bool get _isTights9      => _defaultLength == '9부';
-  // 단가 = 기본가 + 원단추가 + 타이즈9부 추가 + 주머니 추가
-  double get _unitPrice    => _basePrice + _fabricExtra + (_isTights9 ? _tights9Price : 0) + (_hasPocket ? _pocketPrice : 0);
+  // 단가 = 기본가 + 심리스 + 9부 + 주머니 (모두 인원당 추가)
+  double get _unitPrice    => _basePrice
+      + _fabricExtra                          // 심리스: 인원당 +10,000
+      + (_isTights9 ? _tights9Price : 0)     // 9부:    인원당 +20,000
+      + (_hasPocket ? _pocketPrice : 0);     // 주머니: 인원당 +10,000
   double get _subTotal     => _unitPrice * _totalCount;
-  // 배송비: 5장 이상 무료, 미만 4,000원
+  // 배송비: 5인 이상 무료, 미만 4,000원
   double get _shipping     => _totalCount >= AppConstants.groupMinFreeShipping ? 0 : AppConstants.groupAdditionalShippingFee.toDouble();
-  // 최종 = 소계 + 배송비 + 허리밴드 + 독점 + 주머니
+  // 최종 = 소계(단가×인원) + 배송비 + 허리밴드 + 독점
+  // ※ 주머니는 단가에 이미 포함 — 별도 가산 없음
   double get _finalPrice   => _subTotal + _shipping + _waistbandExtra
-      + (_exclusiveDesign ? _exclusivePrice : 0)
-      + (_hasPocket ? _pocketPrice : 0);
+      + (_exclusiveDesign ? _exclusivePrice : 0);
 
   String _fmt(num v) => v.toInt().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
@@ -4129,17 +4132,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       title: '금액 요약',
       icon: Icons.receipt_long_outlined,
       child: Column(children: [
-        _sumRow('기본 단가', '${_fmt(_basePrice)}원'),
+        // ── 인원당 단가 구성 ──
+        _sumRow('기본 단가', '${_fmt(_basePrice)}원/인'),
         if (_fabricExtra > 0)
-          _sumRow('재봉방법(심리스) 추가', '+${_fmt(_fabricExtra)}원'),
+          _sumRow('  ↳ 심리스(무봉제) 추가', '+${_fmt(_fabricExtra)}원/인',
+              valueColor: const Color(0xFFE65100)),
         if (_isTights9)
-          _sumRow('타이즈 9부 추가', '+${_fmt(_tights9Price)}원',
+          _sumRow('  ↳ 타이즈 9부 추가', '+${_fmt(_tights9Price)}원/인',
               valueColor: const Color(0xFFE65100)),
-        _sumRow('단가 합계', '${_fmt(_unitPrice)}원/인'),
-        _sumRow('총 인원', '$_totalCount명'),
         if (_hasPocket)
-          _sumRow(loc.pocketAddLabel, '+${_fmt(_pocketPrice)}원',
+          _sumRow('  ↳ 주머니 추가', '+${_fmt(_pocketPrice)}원/인',
               valueColor: const Color(0xFFE65100)),
+        _sumRow('인원당 단가 합계', '${_fmt(_unitPrice)}원/인', isSub: true),
+        const SizedBox(height: 4),
+        // ── 인원수 곱하기 ──
+        _sumRow('총 인원', '$_totalCount명'),
         const Divider(height: 20),
         _sumRow('상품 합계', '${_fmt(_subTotal)}원'),
         _sumRow(
@@ -4162,22 +4169,29 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   Widget _sumRow(String label, String value,
-      {bool isTotal = false, Color? valueColor}) {
+      {bool isTotal = false, bool isSub = false, Color? valueColor}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: EdgeInsets.symmetric(vertical: isTotal ? 2 : 3),
       child: Row(children: [
         Expanded(
           child: Text(label,
               style: TextStyle(
-                  fontSize: isTotal ? 14 : 13,
-                  fontWeight: isTotal ? FontWeight.w800 : FontWeight.w500,
-                  color: isTotal ? Colors.black87 : Colors.black54)),
+                  fontSize: isTotal ? 14 : (isSub ? 12 : 13),
+                  fontWeight: isTotal
+                      ? FontWeight.w800
+                      : (isSub ? FontWeight.w700 : FontWeight.w500),
+                  color: isTotal
+                      ? Colors.black87
+                      : (isSub ? Colors.black87 : Colors.black54))),
         ),
         Text(value,
             style: TextStyle(
-                fontSize: isTotal ? 16 : 13,
-                fontWeight: isTotal ? FontWeight.w900 : FontWeight.w600,
-                color: valueColor ?? (isTotal ? _purple : Colors.black87))),
+                fontSize: isTotal ? 16 : (isSub ? 13 : 13),
+                fontWeight: isTotal
+                    ? FontWeight.w900
+                    : (isSub ? FontWeight.w800 : FontWeight.w600),
+                color: valueColor ??
+                    (isTotal ? const Color(0xFF1A1A1A) : Colors.black87))),
       ]),
     );
   }
