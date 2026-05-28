@@ -5100,17 +5100,18 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
 
-          // ── 모바일 가로 스크롤 (단체주문과 동일 구조) ─
+          // ── 가로 스크롤 (최대 5개 + 전체보기 카드) ─
           if (isHorizontal)
             SizedBox(
               height: imgH + 82,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                itemCount: products.length + 1, // +1 = 전체보기 카드
+                itemCount: products.length.clamp(0, 5) + 1, // 최대 5개 + 전체보기 카드
                 itemBuilder: (_, i) {
+                  final display = products.take(5).toList();
                   // ── 마지막: 전체보기 카드 ──────────
-                  if (i == products.length) {
+                  if (i == display.length) {
                     return GestureDetector(
                       onTap: () => Navigator.push(
                         context,
@@ -5161,8 +5162,8 @@ class _HomeScreenState extends State<HomeScreen>
                     );
                   }
 
-                  // ── 상품 카드 ──
-                  final p = products[i];
+                  // ── 상품 카드 (최대 5개) ──
+                  final p = display[i];
                   return Container(
                     width: cardW,
                     margin: const EdgeInsets.only(right: 10),
