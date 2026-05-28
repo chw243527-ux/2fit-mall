@@ -208,13 +208,17 @@ class _HomeScreenState extends State<HomeScreen>
 
   // PC 섹션 maxWidth 제한 래퍼 (자체 배경/패딩을 가진 섹션용 — 베스트·신상품)
   // 섹션 배경색은 섹션 자체가 담당, 이 래퍼는 maxWidth 1280 + 중앙정렬만 제공
+  // LayoutBuilder가 유한한 constraints를 받을 수 있도록 SizedBox로 너비를 확정
   Widget _buildPcSectionMaxWidthWrapper({required Widget child}) {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1280),
-        child: child,
-      ),
+    return LayoutBuilder(
+      builder: (ctx, outer) {
+        final w = outer.maxWidth.isFinite
+            ? outer.maxWidth.clamp(0.0, 1280.0)
+            : 1280.0;
+        return Center(
+          child: SizedBox(width: w, child: child),
+        );
+      },
     );
   }
 
