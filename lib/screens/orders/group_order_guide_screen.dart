@@ -20,7 +20,10 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
   bool _agreed = false;
 
-
+  // ── 탑텐 스타일 상수 ──
+  static const _black = Color(0xFF000000);
+  static const _bg = Color(0xFFF8F8F8);
+  static const _dividerColor = Color(0xFFE8E8E8);
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +39,18 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
         if (!didPop) goBackOrHome(context);
       },
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: _bg,
         appBar: AppBar(
-          title: Text(context.watch<LanguageProvider>().loc.groupOrderGuideAppBar, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-          backgroundColor: const Color(0xFF6A1B9A),
+          title: Text(
+            context.watch<LanguageProvider>().loc.groupOrderGuideAppBar,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
+          ),
+          backgroundColor: _black,
           foregroundColor: Colors.white,
           elevation: 0,
           toolbarHeight: 48,
@@ -61,10 +72,18 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
         if (!didPop) goBackOrHome(context);
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: _bg,
         appBar: AppBar(
-          title: Text(context.watch<LanguageProvider>().loc.groupOrderGuideAppBar, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-          backgroundColor: const Color(0xFF6A1B9A),
+          title: Text(
+            context.watch<LanguageProvider>().loc.groupOrderGuideAppBar,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
+          ),
+          backgroundColor: _black,
           foregroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
@@ -109,44 +128,42 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(
-          color: Colors.black.withValues(alpha: 0.08),
-          blurRadius: 16, offset: const Offset(0, 4),
-        )],
+        border: Border.all(color: _dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // 헤더 배너 — 블랙
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF6A1B9A), Color(0xFF4A148C)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
+            color: _black,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(Icons.groups_rounded, color: Colors.white, size: 28),
                 const SizedBox(height: 8),
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideHeroTitle,
-                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                Text(
+                  context.watch<LanguageProvider>().loc.groupOrderGuideHeroTitle,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideHeroSub,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                Text(
+                  context.watch<LanguageProvider>().loc.groupOrderGuideHeroSub,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
+                ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          const SizedBox(height: 12),
-          const Divider(),
-          const SizedBox(height: 12),
+          Divider(height: 1, color: _dividerColor),
+          const SizedBox(height: 16),
 
           // 동의 체크
           GestureDetector(
@@ -154,10 +171,10 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: _agreed ? const Color(0xFFF3E5F5) : const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(10),
+                color: _agreed ? const Color(0xFFF0F0F0) : const Color(0xFFF8F8F8),
                 border: Border.all(
-                  color: _agreed ? const Color(0xFF6A1B9A).withValues(alpha: 0.4) : const Color(0xFFDDDDDD),
+                  color: _agreed ? _black : const Color(0xFFDDDDDD),
+                  width: _agreed ? 1.5 : 1,
                 ),
               ),
               child: Row(
@@ -168,15 +185,22 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                     checkColor: Colors.white,
                     fillColor: WidgetStateProperty.resolveWith<Color>((states) =>
                         states.contains(WidgetState.selected)
-                            ? const Color(0xFF6A1B9A)
+                            ? _black
                             : Colors.transparent),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     visualDensity: VisualDensity.compact,
+                    side: const BorderSide(color: Color(0xFF888888)),
                   ),
                   const SizedBox(width: 6),
                   Expanded(
-                    child: Text(context.watch<LanguageProvider>().loc.groupOrderAgreementCheck,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    child: Text(
+                      context.watch<LanguageProvider>().loc.groupOrderAgreementCheck,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _agreed ? _black : const Color(0xFF444444),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -191,19 +215,19 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                   ? () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => GroupOrderFormScreen(
-                          product: widget.product,
-                        ),
+                        builder: (_) => GroupOrderFormScreen(product: widget.product),
                       ),
                     )
                   : null,
               icon: const Icon(Icons.edit_outlined, size: 16),
-              label: Text(context.watch<LanguageProvider>().loc.groupOrderGuideWriteBtn,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+              label: Text(
+                context.watch<LanguageProvider>().loc.groupOrderGuideWriteBtn,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _agreed ? const Color(0xFF6A1B9A) : const Color(0xFFCCCCCC),
+                backgroundColor: _agreed ? _black : const Color(0xFFCCCCCC),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: const RoundedRectangleBorder(),
                 elevation: 0,
                 disabledBackgroundColor: const Color(0xFFCCCCCC),
                 disabledForegroundColor: Colors.white70,
@@ -212,9 +236,11 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           ),
           if (!_agreed) ...[
             const SizedBox(height: 8),
-            Text(context.watch<LanguageProvider>().loc.groupOrderGuideCheckFirst,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
-                textAlign: TextAlign.center),
+            Text(
+              context.watch<LanguageProvider>().loc.groupOrderGuideCheckFirst,
+              style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+              textAlign: TextAlign.center,
+            ),
           ],
         ],
       ),
@@ -227,21 +253,18 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(4),
+              color: _black,
+              borderRadius: BorderRadius.circular(2),
             ),
             child: Text(label,
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color)),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white)),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(desc,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF444444))),
+            child: Text(desc, style: const TextStyle(fontSize: 12, color: Color(0xFF444444))),
           ),
         ],
       ),
@@ -260,245 +283,259 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           // 선택된 상품 카드
           if (widget.product != null) ...[
             _buildProductCard(widget.product!),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
           ],
 
-          // 단체 주문 안내
-          _SectionHeader(icon: Icons.info_outline,
-              iconColor: const Color(0xFF1565C0),
-              iconBg: const Color(0xFFE3F2FD),
-              title: loc.groupOrderGuideAppBar),
-          const SizedBox(height: 12),
+          // 단체 주문 안내 헤더
+          _SectionHeader(title: loc.groupOrderGuideAppBar),
+          const SizedBox(height: 14),
 
           // 최소 수량
           _InfoCard(
             iconData: Icons.group_outlined,
-            iconBg: const Color(0xFFEDE7F6),
-            iconColor: const Color(0xFF6A1B9A),
             title: loc.groupOrderMinQtyTitle,
             content: loc.groupOrderMinQtyDesc,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
           // 제작 기간
           _InfoCard(
             iconData: Icons.schedule_outlined,
-            iconBg: const Color(0xFFF3E5F5),
-            iconColor: const Color(0xFF7B1FA2),
             title: context.watch<LanguageProvider>().loc.groupOrderProductionPeriod,
             content: context.watch<LanguageProvider>().loc.groupOrderProductionPeriodDesc,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
 
           // 배송 안내
           _InfoCard(
             iconData: Icons.local_shipping_outlined,
-            iconBg: const Color(0xFFE3F2FD),
-            iconColor: const Color(0xFF1565C0),
             title: loc.groupOrderShippingTitle,
             contentWidget: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping1,
-                    style: const TextStyle(fontSize: 13, height: 1.6)),
+                    style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
                 Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping2,
-                    style: const TextStyle(fontSize: 13, height: 1.6)),
+                    style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
                 Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping3,
-                    style: const TextStyle(fontSize: 13, height: 1.6)),
+                    style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
                 Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping4,
-                    style: const TextStyle(fontSize: 13, height: 1.6)),
+                    style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
-          // ── 커스텀 옵션 (허리밴드·로고·디자인 제작) ──
-          _SectionHeader2('✂️', '커스텀 옵션'),
-          const SizedBox(height: 12),
+          // ── 커스텀 옵션 ──
+          _SectionHeader2(label: 'CUSTOM OPTION', title: '커스텀 옵션'),
+          const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFA5D6A7)),
-            ),
+            padding: const EdgeInsets.all(16),
+            color: const Color(0xFFF0F0F0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 허리밴드 무료
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('🎨', style: TextStyle(fontSize: 15)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(loc.groupOrderGuideWaistband1,
-                          style: const TextStyle(fontSize: 13, height: 1.7, fontWeight: FontWeight.w700,
-                              color: Color(0xFF2E7D32))),
-                    ),
-                  ],
+                _customOptionRow(
+                  icon: Icons.palette_outlined,
+                  text: loc.groupOrderGuideWaistband1,
+                  highlight: true,
                 ),
-                const SizedBox(height: 6),
-                // 로고 AI 원본파일 필수
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('📎', style: TextStyle(fontSize: 15)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(loc.groupOrderGuideWaistband2,
-                          style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF555555))),
-                    ),
-                  ],
+                const SizedBox(height: 10),
+                _customOptionRow(
+                  icon: Icons.attach_file_outlined,
+                  text: loc.groupOrderGuideWaistband2,
                 ),
-                const SizedBox(height: 6),
-                // 앞뒤 사진 첨부 제작
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('👕', style: TextStyle(fontSize: 15)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(loc.groupOrderGuideWaistband3,
-                          style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF555555))),
-                    ),
-                  ],
+                const SizedBox(height: 10),
+                _customOptionRow(
+                  icon: Icons.checkroom_outlined,
+                  text: loc.groupOrderGuideWaistband3,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // 디자인 독점 사용 옵션
-          _SectionHeader2('🔒', loc.groupOrderExclusiveTitle),
-          const SizedBox(height: 12),
+          _SectionHeader2(label: 'EXCLUSIVE DESIGN', title: loc.groupOrderExclusiveTitle),
+          const SizedBox(height: 14),
           Builder(builder: (context) {
             return Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3E5F5),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFCE93D8)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Text('💎', style: TextStyle(fontSize: 16)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(loc.groupOrderGuideExclusiveTitle,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, height: 1.6,
-                              color: Color(0xFF6A1B9A))),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(loc.groupOrderGuideExclusive1,
-                    style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF555555))),
-                const SizedBox(height: 4),
-                Text(loc.groupOrderGuideExclusive2,
-                    style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF555555))),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF3E0),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFFFCC02)),
+              padding: const EdgeInsets.all(16),
+              color: const Color(0xFFF0F0F0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 타이틀 행
+                  Row(
+                    children: [
+                      const Icon(Icons.lock_outline_rounded, size: 16, color: Color(0xFF1A1A1A)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          loc.groupOrderGuideExclusiveTitle,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1A1A1A),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        color: _black,
+                        child: const Text(
+                          'FREE',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Text(loc.groupOrderGuideExclusive3,
-                      style: const TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF7B3F00),
-                          fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-          );}),
-          const SizedBox(height: 24),
+                  const SizedBox(height: 10),
+                  Text(loc.groupOrderGuideExclusive1,
+                      style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
+                  const SizedBox(height: 4),
+                  Text(loc.groupOrderGuideExclusive2,
+                      style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border(left: BorderSide(color: _black, width: 3)),
+                    ),
+                    child: Text(
+                      loc.groupOrderGuideExclusive3,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        height: 1.6,
+                        color: Color(0xFF333333),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: 28),
 
           // 추가 주문 안내
-          _SectionHeader2('➕', loc.groupOrderGuideAdditionalTitle),
-          const SizedBox(height: 12),
+          _SectionHeader2(label: 'ADDITIONAL ORDER', title: loc.groupOrderGuideAdditionalTitle),
+          const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3E5F5),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFCE93D8)),
-            ),
+            padding: const EdgeInsets.all(16),
+            color: const Color(0xFFF0F0F0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(loc.groupOrderGuideAdditional1,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
+                    style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF333333))),
                 Text(loc.groupOrderGuideAdditional2,
-                    style: const TextStyle(fontSize: 13, height: 1.7)),
-                Text(loc.groupOrderGuideAdditional3,
-                    style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF880E4F))),
+                    style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF333333))),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(left: BorderSide(color: const Color(0xFFC62828), width: 3)),
+                  ),
+                  child: Text(
+                    loc.groupOrderGuideAdditional3,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      height: 1.6,
+                      color: Color(0xFFC62828),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
-          // 주문 절차 (스크린샷에서 확인된 5단계)
-          _SectionHeader2('🔄', '주문 절차'),
-          const SizedBox(height: 12),
+          // 주문 절차
+          _SectionHeader2(label: 'ORDER PROCESS', title: '주문 절차'),
+          const SizedBox(height: 14),
           _buildOrderSteps(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // 교환·환불 정책
-          _SectionHeader2('⚠️', context.watch<LanguageProvider>().loc.groupOrderGuideExchangeTitle),
-          const SizedBox(height: 12),
+          _SectionHeader2(
+            label: 'EXCHANGE & REFUND',
+            title: context.watch<LanguageProvider>().loc.groupOrderGuideExchangeTitle,
+          ),
+          const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFFDE7),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFFFE082)),
-            ),
+            padding: const EdgeInsets.all(16),
+            color: const Color(0xFFF0F0F0),
             child: Builder(builder: (context) {
               return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 기성품 교환환불 (초록 강조)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5E9),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFA5D6A7)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('✅', style: TextStyle(fontSize: 14)),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(loc.groupOrderGuideExchange2,
-                            style: const TextStyle(fontSize: 13, height: 1.7,
-                                fontWeight: FontWeight.w700, color: Color(0xFF2E7D32))),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // 커스텀 주문 불가
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('❌', style: TextStyle(fontSize: 14)),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(loc.groupOrderGuideExchange1,
-                          style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF555555))),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 기성품 교환환불
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(left: BorderSide(color: Color(0xFF1A1A1A), width: 3)),
                     ),
-                  ],
-                ),
-              ],
-            );}),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          color: const Color(0xFF1A1A1A),
+                          child: const Text('기성품',
+                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            loc.groupOrderGuideExchange2,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              height: 1.6,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A1A),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 커스텀 주문 불가
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(left: BorderSide(color: Color(0xFFC62828), width: 3)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          color: const Color(0xFFC62828),
+                          child: const Text('커스텀',
+                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            loc.groupOrderGuideExchange1,
+                            style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF444444)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // 동의 + 주문 양식 이동
           _AgreementSection(
@@ -508,9 +545,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                 ? () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => GroupOrderFormScreen(
-                        product: widget.product,
-                      ),
+                      builder: (_) => GroupOrderFormScreen(product: widget.product),
                     ),
                   )
                 : null,
@@ -521,6 +556,31 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
+  Widget _customOptionRow({required IconData icon, required String text, bool highlight = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          color: _black,
+          child: Icon(icon, size: 14, color: Colors.white),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.7,
+              fontWeight: highlight ? FontWeight.w700 : FontWeight.w400,
+              color: highlight ? _black : const Color(0xFF444444),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   // ── 선택 상품 카드 ──
   Widget _buildProductCard(ProductModel product) {
     final imageUrl = product.images.isNotEmpty ? product.images.first : '';
@@ -528,19 +588,12 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2)),
-        ],
+        border: Border.all(color: _dividerColor),
       ),
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.zero,
             child: imageUrl.isNotEmpty
                 ? Image.network(imageUrl, width: 72, height: 72, fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => _productPlaceholder())
@@ -551,18 +604,23 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(product.localizedName(_lang),
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                    maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(
+                  product.localizedName(_lang),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 6),
-                Text('₩${product.price.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} / 1개',
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))),
-                const SizedBox(height: 6),
+                Text(
+                  '₩${product.price.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} / 1개',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A)),
+                ),
+                const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
                   children: [
-                    _buildTag(context.watch<LanguageProvider>().loc.setProduct, const Color(0xFF1565C0)),
-                    _buildTag(context.watch<LanguageProvider>().loc.groupOrderOnlyLabel, const Color(0xFF6A1B9A)),
+                    _buildTag(context.watch<LanguageProvider>().loc.setProduct),
+                    _buildTag(context.watch<LanguageProvider>().loc.groupOrderOnlyLabel),
                   ],
                 ),
               ],
@@ -581,15 +639,13 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  Widget _buildTag(String text, Color color) {
+  Widget _buildTag(String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        border: Border.all(color: color),
-        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: _black),
       ),
-      child: Text(text,
-          style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+      child: Text(text, style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A), fontWeight: FontWeight.w600)),
     );
   }
 
@@ -597,30 +653,29 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // ignore: unused_element
   Widget _buildPrintTypeCards() {
     final types = [
-      {'step': '①', 'title': '색상 변경',             'cond': '5명↑ 무료', 'color': const Color(0xFF1565C0), 'desc': '원하는 색상으로 변경 제작 (상·하의 동일 색상 적용)'},
-      {'step': '②', 'title': '전면 (단체명)',          'cond': '5명↑ 무료', 'color': const Color(0xFF2E7D32), 'desc': '전면에 단체명 인쇄'},
-      {'step': '③', 'title': '조합 (전면+색상)',       'cond': '5명↑ 무료', 'color': const Color(0xFF6A1B9A), 'desc': '전면 단체명 + 색상 변경'},
-      {'step': '④', 'title': '조합 + 후면 이름',      'cond': '10명↑',     'color': const Color(0xFFC62828), 'desc': '전면 단체명·색상 + 후면 개인 이름 인쇄'},
+      {'step': '1', 'title': '색상 변경',             'cond': '5명↑ 무료', 'desc': '원하는 색상으로 변경 제작 (상·하의 동일 색상 적용)'},
+      {'step': '2', 'title': '전면 (단체명)',          'cond': '5명↑ 무료', 'desc': '전면에 단체명 인쇄'},
+      {'step': '3', 'title': '조합 (전면+색상)',       'cond': '5명↑ 무료', 'desc': '전면 단체명 + 색상 변경'},
+      {'step': '4', 'title': '조합 + 후면 이름',      'cond': '10명↑',     'desc': '전면 단체명·색상 + 후면 개인 이름 인쇄'},
     ];
 
     return Column(
       children: types.map((t) {
-        final color = t['color'] as Color;
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: color.withValues(alpha: 0.2)),
-          ),
+          color: const Color(0xFFF8F8F8),
           child: Row(
             children: [
               Container(
-                width: 24, height: 24,
-                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-                child: Center(child: Text(t['step'] as String,
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white))),
+                width: 28, height: 28,
+                color: _black,
+                child: Center(
+                  child: Text(
+                    t['step'] as String,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white),
+                  ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -631,16 +686,13 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                       children: [
                         Expanded(
                           child: Text(t['title'] as String,
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
+                          color: const Color(0xFF1A1A1A),
                           child: Text(t['cond'] as String,
-                              style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700)),
+                              style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
                         ),
                       ],
                     ),
@@ -660,11 +712,11 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // ── 주문 절차 5단계 ──
   Widget _buildOrderSteps() {
     final steps = [
-      {'num': '1', 'title': '주문 서식 작성', 'desc': '수량·사이즈·색상·로고를 입력하고 양식을 제출', 'color': const Color(0xFF1565C0)},
-      {'num': '2', 'title': '결제 완료', 'desc': '담당자 확인 후 결제 안내 및 입금 확인', 'color': const Color(0xFF1565C0)},
-      {'num': '3', 'title': '디자인 확정', 'desc': '시안 검토 및 최종 디자인 확인', 'color': const Color(0xFF1565C0)},
-      {'num': '4', 'title': '제작 진행', 'desc': '14~21영업일 소요 (디자인 변경 포함 시 추가 기간 가능)', 'color': const Color(0xFF1565C0)},
-      {'num': '5', 'title': '배송', 'desc': '완성 후 일괄 발송, 배송 추적 번호 카카오 알림 발송', 'color': const Color(0xFF1565C0)},
+      {'num': '1', 'title': '주문 서식 작성', 'desc': '수량·사이즈·색상·로고를 입력하고 양식을 제출'},
+      {'num': '2', 'title': '결제 완료', 'desc': '담당자 확인 후 결제 안내 및 입금 확인'},
+      {'num': '3', 'title': '디자인 확정', 'desc': '시안 검토 및 최종 디자인 확인'},
+      {'num': '4', 'title': '제작 진행', 'desc': '14~21영업일 소요 (디자인 변경 포함 시 추가 기간 가능)'},
+      {'num': '5', 'title': '배송', 'desc': '완성 후 일괄 발송, 배송 추적 번호 카카오 알림 발송'},
     ];
 
     return Column(
@@ -675,36 +727,49 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 번호 + 수직 라인
             Column(
               children: [
                 Container(
                   width: 32, height: 32,
-                  decoration: BoxDecoration(
-                    color: step['color'] as Color,
-                    shape: BoxShape.circle,
-                  ),
+                  color: _black,
                   child: Center(
-                    child: Text(step['num'] as String,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 14)),
+                    child: Text(
+                      step['num'] as String,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                 ),
                 if (!isLast)
-                  Container(width: 2, height: 32, color: const Color(0xFFDDDDDD)),
+                  Container(width: 2, height: 32, color: const Color(0xFFCCCCCC)),
               ],
             ),
             const SizedBox(width: 14),
+            // 내용
             Expanded(
               child: Padding(
                 padding: EdgeInsets.only(bottom: isLast ? 0 : 8, top: 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(step['title'] as String,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                    Text(
+                      step['title'] as String,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A1A),
+                      ),
+                    ),
                     const SizedBox(height: 3),
-                    Text(step['desc'] as String,
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF666666), height: 1.4)),
-                    const SizedBox(height: 12),
+                    Text(
+                      step['desc'] as String,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF666666), height: 1.4),
+                    ),
+                    const SizedBox(height: 14),
                   ],
                 ),
               ),
@@ -727,8 +792,11 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
       ['XXL', '100~104', '80~84', '104~108', '180~185'],
       ['XXXL', '104~108', '84~88', '108~112', '185+'],
     ];
-    return _SizeTable(title: '${loc.groupOrderGuideSizeAdult} (XS~XXXL)', emoji: '🧑', rows: rows, loc: loc,
-        headerColor: const Color(0xFF1565C0), bgColor: const Color(0xFFE3F2FD));
+    return _SizeTable(
+      title: '${loc.groupOrderGuideSizeAdult} (XS~XXXL)',
+      rows: rows,
+      loc: loc,
+    );
   }
 
   // ── 주니어 사이즈표 ──
@@ -741,66 +809,92 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
       ['M', '80~84', '64~68', '84~88', '150~155'],
       ['L', '84~88', '68~72', '88~92', '155~165'],
     ];
-    return _SizeTable(title: '${loc.groupOrderGuideSizeJunior} (XXS~L)', emoji: '🧒', rows: rows, loc: loc,
-        headerColor: const Color(0xFF6A1B9A), bgColor: const Color(0xFFF3E5F5));
+    return _SizeTable(
+      title: '${loc.groupOrderGuideSizeJunior} (XXS~L)',
+      rows: rows,
+      loc: loc,
+    );
   }
 }
 
 // ══════════════════════════════════════════════════════════════
-// Helper Widgets
+// Helper Widgets — 탑텐 스타일
 // ══════════════════════════════════════════════════════════════
 
+/// 섹션 헤더: 좌측 4px 블랙 보더 + 타이틀
 class _SectionHeader extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
   final String title;
-  const _SectionHeader({required this.icon, required this.iconColor, required this.iconBg, required this.title});
+  const _SectionHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8)),
-          child: Icon(icon, size: 18, color: iconColor),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 4, 0, 4),
+      decoration: const BoxDecoration(
+        border: Border(left: BorderSide(color: Color(0xFF000000), width: 4)),
+      ),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w900,
+          color: Color(0xFF1A1A1A),
+          letterSpacing: -0.3,
         ),
-        const SizedBox(width: 10),
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-      ],
+      ),
     );
   }
 }
 
+/// 섹션 헤더2: 영문 서브 + 한글 타이틀, 좌측 4px 보더
 class _SectionHeader2 extends StatelessWidget {
-  final String emoji;
+  final String label;
   final String title;
-  const _SectionHeader2(this.emoji, this.title);
+  const _SectionHeader2({required this.label, required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 20)),
-        const SizedBox(width: 8),
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-      ],
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 4, 0, 4),
+      decoration: const BoxDecoration(
+        border: Border(left: BorderSide(color: Color(0xFF000000), width: 4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF888888),
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1A1A1A),
+              letterSpacing: -0.3,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
+/// 정보 카드: 블랙 아이콘박스 + 내용
 class _InfoCard extends StatelessWidget {
   final IconData iconData;
-  final Color iconBg;
-  final Color iconColor;
   final String title;
   final String? content;
   final Widget? contentWidget;
   const _InfoCard({
     required this.iconData,
-    required this.iconBg,
-    required this.iconColor,
     required this.title,
     this.content,
     this.contentWidget,
@@ -810,28 +904,34 @@ class _InfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border(bottom: BorderSide(color: Color(0xFFE8E8E8))),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(8)),
-            child: Icon(iconData, size: 18, color: iconColor),
+            color: const Color(0xFF1A1A1A),
+            child: Icon(iconData, size: 18, color: Colors.white),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: iconColor)),
-                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A1A1A),
+                  ),
+                ),
+                const SizedBox(height: 5),
                 if (content != null)
-                  Text(content!, style: const TextStyle(fontSize: 13, height: 1.5))
+                  Text(content!, style: const TextStyle(fontSize: 13, height: 1.5, color: Color(0xFF444444)))
                 else
                   contentWidget ?? const SizedBox(),
               ],
@@ -843,6 +943,7 @@ class _InfoCard extends StatelessWidget {
   }
 }
 
+/// 동의 + 주문 양식 이동 섹션
 class _AgreementSection extends StatelessWidget {
   final bool agreed;
   final ValueChanged<bool?> onChanged;
@@ -858,10 +959,10 @@ class _AgreementSection extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: agreed ? const Color(0xFFF3E5F5) : const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(10),
+              color: agreed ? const Color(0xFFF0F0F0) : const Color(0xFFF8F8F8),
               border: Border.all(
-                color: agreed ? const Color(0xFF6A1B9A).withValues(alpha: 0.4) : const Color(0xFFDDDDDD),
+                color: agreed ? const Color(0xFF1A1A1A) : const Color(0xFFDDDDDD),
+                width: agreed ? 1.5 : 1,
               ),
             ),
             child: Row(
@@ -872,15 +973,22 @@ class _AgreementSection extends StatelessWidget {
                   checkColor: Colors.white,
                   fillColor: WidgetStateProperty.resolveWith<Color>((states) =>
                       states.contains(WidgetState.selected)
-                          ? const Color(0xFF6A1B9A)
+                          ? const Color(0xFF1A1A1A)
                           : Colors.transparent),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   visualDensity: VisualDensity.compact,
+                  side: const BorderSide(color: Color(0xFF888888)),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(context.watch<LanguageProvider>().loc.groupOrderGuideAgreeAll,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  child: Text(
+                    context.watch<LanguageProvider>().loc.groupOrderGuideAgreeAll,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: agreed ? const Color(0xFF1A1A1A) : const Color(0xFF444444),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -892,13 +1000,16 @@ class _AgreementSection extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: onNext,
             icon: const Icon(Icons.edit_outlined, size: 18),
-            label: Text(context.watch<LanguageProvider>().loc.groupOrderGuideWriteBtn,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            label: Text(
+              context.watch<LanguageProvider>().loc.groupOrderGuideWriteBtn,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+            ),
             style: ElevatedButton.styleFrom(
-              backgroundColor: agreed ? const Color(0xFF6A1B9A) : const Color(0xFFCCCCCC),
+              backgroundColor: agreed ? const Color(0xFF1A1A1A) : const Color(0xFFCCCCCC),
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 52),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: const RoundedRectangleBorder(),
+              elevation: 0,
               disabledBackgroundColor: const Color(0xFFCCCCCC),
               disabledForegroundColor: Colors.white70,
             ),
@@ -906,28 +1017,25 @@ class _AgreementSection extends StatelessWidget {
         ),
         if (!agreed) ...[
           const SizedBox(height: 8),
-          Text(context.watch<LanguageProvider>().loc.groupOrderGuideCheckFirst,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
-              textAlign: TextAlign.center),
+          Text(
+            context.watch<LanguageProvider>().loc.groupOrderGuideCheckFirst,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+            textAlign: TextAlign.center,
+          ),
         ],
       ],
     );
   }
 }
 
+/// 사이즈 표 (탑텐 스타일)
 class _SizeTable extends StatelessWidget {
   final String title;
-  final String emoji;
   final List<List<String>> rows;
-  final Color headerColor;
-  final Color bgColor;
   final AppLocalizations? loc;
   const _SizeTable({
     required this.title,
-    required this.emoji,
     required this.rows,
-    required this.headerColor,
-    required this.bgColor,
     this.loc,
   });
 
@@ -935,18 +1043,19 @@ class _SizeTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = loc ?? context.watch<LanguageProvider>().loc;
     final headers = [l.sizeLabel, l.chestLabel, l.waistLabel, l.hipLabel, l.heightLabel];
-    // 컬럼 flex 비율: 사이즈(1) 가슴(2) 허리(2) 엉덩이(2) 키(2)
     const colFlex = [1, 2, 2, 2, 2];
 
     Widget headerCell(String text, int flex) => Expanded(
       flex: flex,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 7),
-        color: headerColor.withValues(alpha: 0.12),
+        color: const Color(0xFF1A1A1A),
         alignment: Alignment.center,
-        child: Text(text,
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: headerColor),
-            textAlign: TextAlign.center),
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
 
@@ -955,39 +1064,41 @@ class _SizeTable extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 6),
         color: isSizeCol
-            ? headerColor.withValues(alpha: 0.07)
-            : (isEven ? Colors.white.withValues(alpha: 0.6) : Colors.transparent),
+            ? const Color(0xFFF0F0F0)
+            : (isEven ? const Color(0xFFF8F8F8) : Colors.white),
         alignment: Alignment.center,
-        child: Text(text,
-            style: TextStyle(
-              fontSize: isSizeCol ? 11 : 10,
-              fontWeight: isSizeCol ? FontWeight.w800 : FontWeight.w500,
-              color: isSizeCol ? headerColor : const Color(0xFF333333),
-            ),
-            textAlign: TextAlign.center),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: isSizeCol ? 11 : 10,
+            fontWeight: isSizeCol ? FontWeight.w800 : FontWeight.w500,
+            color: const Color(0xFF333333),
+          ),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
 
     return Container(
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: headerColor.withValues(alpha: 0.3)),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border.fromBorderSide(BorderSide(color: Color(0xFFE8E8E8))),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 제목
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+            color: const Color(0xFFF8F8F8),
             child: Row(
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 16)),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A)),
+                ),
                 const SizedBox(width: 6),
-                Text(title,
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: headerColor)),
-                const SizedBox(width: 6),
-                Text('(cm)', style: TextStyle(fontSize: 10, color: headerColor.withValues(alpha: 0.7))),
+                const Text('(cm)', style: TextStyle(fontSize: 10, color: Color(0xFF888888))),
               ],
             ),
           ),
@@ -996,7 +1107,6 @@ class _SizeTable extends StatelessWidget {
             for (int i = 0; i < headers.length; i++)
               headerCell(headers[i], colFlex[i]),
           ]),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFDDDDDD)),
           // 데이터 행
           ...rows.asMap().entries.map((e) {
             final isEven = e.key % 2 == 0;
@@ -1006,7 +1116,7 @@ class _SizeTable extends StatelessWidget {
                   dataCell(e.value[i], colFlex[i], isEven, i == 0),
               ]),
               if (e.key < rows.length - 1)
-                Divider(height: 1, thickness: 0.5, color: headerColor.withValues(alpha: 0.15)),
+                const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
             ]);
           }),
           const SizedBox(height: 4),
