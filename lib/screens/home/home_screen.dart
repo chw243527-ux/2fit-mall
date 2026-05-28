@@ -140,7 +140,14 @@ class _HomeScreenState extends State<HomeScreen>
           _buildPcNavBar(loc),
           // ── 스크롤 영역 전체 ──
           Expanded(
-            child: SingleChildScrollView(
+            child: RefreshIndicator(
+              color: const Color(0xFF1A1A2E),
+              backgroundColor: Colors.white,
+              onRefresh: () async {
+                await context.read<ProductProvider>().refresh();
+              },
+              child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
                   // ── ① 배너: 뷰포트 높이 전체 ──
@@ -166,6 +173,7 @@ class _HomeScreenState extends State<HomeScreen>
                   const SizedBox(height: 60),
                 ],
               ),
+            ),
             ),
           ),
         ],
@@ -2347,8 +2355,15 @@ class _HomeScreenState extends State<HomeScreen>
 
             // ── 스크롤 영역 ──
             Expanded(
-              child: CustomScrollView(
-                slivers: [
+              child: RefreshIndicator(
+                color: const Color(0xFF1A1A2E),
+                backgroundColor: Colors.white,
+                onRefresh: () async {
+                  await context.read<ProductProvider>().refresh();
+                },
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
                   // ── 배너 ──
                   SliverToBoxAdapter(child: _buildCompactBanner(loc)),
 
@@ -2374,6 +2389,7 @@ class _HomeScreenState extends State<HomeScreen>
                   SliverToBoxAdapter(
                       child: SizedBox(height: isMobile ? 80 : 48)),
                 ],
+              ),
               ),
             ),
           ],

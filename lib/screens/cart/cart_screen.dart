@@ -122,11 +122,17 @@ class CartScreen extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: cart.items.length,
-                  itemBuilder: (context, index) =>
-                      _buildCartItem(context, cart, cart.items[index]),
+                child: RefreshIndicator(
+                  color: const Color(0xFF1A1A2E),
+                  backgroundColor: Colors.white,
+                  onRefresh: () => context.read<ProductProvider>().refresh(),
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(12),
+                    itemCount: cart.items.length,
+                    itemBuilder: (context, index) =>
+                        _buildCartItem(context, cart, cart.items[index]),
+                  ),
                 ),
               ),
               _buildSummary(context, cart),
