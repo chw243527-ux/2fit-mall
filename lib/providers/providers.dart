@@ -1128,12 +1128,15 @@ class ProductProvider extends ChangeNotifier {
       // Firestore 실패 시 더미 데이터로 폴백
       _isLoading = false;
       _error = null;
-      if (_products.isEmpty) {
-        // 더미 데이터 직접 사용 (동기)
-        _products = category == '전체'
-            ? ProductService.getAllProductsSync()
-            : ProductService.getProductsByCategorySync(category);
+      // 항상 폴백 — 기존 products가 더미여도 최신 캐시로 교체
+      final fallback = category == '전체'
+          ? ProductService.getAllProductsSync()
+          : ProductService.getProductsByCategorySync(category);
+      if (_products.isEmpty || fallback.isNotEmpty) {
+        _products = fallback;
       }
+      notifyListeners(); // ← 반드시 호출해야 UI 갱신
+      return;
     }
     notifyListeners();
   }

@@ -4850,31 +4850,37 @@ class _HomeScreenState extends State<HomeScreen>
   // ────────────────────────────────────────────
 
   /// 모든 활성 상품을 Firestore 우선으로 가져옴.
-  /// provider.products가 비어있으면 ProductService 캐시를 사용.
-  /// isGroupOnly는 필터하지 않음 — 상품 수가 적을 때 단체주문 상품도 노출.
+  /// provider → 로컬 캐시 → 더미 데이터 순서로 폴백.
   List<ProductModel> _getAllActiveProducts(ProductProvider provider) {
+    // ① provider (Firestore 로드 완료 시)
     final fromProvider = provider.products.where((p) => p.isActive).toList();
     if (fromProvider.isNotEmpty) return fromProvider;
-    // Firestore 로드 전이면 로컬 캐시 사용
-    return ProductService.getAllProductsSync().where((p) => p.isActive).toList();
+    // ② 로컬 캐시 (Firestore 실패 또는 로딩 중)
+    final fromCache = ProductService.getAllProductsSync();
+    if (fromCache.isNotEmpty) {
+      final active = fromCache.where((p) => p.isActive).toList();
+      if (active.isNotEmpty) return active;
+      // isActive 필터 없이 전체 반환 (isActive 기본값=true 이므로 거의 해당 없음)
+      return fromCache;
+    }
+    return [];
   }
 
   // ignore: unused_element
   Widget _buildNewArrivalsSection(AppLocalizations loc) {
     return Consumer<ProductProvider>(
       builder: (context, provider, _) {
-        // Firestore 로딩 중이고 아직 상품이 없으면 스켈레톤 표시
-        if (provider.isLoading && provider.products.isEmpty) {
+        final allProds = _getAllActiveProducts(provider);
+
+        // 아직 아무 데이터도 없으면 스켈레톤
+        if (allProds.isEmpty) {
           return _buildSectionSkeleton(loc.sectionNewArrival);
         }
 
-        final allProds = _getAllActiveProducts(provider);
-
         // ① isNew 상품 우선
-        List<ProductModel> products =
-            allProds.where((p) => p.isNew).toList();
+        List<ProductModel> products = allProds.where((p) => p.isNew).toList();
 
-        // ② isNew 없으면 createdAt 최신순 정렬
+        // ② isNew 없으면 createdAt 최신순 폴백
         if (products.isEmpty) {
           products = [...allProds]
             ..sort((a, b) => (b.createdAt ?? DateTime(2000))
@@ -4882,7 +4888,6 @@ class _HomeScreenState extends State<HomeScreen>
           products = products.take(10).toList();
         }
 
-        // ③ 여전히 비어있으면 섹션 숨김
         if (products.isEmpty) return const SizedBox.shrink();
 
         final isDesktop = MediaQuery.of(context).size.width >= 900;
@@ -4902,25 +4907,22 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildBestSection(AppLocalizations loc) {
     return Consumer<ProductProvider>(
       builder: (context, provider, _) {
-        // Firestore 로딩 중이고 아직 상품이 없으면 스켈레톤 표시
-        if (provider.isLoading && provider.products.isEmpty) {
+        final allProds = _getAllActiveProducts(provider);
+
+        // 아직 아무 데이터도 없으면 스켈레톤
+        if (allProds.isEmpty) {
           return _buildSectionSkeleton(loc.sectionBestSeller);
         }
 
         List<ProductModel> bestProds;
 
         if (provider.salesCountsLoaded && provider.bestProducts.isNotEmpty) {
-          // ① 실판매량 데이터 있음 → 실판매량 기준 베스트
+          // ① 실판매량 기준
           bestProds = provider.bestProducts;
         } else {
-          // ② 폴백: 활성 상품 전체에서 salesCount/reviewCount 정렬
-          final allProds = _getAllActiveProducts(provider);
-
-          // 일반 상품(non-group) 우선, 없으면 단체주문 포함 전체
-          final normal =
-              allProds.where((p) => !p.isGroupOnly).toList();
+          // ② 폴백: 전체 상품 salesCount/reviewCount 정렬
+          final normal = allProds.where((p) => !p.isGroupOnly).toList();
           final pool = normal.isNotEmpty ? normal : allProds;
-
           bestProds = [...pool]
             ..sort((a, b) {
               final sa = b.salesCount.compareTo(a.salesCount);
@@ -4930,7 +4932,6 @@ class _HomeScreenState extends State<HomeScreen>
           bestProds = bestProds.take(10).toList();
         }
 
-        // ③ 여전히 비어있으면 섹션 숨김
         if (bestProds.isEmpty) return const SizedBox.shrink();
 
         final isDesktop = MediaQuery.of(context).size.width >= 900;
