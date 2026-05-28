@@ -145,13 +145,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
           _buildSortFilterBar(filteredProducts.length),
           if (_showPriceFilter) _buildPriceFilterPanel(),
           Expanded(
-            child: provider.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filteredProducts.isEmpty
-                    ? _buildEmptyState()
-                    : _isGridView
-                        ? _buildGridView(filteredProducts)
-                        : _buildListView(filteredProducts),
+            child: RefreshIndicator(
+              color: const Color(0xFF1A1A2E),
+              backgroundColor: Colors.white,
+              onRefresh: () => context.read<ProductProvider>().refresh(),
+              child: provider.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : filteredProducts.isEmpty
+                      ? _buildEmptyState()
+                      : _isGridView
+                          ? _buildGridView(filteredProducts)
+                          : _buildListView(filteredProducts),
+            ),
           ),
         ],
       ),
@@ -686,14 +691,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
         const spacing = 8.0;
         const padding = 10.0;
         final cardW = (constraints.maxWidth - padding * 2 - spacing * (cols - 1)) / cols;
-        return Padding(
-          padding: const EdgeInsets.all(padding),
-          child: Wrap(
-            spacing: spacing,
-            runSpacing: spacing,
-            children: products.map((p) =>
-              SizedBox(width: cardW, child: _buildProductCard(p))
-            ).toList(),
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Padding(
+            padding: const EdgeInsets.all(padding),
+            child: Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: products.map((p) =>
+                SizedBox(width: cardW, child: _buildProductCard(p))
+              ).toList(),
+            ),
           ),
         );
       },
@@ -703,6 +711,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   // ── 리스트 뷰 ──
   Widget _buildListView(List<ProductModel> products) {
     return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(10),
       itemCount: products.length,
       itemBuilder: (_, i) => _buildProductListTile(products[i]),
