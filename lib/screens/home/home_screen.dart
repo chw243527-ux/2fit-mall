@@ -127,10 +127,10 @@ class _HomeScreenState extends State<HomeScreen>
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
 
-    // PC: NavBar 고정 + [배너(뷰포트 100vh) + 스크롤 섹션] 전체 스크롤
+    // PC: NavBar 고정 + 배너(나머지 전체) — 영상+텍스트만 표시
     return Scaffold(
       key: _pcScaffoldKey,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.black,
       drawer: AppDrawer(onNavigateToMyPage: () => widget.onNavigate?.call(3)),
       floatingActionButton: _buildChatFAB(loc),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -138,43 +138,11 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // ── PC NavBar (상단 고정) ──
           _buildPcNavBar(loc),
-          // ── 스크롤 영역 전체 ──
+          // ── 배너 (NavBar 아래 남은 공간 전체) ──
           Expanded(
-            child: RefreshIndicator(
-              color: const Color(0xFF1A1A2E),
-              backgroundColor: Colors.white,
-              onRefresh: () async {
-                await context.read<ProductProvider>().refresh();
-              },
-              child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  // ── ① 배너: 뷰포트 높이 전체 ──
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height - _kPcNavBarHeight,
-                    child: activeBanners.isEmpty
-                        ? _buildPcLocalBanner(loc)
-                        : _buildPcBannerBody(loc, activeBanners),
-                  ),
-                  // ── ② 단체주문 섹션 ──
-                  _buildPcHomeSectionWrapper(
-                    child: _buildPcGroupOrderSectionV2(loc),
-                  ),
-                  // ── ③ 베스트 상품 ──
-                  _buildPcHomeSectionWrapper(
-                    color: const Color(0xFFFAFAFA),
-                    child: _buildBestSection(loc),
-                  ),
-                  // ── ④ 신상품 ──
-                  _buildPcHomeSectionWrapper(
-                    child: _buildNewArrivalsSection(loc),
-                  ),
-                  const SizedBox(height: 60),
-                ],
-              ),
-            ),
-            ),
+            child: activeBanners.isEmpty
+                ? _buildPcLocalBanner(loc)
+                : _buildPcBannerBody(loc, activeBanners),
           ),
         ],
       ),
