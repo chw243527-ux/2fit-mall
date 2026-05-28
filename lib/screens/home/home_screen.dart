@@ -127,25 +127,12 @@ class _HomeScreenState extends State<HomeScreen>
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
 
-    // PC: NavBar 고정 + 배너(나머지 전체) — 영상+텍스트만 표시
-    return Scaffold(
-      key: _pcScaffoldKey,
-      backgroundColor: Colors.black,
-      drawer: AppDrawer(onNavigateToMyPage: () => widget.onNavigate?.call(3)),
-      floatingActionButton: _buildChatFAB(loc),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: Column(
-        children: [
-          // ── PC NavBar (상단 고정) ──
-          _buildPcNavBar(loc),
-          // ── 배너 (NavBar 아래 남은 공간 전체) ──
-          Expanded(
-            child: activeBanners.isEmpty
-                ? _buildPcLocalBanner(loc)
-                : _buildPcBannerBody(loc, activeBanners),
-          ),
-        ],
-      ),
+    // PC: 배너(영상+텍스트)만 반환 — NavBar/Scaffold는 main_screen의 _PcLayout이 담당
+    return ColoredBox(
+      color: Colors.black,
+      child: activeBanners.isEmpty
+          ? _buildPcLocalBanner(loc)
+          : _buildPcBannerBody(loc, activeBanners),
     );
   }
 
