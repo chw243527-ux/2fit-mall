@@ -864,8 +864,8 @@ class _HomeScreenState extends State<HomeScreen>
                     context,
                     MaterialPageRoute(
                       builder: (_) => isNew
-                          ? const ProductListScreen()
-                          : const ProductListScreen(initialSortBy: '인기순'),
+                          ? const ProductListScreen(initialOnlyNew: true)
+                          : const ProductListScreen(initialOnlyBest: true),
                     ),
                   ),
                   child: Container(
@@ -1947,8 +1947,8 @@ class _HomeScreenState extends State<HomeScreen>
                         context,
                         MaterialPageRoute(
                           builder: (_) => isNew
-                              ? const ProductListScreen()
-                              : const ProductListScreen(initialSortBy: '인기순'),
+                              ? const ProductListScreen(initialOnlyNew: true)
+                              : const ProductListScreen(initialOnlyBest: true),
                         ),
                       ),
                       child: Container(

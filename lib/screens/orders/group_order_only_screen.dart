@@ -730,24 +730,19 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                           )
                         : _imgPlaceholder(full: true),
                   ),
-                  // 배지들
-                  Positioned(
-                    top: 8, left: 8,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _gridBadge('단체전용', const Color(0xFF4A148C)),
-                        if (p.isSale) ...[
-                          const SizedBox(height: 4),
-                          _gridBadge('SALE', const Color(0xFFC62828)),
+                  // 배지들 (단체전용 배지 제거 — 이 화면 자체가 단체주문 전용)
+                  if (p.isSale || p.isNew)
+                    Positioned(
+                      top: 8, left: 8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (p.isSale) _gridBadge('SALE', const Color(0xFFC62828)),
+                          if (p.isSale && p.isNew) const SizedBox(height: 4),
+                          if (p.isNew) _gridBadge('NEW', const Color(0xFF1565C0)),
                         ],
-                        if (p.isNew) ...[
-                          const SizedBox(height: 4),
-                          _gridBadge('NEW', const Color(0xFF1565C0)),
-                        ],
-                      ],
+                      ),
                     ),
-                  ),
                   // 무료배송 태그
                   if (p.isFreeShipping)
                     Positioned(
@@ -894,20 +889,16 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        _badge('단체전용', const Color(0xFF4A148C)),
-                        if (p.isSale) ...[
-                          const SizedBox(width: 4),
-                          _badge('SALE', const Color(0xFFC62828)),
+                    if (p.isSale || p.isNew) ...[
+                      Row(
+                        children: [
+                          if (p.isSale) _badge('SALE', const Color(0xFFC62828)),
+                          if (p.isSale && p.isNew) const SizedBox(width: 4),
+                          if (p.isNew) _badge('NEW', const Color(0xFF1565C0)),
                         ],
-                        if (p.isNew) ...[
-                          const SizedBox(width: 4),
-                          _badge('NEW', const Color(0xFF1565C0)),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 6),
+                      ),
+                      const SizedBox(height: 4),
+                    ],
                     Text(p.name,
                         style: const TextStyle(
                             fontSize: 15,
