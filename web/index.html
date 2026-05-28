@@ -177,6 +177,55 @@
   </div>
 
   <script>
+    // ── 배포 버전 폴링: 열려있는 탭도 새 배포 감지 시 자동 새로고침 ──────
+    // flutter_bootstrap.js는 매 빌드마다 내용이 바뀌고 no-cache이므로
+    // ETag/Last-Modified로 변경 감지 → window.location.reload() 호출
+    (function() {
+      var CHECK_INTERVAL = 30 * 1000; // 30초마다 체크
+      var lastETag = null;
+      var lastModified = null;
+      var checking = false;
+
+      function checkVersion() {
+        if (checking || document.hidden) return; // 탭 비활성 중엔 건너뜀
+        checking = true;
+        fetch('flutter_bootstrap.js?_vc=' + Date.now(), {
+          method: 'HEAD',
+          cache: 'no-store'
+        })
+        .then(function(res) {
+          var etag = res.headers.get('etag');
+          var lm   = res.headers.get('last-modified');
+          if (lastETag === null && lastModified === null) {
+            // 최초 로드 시 기준값 저장
+            lastETag = etag;
+            lastModified = lm;
+          } else {
+            // 기준값과 달라지면 새 배포 → 새로고침
+            var changed = (etag && etag !== lastETag) ||
+                          (!etag && lm && lm !== lastModified);
+            if (changed) {
+              console.log('[2FIT] 새 버전 감지 — 자동 새로고침');
+              window.location.reload();
+            }
+          }
+        })
+        .catch(function() { /* 네트워크 오류 시 무시 */ })
+        .finally(function() { checking = false; });
+      }
+
+      // 페이지 로드 후 5초 뒤 첫 기준값 설정
+      window.addEventListener('load', function() {
+        setTimeout(checkVersion, 5000);
+        setInterval(checkVersion, CHECK_INTERVAL);
+      });
+
+      // 탭이 다시 활성화될 때 즉시 체크 (자리 비웠다 돌아왔을 때)
+      document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) setTimeout(checkVersion, 500);
+      });
+    })();
+
     // ── Service Worker 등록 & 자동 업데이트 ──────────────────────────────
     // Flutter 빌드 시 생성되는 flutter_service_worker.js를 등록합니다.
     // 새 버전이 배포되면 SW가 자동 감지 → 페이지를 자동 새로고침하여
