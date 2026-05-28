@@ -10460,7 +10460,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     Icon(Icons.info_outline, size: 13, color: Color(0xFFE65100)),
                     SizedBox(width: 6),
                     Expanded(child: Text(
-                      'K(블랙) · PP(화이트) → 기본가  |  그 외 색상 → +₩20,000',
+                      '블랙 · 화이트 → 기본가  |  그 외 색상 → +₩20,000',
                       style: TextStyle(fontSize: 11, color: Color(0xFFE65100), fontWeight: FontWeight.w600),
                     )),
                   ]),
@@ -10480,10 +10480,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                       final name = c['name'] as String;
                       final hexVal = c['hex'] as int;
                       final isSelected = _selectedColors.contains(name);
-                      final isFree = name == '블랙' || name == '화이트';
-                      final isLight = hexVal == 0xFFF5F5F5 || hexVal == 0xFFFFFBEA ||
-                          hexVal == 0xFFF8BBD0 || hexVal == 0xFFE6CCFF || hexVal == 0xFFFFCBA4 ||
-                          hexVal == 0xFFF5E6C8 || hexVal == 0xFFFFFFFF || hexVal == 0xFFFFFF00;
+                      // isFree: twoFitColors의 isFree 필드 사용 (블랙·화이트 = 기본가)
+                      final isFree = (c['isFree'] as bool?) ?? (name == '블랙' || name == '화이트');
+                      // isLight: computeLuminance 기반 (> 0.35 → 어두운 텍스트)
+                      // Flutter Color.computeLuminance()와 동일한 WCAG 2.1 알고리즘
+                      final color = Color(hexVal);
+                      final isLight = color.computeLuminance() > 0.35;
                       return GestureDetector(
                         onTap: () => setState(() {
                           if (isSelected) {
