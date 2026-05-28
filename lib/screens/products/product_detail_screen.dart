@@ -1608,71 +1608,72 @@ $productUrl
     );
   }
 
-  // ── 골지 19색 + 일반 색상 공통 맵 (사진 실물 기준, 전체 UI 동일 적용) ──
+  // ── 골지 19색 + 일반 색상 공통 맵
+  // 실물 촬영 이미지 픽셀 직접 추출 — median sampling (2026-05-28)
   static const Map<String, Color> _goljiColorMap = {
-    // 골지 19색 코드 (실물 사진 기준)
-    'K':  Color(0xFF1F1F20),  // 블랙
-    'N':  Color(0xFF243A77),  // 네이비
-    'W':  Color(0xFFF3F3F1),  // 화이트
-    'G':  Color(0xFFB0B0B0),  // 그레이
-    'DG': Color(0xFF5E5E5F),  // 다크그레이
-    'SB': Color(0xFF79B7E6),  // 스카이블루
-    'B':  Color(0xFF2B6FD3),  // 블루
-    'DB': Color(0xFF344C8F),  // 다크블루
-    'SP': Color(0xFFE5C3BF),  // 스킨핑크
-    'LP': Color(0xFFE6AEBB),  // 라이트핑크
-    'IO': Color(0xFFD8D2C4),  // 아이보리
-    'LG': Color(0xFFBCBCBD),  // 라이트그레이
-    'R':  Color(0xFFD61D1D),  // 레드
-    'PP': Color(0xFF2E314F),  // 퍼플네이비
-    'ND': Color(0xFF4B5A38),  // 올리브그린
-    'BB': Color(0xFF0088A3),  // 틸블루
-    'FP': Color(0xFFFF1697),  // 형광핑크
-    'FO': Color(0xFFFF6A00),  // 형광오렌지
-    'FG': Color(0xFFA6F100),  // 형광그린
-    // 영문 색상명
-    'Black':    Color(0xFF1F1F20),
-    'White':    Color(0xFFF3F3F1),
-    'Navy':     Color(0xFF243A77),
-    'Gray':     Color(0xFFB0B0B0),
-    'Red':      Color(0xFFD61D1D),
-    'Blue':     Color(0xFF2B6FD3),
-    'Pink':     Color(0xFFE6AEBB),
-    'Purple':   Color(0xFF2E314F),
-    'Sky Blue': Color(0xFF79B7E6),
-    'Green':    Color(0xFF4B5A38),
+    // ── 골지 19색 (코드 기준) ──────────────────────────────
+    'K':  Color(0xFF3A3A3A),  // 블랙
+    'N':  Color(0xFF2A3668),  // 네이비
+    'W':  Color(0xFFF2F2F2),  // 화이트
+    'G':  Color(0xFF9E9E9E),  // 그레이
+    'DG': Color(0xFF424242),  // 다크그레이
+    'SB': Color(0xFF92C9F8),  // 스카이블루
+    'B':  Color(0xFF3A6ACD),  // 블루
+    'DB': Color(0xFF485685),  // 다크블루
+    'SP': Color(0xFFE7C6BF),  // 스킨핑크
+    'LP': Color(0xFFE6A8B1),  // 라이트핑크
+    'IO': Color(0xFFD2CEC3),  // 아이보리
+    'LG': Color(0xFFBDBDBD),  // 라이트그레이
+    'R':  Color(0xFFE03430),  // 레드
+    'PP': Color(0xFF363752),  // 퍼플네이비
+    'ND': Color(0xFF4B5441),  // 올리브그린
+    'BB': Color(0xFF116977),  // 틸블루
+    'FP': Color(0xFFFD1691),  // 형광핑크
+    'FO': Color(0xFFFE6502),  // 형광오렌지
+    'FG': Color(0xFF7FD905),  // 형광그린
+    // ── 영문 색상명 매핑 ──────────────────────────────────
+    'Black':    Color(0xFF3A3A3A),
+    'White':    Color(0xFFF2F2F2),
+    'Navy':     Color(0xFF2A3668),
+    'Gray':     Color(0xFF9E9E9E),
+    'Red':      Color(0xFFE03430),
+    'Blue':     Color(0xFF3A6ACD),
+    'Pink':     Color(0xFFE6A8B1),
+    'Purple':   Color(0xFF363752),
+    'Sky Blue': Color(0xFF92C9F8),
+    'Green':    Color(0xFF4B5441),
     'Yellow':   Color(0xFFFFD600),
     'Brown':    Color(0xFF795548),
-    'Beige':    Color(0xFFD8D2C4),
-    'Orange':   Color(0xFFFF6A00),
+    'Beige':    Color(0xFFD2CEC3),
+    'Orange':   Color(0xFFFE6502),
     'Mint':     Color(0xFF26C9A0),
-    // 한글 색상명
-    '블랙':      Color(0xFF1F1F20),
-    '화이트':    Color(0xFFF3F3F1),
-    '네이비':    Color(0xFF243A77),
-    '그레이':    Color(0xFFB0B0B0),
-    '다크그레이': Color(0xFF5E5E5F),
-    '스카이블루': Color(0xFF79B7E6),
-    '블루':      Color(0xFF2B6FD3),
-    '다크블루':  Color(0xFF344C8F),
-    '스킨핑크':  Color(0xFFE5C3BF),
-    '라이트핑크': Color(0xFFE6AEBB),
-    '아이보리':  Color(0xFFD8D2C4),
-    '라이트그레이': Color(0xFFBCBCBD),
-    '레드':      Color(0xFFD61D1D),
-    '퍼플네이비': Color(0xFF2E314F),
-    '올리브그린': Color(0xFF4B5A38),
-    '틸블루':    Color(0xFF0088A3),
-    '형광핑크':  Color(0xFFFF1697),
-    '형광오렌지': Color(0xFFFF6A00),
-    '형광그린':  Color(0xFFA6F100),
-    '퍼플':      Color(0xFF2E314F),
-    '핑크':      Color(0xFFE6AEBB),
-    '그린':      Color(0xFF4B5A38),
-    '옐로우':    Color(0xFFFFD600),
-    '브라운':    Color(0xFF795548),
-    '베이지':    Color(0xFFD8D2C4),
-    '민트':      Color(0xFF26C9A0),
+    // ── 한글 색상명 매핑 ──────────────────────────────────
+    '블랙':       Color(0xFF3A3A3A),
+    '화이트':     Color(0xFFF2F2F2),
+    '네이비':     Color(0xFF2A3668),
+    '그레이':     Color(0xFF9E9E9E),
+    '다크그레이':  Color(0xFF424242),
+    '스카이블루':  Color(0xFF92C9F8),
+    '블루':       Color(0xFF3A6ACD),
+    '다크블루':   Color(0xFF485685),
+    '스킨핑크':   Color(0xFFE7C6BF),
+    '라이트핑크':  Color(0xFFE6A8B1),
+    '아이보리':   Color(0xFFD2CEC3),
+    '라이트그레이': Color(0xFFBDBDBD),
+    '레드':       Color(0xFFE03430),
+    '퍼플네이비':  Color(0xFF363752),
+    '올리브그린':  Color(0xFF4B5441),
+    '틸블루':     Color(0xFF116977),
+    '형광핑크':   Color(0xFFFD1691),
+    '형광오렌지':  Color(0xFFFE6502),
+    '형광그린':   Color(0xFF7FD905),
+    '퍼플':       Color(0xFF363752),
+    '핑크':       Color(0xFFE6A8B1),
+    '그린':       Color(0xFF4B5441),
+    '옐로우':     Color(0xFFFFD600),
+    '브라운':     Color(0xFF795548),
+    '베이지':     Color(0xFFD2CEC3),
+    '민트':       Color(0xFF26C9A0),
   };
 
   // ── 색상 칩: _buildToptenColorSection과 동일한 원형 36px 스타일 ──
@@ -4363,25 +4364,26 @@ $productUrl
     // ── 골지원단 19색 전체 데이터
     // 실물 사진 기준 19색 — _goljiColorMap과 완전 동일
     final allGoljiColors = [
-      {'code': 'K',  'name': '블랙',        'hex': 0xFF1F1F20},
-      {'code': 'N',  'name': '네이비',       'hex': 0xFF243A77},
-      {'code': 'W',  'name': '화이트',       'hex': 0xFFF3F3F1},
-      {'code': 'G',  'name': '그레이',       'hex': 0xFFB0B0B0},
-      {'code': 'DG', 'name': '다크그레이',   'hex': 0xFF5E5E5F},
-      {'code': 'SB', 'name': '스카이블루',   'hex': 0xFF79B7E6},
-      {'code': 'B',  'name': '블루',         'hex': 0xFF2B6FD3},
-      {'code': 'DB', 'name': '다크블루',     'hex': 0xFF344C8F},
-      {'code': 'SP', 'name': '스킨핑크',     'hex': 0xFFE5C3BF},
-      {'code': 'LP', 'name': '라이트핑크',   'hex': 0xFFE6AEBB},
-      {'code': 'IO', 'name': '아이보리',     'hex': 0xFFD8D2C4},
-      {'code': 'LG', 'name': '라이트그레이', 'hex': 0xFFBCBCBD},
-      {'code': 'R',  'name': '레드',         'hex': 0xFFD61D1D},
-      {'code': 'PP', 'name': '퍼플네이비',   'hex': 0xFF2E314F},
-      {'code': 'ND', 'name': '올리브그린',   'hex': 0xFF4B5A38},
-      {'code': 'BB', 'name': '틸블루',       'hex': 0xFF0088A3},
-      {'code': 'FP', 'name': '형광핑크',     'hex': 0xFFFF1697},
-      {'code': 'FO', 'name': '형광오렌지',   'hex': 0xFFFF6A00},
-      {'code': 'FG', 'name': '형광그린',     'hex': 0xFFA6F100},
+      // 실물 촬영 이미지 픽셀 직접 추출 — median sampling (2026-05-28)
+      {'code': 'K',  'name': '블랙',        'hex': 0xFF3A3A3A},
+      {'code': 'N',  'name': '네이비',       'hex': 0xFF2A3668},
+      {'code': 'W',  'name': '화이트',       'hex': 0xFFF2F2F2},
+      {'code': 'G',  'name': '그레이',       'hex': 0xFF9E9E9E},
+      {'code': 'DG', 'name': '다크그레이',   'hex': 0xFF424242},
+      {'code': 'SB', 'name': '스카이블루',   'hex': 0xFF92C9F8},
+      {'code': 'B',  'name': '블루',         'hex': 0xFF3A6ACD},
+      {'code': 'DB', 'name': '다크블루',     'hex': 0xFF485685},
+      {'code': 'SP', 'name': '스킨핑크',     'hex': 0xFFE7C6BF},
+      {'code': 'LP', 'name': '라이트핑크',   'hex': 0xFFE6A8B1},
+      {'code': 'IO', 'name': '아이보리',     'hex': 0xFFD2CEC3},
+      {'code': 'LG', 'name': '라이트그레이', 'hex': 0xFFBDBDBD},
+      {'code': 'R',  'name': '레드',         'hex': 0xFFE03430},
+      {'code': 'PP', 'name': '퍼플네이비',   'hex': 0xFF363752},
+      {'code': 'ND', 'name': '올리브그린',   'hex': 0xFF4B5441},
+      {'code': 'BB', 'name': '틸블루',       'hex': 0xFF116977},
+      {'code': 'FP', 'name': '형광핑크',     'hex': 0xFFFD1691},
+      {'code': 'FO', 'name': '형광오렌지',   'hex': 0xFFFE6502},
+      {'code': 'FG', 'name': '형광그린',     'hex': 0xFF7FD905},
     ];
 
     // 기성품 하의 선택 가능 색상 (K=블랙, PP=퍼플네이비)

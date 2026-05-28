@@ -87,38 +87,30 @@ class AppConstants {
   // Product Nylon/Spandex Material
   static const String defaultMaterial = '78% Nylon, 22% Spandex / 4-way Stretch';
 
-  // ── 2FIT 등록 색상 팔레트 (사진 기반) ──
+  // ── 2FIT 등록 색상 팔레트 ──
+  // 골지원단 실물 촬영 이미지 픽셀 직접 추출 — median sampling (2026-05-28)
+  // product_detail_screen.dart _goljiColorMap / allGoljiColors 와 완전 동일
+  // isFree 기준: 블랙(K) · 화이트(W) → +₩0 (기본가)
   static const List<Map<String, dynamic>> twoFitColors = [
-    {'name': '블랙',       'nameEn': 'Black',      'hex': 0xFF1A1A1A},
-    {'name': '화이트',     'nameEn': 'White',      'hex': 0xFFF5F5F5},
-    {'name': '챠콜',       'nameEn': 'Charcoal',   'hex': 0xFF3C3C3C},
-    {'name': '라이트그레이','nameEn': 'Lt.Gray',    'hex': 0xFFBDBDBD},
-    {'name': '네이비',     'nameEn': 'Navy',       'hex': 0xFF0D1B4F},
-    {'name': '로얄블루',   'nameEn': 'Royal Blue', 'hex': 0xFF1245A8},
-    {'name': '스카이블루', 'nameEn': 'Sky Blue',   'hex': 0xFF3FA9F5},
-    {'name': '민트',       'nameEn': 'Mint',       'hex': 0xFF26C9A0},
-    {'name': '다크그린',   'nameEn': 'D.Green',    'hex': 0xFF1B4332},
-    {'name': '그린',       'nameEn': 'Green',      'hex': 0xFF43A047},
-    {'name': '레드',       'nameEn': 'Red',        'hex': 0xFFCC0000},
-    {'name': '버건디',     'nameEn': 'Burgundy',   'hex': 0xFF6D0E19},
-    {'name': '핑크',       'nameEn': 'Pink',       'hex': 0xFFEE82A2},
-    {'name': '라이트핑크', 'nameEn': 'Lt.Pink',    'hex': 0xFFF8BBD0},
-    {'name': '퍼플',       'nameEn': 'Purple',     'hex': 0xFF7B1FA2},
-    {'name': '오렌지',     'nameEn': 'Orange',     'hex': 0xFFFF6B35},
-    {'name': '옐로우',     'nameEn': 'Yellow',     'hex': 0xFFFFD600},
-    {'name': '골드',       'nameEn': 'Gold',       'hex': 0xFFD4AF37},
-    {'name': '카키',       'nameEn': 'Khaki',      'hex': 0xFF7D7C48},
-    {'name': '브라운',     'nameEn': 'Brown',      'hex': 0xFF795548},
-    {'name': '베이지',     'nameEn': 'Beige',      'hex': 0xFFF5E6C8},
-    {'name': '아이보리',   'nameEn': 'Ivory',      'hex': 0xFFFFFBEA},
-    {'name': '실버',       'nameEn': 'Silver',     'hex': 0xFFC0C0C0},
-    {'name': '형광그린',   'nameEn': 'Neon Green', 'hex': 0xFF39FF14},
-    {'name': '형광핑크',   'nameEn': 'Neon Pink',  'hex': 0xFFFF1493},
-    {'name': '형광옐로우', 'nameEn': 'Neon Yellow','hex': 0xFFFFFF00},
-    {'name': '네온오렌지', 'nameEn': 'Neon Orange','hex': 0xFFFF5F00},
-    {'name': '코발트',     'nameEn': 'Cobalt',     'hex': 0xFF0047AB},
-    {'name': '라벤더',     'nameEn': 'Lavender',   'hex': 0xFFE6CCFF},
-    {'name': '피치',       'nameEn': 'Peach',      'hex': 0xFFFFCBA4},
+    {'name': '블랙',       'nameEn': 'K (Black)',      'hex': 0xFF3A3A3A, 'isFree': true},
+    {'name': '네이비',     'nameEn': 'N (Navy)',       'hex': 0xFF2A3668, 'isFree': false},
+    {'name': '화이트',     'nameEn': 'W (White)',      'hex': 0xFFF2F2F2, 'isFree': true},
+    {'name': '그레이',     'nameEn': 'G (Gray)',       'hex': 0xFF9E9E9E, 'isFree': false},
+    {'name': '다크그레이', 'nameEn': 'DG (D.Gray)',    'hex': 0xFF424242, 'isFree': false},
+    {'name': '스카이블루', 'nameEn': 'SB (Sky Blue)',  'hex': 0xFF92C9F8, 'isFree': false},
+    {'name': '블루',       'nameEn': 'B (Blue)',       'hex': 0xFF3A6ACD, 'isFree': false},
+    {'name': '다크블루',   'nameEn': 'DB (D.Blue)',    'hex': 0xFF485685, 'isFree': false},
+    {'name': '스킨핑크',   'nameEn': 'SP (Skin Pink)', 'hex': 0xFFE7C6BF, 'isFree': false},
+    {'name': '라이트핑크', 'nameEn': 'LP (Lt.Pink)',   'hex': 0xFFE6A8B1, 'isFree': false},
+    {'name': '아이보리',   'nameEn': 'IO (Ivory)',     'hex': 0xFFD2CEC3, 'isFree': false},
+    {'name': '라이트그레이','nameEn': 'LG (Lt.Gray)',  'hex': 0xFFBDBDBD, 'isFree': false},
+    {'name': '레드',       'nameEn': 'R (Red)',        'hex': 0xFFE03430, 'isFree': false},
+    {'name': '퍼플네이비', 'nameEn': 'PP (PP Navy)',   'hex': 0xFF363752, 'isFree': false},
+    {'name': '올리브그린', 'nameEn': 'ND (Olive)',     'hex': 0xFF4B5441, 'isFree': false},
+    {'name': '틸블루',     'nameEn': 'BB (Teal Blue)', 'hex': 0xFF116977, 'isFree': false},
+    {'name': '형광핑크',   'nameEn': 'FP (Neon Pink)', 'hex': 0xFFFD1691, 'isFree': false},
+    {'name': '형광오렌지', 'nameEn': 'FO (Neon Org)',  'hex': 0xFFFE6502, 'isFree': false},
+    {'name': '형광그린',   'nameEn': 'FG (Neon Grn)',  'hex': 0xFF7FD905, 'isFree': false},
   ];
 
   // ── 성인 사이즈 조건표 ──
