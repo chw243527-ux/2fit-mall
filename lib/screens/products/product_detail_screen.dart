@@ -3998,34 +3998,14 @@ $productUrl
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 섹션 2: MATERIAL — 탑텐 스타일 소재/기술 + 섬유 혼용율 표
+  // 섹션 2: MATERIAL — 탑텐 스타일 소재/기술
   // ═══════════════════════════════════════════════════════════
   Widget _buildSection2Material(ProductModel product, bool isAdmin) {
-    final fiberTable = loc.fiberTableData;
     final techRows = [
       {'label': 'SEAMLESS', 'desc': loc.feat2Title, 'sub': loc.feat2Desc},
       {'label': 'FAST DRY',  'desc': loc.techDryTitle,  'sub': loc.techDryDesc},
       {'label': 'MOISTURE',  'desc': loc.techAbsorbTitle,'sub': loc.techAbsorbDesc},
     ];
-
-    // 싱글렛/싱글렛세트 카테고리 판별
-    final isSingletProduct =
-        product.category.contains('싱글렛') ||
-        product.subCategory.contains('싱글렛') ||
-        product.name.contains('싱글렛') ||
-        (product.category == '상의' &&
-            (product.subCategory.contains('싱글렛') || product.name.contains('singlet')));
-    // 싱글렛 상의 소재 행 (폴리에스터 92% / 라이크라 8%)
-    final singletTopRow = _getSingletTopFiberRow();
-
-    // 골지 타이즈 카테고리 판별 (하의 타이즈)
-    final isGoljiTaiz =
-        product.subCategory.contains('타이즈') ||
-        product.name.contains('타이즈') ||
-        product.category == '하의' ||
-        product.subCategory.contains('골지');
-    // 골지 타이즈 소재 행 (나일론 75% / 라이크라 25%)
-    final goljiTaizRow = _getGoljiTaizFiberRow();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -4128,134 +4108,7 @@ $productUrl
                   ).toList(),
                 ),
 
-        // ── 섬유 혼용율 표 (탑텐 스타일: 검정 헤더 + 흰 배경 + 검정 구분선)
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 표 제목
-              const Text('FABRIC COMPOSITION',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900,
-                    color: Color(0xFF1A1A1A), letterSpacing: 1.5)),
-              const SizedBox(height: 4),
-              Text(loc.productFabricCompositionNote,
-                style: const TextStyle(fontSize: 11, color: Color(0xFF999999))),
-              const SizedBox(height: 16),
-              // 표
-              Container(
-                decoration: BoxDecoration(border: Border.all(color: const Color(0xFFDDDDDD))),
-                child: Column(
-                  children: [
-                    // 헤더행
-                    Container(
-                      color: const Color(0xFF1A1A1A),
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                      child: Row(
-                        children: [
-                          Expanded(flex: 5, child: Text(loc.fiberCategory,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11))),
-                          Expanded(flex: 4, child: Text(loc.fiberMainMaterial,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11),
-                            textAlign: TextAlign.center)),
-                          Expanded(flex: 3, child: Text(loc.fiberMix,
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11),
-                            textAlign: TextAlign.center)),
-                        ],
-                      ),
-                    ),
-                    // 골지 타이즈: 소재 행 강조 표시 (최상단, 파란 배지)
-                    if (isGoljiTaiz && goljiTaizRow != null)
-                      Container(
-                        color: const Color(0xFFE8F5E9),
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                        child: Row(
-                          children: [
-                            Expanded(flex: 5, child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                  margin: const EdgeInsets.only(right: 6),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF1B5E20),
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                  child: const Text('하의', style: TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800)),
-                                ),
-                                Flexible(child: Text(goljiTaizRow[0],
-                                  style: const TextStyle(fontSize: 11, color: Color(0xFF333333), fontWeight: FontWeight.w600))),
-                              ],
-                            )),
-                            Expanded(flex: 4, child: Text(goljiTaizRow[1],
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A), fontWeight: FontWeight.w800),
-                              textAlign: TextAlign.center)),
-                            Expanded(flex: 3, child: Text(goljiTaizRow[2],
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w600),
-                              textAlign: TextAlign.center)),
-                          ],
-                        ),
-                      ),
-                    // 싱글렛/싱글렛세트: 상의 소재 행 강조 표시 (최상단)
-                    if (isSingletProduct && singletTopRow != null)
-                      Container(
-                        color: const Color(0xFFFFF8E1),
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                        child: Row(
-                          children: [
-                            Expanded(flex: 5, child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                  margin: const EdgeInsets.only(right: 6),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFF6F00),
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                  child: const Text('상의', style: TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800)),
-                                ),
-                                Flexible(child: Text(singletTopRow[0],
-                                  style: const TextStyle(fontSize: 11, color: Color(0xFF333333), fontWeight: FontWeight.w600))),
-                              ],
-                            )),
-                            Expanded(flex: 4, child: Text(singletTopRow[1],
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A),
-                                  fontWeight: FontWeight.w800),
-                              textAlign: TextAlign.center)),
-                            Expanded(flex: 3, child: Text(singletTopRow[2],
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w600),
-                              textAlign: TextAlign.center)),
-                          ],
-                        ),
-                      ),
-                    // 데이터행
-                    ...fiberTable.asMap().entries.map((e) {
-                      final row = e.value;
-                      final even = e.key % 2 == 0;
-                      return Container(
-                        color: even ? Colors.white : const Color(0xFFF8F8F8),
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                        child: Row(
-                          children: [
-                            Expanded(flex: 5, child: Text(row[0],
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF333333)))),
-                            Expanded(flex: 4, child: Text(row[1],
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A),
-                                  fontWeight: FontWeight.w700),
-                              textAlign: TextAlign.center)),
-                            Expanded(flex: 3, child: Text(row[2],
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
-                              textAlign: TextAlign.center)),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+
       ],
     );
   }
