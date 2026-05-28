@@ -4866,6 +4866,7 @@ class _HomeScreenState extends State<HomeScreen>
         // ③ 여전히 비어있으면 섹션 숨김
         if (products.isEmpty) return const SizedBox.shrink();
 
+        final isDesktop = MediaQuery.of(context).size.width >= 900;
         return _buildProductSection(
           title: loc.sectionNewArrival,
           englishTitle: loc.sectionNewArrivalSub,
@@ -4873,6 +4874,7 @@ class _HomeScreenState extends State<HomeScreen>
           products: products,
           category: '이벤트',
           viewAllLabel: loc.viewAll,
+          isHorizontal: !isDesktop,
         );
       },
     );
@@ -4912,6 +4914,7 @@ class _HomeScreenState extends State<HomeScreen>
         // ③ 여전히 비어있으면 섹션 숨김
         if (bestProds.isEmpty) return const SizedBox.shrink();
 
+        final isDesktop = MediaQuery.of(context).size.width >= 900;
         return _buildProductSection(
           title: loc.sectionBestSeller,
           englishTitle: loc.sectionBestSellerSub,
@@ -4919,6 +4922,7 @@ class _HomeScreenState extends State<HomeScreen>
           products: bestProds,
           category: '전체',
           viewAllLabel: loc.viewAll,
+          isHorizontal: !isDesktop,
         );
       },
     );
@@ -4988,12 +4992,15 @@ class _HomeScreenState extends State<HomeScreen>
     required List<ProductModel> products,
     required String category,
     required String viewAllLabel,
+    bool isHorizontal = true, // 모바일: true(가로스크롤), PC: false(그리드)
   }) {
     if (products.isEmpty) return const SizedBox.shrink();
-    final screenWidth = MediaQuery.of(context).size.width;
-    // 모바일 폭 기준으로 컬럼 수 및 비율 결정
-    final crossAxisCount = screenWidth >= 600 ? 3 : 2;
-    const spacing = 8.0;
+
+    final screenW = MediaQuery.of(context).size.width;
+    final isTabletW = screenW >= 600;
+    // 카드 너비: 모바일 42%, 태블릿 28% — 옆 카드가 살짝 보여 "더 있다"는 힌트 제공
+    final cardW = isTabletW ? screenW * 0.28 : screenW * 0.42;
+    final imgH  = cardW * 1.2; // 5:6 비율
 
     return Container(
       color: Colors.white,
@@ -5001,7 +5008,8 @@ class _HomeScreenState extends State<HomeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(height: 1, color: const Color(0xFFF0F0F0)),
-          // 섹션 헤더
+
+          // ── 섹션 헤더 ──────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
             child: Row(
@@ -5062,25 +5070,204 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          // Wrap으로 카드 실제 높이 유지 — 이미지 잘림 없음
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: LayoutBuilder(
-              builder: (ctx, constraints) {
-                final cardW = (constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount;
-                final display = products.length > 8 ? products.sublist(0, 8) : products;
-                return Wrap(
-                  spacing: spacing,
-                  runSpacing: spacing,
-                  children: display.map((p) =>
-                    SizedBox(width: cardW, child: ProductCard(product: p))
-                  ).toList(),
+
+          const SizedBox(height: 14),
+
+          // ── PC 그리드 (isHorizontal=false) ─────────
+          if (!isHorizontal)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: LayoutBuilder(
+                builder: (ctx, constraints) {
+                  final cols = screenW >= 1200 ? 5 : (screenW >= 900 ? 4 : 3);
+                  const sp = 12.0;
+                  final cw = (constraints.maxWidth - sp * (cols - 1)) / cols;
+                  final display = products.length > 10 ? products.sublist(0, 10) : products;
+                  return Wrap(
+                    spacing: sp,
+                    runSpacing: sp,
+                    children: display
+                        .map((p) => SizedBox(width: cw, child: ProductCard(product: p)))
+                        .toList(),
+                  );
+                },
+              ),
+            ),
+
+          // ── 모바일 가로 스크롤 카드 리스트 ─────────
+          if (isHorizontal)
+          SizedBox(
+            height: imgH + 72, // 이미지 + 텍스트 영역
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: products.length,
+              itemBuilder: (_, i) {
+                final p = products[i];
+                final hasDiscount = p.originalPrice != null && p.originalPrice! > p.price;
+                final discountPct = hasDiscount
+                    ? ((1 - p.price / p.originalPrice!) * 100).round()
+                    : 0;
+
+                return GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProductDetailScreen(product: p),
+                    ),
+                  ),
+                  child: Container(
+                    width: cardW,
+                    margin: const EdgeInsets.only(right: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFEEEEEE)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 이미지
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(10)),
+                          child: Stack(
+                            children: [
+                              SizedBox(
+                                width: cardW,
+                                height: imgH,
+                                child: Container(
+                                  color: const Color(0xFFF8F8F8),
+                                  child: p.images.isNotEmpty
+                                      ? Image.network(
+                                          p.images.first,
+                                          fit: BoxFit.contain,
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                          errorBuilder: (_, __, ___) =>
+                                              const Icon(
+                                            Icons.image_not_supported_rounded,
+                                            color: Color(0xFFCCCCCC),
+                                            size: 28,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.image_not_supported_rounded,
+                                          color: Color(0xFFCCCCCC),
+                                          size: 28,
+                                        ),
+                                ),
+                              ),
+                              // NEW 뱃지
+                              if (p.isNew)
+                                Positioned(
+                                  top: 6,
+                                  left: 6,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF111111),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    child: const Text(
+                                      'NEW',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.w900),
+                                    ),
+                                  ),
+                                ),
+                              // 할인율 뱃지
+                              if (discountPct > 0)
+                                Positioned(
+                                  top: 6,
+                                  right: 6,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE53935),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    child: Text(
+                                      '-$discountPct%',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.w900),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+
+                        // 텍스트 영역
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(8, 7, 8, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                p.name,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF222222),
+                                  height: 1.35,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  if (hasDiscount) ...[
+                                    Text(
+                                      '${p.originalPrice!.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
+                                      style: const TextStyle(
+                                        fontSize: 9,
+                                        color: Color(0xFFAAAAAA),
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                  ],
+                                  Text(
+                                    '${p.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w800,
+                                      color: hasDiscount
+                                          ? const Color(0xFFE53935)
+                                          : const Color(0xFF111111),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
           ),
-          const SizedBox(height: 20),
+
+          const SizedBox(height: 16),
         ],
       ),
     );
