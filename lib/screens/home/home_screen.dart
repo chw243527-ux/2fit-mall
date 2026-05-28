@@ -2368,9 +2368,8 @@ class _HomeScreenState extends State<HomeScreen>
                   // ── 베스트 상품 ──
                   SliverToBoxAdapter(child: _buildBestSection(loc)),
 
-                  // 태블릿: 신상품도 추가
-                  if (isTablet)
-                    SliverToBoxAdapter(child: _buildNewArrivalsSection(loc)),
+                  // ── 신상품 (모바일/태블릿 모두 표시) ──
+                  SliverToBoxAdapter(child: _buildNewArrivalsSection(loc)),
 
                   SliverToBoxAdapter(
                       child: SizedBox(height: isMobile ? 80 : 48)),
