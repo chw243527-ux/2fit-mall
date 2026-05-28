@@ -28,9 +28,19 @@ jobs:
       - name: Patch renderer to html
         run: sed -i 's/"renderer":"canvaskit"/"renderer":"html"/g' build/web/flutter_bootstrap.js
 
+      - name: Install wrangler (fixed version)
+        run: npm install -g wrangler@3.78.12
+
       - name: Deploy to Cloudflare Pages (Production)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy build/web --project-name=twofit-mall --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          RUN_NUM="${{ github.run_number }}"
+          wrangler pages deploy build/web \
+            --project-name=twofit-mall \
+            --branch=main \
+            --commit-dirty=true \
+            --commit-message="deploy: build-${RUN_NUM} (${SHORT_SHA})" \
+            --commit-hash="${{ github.sha }}"
