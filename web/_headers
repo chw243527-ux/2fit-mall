@@ -4,9 +4,20 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
 
+# ── HTML / SW / manifest: 항상 최신 버전 확인 (캐시 금지) ──
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
 
+/flutter_service_worker.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/manifest.json
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/flutter_bootstrap.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# ── JS / 정적 에셋: 해시가 파일명에 포함 → 장기 캐시 OK ──
 /flutter.js
   Cache-Control: public, max-age=31536000, immutable
 

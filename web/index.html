@@ -177,21 +177,39 @@
   </div>
 
   <script>
-    // SW 및 캐시 완전 제거
-    (function() {
-      try {
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(regs) {
-            regs.forEach(function(r) { r.unregister(); });
-          });
-        }
-        if ('caches' in window) {
-          caches.keys().then(function(keys) {
-            keys.forEach(function(k) { caches.delete(k); });
-          });
-        }
-      } catch(e) {}
-    })();
+    // ── Service Worker 등록 & 자동 업데이트 ──────────────────────────────
+    // Flutter 빌드 시 생성되는 flutter_service_worker.js를 등록합니다.
+    // 새 버전이 배포되면 SW가 자동 감지 → 페이지를 자동 새로고침하여
+    // 홈화면 추가(PWA) 상태에서도 항상 최신 버전이 표시됩니다.
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('flutter_service_worker.js', {scope: '/'})
+          .then(function(reg) {
+            // 새 SW가 설치(대기) 상태가 되면 즉시 활성화
+            reg.addEventListener('updatefound', function() {
+              var newWorker = reg.installing;
+              if (!newWorker) return;
+              newWorker.addEventListener('statechange', function() {
+                // installed 상태 = 새 버전 준비 완료
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // 현재 SW에게 skipWaiting 메시지 전송
+                  newWorker.postMessage({type: 'SKIP_WAITING'});
+                }
+              });
+            });
+          })
+          .catch(function(e) { console.warn('[SW] 등록 실패:', e); });
+
+        // SW가 교체(activate)되면 자동으로 페이지 새로고침
+        var refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
+      });
+    }
 
     // bfcache(앞뒤로 캐시) 복원 시 새로고침 - Flutter 재초기화
     window.addEventListener('pageshow', function(e) {

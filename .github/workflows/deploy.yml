@@ -31,10 +31,15 @@ jobs:
       - name: Patch JS cache busting (append build number to main.dart.js)
         run: |
           BUILD_VER="${{ github.run_number }}"
-          # flutter_bootstrap.js 안의 main.dart.js 참조에 ?v=빌드번호 추가
+          # flutter_bootstrap.js / flutter_service_worker.js / index.html 의
+          # main.dart.js 참조에 ?v=빌드번호 쿼리스트링 추가
+          # → CDN 캐시(max-age=31536000) 무효화, 항상 최신 JS 로드
           sed -i "s/main\.dart\.js\"/main.dart.js?v=${BUILD_VER}\"/g" build/web/flutter_bootstrap.js
-          # index.html 안의 참조도 패치
           sed -i "s/main\.dart\.js\"/main.dart.js?v=${BUILD_VER}\"/g" build/web/index.html
+          if [ -f build/web/flutter_service_worker.js ]; then
+            sed -i "s/\"main\.dart\.js\"/\"main.dart.js?v=${BUILD_VER}\"/g" build/web/flutter_service_worker.js
+            sed -i "s/main\.dart\.js\"/main.dart.js?v=${BUILD_VER}\"/g" build/web/flutter_service_worker.js
+          fi
           echo "Patched main.dart.js → main.dart.js?v=${BUILD_VER}"
 
       - name: Install wrangler (fixed version)
