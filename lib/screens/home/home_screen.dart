@@ -5236,6 +5236,26 @@ class _HomeScreenState extends State<HomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // 단체주문 전용 배지
+                              if (p.isGroupOnly)
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 5),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF6A1B9A),
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                  child: const Text(
+                                    '단체주문 전용',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                ),
                               Text(
                                 p.name,
                                 maxLines: 2,
