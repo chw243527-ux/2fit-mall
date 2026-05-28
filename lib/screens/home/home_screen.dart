@@ -127,12 +127,61 @@ class _HomeScreenState extends State<HomeScreen>
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
 
-    // PC: 배너(영상+텍스트)만 반환 — NavBar/Scaffold는 main_screen의 _PcLayout이 담당
-    return ColoredBox(
-      color: Colors.black,
-      child: activeBanners.isEmpty
-          ? _buildPcLocalBanner(loc)
-          : _buildPcBannerBody(loc, activeBanners),
+    // PC TopBar 높이 (main_screen._PcTopBar 기준)
+    const double kPcTopBarHeight = 64.0;
+
+    // 배너 위젯 (뷰포트 전체 높이 — TopBar 제외)
+    final bannerWidget = activeBanners.isEmpty
+        ? _buildPcLocalBanner(loc)
+        : _buildPcBannerBody(loc, activeBanners);
+
+    // PC: 배너(뷰포트 전체) + 스크롤 섹션 (단체주문·베스트·신상품)
+    // Scaffold/NavBar는 main_screen._PcLayout 담당 — 여기서는 반환하지 않음
+    return RefreshIndicator(
+      color: const Color(0xFF1A1A2E),
+      backgroundColor: Colors.white,
+      onRefresh: () async {
+        await context.read<ProductProvider>().refresh();
+      },
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          // ① 배너: TopBar를 제외한 뷰포트 전체 높이
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height - kPcTopBarHeight,
+              child: ColoredBox(
+                color: Colors.black,
+                child: bannerWidget,
+              ),
+            ),
+          ),
+
+          // ② 단체주문 섹션 (PC 5컬럼 그리드)
+          SliverToBoxAdapter(
+            child: _buildPcHomeSectionWrapper(
+              child: _buildPcGroupOrderSectionV2(loc),
+            ),
+          ),
+
+          // ③ 베스트 상품 섹션 (섹션 자체가 배경색 보유 — maxWidth만 제한)
+          SliverToBoxAdapter(
+            child: _buildPcSectionMaxWidthWrapper(
+              child: _buildBestSection(loc),
+            ),
+          ),
+
+          // ④ 신상품 섹션 (섹션 자체가 배경색 보유 — maxWidth만 제한)
+          SliverToBoxAdapter(
+            child: _buildPcSectionMaxWidthWrapper(
+              child: _buildNewArrivalsSection(loc),
+            ),
+          ),
+
+          // 하단 여백
+          const SliverToBoxAdapter(child: SizedBox(height: 80)),
+        ],
+      ),
     );
   }
 
@@ -140,6 +189,7 @@ class _HomeScreenState extends State<HomeScreen>
   static const double _kPcNavBarHeight = 64.0;
 
   // PC 섹션 공통 래퍼 (maxWidth 1280 + 좌우 패딩 + 배경색)
+  // 단체주문처럼 자체 배경색이 없는 섹션에 사용
   Widget _buildPcHomeSectionWrapper({required Widget child, Color color = Colors.white}) {
     return Container(
       color: color,
@@ -153,6 +203,22 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ),
       ),
+    );
+  }
+
+  // PC 섹션 maxWidth 제한 래퍼 (자체 배경/패딩을 가진 섹션용 — 베스트·신상품)
+  // 섹션 배경색은 섹션 자체가 담당, 이 래퍼는 maxWidth 1280 + 중앙정렬만 제공
+  // LayoutBuilder가 유한한 constraints를 받을 수 있도록 SizedBox로 너비를 확정
+  Widget _buildPcSectionMaxWidthWrapper({required Widget child}) {
+    return LayoutBuilder(
+      builder: (ctx, outer) {
+        final w = outer.maxWidth.isFinite
+            ? outer.maxWidth.clamp(0.0, 1280.0)
+            : 1280.0;
+        return Center(
+          child: SizedBox(width: w, child: child),
+        );
+      },
     );
   }
 
