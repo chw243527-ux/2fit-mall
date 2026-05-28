@@ -1629,27 +1629,106 @@ $productUrl
     );
   }
 
-  // ── 색상 코드 칩 가로 나열 ──
+  // ── 골지 색상 코드 → 실제 색상 매핑 ──
+  static const Map<String, Color> _goljiColorMap = {
+    'K':  Color(0xFF1A1A1A),  // 블랙
+    'N':  Color(0xFF0D1B4F),  // 네이비
+    'W':  Color(0xFFF5F5F5),  // 화이트
+    'G':  Color(0xFFBDBDBD),  // 그레이
+    'DG': Color(0xFF3C3C3C),  // 다크그레이
+    'SB': Color(0xFF1245A8),  // 스카이블루(로얄블루)
+    'B':  Color(0xFF3FA9F5),  // 블루(스카이블루)
+    'DB': Color(0xFF1B4332),  // 다크그린
+    'SP': Color(0xFF26C9A0),  // 스피어민트(민트)
+    'LP': Color(0xFFEE82A2),  // 라이트핑크
+    'IO': Color(0xFFFFFBEA),  // 아이보리
+    'LG': Color(0xFF43A047),  // 라임그린(그린)
+    'R':  Color(0xFFCC0000),  // 레드
+    'PP': Color(0xFF6D0E19),  // 퍼플(버건디)
+    'ND': Color(0xFF0047AB),  // 코발트(네이비다크)
+    'BB': Color(0xFF6D0E19),  // 버건디
+    'FP': Color(0xFFFF1493),  // 형광핑크
+    'FO': Color(0xFFFF5F00),  // 네온오렌지
+    'FG': Color(0xFF39FF14),  // 형광그린
+    // 일반 색상명 매핑
+    'Black':    Color(0xFF1A1A1A),
+    'White':    Color(0xFFF5F5F5),
+    'Navy':     Color(0xFF0D1B4F),
+    'Gray':     Color(0xFFBDBDBD),
+    'Red':      Color(0xFFCC0000),
+    'Blue':     Color(0xFF1245A8),
+    'Pink':     Color(0xFFEE82A2),
+    'Purple':   Color(0xFF7B1FA2),
+    'Green':    Color(0xFF43A047),
+    'Yellow':   Color(0xFFFFD600),
+    'Orange':   Color(0xFFFF6B35),
+    'Brown':    Color(0xFF795548),
+    'Beige':    Color(0xFFF5E6C8),
+    'Mint':     Color(0xFF26C9A0),
+    '블랙':     Color(0xFF1A1A1A),
+    '화이트':   Color(0xFFF5F5F5),
+    '네이비':   Color(0xFF0D1B4F),
+    '그레이':   Color(0xFFBDBDBD),
+    '레드':     Color(0xFFCC0000),
+    '블루':     Color(0xFF1245A8),
+    '핑크':     Color(0xFFEE82A2),
+    '퍼플':     Color(0xFF7B1FA2),
+    '그린':     Color(0xFF43A047),
+    '옐로우':   Color(0xFFFFD600),
+    '민트':     Color(0xFF26C9A0),
+  };
+
+  // ── 색상 코드 칩: 색상 원형 + 코드명 함께 표시 ──
   Widget _infoColorChipRow(List<String> codes) {
     return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: codes.map((c) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFCCCCCC)),
-          color: Colors.white,
-        ),
-        child: Text(
-          c.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF333333),
-            letterSpacing: 0.5,
-          ),
-        ),
-      )).toList(),
+      spacing: 8,
+      runSpacing: 10,
+      children: codes.map((c) {
+        final code = c.toUpperCase();
+        final dotColor = _goljiColorMap[c] ?? _goljiColorMap[code];
+        final hasDot = dotColor != null;
+        final isLight = hasDot && dotColor!.computeLuminance() > 0.75;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 색상 원형
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: hasDot ? dotColor : const Color(0xFFEEEEEE),
+                border: Border.all(
+                  color: isLight ? const Color(0xFFCCCCCC) : Colors.transparent,
+                  width: 1,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: hasDot
+                  ? null
+                  : const Icon(Icons.help_outline, size: 14, color: Color(0xFFAAAAAA)),
+            ),
+            const SizedBox(height: 4),
+            // 색상 코드 텍스트
+            Text(
+              code,
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF444444),
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
+        );
+      }).toList(),
     );
   }
 

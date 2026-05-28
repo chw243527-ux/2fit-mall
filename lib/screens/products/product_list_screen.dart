@@ -302,9 +302,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                 ),
 
-                // [4] 나머지 카테고리 탭 (전체 제외)
+                // [4] 단체주문 탭 (항상 보라색 고정)
+                _buildCatTab('단체주문', provider),
+
+                // [5] 나머지 카테고리 탭 (전체·단체주문 제외)
                 ...AppConstants.categories
-                    .where((cat) => cat != '전체')
+                    .where((cat) => cat != '전체' && cat != '단체주문')
                     .map((cat) => _buildCatTab(cat, provider)),
               ],
             ),
@@ -317,10 +320,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   // ── 일반 카테고리 탭 위젯 ──
   Widget _buildCatTab(String cat, ProductProvider provider) {
+    final isGroup = cat == '단체주문';
+    // 단체주문은 항상 보라색, 그 외는 선택 상태에 따라
     final isSel = _selectedCategory == cat && !_onlyBest && !_onlyNew;
+    final bgColor = isGroup
+        ? const Color(0xFF6A1B9A)         // 보라 — 항상
+        : isSel
+            ? const Color(0xFF111111)     // 선택됨 — 검정
+            : Colors.transparent;         // 미선택
+    final borderColor = isGroup
+        ? const Color(0xFF6A1B9A)
+        : isSel ? const Color(0xFF111111) : const Color(0xFFDDDDDD);
+    final textColor = (isGroup || isSel) ? Colors.white : const Color(0xFF444444);
+
     return GestureDetector(
       onTap: () {
-        if (cat == '단체주문') {
+        if (isGroup) {
           Navigator.push(context,
             MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()));
           return;
@@ -337,32 +352,23 @@ class _ProductListScreenState extends State<ProductListScreen> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         margin: const EdgeInsets.only(right: 6),
-        padding: EdgeInsets.symmetric(
-          horizontal: cat == '단체주문' ? 12 : 14,
-          vertical: 4,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
-          color: cat == '단체주문'
-              ? const Color(0xFF6A1B9A)
-              : isSel ? const Color(0xFF111111) : Colors.transparent,
+          color: bgColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: cat == '단체주문'
-                ? const Color(0xFF6A1B9A)
-                : isSel ? const Color(0xFF111111) : const Color(0xFFDDDDDD),
-          ),
+          border: Border.all(color: borderColor),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (cat == '단체주문') ...[
+            if (isGroup) ...[
               const Icon(Icons.groups_rounded, size: 13, color: Colors.white),
               const SizedBox(width: 4),
             ],
             Text(cat, style: TextStyle(
               fontSize: 12.5,
-              fontWeight: (isSel || cat == '단체주문') ? FontWeight.w800 : FontWeight.w500,
-              color: (isSel || cat == '단체주문') ? Colors.white : const Color(0xFF444444),
+              fontWeight: (isSel || isGroup) ? FontWeight.w800 : FontWeight.w500,
+              color: textColor,
             )),
           ],
         ),
