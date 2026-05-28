@@ -83,6 +83,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
     else if (_sortBy == loc.sortPriceHigh) { list.sort((a, b) => b.price.compareTo(a.price)); }
     else if (_sortBy == loc.sortPopular) { list.sort((a, b) => b.reviewCount.compareTo(a.reviewCount)); }
     else if (_sortBy == loc.sortRating) { list.sort((a, b) => b.rating.compareTo(a.rating)); }
+    else if (_sortBy == loc.sortLatest) { list.sort((a, b) => b.createdAt.compareTo(a.createdAt)); }
+    // 추천순: 별점×리뷰수 기반 점수 내림차순
+    else if (_sortBy == '추천순') {
+      list.sort((a, b) {
+        final scoreA = a.rating * (a.reviewCount + 1);
+        final scoreB = b.rating * (b.reviewCount + 1);
+        return scoreB.compareTo(scoreA);
+      });
+    }
     else { list.sort((a, b) => b.createdAt.compareTo(a.createdAt)); }
     return list;
   }
@@ -241,67 +250,215 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
+  // ── 정렬 바텀시트 ──
+  void _showSortBottomSheet() {
+    final sortOptions = [
+      {'key': 'recommend', 'label': '추천순'},
+      {'key': 'priceLow',  'label': loc.sortPriceLow},
+      {'key': 'priceHigh', 'label': loc.sortPriceHigh},
+      {'key': 'popular',   'label': loc.sortPopular},
+      {'key': 'rating',    'label': loc.sortRating},
+      {'key': 'latest',    'label': loc.sortLatest},
+    ];
+    if (_sortBy.isEmpty) _sortBy = sortOptions[0]['label']!;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModal) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 드래그 핸들
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 36, height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDDDDDD),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // 타이틀
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('정렬', style: TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF111111),
+                  )),
+                ),
+              ),
+              // 구분선
+              const Divider(height: 1, color: Color(0xFFF0F0F0)),
+              // 옵션 목록
+              ...sortOptions.map((opt) {
+                final label = opt['label']!;
+                final isSelected = _sortBy == label;
+                return InkWell(
+                  onTap: () {
+                    setModal(() {});
+                    setState(() => _sortBy = label);
+                    Navigator.pop(ctx);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
+                    ),
+                    child: Row(
+                      children: [
+                        // 라디오 버튼
+                        Container(
+                          width: 22, height: 22,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected ? const Color(0xFF111111) : const Color(0xFFCCCCCC),
+                              width: isSelected ? 2 : 1.5,
+                            ),
+                          ),
+                          child: isSelected
+                              ? Center(
+                                  child: Container(
+                                    width: 10, height: 10,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF111111),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: 14),
+                        Text(label, style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                          color: isSelected ? const Color(0xFF111111) : const Color(0xFF444444),
+                        )),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              // 하단 여백 (iOS 홈 바 대응)
+              SizedBox(height: MediaQuery.of(context).padding.bottom + 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── 정렬/필터 바 ──
   Widget _buildSortFilterBar(int count) {
-    // loc 기반 정렬 키
-    final sortLabels = [loc.sortLatest, loc.sortPopular, loc.sortRating, loc.sortPriceLow, loc.sortPriceHigh];
-    // 최초 진입 시 기본값 설정
-    if (_sortBy.isEmpty) _sortBy = sortLabels[0];
+    final sortOptions = [
+      {'key': 'recommend', 'label': '추천순'},
+      {'key': 'priceLow',  'label': loc.sortPriceLow},
+      {'key': 'priceHigh', 'label': loc.sortPriceHigh},
+      {'key': 'popular',   'label': loc.sortPopular},
+      {'key': 'rating',    'label': loc.sortRating},
+      {'key': 'latest',    'label': loc.sortLatest},
+    ];
+    if (_sortBy.isEmpty) _sortBy = sortOptions[0]['label']!;
+
+    // 현재 선택된 정렬 라벨
+    final currentSortLabel = _sortBy.isNotEmpty ? _sortBy : sortOptions[0]['label']!;
+
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          Text('$count${loc.productCount}', style: const TextStyle(fontSize: 12.5, color: Color(0xFF888888), fontWeight: FontWeight.w500)),
+          Text('$count${loc.productCount}', style: const TextStyle(
+            fontSize: 12.5, color: Color(0xFF888888), fontWeight: FontWeight.w500)),
           const Spacer(),
-          // 정렬 버튼들
-          ...sortLabels.map((label) {
-            final isSel = _sortBy == label;
-            return GestureDetector(
-              onTap: () => setState(() => _sortBy = label),
-              child: Container(
-                margin: const EdgeInsets.only(left: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isSel ? const Color(0xFF111111) : const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(label, style: TextStyle(
-                  fontSize: 11, fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                  color: isSel ? Colors.white : const Color(0xFF666666),
-                )),
+          // ── 정렬 버튼 (바텀시트 트리거) ──
+          GestureDetector(
+            onTap: _showSortBottomSheet,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFE0E0E0)),
               ),
-            );
-          }),
-          const SizedBox(width: 4),
-          // 필터 버튼
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.sort_rounded, size: 14, color: Color(0xFF444444)),
+                  const SizedBox(width: 5),
+                  Text(
+                    currentSortLabel,
+                    style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600,
+                      color: Color(0xFF222222),
+                    ),
+                  ),
+                  const SizedBox(width: 3),
+                  const Icon(Icons.keyboard_arrow_down_rounded, size: 15, color: Color(0xFF888888)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          // ── 필터 버튼 ──
           GestureDetector(
             onTap: () => setState(() => _showPriceFilter = !_showPriceFilter),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: _activeFilterCount > 0 || _showPriceFilter
                     ? const Color(0xFF111111)
                     : const Color(0xFFF5F5F5),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: _activeFilterCount > 0 || _showPriceFilter
+                      ? const Color(0xFF111111)
+                      : const Color(0xFFE0E0E0),
+                ),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.tune_rounded, size: 14,
                     color: _activeFilterCount > 0 || _showPriceFilter
-                        ? Colors.white
-                        : const Color(0xFF444444)),
-                if (_activeFilterCount > 0) ...[const SizedBox(width: 3),
-                  Text('$_activeFilterCount', style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700))],
+                        ? Colors.white : const Color(0xFF444444)),
+                const SizedBox(width: 5),
+                Text('필터', style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600,
+                  color: _activeFilterCount > 0 || _showPriceFilter
+                      ? Colors.white : const Color(0xFF444444),
+                )),
+                if (_activeFilterCount > 0) ...[const SizedBox(width: 4),
+                  Container(
+                    width: 16, height: 16,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE53935), shape: BoxShape.circle,
+                    ),
+                    child: Center(child: Text('$_activeFilterCount',
+                      style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800))),
+                  )],
               ]),
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 6),
+          // ── 그리드/리스트 토글 ──
           GestureDetector(
             onTap: () => setState(() => _isGridView = !_isGridView),
             child: Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(4)),
-              child: Icon(_isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded, size: 16, color: const Color(0xFF444444)),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0xFFE0E0E0)),
+              ),
+              child: Icon(
+                _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
+                size: 16, color: const Color(0xFF444444),
+              ),
             ),
           ),
         ],
