@@ -4831,9 +4831,20 @@ class _HomeScreenState extends State<HomeScreen>
   // ────────────────────────────────────────────
   // ignore: unused_element
   Widget _buildNewArrivalsSection(AppLocalizations loc) {
-    List<ProductModel> allProds = context.watch<ProductProvider>().products;
-    if (allProds.isEmpty) allProds = ProductService.getAllProductsSync();
-    final products = allProds.where((p) => p.isNew).toList();
+    final provider = context.watch<ProductProvider>();
+    List<ProductModel> allProds = provider.products.isNotEmpty
+        ? provider.products
+        : ProductService.getAllProductsSync();
+
+    // isNew 상품 우선, 없으면 최근 등록순으로 폴백
+    List<ProductModel> products = allProds.where((p) => p.isNew && p.isActive).toList();
+    if (products.isEmpty) {
+      products = allProds.where((p) => p.isActive).toList();
+      products.sort((a, b) => (b.createdAt ?? DateTime(2000))
+          .compareTo(a.createdAt ?? DateTime(2000)));
+      products = products.take(10).toList();
+    }
+
     return _buildProductSection(
       title: loc.sectionNewArrival,
       englishTitle: loc.sectionNewArrivalSub,
@@ -4853,13 +4864,14 @@ class _HomeScreenState extends State<HomeScreen>
       // ① 실구매 데이터 있음 → 실판매량 기준
       bestProds = provider.bestProducts;
     } else {
-      // ② 실구매 데이터 없음(로딩 중 or 판매 없음) → 활성 상품 중 salesCount/reviewCount 기준 정렬 폴백
+      // ② 항상 폴백: 전체 상품 중 salesCount/reviewCount 기준 정렬
       List<ProductModel> allProds = provider.products.isNotEmpty
           ? provider.products
           : ProductService.getAllProductsSync();
-      bestProds = allProds
-          .where((p) => p.isActive)
-          .toList()
+      // isGroupOnly 제외하고 일반 상품 위주로
+      final normal = allProds.where((p) => p.isActive && !p.isGroupOnly).toList();
+      final fallback = normal.isNotEmpty ? normal : allProds.where((p) => p.isActive).toList();
+      bestProds = [...fallback]
         ..sort((a, b) {
           final sa = b.salesCount.compareTo(a.salesCount);
           if (sa != 0) return sa;
@@ -4868,6 +4880,10 @@ class _HomeScreenState extends State<HomeScreen>
       bestProds = bestProds.take(10).toList();
     }
 
+    // 여전히 비어있으면 전체 상품에서 앞 10개라도
+    if (bestProds.isEmpty) {
+      bestProds = ProductService.getAllProductsSync().take(10).toList();
+    }
     if (bestProds.isEmpty) return const SizedBox.shrink();
 
     return _buildProductSection(
