@@ -4128,6 +4128,9 @@ $productUrl
       {'label': 'MOISTURE',  'desc': loc.techAbsorbTitle,'sub': loc.techAbsorbDesc},
     ];
 
+    final generalImgs  = _sectionImages['s2_general']  ?? [];
+    final seamlessImgs = _sectionImages['s2_seamless'] ?? [];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -4140,15 +4143,14 @@ $productUrl
           trailingIcon: const Icon(Icons.layers_rounded, size: 36, color: Color(0x55FFFFFF)),
         ),
         const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
-        // ── 섹션2 어드민 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
-        if (isAdmin || (_sectionImages['s2'] ?? []).isNotEmpty)
-          isAdmin
-              ? Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: _buildAdminImageSection('s2', '섹션2 소재 및 기술', isAdmin),
-                )
-              : _buildSectionImageSlider('s2'),
 
+        // ── 일반봉제 / 심리스 이미지 섹션 ──────────────────────────
+        // 관리자: 두 슬롯 각각 업로드 버튼 표시
+        // 일반 사용자: 이미지가 하나라도 있으면 탭 UI로 표시
+        if (isAdmin)
+          _buildSection2FabricAdmin(generalImgs, seamlessImgs, isAdmin)
+        else if (generalImgs.isNotEmpty || seamlessImgs.isNotEmpty)
+          _buildSection2FabricTabs(generalImgs, seamlessImgs),
 
         // ── 기술 특징 리스트 (분리선)
         Container(
@@ -4221,6 +4223,109 @@ $productUrl
 
 
       ],
+    );
+  }
+
+  // ── 섹션2 관리자: 일반봉제 / 심리스 업로드 버튼 (세로 2칸) ──
+  Widget _buildSection2FabricAdmin(
+    List<String> generalImgs,
+    List<String> seamlessImgs,
+    bool isAdmin,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 일반봉제 슬롯
+          _buildFabricAdminSlot(
+            key: 's2_general',
+            label: '일반봉제',
+            icon: Icons.straighten_rounded,
+            color: const Color(0xFF1565C0),
+            bgColor: const Color(0xFFE3F2FD),
+            imgs: generalImgs,
+            isAdmin: isAdmin,
+          ),
+          const SizedBox(height: 16),
+          // 심리스 슬롯
+          _buildFabricAdminSlot(
+            key: 's2_seamless',
+            label: '심리스',
+            icon: Icons.blur_circular_rounded,
+            color: const Color(0xFF6A1B9A),
+            bgColor: const Color(0xFFF3E5F5),
+            imgs: seamlessImgs,
+            isAdmin: isAdmin,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 관리자 패브릭 슬롯 (헤더 뱃지 + 업로드 버튼 + 이미지 목록) ──
+  Widget _buildFabricAdminSlot({
+    required String key,
+    required String label,
+    required IconData icon,
+    required Color color,
+    required Color bgColor,
+    required List<String> imgs,
+    required bool isAdmin,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 슬롯 헤더 뱃지
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withValues(alpha: 0.35)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 15, color: color),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '이미지 ${imgs.length}장',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: color.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        // 업로드 버튼 + 이미지 목록
+        _buildAdminImageSection(key, '$label 이미지', isAdmin),
+      ],
+    );
+  }
+
+  // ── 섹션2 일반 사용자: 일반봉제 / 심리스 탭 전환 UI ──
+  Widget _buildSection2FabricTabs(
+    List<String> generalImgs,
+    List<String> seamlessImgs,
+  ) {
+    return _Section2FabricTabsWidget(
+      generalImgs: generalImgs,
+      seamlessImgs: seamlessImgs,
+      onTapGeneral: (imgs, i) => _openLightbox(imgs, i),
+      onTapSeamless: (imgs, i) => _openLightbox(imgs, i),
     );
   }
 
@@ -9169,6 +9274,198 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
           ],
         );
       },
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 섹션2 일반봉제 / 심리스 탭 전환 위젯 (일반 사용자용)
+// ══════════════════════════════════════════════════════════════
+class _Section2FabricTabsWidget extends StatefulWidget {
+  final List<String> generalImgs;
+  final List<String> seamlessImgs;
+  final void Function(List<String> imgs, int index) onTapGeneral;
+  final void Function(List<String> imgs, int index) onTapSeamless;
+
+  const _Section2FabricTabsWidget({
+    required this.generalImgs,
+    required this.seamlessImgs,
+    required this.onTapGeneral,
+    required this.onTapSeamless,
+  });
+
+  @override
+  State<_Section2FabricTabsWidget> createState() =>
+      _Section2FabricTabsWidgetState();
+}
+
+class _Section2FabricTabsWidgetState
+    extends State<_Section2FabricTabsWidget> {
+  // 0 = 일반봉제, 1 = 심리스
+  int _selectedTab = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // 일반봉제 이미지가 없고 심리스만 있으면 심리스 탭 먼저 표시
+    if (widget.generalImgs.isEmpty && widget.seamlessImgs.isNotEmpty) {
+      _selectedTab = 1;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasGeneral  = widget.generalImgs.isNotEmpty;
+    final hasSeamless = widget.seamlessImgs.isNotEmpty;
+
+    // 두 탭 모두 이미지 없으면 숨김
+    if (!hasGeneral && !hasSeamless) return const SizedBox.shrink();
+
+    // 한 쪽만 있으면 탭 없이 해당 이미지만 표시
+    if (hasGeneral && !hasSeamless) {
+      return _buildImageBody(widget.generalImgs, widget.onTapGeneral);
+    }
+    if (!hasGeneral && hasSeamless) {
+      return _buildImageBody(widget.seamlessImgs, widget.onTapSeamless);
+    }
+
+    // 양쪽 모두 있을 때 → 탭 UI
+    final currentImgs = _selectedTab == 0 ? widget.generalImgs : widget.seamlessImgs;
+    final currentOnTap = _selectedTab == 0 ? widget.onTapGeneral : widget.onTapSeamless;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── 탭 바 ──────────────────────────────────────────────
+        Container(
+          color: Colors.white,
+          child: Row(
+            children: [
+              _FabricTab(
+                label: '일반봉제',
+                icon: Icons.straighten_rounded,
+                isSelected: _selectedTab == 0,
+                activeColor: const Color(0xFF1565C0),
+                onTap: () => setState(() => _selectedTab = 0),
+              ),
+              _FabricTab(
+                label: '심리스',
+                icon: Icons.blur_circular_rounded,
+                isSelected: _selectedTab == 1,
+                activeColor: const Color(0xFF6A1B9A),
+                onTap: () => setState(() => _selectedTab = 1),
+              ),
+            ],
+          ),
+        ),
+        // ── 탭 하단 구분선 ──
+        Container(height: 1, color: const Color(0xFFEEEEEE)),
+        // ── 이미지 본체 ─────────────────────────────────────────
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          transitionBuilder: (child, anim) =>
+              FadeTransition(opacity: anim, child: child),
+          child: KeyedSubtree(
+            key: ValueKey(_selectedTab),
+            child: _buildImageBody(currentImgs, currentOnTap),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageBody(
+    List<String> imgs,
+    void Function(List<String>, int) onTap,
+  ) {
+    if (imgs.isEmpty) {
+      return Container(
+        height: 120,
+        color: const Color(0xFFF9F9F9),
+        child: const Center(
+          child: Text(
+            '등록된 이미지가 없습니다.',
+            style: TextStyle(fontSize: 13, color: Color(0xFFAAAAAA)),
+          ),
+        ),
+      );
+    }
+
+    if (imgs.length == 1) {
+      return GestureDetector(
+        onTap: () => onTap(imgs, 0),
+        child: Image.network(
+          imgs.first,
+          width: double.infinity,
+          fit: BoxFit.fitWidth,
+          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+        ),
+      );
+    }
+
+    return _SectionImageSliderWidget(
+      imgs: imgs,
+      onTap: (i) => onTap(imgs, i),
+    );
+  }
+}
+
+// ── 개별 탭 버튼 위젯 ───────────────────────────────────────────
+class _FabricTab extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final Color activeColor;
+  final VoidCallback onTap;
+
+  const _FabricTab({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.activeColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 13),
+          decoration: BoxDecoration(
+            color: isSelected ? activeColor.withValues(alpha: 0.06) : Colors.white,
+            border: Border(
+              bottom: BorderSide(
+                color: isSelected ? activeColor : Colors.transparent,
+                width: 2.5,
+              ),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: isSelected ? activeColor : const Color(0xFFAAAAAA),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                  color: isSelected ? activeColor : const Color(0xFF999999),
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
