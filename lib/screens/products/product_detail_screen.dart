@@ -4269,14 +4269,14 @@ $productUrl
 
   // ※ _buildPocketFeatureTile 제거됨 (탑텐 스타일 인라인으로 교체)
 
-    // ═══════════════════════════════════════════════════════════
-  // 섹션 5: COLOR LINE — 제거됨 (색상 안내는 상품명 아래 색상 선택 영역에 통합)
+  // ─── 제거됨: 섹션4 COLOR LINE (색상 선택 영역에 통합) ───
+  // ─── 제거됨: 섹션5 (미사용 번호) ───
   Widget _buildSection5GoljiColors(ProductModel product, bool isAdmin) {
     return const SizedBox.shrink();
   }
 
   // ═══════════════════════════════════════════════════════════
-  // 섹션 6: 사이즈 차트 (성인 / 주니어 탭)
+  // 섹션 4: SIZE CHART (성인 / 주니어 탭) — 실 표시 번호 04
   // ═══════════════════════════════════════════════════════════
   Widget _buildSection6SizeChart(ProductModel product, [bool isAdmin = false]) {
     // ── 성인 차트 (투핏 사이즈 조건표 기준) ──
@@ -4326,7 +4326,7 @@ $productUrl
                     children: [
                       // 섹션 넘버
                       Text(
-                        '06',
+                        '04',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
