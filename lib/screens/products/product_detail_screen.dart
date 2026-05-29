@@ -3210,6 +3210,29 @@ $productUrl
 
   // ═══════════════════════════════════════════════════════════
 
+  /// 섹션 이미지 가로 슬라이더 (비로그인/일반 사용자용)
+  /// - 이미지 1장: 풀너비 세로 표시 (기존과 동일)
+  /// - 이미지 2장+: 가로 PageView 슬라이더 + 하단 pill-dot 인디케이터
+  Widget _buildSectionImageSlider(String sectionKey) {
+    final imgs = _sectionImages[sectionKey] ?? [];
+    if (imgs.isEmpty) return const SizedBox.shrink();
+
+    // 이미지 1장 → 기존 방식 (풀너비, 높이 자동)
+    if (imgs.length == 1) {
+      return Image.network(
+        imgs.first,
+        width: double.infinity,
+        fit: BoxFit.fitWidth,
+        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+      );
+    }
+
+    // 이미지 2장 이상 → 가로 슬라이더 + 인디케이터
+    return _SectionImageSliderWidget(imgs: imgs);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+
   /// 관리자용 섹션 이미지 표시 + 업로드 버튼
   Widget _buildAdminImageSection(
     String sectionKey,
@@ -3951,7 +3974,7 @@ $productUrl
           trailingIcon: const Icon(Icons.bolt_rounded, size: 36, color: Color(0x55FFFFFF)),
         ),
         const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
-        // ── 섹션1 어드민 이미지 (풀너비, 이미지가 있으면 표시)
+        // ── 섹션1 어드민 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
         if (isAdmin || (_sectionImages['s1'] ?? []).isNotEmpty)
           Container(
             color: Colors.white,
@@ -3961,12 +3984,7 @@ $productUrl
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: _buildAdminImageSection('s1', '섹션1 메인 배너', isAdmin),
                   )
-                : Column(
-                    children: (_sectionImages['s1'] ?? []).map((url) =>
-                      Image.network(url, width: double.infinity, fit: BoxFit.fitWidth,
-                        errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-                    ).toList(),
-                  ),
+                : _buildSectionImageSlider('s1'),
           ),
         // ── 특징 리스트: 탑텐 스타일 (분리선 + 영문 태그 + 제목 + 설명)
         Container(
@@ -4078,19 +4096,14 @@ $productUrl
           trailingIcon: const Icon(Icons.layers_rounded, size: 36, color: Color(0x55FFFFFF)),
         ),
         const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
-        // ── 섹션2 어드민 이미지
+        // ── 섹션2 어드민 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
         if (isAdmin || (_sectionImages['s2'] ?? []).isNotEmpty)
           isAdmin
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: _buildAdminImageSection('s2', '섹션2 소재 및 기술', isAdmin),
                 )
-              : Column(
-                  children: (_sectionImages['s2'] ?? []).map((url) =>
-                    Image.network(url, width: double.infinity, fit: BoxFit.fitWidth,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-                  ).toList(),
-                ),
+              : _buildSectionImageSlider('s2'),
 
 
         // ── 기술 특징 리스트 (분리선)
@@ -4153,19 +4166,14 @@ $productUrl
           _buildGenderLengthImageSection(isAdmin),
         ],
 
-        // ── 소재혼용율 위 이미지
+        // ── 소재혼용율 위 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
         if (isAdmin || (_sectionImages['s2_fiber'] ?? []).isNotEmpty)
           isAdmin
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                   child: _buildAdminImageSection('s2_fiber', '소재혼용율 이미지', isAdmin),
                 )
-              : Column(
-                  children: (_sectionImages['s2_fiber'] ?? []).map((url) =>
-                    Image.network(url, width: double.infinity, fit: BoxFit.fitWidth,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-                  ).toList(),
-                ),
+              : _buildSectionImageSlider('s2_fiber'),
 
 
       ],
@@ -4194,19 +4202,14 @@ $productUrl
           trailingIcon: const Icon(Icons.inventory_2_rounded, size: 36, color: Color(0x55FFFFFF)),
         ),
         const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
-        // ── 섹션3 어드민 이미지
+        // ── 섹션3 어드민 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
         if (isAdmin || (_sectionImages['s3'] ?? []).isNotEmpty)
           isAdmin
               ? Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: _buildAdminImageSection('s3', '섹션3 포켓 특성', isAdmin),
                 )
-              : Column(
-                  children: (_sectionImages['s3'] ?? []).map((url) =>
-                    Image.network(url, width: double.infinity, fit: BoxFit.fitWidth,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink()),
-                  ).toList(),
-                ),
+              : _buildSectionImageSlider('s3'),
 
 
         // ── 포켓 기능 리스트
@@ -9140,4 +9143,105 @@ class _ToptenTabBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(_ToptenTabBarDelegate oldDelegate) => false;
+}
+
+// ══════════════════════════════════════════════════════════════
+// 섹션 이미지 가로 슬라이더 위젯 (2장 이상일 때 사용)
+// ══════════════════════════════════════════════════════════════
+class _SectionImageSliderWidget extends StatefulWidget {
+  final List<String> imgs;
+  const _SectionImageSliderWidget({required this.imgs});
+
+  @override
+  State<_SectionImageSliderWidget> createState() => _SectionImageSliderWidgetState();
+}
+
+class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
+  late final PageController _ctrl;
+  int _idx = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = PageController();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final imgs = widget.imgs;
+    return LayoutBuilder(
+      builder: (_, constraints) {
+        final w = constraints.maxWidth;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── 이미지 PageView (높이 자동: 첫 이미지 비율 기준으로 fitWidth)
+            SizedBox(
+              width: w,
+              child: PageView.builder(
+                controller: _ctrl,
+                itemCount: imgs.length,
+                onPageChanged: (i) => setState(() => _idx = i),
+                itemBuilder: (_, i) => Image.network(
+                  imgs[i],
+                  width: w,
+                  fit: BoxFit.fitWidth,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+            // ── 하단 pill-dot 인디케이터 + 페이지 카운터
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(0, 10, 0, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // pill dots
+                  ...List.generate(imgs.length, (i) {
+                    final active = _idx == i;
+                    return GestureDetector(
+                      onTap: () => _ctrl.animateToPage(
+                        i,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      ),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: active ? 20 : 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: active
+                              ? const Color(0xFF1A1A1A)
+                              : const Color(0xFFCCCCCC),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    );
+                  }),
+                  const SizedBox(width: 10),
+                  // 페이지 카운터 텍스트
+                  Text(
+                    '${_idx + 1} / ${imgs.length}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFFAAAAAA),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
