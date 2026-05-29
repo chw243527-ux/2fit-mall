@@ -135,9 +135,9 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
         ..setAttribute('webkit-playsinline', 'true')
         ..style.width = '100%'
         ..style.height = '100%'
-        ..style.objectFit = 'cover'
+        ..style.objectFit = 'contain'
         ..style.objectPosition = 'center center'
-        ..style.backgroundColor = 'transparent'
+        ..style.backgroundColor = '#000000'
         ..style.display = 'block'
         ..style.pointerEvents = 'none';
 

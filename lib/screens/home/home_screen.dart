@@ -147,10 +147,10 @@ class _HomeScreenState extends State<HomeScreen>
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          // ① 배너: TopBar를 제외한 뷰포트 전체 높이
+          // ① 배너: 화면 너비 기준 16:9 비율 (영상 잘림 방지)
           SliverToBoxAdapter(
             child: SizedBox(
-              height: MediaQuery.of(context).size.height - kPcTopBarHeight,
+              height: MediaQuery.of(context).size.width * (9 / 16),
               child: ColoredBox(
                 color: Colors.black,
                 child: bannerWidget,
@@ -4178,9 +4178,9 @@ class _HomeScreenState extends State<HomeScreen>
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
 
-    // 배너: 전체 화면 높이 — 시스템 하단 제스처 영역 제외
+    // 배너: 화면 너비 기준 16:9 비율로 높이 계산 (영상 잘림 방지)
     final mq = MediaQuery.of(context);
-    final bannerHeight = mq.size.height - mq.viewPadding.bottom;
+    final bannerHeight = mq.size.width * (9 / 16);
 
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 즉시 표시
     if (activeBanners.isEmpty) {
