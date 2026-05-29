@@ -8994,11 +8994,34 @@ class _SectionImageSliderWidget extends StatefulWidget {
 class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
   late final PageController _ctrl;
   int _idx = 0;
+  // 첫 이미지 로드 후 측정된 높이 (null = 아직 로드 중)
+  double? _measuredHeight;
 
   @override
   void initState() {
     super.initState();
     _ctrl = PageController();
+    // 첫 번째 이미지의 실제 높이를 미리 측정
+    _measureFirstImageHeight();
+  }
+
+  void _measureFirstImageHeight() {
+    if (widget.imgs.isEmpty) return;
+    final img = NetworkImage(widget.imgs.first);
+    img.resolve(const ImageConfiguration()).addListener(
+      ImageStreamListener((info, _) {
+        if (!mounted) return;
+        final imageW = info.image.width.toDouble();
+        final imageH = info.image.height.toDouble();
+        if (imageW <= 0) return;
+        // 이미지의 실제 비율(높이/너비)을 저장 → build()에서 w × ratio로 높이 계산
+        final ratio = imageH / imageW;
+        setState(() => _measuredHeight = ratio);
+      }, onError: (_, __) {
+        if (!mounted) return;
+        setState(() => _measuredHeight = 1.25); // 에러 시 기본 비율 4:5 (=1.25) 적용
+      }),
+    );
   }
 
   @override
@@ -9013,12 +9036,18 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
     return LayoutBuilder(
       builder: (_, constraints) {
         final w = constraints.maxWidth;
+        // _measuredHeight 값은 실제로 "비율(height/width)"을 저장함
+        // PageView 높이 = 너비 × 비율 (로드 전에는 기본 비율 4:5 사용)
+        final ratio = _measuredHeight ?? 1.25; // 기본 비율: 4:5 (=1.25)
+        final pageViewHeight = w * ratio;
+
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── 이미지 PageView (탭 → 라이트박스)
+            // ── 이미지 PageView — bounded height 명시 (버그 수정 핵심)
             SizedBox(
               width: w,
+              height: pageViewHeight,
               child: PageView.builder(
                 controller: _ctrl,
                 itemCount: imgs.length,
@@ -9028,8 +9057,15 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
                   child: Image.network(
                     imgs[i],
                     width: w,
+                    height: pageViewHeight,
                     fit: BoxFit.fitWidth,
-                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    errorBuilder: (_, __, ___) => SizedBox(
+                      height: pageViewHeight,
+                      child: const Center(
+                        child: Icon(Icons.broken_image_outlined,
+                            size: 48, color: Color(0xFFCCCCCC)),
+                      ),
+                    ),
                   ),
                 ),
               ),
