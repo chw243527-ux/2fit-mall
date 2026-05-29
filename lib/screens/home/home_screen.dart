@@ -4178,9 +4178,13 @@ class _HomeScreenState extends State<HomeScreen>
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
 
-    // 배너: 화면 너비 기준 16:9 비율로 높이 계산 (영상 잘림 방지)
+    // 배너: 모바일 → 화면 전체 높이, 태블릿/PC → 16:9 비율
     final mq = MediaQuery.of(context);
-    final bannerHeight = mq.size.width * (9 / 16);
+    final screenW = mq.size.width;
+    final isMobile = screenW < 600;
+    final bannerHeight = isMobile
+        ? mq.size.height - mq.viewPadding.bottom
+        : screenW * (9 / 16);
 
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 즉시 표시
     if (activeBanners.isEmpty) {
