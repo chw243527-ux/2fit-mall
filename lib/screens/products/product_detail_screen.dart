@@ -4493,6 +4493,135 @@ $productUrl
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             child: _buildAdminImageSection('s6', '섹션6 사이즈 차트', isAdmin),
           ),
+
+        // ── WASH TIP 헤더 ──
+        Container(
+          width: double.infinity,
+          color: const Color(0xFF1A1A1A),
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'WASH TIP',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '올바른 세탁으로 제품을 오래, 깨끗하게',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.55),
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0.2,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ── 세탁 가이드 아이콘 그리드 ──
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          child: GridView.count(
+            crossAxisCount: 3,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 1,
+            crossAxisSpacing: 1,
+            childAspectRatio: 1.15,
+            children: [
+              (Icons.water_drop_outlined,   '찬물 세탁',      '30°C 이하 찬물 사용 권장'),
+              (Icons.front_hand_outlined,   '손세탁 권장',    '세탁기 사용 시 단독 세탁'),
+              (Icons.air_outlined,          '자연 건조',      '열풍 건조 금지 — 수축 원인'),
+              (Icons.lock_outline_rounded,  '지퍼/단추 잠금', '세탁 전 지퍼·단추를 잠근 후 세탁'),
+              (Icons.color_lens_outlined,   '색상 분리',      '흰색·유색 제품 반드시 분리 세탁'),
+              (Icons.timer_outlined,        '즉시 세탁',      '땀·물에 젖은 즉시 세탁'),
+            ].map((g) => Container(
+              color: const Color(0xFFF2F2F2),
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(g.$1, size: 22, color: const Color(0xFF333333)),
+                  const SizedBox(height: 8),
+                  Text(
+                    g.$2,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A),
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    g.$3,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 9,
+                      color: Color(0xFF888888),
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            )).toList(),
+          ),
+        ),
+
+        // ── 세탁 주의사항 리스트 ──
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _washingTips.asMap().entries.map((entry) {
+              final tip = entry.value;
+              final isLast = entry.key == _washingTips.length - 1;
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('·', style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xFFBBBBBB),
+                          height: 1.2,
+                        )),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            tip,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF555555),
+                              height: 1.65,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!isLast)
+                    const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
       ],
     );
   }
