@@ -4900,8 +4900,29 @@ $productUrl
                       },
                     ),
                     const SizedBox(width: 8),
-                    // 구매하기 풀버튼 (탑텐: 검정 배경 + 큰 텍스트)
+                    // 장바구니 버튼
                     Expanded(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF1A1A1A), width: 1.5),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          ),
+                          icon: const Icon(Icons.shopping_bag_outlined, size: 18, color: Color(0xFF1A1A1A)),
+                          label: const Text(
+                            '장바구니',
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF1A1A1A)),
+                          ),
+                          onPressed: () => _addToCart(product),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // 바로구매 버튼
+                    Expanded(
+                      flex: 1,
                       child: SizedBox(
                         height: 52,
                         child: ElevatedButton(
@@ -4913,7 +4934,7 @@ $productUrl
                           ),
                           onPressed: () => _showBuyNowSheet(product),
                           child: const Text(
-                            '구매하기',
+                            '바로구매',
                             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white),
                           ),
                         ),
