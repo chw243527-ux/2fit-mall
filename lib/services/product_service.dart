@@ -715,6 +715,7 @@ class ProductService {
       // Firestore 결과가 0개여도 "데이터 없음"으로 처리(더미 사용 X)
       final firestoreProducts = snapshot.docs.map((doc) {
         final data = doc.data();
+        data['id'] ??= doc.id; // doc.id 명시적 추가 (문서 내 id 필드 없을 경우 대비)
         // Firestore Timestamp → String 변환
         if (data['createdAt'] is Timestamp) {
           data['createdAt'] = (data['createdAt'] as Timestamp)
@@ -858,6 +859,7 @@ class ProductService {
 
       final list = snapshot.docs.map((doc) {
         final data = doc.data();
+        data['id'] ??= doc.id;
         if (data['createdAt'] is Timestamp) {
           data['createdAt'] =
               (data['createdAt'] as Timestamp).toDate().toIso8601String();
@@ -888,6 +890,7 @@ class ProductService {
       final doc = await _db.collection('products').doc(id).get();
       if (doc.exists) {
         final data = doc.data()!;
+        data['id'] ??= doc.id; // doc.id 명시적 추가
         if (data['createdAt'] is Timestamp) {
           data['createdAt'] =
               (data['createdAt'] as Timestamp).toDate().toIso8601String();
@@ -905,6 +908,8 @@ class ProductService {
       final doc = await _db.collection('products').doc(id).get();
       if (doc.exists) {
         final data = doc.data()!;
+        // Firestore 문서 data()에는 doc.id가 포함되지 않으므로 명시적 추가
+        data['id'] ??= doc.id;
         if (data['createdAt'] is Timestamp) {
           data['createdAt'] =
               (data['createdAt'] as Timestamp).toDate().toIso8601String();
@@ -917,7 +922,9 @@ class ProductService {
         }
         return fresh;
       }
-    } catch (_) {}
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ getProductByIdFresh 실패 ($id): $e');
+    }
     return null;
   }
 

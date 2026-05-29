@@ -90,37 +90,79 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         price: widget.product.price,
         category: widget.product.category,
       );
-      // Firestore 최신 sectionImages 강제 로드 (캐시 우선 → 최신 반영)
+      // Firestore 최신 sectionImages 강제 로드
       _refreshSectionImagesFromFirestore();
     });
   }
 
-  /// Firestore에서 최신 상품 데이터를 가져와 sectionImages를 갱신
+  @override
+  void didUpdateWidget(covariant ProductDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Provider에서 product가 업데이트됐을 때 sectionImages 동기화
+    // (관리자가 이미지 업로드 후 notifyListeners → 여기서 반영)
+    if (oldWidget.product.id != widget.product.id) {
+      // 다른 상품으로 교체된 경우 전체 초기화
+      _sectionImages = Map<String, List<String>>.from(widget.product.sectionImages);
+      _sectionImagesLoaded = false;
+      _refreshSectionImagesFromFirestore();
+    } else if (!_sectionImagesLoaded) {
+      // 아직 Firestore 로드가 완료되지 않은 경우, 새 product 데이터로 임시 업데이트
+      final incoming = widget.product.sectionImages;
+      if (incoming.isNotEmpty) {
+        bool changed = false;
+        for (final key in incoming.keys) {
+          if (_sectionImages[key] != incoming[key]) {
+            _sectionImages[key] = List<String>.from(incoming[key]!);
+            changed = true;
+          }
+        }
+        if (changed) setState(() {});
+      }
+    }
+  }
+
+  /// Firestore에서 최신 상품 데이터를 직접 가져와 sectionImages를 갱신
   /// (앱 첫 진입 시 1회만 실행 – 관리자가 업로드한 이미지를 일반 사용자에게 즉시 반영)
   Future<void> _refreshSectionImagesFromFirestore() async {
-    if (_sectionImagesLoaded) return; // 이미 로드됐으면 skip (업로드/삭제 후 덮어쓰기 방지)
+    if (_sectionImagesLoaded) return;
     try {
       final fresh = await ProductService.getProductByIdFresh(widget.product.id);
-      if (fresh == null || !mounted) return;
+      if (!mounted) return;
       _sectionImagesLoaded = true;
-      final freshImages = fresh.sectionImages;
+
+      // Firestore 로드 실패(null)여도 Provider 캐시의 최신값으로 폴백
+      final freshImages = fresh?.sectionImages ?? widget.product.sectionImages;
+
       bool changed = false;
-      // Firestore에 있는 키만 반영
+      // 새로 받은 키 반영
       for (final key in freshImages.keys) {
-        final newList = freshImages[key]!;
-        _sectionImages[key] = List<String>.from(newList);
-        changed = true;
-      }
-      // Firestore에서 삭제된 키 제거
-      _sectionImages.keys.toList().forEach((key) {
-        if (!freshImages.containsKey(key)) {
-          _sectionImages.remove(key);
+        final newList = List<String>.from(freshImages[key]!);
+        if (_sectionImages[key]?.join() != newList.join()) {
+          _sectionImages[key] = newList;
           changed = true;
         }
-      });
+      }
+      // Firestore에서 삭제된 키 제거 (fresh가 null이면 건너뜀)
+      if (fresh != null) {
+        for (final key in _sectionImages.keys.toList()) {
+          if (!freshImages.containsKey(key)) {
+            _sectionImages.remove(key);
+            changed = true;
+          }
+        }
+      }
       if (changed && mounted) setState(() {});
-    } catch (_) {
-      _sectionImagesLoaded = true; // 실패해도 재시도 방지
+    } catch (e) {
+      debugPrint('⚠️ sectionImages Firestore 로드 실패: $e');
+      _sectionImagesLoaded = true;
+      // 실패 시 widget.product의 sectionImages로 폴백
+      if (mounted && widget.product.sectionImages.isNotEmpty) {
+        setState(() {
+          for (final key in widget.product.sectionImages.keys) {
+            _sectionImages[key] = List<String>.from(widget.product.sectionImages[key]!);
+          }
+        });
+      }
     }
   }
 
