@@ -4364,14 +4364,14 @@ $productUrl
       children: [
         if (isAdmin || (_sectionImages['s6'] ?? []).isNotEmpty)
           Container(
-            color: const Color(0xFF111111),
+            color: const Color(0xFFF5F5F5),
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: _buildAdminImageSection('s6', '섹션6 사이즈 차트', isAdmin),
           ),
 
         // ── 메인 사이즈 차트 컨테이너 ──
         Container(
-          color: const Color(0xFF111111),
+          color: const Color(0xFFF5F5F5),
           padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -4389,7 +4389,7 @@ $productUrl
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w900,
-                          color: Colors.white.withValues(alpha: 0.3),
+                          color: Colors.black.withValues(alpha: 0.25),
                           letterSpacing: 2,
                         ),
                       ),
@@ -4400,7 +4400,7 @@ $productUrl
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                          color: Color(0xFF111111),
                           height: 1.0,
                           letterSpacing: -0.5,
                         ),
@@ -4415,7 +4415,7 @@ $productUrl
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                          border: Border.all(color: Colors.black.withValues(alpha: 0.25)),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
@@ -4423,7 +4423,7 @@ $productUrl
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: Color(0xFF111111),
                             letterSpacing: 2,
                             fontStyle: FontStyle.italic,
                           ),
@@ -4434,7 +4434,7 @@ $productUrl
                         '투핏 사이즈 조건표 기준',
                         style: TextStyle(
                           fontSize: 10,
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: Colors.black.withValues(alpha: 0.45),
                           letterSpacing: 0.3,
                         ),
                       ),
@@ -4446,7 +4446,7 @@ $productUrl
               // 구분선
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Container(height: 1, color: Colors.white.withValues(alpha: 0.12)),
+                child: Container(height: 1, color: Colors.black.withValues(alpha: 0.1)),
               ),
 
               // ── 탭 + 테이블 ──
@@ -4464,22 +4464,22 @@ $productUrl
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: Colors.white.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                  border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
                 ),
                 child: Column(
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.info_outline_rounded, size: 14, color: Colors.white.withValues(alpha: 0.5)),
+                        Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             loc.sizeChartDesc1,
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.white.withValues(alpha: 0.6),
+                              color: Colors.black.withValues(alpha: 0.55),
                               height: 1.5,
                             ),
                           ),
@@ -4489,14 +4489,14 @@ $productUrl
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.info_outline_rounded, size: 14, color: Colors.white.withValues(alpha: 0.5)),
+                        Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             loc.sizeChartDesc2,
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.white.withValues(alpha: 0.6),
+                              color: Colors.black.withValues(alpha: 0.55),
                               height: 1.5,
                             ),
                           ),
@@ -4512,7 +4512,7 @@ $productUrl
 
         if (isAdmin || (_sectionImages['s6'] ?? []).isNotEmpty)
           Container(
-            color: const Color(0xFF111111),
+            color: const Color(0xFFF5F5F5),
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             child: _buildAdminImageSection('s6', '섹션6 사이즈 차트', isAdmin),
           ),
@@ -7719,10 +7719,10 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
-          color: sel ? Colors.white : Colors.transparent,
+          color: sel ? const Color(0xFF222222) : Colors.white,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: sel ? Colors.white : Colors.white.withValues(alpha: 0.2),
+            color: sel ? const Color(0xFF222222) : Colors.black.withValues(alpha: 0.15),
             width: sel ? 1.5 : 1,
           ),
         ),
@@ -7734,7 +7734,7 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w900,
-                color: sel ? const Color(0xFF111111) : Colors.white.withValues(alpha: 0.5),
+                color: sel ? Colors.white : Colors.black.withValues(alpha: 0.4),
                 letterSpacing: 1.5,
               ),
             ),
@@ -7744,7 +7744,7 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
-                color: sel ? const Color(0xFF555555) : Colors.white.withValues(alpha: 0.35),
+                color: sel ? Colors.white.withValues(alpha: 0.7) : Colors.black.withValues(alpha: 0.3),
               ),
             ),
           ],
@@ -8380,10 +8380,10 @@ class _RibTableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // 기본 배경 (단색 – 그라디언트 제거)
+        // 기본 배경 (라이트 테마)
         Container(
           decoration: const BoxDecoration(
-            color: Color(0xFF1E1E1E),
+            color: Color(0xFF2A2A2A),
           ),
           child: Row(
             children: headers.asMap().entries.map((e) {
@@ -8395,17 +8395,17 @@ class _RibTableHeader extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border(
                       right: e.key < headers.length - 1
-                          ? BorderSide(color: Colors.white.withValues(alpha: 0.08), width: 1)
+                          ? BorderSide(color: Colors.white.withValues(alpha: 0.15), width: 1)
                           : BorderSide.none,
                     ),
                   ),
                   child: Text(
                     e.value,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 9.5,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: Colors.white,
                       letterSpacing: 0.8,
                       height: 1.3,
                     ),
@@ -8415,7 +8415,7 @@ class _RibTableHeader extends StatelessWidget {
             }).toList(),
           ),
         ),
-        // 골지 라인 오버레이 (주기 축소)
+        // 골지 라인 오버레이
         Positioned.fill(
           child: CustomPaint(
             painter: _RibPatternPainter(
@@ -8445,13 +8445,13 @@ class _RibTableRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 짝수 행: 살짝 밝은 톤, 홀수 행: 약간 어두운 톤
+    // 짝수 행: 흰색, 홀수 행: 아주 연한 회색
     final bg = isEven
-        ? const Color(0xFF1E1E1E)
-        : const Color(0xFF242424);
+        ? const Color(0xFFFFFFFF)
+        : const Color(0xFFF8F8F8);
     final ribColor = isEven
-        ? Colors.white.withValues(alpha: 0.05)
-        : Colors.white.withValues(alpha: 0.04);
+        ? Colors.black.withValues(alpha: 0.02)
+        : Colors.black.withValues(alpha: 0.02);
 
     return Stack(
       children: [
@@ -8461,7 +8461,7 @@ class _RibTableRow extends StatelessWidget {
             border: Border(
               bottom: isLast
                   ? BorderSide.none
-                  : BorderSide(color: Colors.white.withValues(alpha: 0.06), width: 1),
+                  : BorderSide(color: Colors.black.withValues(alpha: 0.07), width: 1),
             ),
           ),
           child: Row(
@@ -8474,11 +8474,11 @@ class _RibTableRow extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                   decoration: BoxDecoration(
                     color: isSize
-                        ? Colors.white.withValues(alpha: 0.04)
+                        ? const Color(0xFFEEEEEE)
                         : Colors.transparent,
                     border: Border(
                       right: e.key < values.length - 1
-                          ? BorderSide(color: Colors.white.withValues(alpha: 0.06), width: 1)
+                          ? BorderSide(color: Colors.black.withValues(alpha: 0.07), width: 1)
                           : BorderSide.none,
                     ),
                   ),
@@ -8487,10 +8487,10 @@ class _RibTableRow extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: isSize ? 11 : 11.5,
-                      fontWeight: isSize ? FontWeight.w800 : FontWeight.w400,
+                      fontWeight: isSize ? FontWeight.w800 : FontWeight.w500,
                       color: isSize
-                          ? Colors.white.withValues(alpha: 0.95)
-                          : Colors.white.withValues(alpha: 0.75),
+                          ? const Color(0xFF111111)
+                          : const Color(0xFF333333),
                       letterSpacing: isSize ? 0.3 : 0,
                       height: 1.2,
                     ),
