@@ -14,6 +14,7 @@ import '../../widgets/pc_layout.dart';
 import '../orders/group_order_form_screen.dart';
 import '../orders/group_order_guide_screen.dart';
 import '../../widgets/color_picker_widget.dart';
+import '../../widgets/image_lightbox.dart';
 import '../../utils/app_localizations.dart';
 import '../../services/analytics_service.dart';
 import '../../services/product_service.dart';
@@ -713,11 +714,7 @@ $productUrl
   // ══ 라이트박스 ══
   void _showLightbox(ProductModel product, int initialIndex) {
     final images = product.images.isNotEmpty ? product.images : [''];
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.95),
-      builder: (_) => _LightboxDialog(images: images, initialIndex: initialIndex),
-    );
+    showImageLightbox(context, images, initialIndex: initialIndex);
   }
 
   // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 ══
@@ -3211,24 +3208,35 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
 
   /// 섹션 이미지 가로 슬라이더 (비로그인/일반 사용자용)
-  /// - 이미지 1장: 풀너비 세로 표시 (기존과 동일)
-  /// - 이미지 2장+: 가로 PageView 슬라이더 + 하단 pill-dot 인디케이터
+  /// - 이미지 1장: 풀너비 세로 표시, 탭 → 라이트박스
+  /// - 이미지 2장+: 가로 PageView 슬라이더 + 하단 pill-dot 인디케이터, 탭 → 라이트박스
   Widget _buildSectionImageSlider(String sectionKey) {
     final imgs = _sectionImages[sectionKey] ?? [];
     if (imgs.isEmpty) return const SizedBox.shrink();
 
-    // 이미지 1장 → 기존 방식 (풀너비, 높이 자동)
+    // 이미지 1장 → 풀너비, 탭으로 라이트박스 오픈
     if (imgs.length == 1) {
-      return Image.network(
-        imgs.first,
-        width: double.infinity,
-        fit: BoxFit.fitWidth,
-        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+      return GestureDetector(
+        onTap: () => _openLightbox(imgs, 0),
+        child: Image.network(
+          imgs.first,
+          width: double.infinity,
+          fit: BoxFit.fitWidth,
+          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+        ),
       );
     }
 
     // 이미지 2장 이상 → 가로 슬라이더 + 인디케이터
-    return _SectionImageSliderWidget(imgs: imgs);
+    return _SectionImageSliderWidget(
+      imgs: imgs,
+      onTap: (index) => _openLightbox(imgs, index),
+    );
+  }
+
+  /// 공통 라이트박스 오픈 (섹션 이미지용)
+  void _openLightbox(List<String> imgs, int initialIndex) {
+    showImageLightbox(context, imgs, initialIndex: initialIndex);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -3285,14 +3293,19 @@ $productUrl
                     index: i,
                     sectionKey: sectionKey,
                     imgs: imgs,
-                    isAdmin: isAdmin);
+                    isAdmin: isAdmin,
+                    onTap: () => _openLightbox(imgs, i));
               }).toList(),
             ),
           ] else ...[
-            // 일반 사용자: 일반 표시
+            // 일반 사용자: 일반 표시 (탭 → 라이트박스)
             ...imgs.asMap().entries.map((e) {
+              final i = e.key;
               final url = e.value;
-              return _buildImageItem(url: url);
+              return _buildImageItem(
+                url: url,
+                onTap: () => _openLightbox(imgs, i),
+              );
             }),
           ],
         ],
@@ -3308,6 +3321,7 @@ $productUrl
     required String sectionKey,
     required List<String> imgs,
     required bool isAdmin,
+    VoidCallback? onTap,
   }) {
     return Padding(
       key: key,
@@ -3327,31 +3341,33 @@ $productUrl
                       size: 22, color: Color(0xFFBBBBBB)),
                 ),
               ),
-              // 이미지 본체
+              // 이미지 본체 (탭 → 라이트박스)
               Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: url.startsWith('data:image')
-                      ? Image.memory(
-                          base64Decode(url.split(',').last),
-                          width: double.infinity,
-                          fit: BoxFit.contain,
-                        )
-                      : Image.network(
-                          url,
-                          width: double.infinity,
-                          fit: BoxFit.contain,
-                          cacheWidth: 800,
-                          // loadingBuilder 제거 → 배경색이 placeholder 역할, 텍스트 즉시 표시
-                          errorBuilder: (_, __, ___) => Container(
-                            height: 80,
-                            color: const Color(0xFFEEEEEE),
-                            child: const Center(
-                              child: Icon(Icons.broken_image_outlined,
-                                  size: 36, color: Color(0xFFCCCCCC)),
+                child: GestureDetector(
+                  onTap: onTap,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: url.startsWith('data:image')
+                        ? Image.memory(
+                            base64Decode(url.split(',').last),
+                            width: double.infinity,
+                            fit: BoxFit.contain,
+                          )
+                        : Image.network(
+                            url,
+                            width: double.infinity,
+                            fit: BoxFit.contain,
+                            cacheWidth: 800,
+                            errorBuilder: (_, __, ___) => Container(
+                              height: 80,
+                              color: const Color(0xFFEEEEEE),
+                              child: const Center(
+                                child: Icon(Icons.broken_image_outlined,
+                                    size: 36, color: Color(0xFFCCCCCC)),
+                              ),
                             ),
                           ),
-                        ),
+                  ),
                 ),
               ),
             ],
@@ -3396,33 +3412,35 @@ $productUrl
     );
   }
 
-  // 일반 이미지 아이템 (비관리자)
-  Widget _buildImageItem({required String url}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: url.startsWith('data:image')
-            ? Image.memory(
-                base64Decode(url.split(',').last),
-                width: double.infinity,
-                fit: BoxFit.contain,
-              )
-            : Image.network(
-                url,
-                width: double.infinity,
-                fit: BoxFit.contain,
-                cacheWidth: 800,
-                // loadingBuilder 제거 → 배경색이 placeholder 역할, 텍스트 즉시 표시
-                errorBuilder: (_, __, ___) => Container(
-                  height: 80,
-                  color: const Color(0xFFEEEEEE),
-                  child: const Center(
-                    child: Icon(Icons.broken_image_outlined,
-                        size: 36, color: Color(0xFFCCCCCC)),
+  // 일반 이미지 아이템 (비관리자, 탭 → 라이트박스)
+  Widget _buildImageItem({required String url, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: url.startsWith('data:image')
+              ? Image.memory(
+                  base64Decode(url.split(',').last),
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                )
+              : Image.network(
+                  url,
+                  width: double.infinity,
+                  fit: BoxFit.contain,
+                  cacheWidth: 800,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 80,
+                    color: const Color(0xFFEEEEEE),
+                    child: const Center(
+                      child: Icon(Icons.broken_image_outlined,
+                          size: 36, color: Color(0xFFCCCCCC)),
+                    ),
                   ),
                 ),
-              ),
+        ),
       ),
     );
   }
@@ -3849,11 +3867,7 @@ $productUrl
 
   /// 디자인이미지 전용 라이트박스
   void _showDesignLightbox(List<String> imgs, int initialIndex) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.95),
-      builder: (_) => _LightboxDialog(images: imgs, initialIndex: initialIndex),
-    );
+    showImageLightbox(context, imgs, initialIndex: initialIndex);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -5331,186 +5345,6 @@ $productUrl
         p.subCategory.contains('트레이닝');
 
     return isSingletSet || isBottom;
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// 라이트박스 다이얼로그 (크게 보기 + 좌우 스와이프)
-// ══════════════════════════════════════════════════════════════
-class _LightboxDialog extends StatefulWidget {
-  final List<String> images;
-  final int initialIndex;
-  const _LightboxDialog({required this.images, required this.initialIndex});
-
-  @override
-  State<_LightboxDialog> createState() => _LightboxDialogState();
-}
-
-class _LightboxDialogState extends State<_LightboxDialog> {
-  AppLocalizations get loc => context.watch<LanguageProvider>().loc;
-  // ignore: unused_element
-  AppLanguage get _lang => context.watch<LanguageProvider>().language;
-  late int _idx;
-  late PageController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _idx = widget.initialIndex;
-    _ctrl = PageController(initialPage: _idx);
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Stack(
-        children: [
-          // 이미지 페이지뷰 (핀치 줌 가능)
-          PageView.builder(
-            controller: _ctrl,
-            itemCount: widget.images.length,
-            onPageChanged: (i) => setState(() => _idx = i),
-            itemBuilder: (_, i) => InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 4.0,
-              child: Center(
-                child: widget.images[i].startsWith('data:image')
-                    ? Image.memory(
-                        base64Decode(widget.images[i].split(',').last),
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                            Icons.broken_image_rounded,
-                            color: Colors.white54,
-                            size: 80),
-                      )
-                    : Image.network(
-                        widget.images[i],
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(
-                            Icons.broken_image_rounded,
-                            color: Colors.white54,
-                            size: 80),
-                      ),
-              ),
-            ),
-          ),
-          // 닫기 버튼
-          Positioned(
-            top: 48, right: 16,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: 40, height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close_rounded, color: Colors.white, size: 22),
-              ),
-            ),
-          ),
-          // 인디케이터
-          if (widget.images.length > 1)
-            Positioned(
-              bottom: 40, left: 0, right: 0,
-              child: Column(
-                children: [
-                  Text('${_idx + 1} / ${widget.images.length}',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600),
-                      textAlign: TextAlign.center),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(widget.images.length, (i) {
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        width: _idx == i ? 18 : 6,
-                        height: 6,
-                        margin: const EdgeInsets.symmetric(horizontal: 2),
-                        decoration: BoxDecoration(
-                          color: _idx == i
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      );
-                    }),
-                  ),
-                ],
-              ),
-            ),
-          // 이전/다음 버튼 (이미지 2장 이상일 때)
-          if (widget.images.length > 1) ...[
-            Positioned(
-              left: 8,
-              top: 0, bottom: 0,
-              child: Center(
-                child: GestureDetector(
-                  onTap: () {
-                    if (_idx > 0) {
-                      _ctrl.previousPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut);
-                    }
-                  },
-                  child: AnimatedOpacity(
-                    opacity: _idx > 0 ? 1.0 : 0.3,
-                    duration: const Duration(milliseconds: 200),
-                    child: Container(
-                      width: 36, height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.chevron_left_rounded,
-                          color: Colors.white, size: 22),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              right: 8,
-              top: 0, bottom: 0,
-              child: Center(
-                child: GestureDetector(
-                  onTap: () {
-                    if (_idx < widget.images.length - 1) {
-                      _ctrl.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut);
-                    }
-                  },
-                  child: AnimatedOpacity(
-                    opacity: _idx < widget.images.length - 1 ? 1.0 : 0.3,
-                    duration: const Duration(milliseconds: 200),
-                    child: Container(
-                      width: 36, height: 36,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.chevron_right_rounded,
-                          color: Colors.white, size: 22),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
   }
 }
 
@@ -9150,7 +8984,8 @@ class _ToptenTabBarDelegate extends SliverPersistentHeaderDelegate {
 // ══════════════════════════════════════════════════════════════
 class _SectionImageSliderWidget extends StatefulWidget {
   final List<String> imgs;
-  const _SectionImageSliderWidget({required this.imgs});
+  final void Function(int index)? onTap; // 탭 → 라이트박스 콜백
+  const _SectionImageSliderWidget({required this.imgs, this.onTap});
 
   @override
   State<_SectionImageSliderWidget> createState() => _SectionImageSliderWidgetState();
@@ -9181,18 +9016,21 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ── 이미지 PageView (높이 자동: 첫 이미지 비율 기준으로 fitWidth)
+            // ── 이미지 PageView (탭 → 라이트박스)
             SizedBox(
               width: w,
               child: PageView.builder(
                 controller: _ctrl,
                 itemCount: imgs.length,
                 onPageChanged: (i) => setState(() => _idx = i),
-                itemBuilder: (_, i) => Image.network(
-                  imgs[i],
-                  width: w,
-                  fit: BoxFit.fitWidth,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                itemBuilder: (_, i) => GestureDetector(
+                  onTap: () => widget.onTap?.call(i),
+                  child: Image.network(
+                    imgs[i],
+                    width: w,
+                    fit: BoxFit.fitWidth,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
                 ),
               ),
             ),

@@ -21,6 +21,7 @@ import '../../services/translation_service.dart';
 import '../../services/banner_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/constants.dart';
+import '../../widgets/image_lightbox.dart';
 import '../auth/login_screen.dart';
 import '../home/home_screen.dart';
 import '../chat/chat_screen.dart';
@@ -10274,19 +10275,23 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                         return Stack(
                           clipBehavior: Clip.none,
                           children: [
-                            Container(
-                              width: 90, height: 90,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: i == 0 ? const Color(0xFF1A1A2E) : const Color(0xFFE0E0E0), width: i == 0 ? 2 : 1),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(9),
-                                child: isBase64
-                                    ? Image.memory(base64Decode(img.split(',').last), fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 32, color: Colors.grey))
-                                    : Image.network(img, fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 32, color: Colors.grey)),
+                            // 썸네일 (탭 → 라이트박스 확대)
+                            GestureDetector(
+                              onTap: () => showImageLightbox(context, _images, initialIndex: i),
+                              child: Container(
+                                width: 90, height: 90,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: i == 0 ? const Color(0xFF1A1A2E) : const Color(0xFFE0E0E0), width: i == 0 ? 2 : 1),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(9),
+                                  child: isBase64
+                                      ? Image.memory(base64Decode(img.split(',').last), fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 32, color: Colors.grey))
+                                      : Image.network(img, fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 32, color: Colors.grey)),
+                                ),
                               ),
                             ),
                             // 대표 배지
