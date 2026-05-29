@@ -3968,17 +3968,6 @@ $productUrl
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 영문 서브 태그
-                Text(
-                  engSub,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: textColor.withValues(alpha: 0.45),
-                    letterSpacing: 2.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
                 // 영문 대제목
                 Text(
                   engTitle,
@@ -4382,17 +4371,6 @@ $productUrl
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 섹션 넘버
-                      Text(
-                        '04',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black.withValues(alpha: 0.25),
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
                       // 메인 타이틀
                       const Text(
                         'SIZE\nCHART',
