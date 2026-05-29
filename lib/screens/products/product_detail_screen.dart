@@ -230,7 +230,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               SliverToBoxAdapter(child: KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
-              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
+              if (product.category != '상의')
+                SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin))),
               SliverToBoxAdapter(child: KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product))),
@@ -277,7 +278,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product)),
                           RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
                           RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
-                          RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
+                          if (product.category != '상의')
+                            RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
                           RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
                           RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
                           KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product)),
@@ -416,7 +418,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                     KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product)),
                                     RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
                                     RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
-                                    RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
+                                    if (product.category != '상의')
+                                      RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
                                     RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
                                     RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
                                     KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product)),
