@@ -4234,14 +4234,14 @@ class _HomeScreenState extends State<HomeScreen>
                       loc.language == AppLanguage.korean
                           ? '함께 달리는\n2FIT'
                           : 'Run Together\nwith 2FIT',
-                      style: const TextStyle(color: Colors.white, fontSize: 26,
+                      style: const TextStyle(color: Colors.white, fontSize: 20,
                           fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.3),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
                     GestureDetector(
                       onTap: goShop,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(6),
@@ -4252,12 +4252,12 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.arrow_forward_rounded, size: 15, color: Color(0xFFE53935)),
-                            const SizedBox(width: 10),
+                            const Icon(Icons.arrow_forward_rounded, size: 12, color: Color(0xFFE53935)),
+                            const SizedBox(width: 8),
                             Text(
                               loc.language == AppLanguage.korean ? '쇼핑하러 가기' : 'Shop Now',
                               style: const TextStyle(color: Color(0xFF111111),
-                                  fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                                  fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.3),
                             ),
                           ],
                         ),
@@ -4421,9 +4421,9 @@ class _HomeScreenState extends State<HomeScreen>
     final isSmallMobile = screenW2 < 380; // 아이폰 SE 등 소형 기기
 
     final hPad      = isPc ? 60.0 : isTablet ? 36.0 : 16.0;
-    final titleSize = isPc ? 48.0 : isTablet ? 34.0 : (isSmallMobile ? 20.0 : 22.0);
-    final tagSize   = isPc ? 12.0 : isTablet ? 10.0 : 9.0;
-    final ctaSize   = isPc ? 15.0 : isTablet ? 13.0 : 12.0;
+    final titleSize = isPc ? 48.0 : isTablet ? 34.0 : (isSmallMobile ? 16.0 : 18.0);
+    final tagSize   = isPc ? 12.0 : isTablet ? 10.0 : 8.0;
+    final ctaSize   = isPc ? 15.0 : isTablet ? 13.0 : 10.0;
     final ctaVPad   = isPc ? 14.0 : isTablet ? 12.0 : 10.0;
     final ctaHPad   = isPc ? 26.0 : isTablet ? 20.0 : 16.0;
     final bottomPad = isPc ? 48.0 : isTablet ? 32.0 : 18.0;
