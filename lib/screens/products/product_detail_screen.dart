@@ -4015,7 +4015,6 @@ $productUrl
     final features = [
       {'tag': 'ULTRA LIGHT',      'title': loc.feat1Title, 'desc': loc.feat1Desc},
       {'tag': 'SEAMLESS',         'title': loc.feat2Title, 'desc': loc.feat2Desc},
-      {'tag': 'A-TYPE RACERBACK', 'title': loc.feat3Title, 'desc': loc.feat3Desc},
       {'tag': 'ELITE WEAR',       'title': loc.feat4Title, 'desc': loc.feat4Desc},
     ];
 
