@@ -4494,6 +4494,39 @@ $productUrl
             child: _buildAdminImageSection('s6', '섹션6 사이즈 차트', isAdmin),
           ),
 
+        // ── WASH TIP 헤더만 ──
+        Container(
+          width: double.infinity,
+          color: const Color(0xFF1A1A1A),
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'WASH TIP',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                  height: 1.1,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '올바른 세탁으로 제품을 오래, 깨끗하게',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white.withValues(alpha: 0.55),
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0.2,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+
       ],
     );
   }
