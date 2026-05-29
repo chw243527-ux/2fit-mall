@@ -25,8 +25,7 @@ void restartAllVideoBanners() {
 }
 
 /// Web용 비디오 배너 위젯
-/// - videoUrl이 'assets/images/banner_video.mp4' 이면 → 로컬 asset 재생
-/// - videoUrl이 http(s):// URL 이면 → 네트워크 스트리밍
+/// - Firestore videoUrl 값에 관계없이 항상 로컬 asset 영상을 재생
 /// - loop = true → 영상 끝나면 처음부터 반복 재생
 /// - autoplay + muted → 브라우저 autoplay 정책 통과
 class VideoBannerWidget extends StatefulWidget {
@@ -57,14 +56,9 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
   late String _viewType;
   Timer? _playRetryTimer;
 
-  /// Firestore videoUrl → 실제 재생할 src 결정
-  String get _resolvedSrc {
-    final url = widget.videoUrl;
-    if (url.isEmpty) return VideoBannerWidget.localAssetVideo;
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    if (url.startsWith('assets/')) return 'assets/$url';
-    return VideoBannerWidget.localAssetVideo;
-  }
+  /// Firestore videoUrl 값에 관계없이 항상 로컬 asset 영상을 반환
+  /// → PC / 모바일 동일 영상 보장 (Firestore에 외부 URL이 있어도 무시)
+  String get _resolvedSrc => VideoBannerWidget.localAssetVideo;
 
   @override
   void initState() {
