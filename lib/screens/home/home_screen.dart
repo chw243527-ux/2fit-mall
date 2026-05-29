@@ -365,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen>
           InkWell(
             onTap: () {
               Navigator.pop(context);
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
+              widget.onNavigate?.call(1);
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -592,10 +592,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ProductListScreen()),
-                  ),
+                  onTap: () => widget.onNavigate?.call(1),
                   child: const Text(
                     '전체',
                     style: TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w600),
@@ -1130,9 +1127,7 @@ class _HomeScreenState extends State<HomeScreen>
               void onTap() {
                 switch (b.btnAction) {
                   case 1:
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => const ProductListScreen(initialSortBy: '인기순'),
-                    ));
+                    widget.onNavigate?.call(1);
                     break;
                   case 2:
                     Navigator.push(context, MaterialPageRoute(
@@ -1140,7 +1135,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ));
                     break;
                   default:
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
+                    widget.onNavigate?.call(1);
                 }
               }
 
@@ -1201,8 +1196,7 @@ class _HomeScreenState extends State<HomeScreen>
                       videoUrl: videoUrl,
                       thumbnailUrl: b.imageUrl,
                       onTap: onTap,
-                      onProductTap: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const ProductListScreen())),
+                      onProductTap: () => widget.onNavigate?.call(1),
                     )
                   else if (b.imageUrl.isNotEmpty)
                     GestureDetector(
@@ -1284,10 +1278,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── PC 로컬 asset 배너 (Firestore 배너 없을 때 즉시 표시) ──
   Widget _buildPcLocalBanner(AppLocalizations loc) {
-    void goShop() => Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ProductListScreen()),
-    );
+    void goShop() => widget.onNavigate?.call(1);
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -1583,13 +1574,7 @@ class _HomeScreenState extends State<HomeScreen>
               final b = e.value;
               final btnAction = b['btnAction'] as int? ?? 0;
               void onShop() {
-                switch (btnAction) {
-                  case 3:
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen(initialSortBy: '인기순')));
-                    break;
-                  default:
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
-                }
+                widget.onNavigate?.call(1);
               }
               // 로컬 asset 이미지 배너
               final assetImage = b['assetImage'] as String?;
@@ -1824,7 +1809,7 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () {
         setState(() => _selectedCategoryKey = key);
         if (key == 'all') {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
+          widget.onNavigate?.call(1);
         } else {
           final matched = getCategories(loc).cast<CategoryData?>().firstWhere(
             (c) => c?.name == key,
@@ -2322,8 +2307,7 @@ class _HomeScreenState extends State<HomeScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               ElevatedButton(
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const ProductListScreen())),
+                onPressed: () => widget.onNavigate?.call(1),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: const Color(0xFF111111),
@@ -2919,10 +2903,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 오버레이 즉시 표시
     if (activeBanners.isEmpty) {
-      void goShop() => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ProductListScreen()),
-      );
+      void goShop() => widget.onNavigate?.call(1);
       // 배너 높이 비례 텍스트 크기 (스크린샷 기준: bannerH≈580 → title≈62px)
       final titleSize = (bannerH * 0.107).clamp(28.0, 72.0);
       final tagSize   = (bannerH * 0.018).clamp(8.0, 14.0);
@@ -3628,7 +3609,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '이벤트')));
                     break;
                   case 1:
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
+                    widget.onNavigate?.call(1);
                     break;
                 }
               },
@@ -3685,7 +3666,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
+                  onTap: () => widget.onNavigate?.call(1),
                   child: Text(loc.homeViewAllArrow, style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
               ],
@@ -3774,7 +3755,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // ── 배너 1: 신상품 안내 ──
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
+            onTap: () => widget.onNavigate?.call(1),
             child: Container(
               color: const Color(0xFF0D1B2A),
               padding: const EdgeInsets.all(20),
@@ -4226,10 +4207,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 즉시 표시
     if (activeBanners.isEmpty) {
-      void goShop() => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ProductListScreen()),
-      );
+      void goShop() => widget.onNavigate?.call(1);
       return SizedBox(
         width: double.infinity,
         height: bannerHeight,
@@ -4379,9 +4357,7 @@ class _HomeScreenState extends State<HomeScreen>
     void onTap() {
       switch (banner.btnAction) {
         case 1:
-          Navigator.push(context, MaterialPageRoute(
-            builder: (_) => const ProductListScreen(initialSortBy: '인기순'),
-          ));
+          widget.onNavigate?.call(1);
           break;
         case 2:
           Navigator.push(context, MaterialPageRoute(
@@ -4389,9 +4365,7 @@ class _HomeScreenState extends State<HomeScreen>
           ));
           break;
         default:
-          Navigator.push(context, MaterialPageRoute(
-            builder: (_) => const ProductListScreen(),
-          ));
+          widget.onNavigate?.call(1);
       }
     }
 
@@ -4414,10 +4388,7 @@ class _HomeScreenState extends State<HomeScreen>
             videoUrl: videoUrl!,
             thumbnailUrl: imageUrl,
             onTap: onTap,
-            onProductTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProductListScreen()),
-            ),
+            onProductTap: () => widget.onNavigate?.call(1),
           ),
           // ── 텍스트/CTA: 비디오 로딩과 무관하게 즉시 표시 ──
           overlayWidget,
@@ -4584,7 +4555,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Text(loc.homeCategory, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF111111))),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen())),
+                  onTap: () => widget.onNavigate?.call(1),
                   child: Text(loc.homeViewAllArrow, style: const TextStyle(fontSize: 12, color: Color(0xFF888888), fontWeight: FontWeight.w600)),
                 ),
               ],
@@ -4769,7 +4740,7 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () {
         setState(() => _selectedCategoryKey = key);
         if (key == 'all') {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen()));
+          widget.onNavigate?.call(1);
         } else {
           final matched = getCategories(loc).cast<CategoryData?>().firstWhere(
             (c) => c?.name == key,
@@ -4825,8 +4796,7 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () {
         setState(() => _selectedCategoryKey = key);
         if (key == 'all') {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const ProductListScreen()));
+          widget.onNavigate?.call(1);
         } else {
           final matched = getCategories(loc).cast<CategoryData?>().firstWhere(
             (c) => c?.name == key,
