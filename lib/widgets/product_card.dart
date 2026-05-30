@@ -61,13 +61,13 @@ class ProductCard extends StatelessWidget {
     Color badgeBg;
     String badgeText;
     if (product.isGroupOnly) {
-      badgeBg = const Color(0xFF6A1B9A);
+      badgeBg = const Color(0xFF333333);
       badgeText = 'GROUP';
     } else if (product.isNewActive) {
       badgeBg = const Color(0xFF111111);
       badgeText = 'NEW';
     } else if (product.isSale && discount > 0) {
-      badgeBg = const Color(0xFFE53935);
+      badgeBg = const Color(0xFF333333);
       badgeText = 'SALE';
     } else {
       badgeBg = Colors.transparent;
@@ -128,7 +128,7 @@ class ProductCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE53935),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
@@ -150,7 +150,7 @@ class ProductCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE53935),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
@@ -222,7 +222,7 @@ class ProductCard extends StatelessWidget {
                   margin: const EdgeInsets.only(right: 4, bottom: 5),
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6A1B9A),
+                    color: const Color(0xFF888888),
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: const Text(
@@ -296,7 +296,7 @@ class ProductCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFFE53935),
+                    color: Colors.white,
                     letterSpacing: -0.3,
                   ),
                 ),
@@ -306,14 +306,14 @@ class ProductCard extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFFE53935),
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(width: 5),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE53935),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(

@@ -16,7 +16,6 @@ class CategoryDetailScreen extends StatefulWidget {
   final Color categoryColor;
   final IconData categoryIcon;
   final List<SubCategory> subCategories;
-  /// 처음 열릴 탭 인덱스 (기본값 0 = 전체탭)
   final int initialTabIndex;
 
   const CategoryDetailScreen({
@@ -40,20 +39,21 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   String _sortBy = 'newest';
   bool _isGridView = true;
   String _searchQuery = '';
-  // 추가 필터
   String? _selectedSize;
   double _minPrice = 0;
   double _maxPrice = 300000;
   bool _onlySale = false;
   bool _onlyFreeShipping = false;
 
-  // 다크 테마 색상
-  static const Color _bgDark = Color(0xFF111111);
-  static const Color _bgCard = Color(0xFF1A1A1A);
-  static const Color _bgSurface = Color(0xFF222222);
-  static const Color _textPrimary = Colors.white;
-  static const Color _textSecondary = Color(0xFFAAAAAA);
-  static const Color _divider = Color(0xFF333333);
+  // ── 색상 팔레트: 흑백 모노크롬, 포인트 없음 ──
+  static const Color _bg       = Color(0xFF111111);
+  static const Color _surface  = Color(0xFF181818);
+  static const Color _card     = Color(0xFF1C1C1C);
+  static const Color _border   = Color(0xFF2A2A2A);
+  static const Color _divider  = Color(0xFF222222);
+  static const Color _white    = Colors.white;
+  static const Color _grey     = Color(0xFF888888);
+  static const Color _greyDim  = Color(0xFF555555);
 
   @override
   void initState() {
@@ -63,9 +63,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       initialIndex: widget.initialTabIndex.clamp(0, widget.subCategories.length - 1),
       vsync: this,
     );
-    // 카테고리 화면 진입 시: 전체 상품을 Firestore에서 강제 재로드
-    // (_currentCategory 상관없이 항상 전체 상품을 가져와야
-    //  _getProducts(filter) 로컬 필터링이 올바르게 동작함)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<ProductProvider>().refreshAll();
@@ -78,11 +75,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     super.dispose();
   }
 
-  /// filter: 메인 카테고리 (예: '상의')
-  /// subName: 하위 카테고리 이름 (예: '싱글렛 A타입') — 전체탭이면 null
   List<ProductModel> _getProducts(String filter, {String? subName}) {
     final provider = context.watch<ProductProvider>();
-    // products가 비어 있으면 로딩 중이므로 빈 리스트 반환
     final allCached = provider.products;
     List<ProductModel> all;
     if (filter == loc.sortNewArrival) {
@@ -92,89 +86,73 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     } else if (filter == '전체') {
       all = List.from(allCached);
     } else {
-      // 메인 카테고리로 1차 필터 (isActive는 ProductProvider에서 이미 필터링됨)
       all = allCached.where((p) => p.category == filter).toList();
-      // 하위 카테고리로 2차 필터 (전체 탭이면 skip)
       if (subName != null && subName.isNotEmpty &&
           !subName.startsWith('전체') && subName != filter) {
         all = all.where((p) {
-          // p.subCategory와 정확히 일치하거나 포함하는지 확인
           final sub = p.subCategory;
           if (sub.isEmpty) return false;
-          // '싱글렛 A타입' → 'A타입' 부분 일치도 허용
-          return sub == subName ||
-              sub.contains(subName) ||
-              subName.contains(sub);
+          return sub == subName || sub.contains(subName) || subName.contains(sub);
         }).toList();
       }
     }
-    // 검색 필터
     if (_searchQuery.isNotEmpty) {
       all = all.where((p) => p.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
     }
-    // 사이즈 필터
     if (_selectedSize != null) {
       all = all.where((p) => p.sizes.contains(_selectedSize)).toList();
     }
-    // 가격 범위 필터
     all = all.where((p) => p.price >= _minPrice && p.price <= _maxPrice).toList();
-    // 세일 필터
     if (_onlySale) {
       all = all.where((p) => p.isSale || (p.originalPrice != null && p.originalPrice! > p.price)).toList();
     }
-    // 무료배송 필터
     if (_onlyFreeShipping) {
       all = all.where((p) => p.isFreeShipping).toList();
     }
-    // 정렬
     final sorted = List<ProductModel>.from(all);
     switch (_sortBy) {
-      case 'priceLow':
-        sorted.sort((a, b) => a.price.compareTo(b.price));
-        break;
-      case 'priceHigh':
-        sorted.sort((a, b) => b.price.compareTo(a.price));
-        break;
-      case 'popular':
-        sorted.sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
-        break;
-      case 'rating':
-        sorted.sort((a, b) => b.rating.compareTo(a.rating));
-        break;
-      default:
-        sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      case 'priceLow':  sorted.sort((a, b) => a.price.compareTo(b.price)); break;
+      case 'priceHigh': sorted.sort((a, b) => b.price.compareTo(a.price)); break;
+      case 'popular':   sorted.sort((a, b) => b.reviewCount.compareTo(a.reviewCount)); break;
+      case 'rating':    sorted.sort((a, b) => b.rating.compareTo(a.rating)); break;
+      default:          sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     }
     return sorted;
   }
+
+  bool get _hasFilter =>
+      _selectedSize != null || _onlySale || _onlyFreeShipping ||
+      _minPrice > 0 || _maxPrice < 300000;
 
   @override
   Widget build(BuildContext context) {
     if (isPcWeb(context)) return _buildPcLayout(context);
     return wrapWithPopScope(context, Scaffold(
-      backgroundColor: _bgDark,
+      backgroundColor: _bg,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          _buildSliverAppBar(innerBoxIsScrolled),
+          _buildSliverAppBar(),
         ],
         body: Column(
           children: [
-            _buildFilterSortBar(),
+            _buildSortBar(),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: widget.subCategories.map((sub) {
                   final provider = context.watch<ProductProvider>();
                   if (provider.isLoading) {
-                    return Center(
+                    return const Center(
                       child: CircularProgressIndicator(
-                        color: widget.categoryColor,
+                        color: Colors.white38,
+                        strokeWidth: 1.5,
                       ),
                     );
                   }
                   final products = _getProducts(sub.filter, subName: sub.name);
                   return RefreshIndicator(
-                    color: widget.categoryColor,
-                    backgroundColor: _bgCard,
+                    color: _white,
+                    backgroundColor: _card,
                     onRefresh: () => context.read<ProductProvider>().refreshAll(),
                     child: _isGridView
                         ? _buildProductGrid(products)
@@ -189,94 +167,170 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     ));
   }
 
-  // ── 필터/정렬 바 (다크 테마) ──
-  Widget _buildFilterSortBar() {
-    final hasFilter = _selectedSize != null || _onlySale || _onlyFreeShipping
-        || _minPrice > 0 || _maxPrice < 300000;
-    return Container(
-      color: _bgCard,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        children: [
-          // 필터 버튼
-          GestureDetector(
-            onTap: _showFilterSheet,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: hasFilter ? widget.categoryColor : _bgSurface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: hasFilter ? widget.categoryColor : _divider),
+  // ── SliverAppBar: 심플 단색 헤더 ──
+  SliverAppBar _buildSliverAppBar() {
+    return SliverAppBar(
+      pinned: true,
+      floating: false,
+      expandedHeight: 110,
+      backgroundColor: _surface,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _white, size: 19),
+        onPressed: () => goBackOrHome(context),
+      ),
+      actions: [
+        // 그리드/리스트 토글
+        IconButton(
+          icon: Icon(
+            _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
+            color: _grey,
+            size: 22,
+          ),
+          onPressed: () => setState(() => _isGridView = !_isGridView),
+        ),
+        // 필터
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            IconButton(
+              icon: Icon(Icons.tune_rounded, color: _hasFilter ? _white : _grey, size: 22),
+              onPressed: _showFilterSheet,
+            ),
+            if (_hasFilter)
+              Positioned(
+                top: 8, right: 8,
+                child: Container(
+                  width: 7, height: 7,
+                  decoration: const BoxDecoration(color: _white, shape: BoxShape.circle),
+                ),
               ),
+          ],
+        ),
+        const SizedBox(width: 4),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          color: _surface,
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 56),
+          alignment: Alignment.bottomLeft,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.categoryName.toUpperCase(),
+                style: const TextStyle(
+                  color: _white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.5,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      // TabBar
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(44),
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: _divider)),
+          ),
+          child: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            labelColor: _white,
+            unselectedLabelColor: _greyDim,
+            // 선택 탭: 흰색 얇은 밑줄
+            indicator: const UnderlineTabIndicator(
+              borderSide: BorderSide(color: _white, width: 2),
+              insets: EdgeInsets.symmetric(horizontal: 4),
+            ),
+            labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+            unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
+            padding: EdgeInsets.zero,
+            tabs: widget.subCategories.map((sub) => Tab(
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.tune_rounded, size: 14,
-                      color: hasFilter ? Colors.white : _textSecondary),
-                  const SizedBox(width: 4),
-                  Text(loc.filterTitle, style: TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w700,
-                    color: hasFilter ? Colors.white : _textSecondary,
-                  )),
-                  if (hasFilter) ...[
+                  Text(sub.name),
+                  if (sub.tag != null) ...[
                     const SizedBox(width: 4),
                     Container(
-                      width: 16, height: 16,
-                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.3), shape: BoxShape.circle),
-                      child: const Icon(Icons.close_rounded, size: 10, color: Colors.white),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: _greyDim,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: Text(sub.tag!,
+                        style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: _white),
+                      ),
                     ),
                   ],
                 ],
               ),
-            ),
+            )).toList(),
           ),
-          const SizedBox(width: 8),
-          // 정렬 탭들
+        ),
+      ),
+    );
+  }
+
+  // ── 정렬 바: 심플 텍스트 탭 ──
+  Widget _buildSortBar() {
+    final sortMap = <String, String>{
+      'newest':    loc.sortNewest,
+      'popular':   loc.sortPopular,
+      'priceLow':  loc.sortPriceLow,
+      'priceHigh': loc.sortPriceHigh,
+      'rating':    loc.sortRating,
+    };
+    return Container(
+      height: 44,
+      color: _bg,
+      child: Row(
+        children: [
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
-                children: [
-                  ...(<String, String>{
-                    'newest': loc.sortNewest,
-                    'popular': loc.sortPopular,
-                    'priceLow': loc.sortPriceLow,
-                    'priceHigh': loc.sortPriceHigh,
-                    'rating': loc.sortRating,
-                  }).entries.map((entry) => GestureDetector(
-                    onTap: () => setState(() => _sortBy = entry.key),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 6),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: _sortBy == entry.key
-                            ? widget.categoryColor : _bgSurface,
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: _sortBy == entry.key ? widget.categoryColor : _divider,
+                children: sortMap.entries.map((e) {
+                  final isSelected = _sortBy == e.key;
+                  return GestureDetector(
+                    onTap: () => setState(() => _sortBy = e.key),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 20),
+                      child: Text(
+                        e.value,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                          color: isSelected ? _white : _greyDim,
+                          letterSpacing: 0.2,
                         ),
                       ),
-                      child: Text(entry.value, style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: _sortBy == entry.key
-                            ? Colors.white : _textSecondary,
-                      )),
                     ),
-                  )),
-                ],
+                  );
+                }).toList(),
               ),
             ),
           ),
+          Container(width: 1, height: 16, color: _border),
+          const SizedBox(width: 12),
           GestureDetector(
             onTap: () => setState(() => _isGridView = !_isGridView),
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: _bgSurface, borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: _divider),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Icon(
+                _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
+                size: 19,
+                color: _grey,
               ),
-              child: Icon(_isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
-                  size: 18, color: _textSecondary),
             ),
           ),
         ],
@@ -284,7 +338,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
-  // ── 필터 바텀시트 (다크 테마) ──
+  // ── 필터 바텀시트 ──
   void _showFilterSheet() {
     final sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
     showModalBottomSheet(
@@ -293,49 +347,56 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModal) => Container(
-          height: MediaQuery.of(context).size.height * 0.7,
+          height: MediaQuery.of(context).size.height * 0.72,
           decoration: const BoxDecoration(
-            color: Color(0xFF1A1A1A),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            color: _surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
           ),
           child: Column(
             children: [
-              // 핸들 + 타이틀
+              // 핸들
               Container(
-                padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Color(0xFF333333))),
+                margin: const EdgeInsets.only(top: 10),
+                width: 32, height: 3,
+                decoration: BoxDecoration(
+                  color: _border,
+                  borderRadius: BorderRadius.circular(2),
                 ),
+              ),
+              // 헤더
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 8, 16),
                 child: Row(
                   children: [
-                    Text(loc.filterTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
+                    const Text('FILTER',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900,
+                          color: _white, letterSpacing: 2.5)),
                     const Spacer(),
                     TextButton(
                       onPressed: () {
                         setModal(() {
-                          _selectedSize = null;
-                          _minPrice = 0;
-                          _maxPrice = 300000;
-                          _onlySale = false;
-                          _onlyFreeShipping = false;
+                          _selectedSize = null; _minPrice = 0;
+                          _maxPrice = 300000; _onlySale = false; _onlyFreeShipping = false;
                         });
                         setState(() {});
                       },
-                      child: Text(loc.filterReset2, style: const TextStyle(color: Color(0xFF888888))),
+                      child: const Text('초기화',
+                        style: TextStyle(fontSize: 12, color: _greyDim)),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, color: Colors.white),
+                      icon: const Icon(Icons.close_rounded, color: _grey, size: 20),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
                 ),
               ),
+              const Divider(height: 1, color: _divider),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                    // ── 사이즈 필터 ──
-                    Text(loc.filterSize, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
+                    // 사이즈
+                    _filterLabel('SIZE'),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 8, runSpacing: 8,
@@ -347,57 +408,69 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                             setState(() {});
                           }),
                           child: Container(
-                            width: 52, height: 38,
+                            width: 54, height: 40,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: isSel ? widget.categoryColor : _bgSurface,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: isSel ? widget.categoryColor : _divider),
+                              color: isSel ? _white : _card,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: isSel ? _white : _border),
                             ),
-                            child: Text(s, style: TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w700,
-                              color: isSel ? Colors.white : _textSecondary,
-                            )),
+                            child: Text(s,
+                              style: TextStyle(
+                                fontSize: 12.5, fontWeight: FontWeight.w700,
+                                color: isSel ? _bg : _grey,
+                              ),
+                            ),
                           ),
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 24),
-                    // ── 가격 필터 ──
+                    const SizedBox(height: 28),
+                    // 가격
                     Row(children: [
-                      Text(loc.filterPriceRange, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
+                      _filterLabel('PRICE'),
                       const Spacer(),
-                      Text('${_fmtPrice(_minPrice)}${loc.wonUnit} ~ ${_fmtPrice(_maxPrice)}${loc.wonUnit}',
-                          style: TextStyle(fontSize: 12, color: widget.categoryColor, fontWeight: FontWeight.w700)),
+                      Text(
+                        '${_fmtPrice(_minPrice)}${loc.wonUnit} ~ ${_fmtPrice(_maxPrice)}${loc.wonUnit}',
+                        style: const TextStyle(fontSize: 12, color: _grey),
+                      ),
                     ]),
-                    RangeSlider(
-                      values: RangeValues(_minPrice, _maxPrice),
-                      min: 0, max: 300000,
-                      divisions: 30,
-                      activeColor: widget.categoryColor,
-                      inactiveColor: _divider,
-                      onChanged: (v) => setModal(() {
-                        _minPrice = v.start;
-                        _maxPrice = v.end;
-                        setState(() {});
-                      }),
+                    const SizedBox(height: 4),
+                    SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        activeTrackColor: _white,
+                        inactiveTrackColor: _border,
+                        thumbColor: _white,
+                        overlayColor: Colors.white12,
+                        trackHeight: 1.5,
+                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                      ),
+                      child: RangeSlider(
+                        values: RangeValues(_minPrice, _maxPrice),
+                        min: 0, max: 300000, divisions: 30,
+                        activeColor: _white,
+                        inactiveColor: _border,
+                        onChanged: (v) => setModal(() {
+                          _minPrice = v.start; _maxPrice = v.end; setState(() {});
+                        }),
+                      ),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('0${loc.wonUnit2}', style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
-                        Text('300,000${loc.wonUnit2}', style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                        Text('0${loc.wonUnit2}', style: const TextStyle(fontSize: 11, color: _greyDim)),
+                        Text('300,000${loc.wonUnit2}', style: const TextStyle(fontSize: 11, color: _greyDim)),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    // ── 추가 필터 ──
-                    Text(loc.filterExtraOption, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
+                    const SizedBox(height: 28),
+                    // 추가 옵션
+                    _filterLabel('OPTIONS'),
                     const SizedBox(height: 12),
-                    _filterCheckRow(loc.filterSaleOnly, _onlySale, widget.categoryColor, (v) {
+                    _filterToggleRow(loc.filterSaleOnly, _onlySale, (v) {
                       setModal(() { _onlySale = v; setState(() {}); });
                     }),
                     const SizedBox(height: 8),
-                    _filterCheckRow(loc.filterFreeShipOnly, _onlyFreeShipping, widget.categoryColor, (v) {
+                    _filterToggleRow(loc.filterFreeShipOnly, _onlyFreeShipping, (v) {
                       setModal(() { _onlyFreeShipping = v; setState(() {}); });
                     }),
                   ],
@@ -405,18 +478,19 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
               ),
               // 적용 버튼
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
                 child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
+                  width: double.infinity, height: 50,
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(ctx),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.categoryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      backgroundColor: _white,
+                      foregroundColor: _bg,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                     ),
-                    child: Text(loc.filterApply, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                    child: Text(loc.filterApply,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 1)),
                   ),
                 ),
               ),
@@ -427,25 +501,41 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
-  Widget _filterCheckRow(String label, bool value, Color color, ValueChanged<bool> onChanged) {
+  Widget _filterLabel(String text) => Text(text,
+    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900,
+        color: _greyDim, letterSpacing: 2));
+
+  Widget _filterToggleRow(String label, bool value, ValueChanged<bool> onChanged) {
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         decoration: BoxDecoration(
-          color: value ? color.withValues(alpha: 0.15) : _bgSurface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: value ? color.withValues(alpha: 0.5) : _divider),
+          color: value ? _card : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: value ? _border : _divider),
         ),
         child: Row(
           children: [
-            Icon(value ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-                size: 20, color: value ? color : const Color(0xFF666666)),
-            const SizedBox(width: 10),
-            Text(label, style: TextStyle(
-              fontSize: 14, fontWeight: value ? FontWeight.w700 : FontWeight.w400,
-              color: value ? Colors.white : _textSecondary,
-            )),
+            Container(
+              width: 18, height: 18,
+              decoration: BoxDecoration(
+                color: value ? _white : Colors.transparent,
+                borderRadius: BorderRadius.circular(3),
+                border: Border.all(color: value ? _white : _greyDim, width: 1.5),
+              ),
+              child: value
+                  ? const Icon(Icons.check_rounded, size: 12, color: _bg)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Text(label,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: value ? FontWeight.w600 : FontWeight.w400,
+                color: value ? _white : _grey,
+              ),
+            ),
           ],
         ),
       ),
@@ -455,69 +545,65 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   String _fmtPrice(double v) =>
       v.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
-  // ──────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════
   // PC 레이아웃
-  // ──────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════
   Widget _buildPcLayout(BuildContext context) {
     return wrapWithPopScope(context, Scaffold(
-      backgroundColor: _bgDark,
+      backgroundColor: _bg,
       appBar: AppBar(
-        backgroundColor: _bgCard,
+        backgroundColor: _surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
+          icon: const Icon(Icons.chevron_left_rounded, color: _white, size: 26),
           onPressed: () => goBackOrHome(context),
         ),
-        title: Row(
-          children: [
-            Icon(widget.categoryIcon, color: widget.categoryColor, size: 22),
-            const SizedBox(width: 8),
-            Text(widget.categoryName,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
-          ],
+        title: Text(
+          widget.categoryName.toUpperCase(),
+          style: const TextStyle(
+            fontSize: 15, fontWeight: FontWeight.w900,
+            color: _white, letterSpacing: 3,
+          ),
         ),
         centerTitle: false,
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          labelColor: widget.categoryColor,
-          unselectedLabelColor: const Color(0xFF888888),
-          indicatorColor: widget.categoryColor,
-          indicatorWeight: 3,
-          labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-          unselectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-          tabs: widget.subCategories.map((sub) {
-            return Tab(
-              child: Row(
-                children: [
-                  Text(sub.name),
-                  if (sub.tag != null) ...[
-                    const SizedBox(width: 5),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: sub.tag == 'NEW'
-                            ? widget.categoryColor
-                            : sub.tag == 'SALE'
-                                ? Colors.amber
-                                : Colors.greenAccent,
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: Text(
-                        sub.tag!,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: sub.tag == 'NEW' ? Colors.white : Colors.black,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(44),
+          child: Container(
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: _divider)),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              labelColor: _white,
+              unselectedLabelColor: _greyDim,
+              indicator: const UnderlineTabIndicator(
+                borderSide: BorderSide(color: _white, width: 2),
+                insets: EdgeInsets.symmetric(horizontal: 4),
               ),
-            );
-          }).toList(),
+              labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
+              padding: EdgeInsets.zero,
+              tabs: widget.subCategories.map((sub) => Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(sub.name),
+                    if (sub.tag != null) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(color: _greyDim, borderRadius: BorderRadius.circular(2)),
+                        child: Text(sub.tag!,
+                          style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: _white)),
+                      ),
+                    ],
+                  ],
+                ),
+              )).toList(),
+            ),
+          ),
         ),
       ),
       body: Center(
@@ -528,32 +614,29 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 좌측 필터 사이드바 ──
-                SizedBox(
-                  width: 220,
-                  child: _buildPcFilterSidebar(),
-                ),
-                const SizedBox(width: 24),
+                // ── 좌측 사이드바 ──
+                SizedBox(width: 200, child: _buildPcSidebar()),
+                const SizedBox(width: 28),
                 // ── 우측 상품 목록 ──
                 Expanded(
                   child: Column(
                     children: [
-                      // 검색 + 정렬 바
-                      _buildPcSearchSortBar(),
+                      _buildPcTopBar(),
                       const SizedBox(height: 16),
-                      // 상품 그리드
                       Expanded(
                         child: TabBarView(
                           controller: _tabController,
                           children: widget.subCategories.map((sub) {
                             final provider = context.watch<ProductProvider>();
                             if (provider.isLoading) {
-                              return Center(child: CircularProgressIndicator(color: widget.categoryColor));
+                              return const Center(
+                                child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 1.5),
+                              );
                             }
                             final products = _getProducts(sub.filter, subName: sub.name);
                             return RefreshIndicator(
-                              color: widget.categoryColor,
-                              backgroundColor: _bgCard,
+                              color: _white,
+                              backgroundColor: _card,
                               onRefresh: () => context.read<ProductProvider>().refreshAll(),
                               child: _buildPcProductGrid(products),
                             );
@@ -571,137 +654,160 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     ));
   }
 
-  Widget _buildPcFilterSidebar() {
+  Widget _buildPcSidebar() {
+    final sortMap = <String, String>{
+      'newest':    loc.sortNewest,
+      'popular':   loc.sortPopular,
+      'priceLow':  loc.sortPriceLow,
+      'priceHigh': loc.sortPriceHigh,
+      'rating':    loc.sortRating,
+    };
+    final sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 카테고리 정보 카드
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [widget.categoryColor, widget.categoryColor.withValues(alpha: 0.7)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(widget.categoryIcon, color: Colors.white, size: 32),
-                const SizedBox(height: 10),
-                Text(
-                  widget.categoryName,
-                  style: const TextStyle(
-                      color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${_getProducts(widget.subCategories.first.filter, subName: widget.subCategories.first.name).length}${loc.productCountUnit}',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 정렬 필터
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _bgCard,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _divider),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(loc.sortTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
-                const SizedBox(height: 12),
-                ...AppConstants.sortOptions.map((opt) => InkWell(
-                      onTap: () => setState(() => _sortBy = opt),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 16, height: 16,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: _sortBy == opt
-                                      ? widget.categoryColor
-                                      : _divider,
-                                  width: 2,
-                                ),
-                                color: _sortBy == opt ? widget.categoryColor : Colors.transparent,
-                              ),
-                              child: _sortBy == opt
-                                  ? const Icon(Icons.check, size: 10, color: Colors.white)
-                                  : null,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              opt,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight:
-                                    _sortBy == opt ? FontWeight.w700 : FontWeight.w400,
-                                color: _sortBy == opt
-                                    ? widget.categoryColor
-                                    : _textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 보기 방식
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _bgCard,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _divider),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(loc.viewMode, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
-                const SizedBox(height: 12),
-                Row(
+          // ── 정렬 ──
+          const Text('SORT',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
+                color: _greyDim, letterSpacing: 2.5)),
+          const SizedBox(height: 12),
+          ...sortMap.entries.map((e) {
+            final isSel = _sortBy == e.key;
+            return GestureDetector(
+              onTap: () => setState(() => _sortBy = e.key),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
                   children: [
-                    Expanded(
-                      child: _viewToggleBtn(
-                        icon: Icons.grid_view_rounded,
-                        label: loc.viewGrid,
-                        isActive: _isGridView,
-                        onTap: () => setState(() => _isGridView = true),
-                        color: widget.categoryColor,
+                    Container(
+                      width: 14, height: 14,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSel ? _white : Colors.transparent,
+                        border: Border.all(color: isSel ? _white : _greyDim, width: 1.5),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _viewToggleBtn(
-                        icon: Icons.view_list_rounded,
-                        label: loc.viewList,
-                        isActive: !_isGridView,
-                        onTap: () => setState(() => _isGridView = false),
-                        color: widget.categoryColor,
+                    const SizedBox(width: 10),
+                    Text(e.value,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isSel ? FontWeight.w700 : FontWeight.w400,
+                        color: isSel ? _white : _grey,
                       ),
                     ),
                   ],
                 ),
-              ],
+              ),
+            );
+          }),
+          const SizedBox(height: 24),
+          Container(height: 1, color: _divider),
+          const SizedBox(height: 24),
+
+          // ── 사이즈 ──
+          const Text('SIZE',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
+                color: _greyDim, letterSpacing: 2.5)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 6, runSpacing: 6,
+            children: sizes.map((s) {
+              final isSel = _selectedSize == s;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedSize = isSel ? null : s),
+                child: Container(
+                  width: 44, height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: isSel ? _white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(3),
+                    border: Border.all(color: isSel ? _white : _border),
+                  ),
+                  child: Text(s,
+                    style: TextStyle(
+                      fontSize: 11.5, fontWeight: FontWeight.w700,
+                      color: isSel ? _bg : _grey,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 24),
+          Container(height: 1, color: _divider),
+          const SizedBox(height: 24),
+
+          // ── 가격 ──
+          Row(children: [
+            const Text('PRICE',
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
+                  color: _greyDim, letterSpacing: 2.5)),
+            const Spacer(),
+            Text(
+              '${_fmtPrice(_minPrice)}~${_fmtPrice(_maxPrice)}',
+              style: const TextStyle(fontSize: 10, color: _grey),
+            ),
+          ]),
+          const SizedBox(height: 4),
+          RangeSlider(
+            values: RangeValues(_minPrice, _maxPrice),
+            min: 0, max: 300000, divisions: 30,
+            activeColor: _white,
+            inactiveColor: _border,
+            onChanged: (v) => setState(() { _minPrice = v.start; _maxPrice = v.end; }),
+          ),
+          const SizedBox(height: 24),
+          Container(height: 1, color: _divider),
+          const SizedBox(height: 24),
+
+          // ── 옵션 ──
+          const Text('OPTIONS',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
+                color: _greyDim, letterSpacing: 2.5)),
+          const SizedBox(height: 12),
+          _sidebarToggle(loc.filterSaleOnly, _onlySale,
+              (v) => setState(() => _onlySale = v)),
+          const SizedBox(height: 8),
+          _sidebarToggle(loc.filterFreeShipOnly, _onlyFreeShipping,
+              (v) => setState(() => _onlyFreeShipping = v)),
+          const SizedBox(height: 24),
+          // 필터 초기화
+          if (_hasFilter)
+            GestureDetector(
+              onTap: () => setState(() {
+                _selectedSize = null; _minPrice = 0; _maxPrice = 300000;
+                _onlySale = false; _onlyFreeShipping = false;
+              }),
+              child: const Text('초기화',
+                style: TextStyle(fontSize: 12, color: _greyDim,
+                    decoration: TextDecoration.underline)),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sidebarToggle(String label, bool value, ValueChanged<bool> onChanged) {
+    return GestureDetector(
+      onTap: () => onChanged(!value),
+      child: Row(
+        children: [
+          Container(
+            width: 16, height: 16,
+            decoration: BoxDecoration(
+              color: value ? _white : Colors.transparent,
+              borderRadius: BorderRadius.circular(2),
+              border: Border.all(color: value ? _white : _greyDim, width: 1.5),
+            ),
+            child: value ? const Icon(Icons.check_rounded, size: 11, color: _bg) : null,
+          ),
+          const SizedBox(width: 10),
+          Text(label,
+            style: TextStyle(
+              fontSize: 13,
+              color: value ? _white : _grey,
+              fontWeight: value ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
         ],
@@ -709,63 +815,29 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
-  Widget _viewToggleBtn({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-    required Color color,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? color.withValues(alpha: 0.15) : _bgSurface,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isActive ? color : _divider,
-            width: isActive ? 1.5 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 18, color: isActive ? color : const Color(0xFF666666)),
-            const SizedBox(height: 3),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                    color: isActive ? color : const Color(0xFF666666))),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPcSearchSortBar() {
+  Widget _buildPcTopBar() {
     return Row(
       children: [
         // 검색창
         Expanded(
           child: Container(
-            height: 44,
+            height: 40,
             decoration: BoxDecoration(
-              color: _bgCard,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _divider),
+              color: _surface,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: _border),
             ),
             child: Row(
               children: [
                 const SizedBox(width: 12),
-                const Icon(Icons.search_rounded, color: Color(0xFF666666), size: 20),
+                const Icon(Icons.search_rounded, color: _greyDim, size: 18),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    style: const TextStyle(fontSize: 13.5, color: Colors.white),
+                    style: const TextStyle(fontSize: 13, color: _white),
                     decoration: InputDecoration(
-                      hintText: '${widget.categoryName} ${loc.productSearchHint}...',
-                      hintStyle: const TextStyle(fontSize: 13.5, color: Color(0xFF666666)),
+                      hintText: '${widget.categoryName} 검색...',
+                      hintStyle: const TextStyle(fontSize: 13, color: _greyDim),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
@@ -774,27 +846,32 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                   ),
                 ),
                 if (_searchQuery.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(Icons.clear_rounded, size: 18, color: Color(0xFF666666)),
-                    onPressed: () => setState(() => _searchQuery = ''),
+                  GestureDetector(
+                    onTap: () => setState(() => _searchQuery = ''),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Icon(Icons.close_rounded, size: 16, color: _greyDim),
+                    ),
                   ),
               ],
             ),
           ),
         ),
-        const SizedBox(width: 12),
-        // 그리드/리스트 토글
+        const SizedBox(width: 10),
+        // 보기 토글
         Container(
           decoration: BoxDecoration(
-            color: _bgCard,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: _divider),
+            color: _surface,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: _border),
           ),
           child: Row(
             children: [
-              _toggleIconBtn(Icons.grid_view_rounded, _isGridView, () => setState(() => _isGridView = true)),
-              Container(width: 1, height: 24, color: _divider),
-              _toggleIconBtn(Icons.view_list_rounded, !_isGridView, () => setState(() => _isGridView = false)),
+              _pcToggleBtn(Icons.grid_view_rounded, _isGridView,
+                  () => setState(() => _isGridView = true)),
+              Container(width: 1, height: 20, color: _border),
+              _pcToggleBtn(Icons.view_list_rounded, !_isGridView,
+                  () => setState(() => _isGridView = false)),
             ],
           ),
         ),
@@ -802,383 +879,96 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
-  Widget _toggleIconBtn(IconData icon, bool isActive, VoidCallback onTap) {
-    return InkWell(
+  Widget _pcToggleBtn(IconData icon, bool isActive, VoidCallback onTap) {
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
       child: Container(
-        width: 44,
-        height: 44,
+        width: 40, height: 40,
         decoration: BoxDecoration(
-          color: isActive ? widget.categoryColor.withValues(alpha: 0.15) : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          color: isActive ? Colors.white10 : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
         ),
-        child: Icon(icon,
-            size: 20, color: isActive ? widget.categoryColor : const Color(0xFF666666)),
+        child: Icon(icon, size: 18, color: isActive ? _white : _greyDim),
       ),
     );
   }
 
   Widget _buildPcProductGrid(List<ProductModel> products) {
-    if (products.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(widget.categoryIcon, size: 64, color: widget.categoryColor.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
-            Text(loc.productEmpty,
-                style: const TextStyle(
-                    fontSize: 16, color: Color(0xFF888888), fontWeight: FontWeight.w500)),
-            if (_searchQuery.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text('"$_searchQuery" ${loc.searchNoResult}',
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF666666))),
-            ],
-          ],
-        ),
-      );
-    }
-
+    if (products.isEmpty) return _buildEmpty();
     if (_isGridView) {
       return GridView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 24),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          childAspectRatio: 0.72,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+          crossAxisCount: 3, childAspectRatio: 0.72,
+          crossAxisSpacing: 14, mainAxisSpacing: 14,
         ),
         itemCount: products.length,
         itemBuilder: (_, i) => ProductCard(product: products[i]),
       );
-    } else {
-      return ListView.builder(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(bottom: 24),
-        itemCount: products.length,
-        itemBuilder: (context, i) => _buildPcListItem(context, products[i]),
-      );
     }
-  }
-
-  Widget _buildPcListItem(BuildContext context, ProductModel product) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
-      ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: _bgCard,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _divider),
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
-              child: SizedBox(
-                width: 140,
-                height: 140,
-                child: product.images.isNotEmpty
-                    ? Image.network(product.images.first,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                              color: _bgSurface,
-                              child: Icon(widget.categoryIcon, color: _divider, size: 40),
-                            ))
-                    : Container(
-                        color: _bgSurface,
-                        child: Icon(widget.categoryIcon, color: _divider, size: 40),
-                      ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        if (product.isNewActive) _tag('NEW', AppColors.primary),
-                        if (product.isSale) _tag('SALE', AppColors.accent),
-                        if (product.isFreeShipping) _tag(loc.freeShippingBadge, AppColors.success),
-                        if (product.isGroupOnly) _tag('단체주문 전용', const Color(0xFF6A1B9A)),
-                      ],
-                    ),
-                    if (product.isNewActive || product.isSale || product.isFreeShipping || product.isGroupOnly)
-                      const SizedBox(height: 6),
-                    Text(product.localizedName(_lang),
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
-                    const SizedBox(height: 8),
-                    if (product.originalPrice != null)
-                      Text(
-                        '${_fmt(product.originalPrice!)}원',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF666666),
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                    Text(
-                      '${_fmt(product.price)}원',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const Icon(Icons.star_rounded, size: 14, color: Color(0xFFFFD600)),
-                        const SizedBox(width: 3),
-                        Text(
-                          '${product.rating} (${product.reviewCount})',
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: ElevatedButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.categoryColor,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                child: Text(loc.categoryDetailView, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 24),
+      itemCount: products.length,
+      itemBuilder: (ctx, i) => _buildListItem(ctx, products[i], pc: true),
     );
   }
 
-  // ──────────────────────────────────────────────────────────────────
-  // 모바일 전용
-  // ──────────────────────────────────────────────────────────────────
-
-  // ── Sliver AppBar (카테고리 헤더 + 탭바) ──
-  SliverAppBar _buildSliverAppBar(bool innerBoxIsScrolled) {
-    return SliverAppBar(
-      pinned: true,
-      floating: false,
-      forceElevated: innerBoxIsScrolled,
-      expandedHeight: 130,
-      backgroundColor: _bgCard,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: Colors.white, size: 20),
-        onPressed: () => goBackOrHome(context),
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(
-            _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
-            color: Colors.white,
-          ),
-          onPressed: () => setState(() => _isGridView = !_isGridView),
-        ),
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.sort_rounded, color: Colors.white),
-          color: _bgCard,
-          onSelected: (v) => setState(() => _sortBy = v),
-          itemBuilder: (_) => AppConstants.sortOptions
-              .map((s) => PopupMenuItem(
-                    value: s,
-                    child: Row(
-                      children: [
-                        if (_sortBy == s)
-                          Icon(Icons.check, size: 16, color: widget.categoryColor)
-                        else
-                          const SizedBox(width: 16),
-                        const SizedBox(width: 6),
-                        Text(s,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: _sortBy == s
-                                  ? FontWeight.w700
-                                  : FontWeight.normal)),
-                      ],
-                    ),
-                  ))
-              .toList(),
-        ),
-      ],
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                widget.categoryColor.withValues(alpha: 0.9),
-                _bgDark,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: Stack(
-            children: [
-              Positioned(
-                right: -10,
-                bottom: 30,
-                child: Opacity(
-                  opacity: 0.10,
-                  child: Icon(widget.categoryIcon, size: 110, color: Colors.white),
-                ),
-              ),
-              Positioned(
-                left: 20,
-                bottom: 52,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.categoryName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${_getProducts(widget.subCategories.first.filter, subName: widget.subCategories.first.name).length}${loc.productCountUnit}',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.65),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      bottom: TabBar(
-        controller: _tabController,
-        isScrollable: true,
-        tabAlignment: TabAlignment.start,
-        labelColor: Colors.white,
-        unselectedLabelColor: Colors.white38,
-        indicatorColor: widget.categoryColor,
-        indicatorWeight: 3,
-        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-        unselectedLabelStyle:
-            const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
-        tabs: widget.subCategories.map((sub) {
-          return Tab(
-            child: Row(
-              children: [
-                Text(sub.name),
-                if (sub.tag != null) ...[
-                  const SizedBox(width: 4),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: sub.tag == 'NEW'
-                          ? widget.categoryColor
-                          : sub.tag == 'SALE'
-                              ? Colors.amber
-                              : Colors.greenAccent,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Text(
-                      sub.tag!,
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.w800,
-                        color: sub.tag == 'NEW'
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  // ── 모바일 상품 그리드 / 리스트 ──
+  // ══════════════════════════════════════════════════════
+  // 모바일 상품 그리드 / 리스트
+  // ══════════════════════════════════════════════════════
   Widget _buildProductGrid(List<ProductModel> products) {
-    if (products.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(widget.categoryIcon, size: 64, color: widget.categoryColor.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
-            Text(loc.categoryNoProducts, style: const TextStyle(fontSize: 16, color: Color(0xFF888888), fontWeight: FontWeight.w500)),
-          ],
-        ),
-      );
-    }
+    if (products.isEmpty) return _buildEmpty();
     return GridView.builder(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(12),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.68,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
+        crossAxisCount: 2, childAspectRatio: 0.68,
+        crossAxisSpacing: 10, mainAxisSpacing: 10,
       ),
       itemCount: products.length,
       itemBuilder: (_, i) => ProductCard(product: products[i]),
     );
   }
 
-  Widget _buildListItem(BuildContext context, ProductModel product) {
+  Widget _buildProductList(List<ProductModel> products) {
+    if (products.isEmpty) return _buildEmpty();
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
+      itemCount: products.length,
+      itemBuilder: (ctx, i) => _buildListItem(ctx, products[i]),
+    );
+  }
+
+  Widget _buildListItem(BuildContext context, ProductModel product, {bool pc = false}) {
+    final imgSize = pc ? 130.0 : 100.0;
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => ProductDetailScreen(product: product)),
-      ),
+      onTap: () => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product))),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
+        margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: _bgCard,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _divider),
+          color: _card,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: _border),
         ),
         child: Row(
           children: [
             ClipRRect(
-              borderRadius:
-                  const BorderRadius.horizontal(left: Radius.circular(12)),
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
               child: SizedBox(
-                width: 110,
-                height: 110,
+                width: imgSize, height: imgSize,
                 child: product.images.isNotEmpty
-                    ? Image.network(product.images.first,
-                        fit: BoxFit.cover,
+                    ? Image.network(product.images.first, fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                              color: _bgSurface,
-                              child: Icon(widget.categoryIcon,
-                                  color: _divider, size: 36),
-                            ))
-                    : Container(
-                        color: _bgSurface,
-                        child: Icon(widget.categoryIcon,
-                            color: _divider, size: 36),
-                      ),
+                            color: _surface,
+                            child: const Icon(Icons.image_not_supported_outlined,
+                                color: _greyDim, size: 28)))
+                    : Container(color: _surface,
+                        child: const Icon(Icons.image_not_supported_outlined,
+                            color: _greyDim, size: 28)),
               ),
             ),
             Expanded(
@@ -1187,51 +977,48 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        if (product.isNewActive) _tag('NEW', AppColors.primary),
-                        if (product.isSale) _tag('SALE', AppColors.accent),
-                        if (product.isFreeShipping) _tag(loc.freeShippingBadge, AppColors.success),
-                        if (product.isGroupOnly) _tag('단체주문 전용', const Color(0xFF6A1B9A)),
-                      ],
-                    ),
-                    if (product.isNewActive || product.isSale || product.isFreeShipping || product.isGroupOnly)
-                      const SizedBox(height: 4),
-                    Text(
-                      product.localizedName(_lang),
-                      style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
-                      softWrap: true,
+                    // 배지
+                    if (product.isNewActive || product.isSale || product.isFreeShipping)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 5),
+                        child: Row(
+                          children: [
+                            if (product.isNewActive) _tag('NEW'),
+                            if (product.isSale) _tag('SALE'),
+                            if (product.isFreeShipping) _tag('무료배송'),
+                          ],
+                        ),
+                      ),
+                    Text(product.localizedName(_lang),
+                      style: TextStyle(
+                        fontSize: pc ? 14.0 : 13.0,
+                        fontWeight: FontWeight.w600, color: _white,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     if (product.originalPrice != null)
-                      Text(
-                        '${_fmt(product.originalPrice!)}원',
+                      Text('${_fmt(product.originalPrice!)}원',
                         style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF666666),
+                          fontSize: 11, color: _greyDim,
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
-                    Text(
-                      '${_fmt(product.price)}원',
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                    Text('${_fmt(product.price)}원',
+                      style: TextStyle(
+                        fontSize: pc ? 16.0 : 15.0,
+                        fontWeight: FontWeight.w800, color: _white,
+                      ),
                     ),
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.star_rounded,
-                            size: 13, color: Color(0xFFFFD600)),
-                        const SizedBox(width: 2),
-                        Text(
-                          '${product.rating} (${product.reviewCount})',
-                          style: const TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF888888)),
-                        ),
-                      ],
-                    ),
+                    if (product.reviewCount > 0)
+                      Row(
+                        children: [
+                          const Icon(Icons.star_rounded, size: 12, color: Color(0xFFFFD600)),
+                          const SizedBox(width: 2),
+                          Text('${product.rating} (${product.reviewCount})',
+                            style: const TextStyle(fontSize: 11, color: _greyDim)),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -1242,44 +1029,41 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
-  // ── 리스트 뷰 ──
-  Widget _buildProductList(List<ProductModel> products) {
-    if (products.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(widget.categoryIcon, size: 64, color: widget.categoryColor.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
-            Text(loc.categoryNoProducts, style: const TextStyle(fontSize: 16, color: Color(0xFF888888))),
+  // ── 빈 상태 ──
+  Widget _buildEmpty() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.inbox_outlined, size: 48, color: _greyDim),
+          const SizedBox(height: 14),
+          Text(loc.categoryNoProducts,
+            style: const TextStyle(fontSize: 14, color: _grey)),
+          if (_searchQuery.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text('"$_searchQuery" ${loc.searchNoResult}',
+              style: const TextStyle(fontSize: 12, color: _greyDim)),
           ],
-        ),
-      );
-    }
-    return ListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(12),
-      itemCount: products.length,
-      itemBuilder: (context, i) => _buildListItem(context, products[i]),
+        ],
+      ),
     );
   }
 
-  Widget _tag(String text, Color color) {
+  // ── 배지 ──
+  Widget _tag(String text) {
     return Container(
       margin: const EdgeInsets.only(right: 4),
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
-          color: color, borderRadius: BorderRadius.circular(3)),
+        border: Border.all(color: _border),
+        borderRadius: BorderRadius.circular(2),
+      ),
       child: Text(text,
-          style: const TextStyle(
-              color: Colors.white,
-              fontSize: 9,
-              fontWeight: FontWeight.w800)),
+        style: const TextStyle(color: _grey, fontSize: 9, fontWeight: FontWeight.w700)),
     );
   }
 
   String _fmt(double price) => price
       .toStringAsFixed(0)
-      .replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+      .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 }

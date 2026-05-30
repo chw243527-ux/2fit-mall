@@ -146,7 +146,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           if (_showPriceFilter) _buildPriceFilterPanel(),
           Expanded(
             child: RefreshIndicator(
-              color: const Color(0xFFE53935),
+              color: Colors.white,
               backgroundColor: const Color(0xFF1A1A1A),
               onRefresh: () => context.read<ProductProvider>().refresh(),
               child: provider.isLoading
@@ -241,10 +241,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     margin: const EdgeInsets.only(right: 6),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _onlyBest ? const Color(0xFFE53935) : Colors.transparent,
+                      color: _onlyBest ? Colors.white : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: _onlyBest ? const Color(0xFFE53935) : const Color(0xFF444444),
+                        color: _onlyBest ? Colors.white : const Color(0xFF444444),
                       ),
                     ),
                     child: Row(
@@ -252,13 +252,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       children: [
                         Icon(Icons.local_fire_department_rounded,
                           size: 13,
-                          color: _onlyBest ? Colors.white : const Color(0xFFE53935)),
+                          color: _onlyBest ? const Color(0xFF111111) : const Color(0xFF666666)),
                         const SizedBox(width: 3),
                         Text('베스트',
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
-                            color: _onlyBest ? Colors.white : const Color(0xFFAAAAAA),
+                            color: _onlyBest ? const Color(0xFF111111) : const Color(0xFF666666),
                           )),
                       ],
                     ),
@@ -283,10 +283,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     margin: const EdgeInsets.only(right: 6),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _onlyNew ? const Color(0xFFE53935) : Colors.transparent,
+                      color: _onlyNew ? Colors.white : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: _onlyNew ? const Color(0xFFE53935) : const Color(0xFF444444),
+                        color: _onlyNew ? Colors.white : const Color(0xFF444444),
                       ),
                     ),
                     child: Row(
@@ -294,13 +294,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       children: [
                         Icon(Icons.fiber_new_rounded,
                           size: 13,
-                          color: _onlyNew ? Colors.white : const Color(0xFF888888)),
+                          color: _onlyNew ? const Color(0xFF111111) : const Color(0xFF666666)),
                         const SizedBox(width: 3),
                         Text('신상품',
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
-                            color: _onlyNew ? Colors.white : const Color(0xFF888888),
+                            color: _onlyNew ? const Color(0xFF111111) : const Color(0xFF666666),
                           )),
                       ],
                     ),
@@ -329,14 +329,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
     // 단체주문은 항상 보라색, 그 외는 선택 상태에 따라
     final isSel = _selectedCategory == cat && !_onlyBest && !_onlyNew;
     final bgColor = isGroup
-        ? const Color(0xFF6A1B9A)         // 보라 — 항상
+        ? Colors.white.withValues(alpha: 0.12)  // 단체주문
         : isSel
-            ? const Color(0xFFE53935)       // 선택됨 — 레드 액센트
+            ? Colors.white                       // 선택됨 — 흰색 필
             : Colors.transparent;         // 미선택
     final borderColor = isGroup
-        ? const Color(0xFF6A1B9A)
-        : isSel ? const Color(0xFFE53935) : const Color(0xFF444444);
-    final textColor = isGroup ? Colors.white : isSel ? Colors.white : const Color(0xFF888888);
+        ? const Color(0xFF555555)
+        : isSel ? Colors.white : const Color(0xFF444444);
+    final textColor = isGroup ? Colors.white : isSel ? const Color(0xFF111111) : const Color(0xFF888888);
 
     return GestureDetector(
       onTap: () {
@@ -510,11 +510,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
               margin: const EdgeInsets.only(right: 6),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFFE53935),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text('🔥 베스트', style: TextStyle(
-                fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+              child: const Text('베스트', style: TextStyle(
+                fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF111111))),
             ),
           ],
           if (_onlyNew) ...[
@@ -522,10 +522,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
               margin: const EdgeInsets.only(right: 6),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFF111111),
+                color: const Color(0xFF333333),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text('✨ 신상품', style: TextStyle(
+              child: const Text('신상품', style: TextStyle(
                 fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
             ),
           ],
@@ -568,30 +568,30 @@ class _ProductListScreenState extends State<ProductListScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: _activeFilterCount > 0 || _showPriceFilter
-                    ? const Color(0xFFE53935)
+                    ? Colors.white
                     : const Color(0xFF222222),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                   color: _activeFilterCount > 0 || _showPriceFilter
-                      ? const Color(0xFFE53935)
+                      ? Colors.white
                       : const Color(0xFF444444),
                 ),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.tune_rounded, size: 14,
                     color: _activeFilterCount > 0 || _showPriceFilter
-                        ? Colors.white : const Color(0xFF444444)),
+                        ? const Color(0xFF111111) : const Color(0xFF888888)),
                 const SizedBox(width: 5),
                 Text('필터', style: TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w600,
                   color: _activeFilterCount > 0 || _showPriceFilter
-                      ? Colors.white : const Color(0xFF444444),
+                      ? const Color(0xFF111111) : const Color(0xFF888888),
                 )),
                 if (_activeFilterCount > 0) ...[const SizedBox(width: 4),
                   Container(
                     width: 16, height: 16,
                     decoration: const BoxDecoration(
-                      color: Color(0xFFE53935), shape: BoxShape.circle,
+                      color: Color(0xFF555555), shape: BoxShape.circle,
                     ),
                     child: Center(child: Text('$_activeFilterCount',
                       style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800))),
@@ -661,7 +661,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 _minPrice = 0; _maxPrice = 500000;
                 _onlyNew = false; _onlySale = false; _onlyFreeShip = false;
               }),
-              child: Text(loc.filterResetBtn, style: const TextStyle(fontSize: 12, color: Color(0xFFFF6666), decoration: TextDecoration.underline)),
+              child: Text(loc.filterResetBtn, style: const TextStyle(fontSize: 12, color: Color(0xFF888888), decoration: TextDecoration.underline)),
             )],
         ],
       ),
@@ -756,14 +756,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                   // 배지들
                   if (p.isGroupOnly) Positioned(top: 8, left: 8,
-                    child: _badge('단체전용', const Color(0xFF6A1B9A))),
+                    child: _badge('단체전용', const Color(0xFF444444))),
                   if (p.isNewActive) Positioned(top: p.isGroupOnly ? 32 : 8, left: 8,
                     child: _badge('NEW', const Color(0xFF111111))),
                   if (discount > 0) Positioned(
                     top: p.isGroupOnly ? (p.isNewActive ? 56 : 32) : (p.isNewActive ? 32 : 8), left: 8,
-                    child: _badge('-$discount%', const Color(0xFFE53935))),
+                    child: _badge('-$discount%', const Color(0xFF444444))),
                   if (p.isFreeShipping) Positioned(bottom: 8, left: 8,
-                    child: _badge(loc.filterFreeShip, const Color(0xFF00A651))),
+                    child: _badge(loc.filterFreeShip, const Color(0xFF333333))),
                   // 찜 버튼
                   Positioned(top: 8, right: 8,
                     child: Container(
@@ -791,7 +791,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       margin: const EdgeInsets.only(bottom: 4),
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6A1B9A),
+                        color: const Color(0xFF555555),
                         borderRadius: BorderRadius.circular(3),
                       ),
                       child: const Text('단체주문 전용',
@@ -813,7 +813,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           Row(
                             children: [
                               if (discount > 0) ...[
-                                Text('$discount%', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
+                                Text('$discount%', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
                                 const SizedBox(width: 4),
                               ],
                               Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
@@ -867,7 +867,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 child: const Icon(Icons.checkroom_rounded, color: Color(0xFF444444))))
                         : Container(color: const Color(0xFF222222)),
                   ),
-                  if (discount > 0) Positioned(top: 6, left: 6, child: _badge('-$discount%', const Color(0xFFE53935))),
+                  if (discount > 0) Positioned(top: 6, left: 6, child: _badge('-$discount%', const Color(0xFF444444))),
                 ],
               ),
             ),
@@ -878,11 +878,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      if (p.isGroupOnly) _badge('단체전용', const Color(0xFF6A1B9A)),
+                      if (p.isGroupOnly) _badge('단체전용', const Color(0xFF444444)),
                       if (p.isGroupOnly) const SizedBox(width: 4),
                       if (p.isNewActive) _badge('NEW', const Color(0xFF111111)),
                       if (p.isNewActive) const SizedBox(width: 4),
-                      if (p.isFreeShipping) _badge(loc.filterFreeShip, const Color(0xFF00A651)),
+                      if (p.isFreeShipping) _badge(loc.filterFreeShip, const Color(0xFF333333)),
                     ]),
                     if (p.isGroupOnly || p.isNewActive || p.isFreeShipping) const SizedBox(height: 4),
                     Text(p.localizedName(_lang), maxLines: 2, overflow: TextOverflow.ellipsis,
@@ -894,7 +894,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     Row(
                       children: [
                         if (discount > 0) ...[
-                          Text('$discount%', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
+                          Text('$discount%', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
                           const SizedBox(width: 4),
                         ],
                         Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
