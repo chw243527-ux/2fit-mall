@@ -16,7 +16,8 @@ class ProductModel {
   final bool isNew;
   final bool isSale;
   final bool isFreeShipping;
-  final bool isGroupOnly; // 단체주문 전용 상품
+  final bool isGroupOnly;  // 단체주문 전용 상품
+  final bool isReadyMade;  // 기성품 (단체주문에서 기성품 선택 가능)
   final double rating;
   final int reviewCount;
   final int stockCount;
@@ -51,6 +52,7 @@ class ProductModel {
     this.isSale = false,
     this.isFreeShipping = false,
     this.isGroupOnly = false,
+    this.isReadyMade = false,
     this.rating = 0.0,
     this.reviewCount = 0,
     this.stockCount = 100,
@@ -114,7 +116,8 @@ class ProductModel {
       price: price, originalPrice: originalPrice, description: description,
       images: images, sizes: sizes, colors: colors, material: material,
       isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping,
-      isGroupOnly: isGroupOnly, rating: rating, reviewCount: reviewCount,
+      isGroupOnly: isGroupOnly, isReadyMade: isReadyMade,
+      rating: rating, reviewCount: reviewCount,
       stockCount: stockCount, salesCount: salesCount, isActive: isActive, createdAt: createdAt,
       productCode: productCode,
       sectionImages: sectionImages,
@@ -170,6 +173,7 @@ class ProductModel {
       isSale: json['isSale'] as bool? ?? false,
       isFreeShipping: json['isFreeShipping'] as bool? ?? false,
       isGroupOnly: json['isGroupOnly'] as bool? ?? false,
+      isReadyMade: json['isReadyMade'] as bool? ?? false,
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount: json['reviewCount'] as int? ?? 0,
       stockCount: json['stockCount'] as int? ?? 100,
@@ -205,6 +209,7 @@ class ProductModel {
       'isSale': isSale,
       'isFreeShipping': isFreeShipping,
       'isGroupOnly': isGroupOnly,
+      'isReadyMade': isReadyMade,
       'rating': rating,
       'reviewCount': reviewCount,
       'stockCount': stockCount,
@@ -224,7 +229,8 @@ class ProductModel {
       id: id, name: name, category: category, subCategory: subCategory,
       price: price, originalPrice: originalPrice, description: description,
       images: images, sizes: sizes, colors: colors, material: material,
-      isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping, isGroupOnly: isGroupOnly,
+      isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping,
+      isGroupOnly: isGroupOnly, isReadyMade: isReadyMade,
       rating: rating, reviewCount: reviewCount, stockCount: stockCount, salesCount: salesCount,
       isActive: isActive, createdAt: createdAt,
       productCode: productCode,

@@ -935,6 +935,21 @@ $productUrl
                 _toptenTabChip('PAYBACK', true),
                 const SizedBox(width: 8),
                 _toptenTabChip('단체주문', product.isGroupOnly),
+                if (product.isReadyMade) ...[
+                  const SizedBox(width: 8),
+                  _toptenTabChip('기성품', true, activeColor: Colors.teal),
+                ],
+              ]),
+            ),
+          if (product.isGroupOnly)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: Row(children: [
+                _toptenTabChip('단체전용', true, activeColor: const Color(0xFF6A1B9A)),
+                if (product.isReadyMade) ...[
+                  const SizedBox(width: 8),
+                  _toptenTabChip('기성품', true, activeColor: Colors.teal),
+                ],
               ]),
             ),
 
@@ -1140,12 +1155,13 @@ $productUrl
   }
 
   // ── 탑텐 스타일: PAYBACK/특별사이즈 탭 칩 ──
-  Widget _toptenTabChip(String label, bool selected) {
+  Widget _toptenTabChip(String label, bool selected, {Color? activeColor}) {
+    final ac = activeColor ?? const Color(0xFF1A1A1A);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: selected ? const Color(0xFF1A1A1A) : Colors.white,
-        border: Border.all(color: selected ? const Color(0xFF1A1A1A) : const Color(0xFFDDDDDD)),
+        color: selected ? ac : Colors.white,
+        border: Border.all(color: selected ? ac : const Color(0xFFDDDDDD)),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
@@ -5100,7 +5116,11 @@ $productUrl
   // ─── 주문 유형 선택 모달 ────────────────────────────────────────
   /// 단체주문 버튼 표시 여부
   /// 허용: 타이즈(하의 전체) / 싱글렛 A타입 / 싱글렛 B타입 / 라운드티 / 싱글렛 A타입세트 / 트레이닝세트
+  /// + isGroupOnly(단체전용) / isReadyMade(기성품) 상품도 항상 표시
   bool _showGroupOrderBtn(ProductModel p) {
+    // 단체전용 or 기성품이면 무조건 표시
+    if (p.isGroupOnly || p.isReadyMade) return true;
+
     // 1) 타이즈 / 하의 카테고리 전체
     final isTights =
         p.category == '하의' ||
@@ -5305,17 +5325,47 @@ $productUrl
             // 단체주문 버튼: 라운드티, 싱글렛세트, 싱글렛, 타이즈 카테고리만 표시
             if (_showGroupOrderBtn(product)) ...[
               const SizedBox(height: 12),
-              _orderTypeBtn(
-                emoji: '👥',
-                title: loc.orderTypeGroupCustomTitle,
-                description: loc.orderTypeGroupCustomDesc,
-                tags: [loc.orderTypeGroupCustomTag1, loc.orderTypeGroupCustomTag2],
-                color: const Color(0xFFE53935),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showGroupOrderGuide(product);
-                },
-              ),
+              // 기성품 + 단체전용 모두 선택된 경우 → 두 버튼 따로 표시
+              if (product.isReadyMade && product.isGroupOnly) ...[
+                _orderTypeBtn(
+                  emoji: '📦',
+                  title: '기성품 단체주문',
+                  description: '기성 디자인 그대로 단체 수량으로 주문',
+                  tags: ['기성품', '빠른납기'],
+                  color: Colors.teal,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showGroupOrderGuide(product);
+                  },
+                ),
+                const SizedBox(height: 10),
+                _orderTypeBtn(
+                  emoji: '👥',
+                  title: loc.orderTypeGroupCustomTitle,
+                  description: loc.orderTypeGroupCustomDesc,
+                  tags: [loc.orderTypeGroupCustomTag1, loc.orderTypeGroupCustomTag2],
+                  color: const Color(0xFFE53935),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showGroupOrderGuide(product);
+                  },
+                ),
+              ] else
+                _orderTypeBtn(
+                  emoji: product.isReadyMade ? '📦' : '👥',
+                  title: product.isReadyMade ? '기성품 단체주문' : loc.orderTypeGroupCustomTitle,
+                  description: product.isReadyMade
+                      ? '기성 디자인 그대로 단체 수량으로 주문'
+                      : loc.orderTypeGroupCustomDesc,
+                  tags: product.isReadyMade
+                      ? ['기성품', '빠른납기']
+                      : [loc.orderTypeGroupCustomTag1, loc.orderTypeGroupCustomTag2],
+                  color: product.isReadyMade ? Colors.teal : const Color(0xFFE53935),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showGroupOrderGuide(product);
+                  },
+                ),
             ],
             const SizedBox(height: 8),
           ],
