@@ -134,7 +134,7 @@ class ProductCard extends StatelessWidget {
                   child: Text(
                     '-$discount%',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF111111),
                       fontSize: 8,
                       fontWeight: FontWeight.w900,
                     ),
@@ -156,7 +156,7 @@ class ProductCard extends StatelessWidget {
                   child: Text(
                     '-$discount%',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF111111),
                       fontSize: 8,
                       fontWeight: FontWeight.w900,
                     ),
@@ -240,7 +240,7 @@ class ProductCard extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 5),
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.teal.shade600,
+                    color: const Color(0xFF2A2A2A),
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: const Text(
@@ -320,7 +320,7 @@ class ProductCard extends StatelessWidget {
                     '$discount%',
                     style: const TextStyle(
                       fontSize: 8,
-                      color: Colors.white,
+                      color: Color(0xFF111111),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
