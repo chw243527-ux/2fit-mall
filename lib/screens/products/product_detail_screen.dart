@@ -791,39 +791,9 @@ $productUrl
 
   // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 ══
   Widget _buildMobileDesignImageBanner(ProductModel product) {
-    final designImgs = _sectionImages['design'] ?? [];
-    if (designImgs.isEmpty) return const SizedBox.shrink();
-
-    // 풀너비 이미지 세로 스택
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...designImgs.asMap().entries.map((entry) {
-          final i = entry.key;
-          final url = entry.value;
-          return GestureDetector(
-            onTap: () => _showDesignLightbox(designImgs, i),
-            child: Container(
-              width: double.infinity,
-              color: const Color(0xFFF5F5F5),
-              child: Image.network(
-                url,
-                width: double.infinity,
-                fit: BoxFit.fitWidth,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 200,
-                  color: const Color(0xFFEEEEEE),
-                  child: const Center(
-                    child: Icon(Icons.broken_image_outlined,
-                        size: 40, color: Color(0xFFCCCCCC)),
-                  ),
-                ),
-              ),
-            ),
-          );
-        }),
-      ],
-    );
+    // 디자인 이미지는 풀사이즈 배너로 표시하지 않음
+    // → 상품정보 탭의 '디자인 이미지' 섹션(_buildDesignImageSection)에서만 표시
+    return const SizedBox.shrink();
   }
 
   // ══ 탑텐 스타일: 썸네일 바 (심플 정사각형, 선택 시 검정 테두리) ══
