@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../../models/models.dart';
 import '../../providers/providers.dart';
@@ -171,6 +173,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   // ── 허리밴드 디자인 참조 이미지 (최대 3장) ──
   final List<String> _waistbandRefImages = []; // base64 목록
+
+  // ── 허리밴드 로고 파일 ──
+  String? _waistbandLogoFileName;  // 파일명 (표시용)
+  List<int>? _waistbandLogoBytes;  // 파일 바이트 (base64 저장용)
 
   // ── 참조 이미지 (단일) ──
   String? _refBase64;
@@ -671,6 +677,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'waistbandExtra'  : _waistbandExtra.toInt(),
       'waistbandColorHex': _waistbandOptions.contains(2) ? _waistbandColorHex : '',
       'waistbandRefImages': _waistbandRefImages,
+      'waistbandLogoFileName': _waistbandLogoFileName ?? '',
+      'waistbandLogoBase64'  : _waistbandLogoBytes != null ? base64Encode(_waistbandLogoBytes!) : '',
       'exclusive'    : _exclusiveDesign,
       'teamName'     : _teamNameCtrl.text.trim(),
       'manager'      : _managerNameCtrl.text.trim(),
@@ -806,6 +814,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 _buildWaistbandSection(),
                 _buildColorSection(),
                 _buildRefImageSection(),
+                _buildWaistbandLogoSection(),
                 _buildWaistbandRefImageSection(),
                 _buildPersonListSection(),
                 _buildBasicInfoSection(),
@@ -1873,6 +1882,26 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       setState(() => _waistbandRefImages.add(b64));
     } catch (e) {
       _showSnack('이미지 선택 오류: $e');
+    }
+  }
+
+  // 허리밴드 로고 파일 선택 (AI·PDF·PNG·SVG 등 모든 형식)
+  Future<void> _pickWaistbandLogoFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+      final file = result.files.first;
+      if (!mounted) return;
+      setState(() {
+        _waistbandLogoFileName = file.name;
+        _waistbandLogoBytes    = file.bytes != null ? List<int>.from(file.bytes!) : null;
+      });
+    } catch (e) {
+      _showSnack('파일 선택 오류: $e');
     }
   }
 
@@ -2986,6 +3015,145 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     } catch (e) {
       _showSnack('이미지 선택 오류: $e');
     }
+  }
+
+  // ══════════════════════════════════════════════
+  // 허리밴드 로고 파일 업로드 섹션
+  // ══════════════════════════════════════════════
+  Widget _buildWaistbandLogoSection() {
+    final hasFile = _waistbandLogoFileName != null;
+    // 이미지 파일인지 판별 (미리보기용)
+    final isImage = hasFile && RegExp(r'\.(png|jpg|jpeg|gif|webp|bmp)$', caseSensitive: false)
+        .hasMatch(_waistbandLogoFileName!);
+
+    return _card(
+      title: '허리밴드 로고 파일',
+      icon: Icons.attach_file_rounded,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+
+        // ── 안내 박스
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.orange.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.orange.shade200),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Icon(Icons.warning_amber_rounded, size: 13, color: Colors.orange.shade700),
+              const SizedBox(width: 5),
+              Text('로고 인쇄 품질을 위해 AI 원본 파일을 첨부해 주세요.',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.orange.shade800)),
+            ]),
+            const SizedBox(height: 5),
+            Text('• AI · EPS · SVG · PDF 등 벡터 파일 권장',
+                style: TextStyle(fontSize: 11, color: Colors.orange.shade700, height: 1.5)),
+            Text('• JPG · PNG도 가능하나 인쇄 품질이 저하될 수 있습니다.',
+                style: TextStyle(fontSize: 11, color: Colors.orange.shade700, height: 1.5)),
+            Text('• 선택사항입니다.',
+                style: TextStyle(fontSize: 11, color: Colors.orange.shade600, height: 1.5)),
+          ]),
+        ),
+
+        // ── 업로드 영역
+        if (!hasFile)
+          GestureDetector(
+            onTap: _pickWaistbandLogoFile,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: Colors.orange.shade300, width: 1.5,
+                    style: BorderStyle.solid),
+              ),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(Icons.upload_file_rounded, color: Colors.orange.shade600, size: 32),
+                const SizedBox(height: 6),
+                Text('로고 파일 선택',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.orange.shade700)),
+                const SizedBox(height: 3),
+                Text('AI · EPS · SVG · PDF · PNG · JPG',
+                    style: TextStyle(fontSize: 10, color: Colors.orange.shade400)),
+              ]),
+            ),
+          )
+        else
+          // 업로드 완료 상태
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.green.shade200),
+            ),
+            child: Row(children: [
+              // 이미지 미리보기 or 파일 아이콘
+              if (isImage && _waistbandLogoBytes != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Image.memory(
+                    Uint8List.fromList(_waistbandLogoBytes!),
+                    width: 48, height: 48, fit: BoxFit.cover,
+                  ),
+                )
+              else
+                Container(
+                  width: 48, height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade100,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(Icons.insert_drive_file_rounded,
+                      color: Colors.orange.shade600, size: 28),
+                ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(_waistbandLogoFileName!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                  const SizedBox(height: 2),
+                  Text('업로드 완료',
+                      style: TextStyle(fontSize: 10, color: Colors.green.shade600, fontWeight: FontWeight.w600)),
+                ]),
+              ),
+              // 삭제 버튼
+              GestureDetector(
+                onTap: () => setState(() {
+                  _waistbandLogoFileName = null;
+                  _waistbandLogoBytes    = null;
+                }),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: const BoxDecoration(color: Colors.black12, shape: BoxShape.circle),
+                  child: const Icon(Icons.close, size: 15, color: Colors.black54),
+                ),
+              ),
+            ]),
+          ),
+
+        // 파일 있을 때 재선택 버튼
+        if (hasFile) ...[
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: _pickWaistbandLogoFile,
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.refresh_rounded, size: 14, color: Colors.orange.shade600),
+              const SizedBox(width: 4),
+              Text('파일 재선택',
+                  style: TextStyle(fontSize: 11, color: Colors.orange.shade700, fontWeight: FontWeight.w600)),
+            ]),
+          ),
+        ],
+      ]),
+    );
   }
 
   // ══════════════════════════════════════════════
