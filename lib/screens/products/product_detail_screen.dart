@@ -70,6 +70,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 로컬 섹션 이미지 캐시 (관리자 업로드 시 즉시 반영) ──
   late Map<String, List<String>> _sectionImages;
+  // ── 메인 상품 이미지 캐시 (Firestore fresh 로드 후 갱신) ──
+  late List<String> _mainImages;
   // Firestore 최신 로드 완료 여부 (중복 로드 방지)
   bool _sectionImagesLoaded = false;
 
@@ -82,6 +84,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     super.initState();
     _tabCtrl = TabController(length: 3, vsync: this);
     _sectionImages = Map<String, List<String>>.from(widget.product.sectionImages);
+    _mainImages = List<String>.from(widget.product.images);
     // 성별 기본값: 남성 → 하의 5부 자동 설정
     _singletGender = '남';
     _selectedBottomLength = '5부';
@@ -108,6 +111,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     if (oldWidget.product.id != widget.product.id) {
       // 다른 상품으로 교체된 경우 전체 초기화
       _sectionImages = Map<String, List<String>>.from(widget.product.sectionImages);
+      _mainImages = List<String>.from(widget.product.images);
       _sectionImagesLoaded = false;
       _refreshSectionImagesFromFirestore();
     } else if (!_sectionImagesLoaded) {
@@ -126,7 +130,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     }
   }
 
-  /// Firestore에서 최신 상품 데이터를 직접 가져와 sectionImages를 갱신
+  /// Firestore에서 최신 상품 데이터를 직접 가져와 sectionImages 및 메인 이미지를 갱신
   /// (앱 첫 진입 시 1회만 실행 – 관리자가 업로드한 이미지를 일반 사용자에게 즉시 반영)
   Future<void> _refreshSectionImagesFromFirestore() async {
     if (_sectionImagesLoaded) return;
@@ -139,6 +143,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       final freshImages = fresh?.sectionImages ?? widget.product.sectionImages;
 
       bool changed = false;
+
+      // ── 메인 상품 이미지 갱신 (Firestore fresh 우선, picsum/placeholder 제거)
+      if (fresh != null) {
+        final freshMain = fresh.images
+            .where((u) => u.startsWith('http') && !u.contains('picsum.photos'))
+            .toList();
+        if (freshMain.isNotEmpty && _mainImages.join() != freshMain.join()) {
+          _mainImages = freshMain;
+          changed = true;
+        }
+      }
+
+      // ── 섹션 이미지 갱신
       // 새로 받은 키 반영
       for (final key in freshImages.keys) {
         final newList = List<String>.from(freshImages[key]!);
@@ -524,7 +541,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 이미지 슬라이더 (탑텐 스타일: 전체화면형, 하단 바 인디케이터) ──
   Widget _buildImageSlider(ProductModel product) {
-    final imgCount = product.images.isNotEmpty ? product.images.length : 1;
+    // _mainImages: Firestore fresh 로드 후 갱신된 메인 이미지 (배포 후에도 유지)
+    final imgs = _mainImages.isNotEmpty ? _mainImages : product.images;
+    final imgCount = imgs.isNotEmpty ? imgs.length : 1;
 
     // LayoutBuilder로 실제 부모 너비 기준 → PC/태블릿/모바일 모두 자동 대응
     return LayoutBuilder(
@@ -544,7 +563,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             itemCount: imgCount,
             onPageChanged: (i) => setState(() => _mainImageIndex = i),
             itemBuilder: (_, i) {
-              final url = product.images.isNotEmpty ? product.images[i] : '';
+              final url = imgs.isNotEmpty ? imgs[i] : '';
               return GestureDetector(
                 onTap: () => _showLightbox(product, i),
                 child: url.isNotEmpty
@@ -763,7 +782,10 @@ $productUrl
 
   // ══ 라이트박스 ══
   void _showLightbox(ProductModel product, int initialIndex) {
-    final images = product.images.isNotEmpty ? product.images : [''];
+    // _mainImages: Firestore fresh 로드 후 갱신된 메인 이미지 사용
+    final images = _mainImages.isNotEmpty
+        ? _mainImages
+        : (product.images.isNotEmpty ? product.images : ['']);
     showImageLightbox(context, images, initialIndex: initialIndex);
   }
 
@@ -807,14 +829,16 @@ $productUrl
 
   // ══ 탑텐 스타일: 썸네일 바 (심플 정사각형, 선택 시 검정 테두리) ══
   Widget _buildThumbnailBar(ProductModel product) {
-    if (product.images.length <= 1) return const SizedBox.shrink();
+    // _mainImages: Firestore fresh 로드 후 갱신된 메인 이미지 사용
+    final imgs = _mainImages.isNotEmpty ? _mainImages : product.images;
+    if (imgs.length <= 1) return const SizedBox.shrink();
     return Container(
       height: 78,
       color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: product.images.length,
+        itemCount: imgs.length,
         separatorBuilder: (_, __) => const SizedBox(width: 6),
         itemBuilder: (_, i) {
           final selected = _mainImageIndex == i;
@@ -839,7 +863,7 @@ $productUrl
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
                 child: Image.network(
-                  product.images[i],
+                  imgs[i],
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
@@ -3690,6 +3714,7 @@ $productUrl
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _PickedImagesSheet(
+        productId: widget.product.id,
         sectionKey: sectionKey,
         sectionLabel: sectionLabel,
         existingImgs: existingImgs,
@@ -5573,6 +5598,7 @@ class _MeasureRow extends StatelessWidget {
 // 관리자 이미지 선택 시트 (파일 선택 → 미리보기 → 저장)
 // ══════════════════════════════════════════════════════════════
 class _PickedImagesSheet extends StatefulWidget {
+  final String productId;    // Firebase Storage 업로드용 상품 ID
   final String sectionKey;
   final String sectionLabel;
   final List<String> existingImgs;
@@ -5581,6 +5607,7 @@ class _PickedImagesSheet extends StatefulWidget {
   final VoidCallback onDeleteAll;
 
   const _PickedImagesSheet({
+    required this.productId,
     required this.sectionKey,
     required this.sectionLabel,
     required this.existingImgs,
@@ -5602,6 +5629,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
   // 새로 선택된 파일들 (Base64 변환 전)
   late List<XFile> _pendingFiles;
   bool _isConverting = false;
+  bool _isUploadingSave = false; // 저장 버튼 클릭 후 Storage 업로드 중
   // 변환된 Base64 목록
   final List<String> _convertedBase64 = [];
 
@@ -5661,6 +5689,61 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
       _isConverting = true;
     });
     await _convertPendingFiles();
+  }
+
+  // ── 저장: base64 data URI → Firebase Storage 업로드 후 onSave 호출
+  Future<void> _saveWithUpload() async {
+    if (_isConverting || _isUploadingSave) return;
+
+    // base64가 포함된 항목 확인
+    final hasBase64 = _allImages.any((u) => u.startsWith('data:'));
+    if (!hasBase64) {
+      // base64 없으면 바로 저장
+      Navigator.pop(context);
+      widget.onSave(List<String>.from(_allImages));
+      return;
+    }
+
+    // base64를 Storage에 업로드
+    setState(() => _isUploadingSave = true);
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final resultImages = <String>[];
+
+    for (int i = 0; i < _allImages.length; i++) {
+      final url = _allImages[i];
+      if (!url.startsWith('data:')) {
+        // 이미 Storage URL이면 그대로 유지
+        resultImages.add(url);
+        continue;
+      }
+      // base64 → bytes 변환 후 Storage 업로드
+      try {
+        final commaIdx = url.indexOf(',');
+        if (commaIdx < 0) continue;
+        final bytes = base64Decode(url.substring(commaIdx + 1));
+        // mime type 추출 (data:image/jpeg;base64,...)
+        final mimeMatch = RegExp(r'data:image/(\w+);').firstMatch(url);
+        final ext = mimeMatch?.group(1) ?? 'jpg';
+        final fileName = '${ts}_$i.$ext';
+        final uploadedUrl = await StorageService.uploadSectionImage(
+          productId: widget.productId,
+          sectionKey: widget.sectionKey,
+          bytes: bytes,
+          fileName: fileName,
+        );
+        if (uploadedUrl.isNotEmpty) {
+          resultImages.add(uploadedUrl);
+        }
+        // uploadedUrl이 비어있으면 해당 이미지 제외 (업로드 실패)
+      } catch (_) {
+        // 업로드 실패 시 해당 이미지 제외
+      }
+    }
+
+    if (!mounted) return;
+    setState(() => _isUploadingSave = false);
+    Navigator.pop(context);
+    widget.onSave(resultImages);
   }
 
   @override
@@ -5908,14 +5991,20 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                     Expanded(
                       flex: 2,
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.check_rounded, size: 18),
+                        icon: _isUploadingSave
+                            ? const SizedBox(width: 16, height: 16,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white))
+                            : const Icon(Icons.check_rounded, size: 18),
                         label: Text(
-                          _allImages.isEmpty
-                              ? '저장 (이미지 없음)'
-                              : '${_allImages.length}장 저장하기',
+                          _isUploadingSave
+                              ? 'Storage 업로드 중...'
+                              : _allImages.isEmpty
+                                  ? '저장 (이미지 없음)'
+                                  : '${_allImages.length}장 저장하기',
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _allImages.isEmpty
+                          backgroundColor: (_allImages.isEmpty && !_isUploadingSave)
                               ? Colors.grey
                               : const Color(0xFF1A1A2E),
                           foregroundColor: Colors.white,
@@ -5925,12 +6014,9 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         ),
-                        onPressed: _isConverting
+                        onPressed: (_isConverting || _isUploadingSave)
                             ? null
-                            : () {
-                                Navigator.pop(context);
-                                widget.onSave(_allImages);
-                              },
+                            : () => _saveWithUpload(),
                       ),
                     ),
                   ],
