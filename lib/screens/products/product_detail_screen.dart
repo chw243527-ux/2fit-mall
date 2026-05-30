@@ -3201,6 +3201,101 @@ $productUrl
           // 일반 유저: 이미지만 표시
           _buildStaticImageList(effectiveImgs),
         ],
+        // ── 하의길이 순서 및 성별 적용 범위 안내
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8F8F8),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE0E0E0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 길이 순서 안내
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.straighten_rounded, size: 14, color: Color(0xFF555555)),
+                  const SizedBox(width: 6),
+                  const Text(
+                    '왼쪽부터',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF555555)),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: [
+                        for (final label in ['9부', '5부', '4부', '3부', '2.5부', '숏사각'])
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: const Color(0xFFCCCCCC)),
+                            ),
+                            child: Text(
+                              label,
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Divider(height: 1, color: Color(0xFFE8E8E8)),
+              const SizedBox(height: 10),
+              // 남성 적용 범위
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE3F2FD),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text('남성', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      '9부 · 5부 · 4부 · 3부까지 적용 가능',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF444444), height: 1.5),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // 여성 적용 범위
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFCE4EC),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text('여성', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFC62828))),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      '9부 · 5부 · 4부 · 3부 · 2.5부 · 숏사각까지 적용 가능',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF444444), height: 1.5),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
