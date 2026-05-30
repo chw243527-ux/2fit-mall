@@ -143,6 +143,13 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 controller: _tabController,
                 children: widget.subCategories.map((sub) {
                   final products = _getProducts(sub.filter, subName: sub.name);
+                  return RefreshIndicator(
+                    color: widget.categoryColor,
+                    backgroundColor: Colors.white,
+                    onRefresh: () => context.read<ProductProvider>().refresh(),
+                    child: _isGridView
+                        ? _buildProductGrid(products)
+                        : _buildProductList(products),
                   );
                 }).toList(),
               ),
@@ -556,6 +563,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 const SizedBox(height: 4),
                 Text(
                   '${_getProducts(widget.subCategories.first.filter, subName: widget.subCategories.first.name).length}${loc.productCountUnit}',
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
                 ),
               ],
             ),
