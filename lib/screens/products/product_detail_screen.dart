@@ -1132,7 +1132,7 @@ $productUrl
               _hashtagChip('#2fit'),
               _hashtagChip('#스포츠웨어'),
               if (product.isFreeShipping) _hashtagChip('#무료배송'),
-              if (product.isNew) _hashtagChip('#신상품'),
+              if (product.isNewActive) _hashtagChip('#신상품'),
               if (product.isSale) _hashtagChip('#세일'),
               _hashtagChip('#${product.category}'),
             ]),
