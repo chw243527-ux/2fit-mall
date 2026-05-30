@@ -804,6 +804,7 @@ class ProductService {
       // 상품이 0개여도 정상 처리 (모두 삭제된 경우)
       final all = snapshot.docs.map((doc) {
         final data = doc.data();
+        data['id'] ??= doc.id; // doc.id 명시적 추가 (문서 내 id 필드 없을 경우 대비)
         if (data['createdAt'] is Timestamp) {
           data['createdAt'] =
               (data['createdAt'] as Timestamp).toDate().toIso8601String();
@@ -1014,20 +1015,35 @@ class ProductService {
   static Future<bool> updateProduct(ProductModel updated) async {
     if (!_loaded) await _loadFromFirestore();
     final idx = _products.indexWhere((p) => p.id == updated.id);
-    if (idx >= 0) _products[idx] = updated;
+    // ── sectionImages 보존: 업데이트 데이터에 sectionImages가 비어있으면
+    //    캐시에 있는 기존 sectionImages를 그대로 사용 (덮어쓰기 방지)
+    final existing = idx >= 0 ? _products[idx] : null;
+    final mergedSectionImages = updated.sectionImages.isNotEmpty
+        ? updated.sectionImages
+        : (existing?.sectionImages ?? const {});
+    final safeUpdated = mergedSectionImages == updated.sectionImages
+        ? updated
+        : updated.copyWithSectionImages(mergedSectionImages);
+    if (idx >= 0) _products[idx] = safeUpdated;
     // _allProducts도 동기화
-    final allIdx = _allProducts.indexWhere((p) => p.id == updated.id);
+    final allIdx = _allProducts.indexWhere((p) => p.id == safeUpdated.id);
     if (allIdx >= 0) {
-      _allProducts[allIdx] = updated;
+      _allProducts[allIdx] = safeUpdated;
     } else {
-      _allProducts.add(updated);
+      _allProducts.add(safeUpdated);
     }
     if (idx < 0 && allIdx < 0) return false;
     _cache = List.from(_products);
     await _persistToLocal();
     // Firestore 업데이트
+    // sectionImages가 비어있으면 Firestore 기존 필드를 보존 (merge + sectionImages 제외)
     try {
-      await _db.collection('products').doc(updated.id).set(updated.toJson(), SetOptions(merge: true));
+      final json = safeUpdated.toJson();
+      if (safeUpdated.sectionImages.isEmpty) {
+        // sectionImages 키 제거 후 merge → Firestore 기존 sectionImages 유지
+        json.remove('sectionImages');
+      }
+      await _db.collection('products').doc(safeUpdated.id).set(json, SetOptions(merge: true));
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ Firestore 상품 업데이트 실패: $e');
     }

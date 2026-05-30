@@ -9612,6 +9612,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   String _uploadStatus = '';
   String _uploadError = '';
   bool _isSaving = false;
+  // ── 신규 등록 시 사용할 고정 임시 ID (업로드와 저장 간 ID 일치 보장)
+  late final String _tempProductId;
   // ── 토글
   bool _isNew = false;
   bool _isSale = false;
@@ -9651,6 +9653,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   void initState() {
     super.initState();
     final e = widget.existing;
+    // ── 신규 등록 시 고정 임시 ID 생성 (이미지 업로드와 저장 간 ID 일치 보장)
+    _tempProductId = e?.id ?? 'p_${DateTime.now().millisecondsSinceEpoch}';
     _nameCtrl = TextEditingController(text: e?.name ?? '');
     _productCodeCtrl = TextEditingController(text: e?.productCode ?? '');
     _priceCtrl = TextEditingController(text: e?.price.toStringAsFixed(0) ?? '');
@@ -9770,7 +9774,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       });
 
       // ② 백그라운드에서 Firebase Storage 업로드 후 URL 교체
-      final productId = widget.existing?.id ?? 'p_${DateTime.now().millisecondsSinceEpoch}';
+      // _tempProductId 사용으로 업로드/저장 간 상품 ID 일치 보장
+      final productId = _tempProductId;
       int success = 0;
       for (int i = 0; i < files.length; i++) {
         if (!mounted) break;
@@ -9883,7 +9888,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     }
 
     final product = ProductModel(
-      id: widget.existing?.id ?? 'p_${DateTime.now().millisecondsSinceEpoch}',
+      id: _tempProductId,
       name: productName,
       productCode: _productCodeCtrl.text.trim(),
       category: _selCat,
@@ -9905,6 +9910,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
       nameTranslations: translations,
       descriptionTranslations: descTranslations,
+      // ── 상세페이지 섹션 이미지 유지: 기존 sectionImages를 그대로 보존
+      sectionImages: widget.existing?.sectionImages ?? const {},
     );
     if (mounted) setState(() => _isSaving = true);
     try {
