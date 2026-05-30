@@ -158,8 +158,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   String _fabricType   = '일반 봉제'; // constants.fabricTypes[0] 과 동일하게 유지
   String _fabricWeight = '80g';
 
-  // ── 하의 기본 길이 ──
-  String? _defaultLength;
+  // ── 하의 기본 길이 (남/여 분리) ──
+  String? _maleLengthSel;   // 남성 하의 길이
+  String? _femaleLengthSel; // 여성 하의 길이
 
   // ── 허리밴드 옵션 (중복 선택 가능) ── 전부 무료
   // 1: 디자인 변경(무료), 2: 색상 변경(무료)
@@ -222,7 +223,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   int    get _fabricExtra  => AppConstants.fabricTypePrices[_fabricType] ?? 0;
   double get _basePrice    => widget.product?.price ?? 0.0;
   // 타이즈 9부 선택 여부
-  bool get _isTights9      => _defaultLength == '9부';
+  bool get _isTights9      => _maleLengthSel == '9부' || _femaleLengthSel == '9부';
+  // 숏사각(숏쇼츠) 선택 시 주머니 불가
+  bool get _isFemaleShortSquare => _femaleLengthSel == '숏쇼츠';
   // 단가 = 기본가 + 심리스 + 9부 + 주머니 (모두 인원당 추가)
   double get _unitPrice    => _basePrice
       + _fabricExtra                          // 심리스: 인원당 +10,000
@@ -577,8 +580,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       _showSnack('상세주소를 입력해 주세요.');
       return false;
     }
-    if (_defaultLength == null) {
-      _showSnack('하의 길이를 선택해 주세요.');
+    if (_maleLengthSel == null) {
+      _showSnack('남성 하의 길이를 선택해 주세요.');
+      return false;
+    }
+    if (_femaleLengthSel == null) {
+      _showSnack('여성 하의 길이를 선택해 주세요.');
       return false;
     }
     for (int i = 0; i < _persons.length; i++) {
@@ -656,8 +663,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'colorTone'      : _lightnessLabel,
       'fabric'       : _fabricType,
       'weight'       : _fabricWeight,
-      'pocket'       : _hasPocket,
-      'defaultLength': _defaultLength,
+      'pocket'       : _hasPocket && !_isFemaleShortSquare,
+      'maleLength'   : _maleLengthSel,
+      'femaleLength' : _femaleLengthSel,
       'waistbandOption' : _waistbandOptionLabel,
       'waistbandOptions': _waistbandOptions.toList(),
       'waistbandExtra'  : _waistbandExtra.toInt(),
@@ -679,7 +687,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         'sizeType'  : p.sizeType,
         'topSize'   : p.effectiveTopSize,
         'bottomSize': p.effectiveBottomSize,
-        'length'    : _defaultLength, // 전원 동일 길이 (개별 선택 불가)
+        'length'    : (p.gender == 'female') ? _femaleLengthSel : _maleLengthSel, // 성별에 따라 자동 적용
         'height'    : p.heightCtrl.text.trim(),
         'weight'    : p.weightCtrl.text.trim(),
         'waist'     : p.waistCtrl.text.trim(),
@@ -2531,69 +2539,94 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   // ══════════════════════════════════════════════
-  // 하의 길이 섹션
+  // 하의 길이 섹션 (남/여 분리)
   // ══════════════════════════════════════════════
   Widget _buildLengthSection() {
-    final lengths = AppConstants.bottomLengths;
+    // 남성: 9부~3부 (4개), 여성: 9부~숏쇼츠 (6개 전체)
+    final maleLengths   = AppConstants.bottomLengths
+        .where((l) => ['9부', '5부', '4부', '3부'].contains(l['label'])).toList();
+    final femaleLengths = AppConstants.bottomLengths; // 전체 (숏쇼츠 포함)
+
     return _card(
       title: '하의 기본 길이',
       icon: Icons.straighten_rounded,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: lengths.map((l) {
-            final label   = l['label']!;
-            final desc    = l['desc']!;
-            final isSel   = _defaultLength == label;
-            final is9bu   = label == '9부';
-            return GestureDetector(
-              onTap: () => setState(() => _defaultLength = label),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 120),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isSel ? _purple : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                      color: isSel ? _purple : Colors.grey.shade300),
-                ),
-                child: Column(children: [
-                  Text(label,
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 13,
-                          color: isSel ? Colors.white : Colors.black87)),
-                  Text(desc,
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: isSel ? Colors.white70 : Colors.grey)),
-                  if (is9bu) ...[
-                    const SizedBox(height: 3),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isSel
-                            ? Colors.white.withValues(alpha: 0.25)
-                            : const Color(0xFFE65100).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '+2만원',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: isSel ? Colors.white : const Color(0xFFE65100),
-                        ),
-                      ),
-                    ),
-                  ],
-                ]),
+
+        // ── 안내 문구
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: Row(children: [
+            Icon(Icons.info_outline_rounded, size: 14, color: Colors.grey.shade500),
+            const SizedBox(width: 6),
+            const Expanded(
+              child: Text(
+                '선택한 길이는 성별에 따라 전원에게 동일하게 적용됩니다.',
+                style: TextStyle(fontSize: 11, color: Color(0xFF666666)),
               ),
-            );
-          }).toList(),
+            ),
+          ]),
         ),
-        // 9부 선택 시 안내 배너
-        if (_defaultLength == '9부') ...[
+
+        // ── 남성 길이 선택
+        _buildGenderLengthRow(
+          gender: '남성',
+          genderColor: const Color(0xFF1565C0),
+          genderBg: const Color(0xFFE3F2FD),
+          lengths: maleLengths,
+          selected: _maleLengthSel,
+          onSelect: (label) => setState(() => _maleLengthSel = label),
+        ),
+
+        const SizedBox(height: 12),
+
+        // ── 여성 길이 선택
+        _buildGenderLengthRow(
+          gender: '여성',
+          genderColor: const Color(0xFFC62828),
+          genderBg: const Color(0xFFFCE4EC),
+          lengths: femaleLengths,
+          selected: _femaleLengthSel,
+          onSelect: (label) {
+            setState(() {
+              _femaleLengthSel = label;
+              // 숏쇼츠 선택 시 주머니 강제 해제
+              if (label == '숏쇼츠' && _hasPocket) _hasPocket = false;
+            });
+          },
+        ),
+
+        // ── 숏쇼츠 선택 시 주머니 불가 안내
+        if (_femaleLengthSel == '숏쇼츠') ...[
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFFB74D)),
+            ),
+            child: Row(children: [
+              const Icon(Icons.block_rounded, size: 14, color: Color(0xFFE65100)),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  '숏사각(숏쇼츠) 선택 시 주머니 추가가 불가합니다.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFFBF360C),
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            ]),
+          ),
+        ],
+
+        // ── 9부 선택 시 추가금 안내
+        if (_maleLengthSel == '9부' || _femaleLengthSel == '9부') ...[
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2619,14 +2652,136 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     );
   }
 
+  // ── 성별별 길이 선택 행 ──
+  Widget _buildGenderLengthRow({
+    required String gender,
+    required Color genderColor,
+    required Color genderBg,
+    required List<Map<String, String>> lengths,
+    required String? selected,
+    required ValueChanged<String> onSelect,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 성별 뱃지
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: genderBg,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(gender,
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: genderColor)),
+        ),
+        const SizedBox(height: 8),
+        // 길이 버튼 목록
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: lengths.map((l) {
+            final label  = l['label']!;
+            final desc   = l['desc']!;
+            final isSel  = selected == label;
+            final is9bu  = label == '9부';
+            final isShort = label == '숏쇼츠';
+            return GestureDetector(
+              onTap: () => onSelect(label),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 120),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isSel
+                      ? (isShort ? const Color(0xFFE65100) : genderColor)
+                      : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isSel
+                        ? (isShort ? const Color(0xFFE65100) : genderColor)
+                        : Colors.grey.shade300,
+                  ),
+                ),
+                child: Column(children: [
+                  Text(label,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w800, fontSize: 13,
+                          color: isSel ? Colors.white : Colors.black87)),
+                  Text(desc,
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: isSel ? Colors.white70 : Colors.grey)),
+                  if (is9bu) ...[
+                    const SizedBox(height: 3),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isSel
+                            ? Colors.white.withValues(alpha: 0.25)
+                            : const Color(0xFFE65100).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text('+2만원',
+                          style: TextStyle(
+                              fontSize: 9, fontWeight: FontWeight.w800,
+                              color: isSel ? Colors.white : const Color(0xFFE65100))),
+                    ),
+                  ],
+                  if (isShort) ...[
+                    const SizedBox(height: 3),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isSel
+                            ? Colors.white.withValues(alpha: 0.25)
+                            : const Color(0xFFE65100).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text('주머니 불가',
+                          style: TextStyle(
+                              fontSize: 9, fontWeight: FontWeight.w800,
+                              color: isSel ? Colors.white : const Color(0xFFE65100))),
+                    ),
+                  ],
+                ]),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   // ══════════════════════════════════════════════
   // 주머니 선택 섹션 (선택사항)
   // ══════════════════════════════════════════════
   Widget _buildPocketSection() {
+    final disabled = _isFemaleShortSquare; // 숏쇼츠 선택 시 주머니 불가
     return _card(
       title: '주머니 (선택사항)',
       icon: Icons.style_outlined,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // 숏사각 선택 시 불가 안내
+        if (disabled) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFFB74D)),
+            ),
+            child: Row(children: [
+              const Icon(Icons.block_rounded, size: 14, color: Color(0xFFE65100)),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  '여성 숏사각(숏쇼츠) 선택 시 주머니 추가가 불가합니다.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFFBF360C), fontWeight: FontWeight.w600),
+                ),
+              ),
+            ]),
+          ),
+        ],
         // 안내 문구
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -2684,32 +2839,42 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           const SizedBox(width: 10),
           Expanded(
             child: GestureDetector(
-              onTap: () => setState(() => _hasPocket = true),
+              onTap: disabled ? null : () => setState(() => _hasPocket = true),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 120),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: _hasPocket ? _purple : Colors.grey.shade100,
+                  color: disabled
+                      ? Colors.grey.shade200
+                      : (_hasPocket ? _purple : Colors.grey.shade100),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: _hasPocket ? _purple : Colors.grey.shade300,
+                    color: disabled
+                        ? Colors.grey.shade300
+                        : (_hasPocket ? _purple : Colors.grey.shade300),
                   ),
                 ),
                 child: Column(children: [
                   Icon(Icons.cases_outlined,
                       size: 22,
-                      color: _hasPocket ? Colors.white : Colors.grey.shade500),
+                      color: disabled
+                          ? Colors.grey.shade400
+                          : (_hasPocket ? Colors.white : Colors.grey.shade500)),
                   const SizedBox(height: 4),
                   Text(loc.pocketYes,
                       style: TextStyle(
                         fontSize: 13, fontWeight: FontWeight.w700,
-                        color: _hasPocket ? Colors.white : Colors.black87,
+                        color: disabled
+                            ? Colors.grey.shade400
+                            : (_hasPocket ? Colors.white : Colors.black87),
                       )),
-                  Text(loc.pocketYesSubtitle,
+                  Text(disabled ? '선택 불가' : loc.pocketYesSubtitle,
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        color: _hasPocket ? Colors.white70 : Colors.orange.shade700,
+                        color: disabled
+                            ? Colors.grey.shade400
+                            : (_hasPocket ? Colors.white70 : Colors.orange.shade700),
                       )),
                 ]),
               ),
@@ -2995,8 +3160,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           ),
         ],
 
-        // ── 하의 길이 통일 안내 배너
-        if (_defaultLength != null) ...[
+        // ── 하의 길이 안내 배너 (남/여 각각 표시)
+        if (_maleLengthSel != null || _femaleLengthSel != null) ...[
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             margin: const EdgeInsets.only(bottom: 10),
@@ -3005,12 +3170,37 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.teal.shade200),
             ),
-            child: Row(children: [
-              Icon(Icons.straighten_rounded, size: 16, color: Colors.teal.shade600),
-              const SizedBox(width: 8),
-              Text('하의 길이 통일: ', style: TextStyle(fontSize: 11, color: Colors.teal.shade700, fontWeight: FontWeight.w600)),
-              Text(_defaultLength!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.teal.shade800)),
-              Text(' (전원 동일)', style: TextStyle(fontSize: 10, color: Colors.teal.shade500)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Icon(Icons.straighten_rounded, size: 15, color: Colors.teal.shade600),
+                const SizedBox(width: 6),
+                Text('하의 길이 (성별 통일 적용)', style: TextStyle(fontSize: 11, color: Colors.teal.shade700, fontWeight: FontWeight.w600)),
+              ]),
+              const SizedBox(height: 4),
+              Row(children: [
+                const SizedBox(width: 21),
+                Icon(Icons.male_rounded, size: 13, color: Colors.blue.shade600),
+                const SizedBox(width: 3),
+                Text('남성: ', style: TextStyle(fontSize: 11, color: Colors.blue.shade700, fontWeight: FontWeight.w600)),
+                Text(
+                  _maleLengthSel ?? '미선택',
+                  style: TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w900,
+                    color: _maleLengthSel != null ? Colors.teal.shade800 : Colors.orange.shade700,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Icon(Icons.female_rounded, size: 13, color: Colors.pink.shade500),
+                const SizedBox(width: 3),
+                Text('여성: ', style: TextStyle(fontSize: 11, color: Colors.pink.shade700, fontWeight: FontWeight.w600)),
+                Text(
+                  _femaleLengthSel ?? '미선택',
+                  style: TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w900,
+                    color: _femaleLengthSel != null ? Colors.teal.shade800 : Colors.orange.shade700,
+                  ),
+                ),
+              ]),
             ]),
           ),
         ],
@@ -3489,32 +3679,40 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               _detailMeasurePanel(p),
             ],
 
-            // ④ 하의 길이 통일 안내 (읽기 전용)
+            // ④ 하의 길이 안내 (성별에 따라 적용값 표시, 읽기 전용)
             const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.teal.shade50,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.teal.shade100),
-              ),
-              child: Row(children: [
-                Icon(Icons.straighten_rounded, size: 13, color: Colors.teal.shade500),
-                const SizedBox(width: 6),
-                Text('하의 길이: ',
-                    style: TextStyle(fontSize: 11, color: Colors.teal.shade700, fontWeight: FontWeight.w600)),
-                Text(
-                  _defaultLength ?? '미선택 (위에서 선택해 주세요)',
-                  style: TextStyle(
-                    fontSize: 11, fontWeight: FontWeight.w800,
-                    color: _defaultLength != null ? Colors.teal.shade800 : Colors.orange.shade700,
-                  ),
+            Builder(builder: (_) {
+              final isFemale = p.gender == 'female';
+              final lenSel   = isFemale ? _femaleLengthSel : _maleLengthSel;
+              final lenLabel = lenSel ?? '미선택 (위에서 선택해 주세요)';
+              final selected = lenSel != null;
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.teal.shade50,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.teal.shade100),
                 ),
-                const Spacer(),
-                if (_defaultLength != null)
-                  Icon(Icons.check_circle_rounded, size: 13, color: Colors.teal.shade500),
-              ]),
-            ),
+                child: Row(children: [
+                  Icon(isFemale ? Icons.female_rounded : Icons.male_rounded,
+                      size: 13,
+                      color: isFemale ? Colors.pink.shade400 : Colors.blue.shade400),
+                  const SizedBox(width: 4),
+                  Text('하의 길이: ',
+                      style: TextStyle(fontSize: 11, color: Colors.teal.shade700, fontWeight: FontWeight.w600)),
+                  Text(
+                    lenLabel,
+                    style: TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w800,
+                      color: selected ? Colors.teal.shade800 : Colors.orange.shade700,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (selected)
+                    Icon(Icons.check_circle_rounded, size: 13, color: Colors.teal.shade500),
+                ]),
+              );
+            }),
           ]),
         ),
       ]),
