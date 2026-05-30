@@ -22,6 +22,11 @@ import '../../services/storage_service.dart';
 import '../../utils/navigation_helper.dart';
 import '../main_screen.dart';
 
+/// 주니어 사이즈 판별 (J- 접두어 또는 2~3자리 숫자)
+/// 예: J-S, J-M, J-L, J-XL, J-2XL, 060, 065, 070 등
+bool _isJuniorSizeLabel(String s) =>
+    s.startsWith('J-') || RegExp(r'^\d{2,3}$').hasMatch(s);
+
 // ══════════════════════════════════════════════════════════════
 // ProductDetailScreen
 // ══════════════════════════════════════════════════════════════
@@ -6105,8 +6110,13 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
     // 사이즈 목록: 상품에 사이즈가 있으면 그대로, 없으면 기본 성인 사이즈
     final rawSizes = widget.product.sizes;
     final isJunior = rawSizes.any((s) => RegExp(r'^\d{3}$').hasMatch(s));
-    final sizes = rawSizes.isNotEmpty ? rawSizes
+    final allSizes = rawSizes.isNotEmpty ? rawSizes
         : (isJunior ? AppConstants.juniorSizes : AppConstants.adultSizes);
+
+    // 성인/주니어 분리
+    final adultSizes  = allSizes.where((s) => !_isJuniorSizeLabel(s)).toList();
+    final juniorSizes = allSizes.where((s) =>  _isJuniorSizeLabel(s)).toList();
+    final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
 
     final isBottom = _isSingletASet ||
         widget.product.category == '하의' ||
@@ -6164,27 +6174,91 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
           // ── 사이즈 ──
           const Text('사이즈', style: TextStyle(fontSize:13, fontWeight:FontWeight.w700)),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8, runSpacing: 8,
-            children: sizes.map((s) {
-              final sel = _selectedSize == s;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedSize = s),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 120),
-                  padding: const EdgeInsets.symmetric(horizontal:16, vertical:8),
-                  decoration: BoxDecoration(
-                    color: sel ? const Color(0xFF1A1A1A) : Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFE0E0E0)),
+          if (hasBoth) ...[
+            // 성인 그룹
+            Row(children: [
+              const Icon(Icons.person_outline_rounded, size: 13, color: Color(0xFF1A1A2E)),
+              const SizedBox(width: 4),
+              const Text('성인', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
+              const SizedBox(width: 6),
+              Expanded(child: Container(height: 1, color: const Color(0x331A1A2E))),
+            ]),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8, runSpacing: 8,
+              children: adultSizes.map((s) {
+                final sel = _selectedSize == s;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedSize = s),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    padding: const EdgeInsets.symmetric(horizontal:16, vertical:8),
+                    decoration: BoxDecoration(
+                      color: sel ? const Color(0xFF1A1A1A) : Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFE0E0E0)),
+                    ),
+                    child: Text(s, style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: sel ? Colors.white : const Color(0xFF1A1A1A))),
                   ),
-                  child: Text(s, style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: sel ? Colors.white : const Color(0xFF1A1A1A))),
-                ),
-              );
-            }).toList(),
-          ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 10),
+            // 주니어 그룹
+            Row(children: [
+              const Icon(Icons.child_care_rounded, size: 13, color: Color(0xFF1565C0)),
+              const SizedBox(width: 4),
+              const Text('주니어', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+              const SizedBox(width: 6),
+              Expanded(child: Container(height: 1, color: const Color(0x331565C0))),
+            ]),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8, runSpacing: 8,
+              children: juniorSizes.map((s) {
+                final sel = _selectedSize == s;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedSize = s),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    padding: const EdgeInsets.symmetric(horizontal:16, vertical:8),
+                    decoration: BoxDecoration(
+                      color: sel ? const Color(0xFF1565C0) : Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: sel ? const Color(0xFF1565C0) : const Color(0xFFE0E0E0)),
+                    ),
+                    child: Text(s, style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: sel ? Colors.white : const Color(0xFF1A1A1A))),
+                  ),
+                );
+              }).toList(),
+            ),
+          ] else ...[
+            Wrap(
+              spacing: 8, runSpacing: 8,
+              children: allSizes.map((s) {
+                final sel = _selectedSize == s;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedSize = s),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    padding: const EdgeInsets.symmetric(horizontal:16, vertical:8),
+                    decoration: BoxDecoration(
+                      color: sel ? const Color(0xFF1A1A1A) : Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFE0E0E0)),
+                    ),
+                    child: Text(s, style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: sel ? Colors.white : const Color(0xFF1A1A1A))),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
           const SizedBox(height: 16),
 
           // ── 색상 ──
@@ -6361,37 +6435,69 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
           ),
           const SizedBox(height: 18),
 
-          // 사이즈 선택 그리드
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: sizes.map((s) {
-              final sel = _selectedSize == s;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedSize = s),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 130),
-                  width: 64,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: sel ? const Color(0xFF1A1A1A) : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFDDDDDD),
-                      width: sel ? 2 : 1,
+          // 사이즈 선택 그리드 (성인/주니어 구분)
+          Builder(builder: (context) {
+            final adultSizes  = sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
+            final juniorSizes = sizes.where((s) =>  _isJuniorSizeLabel(s)).toList();
+            final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
+
+            Widget chipWrap(List<String> list, Color activeColor) => Wrap(
+              spacing: 8, runSpacing: 8,
+              children: list.map((s) {
+                final sel = _selectedSize == s;
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedSize = s),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 130),
+                    width: 64, height: 48,
+                    decoration: BoxDecoration(
+                      color: sel ? activeColor : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: sel ? activeColor : const Color(0xFFDDDDDD),
+                        width: sel ? 2 : 1,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(s,
+                          style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: sel ? Colors.white : const Color(0xFF1A1A1A))),
                     ),
                   ),
-                  child: Center(
-                    child: Text(s,
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: sel ? Colors.white : const Color(0xFF1A1A1A))),
-                  ),
-                ),
+                );
+              }).toList(),
+            );
+
+            if (hasBoth) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [
+                    const Icon(Icons.person_outline_rounded, size: 13, color: Color(0xFF1A1A2E)),
+                    const SizedBox(width: 4),
+                    const Text('성인', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
+                    const SizedBox(width: 6),
+                    Expanded(child: Container(height: 1, color: const Color(0x221A1A2E))),
+                  ]),
+                  const SizedBox(height: 6),
+                  chipWrap(adultSizes, const Color(0xFF1A1A1A)),
+                  const SizedBox(height: 12),
+                  Row(children: [
+                    const Icon(Icons.child_care_rounded, size: 13, color: Color(0xFF1565C0)),
+                    const SizedBox(width: 4),
+                    const Text('주니어', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                    const SizedBox(width: 6),
+                    Expanded(child: Container(height: 1, color: const Color(0x221565C0))),
+                  ]),
+                  const SizedBox(height: 6),
+                  chipWrap(juniorSizes, const Color(0xFF1565C0)),
+                ],
               );
-            }).toList(),
-          ),
+            }
+            return chipWrap(sizes, const Color(0xFF1A1A1A));
+          }),
           const SizedBox(height: 20),
 
           // 수량 선택
@@ -6587,16 +6693,34 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   // ─────────────────────────────────────────────
   // 사이즈 목록
   // ─────────────────────────────────────────────
-  /// 공통 기본 사이즈: 상품에 등록된 사이즈 우선, 없으면 성인/주니어 자동 판별
-  List<String> get _defaultSizes {
+
+  /// 주니어 사이즈인지 판별 → top-level 함수 위임
+  bool _isJuniorSize(String s) => _isJuniorSizeLabel(s);
+
+  /// 전체 사이즈 목록 (성인+주니어 혼합 가능)
+  List<String> get _allSizes {
     final raw = widget.product.sizes;
     if (raw.isNotEmpty) return raw;
     final isJunior = widget.product.name.contains('주니어') ||
         widget.product.name.contains('Jr') ||
         widget.product.subCategory.contains('주니어');
-    // 성인 S~XL / 주니어 S~XL (요구사항)
     return isJunior ? AppConstants.juniorSizes : AppConstants.adultSizes;
   }
+
+  /// 성인 사이즈만 (J- 접두어 또는 숫자 아닌 것)
+  List<String> get _adultSizes =>
+      _allSizes.where((s) => !_isJuniorSize(s)).toList();
+
+  /// 주니어 사이즈만 (J- 접두어 또는 숫자)
+  List<String> get _juniorSizes =>
+      _allSizes.where((s) => _isJuniorSize(s)).toList();
+
+  /// 성인/주니어 혼합 여부
+  bool get _hasBothGroups =>
+      _adultSizes.isNotEmpty && _juniorSizes.isNotEmpty;
+
+  /// 하위 호환: 단일 그룹일 때 기본 사이즈 목록
+  List<String> get _defaultSizes => _allSizes;
 
   // ─────────────────────────────────────────────
   // 헬퍼
@@ -6727,7 +6851,6 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
         .map((m) => m['label'] as String)
         .where((s) => s.isNotEmpty)
         .toList();
-    final sizes = _defaultSizes;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.92,
@@ -6954,93 +7077,134 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     // 상의 사이즈
                     _sectionTitle('상의 사이즈', required: true),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8, runSpacing: 8,
-                      children: sizes.map((s) {
-                        final isSel = _topSize == s;
-                        return GestureDetector(
-                          onTap: () => setState(() => _topSize = s),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: isSel ? const Color(0xFF1A1A2E) : Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: isSel ? const Color(0xFF1A1A2E) : const Color(0xFFE0E0E0),
-                              ),
-                            ),
-                            child: Text(
-                              s,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: isSel ? Colors.white : const Color(0xFF1A1A1A),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                    if (_hasBothGroups) ...[
+                      _sizeSectionLabel('성인', Icons.person_outline_rounded, const Color(0xFF1A1A2E)),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: _adultSizes.map((s) {
+                          final isSel = _topSize == s;
+                          return _sizeChip(label: s, isSelected: isSel,
+                            activeColor: const Color(0xFF1A1A2E),
+                            onTap: () => setState(() => _topSize = s));
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 10),
+                      _sizeSectionLabel('주니어', Icons.child_care_rounded, const Color(0xFF1565C0)),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: _juniorSizes.map((s) {
+                          final isSel = _topSize == s;
+                          return _sizeChip(label: s, isSelected: isSel,
+                            activeColor: const Color(0xFF1565C0),
+                            onTap: () => setState(() => _topSize = s));
+                        }).toList(),
+                      ),
+                    ] else ...[
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: _defaultSizes.map((s) {
+                          final isSel = _topSize == s;
+                          return _sizeChip(label: s, isSelected: isSel,
+                            activeColor: const Color(0xFF1A1A2E),
+                            onTap: () => setState(() => _topSize = s));
+                        }).toList(),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     // 하의 사이즈
                     _sectionTitle('하의 사이즈', required: true),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8, runSpacing: 8,
-                      children: sizes.map((s) {
-                        final isSel = _bottomSize == s;
-                        return GestureDetector(
-                          onTap: () => setState(() => _bottomSize = s),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: isSel ? const Color(0xFF5C6BC0) : Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: isSel ? const Color(0xFF5C6BC0) : const Color(0xFFE0E0E0),
-                              ),
-                            ),
-                            child: Text(
-                              s,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: isSel ? Colors.white : const Color(0xFF1A1A1A),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                    if (_hasBothGroups) ...[
+                      _sizeSectionLabel('성인', Icons.person_outline_rounded, const Color(0xFF5C6BC0)),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: _adultSizes.map((s) {
+                          final isSel = _bottomSize == s;
+                          return _sizeChip(label: s, isSelected: isSel,
+                            activeColor: const Color(0xFF5C6BC0),
+                            onTap: () => setState(() => _bottomSize = s));
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 10),
+                      _sizeSectionLabel('주니어', Icons.child_care_rounded, const Color(0xFF1565C0)),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: _juniorSizes.map((s) {
+                          final isSel = _bottomSize == s;
+                          return _sizeChip(label: s, isSelected: isSel,
+                            activeColor: const Color(0xFF1565C0),
+                            onTap: () => setState(() => _bottomSize = s));
+                        }).toList(),
+                      ),
+                    ] else ...[
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: _defaultSizes.map((s) {
+                          final isSel = _bottomSize == s;
+                          return _sizeChip(label: s, isSelected: isSel,
+                            activeColor: const Color(0xFF5C6BC0),
+                            onTap: () => setState(() => _bottomSize = s));
+                        }).toList(),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                   ] else ...[
-                    // 단품 사이즈
+                    // 단품 사이즈 — 성인/주니어 구분 표시
                     _sectionTitle('사이즈', required: true),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8, runSpacing: 8,
-                      children: sizes.map((s) {
-                        final isSel = _size == s;
-                        return GestureDetector(
-                          onTap: () => setState(() => _size = s),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: isSel ? const Color(0xFF1A1A2E) : Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: isSel ? const Color(0xFF1A1A2E) : const Color(0xFFE0E0E0),
-                              ),
-                            ),
-                            child: Text(
-                              s,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: isSel ? Colors.white : const Color(0xFF1A1A1A),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+
+                    // ── 성인/주니어 혼합 상품: 그룹 구분 표시 ──
+                    if (_hasBothGroups) ...[
+                      // 성인 그룹 라벨
+                      _sizeSectionLabel('성인', Icons.person_outline_rounded, const Color(0xFF1A1A2E)),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: _adultSizes.map((s) {
+                          final isSel = _size == s;
+                          return _sizeChip(
+                            label: s,
+                            isSelected: isSel,
+                            activeColor: const Color(0xFF1A1A2E),
+                            onTap: () => setState(() => _size = s),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 14),
+                      // 주니어 그룹 라벨
+                      _sizeSectionLabel('주니어', Icons.child_care_rounded, const Color(0xFF1565C0)),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: _juniorSizes.map((s) {
+                          final isSel = _size == s;
+                          return _sizeChip(
+                            label: s,
+                            isSelected: isSel,
+                            activeColor: const Color(0xFF1565C0),
+                            onTap: () => setState(() => _size = s),
+                          );
+                        }).toList(),
+                      ),
+                    ] else ...[
+                      // 단일 그룹: 기존 방식 유지
+                      Wrap(
+                        spacing: 8, runSpacing: 8,
+                        children: _defaultSizes.map((s) {
+                          final isSel = _size == s;
+                          return _sizeChip(
+                            label: s,
+                            isSelected: isSel,
+                            activeColor: const Color(0xFF1A1A2E),
+                            onTap: () => setState(() => _size = s),
+                          );
+                        }).toList(),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                   ],
 
@@ -7366,6 +7530,62 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     );
   }
 
+  /// 성인/주니어 그룹 구분 라벨 (아이콘 + 텍스트)
+  Widget _sizeSectionLabel(String label, IconData icon, Color color) {
+    return Row(
+      children: [
+        Icon(icon, size: 13, color: color),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: color,
+            letterSpacing: 0.3,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Container(
+            height: 1,
+            color: color.withValues(alpha: 0.2),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 사이즈 선택 칩 (공통 스타일)
+  Widget _sizeChip({
+    required String label,
+    required bool isSelected,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 130),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? activeColor : Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? activeColor : const Color(0xFFE0E0E0),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: isSelected ? Colors.white : const Color(0xFF1A1A1A),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _optionChip(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -7501,36 +7721,67 @@ class _QuickSizeColorSelectSheetState
             Text(loc.sizeLabel,
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: sizes.map((s) {
-                final sel = _selectedSize == s;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedSize = s),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 130),
-                    width: 64,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: sel ? const Color(0xFF1A1A1A) : Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFDDDDDD),
-                        width: sel ? 2 : 1,
+            Builder(builder: (context) {
+              final adultSizes  = sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
+              final juniorSizes = sizes.where((s) =>  _isJuniorSizeLabel(s)).toList();
+              final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
+
+              Widget chipWrap(List<String> list, Color activeColor) => Wrap(
+                spacing: 8, runSpacing: 8,
+                children: list.map((s) {
+                  final sel = _selectedSize == s;
+                  return GestureDetector(
+                    onTap: () => setState(() => _selectedSize = s),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 130),
+                      width: 64, height: 48,
+                      decoration: BoxDecoration(
+                        color: sel ? activeColor : Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: sel ? activeColor : const Color(0xFFDDDDDD),
+                          width: sel ? 2 : 1,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(s,
+                            style: TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.w700,
+                                color: sel ? Colors.white : const Color(0xFF1A1A1A))),
                       ),
                     ),
-                    child: Center(
-                      child: Text(s,
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: sel ? Colors.white : const Color(0xFF1A1A1A))),
-                    ),
-                  ),
+                  );
+                }).toList(),
+              );
+
+              if (hasBoth) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      const Icon(Icons.person_outline_rounded, size: 13, color: Color(0xFF1A1A2E)),
+                      const SizedBox(width: 4),
+                      const Text('성인', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
+                      const SizedBox(width: 6),
+                      Expanded(child: Container(height: 1, color: const Color(0x221A1A2E))),
+                    ]),
+                    const SizedBox(height: 6),
+                    chipWrap(adultSizes, const Color(0xFF1A1A1A)),
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      const Icon(Icons.child_care_rounded, size: 13, color: Color(0xFF1565C0)),
+                      const SizedBox(width: 4),
+                      const Text('주니어', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                      const SizedBox(width: 6),
+                      Expanded(child: Container(height: 1, color: const Color(0x221565C0))),
+                    ]),
+                    const SizedBox(height: 6),
+                    chipWrap(juniorSizes, const Color(0xFF1565C0)),
+                  ],
                 );
-              }).toList(),
-            ),
+              }
+              return chipWrap(sizes, const Color(0xFF1A1A1A));
+            }),
             const SizedBox(height: 20),
             // 컬러 섹션 (하의: 19가지 + 팔레트, 기타: 검정/남색)
             _ColorSelectionWidget(
