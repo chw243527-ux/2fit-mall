@@ -135,12 +135,12 @@ class AppConstants {
 
   // ── 하의 길이 옵션 ──
   static const List<Map<String, String>> bottomLengths = [
-    {'label': '9부',   'desc': '~95cm', 'eng': '9/10 length'},
-    {'label': '5부',   'desc': '~55cm', 'eng': '5/10 length'},
-    {'label': '4부',   'desc': '~47cm', 'eng': '4/10 length'},
-    {'label': '3부',   'desc': '~37cm', 'eng': '3/10 length'},
-    {'label': '2.5부', 'desc': '~30cm', 'eng': 'Short'},
-    {'label': '숏쇼츠','desc': '~23cm', 'eng': 'Short Shorts'},
+    {'label': '9부',   'desc': '', 'eng': '9/10 length'},
+    {'label': '5부',   'desc': '', 'eng': '5/10 length'},
+    {'label': '4부',   'desc': '', 'eng': '4/10 length'},
+    {'label': '3부',   'desc': '', 'eng': '3/10 length'},
+    {'label': '2.5부', 'desc': '', 'eng': 'Short'},
+    {'label': '숏쇼츠','desc': '', 'eng': 'Short Shorts'},
   ];
 
   // ── 단체 맞춤 할인 정책 ──
