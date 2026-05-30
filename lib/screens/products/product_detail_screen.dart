@@ -4033,18 +4033,6 @@ $productUrl
                   )
                 : _buildSectionImageSlider('s1'),
           ),
-        // ── 소재 기능 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
-        if (isAdmin || (_sectionImages['s1_feature'] ?? []).isNotEmpty)
-          Container(
-            color: Colors.white,
-            padding: EdgeInsets.fromLTRB(0, isAdmin ? 12 : 0, 0, 0),
-            child: isAdmin
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _buildAdminImageSection('s1_feature', '소재 기능 이미지', isAdmin),
-                  )
-                : _buildSectionImageSlider('s1_feature'),
-          ),
         // ── 특징 리스트: 탑텐 스타일 (분리선 + 영문 태그 + 제목 + 설명)
         Container(
           color: Colors.white,
@@ -4166,6 +4154,19 @@ $productUrl
           _buildSection2FabricAdmin(generalImgs, seamlessImgs, isAdmin)
         else if (generalImgs.isNotEmpty || seamlessImgs.isNotEmpty)
           _buildSection2FabricTabs(generalImgs, seamlessImgs),
+
+        // ── 일반봉제/심리스 이미지 아래 추가 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
+        if (isAdmin || (_sectionImages['s2_fabric_extra'] ?? []).isNotEmpty)
+          Container(
+            color: Colors.white,
+            padding: EdgeInsets.fromLTRB(0, isAdmin ? 12 : 0, 0, 0),
+            child: isAdmin
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _buildAdminImageSection('s2_fabric_extra', '원단 추가 이미지', isAdmin),
+                  )
+                : _buildSectionImageSlider('s2_fabric_extra'),
+          ),
 
         // ── 기술 특징 리스트 (분리선)
         Container(
