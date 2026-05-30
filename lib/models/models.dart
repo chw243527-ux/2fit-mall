@@ -21,6 +21,8 @@ class ProductModel {
   final double rating;
   final int reviewCount;
   final int stockCount;
+  /// 사이즈별 품절 목록 (예: ['XL', '2XL']) — 해당 사이즈는 선택 불가
+  final List<String> soldOutSizes;
   /// 실제 구매 완료된 누적 판매 수량 (confirmed 이상 주문 기준)
   final int salesCount;
   final bool isActive;
@@ -56,6 +58,7 @@ class ProductModel {
     this.rating = 0.0,
     this.reviewCount = 0,
     this.stockCount = 100,
+    this.soldOutSizes = const [],
     this.salesCount = 0,
     this.isActive = true,
     required this.createdAt,
@@ -118,7 +121,8 @@ class ProductModel {
       isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping,
       isGroupOnly: isGroupOnly, isReadyMade: isReadyMade,
       rating: rating, reviewCount: reviewCount,
-      stockCount: stockCount, salesCount: salesCount, isActive: isActive, createdAt: createdAt,
+      stockCount: stockCount, soldOutSizes: soldOutSizes,
+      salesCount: salesCount, isActive: isActive, createdAt: createdAt,
       productCode: productCode,
       sectionImages: sectionImages,
       nameTranslations: nameTranslations ?? this.nameTranslations,
@@ -177,6 +181,7 @@ class ProductModel {
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount: json['reviewCount'] as int? ?? 0,
       stockCount: json['stockCount'] as int? ?? 100,
+      soldOutSizes: (json['soldOutSizes'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const [],
       salesCount: json['salesCount'] as int? ?? 0,
       isActive: json['isActive'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -213,6 +218,7 @@ class ProductModel {
       'rating': rating,
       'reviewCount': reviewCount,
       'stockCount': stockCount,
+      'soldOutSizes': soldOutSizes,
       'salesCount': salesCount,
       'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
@@ -231,7 +237,9 @@ class ProductModel {
       images: images, sizes: sizes, colors: colors, material: material,
       isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping,
       isGroupOnly: isGroupOnly, isReadyMade: isReadyMade,
-      rating: rating, reviewCount: reviewCount, stockCount: stockCount, salesCount: salesCount,
+      rating: rating, reviewCount: reviewCount, stockCount: stockCount,
+      soldOutSizes: soldOutSizes,
+      salesCount: salesCount,
       isActive: isActive, createdAt: createdAt,
       productCode: productCode,
       sectionImages: newSectionImages,
