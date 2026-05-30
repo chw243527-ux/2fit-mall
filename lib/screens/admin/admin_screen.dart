@@ -4367,6 +4367,13 @@ class _AdminScreenState extends State<AdminScreen>
                     Text('수정')
                   ])),
               const PopupMenuItem(
+                  value: 'copy',
+                  child: Row(children: [
+                    Icon(Icons.copy_all_rounded, size: 16, color: Color(0xFF1565C0)),
+                    SizedBox(width: 8),
+                    Text('복사', style: TextStyle(color: Color(0xFF1565C0)))
+                  ])),
+              const PopupMenuItem(
                   value: 'stock',
                   child: Row(children: [
                     Icon(Icons.inventory_outlined, size: 16),
@@ -4384,6 +4391,8 @@ class _AdminScreenState extends State<AdminScreen>
             onSelected: (val) {
               if (val == 'edit') {
                 _showEditProductDialog(p);
+              } else if (val == 'copy') {
+                _showCopyProductDialog(p);
               } else if (val == 'stock') {
                 _showStockDialog(p);
               } else if (val == 'delete') {
@@ -6242,15 +6251,20 @@ class _AdminScreenState extends State<AdminScreen>
   }
 
   void _showEditProductDialog(ProductModel p) {
-    _showProductFormDialog(p);
+    _showProductFormDialog(p, isCopy: false);
   }
 
-  void _showProductFormDialog(ProductModel? existing) {
+  void _showCopyProductDialog(ProductModel p) {
+    _showProductFormDialog(p, isCopy: true);
+  }
+
+  void _showProductFormDialog(ProductModel? existing, {bool isCopy = false}) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => _ProductFormDialog(
         existing: existing,
+        isCopy: isCopy,
         onSaved: (product, isEdit) async {
           if (isEdit) {
             await context.read<ProductProvider>().updateProduct(product);
@@ -9520,9 +9534,10 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
 // ══════════════════════════════════════════════════════════════
 class _ProductFormDialog extends StatefulWidget {
   final ProductModel? existing;
+  final bool isCopy;   // true 이면 복사 모드 — 데이터 채우되 새 ID로 신규 등록
   final Future<void> Function(ProductModel, bool isEdit) onSaved;
 
-  const _ProductFormDialog({required this.onSaved, this.existing});
+  const _ProductFormDialog({required this.onSaved, this.existing, this.isCopy = false});
 
   @override
   State<_ProductFormDialog> createState() => _ProductFormDialogState();
@@ -9622,7 +9637,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   bool _isReadyMade = false;  // 기성품
   bool _isActive = true;
 
-  bool get _isEdit => widget.existing != null;
+  // 수정 모드: existing 이 있고 복사 모드가 아닐 때
+  bool get _isEdit => widget.existing != null && !widget.isCopy;
 
   // ── 카테고리별 하위카테고리 맵
   static const Map<String, List<String>> _subCatMap = {
@@ -9655,8 +9671,13 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     super.initState();
     final e = widget.existing;
     // ── 신규 등록 시 고정 임시 ID 생성 (이미지 업로드와 저장 간 ID 일치 보장)
-    _tempProductId = e?.id ?? 'p_${DateTime.now().millisecondsSinceEpoch}';
-    _nameCtrl = TextEditingController(text: e?.name ?? '');
+    // 복사 모드이면 항상 새 ID 생성 (기존 상품 덮어쓰기 방지)
+    _tempProductId = (e != null && !widget.isCopy)
+        ? e.id
+        : 'p_${DateTime.now().millisecondsSinceEpoch}';
+    // 복사 모드: 상품명에 "(복사)" 접미사
+    final copyNameSuffix = widget.isCopy ? ' (복사)' : '';
+    _nameCtrl = TextEditingController(text: (e?.name ?? '') + copyNameSuffix);
     _productCodeCtrl = TextEditingController(text: e?.productCode ?? '');
     _priceCtrl = TextEditingController(text: e?.price.toStringAsFixed(0) ?? '');
     _origPriceCtrl = TextEditingController(text: e?.originalPrice?.toStringAsFixed(0) ?? '');
@@ -9958,9 +9979,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
               borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
             ),
             child: Row(children: [
-              Icon(_isEdit ? Icons.edit_outlined : Icons.add_box_outlined, color: Colors.white, size: 20),
+              Icon(_isEdit ? Icons.edit_outlined : widget.isCopy ? Icons.copy_all_rounded : Icons.add_box_outlined, color: Colors.white, size: 20),
               const SizedBox(width: 8),
-              Text(_isEdit ? '상품 수정' : '새 상품 등록',
+              Text(_isEdit ? '상품 수정' : widget.isCopy ? '상품 복사 (새 상품 등록)' : '새 상품 등록',
                   style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
               const Spacer(),
               IconButton(
@@ -10741,7 +10762,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                 child: _isSaving
                     ? const SizedBox(height: 20, width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : Text(_isEdit ? '수정 저장' : '상품 등록',
+                    : Text(_isEdit ? '수정 저장' : widget.isCopy ? '복사 등록' : '상품 등록',
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
               )),
             ]),
