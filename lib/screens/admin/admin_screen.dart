@@ -9580,6 +9580,18 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   String _selSubCat = '';
   String _selTightsSub = ''; // 타이즈 하위분류 (9부/5부/4부/3부/2.5부/숏쇼츠)
 
+  // ── 사이즈 선택 (칩 UI)
+  final Set<String> _selectedSizes = {};
+
+  // 성인 사이즈 전체 목록
+  static const List<String> _adultSizeOptions = [
+    'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL',
+  ];
+  // 주니어 사이즈 전체 목록
+  static const List<String> _juniorSizeOptions = [
+    'J-S(60)', 'J-M(65)', 'J-L(70)', 'J-XL(75)', 'J-2XL(80)',
+  ];
+
   // ── 싱글렛세트A타입 고정 상품내용 (싱글렛유니폼세트와 동일)
   static const String _singletSetADesc =
       '2FIT 싱글렛 A타입 유니폼 세트입니다.\n'
@@ -9644,7 +9656,16 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _priceCtrl = TextEditingController(text: e?.price.toStringAsFixed(0) ?? '');
     _origPriceCtrl = TextEditingController(text: e?.originalPrice?.toStringAsFixed(0) ?? '');
     _descCtrl = TextEditingController(text: e?.description ?? '');
-    _sizesCtrl = TextEditingController(text: (e?.sizes ?? ['S','M','L','XL']).join(', '));
+    // 기존 사이즈 → _selectedSizes로 초기화 (기존 저장된 사이즈 그대로 복원)
+    final initSizes = e?.sizes ?? ['S', 'M', 'L', 'XL'];
+    _selectedSizes.addAll(initSizes);
+    // 저장 텍스트: adultOptions → juniorOptions 순 정렬 후 기존 미인식 사이즈 추가
+    final knownAll = [..._adultSizeOptions, ..._juniorSizeOptions];
+    final orderedInit = [
+      ...knownAll.where(_selectedSizes.contains),
+      ..._selectedSizes.where((s) => !knownAll.contains(s)),
+    ];
+    _sizesCtrl = TextEditingController(text: orderedInit.join(', '));
     _stockCtrl = TextEditingController(text: e?.stockCount.toString() ?? '100');
     _urlCtrl = TextEditingController();
     _materialCtrl = TextEditingController(text: e?.material ?? '');
@@ -10070,7 +10091,11 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                 // 싱글렛세트A타입 선택 시 싱글렛유니폼세트 기본 내용 항상 자동 적용
                                 if (v == '싱글렛세트A타입') {
                                   _descCtrl.text = _singletSetADesc;
-                                  _sizesCtrl.text = 'XS, S, M, L, XL, 2XL';
+                                  final autoSizes = ['XS', 'S', 'M', 'L', 'XL', '2XL'];
+                                  _selectedSizes
+                                    ..clear()
+                                    ..addAll(autoSizes);
+                                  _sizesCtrl.text = autoSizes.join(', ');
                                   _isGroupOnly = true;
                                 }
                               });
@@ -10362,9 +10387,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                 ],
                 const SizedBox(height: 14),
 
-                // ── 사이즈
-                _lbl('사이즈 (쉼표 구분)'),
-                _field(_sizesCtrl, 'S, M, L, XL'),
+                // ── 사이즈 선택
+                _lbl('사이즈'),
+                const SizedBox(height: 6),
+                _buildSizeSelector(),
                 const SizedBox(height: 14),
 
                 // ── 소재 직접 입력
@@ -10631,6 +10657,174 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(t, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
   );
+
+  // ── 사이즈 선택 칩 UI (성인 / 주니어 그룹)
+  Widget _buildSizeSelector() {
+    void toggleSize(String s) {
+      setState(() {
+        if (_selectedSizes.contains(s)) {
+          _selectedSizes.remove(s);
+        } else {
+          _selectedSizes.add(s);
+        }
+        // 선택 순서 보장: adultSizeOptions → juniorSizeOptions 순으로 정렬
+        final ordered = [
+          ..._adultSizeOptions.where(_selectedSizes.contains),
+          ..._juniorSizeOptions.where(_selectedSizes.contains),
+        ];
+        _sizesCtrl.text = ordered.join(', ');
+      });
+    }
+
+    void selectPreset(List<String> preset) {
+      setState(() {
+        _selectedSizes
+          ..clear()
+          ..addAll(preset);
+        final ordered = [
+          ..._adultSizeOptions.where(_selectedSizes.contains),
+          ..._juniorSizeOptions.where(_selectedSizes.contains),
+        ];
+        _sizesCtrl.text = ordered.join(', ');
+      });
+    }
+
+    Widget groupLabel(String label, IconData icon, Color color) => Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(children: [
+        Icon(icon, size: 13, color: color),
+        const SizedBox(width: 4),
+        Text(label, style: TextStyle(
+          fontSize: 11, fontWeight: FontWeight.w700, color: color,
+        )),
+        const SizedBox(width: 6),
+        Expanded(child: Container(height: 1, color: color.withValues(alpha: 0.2))),
+      ]),
+    );
+
+    Widget sizeChip(String s, Color activeColor) {
+      final sel = _selectedSizes.contains(s);
+      return GestureDetector(
+        onTap: () => toggleSize(s),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+          decoration: BoxDecoration(
+            color: sel ? activeColor : Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: sel ? activeColor : const Color(0xFFDDDDDD),
+              width: sel ? 1.8 : 1,
+            ),
+          ),
+          child: Text(s, style: TextStyle(
+            fontSize: 13, fontWeight: FontWeight.w700,
+            color: sel ? Colors.white : const Color(0xFF333333),
+          )),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F9FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFDDE3F5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── 빠른 프리셋 버튼
+          Row(children: [
+            const Text('빠른 선택', style: TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF888888),
+            )),
+            const SizedBox(width: 8),
+            _presetBtn('성인 기본', ['S', 'M', 'L', 'XL'], const Color(0xFF1A1A2E), selectPreset),
+            const SizedBox(width: 6),
+            _presetBtn('성인 전체', ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'], const Color(0xFF1A1A2E), selectPreset),
+            const SizedBox(width: 6),
+            _presetBtn('주니어 전체', _juniorSizeOptions, const Color(0xFF1565C0), selectPreset),
+            const SizedBox(width: 6),
+            _presetBtn('전체 해제', [], const Color(0xFF888888), selectPreset),
+          ]),
+          const SizedBox(height: 12),
+
+          // ── 성인 사이즈
+          groupLabel('성인', Icons.person_outline_rounded, const Color(0xFF1A1A2E)),
+          Wrap(
+            spacing: 7, runSpacing: 7,
+            children: _adultSizeOptions.map((s) => sizeChip(s, const Color(0xFF1A1A2E))).toList(),
+          ),
+          const SizedBox(height: 12),
+
+          // ── 주니어 사이즈
+          groupLabel('주니어', Icons.child_care_rounded, const Color(0xFF1565C0)),
+          Wrap(
+            spacing: 7, runSpacing: 7,
+            children: _juniorSizeOptions.map((s) => sizeChip(s, const Color(0xFF1565C0))).toList(),
+          ),
+          const SizedBox(height: 12),
+
+          // ── 현재 선택된 사이즈 요약
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFDDDDDD)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline_rounded, size: 14, color: Color(0xFF43A047)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _selectedSizes.isEmpty
+                        ? '선택된 사이즈 없음'
+                        : _sizesCtrl.text,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _selectedSizes.isEmpty
+                          ? const Color(0xFFBBBBBB)
+                          : const Color(0xFF1A1A1A),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${_selectedSizes.length}개 선택',
+                  style: const TextStyle(
+                    fontSize: 11, color: Color(0xFF888888),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _presetBtn(String label, List<String> sizes, Color color,
+      void Function(List<String>) onTap) {
+    return GestureDetector(
+      onTap: () => onTap(sizes),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Text(label, style: TextStyle(
+          fontSize: 11, fontWeight: FontWeight.w700, color: color,
+        )),
+      ),
+    );
+  }
 
   Widget _translationRow(String flag, String text) => Padding(
     padding: const EdgeInsets.only(top: 2),
