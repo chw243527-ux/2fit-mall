@@ -45,15 +45,18 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   bool _onlySale = false;
   bool _onlyFreeShipping = false;
 
-  // ── 색상 팔레트: 흑백 모노크롬, 포인트 없음 ──
-  static const Color _bg       = Color(0xFF111111);
-  static const Color _surface  = Color(0xFF181818);
-  static const Color _card     = Color(0xFF1C1C1C);
-  static const Color _border   = Color(0xFF2A2A2A);
-  static const Color _divider  = Color(0xFF222222);
+  // ── 색상 팔레트: 약간 밝게 조정 ──
+  static const Color _bg       = Color(0xFF1A1A1A);   // 이전 0xFF111111 → 더 밝게
+  static const Color _surface  = Color(0xFF222222);   // 이전 0xFF181818
+  static const Color _card     = Color(0xFF2A2A2A);   // 이전 0xFF1C1C1C
+  static const Color _border   = Color(0xFF3A3A3A);   // 이전 0xFF2A2A2A
+  static const Color _divider  = Color(0xFF303030);   // 이전 0xFF222222
   static const Color _white    = Colors.white;
-  static const Color _grey     = Color(0xFF888888);
-  static const Color _greyDim  = Color(0xFF555555);
+  static const Color _grey     = Color(0xFFAAAAAA);   // 이전 0xFF888888 → 더 밝게
+  static const Color _greyDim  = Color(0xFF777777);   // 이전 0xFF555555 → 더 밝게
+
+  // 카테고리 사이드 드로어용 스크롤 키
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -128,7 +131,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   Widget build(BuildContext context) {
     if (isPcWeb(context)) return _buildPcLayout(context);
     return wrapWithPopScope(context, Scaffold(
+      key: _scaffoldKey,
       backgroundColor: _bg,
+      // ── 우측 카테고리 드로어 ──
+      endDrawer: _buildCategoryDrawer(context),
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           _buildSliverAppBar(),
@@ -167,14 +173,130 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     ));
   }
 
-  // ── SliverAppBar: 심플 단색 헤더 ──
+  // ── 우측 카테고리 드로어 ──
+  Widget _buildCategoryDrawer(BuildContext context) {
+    final categories = getCategories(loc);
+    return Drawer(
+      width: MediaQuery.of(context).size.width * 0.78,
+      backgroundColor: _surface,
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 헤더
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
+              child: Row(
+                children: [
+                  const Text(
+                    'CATEGORIES',
+                    style: TextStyle(
+                      color: _white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.5,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close_rounded, color: _grey, size: 22),
+                  ),
+                ],
+              ),
+            ),
+            Container(height: 1, color: _divider),
+            // 카테고리 목록
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: categories.length,
+                itemBuilder: (ctx, i) {
+                  final cat = categories[i];
+                  final isActive = cat.name == widget.categoryName;
+                  return _buildDrawerCategoryItem(context, cat, isActive);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerCategoryItem(BuildContext context, CategoryData cat, bool isActive) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.pop(context); // 드로어 닫기
+          if (!isActive) {
+            // 현재 화면을 교체하여 선택한 카테고리로 이동
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CategoryDetailScreen(
+                  categoryName: cat.name,
+                  categoryColor: cat.color,
+                  categoryIcon: cat.icon,
+                  subCategories: cat.subCategories,
+                ),
+              ),
+            );
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            color: isActive ? _card : Colors.transparent,
+            border: isActive
+                ? const Border(left: BorderSide(color: _white, width: 2))
+                : null,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                cat.icon,
+                size: 18,
+                color: isActive ? _white : _grey,
+              ),
+              const SizedBox(width: 14),
+              Text(
+                cat.name,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                  color: isActive ? _white : _grey,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              if (isActive) ...[
+                const Spacer(),
+                Container(
+                  width: 5,
+                  height: 5,
+                  decoration: const BoxDecoration(
+                    color: _white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── SliverAppBar: 텍스트 겹침 방지 + 햄버거 버튼 ──
   SliverAppBar _buildSliverAppBar() {
     return SliverAppBar(
       pinned: true,
       floating: false,
-      expandedHeight: 110,
+      expandedHeight: 100,
       backgroundColor: _surface,
       elevation: 0,
+      // 뒤로가기 버튼 (좌측)
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _white, size: 19),
         onPressed: () => goBackOrHome(context),
@@ -207,35 +329,66 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
               ),
           ],
         ),
+        // 햄버거 버튼 (카테고리 전환용)
+        IconButton(
+          icon: const Icon(Icons.menu_rounded, color: _white, size: 22),
+          onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+        ),
         const SizedBox(width: 4),
       ],
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          color: _surface,
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 56),
-          alignment: Alignment.bottomLeft,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.categoryName.toUpperCase(),
-                style: const TextStyle(
-                  color: _white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2.5,
-                  height: 1.0,
+      // 접혔을 때 AppBar 타이틀
+      title: Text(
+        widget.categoryName.toUpperCase(),
+        style: const TextStyle(
+          color: _white,
+          fontSize: 16,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 2.0,
+        ),
+      ),
+      centerTitle: false,
+      // 펼쳤을 때 큰 타이틀 (겹침 없이 AppBar 영역 아래에 표시)
+      flexibleSpace: LayoutBuilder(
+        builder: (context, constraints) {
+          // 현재 확장 정도 계산
+          final expandRatio = (constraints.maxHeight - kToolbarHeight) /
+              (100 - kToolbarHeight);
+          final opacity = expandRatio.clamp(0.0, 1.0);
+          return FlexibleSpaceBar(
+            background: Container(
+              color: _surface,
+              // padding top: kToolbarHeight + statusBar → 겹침 방지
+              padding: EdgeInsets.fromLTRB(
+                20,
+                MediaQuery.of(context).padding.top + kToolbarHeight + 4,
+                20,
+                14,
+              ),
+              child: Opacity(
+                opacity: opacity,
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Text(
+                    widget.categoryName.toUpperCase(),
+                    style: const TextStyle(
+                      color: _white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 3,
+                      height: 1.0,
+                    ),
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
       // TabBar
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(44),
         child: Container(
+          color: _surface,
           decoration: const BoxDecoration(
             border: Border(top: BorderSide(color: _divider)),
           ),
@@ -245,7 +398,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             tabAlignment: TabAlignment.start,
             labelColor: _white,
             unselectedLabelColor: _greyDim,
-            // 선택 탭: 흰색 얇은 밑줄
             indicator: const UnderlineTabIndicator(
               borderSide: BorderSide(color: _white, width: 2),
               insets: EdgeInsets.symmetric(horizontal: 4),
@@ -280,7 +432,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
-  // ── 정렬 바: 심플 텍스트 탭 ──
+  // ── 정렬 바 ──
   Widget _buildSortBar() {
     final sortMap = <String, String>{
       'newest':    loc.sortNewest,
@@ -292,6 +444,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     return Container(
       height: 44,
       color: _bg,
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: _divider, width: 1)),
+      ),
       child: Row(
         children: [
           Expanded(
@@ -354,7 +509,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           ),
           child: Column(
             children: [
-              // 핸들
               Container(
                 margin: const EdgeInsets.only(top: 10),
                 width: 32, height: 3,
@@ -363,7 +517,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              // 헤더
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 8, 16),
                 child: Row(
@@ -395,7 +548,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                    // 사이즈
                     _filterLabel('SIZE'),
                     const SizedBox(height: 12),
                     Wrap(
@@ -426,7 +578,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                       }).toList(),
                     ),
                     const SizedBox(height: 28),
-                    // 가격
                     Row(children: [
                       _filterLabel('PRICE'),
                       const Spacer(),
@@ -463,7 +614,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                       ],
                     ),
                     const SizedBox(height: 28),
-                    // 추가 옵션
                     _filterLabel('OPTIONS'),
                     const SizedBox(height: 12),
                     _filterToggleRow(loc.filterSaleOnly, _onlySale, (v) {
@@ -476,7 +626,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                   ],
                 ),
               ),
-              // 적용 버튼
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
                 child: SizedBox(
@@ -614,10 +763,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 좌측 사이드바 ──
                 SizedBox(width: 200, child: _buildPcSidebar()),
                 const SizedBox(width: 28),
-                // ── 우측 상품 목록 ──
                 Expanded(
                   child: Column(
                     children: [
@@ -667,7 +814,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 정렬 ──
           const Text('SORT',
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
                 color: _greyDim, letterSpacing: 2.5)),
@@ -704,8 +850,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           const SizedBox(height: 24),
           Container(height: 1, color: _divider),
           const SizedBox(height: 24),
-
-          // ── 사이즈 ──
           const Text('SIZE',
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
                 color: _greyDim, letterSpacing: 2.5)),
@@ -737,8 +881,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           const SizedBox(height: 24),
           Container(height: 1, color: _divider),
           const SizedBox(height: 24),
-
-          // ── 가격 ──
           Row(children: [
             const Text('PRICE',
               style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
@@ -760,8 +902,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           const SizedBox(height: 24),
           Container(height: 1, color: _divider),
           const SizedBox(height: 24),
-
-          // ── 옵션 ──
           const Text('OPTIONS',
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
                 color: _greyDim, letterSpacing: 2.5)),
@@ -772,7 +912,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           _sidebarToggle(loc.filterFreeShipOnly, _onlyFreeShipping,
               (v) => setState(() => _onlyFreeShipping = v)),
           const SizedBox(height: 24),
-          // 필터 초기화
           if (_hasFilter)
             GestureDetector(
               onTap: () => setState(() {
@@ -818,7 +957,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   Widget _buildPcTopBar() {
     return Row(
       children: [
-        // 검색창
         Expanded(
           child: Container(
             height: 40,
@@ -858,7 +996,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           ),
         ),
         const SizedBox(width: 10),
-        // 보기 토글
         Container(
           decoration: BoxDecoration(
             color: _surface,
@@ -977,7 +1114,6 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 배지
                     if (product.isNewActive || product.isSale || product.isFreeShipping)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 5),
