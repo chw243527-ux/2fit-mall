@@ -4033,6 +4033,18 @@ $productUrl
                   )
                 : _buildSectionImageSlider('s1'),
           ),
+        // ── 소재 기능 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
+        if (isAdmin || (_sectionImages['s1_feature'] ?? []).isNotEmpty)
+          Container(
+            color: Colors.white,
+            padding: EdgeInsets.fromLTRB(0, isAdmin ? 12 : 0, 0, 0),
+            child: isAdmin
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _buildAdminImageSection('s1_feature', '소재 기능 이미지', isAdmin),
+                  )
+                : _buildSectionImageSlider('s1_feature'),
+          ),
         // ── 특징 리스트: 탑텐 스타일 (분리선 + 영문 태그 + 제목 + 설명)
         Container(
           color: Colors.white,
