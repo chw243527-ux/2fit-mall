@@ -16,6 +16,8 @@ class CategoryDetailScreen extends StatefulWidget {
   final Color categoryColor;
   final IconData categoryIcon;
   final List<SubCategory> subCategories;
+  /// 처음 열릴 탭 인덱스 (기본값 0 = 전체탭)
+  final int initialTabIndex;
 
   const CategoryDetailScreen({
     super.key,
@@ -23,6 +25,7 @@ class CategoryDetailScreen extends StatefulWidget {
     required this.categoryColor,
     required this.categoryIcon,
     required this.subCategories,
+    this.initialTabIndex = 0,
   });
 
   @override
@@ -49,6 +52,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     super.initState();
     _tabController = TabController(
       length: widget.subCategories.length,
+      initialIndex: widget.initialTabIndex.clamp(0, widget.subCategories.length - 1),
       vsync: this,
     );
   }
