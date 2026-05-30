@@ -148,11 +148,13 @@ class ProductModel {
     return '${buf.toString()}원';
   }
 
-  /// 신상품 뱃지 실제 노출 여부 — isNew=true 이고 만료일 미초과일 때만 true
+  /// 신상품 뱃지 실제 노출 여부
+  /// isNew=true 이고, 등록일(createdAt) 기준 60일이 지나지 않았을 때만 true
+  /// newExpiresAt이 있으면 그 값 우선, 없으면 createdAt+60일로 자동 계산
   bool get isNewActive {
     if (!isNew) return false;
-    if (newExpiresAt == null) return true;
-    return DateTime.now().isBefore(newExpiresAt!);
+    final expiry = newExpiresAt ?? createdAt.add(const Duration(days: 60));
+    return DateTime.now().isBefore(expiry);
   }
 
   int get discountPercent {
