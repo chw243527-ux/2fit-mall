@@ -789,10 +789,41 @@ $productUrl
     showImageLightbox(context, images, initialIndex: initialIndex);
   }
 
-  // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 (상세페이지 미표시) ══
+  // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 ══
   Widget _buildMobileDesignImageBanner(ProductModel product) {
-    // 디자인 이미지는 상세페이지에 표시하지 않음 (이미지 등록 전용)
-    return const SizedBox.shrink();
+    final designImgs = _sectionImages['design'] ?? [];
+    if (designImgs.isEmpty) return const SizedBox.shrink();
+
+    // 풀너비 이미지 세로 스택
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...designImgs.asMap().entries.map((entry) {
+          final i = entry.key;
+          final url = entry.value;
+          return GestureDetector(
+            onTap: () => _showDesignLightbox(designImgs, i),
+            child: Container(
+              width: double.infinity,
+              color: const Color(0xFFF5F5F5),
+              child: Image.network(
+                url,
+                width: double.infinity,
+                fit: BoxFit.fitWidth,
+                errorBuilder: (_, __, ___) => Container(
+                  height: 200,
+                  color: const Color(0xFFEEEEEE),
+                  child: const Center(
+                    child: Icon(Icons.broken_image_outlined,
+                        size: 40, color: Color(0xFFCCCCCC)),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
+    );
   }
 
   // ══ 탑텐 스타일: 썸네일 바 (심플 정사각형, 선택 시 검정 테두리) ══
@@ -3730,8 +3761,8 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   Widget _buildDesignImageSection(ProductModel product, bool isAdmin) {
     final imgs = _sectionImages['design'] ?? [];
-    // 디자인 이미지는 관리자에게만 표시 (이미지 등록 전용, 일반 유저 숨김)
-    if (!isAdmin) return const SizedBox.shrink();
+    // 이미지가 없고 관리자도 아니면 숨김
+    if (!isAdmin && imgs.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
