@@ -9498,7 +9498,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
             child: Row(
               children: headers.asMap().entries.map((e) {
                 return Expanded(
-                  flex: e.key == 0 ? 2 : 3,
+                  flex: e.key == 0 ? 3 : 3,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                     child: Text(
@@ -9520,14 +9520,16 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
               child: Row(
                 children: entry.value.asMap().entries.map((cell) {
                   return Expanded(
-                    flex: cell.key == 0 ? 2 : 3,
+                    flex: cell.key == 0 ? 3 : 3,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
                       child: Text(
                         cell.value,
                         textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.visible,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: cell.key == 0 ? 10 : 11,
                           fontWeight: cell.key == 0 ? FontWeight.w700 : FontWeight.w400,
                           color: cell.key == 0 ? headerColor : const Color(0xFF333333),
                         ),
