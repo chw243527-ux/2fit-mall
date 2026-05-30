@@ -55,6 +55,13 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       initialIndex: widget.initialTabIndex.clamp(0, widget.subCategories.length - 1),
       vsync: this,
     );
+    // 카테고리 화면 진입 시: 상품 목록이 비어있으면 전체 리로드
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<ProductProvider>();
+      if (provider.products.isEmpty) {
+        provider.refresh();
+      }
+    });
   }
 
   @override
