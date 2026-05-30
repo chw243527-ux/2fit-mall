@@ -4329,7 +4329,7 @@ class _AdminScreenState extends State<AdminScreen>
                   const SizedBox(height: 3),
                   Row(
                     children: [
-                      if (p.isNew) _miniTag('NEW', const Color(0xFF1565C0)),
+                      if (p.isNewActive) _miniTag('NEW', const Color(0xFF1565C0)),
                       if (p.isSale)
                         _miniTag('SALE', const Color(0xFFE53935)),
                       if (p.isFreeShipping)
@@ -9639,6 +9639,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   late final String _tempProductId;
   // ── 토글
   bool _isNew = false;
+  DateTime? _newExpiresAt; // 신상품 자동 만료일 (isNew=true 시 등록일+60일)
   bool _isSale = false;
   bool _isFreeShip = false;
   bool _isGroupOnly = false;
@@ -9709,6 +9710,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _selSubCat = e?.subCategory ?? '';
     _images = List<String>.from(e?.images ?? []);
     _isNew = e?.isNew ?? false;
+    _newExpiresAt = e?.newExpiresAt;
     _isSale = e?.isSale ?? false;
     _isFreeShip = e?.isFreeShipping ?? false;
     _isGroupOnly = e?.isGroupOnly ?? false;
@@ -9926,7 +9928,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       colors: _selectedColors.toList(),
       material: _materialCtrl.text.trim(),
       bottomLength: _bottomLengthCtrl.text.trim(),
-      isNew: _isNew, isSale: _isSale, isFreeShipping: _isFreeShip,
+      isNew: _isNew,
+      // 신상품 ON → 만료일 = 등록일+60일 자동 세팅 / OFF → null
+      newExpiresAt: _isNew
+          ? (_newExpiresAt ?? (widget.existing?.createdAt ?? DateTime.now()).add(const Duration(days: 60)))
+          : null,
+      isSale: _isSale, isFreeShipping: _isFreeShip,
       isGroupOnly: _isGroupOnly, isReadyMade: _isReadyMade,
       stockCount: int.tryParse(_stockCtrl.text) ?? 100,
       soldOutSizes: _soldOutSizes.toList(),
@@ -10631,7 +10638,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
 
                 // ── 토글 칩
                 Wrap(spacing: 8, runSpacing: 6, children: [
-                  _chip('신상품', _isNew, (v) => setState(() => _isNew = v)),
+                  _newChip(),
                   _chip('세일', _isSale, (v) => setState(() => _isSale = v)),
                   _chip('무료배송', _isFreeShip, (v) => setState(() => _isFreeShip = v)),
                   _chip('단체전용', _isGroupOnly, (v) => setState(() {
@@ -11292,6 +11299,38 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       side: BorderSide.none,
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
     );
+
+  /// 신상품 칩 — ON 시 "신상품 · ~MM/DD까지" 라벨 표시
+  Widget _newChip() {
+    // 만료일: 이미 저장된 값 우선, 없으면 오늘+60일
+    final expires = _newExpiresAt
+        ?? (widget.existing?.createdAt ?? DateTime.now()).add(const Duration(days: 60));
+    final expiresLabel = _isNew
+        ? '신상품 · ${expires.month}/${expires.day}까지'
+        : '신상품';
+    return FilterChip(
+      label: Text(
+        expiresLabel,
+        style: TextStyle(fontSize: 12, color: _isNew ? Colors.white : const Color(0xFF555555)),
+      ),
+      selected: _isNew,
+      onSelected: (v) => setState(() {
+        _isNew = v;
+        if (v) {
+          // ON: 만료일을 등록일(또는 오늘)+60일로 자동 세팅
+          final base = widget.existing?.createdAt ?? DateTime.now();
+          _newExpiresAt = base.add(const Duration(days: 60));
+        } else {
+          _newExpiresAt = null;
+        }
+      }),
+      selectedColor: const Color(0xFF1565C0),
+      backgroundColor: const Color(0xFFF0F0F0),
+      checkmarkColor: Colors.white,
+      side: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+    );
+  }
 } // end _ProductFormDialogState
 
 

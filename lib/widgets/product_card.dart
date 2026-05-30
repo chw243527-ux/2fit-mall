@@ -70,7 +70,7 @@ class ProductCard extends StatelessWidget {
     if (product.isGroupOnly) {
       badgeBg = const Color(0xFF6A1B9A);
       badgeText = 'GROUP';
-    } else if (product.isNew) {
+    } else if (product.isNewActive) {
       badgeBg = const Color(0xFF111111);
       badgeText = 'NEW';
     } else if (product.isSale && discount > 0) {

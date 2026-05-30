@@ -90,7 +90,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     // 가격 범위 필터
     list = list.where((p) => p.price >= _minPrice && p.price <= _maxPrice).toList();
     // 추가 필터
-    if (_onlyNew) list = list.where((p) => p.isNew).toList();
+    if (_onlyNew) list = list.where((p) => p.isNewActive).toList();
     if (_onlySale) list = list.where((p) => p.isSale).toList();
     if (_onlyFreeShip) list = list.where((p) => p.isFreeShipping).toList();
     // 정렬 (_onlyBest: 판매량 내림차순 우선)
@@ -757,10 +757,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   // 배지들
                   if (p.isGroupOnly) Positioned(top: 8, left: 8,
                     child: _badge('단체전용', const Color(0xFF6A1B9A))),
-                  if (p.isNew) Positioned(top: p.isGroupOnly ? 32 : 8, left: 8,
+                  if (p.isNewActive) Positioned(top: p.isGroupOnly ? 32 : 8, left: 8,
                     child: _badge('NEW', const Color(0xFF111111))),
                   if (discount > 0) Positioned(
-                    top: p.isGroupOnly ? (p.isNew ? 56 : 32) : (p.isNew ? 32 : 8), left: 8,
+                    top: p.isGroupOnly ? (p.isNewActive ? 56 : 32) : (p.isNewActive ? 32 : 8), left: 8,
                     child: _badge('-$discount%', const Color(0xFFE53935))),
                   if (p.isFreeShipping) Positioned(bottom: 8, left: 8,
                     child: _badge(loc.filterFreeShip, const Color(0xFF00A651))),
@@ -880,11 +880,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     Row(children: [
                       if (p.isGroupOnly) _badge('단체전용', const Color(0xFF6A1B9A)),
                       if (p.isGroupOnly) const SizedBox(width: 4),
-                      if (p.isNew) _badge('NEW', const Color(0xFF111111)),
-                      if (p.isNew) const SizedBox(width: 4),
+                      if (p.isNewActive) _badge('NEW', const Color(0xFF111111)),
+                      if (p.isNewActive) const SizedBox(width: 4),
                       if (p.isFreeShipping) _badge(loc.filterFreeShip, const Color(0xFF00A651)),
                     ]),
-                    if (p.isGroupOnly || p.isNew || p.isFreeShipping) const SizedBox(height: 4),
+                    if (p.isGroupOnly || p.isNewActive || p.isFreeShipping) const SizedBox(height: 4),
                     Text(p.localizedName(_lang), maxLines: 2, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A))),
                     const SizedBox(height: 6),

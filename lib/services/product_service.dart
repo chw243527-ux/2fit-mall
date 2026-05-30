@@ -834,7 +834,7 @@ class ProductService {
     if (!_loaded) await _loadFromFirestore();
     if (category == '전체') return _products.where((p) => p.isActive).toList();
     if (category == '신상품') {
-      return _products.where((p) => p.isNew && p.isActive).toList();
+      return _products.where((p) => p.isNewActive && p.isActive).toList();
     }
     if (category == '세일') {
       return _products.where((p) => p.isSale && p.isActive).toList();
@@ -942,7 +942,7 @@ class ProductService {
   }
 
   static Future<List<ProductModel>> getNewArrivals() async {
-    return _products.where((p) => p.isNew && p.isActive).toList();
+    return _products.where((p) => p.isNewActive && p.isActive).toList();
   }
 
   static Future<List<ProductModel>> getSaleProducts() async {
@@ -985,7 +985,7 @@ class ProductService {
             sizes: product.sizes,
             colors: product.colors,
             material: product.material,
-            isNew: product.isNew,
+            isNew: product.isNew, newExpiresAt: product.newExpiresAt,
             isSale: product.isSale,
             isFreeShipping: product.isFreeShipping,
             isGroupOnly: product.isGroupOnly,
@@ -1078,7 +1078,7 @@ class ProductService {
       price: p.price, originalPrice: p.originalPrice,
       description: p.description, images: p.images,
       sizes: p.sizes, colors: p.colors, material: p.material,
-      isNew: p.isNew, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
+      isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
       isGroupOnly: p.isGroupOnly, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount,
       stockCount: newStock,
@@ -1113,7 +1113,7 @@ class ProductService {
       price: p.price, originalPrice: p.originalPrice,
       description: p.description, images: p.images,
       sizes: p.sizes, colors: p.colors, material: p.material,
-      isNew: p.isNew, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
+      isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
       isGroupOnly: p.isGroupOnly, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
       createdAt: p.createdAt, productCode: p.productCode, sectionImages: newMap,
@@ -1142,7 +1142,7 @@ class ProductService {
       price: p.price, originalPrice: p.originalPrice,
       description: p.description, images: urls,
       sizes: p.sizes, colors: p.colors, material: p.material,
-      isNew: p.isNew, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
+      isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
       isGroupOnly: p.isGroupOnly, isActive: p.isActive,
       rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
       createdAt: p.createdAt, productCode: p.productCode, sectionImages: p.sectionImages,
@@ -1179,7 +1179,7 @@ class ProductService {
   static List<ProductModel> getProductsByCategorySync(String category) {
     _ensureCache();
     if (category == '전체') return _cache;
-    if (category == '신상품') return _cache.where((p) => p.isNew).toList();
+    if (category == '신상품') return _cache.where((p) => p.isNewActive).toList();
     if (category == '세일') return _cache.where((p) => p.isSale).toList();
     // 단체주문 탭: isGroupOnly=true 상품 반환
     if (category == '단체주문') return _cache.where((p) => p.isGroupOnly && p.isActive).toList();

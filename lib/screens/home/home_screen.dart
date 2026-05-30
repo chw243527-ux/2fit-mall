@@ -795,7 +795,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     final List<ProductModel> products;
     if (isNew) {
-      products = allProds.where((p) => p.isNew).toList();
+      products = allProds.where((p) => p.isNewActive).toList();
     } else {
       products = List<ProductModel>.from(allProds)
         ..sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
@@ -1852,7 +1852,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
     final List<ProductModel> products;
     if (isNew) {
-      products = allProds.where((p) => p.isNew).toList();
+      products = allProds.where((p) => p.isNewActive).toList();
     } else {
       products = List<ProductModel>.from(allProds)
         ..sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
@@ -2051,7 +2051,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                     ),
                   ),
-                  if (product.isNew)
+                  if (product.isNewActive)
                     Positioned(
                       top: 8, left: 8,
                       child: Container(
@@ -2065,7 +2065,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   if (product.isSale)
                     Positioned(
-                      top: product.isNew ? 32 : 8, left: 8,
+                      top: product.isNewActive ? 32 : 8, left: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                         decoration: BoxDecoration(
@@ -4849,7 +4849,7 @@ class _HomeScreenState extends State<HomeScreen>
     final allProds = _getAllActiveProducts(provider);
 
     // ① isNew 상품 우선
-    List<ProductModel> products = allProds.where((p) => p.isNew).toList();
+    List<ProductModel> products = allProds.where((p) => p.isNewActive).toList();
 
     // ② isNew 없으면 createdAt 최신순 폴백
     if (products.isEmpty) {

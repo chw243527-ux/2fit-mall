@@ -13,7 +13,10 @@ class ProductModel {
   final List<String> sizes;
   final List<String> colors;
   final String material;
+  /// 신상품 여부 (저장값) — 실제 노출은 [isNewActive] getter 사용
   final bool isNew;
+  /// 신상품 자동 만료일 (null이면 무기한)
+  final DateTime? newExpiresAt;
   final bool isSale;
   final bool isFreeShipping;
   final bool isGroupOnly;  // 단체주문 전용 상품
@@ -51,6 +54,7 @@ class ProductModel {
     required this.colors,
     this.material = '78% Nylon, 22% Spandex / 4-way Stretch',
     this.isNew = false,
+    this.newExpiresAt,
     this.isSale = false,
     this.isFreeShipping = false,
     this.isGroupOnly = false,
@@ -118,7 +122,8 @@ class ProductModel {
       id: id, name: name, category: category, subCategory: subCategory,
       price: price, originalPrice: originalPrice, description: description,
       images: images, sizes: sizes, colors: colors, material: material,
-      isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping,
+      isNew: isNew, newExpiresAt: newExpiresAt,
+      isSale: isSale, isFreeShipping: isFreeShipping,
       isGroupOnly: isGroupOnly, isReadyMade: isReadyMade,
       rating: rating, reviewCount: reviewCount,
       stockCount: stockCount, soldOutSizes: soldOutSizes,
@@ -141,6 +146,13 @@ class ProductModel {
       buf.write(s[i]);
     }
     return '${buf.toString()}원';
+  }
+
+  /// 신상품 뱃지 실제 노출 여부 — isNew=true 이고 만료일 미초과일 때만 true
+  bool get isNewActive {
+    if (!isNew) return false;
+    if (newExpiresAt == null) return true;
+    return DateTime.now().isBefore(newExpiresAt!);
   }
 
   int get discountPercent {
@@ -174,6 +186,9 @@ class ProductModel {
       material: json['material'] as String? ?? '78% Nylon, 22% Spandex',
       bottomLength: json['bottomLength'] as String? ?? '',
       isNew: json['isNew'] as bool? ?? false,
+      newExpiresAt: json['newExpiresAt'] != null
+          ? DateTime.tryParse(json['newExpiresAt'] as String)
+          : null,
       isSale: json['isSale'] as bool? ?? false,
       isFreeShipping: json['isFreeShipping'] as bool? ?? false,
       isGroupOnly: json['isGroupOnly'] as bool? ?? false,
@@ -211,6 +226,7 @@ class ProductModel {
       'material': material,
       'bottomLength': bottomLength,
       'isNew': isNew,
+      'newExpiresAt': newExpiresAt?.toIso8601String(),
       'isSale': isSale,
       'isFreeShipping': isFreeShipping,
       'isGroupOnly': isGroupOnly,
@@ -235,7 +251,8 @@ class ProductModel {
       id: id, name: name, category: category, subCategory: subCategory,
       price: price, originalPrice: originalPrice, description: description,
       images: images, sizes: sizes, colors: colors, material: material,
-      isNew: isNew, isSale: isSale, isFreeShipping: isFreeShipping,
+      isNew: isNew, newExpiresAt: newExpiresAt,
+      isSale: isSale, isFreeShipping: isFreeShipping,
       isGroupOnly: isGroupOnly, isReadyMade: isReadyMade,
       rating: rating, reviewCount: reviewCount, stockCount: stockCount,
       soldOutSizes: soldOutSizes,

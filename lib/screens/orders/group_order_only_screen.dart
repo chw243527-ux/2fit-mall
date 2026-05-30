@@ -731,15 +731,15 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         : _imgPlaceholder(full: true),
                   ),
                   // 배지들 (단체전용 배지 제거 — 이 화면 자체가 단체주문 전용)
-                  if (p.isSale || p.isNew)
+                  if (p.isSale || p.isNewActive)
                     Positioned(
                       top: 8, left: 8,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           if (p.isSale) _gridBadge('SALE', const Color(0xFFC62828)),
-                          if (p.isSale && p.isNew) const SizedBox(height: 4),
-                          if (p.isNew) _gridBadge('NEW', const Color(0xFF1565C0)),
+                          if (p.isSale && p.isNewActive) const SizedBox(height: 4),
+                          if (p.isNewActive) _gridBadge('NEW', const Color(0xFF1565C0)),
                         ],
                       ),
                     ),
@@ -889,12 +889,12 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (p.isSale || p.isNew) ...[
+                    if (p.isSale || p.isNewActive) ...[
                       Row(
                         children: [
                           if (p.isSale) _badge('SALE', const Color(0xFFC62828)),
-                          if (p.isSale && p.isNew) const SizedBox(width: 4),
-                          if (p.isNew) _badge('NEW', const Color(0xFF1565C0)),
+                          if (p.isSale && p.isNewActive) const SizedBox(width: 4),
+                          if (p.isNewActive) _badge('NEW', const Color(0xFF1565C0)),
                         ],
                       ),
                       const SizedBox(height: 4),
