@@ -3233,16 +3233,47 @@ $productUrl
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: label == '숏사각' ? const Color(0xFFFFF3E0) : Colors.white,
                               borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: const Color(0xFFCCCCCC)),
+                              border: Border.all(
+                                color: label == '숏사각' ? const Color(0xFFFF8F00) : const Color(0xFFCCCCCC),
+                              ),
                             ),
                             child: Text(
                               label,
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: label == '숏사각' ? const Color(0xFFE65100) : const Color(0xFF333333),
+                              ),
                             ),
                           ),
                       ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Divider(height: 1, color: Color(0xFFE8E8E8)),
+              const SizedBox(height: 10),
+              // 숏사각 주머니 불가 안내
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3E0),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: const Color(0xFFFF8F00).withValues(alpha: 0.5)),
+                    ),
+                    child: const Text('숏사각', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFE65100))),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      '주머니 추가 불가',
+                      style: TextStyle(fontSize: 12, color: Color(0xFFE65100), height: 1.5, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
