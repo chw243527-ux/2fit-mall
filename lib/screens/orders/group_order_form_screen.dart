@@ -2878,7 +2878,35 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     return _card(
       title: '디자인 참고 이미지',
       icon: Icons.design_services_outlined,
-      child: _refImageCard(),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // ── 안내 박스
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.purple.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.purple.shade100),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Icon(Icons.info_outline_rounded, size: 14, color: Colors.purple.shade400),
+              const SizedBox(width: 6),
+              Text('원하시는 디자인 앞·뒤 이미지를 첨부해 주세요.',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.purple.shade700)),
+            ]),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Text(
+                '지원 형식: PNG · JPG · PDF · AI · PSD 등\n참고 이미지가 많을 경우 ZIP 파일로 압축하여 첨부해 주세요.',
+                style: TextStyle(fontSize: 11, color: Colors.purple.shade600, height: 1.6),
+              ),
+            ),
+          ]),
+        ),
+        _refImageCard(),
+      ]),
     );
   }
 
