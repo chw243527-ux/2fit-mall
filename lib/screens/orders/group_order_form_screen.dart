@@ -2726,22 +2726,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               color: isSel ? Colors.white : const Color(0xFFE65100))),
                     ),
                   ],
-                  if (isShort) ...[
-                    const SizedBox(height: 3),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isSel
-                            ? Colors.white.withValues(alpha: 0.25)
-                            : const Color(0xFFE65100).withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text('주머니 불가',
-                          style: TextStyle(
-                              fontSize: 9, fontWeight: FontWeight.w800,
-                              color: isSel ? Colors.white : const Color(0xFFE65100))),
-                    ),
-                  ],
+
                 ]),
               ),
             );
