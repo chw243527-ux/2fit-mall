@@ -512,7 +512,9 @@ class _AppDrawerState extends State<AppDrawer> {
     return Container(
       color: const Color(0xFFF8F8F8),
       child: Column(
-        children: cat.subCategories.map((sub) {
+        children: cat.subCategories.asMap().entries.map((entry) {
+          final tabIndex = entry.key;
+          final sub = entry.value;
           return InkWell(
             splashColor: const Color(0x0F111111),
             onTap: () {
@@ -520,8 +522,13 @@ class _AppDrawerState extends State<AppDrawer> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) =>
-                      ProductListScreen(initialCategory: sub.filter),
+                  builder: (_) => CategoryDetailScreen(
+                    categoryName: cat.name,
+                    categoryColor: cat.color,
+                    categoryIcon: cat.icon,
+                    subCategories: cat.subCategories,
+                    initialTabIndex: tabIndex,
+                  ),
                 ),
               );
             },
