@@ -10067,6 +10067,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             setState(() {
                               _selCat = v;
                               // 단체주문 카테고리 선택 ↔ 단체전용 토글 양방향 연동
+                              // 기성품(_isReadyMade)은 건드리지 않음
                               _isGroupOnly = (v == '단체주문');
                               final subs = _subCatMap[v] ?? [];
                               _selSubCat = subs.isNotEmpty ? subs.first : '';
@@ -10604,18 +10605,94 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                       final subs = _subCatMap['단체주문'] ?? [];
                       _selSubCat = subs.isNotEmpty ? subs.first : '';
                       _selTightsSub = '';
-                    } else {
-                      // 단체전용 OFF → 카테고리 '상의'로 초기화
+                    } else if (!_isReadyMade) {
+                      // 단체전용 OFF + 기성품 아닐 때만 → 카테고리 '상의'로 초기화
                       _selCat = '상의';
                       final subs = _subCatMap['상의'] ?? [];
                       _selSubCat = subs.isNotEmpty ? subs.first : '';
                       _selTightsSub = '';
                     }
+                    // 단체전용 OFF + 기성품 ON → 현재 카테고리 유지
                   }), ac: const Color(0xFF6A1B9A)),
-                  _chip('기성품', _isReadyMade, (v) => setState(() => _isReadyMade = v),
-                      ac: Colors.teal),
+                  _chip('기성품', _isReadyMade, (v) => setState(() {
+                    _isReadyMade = v;
+                    // 기성품 ON/OFF 시 카테고리 변경 없음 — 현재 카테고리 그대로 유지
+                    // (단체전용도 ON 상태면 단체주문 카테고리 유지)
+                  }), ac: Colors.teal),
                   _chip('활성화(판매중)', _isActive, (v) => setState(() => _isActive = v), ac: Colors.green),
                 ]),
+                // ── 현재 상품 속성 상태 안내
+                if (_isGroupOnly || _isReadyMade)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 2),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _isGroupOnly && _isReadyMade
+                            ? const Color(0xFFF3E5F5)
+                            : _isGroupOnly
+                                ? const Color(0xFFEDE7F6)
+                                : const Color(0xFFE0F2F1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _isGroupOnly && _isReadyMade
+                              ? const Color(0xFFCE93D8)
+                              : _isGroupOnly
+                                  ? const Color(0xFF9C27B0).withValues(alpha: 0.4)
+                                  : Colors.teal.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (_isGroupOnly && _isReadyMade) ...[
+                            Row(children: [
+                              const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF8E24AA)),
+                              const SizedBox(width: 5),
+                              const Expanded(child: Text(
+                                '단체전용 + 기성품 동시 적용',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A)),
+                              )),
+                            ]),
+                            const SizedBox(height: 4),
+                            const Text(
+                              '• 단체주문 카테고리에 등록됩니다\n• 상품 상세에서 📦 기성품 단체주문 + 👥 커스텀 단체주문 버튼이 모두 표시됩니다',
+                              style: TextStyle(fontSize: 11, color: Color(0xFF7B1FA2), height: 1.5),
+                            ),
+                          ] else if (_isGroupOnly) ...[
+                            Row(children: [
+                              const Icon(Icons.groups_rounded, size: 13, color: Color(0xFF6A1B9A)),
+                              const SizedBox(width: 5),
+                              const Expanded(child: Text(
+                                '단체전용 상품 — 단체주문 카테고리에 등록',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A)),
+                              )),
+                            ]),
+                            const SizedBox(height: 4),
+                            const Text(
+                              '• 단체주문 카테고리에 노출됩니다\n• 상품 상세에 👥 커스텀 단체주문 버튼이 표시됩니다',
+                              style: TextStyle(fontSize: 11, color: Color(0xFF7B1FA2), height: 1.5),
+                            ),
+                          ] else if (_isReadyMade) ...[
+                            Row(children: [
+                              const Icon(Icons.inventory_2_rounded, size: 13, color: Colors.teal),
+                              const SizedBox(width: 5),
+                              Expanded(child: Text(
+                                '기성품 상품 — $_selCat 카테고리에 등록',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.teal),
+                              )),
+                            ]),
+                            const SizedBox(height: 4),
+                            const Text(
+                              '• 선택한 일반 카테고리(상의·하의 등)에 그대로 노출됩니다\n• 상품 상세에 📦 기성품 단체주문 버튼이 표시됩니다',
+                              style: TextStyle(fontSize: 11, color: Colors.teal, height: 1.5),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
                 // 신규 등록 시 활성화 안내 메시지
                 if (!_isEdit)
                   Padding(
