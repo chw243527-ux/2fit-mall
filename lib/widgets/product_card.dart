@@ -263,16 +263,19 @@ class ProductCard extends StatelessWidget {
             ]),
           ],
 
-          // ── 상품명 ──
-          Text(
-            product.localizedName(lang),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF111111),
-              height: 1.3,
+          // ── 상품명 (2줄 고정 높이로 카드 크기 균일화) ──
+          SizedBox(
+            height: 11 * 1.3 * 2, // fontSize(11) × lineHeight(1.3) × 2줄
+            child: Text(
+              product.localizedName(lang),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF111111),
+                height: 1.3,
+              ),
             ),
           ),
 
