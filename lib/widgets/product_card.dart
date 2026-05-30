@@ -221,25 +221,46 @@ class ProductCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── 단체주문 전용 뱃지 (showGroupBadge=false 이면 숨김) ──
-          if (product.isGroupOnly && showGroupBadge) ...[
-            Container(
-              margin: const EdgeInsets.only(bottom: 5),
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: const Color(0xFF6A1B9A),
-                borderRadius: BorderRadius.circular(3),
-              ),
-              child: const Text(
-                '단체주문 전용',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.2,
+          // ── 단체주문 전용 / 기성품 뱃지 (showGroupBadge=false 이면 숨김) ──
+          if ((product.isGroupOnly || product.isReadyMade) && showGroupBadge) ...[
+            Row(children: [
+              if (product.isGroupOnly)
+                Container(
+                  margin: const EdgeInsets.only(right: 4, bottom: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6A1B9A),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: const Text(
+                    '단체주문 전용',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              if (product.isReadyMade)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.shade600,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: const Text(
+                    '기성품',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+            ]),
           ],
 
           // ── 상품명 ──

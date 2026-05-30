@@ -9619,6 +9619,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   bool _isSale = false;
   bool _isFreeShip = false;
   bool _isGroupOnly = false;
+  bool _isReadyMade = false;  // 기성품
   bool _isActive = true;
 
   bool get _isEdit => widget.existing != null;
@@ -9691,6 +9692,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _isSale = e?.isSale ?? false;
     _isFreeShip = e?.isFreeShipping ?? false;
     _isGroupOnly = e?.isGroupOnly ?? false;
+    _isReadyMade  = e?.isReadyMade  ?? false;
     _isActive = e?.isActive ?? true;
 
     // 기존 상품의 색상 복원
@@ -9904,7 +9906,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       colors: _selectedColors.toList(),
       material: _materialCtrl.text.trim(),
       bottomLength: _bottomLengthCtrl.text.trim(),
-      isNew: _isNew, isSale: _isSale, isFreeShipping: _isFreeShip, isGroupOnly: _isGroupOnly,
+      isNew: _isNew, isSale: _isSale, isFreeShipping: _isFreeShip,
+      isGroupOnly: _isGroupOnly, isReadyMade: _isReadyMade,
       stockCount: int.tryParse(_stockCtrl.text) ?? 100,
       isActive: _isActive,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
@@ -10609,6 +10612,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                       _selTightsSub = '';
                     }
                   }), ac: const Color(0xFF6A1B9A)),
+                  _chip('기성품', _isReadyMade, (v) => setState(() => _isReadyMade = v),
+                      ac: Colors.teal),
                   _chip('활성화(판매중)', _isActive, (v) => setState(() => _isActive = v), ac: Colors.green),
                 ]),
                 // 신규 등록 시 활성화 안내 메시지
