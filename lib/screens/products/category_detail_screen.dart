@@ -59,7 +59,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     super.dispose();
   }
 
-  List<ProductModel> _getProducts(String filter) {
+  /// filter: 메인 카테고리 (예: '상의')
+  /// subName: 하위 카테고리 이름 (예: '싱글렛 A타입') — 전체탭이면 null
+  List<ProductModel> _getProducts(String filter, {String? subName}) {
     final allCached = context.watch<ProductProvider>().products;
     List<ProductModel> all;
     if (filter == loc.sortNewArrival) {
@@ -69,7 +71,21 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     } else if (filter == '전체') {
       all = List.from(allCached);
     } else {
+      // 메인 카테고리로 1차 필터
       all = allCached.where((p) => p.category == filter).toList();
+      // 하위 카테고리로 2차 필터 (전체 탭이면 skip)
+      if (subName != null && subName.isNotEmpty &&
+          !subName.startsWith('전체') && subName != filter) {
+        all = all.where((p) {
+          // p.subCategory와 정확히 일치하거나 포함하는지 확인
+          final sub = p.subCategory;
+          if (sub.isEmpty) return false;
+          // '싱글렛 A타입' → 'A타입' 부분 일치도 허용
+          return sub == subName ||
+              sub.contains(subName) ||
+              subName.contains(sub);
+        }).toList();
+      }
     }
     // 검색 필터
     if (_searchQuery.isNotEmpty) {
@@ -126,14 +142,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: widget.subCategories.map((sub) {
-                  final products = _getProducts(sub.filter);
-                  return RefreshIndicator(
-                    color: widget.categoryColor,
-                    backgroundColor: Colors.white,
-                    onRefresh: () => context.read<ProductProvider>().refresh(),
-                    child: _isGridView
-                        ? _buildProductGrid(products)
-                        : _buildProductList(products),
+                  final products = _getProducts(sub.filter, subName: sub.name);
                   );
                 }).toList(),
               ),
@@ -496,7 +505,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         child: TabBarView(
                           controller: _tabController,
                           children: widget.subCategories.map((sub) {
-                            final products = _getProducts(sub.filter);
+                            final products = _getProducts(sub.filter, subName: sub.name);
                             return RefreshIndicator(
                               color: widget.categoryColor,
                               backgroundColor: Colors.white,
@@ -546,8 +555,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${_getProducts(widget.subCategories.first.filter).length}${loc.productCountUnit}',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                  '${_getProducts(widget.subCategories.first.filter, subName: widget.subCategories.first.name).length}${loc.productCountUnit}',
                 ),
               ],
             ),
@@ -1011,7 +1019,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${_getProducts(widget.subCategories.first.filter).length}${loc.productCountUnit}',
+                      '${_getProducts(widget.subCategories.first.filter, subName: widget.subCategories.first.name).length}${loc.productCountUnit}',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.75),
                         fontSize: 12,

@@ -10173,7 +10173,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
-                    children: _tightsSubCats.map((s) {
+                    children: _tightsSubCats.map<Widget>((s) {
                       final sel = _selTightsSub == s;
                       return GestureDetector(
                         onTap: () => setState(() => _selTightsSub = s),
@@ -10565,7 +10565,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                   child: Wrap(
                     spacing: 6,
                     runSpacing: 6,
-                    children: AppConstants.twoFitColors.map((c) {
+                    children: AppConstants.twoFitColors.map<Widget>((c) {
                       final name = c['name'] as String;
                       final hexVal = c['hex'] as int;
                       final isSelected = _selectedColors.contains(name);
@@ -11006,7 +11006,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           // 사이즈 칩
           Wrap(
             spacing: 7, runSpacing: 7,
-            children: orderedSizes.map((s) {
+            children: orderedSizes.map<Widget>((s) {
               final isSoldOut = _soldOutSizes.contains(s);
               return GestureDetector(
                 onTap: () => setState(() {
@@ -11259,21 +11259,6 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         ),
       );
     }
-  }
-    return GestureDetector(
-      onTap: () => onTap(sizes),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-        ),
-        child: Text(label, style: TextStyle(
-          fontSize: 11, fontWeight: FontWeight.w700, color: color,
-        )),
-      ),
-    );
   }
 
   Widget _translationRow(String flag, String text) => Padding(
