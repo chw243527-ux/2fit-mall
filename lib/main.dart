@@ -22,6 +22,7 @@ import 'screens/orders/order_guide_screen.dart';
 import 'screens/orders/group_custom_order_screen.dart';
 import 'models/models.dart';
 import 'screens/auth/login_screen.dart';
+import 'services/category_service.dart';
 import 'screens/chat/chat_screen.dart';
 import 'screens/policy/privacy_policy_screen.dart';
 import 'screens/admin/admin_screen.dart';
@@ -38,6 +39,9 @@ void main() async {
     if (kDebugMode) debugPrint('✅ Firebase 초기화 성공');
     // FCM 초기화
     await FcmService.initialize();
+    // 카테고리 서비스 사전 로드 (앱 시작 시 Firestore에서 카테고리 불러오기)
+    await CategoryService.load();
+    if (kDebugMode) debugPrint('✅ CategoryService 로드: ${CategoryService.mainCategories}');
   } catch (e) {
     if (kDebugMode) debugPrint('⚠️ Firebase 초기화 오류: $e');
     // Firebase 실패해도 앱은 계속 실행 (로컬 모드로 동작)

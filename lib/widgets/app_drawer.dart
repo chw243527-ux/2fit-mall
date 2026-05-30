@@ -102,6 +102,19 @@ class _AppDrawerState extends State<AppDrawer> {
   int? _expandedIndex;
 
   @override
+  void initState() {
+    super.initState();
+    // CategoryService가 아직 로드되지 않은 경우 로드 후 rebuild
+    if (CategoryService.mainCategories == CategoryService.defaultMainCategories &&
+        CategoryService.mainCategories.length == CategoryService.defaultMainCategories.length) {
+      // 이미 기본값이라도 Firestore에서 최신값 확인
+      CategoryService.load().then((_) {
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isAdmin = context.watch<UserProvider>().isAdmin;
     final categories = getCategories(loc);

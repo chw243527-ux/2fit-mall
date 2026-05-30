@@ -11963,7 +11963,6 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                       itemBuilder: (ctx, i) {
                         final cat = mainCats[i];
                         final isSelected = _selectedMain == cat;
-                        final isDef = CategoryService.defaultMainCategories.contains(cat);
                         return GestureDetector(
                           key: ValueKey(cat),
                           onTap: () => setState(() => _selectedMain = cat),
@@ -11985,20 +11984,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                     color: isSelected ? Colors.white : const Color(0xFF333333),
                                   )),
                                 ),
-                                if (isDef)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: isSelected ? Colors.white24 : const Color(0xFFE3F2FD),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text('기본', style: TextStyle(
-                                      fontSize: 9, fontWeight: FontWeight.w700,
-                                      color: isSelected ? Colors.white70 : const Color(0xFF1565C0),
-                                    )),
-                                  )
-                                else
-                                  GestureDetector(
+                                GestureDetector(
                                     onTap: () => _deleteMainCat(cat),
                                     child: Icon(Icons.close_rounded, size: 14, color: isSelected ? Colors.white54 : const Color(0xFFBBBBBB)),
                                   ),
@@ -12088,7 +12074,6 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                   itemCount: subCats.length,
                                   itemBuilder: (ctx, i) {
                                     final sub = subCats[i];
-                                    final isDefSub = (CategoryService.defaultSubCatMap[_selectedMain!] ?? []).contains(sub);
                                     return Container(
                                       key: ValueKey(sub),
                                       margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -12105,17 +12090,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                                           Expanded(
                                             child: Text(sub, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
                                           ),
-                                          if (isDefSub)
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFFE3F2FD),
-                                                borderRadius: BorderRadius.circular(4),
-                                              ),
-                                              child: const Text('기본', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-                                            )
-                                          else
-                                            GestureDetector(
+                                          GestureDetector(
                                               onTap: () => _deleteSubCat(sub),
                                               child: Container(
                                                 padding: const EdgeInsets.all(4),
