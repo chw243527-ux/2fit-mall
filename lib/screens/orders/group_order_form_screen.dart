@@ -182,6 +182,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   String? _refBase64;
   static const _kRefKey = 'group_order_ref_base64';
 
+  // ── 디자인 로고 파일 ──
+  String? _designLogoFileName;
+  List<int>? _designLogoBytes;
+
   // ── 기본 정보 ──
   final _teamNameCtrl       = TextEditingController();
   final _managerNameCtrl    = TextEditingController();
@@ -688,6 +692,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'addressDetail': _addressDetailCtrl.text.trim(),
       'maleRef'      : _refBase64 != null,
       'femaleRef'    : false,
+      'designLogoFileName': _designLogoFileName ?? '',
+      'designLogoBase64'  : _designLogoBytes != null ? base64Encode(_designLogoBytes!) : '',
       'persons'      : _persons.map((p) => <String, dynamic>{
         'index'     : p.index,
         'name'      : _nameEnabled ? p.nameCtrl.text.trim() : '', // 10명 미만은 이름 저장 안 함
@@ -2938,9 +2944,136 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           ]),
         ),
         _refImageCard(),
+        const SizedBox(height: 16),
+
+        // ── 로고 파일 업로드
+        _buildDesignLogoUpload(),
       ]),
     );
   }
+
+  Widget _buildDesignLogoUpload() {
+    final hasFile = _designLogoFileName != null;
+    final isImage = hasFile && RegExp(r'\.(png|jpg|jpeg|gif|webp|bmp)$', caseSensitive: false)
+        .hasMatch(_designLogoFileName!);
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      // 소제목
+      Row(children: [
+        Icon(Icons.attach_file_rounded, size: 14, color: Colors.purple.shade600),
+        const SizedBox(width: 5),
+        Text('로고 파일 첨부 (선택사항)',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.purple.shade700)),
+      ]),
+      const SizedBox(height: 6),
+
+      // 안내
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.orange.shade200),
+        ),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(Icons.warning_amber_rounded, size: 13, color: Colors.orange.shade700),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · EPS · SVG · PDF 권장 / JPG·PNG는 품질 저하 가능',
+              style: TextStyle(fontSize: 11, color: Colors.orange.shade700, height: 1.5, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ]),
+      ),
+
+      // 업로드 버튼 or 완료 상태
+      if (!hasFile)
+        GestureDetector(
+          onTap: _pickDesignLogoFile,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.orange.shade300, width: 1.5),
+            ),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(Icons.upload_file_rounded, color: Colors.orange.shade600, size: 28),
+              const SizedBox(height: 5),
+              Text('로고 파일 선택',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.orange.shade700)),
+              const SizedBox(height: 2),
+              Text('AI · EPS · SVG · PDF · PNG · JPG',
+                  style: TextStyle(fontSize: 10, color: Colors.orange.shade400)),
+            ]),
+          ),
+        )
+      else
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.green.shade50,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.green.shade200),
+          ),
+          child: Row(children: [
+            if (isImage && _designLogoBytes != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: Image.memory(
+                  Uint8List.fromList(_designLogoBytes!),
+                  width: 48, height: 48, fit: BoxFit.cover,
+                ),
+              )
+            else
+              Container(
+                width: 48, height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade100,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(Icons.insert_drive_file_rounded, color: Colors.orange.shade600, size: 28),
+              ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_designLogoFileName!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                const SizedBox(height: 2),
+                Text('업로드 완료',
+                    style: TextStyle(fontSize: 10, color: Colors.green.shade600, fontWeight: FontWeight.w600)),
+              ]),
+            ),
+            GestureDetector(
+              onTap: () => setState(() { _designLogoFileName = null; _designLogoBytes = null; }),
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(color: Colors.black12, shape: BoxShape.circle),
+                child: const Icon(Icons.close, size: 15, color: Colors.black54),
+              ),
+            ),
+          ]),
+        ),
+
+      if (hasFile) ...[
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: _pickDesignLogoFile,
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.refresh_rounded, size: 14, color: Colors.orange.shade600),
+            const SizedBox(width: 4),
+            Text('파일 재선택',
+                style: TextStyle(fontSize: 11, color: Colors.orange.shade700, fontWeight: FontWeight.w600)),
+          ]),
+        ),
+      ],
+    ]);
 
   Widget _dotRow(String text, Color color) {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -3014,6 +3147,26 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       await _saveImage(base64: b64);
     } catch (e) {
       _showSnack('이미지 선택 오류: $e');
+    }
+  }
+
+  // 상의 디자인 로고 파일 선택 (AI·PDF·PNG·SVG 등 모든 형식)
+  Future<void> _pickDesignLogoFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+      final file = result.files.first;
+      if (!mounted) return;
+      setState(() {
+        _designLogoFileName = file.name;
+        _designLogoBytes    = file.bytes != null ? List<int>.from(file.bytes!) : null;
+      });
+    } catch (e) {
+      _showSnack('파일 선택 오류: $e');
     }
   }
 
