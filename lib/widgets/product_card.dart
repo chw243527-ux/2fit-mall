@@ -34,16 +34,9 @@ class ProductCard extends StatelessWidget {
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFF1A1A1A),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFEEEEEE)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            border: Border.all(color: const Color(0xFF2A2A2A)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +82,7 @@ class ProductCard extends StatelessWidget {
           children: [
             // ── 상품 이미지 ──
             Container(
-              color: const Color(0xFFF8F8F8),
+              color: const Color(0xFF1E1E1E),
               child: product.images.isNotEmpty
                   ? Image.network(
                       product.images.first,
@@ -201,7 +194,7 @@ class ProductCard extends StatelessWidget {
 
   Widget _placeholder() {
     return const Center(
-      child: Icon(Icons.image_not_supported_rounded, color: Color(0xFFCCCCCC), size: 28),
+      child: Icon(Icons.image_not_supported_rounded, color: Color(0xFF444444), size: 28),
     );
   }
 
@@ -273,7 +266,7 @@ class ProductCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF111111),
+                color: Colors.white,
                 height: 1.3,
               ),
             ),
@@ -288,9 +281,9 @@ class ProductCard extends StatelessWidget {
               '${_fmt(product.originalPrice!)}${loc.productWonUnit}',
               style: TextStyle(
                 fontSize: 9,
-                color: Colors.black.withValues(alpha: 0.35),
+                color: Colors.white.withValues(alpha: 0.35),
                 decoration: TextDecoration.lineThrough,
-                decorationColor: Colors.black.withValues(alpha: 0.35),
+                decorationColor: Colors.white.withValues(alpha: 0.35),
               ),
             ),
             const SizedBox(height: 1),
@@ -341,7 +334,7 @@ class ProductCard extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
-                color: Color(0xFF111111),
+                color: Colors.white,
                 letterSpacing: -0.3,
               ),
             ),
@@ -352,14 +345,14 @@ class ProductCard extends StatelessWidget {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.star_rounded, size: 10, color: Color(0xFF111111)),
+                const Icon(Icons.star_rounded, size: 10, color: Color(0xFFFFB300)),
                 const SizedBox(width: 2),
                 Text(
                   '${product.rating} (${product.reviewCount})',
                   style: const TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF555555),
+                    color: Color(0xFF888888),
                   ),
                 ),
               ],

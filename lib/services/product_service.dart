@@ -781,6 +781,12 @@ class ProductService {
 
   // ── 조회 ──────────────────────────────────────────────────────
 
+  /// Firestore에서 무조건 새로 읽어옴 (_loaded 플래그 초기화 후 재로드)
+  static Future<void> forceReloadFromFirestore() async {
+    _loaded = false;
+    await _loadFromFirestore();
+  }
+
   static Future<List<ProductModel>> getAllProducts() async {
     if (!_loaded) await _loadFromFirestore();
     return _products.where((p) => p.isActive).toList();

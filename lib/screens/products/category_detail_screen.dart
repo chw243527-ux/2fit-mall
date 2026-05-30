@@ -47,6 +47,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   bool _onlySale = false;
   bool _onlyFreeShipping = false;
 
+  // 다크 테마 색상
+  static const Color _bgDark = Color(0xFF111111);
+  static const Color _bgCard = Color(0xFF1A1A1A);
+  static const Color _bgSurface = Color(0xFF222222);
+  static const Color _textPrimary = Colors.white;
+  static const Color _textSecondary = Color(0xFFAAAAAA);
+  static const Color _divider = Color(0xFF333333);
+
   @override
   void initState() {
     super.initState();
@@ -55,12 +63,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       initialIndex: widget.initialTabIndex.clamp(0, widget.subCategories.length - 1),
       vsync: this,
     );
-    // 카테고리 화면 진입 시: 상품 목록이 비어있으면 전체 리로드
+    // 카테고리 화면 진입 시: 전체 상품을 Firestore에서 강제 재로드
+    // (_currentCategory 상관없이 항상 전체 상품을 가져와야
+    //  _getProducts(filter) 로컬 필터링이 올바르게 동작함)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<ProductProvider>();
-      if (provider.products.isEmpty) {
-        provider.refresh();
-      }
+      if (!mounted) return;
+      context.read<ProductProvider>().refreshAll();
     });
   }
 
@@ -73,7 +81,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   /// filter: 메인 카테고리 (예: '상의')
   /// subName: 하위 카테고리 이름 (예: '싱글렛 A타입') — 전체탭이면 null
   List<ProductModel> _getProducts(String filter, {String? subName}) {
-    final allCached = context.watch<ProductProvider>().products;
+    final provider = context.watch<ProductProvider>();
+    // products가 비어 있으면 로딩 중이므로 빈 리스트 반환
+    final allCached = provider.products;
     List<ProductModel> all;
     if (filter == loc.sortNewArrival) {
       all = allCached.where((p) => p.isNewActive).toList();
@@ -82,7 +92,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     } else if (filter == '전체') {
       all = List.from(allCached);
     } else {
-      // 메인 카테고리로 1차 필터
+      // 메인 카테고리로 1차 필터 (isActive는 ProductProvider에서 이미 필터링됨)
       all = allCached.where((p) => p.category == filter).toList();
       // 하위 카테고리로 2차 필터 (전체 탭이면 skip)
       if (subName != null && subName.isNotEmpty &&
@@ -141,7 +151,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   Widget build(BuildContext context) {
     if (isPcWeb(context)) return _buildPcLayout(context);
     return wrapWithPopScope(context, Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: _bgDark,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           _buildSliverAppBar(innerBoxIsScrolled),
@@ -153,11 +163,19 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: widget.subCategories.map((sub) {
+                  final provider = context.watch<ProductProvider>();
+                  if (provider.isLoading) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: widget.categoryColor,
+                      ),
+                    );
+                  }
                   final products = _getProducts(sub.filter, subName: sub.name);
                   return RefreshIndicator(
                     color: widget.categoryColor,
-                    backgroundColor: Colors.white,
-                    onRefresh: () => context.read<ProductProvider>().refresh(),
+                    backgroundColor: _bgCard,
+                    onRefresh: () => context.read<ProductProvider>().refreshAll(),
                     child: _isGridView
                         ? _buildProductGrid(products)
                         : _buildProductList(products),
@@ -171,12 +189,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     ));
   }
 
-  // ── 필터/정렬 바 ──
+  // ── 필터/정렬 바 (다크 테마) ──
   Widget _buildFilterSortBar() {
     final hasFilter = _selectedSize != null || _onlySale || _onlyFreeShipping
         || _minPrice > 0 || _maxPrice < 300000;
     return Container(
-      color: Colors.white,
+      color: _bgCard,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
@@ -186,19 +204,19 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
-                color: hasFilter ? widget.categoryColor : const Color(0xFFF5F5F5),
+                color: hasFilter ? widget.categoryColor : _bgSurface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: hasFilter ? widget.categoryColor : const Color(0xFFDDDDDD)),
+                border: Border.all(color: hasFilter ? widget.categoryColor : _divider),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.tune_rounded, size: 14,
-                      color: hasFilter ? Colors.white : const Color(0xFF555555)),
+                      color: hasFilter ? Colors.white : _textSecondary),
                   const SizedBox(width: 4),
                   Text(loc.filterTitle, style: TextStyle(
                     fontSize: 12, fontWeight: FontWeight.w700,
-                    color: hasFilter ? Colors.white : const Color(0xFF555555),
+                    color: hasFilter ? Colors.white : _textSecondary,
                   )),
                   if (hasFilter) ...[
                     const SizedBox(width: 4),
@@ -232,14 +250,17 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: _sortBy == entry.key
-                            ? const Color(0xFF111111) : const Color(0xFFF5F5F5),
+                            ? widget.categoryColor : _bgSurface,
                         borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: _sortBy == entry.key ? widget.categoryColor : _divider,
+                        ),
                       ),
                       child: Text(entry.value, style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
                         color: _sortBy == entry.key
-                            ? Colors.white : const Color(0xFF555555),
+                            ? Colors.white : _textSecondary,
                       )),
                     ),
                   )),
@@ -251,9 +272,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             onTap: () => setState(() => _isGridView = !_isGridView),
             child: Container(
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(4)),
+              decoration: BoxDecoration(color: _bgSurface, borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: _divider),
+              ),
               child: Icon(_isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
-                  size: 18, color: const Color(0xFF555555)),
+                  size: 18, color: _textSecondary),
             ),
           ),
         ],
@@ -261,7 +284,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
-  // ── 필터 바텀시트 ──
+  // ── 필터 바텀시트 (다크 테마) ──
   void _showFilterSheet() {
     final sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
     showModalBottomSheet(
@@ -272,7 +295,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         builder: (ctx, setModal) => Container(
           height: MediaQuery.of(context).size.height * 0.7,
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: Color(0xFF1A1A1A),
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
@@ -281,11 +304,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 14, 16, 14),
                 decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
+                  border: Border(bottom: BorderSide(color: Color(0xFF333333))),
                 ),
                 child: Row(
                   children: [
-                    Text(loc.filterTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                    Text(loc.filterTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
                     const Spacer(),
                     TextButton(
                       onPressed: () {
@@ -301,7 +324,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                       child: Text(loc.filterReset2, style: const TextStyle(color: Color(0xFF888888))),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded),
+                      icon: const Icon(Icons.close_rounded, color: Colors.white),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
@@ -312,7 +335,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                   padding: const EdgeInsets.all(20),
                   children: [
                     // ── 사이즈 필터 ──
-                    Text(loc.filterSize, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+                    Text(loc.filterSize, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 8, runSpacing: 8,
@@ -327,13 +350,13 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                             width: 52, height: 38,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color: isSel ? widget.categoryColor : Colors.white,
+                              color: isSel ? widget.categoryColor : _bgSurface,
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: isSel ? widget.categoryColor : const Color(0xFFDDDDDD)),
+                              border: Border.all(color: isSel ? widget.categoryColor : _divider),
                             ),
                             child: Text(s, style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.w700,
-                              color: isSel ? Colors.white : const Color(0xFF333333),
+                              color: isSel ? Colors.white : _textSecondary,
                             )),
                           ),
                         );
@@ -342,7 +365,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     const SizedBox(height: 24),
                     // ── 가격 필터 ──
                     Row(children: [
-                      Text(loc.filterPriceRange, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                      Text(loc.filterPriceRange, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
                       const Spacer(),
                       Text('${_fmtPrice(_minPrice)}${loc.wonUnit} ~ ${_fmtPrice(_maxPrice)}${loc.wonUnit}',
                           style: TextStyle(fontSize: 12, color: widget.categoryColor, fontWeight: FontWeight.w700)),
@@ -352,7 +375,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                       min: 0, max: 300000,
                       divisions: 30,
                       activeColor: widget.categoryColor,
-                      inactiveColor: const Color(0xFFEEEEEE),
+                      inactiveColor: _divider,
                       onChanged: (v) => setModal(() {
                         _minPrice = v.start;
                         _maxPrice = v.end;
@@ -368,7 +391,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     ),
                     const SizedBox(height: 24),
                     // ── 추가 필터 ──
-                    Text(loc.filterExtraOption, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                    Text(loc.filterExtraOption, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
                     const SizedBox(height: 12),
                     _filterCheckRow(loc.filterSaleOnly, _onlySale, widget.categoryColor, (v) {
                       setModal(() { _onlySale = v; setState(() {}); });
@@ -410,18 +433,18 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: value ? color.withValues(alpha: 0.06) : const Color(0xFFF9F9F9),
+          color: value ? color.withValues(alpha: 0.15) : _bgSurface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: value ? color.withValues(alpha: 0.3) : const Color(0xFFEEEEEE)),
+          border: Border.all(color: value ? color.withValues(alpha: 0.5) : _divider),
         ),
         child: Row(
           children: [
             Icon(value ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
-                size: 20, color: value ? color : const Color(0xFFAAAAAA)),
+                size: 20, color: value ? color : const Color(0xFF666666)),
             const SizedBox(width: 10),
             Text(label, style: TextStyle(
               fontSize: 14, fontWeight: value ? FontWeight.w700 : FontWeight.w400,
-              color: value ? const Color(0xFF1A1A1A) : const Color(0xFF555555),
+              color: value ? Colors.white : _textSecondary,
             )),
           ],
         ),
@@ -437,12 +460,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   // ──────────────────────────────────────────────────────────────────
   Widget _buildPcLayout(BuildContext context) {
     return wrapWithPopScope(context, Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: _bgDark,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: _bgCard,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: Color(0xFF1A1A1A), size: 28),
+          icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
           onPressed: () => goBackOrHome(context),
         ),
         title: Row(
@@ -450,7 +473,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             Icon(widget.categoryIcon, color: widget.categoryColor, size: 22),
             const SizedBox(width: 8),
             Text(widget.categoryName,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
           ],
         ),
         centerTitle: false,
@@ -523,11 +546,15 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         child: TabBarView(
                           controller: _tabController,
                           children: widget.subCategories.map((sub) {
+                            final provider = context.watch<ProductProvider>();
+                            if (provider.isLoading) {
+                              return Center(child: CircularProgressIndicator(color: widget.categoryColor));
+                            }
                             final products = _getProducts(sub.filter, subName: sub.name);
                             return RefreshIndicator(
                               color: widget.categoryColor,
-                              backgroundColor: Colors.white,
-                              onRefresh: () => context.read<ProductProvider>().refresh(),
+                              backgroundColor: _bgCard,
+                              onRefresh: () => context.read<ProductProvider>().refreshAll(),
                               child: _buildPcProductGrid(products),
                             );
                           }).toList(),
@@ -585,16 +612,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: _bgCard,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))
-              ],
+              border: Border.all(color: _divider),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(loc.sortTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                Text(loc.sortTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
                 const SizedBox(height: 12),
                 ...AppConstants.sortOptions.map((opt) => InkWell(
                       onTap: () => setState(() => _sortBy = opt),
@@ -610,7 +635,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                                 border: Border.all(
                                   color: _sortBy == opt
                                       ? widget.categoryColor
-                                      : const Color(0xFFCCCCCC),
+                                      : _divider,
                                   width: 2,
                                 ),
                                 color: _sortBy == opt ? widget.categoryColor : Colors.transparent,
@@ -628,7 +653,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                                     _sortBy == opt ? FontWeight.w700 : FontWeight.w400,
                                 color: _sortBy == opt
                                     ? widget.categoryColor
-                                    : const Color(0xFF444444),
+                                    : _textSecondary,
                               ),
                             ),
                           ],
@@ -644,16 +669,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: _bgCard,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))
-              ],
+              border: Border.all(color: _divider),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(loc.viewMode, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                Text(loc.viewMode, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white)),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -698,22 +721,22 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? color.withValues(alpha: 0.1) : const Color(0xFFF5F5F5),
+          color: isActive ? color.withValues(alpha: 0.15) : _bgSurface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isActive ? color : const Color(0xFFE0E0E0),
+            color: isActive ? color : _divider,
             width: isActive ? 1.5 : 1,
           ),
         ),
         child: Column(
           children: [
-            Icon(icon, size: 18, color: isActive ? color : const Color(0xFF888888)),
+            Icon(icon, size: 18, color: isActive ? color : const Color(0xFF666666)),
             const SizedBox(height: 3),
             Text(label,
                 style: TextStyle(
                     fontSize: 10,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                    color: isActive ? color : const Color(0xFF888888))),
+                    color: isActive ? color : const Color(0xFF666666))),
           ],
         ),
       ),
@@ -728,24 +751,21 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           child: Container(
             height: 44,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: _bgCard,
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE0E0E0)),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))
-              ],
+              border: Border.all(color: _divider),
             ),
             child: Row(
               children: [
                 const SizedBox(width: 12),
-                const Icon(Icons.search_rounded, color: Color(0xFF999999), size: 20),
+                const Icon(Icons.search_rounded, color: Color(0xFF666666), size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    style: const TextStyle(fontSize: 13.5, color: Color(0xFF1A1A1A)),
+                    style: const TextStyle(fontSize: 13.5, color: Colors.white),
                     decoration: InputDecoration(
                       hintText: '${widget.categoryName} ${loc.productSearchHint}...',
-                      hintStyle: const TextStyle(fontSize: 13.5, color: Color(0xFFAAAAAA)),
+                      hintStyle: const TextStyle(fontSize: 13.5, color: Color(0xFF666666)),
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
@@ -755,7 +775,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 ),
                 if (_searchQuery.isNotEmpty)
                   IconButton(
-                    icon: const Icon(Icons.clear_rounded, size: 18, color: Color(0xFF999999)),
+                    icon: const Icon(Icons.clear_rounded, size: 18, color: Color(0xFF666666)),
                     onPressed: () => setState(() => _searchQuery = ''),
                   ),
               ],
@@ -766,17 +786,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         // 그리드/리스트 토글
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: _bgCard,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFE0E0E0)),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))
-            ],
+            border: Border.all(color: _divider),
           ),
           child: Row(
             children: [
               _toggleIconBtn(Icons.grid_view_rounded, _isGridView, () => setState(() => _isGridView = true)),
-              Container(width: 1, height: 24, color: const Color(0xFFE0E0E0)),
+              Container(width: 1, height: 24, color: _divider),
               _toggleIconBtn(Icons.view_list_rounded, !_isGridView, () => setState(() => _isGridView = false)),
             ],
           ),
@@ -793,11 +810,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: isActive ? widget.categoryColor.withValues(alpha: 0.1) : Colors.transparent,
+          color: isActive ? widget.categoryColor.withValues(alpha: 0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon,
-            size: 20, color: isActive ? widget.categoryColor : const Color(0xFF999999)),
+            size: 20, color: isActive ? widget.categoryColor : const Color(0xFF666666)),
       ),
     );
   }
@@ -812,11 +829,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             const SizedBox(height: 16),
             Text(loc.productEmpty,
                 style: const TextStyle(
-                    fontSize: 16, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                    fontSize: 16, color: Color(0xFF888888), fontWeight: FontWeight.w500)),
             if (_searchQuery.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text('"$_searchQuery" ${loc.searchNoResult}',
-                  style: const TextStyle(fontSize: 13, color: AppColors.textHint)),
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF666666))),
             ],
           ],
         ),
@@ -855,11 +872,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _bgCard,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))
-          ],
+          border: Border.all(color: _divider),
         ),
         child: Row(
           children: [
@@ -872,12 +887,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     ? Image.network(product.images.first,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                              color: AppColors.background,
-                              child: Icon(widget.categoryIcon, color: AppColors.border, size: 40),
+                              color: _bgSurface,
+                              child: Icon(widget.categoryIcon, color: _divider, size: 40),
                             ))
                     : Container(
-                        color: AppColors.background,
-                        child: Icon(widget.categoryIcon, color: AppColors.border, size: 40),
+                        color: _bgSurface,
+                        child: Icon(widget.categoryIcon, color: _divider, size: 40),
                       ),
               ),
             ),
@@ -898,20 +913,20 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     if (product.isNewActive || product.isSale || product.isFreeShipping || product.isGroupOnly)
                       const SizedBox(height: 6),
                     Text(product.localizedName(_lang),
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
                     const SizedBox(height: 8),
                     if (product.originalPrice != null)
                       Text(
                         '${_fmt(product.originalPrice!)}원',
                         style: const TextStyle(
                           fontSize: 12,
-                          color: AppColors.textHint,
+                          color: Color(0xFF666666),
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
                     Text(
                       '${_fmt(product.price)}원',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white),
                     ),
                     const SizedBox(height: 6),
                     Row(
@@ -920,7 +935,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         const SizedBox(width: 3),
                         Text(
                           '${product.rating} (${product.reviewCount})',
-                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
                         ),
                       ],
                     ),
@@ -936,7 +951,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                   MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1A1A1A),
+                  backgroundColor: widget.categoryColor,
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
@@ -960,7 +975,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       floating: false,
       forceElevated: innerBoxIsScrolled,
       expandedHeight: 130,
-      backgroundColor: widget.categoryColor,
+      backgroundColor: _bgCard,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded,
             color: Colors.white, size: 20),
@@ -976,6 +991,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         ),
         PopupMenuButton<String>(
           icon: const Icon(Icons.sort_rounded, color: Colors.white),
+          color: _bgCard,
           onSelected: (v) => setState(() => _sortBy = v),
           itemBuilder: (_) => AppConstants.sortOptions
               .map((s) => PopupMenuItem(
@@ -983,16 +999,16 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     child: Row(
                       children: [
                         if (_sortBy == s)
-                          const Icon(Icons.check,
-                              size: 16, color: AppColors.primary)
+                          Icon(Icons.check, size: 16, color: widget.categoryColor)
                         else
                           const SizedBox(width: 16),
                         const SizedBox(width: 6),
                         Text(s,
                             style: TextStyle(
-                                fontWeight: _sortBy == s
-                                    ? FontWeight.w700
-                                    : FontWeight.normal)),
+                              color: Colors.white,
+                              fontWeight: _sortBy == s
+                                  ? FontWeight.w700
+                                  : FontWeight.normal)),
                       ],
                     ),
                   ))
@@ -1004,8 +1020,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                widget.categoryColor,
-                widget.categoryColor.withValues(alpha: 0.75),
+                widget.categoryColor.withValues(alpha: 0.9),
+                _bgDark,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -1017,7 +1033,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 right: -10,
                 bottom: 30,
                 child: Opacity(
-                  opacity: 0.12,
+                  opacity: 0.10,
                   child: Icon(widget.categoryIcon, size: 110, color: Colors.white),
                 ),
               ),
@@ -1040,7 +1056,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     Text(
                       '${_getProducts(widget.subCategories.first.filter, subName: widget.subCategories.first.name).length}${loc.productCountUnit}',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.75),
+                        color: Colors.white.withValues(alpha: 0.65),
                         fontSize: 12,
                       ),
                     ),
@@ -1056,9 +1072,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         isScrollable: true,
         tabAlignment: TabAlignment.start,
         labelColor: Colors.white,
-        unselectedLabelColor: Colors.white60,
-        indicatorColor: Colors.white,
-        indicatorWeight: 2.5,
+        unselectedLabelColor: Colors.white38,
+        indicatorColor: widget.categoryColor,
+        indicatorWeight: 3,
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
         unselectedLabelStyle:
             const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
@@ -1074,7 +1090,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                     decoration: BoxDecoration(
                       color: sub.tag == 'NEW'
-                          ? Colors.white
+                          ? widget.categoryColor
                           : sub.tag == 'SALE'
                               ? Colors.amber
                               : Colors.greenAccent,
@@ -1086,7 +1102,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         fontSize: 8,
                         fontWeight: FontWeight.w800,
                         color: sub.tag == 'NEW'
-                            ? widget.categoryColor
+                            ? Colors.white
                             : Colors.black,
                       ),
                     ),
@@ -1109,7 +1125,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           children: [
             Icon(widget.categoryIcon, size: 64, color: widget.categoryColor.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
-            Text(loc.categoryNoProducts, style: const TextStyle(fontSize: 16, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+            Text(loc.categoryNoProducts, style: const TextStyle(fontSize: 16, color: Color(0xFF888888), fontWeight: FontWeight.w500)),
           ],
         ),
       );
@@ -1138,9 +1154,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _bgCard,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: _divider),
         ),
         child: Row(
           children: [
@@ -1154,14 +1170,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     ? Image.network(product.images.first,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) => Container(
-                              color: AppColors.background,
+                              color: _bgSurface,
                               child: Icon(widget.categoryIcon,
-                                  color: AppColors.border, size: 36),
+                                  color: _divider, size: 36),
                             ))
                     : Container(
-                        color: AppColors.background,
+                        color: _bgSurface,
                         child: Icon(widget.categoryIcon,
-                            color: AppColors.border, size: 36),
+                            color: _divider, size: 36),
                       ),
               ),
             ),
@@ -1184,7 +1200,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     Text(
                       product.localizedName(_lang),
                       style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w700),
+                          fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
                       softWrap: true,
                     ),
                     const SizedBox(height: 6),
@@ -1193,14 +1209,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         '${_fmt(product.originalPrice!)}원',
                         style: const TextStyle(
                           fontSize: 11,
-                          color: AppColors.textHint,
+                          color: Color(0xFF666666),
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
                     Text(
                       '${_fmt(product.price)}원',
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w800),
+                          fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -1212,7 +1228,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                           '${product.rating} (${product.reviewCount})',
                           style: const TextStyle(
                               fontSize: 11,
-                              color: AppColors.textSecondary),
+                              color: Color(0xFF888888)),
                         ),
                       ],
                     ),
