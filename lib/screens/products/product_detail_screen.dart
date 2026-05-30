@@ -4613,6 +4613,48 @@ $productUrl
                         ),
                       ],
                     ),
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
+                        const SizedBox(width: 6),
+                        const Expanded(
+                          child: Text(
+                            '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
+                        const SizedBox(width: 6),
+                        const Expanded(
+                          child: Text(
+                            '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
+                        const SizedBox(width: 6),
+                        const Expanded(
+                          child: Text(
+                            '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.5),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
