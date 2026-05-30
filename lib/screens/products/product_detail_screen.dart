@@ -1614,7 +1614,8 @@ $productUrl
     // 블록 번호 동적 계산
     int blockNum = 2;
     final int productBlockNum = ++blockNum; // 02 PRODUCT (항상)
-    final int colorBlockNum = ++blockNum;   // 03 COLOR (항상)
+    final int materialBlockNum = ++blockNum; // 03 MATERIAL (항상)
+    final int colorBlockNum = ++blockNum;   // 04 COLOR (항상)
 
     return Container(
       color: Colors.white,
@@ -1656,7 +1657,23 @@ $productUrl
             ]),
           ),
 
-          // ── 03 COLOR: 카테고리/구매방식별 색상 안내
+          // ── 03 MATERIAL: 카테고리별 소재 텍스트
+          _toptenInfoBlock(
+            num: materialBlockNum.toString().padLeft(2, '0'),
+            label: 'MATERIAL',
+            labelSub: '소재 정보',
+            content: Text(
+              materialText,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF444444),
+                height: 1.85,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+
+          // ── 04 COLOR: 카테고리/구매방식별 색상 안내
           _toptenInfoBlock(
             num: colorBlockNum.toString().padLeft(2, '0'),
             label: 'COLOR',
@@ -4016,90 +4033,7 @@ $productUrl
                   )
                 : _buildSectionImageSlider('s1'),
           ),
-        // ── 특징 리스트: 탑텐 스타일 (분리선 + 영문 태그 + 제목 + 설명)
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-          child: Column(
-            children: features.asMap().entries.map((entry) {
-              final i = entry.key;
-              final f = entry.value;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (i > 0) const Divider(height: 1, color: Color(0xFFF0F0F0)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 번호
-                        SizedBox(
-                          width: 28,
-                          child: Text(
-                            '0${i + 1}',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFFCCCCCC),
-                              letterSpacing: 1,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // 영문 태그
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: const Color(0xFF1A1A1A)),
-                                ),
-                                child: Text(
-                                  f['tag']!,
-                                  style: const TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF1A1A1A),
-                                    letterSpacing: 1.2,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              // 제목
-                              Text(
-                                f['title']!,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF1A1A1A),
-                                  height: 1.3,
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              // 설명
-                              Text(
-                                f['desc']!,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFF777777),
-                                  height: 1.6,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
-          ),
-        ),
+        // ── 특징 리스트 제거됨 (ULTRA LIGHT / SEAMLESS / ELITE WEAR)
       ],
     );
   }
