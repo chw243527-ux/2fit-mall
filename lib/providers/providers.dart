@@ -1204,8 +1204,36 @@ class ProductProvider extends ChangeNotifier {
   Future<void> refreshSalesCounts() => _loadSalesCounts();
 
   Future<void> refresh() async {
+    // _loaded 플래그를 초기화하여 Firestore에서 강제 재로드
+    // (이미 _loaded=true인 경우에도 최신 데이터를 가져옴)
+    await ProductService.forceReloadFromFirestore();
+    // forceReloadFromFirestore가 이미 전체 상품을 로드했으므로
+    // _loadCategory는 캐시를 그대로 읽어 _products에 세팅하고 notifyListeners() 호출
     await _loadCategory(_currentCategory);
     await _loadSalesCounts();
+  }
+
+  /// 카테고리 상세 화면 전용: 항상 '전체' 상품을 Firestore에서 강제 재로드.
+  /// _currentCategory가 무엇이든 상관없이 전체 상품 목록을 가져오므로
+  /// CategoryDetailScreen의 _getProducts(filter) 필터링이 올바르게 작동함.
+  Future<void> refreshAll() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await ProductService.forceReloadFromFirestore();
+      final prods = await ProductService.getAllProducts();
+      _products = prods;
+      ProductService.updateCache(prods);
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      final fallback = ProductService.getAllProductsSync();
+      if (_products.isEmpty || fallback.isNotEmpty) {
+        _products = fallback;
+      }
+      notifyListeners();
+    }
   }
 
   /// 관리자 전용: isActive 무관 전체 상품 새로 로드

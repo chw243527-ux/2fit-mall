@@ -137,7 +137,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final filteredProducts = _getFilteredSorted(provider.products);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFF111111),
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -146,8 +146,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
           if (_showPriceFilter) _buildPriceFilterPanel(),
           Expanded(
             child: RefreshIndicator(
-              color: const Color(0xFF1A1A2E),
-              backgroundColor: Colors.white,
+              color: const Color(0xFFE53935),
+              backgroundColor: const Color(0xFF1A1A1A),
               onRefresh: () => context.read<ProductProvider>().refresh(),
               child: provider.isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -209,7 +209,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget _buildCategoryBar(ProductProvider provider) {
     // 특별 탭: 전체 목록 앞에 베스트/신상품 삽입 (전체 탭 다음에 표시)
     return Container(
-      color: Colors.white,
+      color: const Color(0xFF1A1A1A),
       child: Column(
         children: [
           SizedBox(
@@ -244,7 +244,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       color: _onlyBest ? const Color(0xFFE53935) : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: _onlyBest ? const Color(0xFFE53935) : const Color(0xFFDDDDDD),
+                        color: _onlyBest ? const Color(0xFFE53935) : const Color(0xFF444444),
                       ),
                     ),
                     child: Row(
@@ -258,7 +258,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
-                            color: _onlyBest ? Colors.white : const Color(0xFF444444),
+                            color: _onlyBest ? Colors.white : const Color(0xFFAAAAAA),
                           )),
                       ],
                     ),
@@ -283,10 +283,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     margin: const EdgeInsets.only(right: 6),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _onlyNew ? const Color(0xFF111111) : Colors.transparent,
+                      color: _onlyNew ? const Color(0xFFE53935) : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: _onlyNew ? const Color(0xFF111111) : const Color(0xFFDDDDDD),
+                        color: _onlyNew ? const Color(0xFFE53935) : const Color(0xFF444444),
                       ),
                     ),
                     child: Row(
@@ -294,13 +294,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       children: [
                         Icon(Icons.fiber_new_rounded,
                           size: 13,
-                          color: _onlyNew ? Colors.white : const Color(0xFF111111)),
+                          color: _onlyNew ? Colors.white : const Color(0xFF888888)),
                         const SizedBox(width: 3),
                         Text('신상품',
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
-                            color: _onlyNew ? Colors.white : const Color(0xFF444444),
+                            color: _onlyNew ? Colors.white : const Color(0xFF888888),
                           )),
                       ],
                     ),
@@ -317,7 +317,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ],
             ),
           ),
-          Container(height: 1, color: const Color(0xFFF0F0F0)),
+          Container(height: 1, color: const Color(0xFF2A2A2A)),
         ],
       ),
     );
@@ -331,12 +331,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final bgColor = isGroup
         ? const Color(0xFF6A1B9A)         // 보라 — 항상
         : isSel
-            ? const Color(0xFF111111)     // 선택됨 — 검정
+            ? const Color(0xFFE53935)       // 선택됨 — 레드 액센트
             : Colors.transparent;         // 미선택
     final borderColor = isGroup
         ? const Color(0xFF6A1B9A)
-        : isSel ? const Color(0xFF111111) : const Color(0xFFDDDDDD);
-    final textColor = (isGroup || isSel) ? Colors.white : const Color(0xFF444444);
+        : isSel ? const Color(0xFFE53935) : const Color(0xFF444444);
+    final textColor = isGroup ? Colors.white : isSel ? Colors.white : const Color(0xFF888888);
 
     return GestureDetector(
       onTap: () {
@@ -399,7 +399,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModal) => Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFF1A1A1A),
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
@@ -410,7 +410,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 margin: const EdgeInsets.only(top: 12),
                 width: 36, height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDDDDDD),
+                  color: const Color(0xFF444444),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -420,12 +420,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text('정렬', style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF111111),
+                    fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white,
                   )),
                 ),
               ),
               // 구분선
-              const Divider(height: 1, color: Color(0xFFF0F0F0)),
+              const Divider(height: 1, color: Color(0xFF333333)),
               // 옵션 목록
               ...sortOptions.map((opt) {
                 final label = opt['label']!;
@@ -439,7 +439,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
+                      border: Border(bottom: BorderSide(color: Color(0xFF333333))),
                     ),
                     child: Row(
                       children: [
@@ -449,7 +449,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected ? const Color(0xFF111111) : const Color(0xFFCCCCCC),
+                              color: isSelected ? Colors.white : const Color(0xFF555555),
                               width: isSelected ? 2 : 1.5,
                             ),
                           ),
@@ -458,7 +458,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   child: Container(
                                     width: 10, height: 10,
                                     decoration: const BoxDecoration(
-                                      color: Color(0xFF111111),
+                                      color: Colors.white,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -469,7 +469,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         Text(label, style: TextStyle(
                           fontSize: 15,
                           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                          color: isSelected ? const Color(0xFF111111) : const Color(0xFF444444),
+                          color: isSelected ? Colors.white : const Color(0xFF888888),
                         )),
                       ],
                     ),
@@ -501,7 +501,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final currentSortLabel = _sortBy.isNotEmpty ? _sortBy : sortOptions[0]['label']!;
 
     return Container(
-      color: Colors.white,
+      color: const Color(0xFF111111),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
@@ -538,20 +538,20 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
+                color: const Color(0xFF222222),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFFE0E0E0)),
+                border: Border.all(color: const Color(0xFF444444)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.sort_rounded, size: 14, color: Color(0xFF444444)),
+                  const Icon(Icons.sort_rounded, size: 14, color: Color(0xFFAAAAAA)),
                   const SizedBox(width: 5),
                   Text(
                     currentSortLabel,
                     style: const TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w600,
-                      color: Color(0xFF222222),
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(width: 3),
@@ -568,13 +568,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: _activeFilterCount > 0 || _showPriceFilter
-                    ? const Color(0xFF111111)
-                    : const Color(0xFFF5F5F5),
+                    ? const Color(0xFFE53935)
+                    : const Color(0xFF222222),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                   color: _activeFilterCount > 0 || _showPriceFilter
-                      ? const Color(0xFF111111)
-                      : const Color(0xFFE0E0E0),
+                      ? const Color(0xFFE53935)
+                      : const Color(0xFF444444),
                 ),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -606,13 +606,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
+                color: const Color(0xFF222222),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFFE0E0E0)),
+                border: Border.all(color: const Color(0xFF444444)),
               ),
               child: Icon(
                 _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
-                size: 16, color: const Color(0xFF444444),
+                size: 16, color: const Color(0xFFAAAAAA),
               ),
             ),
           ),
@@ -624,17 +624,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
   // ── 가격 범위 + 추가 필터 패널 ──
   Widget _buildPriceFilterPanel() {
     return Container(
-      color: Colors.white,
+      color: const Color(0xFF1A1A1A),
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(loc.filterPriceRange, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF222222))),
+              Text(loc.filterPriceRange, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
               const Spacer(),
               Text('${_fmt(_minPrice)}${loc.wonUnit} ~ ${_maxPrice >= 500000 ? loc.productListPriceRange : '${_fmt(_maxPrice)}${loc.wonUnit}'}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF1A1A2E), fontWeight: FontWeight.w600)),
+                  style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600)),
             ],
           ),
           RangeSlider(
@@ -642,8 +642,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
             min: 0,
             max: 500000,
             divisions: 50,
-            activeColor: const Color(0xFF1A1A2E),
-            inactiveColor: const Color(0xFFEEEEEE),
+            activeColor: Colors.white,
+            inactiveColor: const Color(0xFF333333),
             onChanged: (v) => setState(() { _minPrice = v.start; _maxPrice = v.end; }),
           ),
           const SizedBox(height: 4),
@@ -661,7 +661,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 _minPrice = 0; _maxPrice = 500000;
                 _onlyNew = false; _onlySale = false; _onlyFreeShip = false;
               }),
-              child: Text(loc.filterResetBtn, style: const TextStyle(fontSize: 12, color: Colors.red, decoration: TextDecoration.underline)),
+              child: Text(loc.filterResetBtn, style: const TextStyle(fontSize: 12, color: Color(0xFFFF6666), decoration: TextDecoration.underline)),
             )],
         ],
       ),
@@ -674,7 +674,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       selected: selected,
       onSelected: onChanged,
       selectedColor: const Color(0xFF1A1A2E),
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFF111111),
       checkmarkColor: Colors.white,
       showCheckmark: false,
       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -726,9 +726,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFF1A1A1A),
           borderRadius: BorderRadius.circular(8),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))],
+          border: Border.all(color: const Color(0xFF2A2A2A)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -741,17 +741,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
                     child: Container(
-                      color: const Color(0xFFF5F5F5),
+                      color: const Color(0xFF222222),
                       child: p.images.isNotEmpty
                           ? Image.network(p.images.first,
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.contain,
                               filterQuality: FilterQuality.medium,
-                              errorBuilder: (_, __, ___) => Container(color: const Color(0xFFF0F0F0),
-                                  child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)))
-                          : Container(color: const Color(0xFFF0F0F0),
-                              child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)),
+                              errorBuilder: (_, __, ___) => Container(color: const Color(0xFF222222),
+                                  child: const Icon(Icons.checkroom_rounded, color: Color(0xFF444444), size: 48)))
+                          : Container(color: const Color(0xFF222222),
+                              child: const Icon(Icons.checkroom_rounded, color: Color(0xFF444444), size: 48)),
                     ),
                   ),
                   // 배지들
@@ -784,7 +784,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('2FIT KOREA', style: TextStyle(fontSize: 10, color: Color(0xFF888888), letterSpacing: 0.5)),
+                  const Text('2FIT KOREA', style: TextStyle(fontSize: 10, color: Color(0xFF666666), letterSpacing: 0.5)),
                   const SizedBox(height: 2),
                   if (p.isGroupOnly) ...[  
                     Container(
@@ -799,7 +799,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ),
                   ],
                   Text(p.localizedName(_lang), maxLines: 2, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3)),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white, height: 1.3)),
                   const SizedBox(height: 6),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -809,14 +809,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         children: [
                           if (p.originalPrice != null)
                             Text('${_fmt(p.originalPrice!)}${loc.wonUnit}',
-                                style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
+                                style: const TextStyle(fontSize: 10, color: Color(0xFF666666), decoration: TextDecoration.lineThrough)),
                           Row(
                             children: [
                               if (discount > 0) ...[
                                 Text('$discount%', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
                                 const SizedBox(width: 4),
                               ],
-                              Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF111111))),
+                              Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
                             ],
                           ),
                         ],
@@ -849,9 +849,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0xFF1A1A1A),
           borderRadius: BorderRadius.circular(8),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 1))],
+          border: Border.all(color: const Color(0xFF2A2A2A)),
         ),
         child: Row(
           children: [
@@ -863,9 +863,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     width: 110, height: 110,
                     child: p.images.isNotEmpty
                         ? Image.network(p.images.first, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFFF0F0F0),
-                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC))))
-                        : Container(color: const Color(0xFFF0F0F0)),
+                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF222222),
+                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFF444444))))
+                        : Container(color: const Color(0xFF222222)),
                   ),
                   if (discount > 0) Positioned(top: 6, left: 6, child: _badge('-$discount%', const Color(0xFFE53935))),
                 ],
@@ -886,18 +886,18 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ]),
                     if (p.isGroupOnly || p.isNewActive || p.isFreeShipping) const SizedBox(height: 4),
                     Text(p.localizedName(_lang), maxLines: 2, overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A))),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
                     const SizedBox(height: 6),
                     if (p.originalPrice != null)
                       Text('${_fmt(p.originalPrice!)}${loc.wonUnit}',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
+                          style: const TextStyle(fontSize: 11, color: Color(0xFF666666), decoration: TextDecoration.lineThrough)),
                     Row(
                       children: [
                         if (discount > 0) ...[
                           Text('$discount%', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
                           const SizedBox(width: 4),
                         ],
-                        Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF111111))),
+                        Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -927,7 +927,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.search_off_rounded, size: 64, color: Color(0xFFDDDDDD)),
+          const Icon(Icons.search_off_rounded, size: 64, color: Color(0xFF444444)),
           const SizedBox(height: 16),
           Text(
             _searchQuery.isNotEmpty ? loc.searchNoResult(_searchQuery) : loc.noCategoryProduct,
@@ -936,7 +936,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           const SizedBox(height: 16),
           TextButton(
             onPressed: () { setState(() { _selectedCategory = loc.catAll; _searchQuery = ''; }); context.read<ProductProvider>().setCategory(loc.catAll); },
-            child: Text(loc.homeAllProducts, style: const TextStyle(color: Color(0xFF111111), fontWeight: FontWeight.w700)),
+            child: Text(loc.homeAllProducts, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
