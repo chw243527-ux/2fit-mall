@@ -2706,10 +2706,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       style: TextStyle(
                           fontWeight: FontWeight.w800, fontSize: 13,
                           color: isSel ? Colors.white : Colors.black87)),
-                  Text(desc,
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: isSel ? Colors.white70 : Colors.grey)),
+                  if (desc.isNotEmpty)
+                    Text(desc,
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: isSel ? Colors.white70 : Colors.grey)),
                   if (is9bu) ...[
                     const SizedBox(height: 3),
                     Container(
