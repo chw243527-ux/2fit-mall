@@ -2878,8 +2878,52 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     return _card(
       title: '디자인 참고 이미지',
       icon: Icons.design_services_outlined,
-      child: _refImageCard(),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // ── 안내 박스
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.purple.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.purple.shade100),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Icon(Icons.info_outline_rounded, size: 14, color: Colors.purple.shade400),
+              const SizedBox(width: 6),
+              Text('원하시는 디자인 파일을 첨부해 주세요',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.purple.shade700)),
+            ]),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                _dotRow('앞면·뒷면 디자인을 모두 첨부하시면 더욱 정확하게 제작됩니다.', Colors.purple.shade600),
+                const SizedBox(height: 3),
+                _dotRow('지원 형식: PNG · JPG · PDF · AI · PSD · SVG 등', Colors.purple.shade600),
+                const SizedBox(height: 3),
+                _dotRow('파일이 여러 개일 경우 ZIP으로 압축 후 업로드해 주세요.', Colors.purple.shade600),
+              ]),
+            ),
+          ]),
+        ),
+        _refImageCard(),
+      ]),
     );
+  }
+
+  Widget _dotRow(String text, Color color) {
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Icon(Icons.circle, size: 4, color: color.withValues(alpha: 0.6)),
+      ),
+      const SizedBox(width: 5),
+      Expanded(
+        child: Text(text, style: TextStyle(fontSize: 11, color: color, height: 1.4)),
+      ),
+    ]);
   }
 
   Widget _refImageCard() {
