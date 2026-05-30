@@ -3006,14 +3006,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: const Color(0xFFCCCCCC)),
           ),
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
-                Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF1A1A1A)),
-                SizedBox(width: 5),
-                Text('업로드 안내',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF1A1A1A)),
+                const SizedBox(width: 5),
+                const Text('업로드 안내',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
               ]),
               SizedBox(height: 5),
               Text('• 원하는 문구(텍스트) 또는 무늬(패턴)가 담긴 이미지를 업로드해 주세요.',
@@ -3022,6 +3022,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   style: const TextStyle(fontSize: 11, color: Color(0xFF444444), height: 1.5)),
               Text('• 선택사항이며 최대 3장까지 업로드할 수 있습니다.',
                   style: const TextStyle(fontSize: 11, color: Color(0xFF444444), height: 1.5)),
+              SizedBox(height: 6),
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Icon(Icons.warning_amber_rounded, size: 13, color: Color(0xFFE65100)),
+                SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    '로고를 첨부하실 경우 AI 원본 파일(벡터 파일)이 필요합니다.\n(JPG·PNG 등 래스터 이미지로는 로고 인쇄 품질 보장이 어렵습니다.)',
+                    style: TextStyle(fontSize: 11, color: Color(0xFFE65100), height: 1.5, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ]),
             ],
           ),
         ),
