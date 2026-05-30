@@ -7284,6 +7284,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _topSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
+                            isSoldOut: product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _topSize = s));
                         }).toList(),
                       ),
@@ -7296,6 +7297,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _topSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1565C0),
+                            isSoldOut: product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _topSize = s));
                         }).toList(),
                       ),
@@ -7306,6 +7308,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _topSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
+                            isSoldOut: product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _topSize = s));
                         }).toList(),
                       ),
@@ -7323,6 +7326,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _bottomSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF5C6BC0),
+                            isSoldOut: product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _bottomSize = s));
                         }).toList(),
                       ),
@@ -7335,6 +7339,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _bottomSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1565C0),
+                            isSoldOut: product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _bottomSize = s));
                         }).toList(),
                       ),
@@ -7345,6 +7350,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _bottomSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF5C6BC0),
+                            isSoldOut: product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _bottomSize = s));
                         }).toList(),
                       ),
@@ -7368,6 +7374,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             label: s,
                             isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
+                            isSoldOut: product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _size = s),
                           );
                         }).toList(),
@@ -7384,6 +7391,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             label: s,
                             isSelected: isSel,
                             activeColor: const Color(0xFF1565C0),
+                            isSoldOut: product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _size = s),
                           );
                         }).toList(),
@@ -7398,6 +7406,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             label: s,
                             isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
+                            isSoldOut: product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _size = s),
                           );
                         }).toList(),
@@ -7760,25 +7769,53 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     required bool isSelected,
     required Color activeColor,
     required VoidCallback onTap,
+    bool isSoldOut = false,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: isSoldOut ? null : onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 130),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor : Colors.white,
+          color: isSoldOut
+              ? const Color(0xFFF5F5F5)
+              : isSelected ? activeColor : Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? activeColor : const Color(0xFFE0E0E0),
+            color: isSoldOut
+                ? const Color(0xFFDDDDDD)
+                : isSelected ? activeColor : const Color(0xFFE0E0E0),
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: isSelected ? Colors.white : const Color(0xFF1A1A1A),
-          ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: isSoldOut
+                    ? const Color(0xFFBBBBBB)
+                    : isSelected ? Colors.white : const Color(0xFF1A1A1A),
+                decoration: isSoldOut ? TextDecoration.lineThrough : null,
+                decorationColor: const Color(0xFF999999),
+                decorationThickness: 2,
+              ),
+            ),
+            if (isSoldOut)
+              Positioned(
+                bottom: -2,
+                child: Text(
+                  '품절',
+                  style: const TextStyle(
+                    fontSize: 8,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFE53935),
+                    height: 1,
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

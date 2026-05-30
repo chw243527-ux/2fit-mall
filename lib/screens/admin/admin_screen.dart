@@ -9598,6 +9598,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   // ── 사이즈 선택 (칩 UI)
   final Set<String> _selectedSizes = {};
 
+  // ── 품절 사이즈 (선택된 사이즈 중 품절 표시할 항목)
+  final Set<String> _soldOutSizes = {};
+
   // 성인 사이즈 전체 목록
   static const List<String> _adultSizeOptions = [
     'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL',
@@ -9685,6 +9688,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     // 기존 사이즈 → _selectedSizes로 초기화 (기존 저장된 사이즈 그대로 복원)
     final initSizes = e?.sizes ?? ['S', 'M', 'L', 'XL'];
     _selectedSizes.addAll(initSizes);
+    // 기존 품절 사이즈 초기화
+    _soldOutSizes
+      ..clear()
+      ..addAll(e?.soldOutSizes ?? []);
     // 저장 텍스트: adultOptions → juniorOptions 순 정렬 후 기존 미인식 사이즈 추가
     final knownAll = [..._adultSizeOptions, ..._juniorSizeOptions];
     final orderedInit = [
@@ -9930,6 +9937,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       isNew: _isNew, isSale: _isSale, isFreeShipping: _isFreeShip,
       isGroupOnly: _isGroupOnly, isReadyMade: _isReadyMade,
       stockCount: int.tryParse(_stockCtrl.text) ?? 100,
+      soldOutSizes: _soldOutSizes.toList(),
       isActive: _isActive,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
       nameTranslations: translations,
@@ -10433,6 +10441,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                 _lbl('사이즈'),
                 const SizedBox(height: 6),
                 _buildSizeSelector(),
+                const SizedBox(height: 10),
+
+                // ── 품절 사이즈 설정
+                _buildSoldOutSizeSelector(),
                 const SizedBox(height: 14),
 
                 // ── 소재 직접 입력
@@ -10923,6 +10935,140 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  /// 품절 사이즈 설정 UI — 선택된 사이즈 중 품절로 표시할 항목 토글
+  Widget _buildSoldOutSizeSelector() {
+    // 선택된 사이즈가 없으면 표시하지 않음
+    if (_selectedSizes.isEmpty) return const SizedBox.shrink();
+
+    // 선택 순서 유지 (adultOptions → juniorOptions 순)
+    final knownAll = [..._adultSizeOptions, ..._juniorSizeOptions];
+    final orderedSizes = [
+      ...knownAll.where(_selectedSizes.contains),
+      ..._selectedSizes.where((s) => !knownAll.contains(s)),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8F8),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFCDD2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 헤더
+          Row(
+            children: [
+              const Icon(Icons.remove_shopping_cart_outlined, size: 15, color: Color(0xFFE53935)),
+              const SizedBox(width: 6),
+              const Text('품절 사이즈 설정', style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFFE53935),
+              )),
+              const SizedBox(width: 6),
+              const Text('(선택 사항)', style: TextStyle(
+                fontSize: 11, color: Color(0xFF999999),
+              )),
+              const Spacer(),
+              if (_soldOutSizes.isNotEmpty)
+                GestureDetector(
+                  onTap: () => setState(() => _soldOutSizes.clear()),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFEBEE),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFFEF9A9A)),
+                    ),
+                    child: const Text('전체 해제', style: TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFE53935),
+                    )),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // 안내 문구
+          const Text(
+            '탭하여 품절 사이즈를 지정합니다. 상품 상세에서 취소선+품절 표시됩니다.',
+            style: TextStyle(fontSize: 11, color: Color(0xFF999999)),
+          ),
+          const SizedBox(height: 10),
+          // 사이즈 칩
+          Wrap(
+            spacing: 7, runSpacing: 7,
+            children: orderedSizes.map((s) {
+              final isSoldOut = _soldOutSizes.contains(s);
+              return GestureDetector(
+                onTap: () => setState(() {
+                  if (isSoldOut) {
+                    _soldOutSizes.remove(s);
+                  } else {
+                    _soldOutSizes.add(s);
+                  }
+                }),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: isSoldOut ? const Color(0xFFE53935) : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSoldOut ? const Color(0xFFE53935) : const Color(0xFFDDDDDD),
+                      width: isSoldOut ? 1.8 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isSoldOut) ...[
+                        const Icon(Icons.block_rounded, size: 11, color: Colors.white),
+                        const SizedBox(width: 4),
+                      ],
+                      Text(s, style: TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700,
+                        color: isSoldOut ? Colors.white : const Color(0xFF333333),
+                        decoration: isSoldOut ? TextDecoration.lineThrough : null,
+                        decorationColor: Colors.white,
+                      )),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          // 현재 품절 사이즈 요약
+          if (_soldOutSizes.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFEBEE),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFEF9A9A)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFFE53935)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '품절: ${orderedSizes.where(_soldOutSizes.contains).join(', ')}',
+                      style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFE53935),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
