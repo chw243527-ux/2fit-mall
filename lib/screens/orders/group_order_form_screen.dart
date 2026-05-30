@@ -3074,6 +3074,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ),
       ],
     ]);
+  }
 
   Widget _dotRow(String text, Color color) {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
