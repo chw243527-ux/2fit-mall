@@ -8934,7 +8934,7 @@ class _RibTableHeader extends StatelessWidget {
             children: headers.asMap().entries.map((e) {
               final isFirst = e.key == 0;
               return Expanded(
-                flex: isFirst ? 2 : 3,
+                flex: isFirst ? 3 : 3,
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 4),
                   decoration: BoxDecoration(
@@ -9014,7 +9014,7 @@ class _RibTableRow extends StatelessWidget {
               final isFirst = e.key == 0;
               final isSize = isFirst && isSizeCol;
               return Expanded(
-                flex: isFirst ? 2 : 3,
+                flex: isFirst ? 3 : 3,
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                   decoration: BoxDecoration(
@@ -9030,8 +9030,9 @@ class _RibTableRow extends StatelessWidget {
                   child: Text(
                     e.value,
                     textAlign: TextAlign.center,
+                    maxLines: 1,
                     style: TextStyle(
-                      fontSize: isSize ? 11 : 11.5,
+                      fontSize: isSize ? 10 : 11.5,
                       fontWeight: isSize ? FontWeight.w800 : FontWeight.w500,
                       color: isSize
                           ? const Color(0xFF111111)
