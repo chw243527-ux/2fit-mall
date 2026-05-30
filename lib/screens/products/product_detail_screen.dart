@@ -1614,8 +1614,7 @@ $productUrl
     // 블록 번호 동적 계산
     int blockNum = 2;
     final int productBlockNum = ++blockNum; // 02 PRODUCT (항상)
-    final int materialBlockNum = ++blockNum; // 03 MATERIAL (항상)
-    final int colorBlockNum = ++blockNum;   // 04 COLOR (항상)
+    final int colorBlockNum = ++blockNum;   // 03 COLOR (항상)
 
     return Container(
       color: Colors.white,
@@ -1657,23 +1656,7 @@ $productUrl
             ]),
           ),
 
-          // ── 03 MATERIAL: 카테고리별 소재 텍스트
-          _toptenInfoBlock(
-            num: materialBlockNum.toString().padLeft(2, '0'),
-            label: 'MATERIAL',
-            labelSub: '소재 정보',
-            content: Text(
-              materialText,
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF444444),
-                height: 1.85,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ),
-
-          // ── 04 COLOR: 카테고리/구매방식별 색상 안내
+          // ── 03 COLOR: 카테고리/구매방식별 색상 안내
           _toptenInfoBlock(
             num: colorBlockNum.toString().padLeft(2, '0'),
             label: 'COLOR',
