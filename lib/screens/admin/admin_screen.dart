@@ -19,6 +19,7 @@ import '../../services/fcm_service.dart';
 import '../../services/chat_service.dart';
 import '../../services/translation_service.dart';
 import '../../services/banner_service.dart';
+import '../../services/category_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../utils/constants.dart';
 import '../../widgets/image_lightbox.dart';
@@ -154,9 +155,9 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 13, vsync: this);
+    _tabCtrl = TabController(length: 14, vsync: this);
     // initialTab이 지정된 경우 해당 탭으로 이동
-    if (widget.initialTab > 0 && widget.initialTab < 13) {
+    if (widget.initialTab > 0 && widget.initialTab < 14) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _tabCtrl.animateTo(widget.initialTab);
       });
@@ -167,6 +168,8 @@ class _AdminScreenState extends State<AdminScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<ProductProvider>().loadAdminProducts();
+        // 카테고리 서비스 로드
+        CategoryService.load();
       }
     });
   }
@@ -745,6 +748,7 @@ class _AdminScreenState extends State<AdminScreen>
             const Tab(icon: Icon(Icons.badge_rounded, size: 14), text: '직원관리'),
             const Tab(icon: Icon(Icons.campaign_rounded, size: 14), text: '공지관리'),
             const Tab(icon: Icon(Icons.local_shipping_rounded, size: 14), text: '배송관리'),
+            const Tab(icon: Icon(Icons.folder_special_rounded, size: 14), text: '카테고리관리'),
           ],
         ),
       ),
@@ -777,6 +781,7 @@ class _AdminScreenState extends State<AdminScreen>
         Offstage(offstage: index != 11, child: const AdminStaffTab()),
         Offstage(offstage: index != 12, child: _buildNoticeManagement()),
         Offstage(offstage: index != 13, child: const AdminDeliveryTab()),
+        Offstage(offstage: index != 14, child: const _CategoryManagementTab()),
       ],
     );
   }
@@ -9643,31 +9648,18 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   // 수정 모드: existing 이 있고 복사 모드가 아닐 때
   bool get _isEdit => widget.existing != null && !widget.isCopy;
 
-  // ── 카테고리별 하위카테고리 맵
-  static const Map<String, List<String>> _subCatMap = {
-    '상의': [
-      '싱글렛 A타입', '싱글렛 B타입', '크롭탑', '라운드티', '카라티',
-      '롱 슬리브', '맨투맨', '후드집업', '트레이닝 집업',
-    ],
-    '하의': ['타이즈', '트레이닝바지', '반바지'],
-    '세트': ['싱글렛세트A타입', '트레이닝복세트'],
-    '아우터': ['바람막이', '다운패딩', '다운조끼패딩', '롱패딩'],
-    '스킨슈트': ['스킨슈트'],
-    '악세사리': ['모자', '백팩'],
-    '이벤트': ['이벤트'],
-    '단체주문': ['싱글렛세트A타입', '싱글렛 B타입', '스킨슈트', '트레이닝복세트', '기타'],
-  };
+  // ── 카테고리별 하위카테고리 맵 (CategoryService에서 동적으로 로드)
+  // static const 제거 → CategoryService.subCatMap 사용
 
   // 타이즈 하위분류 (하의 > 타이즈 선택 시 추가 선택)
   static const List<String> _tightsSubCats = [
     '9부', '5부', '4부', '3부', '2.5부', '숏쇼츠',
   ];
 
-  static const List<String> _mainCategories = [
-    '상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '이벤트', '단체주문',
-  ];
+  // 현재 메인카테고리 목록 (CategoryService에서 가져옴)
+  List<String> get _mainCategories => CategoryService.mainCategories;
 
-  List<String> get _currentSubCats => _subCatMap[_selCat] ?? [];
+  List<String> get _currentSubCats => CategoryService.subCatsFor(_selCat);
 
   @override
   void initState() {
@@ -10098,7 +10090,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                               // 단체주문 카테고리 선택 ↔ 단체전용 토글 양방향 연동
                               // 기성품(_isReadyMade)은 건드리지 않음
                               _isGroupOnly = (v == '단체주문');
-                              final subs = _subCatMap[v] ?? [];
+                              final subs = CategoryService.subCatMap[v] ?? [];
                               _selSubCat = subs.isNotEmpty ? subs.first : '';
                               _selTightsSub = '';
                               // 신규 등록 시 카테고리별 설명 자동입력
@@ -10110,6 +10102,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                         ),
                       ),
                     ),
+                  ),
+                  // 메인 카테고리 직접 추가 버튼
+                  const SizedBox(width: 6),
+                  _catAddBtn(
+                    tooltip: '메인 카테고리 추가',
+                    onTap: () => _showAddMainCatDialog(),
                   ),
                   const SizedBox(width: 10),
                   // 하위 카테고리
@@ -10154,6 +10152,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                         ),
                       ),
                     ),
+                  ),
+                  // 하위 카테고리 직접 추가 버튼
+                  const SizedBox(width: 6),
+                  _catAddBtn(
+                    tooltip: '하위 카테고리 추가',
+                    onTap: () => _showAddSubCatDialog(),
                   ),
                 ]),
                 // 타이즈 하위분류 (하의 > 타이즈 선택 시에만 표시)
@@ -10635,13 +10639,13 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     if (v) {
                       // 단체전용 ON → 카테고리 자동으로 '단체주문'으로 변경
                       _selCat = '단체주문';
-                      final subs = _subCatMap['단체주문'] ?? [];
+                      final subs = CategoryService.subCatMap['단체주문'] ?? [];
                       _selSubCat = subs.isNotEmpty ? subs.first : '';
                       _selTightsSub = '';
                     } else if (!_isReadyMade) {
                       // 단체전용 OFF + 기성품 아닐 때만 → 카테고리 '상의'로 초기화
                       _selCat = '상의';
-                      final subs = _subCatMap['상의'] ?? [];
+                      final subs = CategoryService.subCatMap['상의'] ?? [];
                       _selSubCat = subs.isNotEmpty ? subs.first : '';
                       _selTightsSub = '';
                     }
@@ -11076,6 +11080,186 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
 
   Widget _presetBtn(String label, List<String> sizes, Color color,
       void Function(List<String>) onTap) {
+    return GestureDetector(
+      onTap: () => onTap(sizes),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Text(label, style: TextStyle(
+          fontSize: 11, fontWeight: FontWeight.w700, color: color,
+        )),
+      ),
+    );
+  }
+
+  /// 카테고리 추가 "＋" 버튼 (드롭다운 옆)
+  Widget _catAddBtn({required String tooltip, required VoidCallback onTap}) {
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 32, height: 32,
+          decoration: BoxDecoration(
+            color: const Color(0xFFE8F5E9),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFF43A047).withValues(alpha: 0.5)),
+          ),
+          child: const Icon(Icons.add, size: 18, color: Color(0xFF2E7D32)),
+        ),
+      ),
+    );
+  }
+
+  /// 메인 카테고리 직접 추가 다이얼로그
+  Future<void> _showAddMainCatDialog() async {
+    final ctrl = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(children: [
+          Icon(Icons.category_outlined, color: Color(0xFF1A1A2E), size: 20),
+          SizedBox(width: 8),
+          Text('메인 카테고리 추가', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        ]),
+        content: SizedBox(
+          width: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('새 카테고리 이름을 입력하세요.', style: TextStyle(fontSize: 12, color: Color(0xFF666666))),
+              const SizedBox(height: 10),
+              TextField(
+                controller: ctrl,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: '예) 양말, 언더웨어',
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+                onSubmitted: (v) {
+                  if (v.trim().isNotEmpty) Navigator.pop(ctx, v.trim());
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
+            onPressed: () {
+              final v = ctrl.text.trim();
+              if (v.isNotEmpty) Navigator.pop(ctx, v);
+            },
+            child: const Text('추가', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (result == null || result.isEmpty) return;
+    if (CategoryService.mainCategories.contains(result)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이미 존재하는 카테고리입니다: $result')),
+        );
+      }
+      return;
+    }
+    await CategoryService.addMainCategory(result);
+    if (mounted) {
+      setState(() {
+        _selCat = result;
+        _selSubCat = result; // 기본 하위카테고리와 동일하게
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('카테고리 "$result" 추가됨'),
+          backgroundColor: const Color(0xFF2E7D32),
+        ),
+      );
+    }
+  }
+
+  /// 하위 카테고리 직접 추가 다이얼로그
+  Future<void> _showAddSubCatDialog() async {
+    final ctrl = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(children: [
+          const Icon(Icons.subdirectory_arrow_right_rounded, color: Color(0xFF3F51B5), size: 20),
+          const SizedBox(width: 8),
+          Expanded(child: Text('"$_selCat" 하위 카테고리 추가', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+        ]),
+        content: SizedBox(
+          width: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('"$_selCat" 카테고리에 추가할 하위 항목을 입력하세요.', style: const TextStyle(fontSize: 12, color: Color(0xFF666666))),
+              const SizedBox(height: 10),
+              TextField(
+                controller: ctrl,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: '예) 레깅스, 스포츠브라',
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+                onSubmitted: (v) {
+                  if (v.trim().isNotEmpty) Navigator.pop(ctx, v.trim());
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3F51B5)),
+            onPressed: () {
+              final v = ctrl.text.trim();
+              if (v.isNotEmpty) Navigator.pop(ctx, v);
+            },
+            child: const Text('추가', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (result == null || result.isEmpty) return;
+    final existing = CategoryService.subCatsFor(_selCat);
+    if (existing.contains(result)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이미 존재하는 하위 카테고리입니다: $result')),
+        );
+      }
+      return;
+    }
+    await CategoryService.addSubCategory(_selCat, result);
+    if (mounted) {
+      setState(() => _selSubCat = result);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('"$_selCat" → "$result" 하위 카테고리 추가됨'),
+          backgroundColor: const Color(0xFF3F51B5),
+        ),
+      );
+    }
+  }
     return GestureDetector(
       onTap: () => onTap(sizes),
       child: Container(
@@ -11658,5 +11842,462 @@ class _NoticeCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAB 14 : 카테고리 관리
+// ══════════════════════════════════════════════════════════════
+class _CategoryManagementTab extends StatefulWidget {
+  const _CategoryManagementTab();
+
+  @override
+  State<_CategoryManagementTab> createState() => _CategoryManagementTabState();
+}
+
+class _CategoryManagementTabState extends State<_CategoryManagementTab> {
+  bool _loading = true;
+  String? _selectedMain; // 현재 선택된 메인 카테고리 (하위 보기용)
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    CategoryService.clearCache();
+    await CategoryService.load();
+    if (mounted) setState(() { _loading = false; _selectedMain ??= CategoryService.mainCategories.firstOrNull; });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final mainCats = CategoryService.mainCategories;
+    final subCats = _selectedMain != null ? CategoryService.subCatsFor(_selectedMain!) : <String>[];
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── 왼쪽: 메인 카테고리 목록
+          SizedBox(
+            width: 220,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 헤더
+                Row(
+                  children: [
+                    const Icon(Icons.category_rounded, size: 16, color: Color(0xFF1A1A2E)),
+                    const SizedBox(width: 6),
+                    const Text('메인 카테고리', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
+                    const Spacer(),
+                    // 추가 버튼
+                    GestureDetector(
+                      onTap: _showAddMainCatDialog,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A1A2E),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add, size: 13, color: Colors.white),
+                            SizedBox(width: 3),
+                            Text('추가', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // 목록
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE0E0E0)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ReorderableListView.builder(
+                      onReorder: (oldIdx, newIdx) async {
+                        final cats = List<String>.from(mainCats);
+                        if (newIdx > oldIdx) newIdx--;
+                        final item = cats.removeAt(oldIdx);
+                        cats.insert(newIdx, item);
+                        await CategoryService.reorderMainCategories(cats);
+                        if (mounted) setState(() {});
+                      },
+                      itemCount: mainCats.length,
+                      itemBuilder: (ctx, i) {
+                        final cat = mainCats[i];
+                        final isSelected = _selectedMain == cat;
+                        final isDef = CategoryService.defaultMainCategories.contains(cat);
+                        return GestureDetector(
+                          key: ValueKey(cat),
+                          onTap: () => setState(() => _selectedMain = cat),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isSelected ? const Color(0xFF1A1A2E) : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.drag_indicator, size: 14, color: Color(0xFFCCCCCC)),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(cat, style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: isSelected ? Colors.white : const Color(0xFF333333),
+                                  )),
+                                ),
+                                if (isDef)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isSelected ? Colors.white24 : const Color(0xFFE3F2FD),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text('기본', style: TextStyle(
+                                      fontSize: 9, fontWeight: FontWeight.w700,
+                                      color: isSelected ? Colors.white70 : const Color(0xFF1565C0),
+                                    )),
+                                  )
+                                else
+                                  GestureDetector(
+                                    onTap: () => _deleteMainCat(cat),
+                                    child: Icon(Icons.close_rounded, size: 14, color: isSelected ? Colors.white54 : const Color(0xFFBBBBBB)),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          // ── 오른쪽: 하위 카테고리 목록
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.subdirectory_arrow_right_rounded, size: 16, color: Color(0xFF3F51B5)),
+                    const SizedBox(width: 6),
+                    Text(
+                      _selectedMain != null ? '"$_selectedMain" 하위 카테고리' : '하위 카테고리',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF3F51B5)),
+                    ),
+                    const Spacer(),
+                    if (_selectedMain != null)
+                      GestureDetector(
+                        onTap: _showAddSubCatDialog,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF3F51B5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.add, size: 13, color: Colors.white),
+                              SizedBox(width: 3),
+                              Text('추가', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w700)),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: _selectedMain == null
+                      ? const Center(child: Text('왼쪽에서 메인 카테고리를 선택하세요', style: TextStyle(color: Color(0xFF999999))))
+                      : Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: const Color(0xFFE0E0E0)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: subCats.isEmpty
+                              ? Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.inbox_rounded, size: 40, color: Color(0xFFDDDDDD)),
+                                      const SizedBox(height: 8),
+                                      const Text('하위 카테고리가 없습니다', style: TextStyle(color: Color(0xFFAAAAAA))),
+                                      const SizedBox(height: 12),
+                                      ElevatedButton.icon(
+                                        onPressed: _showAddSubCatDialog,
+                                        icon: const Icon(Icons.add, size: 14),
+                                        label: const Text('추가하기'),
+                                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3F51B5), foregroundColor: Colors.white),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ReorderableListView.builder(
+                                  onReorder: (oldIdx, newIdx) async {
+                                    final list = List<String>.from(subCats);
+                                    if (newIdx > oldIdx) newIdx--;
+                                    final item = list.removeAt(oldIdx);
+                                    list.insert(newIdx, item);
+                                    await CategoryService.reorderSubCategories(_selectedMain!, list);
+                                    if (mounted) setState(() {});
+                                  },
+                                  itemCount: subCats.length,
+                                  itemBuilder: (ctx, i) {
+                                    final sub = subCats[i];
+                                    final isDefSub = (CategoryService.defaultSubCatMap[_selectedMain!] ?? []).contains(sub);
+                                    return Container(
+                                      key: ValueKey(sub),
+                                      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF8F9FF),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: const Color(0xFFDDE3F5)),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.drag_indicator, size: 14, color: Color(0xFFCCCCCC)),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(sub, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+                                          ),
+                                          if (isDefSub)
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFE3F2FD),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: const Text('기본', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                                            )
+                                          else
+                                            GestureDetector(
+                                              onTap: () => _deleteSubCat(sub),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(4),
+                                                child: const Icon(Icons.close_rounded, size: 14, color: Color(0xFFBBBBBB)),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                ),
+                // 안내 문구
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF9C4),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFFFD54F)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFFF57F17)),
+                      SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          '"기본" 표시 항목은 삭제 불가합니다. 드래그하여 순서를 변경할 수 있습니다.',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF7B5E00)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 메인 카테고리 추가 다이얼로그
+  Future<void> _showAddMainCatDialog() async {
+    final ctrl = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(children: [
+          Icon(Icons.add_circle_outline_rounded, color: Color(0xFF1A1A2E), size: 20),
+          SizedBox(width: 8),
+          Text('메인 카테고리 추가', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        ]),
+        content: SizedBox(
+          width: 320,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('새 카테고리 이름을 입력하세요.', style: TextStyle(fontSize: 12, color: Color(0xFF666666))),
+            const SizedBox(height: 10),
+            TextField(
+              controller: ctrl, autofocus: true,
+              decoration: InputDecoration(
+                hintText: '예) 양말, 언더웨어',
+                filled: true, fillColor: const Color(0xFFF5F5F5),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              ),
+              onSubmitted: (v) { if (v.trim().isNotEmpty) Navigator.pop(ctx, v.trim()); },
+            ),
+          ]),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
+            onPressed: () { final v = ctrl.text.trim(); if (v.isNotEmpty) Navigator.pop(ctx, v); },
+            child: const Text('추가', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (result == null || result.isEmpty || !mounted) return;
+    if (CategoryService.mainCategories.contains(result)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('이미 존재합니다: $result')));
+      return;
+    }
+    await CategoryService.addMainCategory(result);
+    if (mounted) {
+      setState(() => _selectedMain = result);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('카테고리 "$result" 추가됨'), backgroundColor: const Color(0xFF2E7D32)),
+      );
+    }
+  }
+
+  // ── 하위 카테고리 추가 다이얼로그
+  Future<void> _showAddSubCatDialog() async {
+    if (_selectedMain == null) return;
+    final ctrl = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(children: [
+          const Icon(Icons.add_circle_outline_rounded, color: Color(0xFF3F51B5), size: 20),
+          const SizedBox(width: 8),
+          Expanded(child: Text('"$_selectedMain" 하위 카테고리 추가', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700))),
+        ]),
+        content: SizedBox(
+          width: 320,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('"$_selectedMain"에 추가할 하위 항목을 입력하세요.', style: const TextStyle(fontSize: 12, color: Color(0xFF666666))),
+            const SizedBox(height: 10),
+            TextField(
+              controller: ctrl, autofocus: true,
+              decoration: InputDecoration(
+                hintText: '예) 레깅스, 스포츠브라',
+                filled: true, fillColor: const Color(0xFFF5F5F5),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              ),
+              onSubmitted: (v) { if (v.trim().isNotEmpty) Navigator.pop(ctx, v.trim()); },
+            ),
+          ]),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF3F51B5)),
+            onPressed: () { final v = ctrl.text.trim(); if (v.isNotEmpty) Navigator.pop(ctx, v); },
+            child: const Text('추가', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (result == null || result.isEmpty || !mounted) return;
+    final existing = CategoryService.subCatsFor(_selectedMain!);
+    if (existing.contains(result)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('이미 존재합니다: $result')));
+      return;
+    }
+    await CategoryService.addSubCategory(_selectedMain!, result);
+    if (mounted) {
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('"$_selectedMain" → "$result" 하위 카테고리 추가됨'), backgroundColor: const Color(0xFF3F51B5)),
+      );
+    }
+  }
+
+  // ── 메인 카테고리 삭제 확인
+  Future<void> _deleteMainCat(String cat) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('카테고리 삭제', style: TextStyle(fontWeight: FontWeight.w700)),
+        content: Text('"$cat" 카테고리와 하위 카테고리를 모두 삭제합니다.\n삭제 후 이 카테고리의 상품은 카테고리가 유지되지만 목록에서 선택 불가합니다.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE53935)),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('삭제', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await CategoryService.removeMainCategory(cat);
+    if (mounted) {
+      setState(() {
+        if (_selectedMain == cat) _selectedMain = CategoryService.mainCategories.firstOrNull;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('카테고리 "$cat" 삭제됨'), backgroundColor: const Color(0xFFE53935)),
+      );
+    }
+  }
+
+  // ── 하위 카테고리 삭제 확인
+  Future<void> _deleteSubCat(String sub) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('하위 카테고리 삭제', style: TextStyle(fontWeight: FontWeight.w700)),
+        content: Text('"$_selectedMain" → "$sub" 하위 카테고리를 삭제합니다.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE53935)),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('삭제', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await CategoryService.removeSubCategory(_selectedMain!, sub);
+    if (mounted) {
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('"$sub" 하위 카테고리 삭제됨'), backgroundColor: const Color(0xFFE53935)),
+      );
+    }
   }
 }
