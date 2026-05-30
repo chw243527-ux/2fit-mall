@@ -9848,13 +9848,23 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       return;
     }
     final origPrice = double.tryParse(_origPriceCtrl.text.replaceAll(',', ''));
-    // ── base64 이미지 제거 (업로드 실패한 미리보기는 저장하지 않음)
-    final images = _images.where((img) => !img.startsWith('data:')).toList();
-    if (images.isEmpty && _images.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('이미지 업로드를 완료해주세요. (Firebase Storage 업로드 필요)')));
+
+    // ── base64 미리보기 이미지 잔재 확인 (업로드 진행 중이거나 실패한 경우)
+    final base64Remaining = _images.where((img) => img.startsWith('data:')).toList();
+    if (base64Remaining.isNotEmpty) {
+      // base64가 남아있으면 아직 Storage 업로드가 완료되지 않은 것
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('이미지 Firebase 업로드 중입니다. 잠시 후 다시 저장해주세요.'),
+        duration: Duration(seconds: 3),
+      ));
       return;
     }
-    if (images.isEmpty) images.add('https://picsum.photos/seed/${DateTime.now().millisecondsSinceEpoch}/400/400');
+
+    // ── Storage URL만 추출 (data: 외에도 잘못된 URL 방지)
+    final images = _images
+        .where((img) => img.startsWith('http') || img.startsWith('https'))
+        .toList();
+    // 이미지가 없어도 저장 허용 (picsum placeholder 사용 안 함 — Storage URL만 영속)
 
     // 번역이 아직 안 됐으면 저장 전 실행
     final productName = _nameCtrl.text.trim();
