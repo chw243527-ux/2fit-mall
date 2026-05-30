@@ -926,19 +926,13 @@ $productUrl
           ),
 
           // ═══════════════════════════════════════════════
-          // 탑텐 스타일: PAYBACK / 특별사이즈 탭 버튼
+          // 상품 속성 뱃지 (단체전용 / 기성품)
           // ═══════════════════════════════════════════════
-          if (!product.isGroupOnly)
+          if (!product.isGroupOnly && product.isReadyMade)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
               child: Row(children: [
-                _toptenTabChip('PAYBACK', true),
-                const SizedBox(width: 8),
-                _toptenTabChip('단체주문', product.isGroupOnly),
-                if (product.isReadyMade) ...[
-                  const SizedBox(width: 8),
-                  _toptenTabChip('기성품', true, activeColor: Colors.teal),
-                ],
+                _toptenTabChip('기성품', true, activeColor: Colors.teal),
               ]),
             ),
           if (product.isGroupOnly)
