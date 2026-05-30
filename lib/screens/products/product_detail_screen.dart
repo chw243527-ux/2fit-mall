@@ -7284,7 +7284,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _topSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
-                            isSoldOut: product.soldOutSizes.contains(s),
+                            isSoldOut: widget.product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _topSize = s));
                         }).toList(),
                       ),
@@ -7297,7 +7297,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _topSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1565C0),
-                            isSoldOut: product.soldOutSizes.contains(s),
+                            isSoldOut: widget.product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _topSize = s));
                         }).toList(),
                       ),
@@ -7308,7 +7308,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _topSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
-                            isSoldOut: product.soldOutSizes.contains(s),
+                            isSoldOut: widget.product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _topSize = s));
                         }).toList(),
                       ),
@@ -7326,7 +7326,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _bottomSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF5C6BC0),
-                            isSoldOut: product.soldOutSizes.contains(s),
+                            isSoldOut: widget.product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _bottomSize = s));
                         }).toList(),
                       ),
@@ -7339,7 +7339,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _bottomSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1565C0),
-                            isSoldOut: product.soldOutSizes.contains(s),
+                            isSoldOut: widget.product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _bottomSize = s));
                         }).toList(),
                       ),
@@ -7350,7 +7350,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _bottomSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF5C6BC0),
-                            isSoldOut: product.soldOutSizes.contains(s),
+                            isSoldOut: widget.product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _bottomSize = s));
                         }).toList(),
                       ),
@@ -7374,7 +7374,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             label: s,
                             isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
-                            isSoldOut: product.soldOutSizes.contains(s),
+                            isSoldOut: widget.product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _size = s),
                           );
                         }).toList(),
@@ -7391,7 +7391,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             label: s,
                             isSelected: isSel,
                             activeColor: const Color(0xFF1565C0),
-                            isSoldOut: product.soldOutSizes.contains(s),
+                            isSoldOut: widget.product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _size = s),
                           );
                         }).toList(),
@@ -7406,7 +7406,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             label: s,
                             isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
-                            isSoldOut: product.soldOutSizes.contains(s),
+                            isSoldOut: widget.product.soldOutSizes.contains(s),
                             onTap: () => setState(() => _size = s),
                           );
                         }).toList(),
