@@ -12144,7 +12144,7 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
                       SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          '"기본" 표시 항목은 삭제 불가합니다. 드래그하여 순서를 변경할 수 있습니다.',
+                          '드래그하여 순서를 변경할 수 있습니다. 모든 카테고리를 추가/수정/삭제할 수 있습니다.',
                           style: TextStyle(fontSize: 11, color: Color(0xFF7B5E00)),
                         ),
                       ),

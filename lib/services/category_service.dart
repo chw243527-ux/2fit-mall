@@ -94,8 +94,6 @@ class CategoryService {
 
   // ── 메인 카테고리 삭제 ─────────────────────────────────────
   static Future<void> removeMainCategory(String name) async {
-    // 기본 카테고리는 삭제 불가
-    if (defaultMainCategories.contains(name)) return;
     final cats = List<String>.from(mainCategories)..remove(name);
     final subs = Map<String, List<String>>.from(subCatMap)..remove(name);
     await _saveToFirestore(cats, subs);
@@ -116,8 +114,6 @@ class CategoryService {
 
   // ── 하위 카테고리 삭제 ─────────────────────────────────────
   static Future<void> removeSubCategory(String mainCat, String subName) async {
-    // 기본 하위카테고리는 삭제 불가
-    if ((defaultSubCatMap[mainCat] ?? []).contains(subName)) return;
     final subs = Map<String, List<String>>.from(subCatMap);
     final list = List<String>.from(subs[mainCat] ?? [])..remove(subName);
     subs[mainCat] = list;
