@@ -2892,22 +2892,38 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             Row(children: [
               Icon(Icons.info_outline_rounded, size: 14, color: Colors.purple.shade400),
               const SizedBox(width: 6),
-              Text('원하시는 디자인 앞·뒤 이미지를 첨부해 주세요.',
+              Text('원하시는 디자인 파일을 첨부해 주세요',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.purple.shade700)),
             ]),
             const SizedBox(height: 6),
             Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: Text(
-                '지원 형식: PNG · JPG · PDF · AI · PSD 등\n참고 이미지가 많을 경우 ZIP 파일로 압축하여 첨부해 주세요.',
-                style: TextStyle(fontSize: 11, color: Colors.purple.shade600, height: 1.6),
-              ),
+              padding: const EdgeInsets.only(left: 4),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                _dotRow('앞면·뒷면 디자인을 모두 첨부하시면 더욱 정확하게 제작됩니다.', Colors.purple.shade600),
+                const SizedBox(height: 3),
+                _dotRow('지원 형식: PNG · JPG · PDF · AI · PSD · SVG 등', Colors.purple.shade600),
+                const SizedBox(height: 3),
+                _dotRow('파일이 여러 개일 경우 ZIP으로 압축 후 업로드해 주세요.', Colors.purple.shade600),
+              ]),
             ),
           ]),
         ),
         _refImageCard(),
       ]),
     );
+  }
+
+  Widget _dotRow(String text, Color color) {
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Icon(Icons.circle, size: 4, color: color.withValues(alpha: 0.6)),
+      ),
+      const SizedBox(width: 5),
+      Expanded(
+        child: Text(text, style: TextStyle(fontSize: 11, color: color, height: 1.4)),
+      ),
+    ]);
   }
 
   Widget _refImageCard() {
