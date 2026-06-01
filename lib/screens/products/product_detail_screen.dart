@@ -631,7 +631,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 borderRadius: BorderRadius.circular(6),
               ),
               child: const Text(
-                '※ 착상 이미지는 AI 생성 이미지입니다',
+                '※ 모든 착상 이미지는 AI 생성 이미지입니다',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 10,
