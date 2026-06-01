@@ -236,6 +236,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               _buildSliverAppBarOnly(product),
               SliverToBoxAdapter(child: _buildImageSlider(product)),
               SliverToBoxAdapter(child: _buildThumbnailBar(product)),
+              SliverToBoxAdapter(child: _buildAiImageNoticeBanner()),
               SliverToBoxAdapter(child: _buildBasicInfo(product)),
               SliverToBoxAdapter(
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -292,6 +293,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         children: [
                           _buildImageSlider(product),
                           _buildThumbnailBar(product),
+                          _buildAiImageNoticeBanner(),
                           _buildBasicInfo(product),
                           const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
                           _buildToptenBrandSection(product),
@@ -398,6 +400,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           children: [
                             _buildImageSlider(product),
                             _buildThumbnailBar(product),
+                            _buildAiImageNoticeBanner(),
                           ],
                         ),
                       ),
@@ -787,6 +790,56 @@ $productUrl
         ? _mainImages
         : (product.images.isNotEmpty ? product.images : ['']);
     showImageLightbox(context, images, initialIndex: initialIndex);
+  }
+
+  // ══ AI 생성 이미지 고지 배너 (메인 이미지 슬라이더 하단) ══
+  Widget _buildAiImageNoticeBanner() {
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1A1A),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // AI 아이콘
+            Icon(Icons.auto_awesome_rounded, size: 15, color: Colors.white),
+            SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '착상 이미지 AI 생성 안내',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    '본 상품의 모든 착상(착용) 이미지는 AI(인공지능)로 생성된 이미지입니다. 실제 제품과 색상·형태가 다를 수 있으며 참고용으로만 활용해 주세요.',
+                    style: TextStyle(
+                      fontSize: 9.5,
+                      color: Color(0xFFCCCCCC),
+                      height: 1.55,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 ══
@@ -3873,7 +3926,7 @@ $productUrl
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── 헤더 행 (라벨 + 관리자 업로드 버튼) ──
+        // ── 헤더 행 (라벨 + AI 배지 + 관리자 업로드 버튼) ──
         Row(
           children: [
             Container(
@@ -3888,6 +3941,31 @@ $productUrl
               '디자인 이미지',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
                   color: Color(0xFF1A1A1A), letterSpacing: -0.2),
+            ),
+            const SizedBox(width: 8),
+            // ★ AI 생성 이미지 표시 배지 (항상 표시)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A1A),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.auto_awesome_rounded, size: 9, color: Colors.white),
+                  SizedBox(width: 3),
+                  Text(
+                    'AI 생성',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
+              ),
             ),
             if (isAdmin) ...[
               const SizedBox(width: 8),
@@ -3925,7 +4003,38 @@ $productUrl
             ],
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
+
+        // ★ AI 이미지 안내 배너 (이미지가 있을 때 항상 표시)
+        if (imgs.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F8F8),
+              borderRadius: BorderRadius.circular(7),
+              border: Border.all(color: const Color(0xFFE0E0E0)),
+            ),
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF555555)),
+                SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    '본 섹션의 모든 착상 이미지는 AI(인공지능)로 생성된 이미지입니다.\n실제 제품의 색상·형태와 다소 차이가 있을 수 있으며, 참고용으로만 활용해 주세요.',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: Color(0xFF555555),
+                      height: 1.55,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
         // ── 이미지가 있을 때: 가로 스크롤 썸네일 ──
         if (imgs.isNotEmpty)
@@ -3963,6 +4072,26 @@ $productUrl
                                   child: const Icon(Icons.broken_image_outlined, color: Color(0xFFAAAAAA)),
                                 ),
                               ),
+                      ),
+                      // ★ 각 이미지 좌상단: "AI" 워터마크 배지
+                      Positioned(
+                        left: 4, top: 4,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.70),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: const Text(
+                            'AI',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
                       ),
                       // 확대 아이콘 오버레이
                       Positioned(
