@@ -625,19 +625,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           Positioned(
             top: 12, left: 14,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: const Text(
-                '※ 모든 착상 이미지는 AI 생성 이미지입니다',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.1,
-                ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '※ 모든 착상 이미지는 AI 생성 이미지입니다',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.1,
+                    ),
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    '▶ 디자인 이미지를 반드시 확인해주세요 [확인 필수]',
+                    style: TextStyle(
+                      color: Color(0xFFFFD966),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.1,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
