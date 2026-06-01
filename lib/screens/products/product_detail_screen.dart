@@ -4010,26 +4010,6 @@ $productUrl
                                 ),
                               ),
                       ),
-                      // ★ 각 이미지 좌상단: "AI" 워터마크 배지
-                      Positioned(
-                        left: 4, top: 4,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.70),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: const Text(
-                            'AI',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ),
                       // 확대 아이콘 오버레이
                       Positioned(
                         right: 4, bottom: 4,
