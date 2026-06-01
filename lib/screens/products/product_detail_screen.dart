@@ -621,88 +621,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             ),
           ),
 
-          // ── 디자인 이미지 보기 버튼 (디자인 이미지가 있을 때만 표시) ──
-          Builder(builder: (_) {
-            final designImgs = _sectionImages['design'] ?? [];
-            if (designImgs.isEmpty) return const SizedBox.shrink();
-            return Positioned(
-              bottom: 12, left: 14,
-              child: GestureDetector(
-                onTap: () => _scrollToSection(_keyDesign),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 0.8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // 디자인 이미지 미리보기 (첫 번째 썸네일)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: designImgs.first.startsWith('data:image')
-                            ? Image.memory(
-                                base64Decode(designImgs.first.split(',').last),
-                                width: 24, height: 24,
-                                fit: BoxFit.cover,
-                              )
-                            : Image.network(
-                                designImgs.first,
-                                width: 24, height: 24,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const SizedBox(width: 24, height: 24),
-                              ),
-                      ),
-                      const SizedBox(width: 7),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(Icons.auto_awesome_rounded, size: 9, color: Color(0xFFAAAAAA)),
-                              SizedBox(width: 3),
-                              Text(
-                                'AI 착상 이미지',
-                                style: TextStyle(
-                                  color: Color(0xFFAAAAAA),
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Text(
-                                '${designImgs.length}장 보기',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(width: 3),
-                              const Icon(Icons.keyboard_arrow_down_rounded, size: 13, color: Colors.white),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+          // ── 좌상단 AI 생성 고지 텍스트 ──
+          Positioned(
+            top: 12, left: 14,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                '※ 착상 이미지는 AI 생성 이미지입니다',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.1,
                 ),
               ),
-            );
-          }),
-        ],
-      ),
-    );
-      }, // LayoutBuilder builder
-    );
+            ),
+          ),
+
+        ],       // end Stack children
+      ),         // end Stack
+    );           // end Container return
+        },       // LayoutBuilder builder
+      );
   }
 
   Widget _imagePlaceholder() => Container(
@@ -871,11 +815,10 @@ $productUrl
     showImageLightbox(context, images, initialIndex: initialIndex);
   }
 
-  // ══ AI 생성 이미지 고지 배너 (메인 이미지 슬라이더 하단) ══
+  // ══ AI 생성 이미지 고지 배너 (제거됨 — 메인 이미지에 직접 표시) ══
   Widget _buildAiImageNoticeBanner() {
-    final designImgs = _sectionImages['design'] ?? [];
-    // 디자인 이미지가 없으면 배너 표시 안 함
-    if (designImgs.isEmpty) return const SizedBox.shrink();
+    // 배너 완전 제거
+    return const SizedBox.shrink();
 
     return GestureDetector(
       onTap: () => _scrollToSection(_keyDesign),
