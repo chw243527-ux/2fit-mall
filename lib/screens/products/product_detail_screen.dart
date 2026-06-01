@@ -4156,31 +4156,6 @@ $productUrl
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
                   color: Color(0xFF1A1A1A), letterSpacing: -0.2),
             ),
-            const SizedBox(width: 8),
-            // ★ AI 생성 이미지 표시 배지 (항상 표시)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.auto_awesome_rounded, size: 9, color: Colors.white),
-                  SizedBox(width: 3),
-                  Text(
-                    'AI 생성',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             if (isAdmin) ...[
               const SizedBox(width: 8),
               Container(
@@ -4217,38 +4192,7 @@ $productUrl
             ],
           ],
         ),
-        const SizedBox(height: 8),
-
-        // ★ AI 이미지 안내 배너 (이미지가 있을 때 항상 표시)
-        if (imgs.isNotEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-            margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8F8F8),
-              borderRadius: BorderRadius.circular(7),
-              border: Border.all(color: const Color(0xFFE0E0E0)),
-            ),
-            child: const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF555555)),
-                SizedBox(width: 7),
-                Expanded(
-                  child: Text(
-                    '본 섹션의 모든 착상 이미지는 AI(인공지능)로 생성된 이미지입니다.\n실제 제품의 색상·형태와 다소 차이가 있을 수 있으며, 참고용으로만 활용해 주세요.',
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      color: Color(0xFF555555),
-                      height: 1.55,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+        const SizedBox(height: 10),
 
         // ── 이미지가 있을 때: 가로 스크롤 썸네일 ──
         if (imgs.isNotEmpty)
