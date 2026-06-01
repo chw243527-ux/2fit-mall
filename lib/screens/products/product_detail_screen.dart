@@ -67,6 +67,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   final GlobalKey _keySize     = GlobalKey();
   final GlobalKey _keyReview   = GlobalKey();
   final GlobalKey _keyWashing  = GlobalKey();
+  final GlobalKey _keyDesign   = GlobalKey(); // 디자인 이미지 섹션 스크롤 대상
 
   // ── 로컬 섹션 이미지 캐시 (관리자 업로드 시 즉시 반영) ──
   late Map<String, List<String>> _sectionImages;
@@ -237,7 +238,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               SliverToBoxAdapter(child: _buildImageSlider(product)),
               SliverToBoxAdapter(child: _buildThumbnailBar(product)),
               SliverToBoxAdapter(child: _buildAiImageNoticeBanner()),
-              SliverToBoxAdapter(child: _buildBasicInfo(product)),
+              SliverToBoxAdapter(child: KeyedSubtree(key: _keyDesign, child: _buildBasicInfo(product))),
               SliverToBoxAdapter(
                 child: Column(mainAxisSize: MainAxisSize.min, children: [
                   const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
@@ -294,7 +295,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           _buildImageSlider(product),
                           _buildThumbnailBar(product),
                           _buildAiImageNoticeBanner(),
-                          _buildBasicInfo(product),
+                          KeyedSubtree(key: _keyDesign, child: _buildBasicInfo(product)),
                           const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
                           _buildToptenBrandSection(product),
                           const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
@@ -423,7 +424,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // 기본 정보
-                                    _buildBasicInfo(product),
+                                    KeyedSubtree(key: _keyDesign, child: _buildBasicInfo(product)),
                                     const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
                                     _buildToptenBrandSection(product),
                                     const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
@@ -619,6 +620,84 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               ),
             ),
           ),
+
+          // ── 디자인 이미지 보기 버튼 (디자인 이미지가 있을 때만 표시) ──
+          Builder(builder: (_) {
+            final designImgs = _sectionImages['design'] ?? [];
+            if (designImgs.isEmpty) return const SizedBox.shrink();
+            return Positioned(
+              bottom: 12, left: 14,
+              child: GestureDetector(
+                onTap: () => _scrollToSection(_keyDesign),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 0.8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 디자인 이미지 미리보기 (첫 번째 썸네일)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: designImgs.first.startsWith('data:image')
+                            ? Image.memory(
+                                base64Decode(designImgs.first.split(',').last),
+                                width: 24, height: 24,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.network(
+                                designImgs.first,
+                                width: 24, height: 24,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const SizedBox(width: 24, height: 24),
+                              ),
+                      ),
+                      const SizedBox(width: 7),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.auto_awesome_rounded, size: 9, color: Color(0xFFAAAAAA)),
+                              SizedBox(width: 3),
+                              Text(
+                                'AI 착상 이미지',
+                                style: TextStyle(
+                                  color: Color(0xFFAAAAAA),
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Text(
+                                '${designImgs.length}장 보기',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(width: 3),
+                              const Icon(Icons.keyboard_arrow_down_rounded, size: 13, color: Colors.white),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -794,49 +873,184 @@ $productUrl
 
   // ══ AI 생성 이미지 고지 배너 (메인 이미지 슬라이더 하단) ══
   Widget _buildAiImageNoticeBanner() {
-    return Container(
-      width: double.infinity,
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+    final designImgs = _sectionImages['design'] ?? [];
+    // 디자인 이미지가 없으면 배너 표시 안 함
+    if (designImgs.isEmpty) return const SizedBox.shrink();
+
+    return GestureDetector(
+      onTap: () => _scrollToSection(_keyDesign),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // AI 아이콘
-            Icon(Icons.auto_awesome_rounded, size: 15, color: Colors.white),
-            SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        width: double.infinity,
+        color: Colors.white,
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF111111),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── 헤더 행: 라벨 + AI 배지 + 바로가기 ──
+              Row(
                 children: [
-                  Text(
-                    '착상 이미지 AI 생성 안내',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.2,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.auto_awesome_rounded, size: 10, color: Colors.white),
+                        SizedBox(width: 4),
+                        Text(
+                          'AI 착상 이미지',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 3),
+                  const SizedBox(width: 8),
                   Text(
-                    '본 상품의 모든 착상(착용) 이미지는 AI(인공지능)로 생성된 이미지입니다. 실제 제품과 색상·형태가 다를 수 있으며 참고용으로만 활용해 주세요.',
-                    style: TextStyle(
-                      fontSize: 9.5,
-                      color: Color(0xFFCCCCCC),
-                      height: 1.55,
-                      fontWeight: FontWeight.w400,
+                    '${designImgs.length}장',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF888888),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Spacer(),
+                  const Row(
+                    children: [
+                      Text(
+                        '모두 보기',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFFAAAAAA),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(width: 2),
+                      Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: Color(0xFFAAAAAA)),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // ── 디자인 이미지 가로 스크롤 미리보기 ──
+              SizedBox(
+                height: 88,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: designImgs.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 7),
+                  itemBuilder: (_, i) {
+                    final url = designImgs[i];
+                    return GestureDetector(
+                      onTap: () {
+                        _scrollToSection(_keyDesign);
+                        // 살짝 딜레이 후 라이트박스 오픈
+                        Future.delayed(const Duration(milliseconds: 400), () {
+                          if (mounted) _showDesignLightbox(designImgs, i);
+                        });
+                      },
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(7),
+                            child: url.startsWith('data:image')
+                                ? Image.memory(
+                                    base64Decode(url.split(',').last),
+                                    width: 88, height: 88,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.network(
+                                    url,
+                                    width: 88, height: 88,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      width: 88, height: 88,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF2A2A2A),
+                                        borderRadius: BorderRadius.circular(7),
+                                      ),
+                                      child: const Icon(Icons.broken_image_outlined,
+                                          color: Color(0xFF555555), size: 22),
+                                    ),
+                                  ),
+                          ),
+                          // AI 워터마크
+                          Positioned(
+                            left: 5, top: 5,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.65),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: const Text(
+                                'AI',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                          // 확대 아이콘
+                          Positioned(
+                            right: 4, bottom: 4,
+                            child: Container(
+                              padding: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.50),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: const Icon(Icons.zoom_in_rounded,
+                                  color: Colors.white, size: 11),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // ── 하단 면책 문구 ──
+              const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.info_outline_rounded, size: 10, color: Color(0xFF666666)),
+                  SizedBox(width: 5),
+                  Expanded(
+                    child: Text(
+                      '모든 착상 이미지는 AI(인공지능)로 생성된 이미지입니다. 실제 제품과 색상·형태가 다를 수 있으며 참고용으로만 활용해 주세요.',
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        color: Color(0xFF666666),
+                        height: 1.5,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
