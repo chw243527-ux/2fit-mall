@@ -922,10 +922,12 @@ class ProductService {
               (data['createdAt'] as Timestamp).toDate().toIso8601String();
         }
         final fresh = ProductModel.fromJson(data);
-        // 인메모리 캐시도 갱신
+        // 인메모리 캐시 및 로컬 SharedPreferences 갱신
         final idx = _products.indexWhere((p) => p.id == id);
         if (idx >= 0) {
           _products[idx] = fresh;
+          _cache = List.from(_products);
+          _persistToLocal(); // 로컬 캐시에도 즉시 반영
         }
         return fresh;
       }
