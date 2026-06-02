@@ -291,7 +291,7 @@ class _PcLayoutState extends State<_PcLayout> {
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ProductListScreen()));
+                  MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '전체')));
             },
           ),
           const Divider(height: 1, indent: 16, endIndent: 16),
