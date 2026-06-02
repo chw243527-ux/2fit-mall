@@ -240,13 +240,13 @@ class ProductCard extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 5),
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2A2A2A),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: const Text(
                     '기성품',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Color(0xFF111111),
                       fontSize: 9,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.2,
