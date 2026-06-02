@@ -222,9 +222,15 @@ class _HomeScreenState extends State<HomeScreen>
         .toList()
       ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
 
+    // 카드 고정 너비 (PC 기준)
+    const cardW = 220.0;
+    const imgH  = cardW * 1.25; // 4:5 비율
+    const cardH  = imgH + 72.0; // 이미지 + 텍스트
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // ── 헤더 ──
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -245,7 +251,7 @@ class _HomeScreenState extends State<HomeScreen>
             const Spacer(),
             GestureDetector(
               onTap: () => Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => const ProductListScreen(initialCategory: '단체주문'))),
+                  builder: (_) => const GroupOrderOnlyScreen())),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
@@ -261,6 +267,7 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
         const SizedBox(height: 24),
+        // ── 가로 스크롤 슬라이더 ──
         if (groupProds.isEmpty)
           const SizedBox(
             height: 120,
@@ -268,17 +275,120 @@ class _HomeScreenState extends State<HomeScreen>
                 style: TextStyle(color: Color(0xFFAAAAAA), fontSize: 14))),
           )
         else
-          LayoutBuilder(builder: (ctx, constraints) {
-            const cols = 5;
-            const sp = 16.0;
-            final cardW = (constraints.maxWidth - sp * (cols - 1)) / cols;
-            return Wrap(
-              spacing: sp, runSpacing: sp,
-              children: groupProds.take(5).map((p) =>
-                SizedBox(width: cardW, child: ProductCard(product: p, showGroupBadge: false))
-              ).toList(),
-            );
-          }),
+          SizedBox(
+            height: cardH,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: groupProds.length,
+              itemBuilder: (_, i) {
+                final p = groupProds[i];
+                final discount = p.originalPrice != null && p.originalPrice! > p.price
+                    ? ((1 - p.price / p.originalPrice!) * 100).round()
+                    : 0;
+                return GestureDetector(
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
+                  child: Container(
+                    width: cardW,
+                    margin: EdgeInsets.only(right: i < groupProds.length - 1 ? 16 : 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 이미지
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Stack(
+                            children: [
+                              SizedBox(
+                                width: cardW, height: imgH,
+                                child: p.images.isNotEmpty
+                                    ? Image.network(p.images.first,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Container(
+                                          color: const Color(0xFFF5F5F5),
+                                          child: const Icon(Icons.image_outlined,
+                                              color: Color(0xFFCCCCCC), size: 40),
+                                        ))
+                                    : Container(color: const Color(0xFFF5F5F5)),
+                              ),
+                              // 할인율 배지
+                              if (discount > 0)
+                                Positioned(
+                                  top: 8, right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE53935),
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    child: Text('$discount%',
+                                        style: const TextStyle(color: Colors.white,
+                                            fontSize: 11, fontWeight: FontWeight.w900)),
+                                  ),
+                                ),
+                              // 단체주문 배지
+                              Positioned(
+                                bottom: 8, left: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF4A148C).withValues(alpha: 0.88),
+                                    borderRadius: BorderRadius.circular(3),
+                                  ),
+                                  child: const Text('단체주문',
+                                      style: TextStyle(color: Colors.white,
+                                          fontSize: 10, fontWeight: FontWeight.w800)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // 상품명
+                        Text(p.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF1A1A1A), height: 1.35),
+                        ),
+                        const SizedBox(height: 4),
+                        // 가격
+                        Row(
+                          children: [
+                            if (discount > 0) ...[
+                              Text(
+                                '₩${p.price.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
+                                style: const TextStyle(fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF111111)),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '₩${p.originalPrice!.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}',
+                                style: const TextStyle(fontSize: 11,
+                                    color: Color(0xFFAAAAAA),
+                                    decoration: TextDecoration.lineThrough),
+                              ),
+                            ] else
+                              Text(
+                                p.price > 0
+                                    ? '₩${p.price.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} ~'
+                                    : '견적 문의',
+                                style: const TextStyle(fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF111111)),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
       ],
     );
   }
