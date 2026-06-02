@@ -1519,48 +1519,66 @@ $productUrl
     // 하의 타이즈: K 또는 PP 선택
     // 기타: 등록된 색상만
     Widget colorContent;
-    if (isGroupOnly && isSingletSet) {
-      // 단체주문 싱글렛세트: 상의 고정 / 하의 K·PP 안내
+    if (isGroupOnly && (isSingletSet || isTaiz)) {
+      // 단체주문 싱글렛세트·하의: 골지 19색 전체 안내
       colorContent = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _infoColorBadge(
-            label: '상의',
-            labelColor: const Color(0xFF1A1A1A),
-            text: '디자인 이미지 색상 및 디자인 그대로 유지 (변경 불가)',
+            label: '단체주문 전용',
+            labelColor: const Color(0xFF4A148C),
+            text: '골지원단 19가지 기본 색상 중 원하는 색상으로 자유롭게 제작 가능',
           ),
-          const SizedBox(height: 8),
-          _infoColorBadge(
-            label: '하의',
-            labelColor: const Color(0xFF1976D2),
-            text: 'K (블랙) 또는 PP (퍼플네이비) 중 1가지 선택',
+          const SizedBox(height: 10),
+          _infoColorChipRow(['K','N','W','G','DG','SB','B','DB','SP','LP','IO','LG','R','PP','ND','BB','FP','FO','FG']),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFEDE7F6), Color(0xFFF3E5F5)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(color: const Color(0xFF7B1FA2).withOpacity(0.22)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: 28, height: 28,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7B1FA2).withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.auto_awesome_rounded, size: 15, color: Color(0xFF6A1B9A)),
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '19가지 기본 색상 외에도 제작 가능',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF4A148C), height: 1.3),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        '원하시는 색상이 있다면 주문 시 별도로 알려주세요.',
+                        style: TextStyle(fontSize: 10.5, color: Color(0xFF6A1B9A), height: 1.45),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          _infoColorChipRow(['K', 'PP']),
         ],
       );
-    } else if (isGroupOnly && isTaiz) {
-      // 단체주문 하의: K 또는 PP 안내
-      colorContent = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _infoColorBadge(
-            label: '하의',
-            labelColor: const Color(0xFF1976D2),
-            text: 'K (블랙) 또는 PP (퍼플네이비) 중 1가지 선택',
-          ),
-          const SizedBox(height: 8),
-          _infoColorChipRow(['K', 'PP']),
-        ],
-      );
-    } else if (isGroupOnly) {
-      // 단체주문 기타 카테고리: 등록된 색상만 표시
-      colorContent = product.colors.isNotEmpty
-          ? _infoColorChipRow(product.colors)
-          : const Text('등록된 색상 정보가 없습니다.',
-              style: TextStyle(fontSize: 12, color: Color(0xFF888888)));
     } else {
-      // 기성품 전체 (싱글렛세트·싱글렛상의·하의·기타 모두): 등록된 색상만 표시
+      // 단체주문 기타 카테고리 + 기성품 전체: 등록된 색상만 표시
       colorContent = product.colors.isNotEmpty
           ? _infoColorChipRow(product.colors)
           : const Text('등록된 색상 정보가 없습니다.',
