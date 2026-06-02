@@ -1298,16 +1298,6 @@ class _HomeScreenState extends State<HomeScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE53935),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                  child: const Text('2FIT KOREA',
-                    style: TextStyle(color: Colors.white, fontSize: 12,
-                        fontWeight: FontWeight.w800, letterSpacing: 1.8)),
-                ),
                 const SizedBox(height: 16),
                 Text(
                   loc.language == AppLanguage.korean
@@ -2921,17 +2911,6 @@ class _HomeScreenState extends State<HomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // 태그
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: tagSize, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE53935),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: Text('2FIT KOREA',
-                        style: TextStyle(color: Colors.white, fontSize: tagSize,
-                            fontWeight: FontWeight.w800, letterSpacing: 1.8)),
-                    ),
                     SizedBox(height: bannerH * 0.018),
                     // 메인 타이틀 (bannerH 비례)
                     Text(
