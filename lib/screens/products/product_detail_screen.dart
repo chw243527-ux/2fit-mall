@@ -1559,58 +1559,8 @@ $productUrl
           ? _infoColorChipRow(product.colors)
           : const Text('등록된 색상 정보가 없습니다.',
               style: TextStyle(fontSize: 12, color: Color(0xFF888888)));
-    } else if (isSingletSet) {
-      // 기성품 싱글렛세트: 상의 고정 / 하의 K·PP
-      colorContent = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _infoColorBadge(
-            label: '상의',
-            labelColor: const Color(0xFF1A1A1A),
-            text: '디자인 이미지 색상 및 디자인 그대로 유지 (변경 불가)',
-          ),
-          const SizedBox(height: 8),
-          _infoColorBadge(
-            label: '하의',
-            labelColor: const Color(0xFF1976D2),
-            text: 'K (블랙) 또는 PP (퍼플네이비) 중 1가지 선택',
-          ),
-          const SizedBox(height: 8),
-          _infoColorChipRow(['K', 'PP']),
-        ],
-      );
-    } else if (isSingletTop) {
-      // 기성품 싱글렛 상의 단품: 제품 디자인 색상 그대로
-      colorContent = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _infoColorBadge(
-            label: '기성품',
-            labelColor: const Color(0xFF1A1A1A),
-            text: '제품 디자인 색상 그대로 적용 (색상 변경 불가)',
-          ),
-          if (product.colors.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _infoColorChipRow(product.colors),
-          ],
-        ],
-      );
-    } else if (isTaiz) {
-      // 하의 타이즈: K 또는 PP 선택
-      colorContent = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _infoColorBadge(
-            label: '하의',
-            labelColor: const Color(0xFF1976D2),
-            text: 'K (블랙) 또는 PP (퍼플네이비) 중 1가지 선택',
-          ),
-          const SizedBox(height: 8),
-          _infoColorChipRow(['K', 'PP']),
-        ],
-      );
     } else {
-      // 기타 카테고리: 등록된 색상만
+      // 기성품 전체 (싱글렛세트·싱글렛상의·하의·기타 모두): 등록된 색상만 표시
       colorContent = product.colors.isNotEmpty
           ? _infoColorChipRow(product.colors)
           : const Text('등록된 색상 정보가 없습니다.',
