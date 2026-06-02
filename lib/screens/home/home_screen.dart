@@ -4223,17 +4223,6 @@ class _HomeScreenState extends State<HomeScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE53935),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                      child: const Text('2FIT KOREA',
-                        style: TextStyle(color: Colors.white, fontSize: 9,
-                            fontWeight: FontWeight.w800, letterSpacing: 1.8)),
-                    ),
-                    const SizedBox(height: 10),
                     Text(
                       loc.language == AppLanguage.korean
                           ? '함께 달리는\n2FIT'

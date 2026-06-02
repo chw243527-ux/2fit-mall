@@ -210,9 +210,61 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: categories.length,
+                itemCount: categories.length + 1, // 전체 상품 항목 추가
                 itemBuilder: (ctx, i) {
-                  final cat = categories[i];
+                  // 첫 번째 항목: 전체 상품
+                  if (i == 0) {
+                    final isActive = widget.categoryName == '전체';
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                          if (!isActive) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CategoryDetailScreen(
+                                  categoryName: '전체',
+                                  categoryColor: const Color(0xFF888888),
+                                  categoryIcon: Icons.grid_view_rounded,
+                                  subCategories: const [
+                                    SubCategory(name: '전체 상품', filter: '전체'),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: isActive ? _card : Colors.transparent,
+                            border: isActive
+                                ? const Border(left: BorderSide(color: _white, width: 2))
+                                : null,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.grid_view_rounded,
+                                  size: 16,
+                                  color: isActive ? _white : _grey),
+                              const SizedBox(width: 12),
+                              Text(
+                                '전체 상품',
+                                style: TextStyle(
+                                  color: isActive ? _white : _grey,
+                                  fontSize: 14,
+                                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  final cat = categories[i - 1];
                   final isActive = cat.name == widget.categoryName;
                   return _buildDrawerCategoryItem(context, cat, isActive);
                 },
