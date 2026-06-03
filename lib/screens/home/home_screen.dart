@@ -1078,7 +1078,9 @@ class _HomeScreenState extends State<HomeScreen>
               void onTap() {
                 switch (b.btnAction) {
                   case 1:
-                    widget.onNavigate?.call(1);
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => const ProductListScreen(initialCategory: '전체'),
+                    ));
                     break;
                   case 2:
                     Navigator.push(context, MaterialPageRoute(
@@ -1086,7 +1088,9 @@ class _HomeScreenState extends State<HomeScreen>
                     ));
                     break;
                   default:
-                    widget.onNavigate?.call(1);
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => const ProductListScreen(initialCategory: '전체'),
+                    ));
                 }
               }
 
@@ -1147,7 +1151,8 @@ class _HomeScreenState extends State<HomeScreen>
                       videoUrl: videoUrl,
                       thumbnailUrl: b.imageUrl,
                       onTap: onTap,
-                      onProductTap: () => widget.onNavigate?.call(1),
+                      onProductTap: () => Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const ProductListScreen(initialCategory: '전체'))),
                     )
                   else if (b.imageUrl.isNotEmpty)
                     GestureDetector(
@@ -1217,7 +1222,8 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── PC 로컬 asset 배너 (Firestore 배너 없을 때 즉시 표시) ──
   Widget _buildPcLocalBanner(AppLocalizations loc) {
-    void goShop() => widget.onNavigate?.call(1);
+    void goShop() => Navigator.push(context,
+        MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '전체')));
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -2821,7 +2827,8 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 오버레이 즉시 표시
     if (activeBanners.isEmpty) {
-      void goShop() => widget.onNavigate?.call(1);
+      void goShop() => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '전체')));
       // 배너 높이 비례 텍스트 크기 (스크린샷 기준: bannerH≈580 → title≈62px)
       final titleSize = (bannerH * 0.107).clamp(28.0, 72.0);
       final tagSize   = (bannerH * 0.018).clamp(8.0, 14.0);
@@ -4118,7 +4125,8 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 즉시 표시
     if (activeBanners.isEmpty) {
-      void goShop() => widget.onNavigate?.call(1);
+      void goShop() => Navigator.push(context,
+          MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '전체')));
       return SizedBox(
         width: double.infinity,
         height: bannerHeight,
@@ -4257,7 +4265,9 @@ class _HomeScreenState extends State<HomeScreen>
     void onTap() {
       switch (banner.btnAction) {
         case 1:
-          widget.onNavigate?.call(1);
+          Navigator.push(context, MaterialPageRoute(
+            builder: (_) => const ProductListScreen(initialCategory: '전체'),
+          ));
           break;
         case 2:
           Navigator.push(context, MaterialPageRoute(
@@ -4265,7 +4275,9 @@ class _HomeScreenState extends State<HomeScreen>
           ));
           break;
         default:
-          widget.onNavigate?.call(1);
+          Navigator.push(context, MaterialPageRoute(
+            builder: (_) => const ProductListScreen(initialCategory: '전체'),
+          ));
       }
     }
 
@@ -4288,7 +4300,8 @@ class _HomeScreenState extends State<HomeScreen>
             videoUrl: videoUrl!,
             thumbnailUrl: imageUrl,
             onTap: onTap,
-            onProductTap: () => widget.onNavigate?.call(1),
+            onProductTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const ProductListScreen(initialCategory: '전체'))),
           ),
           // ── 텍스트/CTA: 비디오 로딩과 무관하게 즉시 표시 ──
           overlayWidget,
