@@ -74,7 +74,17 @@ List<CategoryData> getCategories(AppLocalizations loc) {
     final allTabName = '전체 $mainCat';
     final subList = <SubCategory>[
       SubCategory(name: allTabName, filter: mainCat), // 전체탭
-      ...subs.map((s) => SubCategory(name: s, filter: mainCat)),
+      ...subs.expand((s) {
+        // 타이즈 탭 클릭 시 하위에 남성 5부 / 여성 2.5부 탭 추가
+        if (s == '타이즈' && mainCat == '하의') {
+          return [
+            SubCategory(name: '타이즈', filter: mainCat),
+            SubCategory(name: '남성 5부', filter: mainCat),
+            SubCategory(name: '여성 2.5부', filter: mainCat),
+          ];
+        }
+        return [SubCategory(name: s, filter: mainCat)];
+      }),
     ];
     return CategoryData(
       name: mainCat,

@@ -234,6 +234,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   double get _basePrice    => widget.product?.price ?? 0.0;
   // 타이즈 9부 선택 여부
   bool get _isTights9      => _maleLengthSel == '9부' || _femaleLengthSel == '9부';
+  /// 타이즈 또는 하의 단체주문: 하의 사이즈만 입력 (상의 사이즈 불필요)
+  bool get _isBottomOnly {
+    final p = widget.product;
+    if (p == null) return false;
+    return p.category == '하의' ||
+        p.subCategory.contains('타이즈') ||
+        p.subCategory.contains('남성 5부') ||
+        p.subCategory.contains('여성 2.5부') ||
+        p.name.contains('타이즈');
+  }
   // 숏사각(숏쇼츠) 선택 시 주머니 불가
   bool get _isFemaleShortSquare => _femaleLengthSel == '숏쇼츠';
   // 단가 = 기본가 + 심리스 + 9부 + 주머니 (모두 인원당 추가)
@@ -604,14 +614,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _showSnack('${i + 1}번 인원의 성별을 선택해 주세요.');
         return false;
       }
-      // 상의 사이즈 확인
-      if (p.effectiveTopSize.isEmpty) {
+      // 상의 사이즈 확인 (하의/타이즈 단체주문 시 생략)
+      if (!_isBottomOnly && p.effectiveTopSize.isEmpty) {
         _showSnack('${i + 1}번 인원의 상의 사이즈를 입력해 주세요.');
         return false;
       }
       // 하의 사이즈 확인
       if (p.effectiveBottomSize.isEmpty) {
-        _showSnack('${i + 1}번 인원의 하의 사이즈를 입력해 주세요.');
+        _showSnack('${i + 1}번 인원의 사이즈를 입력해 주세요.');
         return false;
       }
     }
@@ -3975,19 +3985,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             _buildPersonSizeTable(p),
             const SizedBox(height: 10),
 
-            // ③ 상의 사이즈 선택
-            _buildPersonSizeSelector(
-              label: '상의 사이즈 *',
-              icon: Icons.checkroom_outlined,
-              selected: p.topSize,
-              sizeType: p.sizeType,
-              onSelect: (v) => setState(() => p.topSize = v),
-            ),
-            const SizedBox(height: 10),
+            // ③ 상의 사이즈 선택 (하의/타이즈 단체주문 시 숨김)
+            if (!_isBottomOnly) ...[
+              _buildPersonSizeSelector(
+                label: '상의 사이즈 *',
+                icon: Icons.checkroom_outlined,
+                selected: p.topSize,
+                sizeType: p.sizeType,
+                onSelect: (v) => setState(() => p.topSize = v),
+              ),
+              const SizedBox(height: 10),
+            ],
 
             // ④ 하의 사이즈 선택
             _buildPersonSizeSelector(
-              label: '하의 사이즈 *',
+              label: _isBottomOnly ? '사이즈 *' : '하의 사이즈 *',
               icon: Icons.accessibility_new_rounded,
               selected: p.bottomSize,
               sizeType: p.sizeType,
