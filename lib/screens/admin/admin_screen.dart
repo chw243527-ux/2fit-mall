@@ -766,6 +766,7 @@ class _AdminScreenState extends State<AdminScreen>
     // Stack+Offstage: 모든 탭을 미리 빌드해두고 보이기/숨기기만 전환
     // → 탭 전환 시 재빌드 없음, 스트림 구독 유지
     return Stack(
+      fit: StackFit.expand,
       children: [
         Offstage(offstage: index != 0, child: _buildDashboard()),
         Offstage(offstage: index != 1, child: _buildOrderManagement()),
