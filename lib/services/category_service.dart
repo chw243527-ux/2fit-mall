@@ -15,8 +15,8 @@ class CategoryService {
   ];
 
   static const Map<String, List<String>> defaultSubCatMap = {
-    '상의': ['싱글렛 A타입', '싱글렛 B타입', '크롭탑', '라운드티', '카라티', '롱 슬리브', '맨투맨', '후드집업', '트레이닝 집업'],
-    '하의': ['타이즈', '트레이닝바지', '반바지'],
+    '상의': ['NEW 싱글렛 A타입', 'NEW 싱글렛 B타입', 'Standard 싱글렛 A타입', 'Standard 싱글렛 B타입', '크롭탑', '라운드티', '카라티', '롱 슬리브', '맨투맨', '후드집업', '트레이닝 집업'],
+    '하의': ['NEW 싱글렛 A타입', 'NEW 싱글렛 B타입', '타이즈', '트레이닝바지', '반바지'],
     '세트': ['싱글렛세트A타입', '트레이닝복세트'],
     '아우터': ['바람막이', '다운패딩', '다운조끼패딩', '롱패딩'],
     '스킨슈트': ['스킨슈트'],
@@ -51,14 +51,27 @@ class CategoryService {
       _cachedMainCats = List<String>.from(data['mainCategories'] as List? ?? defaultMainCategories);
       final rawSub = data['subCatMap'] as Map<String, dynamic>? ?? {};
       _cachedSubCatMap = {};
-      // 기본값 먼저 채우기
+
+      // 기본값 먼저 채우기 (최신 defaultSubCatMap 기준)
       for (final e in defaultSubCatMap.entries) {
         _cachedSubCatMap![e.key] = List<String>.from(e.value);
       }
-      // Firestore 값으로 덮어쓰기
+      // Firestore 값으로 병합: 기본값에 없는 커스텀 항목만 추가 (기본값 순서 우선)
       for (final e in rawSub.entries) {
-        _cachedSubCatMap![e.key] = List<String>.from(e.value as List);
+        final defaultList = defaultSubCatMap[e.key] ?? [];
+        final firestoreList = List<String>.from(e.value as List);
+        // 기본값에 없는 추가 항목만 뒤에 병합
+        final extras = firestoreList.where((s) => !defaultList.contains(s)).toList();
+        if (extras.isNotEmpty) {
+          _cachedSubCatMap![e.key] = [...defaultList, ...extras];
+        }
+        // 기본값에 있는 항목만 있으면 기본값 그대로 유지
       }
+      // Firestore와 기본값이 다를 경우 Firestore도 갱신
+      await _saveToFirestore(
+        List<String>.from(_cachedMainCats!),
+        Map<String, List<String>>.from(_cachedSubCatMap!),
+      );
     } catch (e) {
       debugPrint('⚠️ CategoryService.load 실패: $e');
       _cachedMainCats = List<String>.from(defaultMainCategories);
@@ -66,6 +79,17 @@ class CategoryService {
         (k, v) => MapEntry(k, List<String>.from(v)),
       ));
     }
+  }
+
+  // ── 기본값으로 강제 초기화 (카테고리 리셋) ─────────────────
+  static Future<void> resetToDefaults() async {
+    final cats = List<String>.from(defaultMainCategories);
+    final subs = Map<String, List<String>>.from(defaultSubCatMap.map(
+      (k, v) => MapEntry(k, List<String>.from(v)),
+    ));
+    await _saveToFirestore(cats, subs);
+    _cachedMainCats = cats;
+    _cachedSubCatMap = subs;
   }
 
   // ── getter (캐시 우선, 없으면 기본값) ───────────────────────
