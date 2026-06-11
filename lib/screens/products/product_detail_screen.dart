@@ -9564,7 +9564,8 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                           (widget.product?.subCategory.contains('타이즈') ?? false) ||
                                           (widget.product?.subCategory.contains('남성 5부') ?? false) ||
                                           (widget.product?.subCategory.contains('여성 2.5부') ?? false) ||
-                                          (widget.product?.name.contains('타이즈') ?? false),
+                                          (widget.product?.name.contains('타이즈') ?? false) ||
+                                          (widget.product?.name.contains('하의') ?? false),
                                     )),
                               );
                             }

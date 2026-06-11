@@ -10644,11 +10644,13 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                   _chip('단체전용', _isGroupOnly, (v) => setState(() {
                     _isGroupOnly = v;
                     if (v) {
-                      // 단체전용 ON → 카테고리 자동으로 '단체주문'으로 변경
-                      _selCat = '단체주문';
-                      final subs = CategoryService.subCatMap['단체주문'] ?? [];
-                      _selSubCat = subs.isNotEmpty ? subs.first : '';
-                      _selTightsSub = '';
+                      // 단체전용 ON → 하의 카테고리는 유지, 그 외는 '단체주문'으로 변경
+                      if (_selCat != '하의') {
+                        _selCat = '단체주문';
+                        final subs = CategoryService.subCatMap['단체주문'] ?? [];
+                        _selSubCat = subs.isNotEmpty ? subs.first : '';
+                        _selTightsSub = '';
+                      }
                     } else if (!_isReadyMade) {
                       // 단체전용 OFF + 기성품 아닐 때만 → 카테고리 '상의'로 초기화
                       _selCat = '상의';
