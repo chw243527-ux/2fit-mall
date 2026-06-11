@@ -3997,9 +3997,20 @@ class _AdminScreenState extends State<AdminScreen>
     final isAdminLoading = context.watch<ProductProvider>().isAdminLoading;
 
     // 검색 + 카테고리 필터 적용
+    const _bottomSubCats = ['타이즈', '남성 5부', '여성 2.5부', '트레이닝바지', '반바지'];
+    bool _matchesCategory(p, String filter) {
+      if (filter == '전체') return true;
+      if (p.category == filter) return true;
+      // 하의 탭: category가 '단체주문'으로 저장됐어도 하의 서브카테고리면 포함
+      if (filter == '하의') {
+        if (_bottomSubCats.any((s) => p.subCategory.contains(s))) return true;
+        if (p.name.contains('타이즈') || p.name.contains('하의')) return true;
+      }
+      return false;
+    }
     var filtered = _productCategoryFilter == '전체'
         ? allProducts
-        : allProducts.where((p) => p.category == _productCategoryFilter).toList();
+        : allProducts.where((p) => _matchesCategory(p, _productCategoryFilter)).toList();
     if (_productSearchQuery.isNotEmpty) {
       final q = _productSearchQuery.toLowerCase();
       filtered = filtered.where((p) => p.name.toLowerCase().contains(q)).toList();

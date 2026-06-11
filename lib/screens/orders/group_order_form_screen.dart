@@ -630,6 +630,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         return false;
       }
     }
+    // 디자인 요청 사항 필수 확인
+    if (_memoCtrl.text.trim().isEmpty) {
+      _showSnack('디자인 요청 사항을 입력해 주세요.');
+      return false;
+    }
     return true;
   }
 
@@ -4700,14 +4705,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══════════════════════════════════════════════
   Widget _buildMemoSection() {
     return _card(
-      title: '요청 사항',
+      title: '디자인 요청 사항 *',
       icon: Icons.edit_note_rounded,
       child: TextField(
         controller: _memoCtrl,
-        maxLines: 3,
+        maxLines: 4,
         style: const TextStyle(fontSize: 13),
         decoration: InputDecoration(
-          hintText: '추가 요청 사항을 입력해 주세요 (선택)',
+          hintText: '디자인 요청 사항을 입력해 주세요 (필수)\n예) 색상, 로고 위치, 단체명, 특별 요청 등',
           hintStyle: const TextStyle(fontSize: 12, color: Colors.grey),
           contentPadding: const EdgeInsets.all(12),
           border: OutlineInputBorder(
@@ -4716,6 +4721,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: _purple, width: 1.5)),
+          errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Colors.red, width: 1.5)),
         ),
       ),
     );
