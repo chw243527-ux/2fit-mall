@@ -235,16 +235,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // 타이즈 9부 선택 여부
   bool get _isTights9      => _maleLengthSel == '9부' || _femaleLengthSel == '9부';
   /// 타이즈 또는 하의 단체주문: 하의 사이즈만 입력 (상의 사이즈 불필요)
-  /// 하의 카테고리 + 단체주문(isGroupOnly) 상품: 인쇄/재봉/디자인이미지/상의사이즈 숨김
+  /// 하의 카테고리 상품: 인쇄/재봉/디자인이미지/상의사이즈 숨김
   bool get _isBottomOnly {
     final p = widget.product;
     if (p == null) return false;
-    final isBottom = p.category == '하의' ||
+    return p.category == '하의' ||
         p.subCategory.contains('타이즈') ||
         p.subCategory.contains('남성 5부') ||
         p.subCategory.contains('여성 2.5부') ||
         p.name.contains('타이즈');
-    return isBottom && p.isGroupOnly;
   }
   // 숏사각(숏쇼츠) 선택 시 주머니 불가
   bool get _isFemaleShortSquare => _femaleLengthSel == '숏쇼츠';
