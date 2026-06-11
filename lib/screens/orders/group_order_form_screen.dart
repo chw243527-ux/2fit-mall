@@ -49,6 +49,7 @@ class GroupOrderFormScreen extends StatefulWidget {
   final int initialPrintType;
   final int initialCount;
   final OrderModel? originalOrder; // 추가주문 시 기존 주문 참조
+  final bool isBottomOrder; // 하의 카테고리 + 단체주문: 인쇄/재봉/디자인이미지/상의사이즈 숨김
 
   const GroupOrderFormScreen({
     super.key,
@@ -57,6 +58,7 @@ class GroupOrderFormScreen extends StatefulWidget {
     this.initialPrintType = 0,
     this.initialCount = 0,
     this.originalOrder,
+    this.isBottomOrder = false,
   });
 
   @override
@@ -235,8 +237,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // 타이즈 9부 선택 여부
   bool get _isTights9      => _maleLengthSel == '9부' || _femaleLengthSel == '9부';
   /// 타이즈 또는 하의 단체주문: 하의 사이즈만 입력 (상의 사이즈 불필요)
-  /// 하의 카테고리 상품: 인쇄/재봉/디자인이미지/상의사이즈 숨김
+  /// 하의 카테고리 단체주문: 인쇄/재봉/디자인이미지/상의사이즈 숨김
+  /// widget.isBottomOrder(명시 전달) OR product.category=='하의' 둘 다 체크
   bool get _isBottomOnly {
+    if (widget.isBottomOrder) return true;
     final p = widget.product;
     if (p == null) return false;
     return p.category == '하의' ||
@@ -879,9 +883,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          '아래 폼을 작성하여 주문을 완료해 주세요.  [DEBUG cat:${widget.product?.category ?? 'null'} sub:${widget.product?.subCategory ?? 'null'} bottom:$_isBottomOnly]',
-          style: const TextStyle(color: Colors.white60, fontSize: 12),
+        const Text(
+          '아래 폼을 작성하여 주문을 완료해 주세요.',
+          style: TextStyle(color: Colors.white60, fontSize: 12),
         ),
         const SizedBox(height: 16),
         // ── 핵심 안내 칩 목록 (모노크롬 스타일) ──

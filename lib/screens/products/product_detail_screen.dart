@@ -9558,7 +9558,14 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => GroupOrderFormScreen(product: widget.product)),
+                                    builder: (_) => GroupOrderFormScreen(
+                                      product: widget.product,
+                                      isBottomOrder: widget.product?.category == '하의' ||
+                                          (widget.product?.subCategory.contains('타이즈') ?? false) ||
+                                          (widget.product?.subCategory.contains('남성 5부') ?? false) ||
+                                          (widget.product?.subCategory.contains('여성 2.5부') ?? false) ||
+                                          (widget.product?.name.contains('타이즈') ?? false),
+                                    )),
                               );
                             }
                           : null,
