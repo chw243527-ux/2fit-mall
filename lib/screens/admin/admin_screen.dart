@@ -4298,19 +4298,27 @@ class _AdminScreenState extends State<AdminScreen>
           // 이미지
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              p.images.first,
-              width: 54,
-              height: 54,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                width: 54,
-                height: 54,
-                color: const Color(0xFFF0F0F0),
-                child: const Icon(Icons.checkroom_rounded,
-                    color: Color(0xFFCCCCCC)),
-              ),
-            ),
+            child: p.images.isNotEmpty
+                ? Image.network(
+                    p.images.first,
+                    width: 54,
+                    height: 54,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 54,
+                      height: 54,
+                      color: const Color(0xFFF0F0F0),
+                      child: const Icon(Icons.checkroom_rounded,
+                          color: Color(0xFFCCCCCC)),
+                    ),
+                  )
+                : Container(
+                    width: 54,
+                    height: 54,
+                    color: const Color(0xFFF0F0F0),
+                    child: const Icon(Icons.checkroom_rounded,
+                        color: Color(0xFFCCCCCC)),
+                  ),
           ),
           const SizedBox(width: 8),
           // 정보
