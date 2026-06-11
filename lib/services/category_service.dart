@@ -48,46 +48,14 @@ class CategoryService {
   // ── Firestore에서 로드 ──────────────────────────────────────
   static Future<void> load() async {
     try {
-      final snap = await _doc.get();
-      if (!snap.exists) {
-        // 최초 실행: 기본값 저장
-        await _saveToFirestore(
-          List<String>.from(defaultMainCategories),
-          Map<String, List<String>>.from(defaultSubCatMap.map(
-            (k, v) => MapEntry(k, List<String>.from(v)),
-          )),
-        );
-        _cachedMainCats = List<String>.from(defaultMainCategories);
-        _cachedSubCatMap = Map<String, List<String>>.from(defaultSubCatMap.map(
-          (k, v) => MapEntry(k, List<String>.from(v)),
-        ));
-        return;
-      }
-      final data = snap.data() as Map<String, dynamic>;
-      _cachedMainCats = List<String>.from(data['mainCategories'] as List? ?? defaultMainCategories);
-      final rawSub = data['subCatMap'] as Map<String, dynamic>? ?? {};
-      _cachedSubCatMap = {};
-
-      // 기본값 먼저 채우기 (최신 defaultSubCatMap 기준)
-      for (final e in defaultSubCatMap.entries) {
-        _cachedSubCatMap![e.key] = List<String>.from(e.value);
-      }
-      // Firestore 값으로 병합: 기본값에 없는 커스텀 항목만 추가 (기본값 순서 우선)
-      for (final e in rawSub.entries) {
-        final defaultList = defaultSubCatMap[e.key] ?? [];
-        final firestoreList = List<String>.from(e.value as List);
-        // 기본값에 없는 추가 항목만 뒤에 병합
-        final extras = firestoreList.where((s) => !defaultList.contains(s)).toList();
-        if (extras.isNotEmpty) {
-          _cachedSubCatMap![e.key] = [...defaultList, ...extras];
-        }
-        // 기본값에 있는 항목만 있으면 기본값 그대로 유지
-      }
-      // Firestore와 기본값이 다를 경우 Firestore도 갱신
-      await _saveToFirestore(
-        List<String>.from(_cachedMainCats!),
-        Map<String, List<String>>.from(_cachedSubCatMap!),
-      );
+      // 항상 defaultSubCatMap 기준으로 Firestore를 덮어씀 (구 데이터 정리)
+      final cats = List<String>.from(defaultMainCategories);
+      final subs = Map<String, List<String>>.from(defaultSubCatMap.map(
+        (k, v) => MapEntry(k, List<String>.from(v)),
+      ));
+      await _saveToFirestore(cats, subs);
+      _cachedMainCats = cats;
+      _cachedSubCatMap = subs;
     } catch (e) {
       debugPrint('⚠️ CategoryService.load 실패: $e');
       _cachedMainCats = List<String>.from(defaultMainCategories);
