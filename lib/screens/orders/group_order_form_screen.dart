@@ -879,9 +879,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          '아래 폼을 작성하여 주문을 완료해 주세요.',
-          style: TextStyle(color: Colors.white60, fontSize: 12),
+        Text(
+          '아래 폼을 작성하여 주문을 완료해 주세요.  [DEBUG cat:${widget.product?.category ?? 'null'} sub:${widget.product?.subCategory ?? 'null'} bottom:$_isBottomOnly]',
+          style: const TextStyle(color: Colors.white60, fontSize: 12),
         ),
         const SizedBox(height: 16),
         // ── 핵심 안내 칩 목록 (모노크롬 스타일) ──
