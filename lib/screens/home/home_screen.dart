@@ -158,21 +158,21 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
-          // ② 단체주문 섹션 (가로 스크롤 — _buildProductSection이 자체 Container 반환)
-          SliverToBoxAdapter(
-            child: _buildPcSectionMaxWidthWrapper(
-              child: _buildPcGroupOrderSectionV2(loc),
-            ),
-          ),
-
-          // ③ 베스트 상품 섹션 (섹션 자체가 배경색 보유 — maxWidth만 제한)
+          // ② 기성품 베스트 섹션
           SliverToBoxAdapter(
             child: _buildPcSectionMaxWidthWrapper(
               child: _buildBestSection(loc),
             ),
           ),
 
-          // ④ 신상품 섹션 (섹션 자체가 배경색 보유 — maxWidth만 제한)
+          // ③ 단체주문 섹션 (기성품 베스트 아래)
+          SliverToBoxAdapter(
+            child: _buildPcSectionMaxWidthWrapper(
+              child: _buildPcGroupOrderSectionV2(loc),
+            ),
+          ),
+
+          // ④ 신상품 섹션
           SliverToBoxAdapter(
             child: _buildPcSectionMaxWidthWrapper(
               child: _buildNewArrivalsSection(loc),
@@ -2309,6 +2309,9 @@ class _HomeScreenState extends State<HomeScreen>
                   // ── 배너 ──
                   SliverToBoxAdapter(child: _buildCompactBanner(loc)),
 
+                  // ── 기성품 베스트 ──
+                  SliverToBoxAdapter(child: _buildBestSection(loc)),
+
                   // ── 단체주문 전용 헤더 ──
                   SliverToBoxAdapter(
                       child: _buildGroupSectionHeader(loc, groupProds.length)),
@@ -2321,9 +2324,6 @@ class _HomeScreenState extends State<HomeScreen>
                       child: _buildGroupProductsCompact(
                           loc, sortedGroupProds),
                     ),
-
-                  // ── 베스트 상품 ──
-                  SliverToBoxAdapter(child: _buildBestSection(loc)),
 
                   // ── 신상품 (모바일/태블릿 모두 표시) ──
                   SliverToBoxAdapter(child: _buildNewArrivalsSection(loc)),
@@ -4808,34 +4808,26 @@ class _HomeScreenState extends State<HomeScreen>
     final provider = context.watch<ProductProvider>();
     final allProds = _getAllActiveProducts(provider);
 
-    List<ProductModel> bestProds;
+    // ── 기성품 전용 베스트: isReadyMade 상품 판매순 상위 10개 ──
+    final readyMadeProds = allProds.where((p) => p.isReadyMade && p.isActive).toList()
+      ..sort((a, b) {
+        final sa = b.salesCount.compareTo(a.salesCount);
+        if (sa != 0) return sa;
+        return b.reviewCount.compareTo(a.reviewCount);
+      });
 
-    if (provider.salesCountsLoaded && provider.bestProducts.isNotEmpty) {
-      // ① 실판매량 기준
-      bestProds = provider.bestProducts;
-    } else {
-      // ② 폴백: salesCount/reviewCount 정렬
-      final normal = allProds.where((p) => !p.isGroupOnly).toList();
-      final pool = normal.isNotEmpty ? normal : allProds;
-      bestProds = [...pool]
-        ..sort((a, b) {
-          final sa = b.salesCount.compareTo(a.salesCount);
-          if (sa != 0) return sa;
-          return b.reviewCount.compareTo(a.reviewCount);
-        });
-      bestProds = bestProds.take(10).toList();
-    }
+    final bestProds = readyMadeProds.take(10).toList();
 
     if (bestProds.isEmpty) return const SizedBox.shrink();
 
     return _buildProductSection(
-      title: loc.sectionBestSeller,
-      englishTitle: loc.sectionBestSellerSub,
-      accentColor: const Color(0xFFE53935),
+      title: '기성품 베스트',
+      englishTitle: 'READY-MADE BEST',
+      accentColor: const Color(0xFF1565C0),
       products: bestProds,
-      category: '전체',
+      category: '상의',
       viewAllLabel: loc.viewAll,
-      isHorizontal: true, // PC/모바일 모두 가로 스크롤
+      isHorizontal: true,
     );
   }
 

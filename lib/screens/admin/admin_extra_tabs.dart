@@ -697,158 +697,313 @@ class _AdminInventoryTabState extends State<AdminInventoryTab> {
     }
   }
 
+  Widget _buildStockTable(String title, List<ProductModel> products, Color accentColor, {bool showSalesRank = false}) {
+    if (products.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
+        ),
+        child: Center(child: Text('$title 상품이 없습니다.', style: const TextStyle(color: Colors.grey))),
+      );
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
+      ),
+      child: Column(
+        children: [
+          // ── 헤더 ──
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: accentColor,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12), topRight: Radius.circular(12),
+              ),
+            ),
+            child: Row(
+              children: [
+                if (showSalesRank) const SizedBox(width: 36, child: Text('#', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
+                const Expanded(flex: 3, child: Text('상품명', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
+                const Expanded(child: Text('판매량', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
+                const Expanded(child: Text('현재 재고', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
+                const Expanded(child: Text('상태', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
+                const Expanded(child: Text('재고 수정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
+              ],
+            ),
+          ),
+          // ── 행 ──
+          ...products.asMap().entries.map((entry) {
+            final rank = entry.key + 1;
+            final p = entry.value;
+            final stock = p.stockCount;
+            Color stockColor = const Color(0xFF2E7D32);
+            String stockStatus = '정상';
+            if (stock == 0) { stockColor = Colors.red; stockStatus = '품절'; }
+            else if (stock <= 5) { stockColor = Colors.orange; stockStatus = '품절임박'; }
+
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+              decoration: BoxDecoration(
+                color: stock == 0 ? Colors.red.withValues(alpha: 0.03) : Colors.transparent,
+                border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+              ),
+              child: Row(
+                children: [
+                  if (showSalesRank)
+                    SizedBox(
+                      width: 36,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: rank <= 3 ? const Color(0xFFFFD600) : Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text('$rank', textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800,
+                            color: rank <= 3 ? const Color(0xFF111111) : Colors.grey.shade700)),
+                      ),
+                    ),
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13), overflow: TextOverflow.ellipsis),
+                        Text(p.subCategory.isNotEmpty ? '${p.category} · ${p.subCategory}' : p.category,
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                  Expanded(child: Text('${p.salesCount}건', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13))),
+                  Expanded(child: Text('$stock개', style: TextStyle(fontWeight: FontWeight.w700, color: stockColor))),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: stockColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(stockStatus,
+                        style: TextStyle(color: stockColor, fontSize: 11, fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: () => _showStockEditDialog(p),
+                      icon: const Icon(Icons.edit_rounded, size: 14),
+                      label: const Text('수정', style: TextStyle(fontSize: 12)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<ProductModel>>(
       stream: Stream.fromFuture(ProductService.getAllProducts()),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        final products = snapshot.data!;
+        final allProducts = snapshot.data!;
+
+        // ── 기성품 목록 (판매량 내림차순) ──
+        final readyMadeProducts = (allProducts.where((p) => p.isReadyMade).toList()
+          ..sort((a, b) => b.salesCount.compareTo(a.salesCount)));
+
+        // ── 전체 목록 (판매량 내림차순) ──
+        final allSorted = (List<ProductModel>.from(allProducts)
+          ..sort((a, b) => b.salesCount.compareTo(a.salesCount)));
+
+        final rmSoldOut = readyMadeProducts.where((p) => p.stockCount == 0).length;
+        final rmLow     = readyMadeProducts.where((p) => p.stockCount > 0 && p.stockCount <= 5).length;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── 헤더 바 ──
               Row(
                 children: [
                   const Text('재고 관리', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '품절 임박: ${products.where((p) => p.stockCount <= 5 && p.stockCount > 0).length}개',
-                      style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.w600),
-                    ),
-                  ),
+                  _statChip('기성품 품절임박', '$rmLow개', Colors.orange),
                   const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '품절: ${products.where((p) => p.stockCount == 0).length}개',
-                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
-                    ),
-                  ),
+                  _statChip('기성품 품절', '$rmSoldOut개', Colors.red),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
-                    onPressed: () => _sendRestockAlerts(products.where((p) => p.stockCount == 0).toList()),
+                    onPressed: () => _sendRestockAlerts(readyMadeProducts.where((p) => p.stockCount == 0).toList()),
                     icon: const Icon(Icons.notifications_active_rounded, size: 15),
                     label: const Text('재입고 알림', style: TextStyle(fontSize: 12)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF6F00),
-                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFFFF6F00), foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
-                    onPressed: () => _exportProductsToExcel(products),
-                    icon: const Icon(Icons.download_rounded, size: 15),
-                    label: const Text('Excel', style: TextStyle(fontSize: 12)),
+                    onPressed: () => _exportReadyMadeToExcel(readyMadeProducts),
+                    icon: const Icon(Icons.table_chart_rounded, size: 15),
+                    label: const Text('기성품 Excel', style: TextStyle(fontSize: 12)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF217346),
-                      foregroundColor: Colors.white,
+                      backgroundColor: const Color(0xFF1565C0), foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: () => _exportProductsToExcel(allSorted),
+                    icon: const Icon(Icons.download_rounded, size: 15),
+                    label: const Text('전체 Excel', style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF217346), foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF1A1A2E),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          topRight: Radius.circular(12),
-                        ),
-                      ),
-                      child: const Row(
-                        children: [
-                          Expanded(flex: 3, child: Text('상품명', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
-                          Expanded(child: Text('카테고리', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
-                          Expanded(child: Text('현재 재고', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
-                          Expanded(child: Text('상태', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
-                          Expanded(child: Text('재고 수정', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600))),
-                        ],
-                      ),
-                    ),
-                    ...products.map((p) {
-                      final stock = p.stockCount;
-                      Color stockColor = Colors.green;
-                      String stockStatus = '정상';
-                      if (stock == 0) {
-                        stockColor = Colors.red;
-                        stockStatus = '품절';
-                      } else if (stock <= 5) {
-                        stockColor = Colors.orange;
-                        stockStatus = '품절임박';
-                      }
+              const SizedBox(height: 20),
 
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        decoration: BoxDecoration(
-                          border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: Text(
-                                p.name,
-                                style: const TextStyle(fontWeight: FontWeight.w500),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Expanded(child: Text(p.category, style: const TextStyle(color: Colors.grey, fontSize: 13))),
-                            Expanded(child: Text('$stock개', style: TextStyle(fontWeight: FontWeight.w700, color: stockColor))),
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: stockColor.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(stockStatus, style: TextStyle(color: stockColor, fontSize: 12, fontWeight: FontWeight.w600)),
-                              ),
-                            ),
-                            Expanded(
-                              child: TextButton.icon(
-                                onPressed: () => _showStockEditDialog(p),
-                                icon: const Icon(Icons.edit_rounded, size: 14),
-                                label: const Text('수정', style: TextStyle(fontSize: 12)),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                ),
+              // ══ 기성품 재고 목록 (판매순) ══
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: const Color(0xFF1565C0), borderRadius: BorderRadius.circular(6)),
+                    child: const Text('기성품 전용', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12)),
+                  ),
+                  const SizedBox(width: 10),
+                  Text('총 ${readyMadeProducts.length}개 상품 · 판매순 정렬',
+                    style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                ],
               ),
+              const SizedBox(height: 10),
+              _buildStockTable('기성품', readyMadeProducts, const Color(0xFF1565C0), showSalesRank: true),
+
+              const SizedBox(height: 28),
+
+              // ══ 전체 재고 목록 ══
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: const Color(0xFF1A1A2E), borderRadius: BorderRadius.circular(6)),
+                    child: const Text('전체 상품', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12)),
+                  ),
+                  const SizedBox(width: 10),
+                  Text('총 ${allSorted.length}개 상품 · 판매순 정렬',
+                    style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                ],
+              ),
+              const SizedBox(height: 10),
+              _buildStockTable('전체', allSorted, const Color(0xFF1A1A2E), showSalesRank: true),
+              const SizedBox(height: 32),
             ],
           ),
         );
       },
     );
+  }
+
+  Widget _statChip(String label, String value, Color color) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Text('$label: $value', style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 13)),
+  );
+
+  Future<void> _exportReadyMadeToExcel(List<ProductModel> products) async {
+    if (products.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('기성품 상품이 없습니다.')));
+      return;
+    }
+    final excel = Excel.createExcel();
+    final sheet = excel['기성품재고'];
+    final headerStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#1565C0'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+    );
+    final headers = ['순위', '상품명', '서브카테고리', '가격', '판매량', '현재재고', '상태', '품절사이즈', '등록일'];
+    for (int i = 0; i < headers.length; i++) {
+      final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+      cell.value = TextCellValue(headers[i]);
+      cell.cellStyle = headerStyle;
+    }
+    for (int r = 0; r < products.length; r++) {
+      final p = products[r];
+      final stock = p.stockCount;
+      final status = stock == 0 ? '품절' : stock <= 5 ? '품절임박' : '정상';
+      final soldOutStr = p.soldOutSizes.isNotEmpty ? p.soldOutSizes.join(', ') : '-';
+      final row = [
+        '${r + 1}',
+        p.name,
+        p.subCategory,
+        '₩${_fmtPrice(p.price)}',
+        '${p.salesCount}건',
+        '${stock}개',
+        status,
+        soldOutStr,
+        '${p.createdAt.year}-${p.createdAt.month.toString().padLeft(2,'0')}-${p.createdAt.day.toString().padLeft(2,'0')}',
+      ];
+      final rowStyle = CellStyle(
+        backgroundColorHex: r % 2 == 0
+            ? ExcelColor.fromHexString('#FFFFFF')
+            : ExcelColor.fromHexString('#E3F2FD'),
+      );
+      for (int c = 0; c < row.length; c++) {
+        final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1));
+        cell.value = TextCellValue(row[c]);
+        cell.cellStyle = rowStyle;
+      }
+    }
+    final encoded = excel.encode();
+    if (encoded == null) return;
+    final now = DateTime.now();
+    final dateStr = '${now.year}${now.month.toString().padLeft(2,'0')}${now.day.toString().padLeft(2,'0')}';
+    final fileName = '2FIT_기성품재고_판매순_$dateStr.xlsx';
+    const mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    final bytes = Uint8List.fromList(encoded);
+    if (kIsWeb) {
+      downloadFileWeb(bytes, fileName, mimeType);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(children: [
+              const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              Expanded(child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(fileName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                  const Text('📂 기성품 재고 (판매순) 엑셀 다운로드 완료',
+                    style: TextStyle(fontSize: 11, color: Colors.white70)),
+                ],
+              )),
+            ]),
+            backgroundColor: const Color(0xFF1565C0),
+            duration: const Duration(seconds: 6),
+          ),
+        );
+      }
+    }
   }
 }
 

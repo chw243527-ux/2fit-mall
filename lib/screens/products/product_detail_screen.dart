@@ -6822,6 +6822,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   String? _color;        // 하의/단품 색상
   int _qty = 1;
 
+  // ── 기성품 하의 전용: 주머니 제거 옵션 ──
+  bool _removePocket = false; // true = 주머니 제거 (-10,000원)
+
   // 장바구니에 담을 옵션 목록
   final List<Map<String, dynamic>> _items = [];
 
@@ -6872,6 +6875,14 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   /// 성별 선택이 필요한지: 싱글렛 A타입 세트만
   bool get _needsGender => _isSingletATypeSet;
+
+  /// 기성품 하의 여부: 기성품 + (하의 카테고리 또는 반바지/트레이닝바지/타이즈 서브카테고리)
+  bool get _isReadyMadeBottom =>
+      widget.product.isReadyMade &&
+      (widget.product.category == '하의' ||
+          widget.product.subCategory.contains('반바지') ||
+          widget.product.subCategory.contains('트레이닝바지') ||
+          widget.product.subCategory.contains('타이즈'));
 
   // ─────────────────────────────────────────────
   // 사이즈 목록
@@ -6950,6 +6961,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     if (!_canAddItem) return;
     final needsColor = _isSingletATypeSet || _isTaiz;
     final colorValue = needsColor ? (_color ?? '-') : '-';
+    final colorExtra = needsColor ? widget.calcExtraForColor(colorValue) : 0.0;
+    // 기성품 하의: 주머니 제거 선택 시 -10,000원
+    final pocketDiscount = _isReadyMadeBottom && _removePocket ? -10000.0 : 0.0;
     setState(() {
       final sizeLabel = _isSetProduct
           ? '상의 $_topSize / 하의 $_bottomSize'
@@ -6963,7 +6977,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
         'qty': _qty,
         'length': _length ?? '-',
         'gender': _gender ?? '-',
-        'extra': needsColor ? widget.calcExtraForColor(colorValue) : 0,
+        'extra': colorExtra + pocketDiscount,
+        'removePocket': _isReadyMadeBottom && _removePocket,
       });
       // 옵션 초기화 (새 옵션 선택)
       _topSize = null;
@@ -6971,7 +6986,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
       _size = null;
       _color = null;
       _qty = 1;
-      // 성별/기장은 유지
+      // 성별/기장/주머니옵션은 유지
     });
   }
 
@@ -7401,6 +7416,136 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   ],
 
                   // ══════════════════════════════
+                  // [3-A] 기성품: 없는 사이즈 채팅 문의 안내
+                  // ══════════════════════════════
+                  if (widget.product.isReadyMade) ...[
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF8E1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFFFB300).withValues(alpha: 0.5)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [
+                            const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Color(0xFF7A5000)),
+                            const SizedBox(width: 5),
+                            const Text('원하는 사이즈가 없으신가요?',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF7A5000))),
+                          ]),
+                          const SizedBox(height: 5),
+                          const Text(
+                            '목록에 없는 사이즈는 채팅 문의를 통해 별도 주문 가능합니다.',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF7A5000), height: 1.4),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            '⚠️ 단, 별도 주문 시 제작 소요 기간이 최소 1주일 이상 걸리며,\n    경우에 따라 더 길어질 수 있습니다.',
+                            style: TextStyle(fontSize: 11, color: Color(0xFFD84315),
+                              fontWeight: FontWeight.w700, height: 1.5),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // ══════════════════════════════
+                  // [3-B] 기성품 하의 전용: 주머니 옵션
+                  // ══════════════════════════════
+                  if (_isReadyMadeBottom) ...[
+                    _sectionTitle('주머니 옵션', required: false),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3E5F5),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFF9C27B0).withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF6A1B9A)),
+                          const SizedBox(width: 6),
+                          const Expanded(
+                            child: Text(
+                              '기본 옵션: 주머니 포함\n주머니 제거 선택 시 10,000원 할인됩니다.',
+                              style: TextStyle(fontSize: 11, color: Color(0xFF6A1B9A),
+                                fontWeight: FontWeight.w600, height: 1.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _removePocket = false),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 130),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: !_removePocket ? const Color(0xFF1A1A2E) : const Color(0xFFF8F8F8),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: !_removePocket ? const Color(0xFF1A1A2E) : const Color(0xFFE0E0E0),
+                                width: !_removePocket ? 2 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(Icons.shopping_bag_outlined, size: 20,
+                                  color: !_removePocket ? Colors.white : const Color(0xFF888888)),
+                                const SizedBox(height: 4),
+                                Text('주머니 포함', style: TextStyle(fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: !_removePocket ? Colors.white : const Color(0xFF1A1A1A))),
+                                Text('기본 옵션', style: TextStyle(fontSize: 10,
+                                  color: !_removePocket ? Colors.white70 : const Color(0xFF888888))),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _removePocket = true),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 130),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: _removePocket ? const Color(0xFF6A1B9A) : const Color(0xFFF8F8F8),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: _removePocket ? const Color(0xFF6A1B9A) : const Color(0xFFE0E0E0),
+                                width: _removePocket ? 2 : 1,
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(Icons.remove_shopping_cart_outlined, size: 20,
+                                  color: _removePocket ? Colors.white : const Color(0xFF888888)),
+                                const SizedBox(height: 4),
+                                Text('주머니 제거', style: TextStyle(fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: _removePocket ? Colors.white : const Color(0xFF1A1A1A))),
+                                Text('-₩10,000', style: TextStyle(fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: _removePocket ? const Color(0xFFFFD600) : const Color(0xFF888888))),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ]),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // ══════════════════════════════
                   // [4] 색상 선택
                   //   - 싱글렛 A타입 세트 / 타이즈만 색상 선택 표시
                   //   - 상의, 그 외 카테고리는 색상 선택 없음
@@ -7542,9 +7687,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                     spacing: 6, runSpacing: 4,
                                     children: [
                                       _optionChip(item['size'] as String, const Color(0xFF1A1A2E)),
-                                      _optionChip(item['color'] as String, const Color(0xFF43A047)),
+                                      if ((item['color'] as String) != '-')
+                                        _optionChip(item['color'] as String, const Color(0xFF43A047)),
                                       if ((item['length'] as String) != '-')
                                         _optionChip(item['length'] as String, const Color(0xFF1565C0)),
+                                      if (item['removePocket'] == true)
+                                        _optionChip('주머니 제거', const Color(0xFF6A1B9A)),
                                     ],
                                   ),
                                   const SizedBox(height: 6),
@@ -7554,12 +7702,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                         '수량 ${item['qty']}개',
                                         style: const TextStyle(fontSize: 12, color: Color(0xFF555555)),
                                       ),
-                                      if (extra > 0) ...[
+                                      if (item['removePocket'] == true) ...[
                                         const Text(' · ', style: TextStyle(fontSize: 12, color: Color(0xFFAAAAAA))),
-                                        Text(
-                                          '색상 추가금 +${_fmt(extra)}원',
-                                          style: const TextStyle(fontSize: 11, color: Color(0xFFE53935)),
-                                        ),
+                                        const Text('주머니 제거 -10,000원',
+                                          style: TextStyle(fontSize: 11, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700)),
                                       ],
                                     ],
                                   ),
