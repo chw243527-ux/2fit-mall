@@ -6306,7 +6306,9 @@ class _AdminScreenState extends State<AdminScreen>
   void _showStockDialog(ProductModel p) {
     // 사이즈별 재고가 있으면 사이즈별로, 없으면 전체 재고 수정
     final hasSizeStocks = p.sizeStocks.isNotEmpty && p.sizes.isNotEmpty;
-    final knownAll = [..._adultSizeOptions, ..._juniorSizeOptions];
+    const adultSizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+    const juniorSizes = ['J-S(60)', 'J-M(65)', 'J-L(70)', 'J-XL(75)', 'J-2XL(80)'];
+    final knownAll = [...adultSizes, ...juniorSizes];
     final orderedSizes = hasSizeStocks
         ? [
             ...knownAll.where(p.sizes.contains),
