@@ -6883,6 +6883,14 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   /// 성별 선택이 필요한지: 싱글렛 A타입 세트만
   bool get _needsGender => _isSingletATypeSet;
 
+  /// 해당 사이즈 품절 여부: soldOutSizes 또는 sizeStocks == 0
+  bool _isSizeOutOfStock(String s) {
+    if (widget.product.soldOutSizes.contains(s)) return true;
+    final stocks = widget.product.sizeStocks;
+    if (stocks.isNotEmpty && (stocks[s] ?? 1) <= 0) return true;
+    return false;
+  }
+
   /// 기성품 하의 여부: 기성품 + (하의 카테고리 또는 반바지/트레이닝바지/타이즈 서브카테고리)
   bool get _isReadyMadeBottom =>
       widget.product.isReadyMade &&
@@ -7291,7 +7299,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _topSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
-                            isSoldOut: widget.product.soldOutSizes.contains(s),
+                            isSoldOut: _isSizeOutOfStock(s),
                             onTap: () => setState(() => _topSize = s));
                         }).toList(),
                       ),
@@ -7304,7 +7312,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _topSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1565C0),
-                            isSoldOut: widget.product.soldOutSizes.contains(s),
+                            isSoldOut: _isSizeOutOfStock(s),
                             onTap: () => setState(() => _topSize = s));
                         }).toList(),
                       ),
@@ -7315,7 +7323,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _topSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
-                            isSoldOut: widget.product.soldOutSizes.contains(s),
+                            isSoldOut: _isSizeOutOfStock(s),
                             onTap: () => setState(() => _topSize = s));
                         }).toList(),
                       ),
@@ -7333,7 +7341,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _bottomSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF5C6BC0),
-                            isSoldOut: widget.product.soldOutSizes.contains(s),
+                            isSoldOut: _isSizeOutOfStock(s),
                             onTap: () => setState(() => _bottomSize = s));
                         }).toList(),
                       ),
@@ -7346,7 +7354,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _bottomSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF1565C0),
-                            isSoldOut: widget.product.soldOutSizes.contains(s),
+                            isSoldOut: _isSizeOutOfStock(s),
                             onTap: () => setState(() => _bottomSize = s));
                         }).toList(),
                       ),
@@ -7357,7 +7365,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           final isSel = _bottomSize == s;
                           return _sizeChip(label: s, isSelected: isSel,
                             activeColor: const Color(0xFF5C6BC0),
-                            isSoldOut: widget.product.soldOutSizes.contains(s),
+                            isSoldOut: _isSizeOutOfStock(s),
                             onTap: () => setState(() => _bottomSize = s));
                         }).toList(),
                       ),
@@ -7381,7 +7389,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             label: s,
                             isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
-                            isSoldOut: widget.product.soldOutSizes.contains(s),
+                            isSoldOut: _isSizeOutOfStock(s),
                             onTap: () => setState(() => _size = s),
                           );
                         }).toList(),
@@ -7398,7 +7406,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             label: s,
                             isSelected: isSel,
                             activeColor: const Color(0xFF1565C0),
-                            isSoldOut: widget.product.soldOutSizes.contains(s),
+                            isSoldOut: _isSizeOutOfStock(s),
                             onTap: () => setState(() => _size = s),
                           );
                         }).toList(),
@@ -7413,7 +7421,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             label: s,
                             isSelected: isSel,
                             activeColor: const Color(0xFF1A1A2E),
-                            isSoldOut: widget.product.soldOutSizes.contains(s),
+                            isSoldOut: _isSizeOutOfStock(s),
                             onTap: () => setState(() => _size = s),
                           );
                         }).toList(),
@@ -7702,15 +7710,61 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                         _optionChip('주머니 제거', const Color(0xFF6A1B9A)),
                                     ],
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 8),
                                   Row(
                                     children: [
-                                      Text(
-                                        '수량 ${item['qty']}개',
-                                        style: const TextStyle(fontSize: 12, color: Color(0xFF555555)),
+                                      // ── 수량 +/- 인라인 컨트롤 ──
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            InkWell(
+                                              onTap: (item['qty'] as int) > 1
+                                                  ? () => setState(() => _items[idx]['qty'] = (item['qty'] as int) - 1)
+                                                  : null,
+                                              borderRadius: const BorderRadius.horizontal(left: Radius.circular(6)),
+                                              child: Container(
+                                                width: 28, height: 28,
+                                                alignment: Alignment.center,
+                                                child: Icon(
+                                                  Icons.remove,
+                                                  size: 13,
+                                                  color: (item['qty'] as int) > 1
+                                                      ? const Color(0xFF1A1A1A)
+                                                      : const Color(0xFFCCCCCC),
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              width: 32, height: 28,
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                '${item['qty']}',
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Color(0xFF1A1A1A),
+                                                ),
+                                              ),
+                                            ),
+                                            InkWell(
+                                              onTap: () => setState(() => _items[idx]['qty'] = (item['qty'] as int) + 1),
+                                              borderRadius: const BorderRadius.horizontal(right: Radius.circular(6)),
+                                              child: Container(
+                                                width: 28, height: 28,
+                                                alignment: Alignment.center,
+                                                child: const Icon(Icons.add, size: 13, color: Color(0xFF1A1A1A)),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                       if (item['removePocket'] == true) ...[
-                                        const Text(' · ', style: TextStyle(fontSize: 12, color: Color(0xFFAAAAAA))),
+                                        const SizedBox(width: 8),
                                         const Text('주머니 제거 -10,000원',
                                           style: TextStyle(fontSize: 11, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700)),
                                       ],
