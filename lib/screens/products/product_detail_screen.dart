@@ -4209,13 +4209,16 @@ $productUrl
             ),
         ],
 
-        // ── 기술 특징 리스트 (SEAMLESS / FAST DRY / MOISTURE) — 하의 카테고리 숨김
-        if (product.category != '하의')
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Column(
-              children: techRows.asMap().entries.map((entry) {
+        // ── 기술 특징 리스트 (SEAMLESS / FAST DRY / MOISTURE)
+        // 하의 카테고리: SEAMLESS 숨김, FAST DRY / MOISTURE 표시
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          child: Column(
+            children: techRows
+                .where((t) => product.category != '하의' || t['label'] != 'SEAMLESS')
+                .toList()
+                .asMap().entries.map((entry) {
                 final i = entry.key;
                 final t = entry.value;
                 return Column(
