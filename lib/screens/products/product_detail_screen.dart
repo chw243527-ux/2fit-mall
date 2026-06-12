@@ -4186,25 +4186,28 @@ $productUrl
         const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
 
         // ── 일반봉제 / 심리스 이미지 섹션 ──────────────────────────
+        // 하의 카테고리일 때는 숨김
         // 관리자: 두 슬롯 각각 업로드 버튼 표시
         // 일반 사용자: 이미지가 하나라도 있으면 탭 UI로 표시
-        if (isAdmin)
-          _buildSection2FabricAdmin(generalImgs, seamlessImgs, isAdmin)
-        else if (generalImgs.isNotEmpty || seamlessImgs.isNotEmpty)
-          _buildSection2FabricTabs(generalImgs, seamlessImgs),
+        if (product.category != '하의') ...[
+          if (isAdmin)
+            _buildSection2FabricAdmin(generalImgs, seamlessImgs, isAdmin)
+          else if (generalImgs.isNotEmpty || seamlessImgs.isNotEmpty)
+            _buildSection2FabricTabs(generalImgs, seamlessImgs),
 
-        // ── 일반봉제/심리스 이미지 아래 추가 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
-        if (isAdmin || (_sectionImages['s2_fabric_extra'] ?? []).isNotEmpty)
-          Container(
-            color: Colors.white,
-            padding: EdgeInsets.fromLTRB(0, isAdmin ? 12 : 0, 0, 0),
-            child: isAdmin
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _buildAdminImageSection('s2_fabric_extra', '원단 추가 이미지', isAdmin),
-                  )
-                : _buildSectionImageSlider('s2_fabric_extra'),
-          ),
+          // ── 일반봉제/심리스 이미지 아래 추가 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
+          if (isAdmin || (_sectionImages['s2_fabric_extra'] ?? []).isNotEmpty)
+            Container(
+              color: Colors.white,
+              padding: EdgeInsets.fromLTRB(0, isAdmin ? 12 : 0, 0, 0),
+              child: isAdmin
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _buildAdminImageSection('s2_fabric_extra', '원단 추가 이미지', isAdmin),
+                    )
+                  : _buildSectionImageSlider('s2_fabric_extra'),
+            ),
+        ],
 
         // ── 기술 특징 리스트 (SEAMLESS / FAST DRY / MOISTURE)
         Container(
