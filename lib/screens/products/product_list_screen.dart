@@ -164,7 +164,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final filteredProducts = _getFilteredSorted(provider.products);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: Colors.white,
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -174,8 +174,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
           if (_showPriceFilter) _buildPriceFilterPanel(),
           Expanded(
             child: RefreshIndicator(
-              color: Colors.white,
-              backgroundColor: const Color(0xFF1A1A1A),
+              color: const Color(0xFF1A1A2E),
+              backgroundColor: Colors.white,
               onRefresh: () => context.read<ProductProvider>().refresh(),
               child: provider.isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -194,10 +194,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
   // ── 앱바 ──
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: Colors.white,
+      foregroundColor: const Color(0xFF1A1A1A),
       elevation: 0,
+      scrolledUnderElevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+        icon: const Icon(Icons.arrow_back_ios_rounded, color: Color(0xFF1A1A1A), size: 20),
         onPressed: () {
           if (widget.onBack != null) {
             widget.onBack!();
@@ -210,22 +212,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
           ? TextField(
               controller: _searchController,
               autofocus: true,
-              style: const TextStyle(color: Colors.white, fontSize: 15),
+              style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 15),
               decoration: InputDecoration(
                 hintText: loc.productSearchHint,
-                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14),
+                hintStyle: TextStyle(color: Colors.black.withValues(alpha: 0.4), fontSize: 14),
                 border: InputBorder.none,
               ),
               onChanged: (v) => setState(() => _searchQuery = v),
             )
-          : Text(loc.homeAllProducts, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+          : Text(loc.homeAllProducts, style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 16, fontWeight: FontWeight.w800)),
       actions: [
         IconButton(
-          icon: const Icon(Icons.search_rounded, color: Colors.white, size: 22),
+          icon: const Icon(Icons.search_rounded, color: Color(0xFF1A1A1A), size: 22),
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen(searchQuery: ''))),
         ),
         IconButton(
-          icon: Icon(_isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded, color: Colors.white, size: 22),
+          icon: Icon(_isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded, color: const Color(0xFF1A1A1A), size: 22),
           onPressed: () => setState(() => _isGridView = !_isGridView),
         ),
         const SizedBox(width: 4),
@@ -237,7 +239,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget _buildCategoryBar(ProductProvider provider) {
     // 특별 탭: 전체 목록 앞에 베스트/신상품 삽입 (전체 탭 다음에 표시)
     return Container(
-      color: const Color(0xFF1A1A1A),
+      color: Colors.white,
       child: Column(
         children: [
           SizedBox(
@@ -270,10 +272,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     margin: const EdgeInsets.only(right: 6),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _onlyBest ? Colors.white : Colors.transparent,
+                      color: _onlyBest ? const Color(0xFF1A1A2E) : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: _onlyBest ? Colors.white : const Color(0xFF444444),
+                        color: _onlyBest ? const Color(0xFF1A1A2E) : const Color(0xFFDDDDDD),
                       ),
                     ),
                     child: Row(
@@ -281,13 +283,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       children: [
                         Icon(Icons.local_fire_department_rounded,
                           size: 13,
-                          color: _onlyBest ? const Color(0xFF111111) : const Color(0xFF666666)),
+                          color: _onlyBest ? Colors.white : const Color(0xFF888888)),
                         const SizedBox(width: 3),
                         Text('베스트',
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
-                            color: _onlyBest ? const Color(0xFF111111) : const Color(0xFF666666),
+                            color: _onlyBest ? Colors.white : const Color(0xFF777777),
                           )),
                       ],
                     ),
@@ -313,10 +315,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     margin: const EdgeInsets.only(right: 6),
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _onlyNew ? Colors.white : Colors.transparent,
+                      color: _onlyNew ? const Color(0xFF1A1A2E) : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: _onlyNew ? Colors.white : const Color(0xFF444444),
+                        color: _onlyNew ? const Color(0xFF1A1A2E) : const Color(0xFFDDDDDD),
                       ),
                     ),
                     child: Row(
@@ -324,13 +326,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       children: [
                         Icon(Icons.fiber_new_rounded,
                           size: 13,
-                          color: _onlyNew ? const Color(0xFF111111) : const Color(0xFF666666)),
+                          color: _onlyNew ? Colors.white : const Color(0xFF888888)),
                         const SizedBox(width: 3),
                         Text('신상품',
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
-                            color: _onlyNew ? const Color(0xFF111111) : const Color(0xFF666666),
+                            color: _onlyNew ? Colors.white : const Color(0xFF777777),
                           )),
                       ],
                     ),
@@ -347,7 +349,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ],
             ),
           ),
-          Container(height: 1, color: const Color(0xFF2A2A2A)),
+          Container(height: 1, color: const Color(0xFFE8E8E8)),
         ],
       ),
     );
@@ -362,7 +364,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     if (subs.isEmpty || _onlyBest || _onlyNew) return const SizedBox.shrink();
 
     return Container(
-      color: const Color(0xFF1A1A1A),
+      color: Colors.white,
       child: Column(
         children: [
           SizedBox(
@@ -377,7 +379,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ],
             ),
           ),
-          Container(height: 1, color: const Color(0xFF252525)),
+          Container(height: 1, color: const Color(0xFFEEEEEE)),
         ],
       ),
     );
@@ -392,10 +394,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
         margin: const EdgeInsets.only(right: 6),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
         decoration: BoxDecoration(
-          color: isSel ? Colors.white : Colors.transparent,
+          color: isSel ? const Color(0xFF1A1A2E) : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSel ? Colors.white : const Color(0xFF3A3A3A),
+            color: isSel ? const Color(0xFF1A1A2E) : const Color(0xFFCCCCCC),
           ),
         ),
         child: Text(
@@ -403,7 +405,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
-            color: isSel ? const Color(0xFF111111) : const Color(0xFF888888),
+            color: isSel ? Colors.white : const Color(0xFF777777),
           ),
         ),
       ),
@@ -416,14 +418,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
     // 단체주문은 항상 보라색, 그 외는 선택 상태에 따라
     final isSel = _selectedCategory == cat && !_onlyBest && !_onlyNew;
     final bgColor = isGroup
-        ? Colors.white.withValues(alpha: 0.12)  // 단체주문
+        ? const Color(0xFF1A1A2E).withValues(alpha: 0.08)  // 단체주문
         : isSel
-            ? Colors.white                       // 선택됨 — 흰색 필
-            : Colors.transparent;         // 미선택
+            ? const Color(0xFF1A1A2E)                      // 선택됨
+            : Colors.transparent;                          // 미선택
     final borderColor = isGroup
-        ? const Color(0xFF555555)
-        : isSel ? Colors.white : const Color(0xFF444444);
-    final textColor = isGroup ? Colors.white : isSel ? const Color(0xFF111111) : const Color(0xFF888888);
+        ? const Color(0xFF1A1A2E).withValues(alpha: 0.4)
+        : isSel ? const Color(0xFF1A1A2E) : const Color(0xFFDDDDDD);
+    final textColor = isGroup ? const Color(0xFF1A1A2E) : isSel ? Colors.white : const Color(0xFF555555);
 
     return GestureDetector(
       onTap: () {
@@ -455,7 +457,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (isGroup) ...[
-              const Icon(Icons.groups_rounded, size: 13, color: Colors.white),
+              const Icon(Icons.groups_rounded, size: 13, color: Color(0xFF1A1A2E)),
               const SizedBox(width: 4),
             ],
             Text(cat, style: TextStyle(
@@ -487,7 +489,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModal) => Container(
           decoration: const BoxDecoration(
-            color: const Color(0xFF1A1A1A),
+            color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
@@ -498,7 +500,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 margin: const EdgeInsets.only(top: 12),
                 width: 36, height: 4,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF444444),
+                  color: const Color(0xFFDDDDDD),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -508,12 +510,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text('정렬', style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white,
+                    fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A),
                   )),
                 ),
               ),
               // 구분선
-              const Divider(height: 1, color: Color(0xFF333333)),
+              const Divider(height: 1, color: Color(0xFFEEEEEE)),
               // 옵션 목록
               ...sortOptions.map((opt) {
                 final label = opt['label']!;
@@ -527,7 +529,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Color(0xFF333333))),
+                      border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
                     ),
                     child: Row(
                       children: [
@@ -537,7 +539,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected ? Colors.white : const Color(0xFF555555),
+                              color: isSelected ? const Color(0xFF1A1A2E) : const Color(0xFFCCCCCC),
                               width: isSelected ? 2 : 1.5,
                             ),
                           ),
@@ -546,7 +548,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                   child: Container(
                                     width: 10, height: 10,
                                     decoration: const BoxDecoration(
-                                      color: Colors.white,
+                                      color: const Color(0xFF1A1A2E),
                                       shape: BoxShape.circle,
                                     ),
                                   ),
@@ -557,7 +559,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         Text(label, style: TextStyle(
                           fontSize: 15,
                           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                          color: isSelected ? Colors.white : const Color(0xFF888888),
+                          color: isSelected ? const Color(0xFF1A1A2E) : const Color(0xFF666666),
                         )),
                       ],
                     ),
@@ -589,7 +591,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final currentSortLabel = _sortBy.isNotEmpty ? _sortBy : sortOptions[0]['label']!;
 
     return Container(
-      color: const Color(0xFF111111),
+      color: Colors.white,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
@@ -598,11 +600,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
               margin: const EdgeInsets.only(right: 6),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: const Color(0xFF1A1A2E),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Text('베스트', style: TextStyle(
-                fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF111111))),
+                fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
             ),
           ],
           if (_onlyNew) ...[
@@ -610,15 +612,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
               margin: const EdgeInsets.only(right: 6),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFF333333),
+                color: const Color(0xFF1A1A2E).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Text('신상품', style: TextStyle(
-                fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+                fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
             ),
           ],
           Text('$count${loc.productCount}', style: const TextStyle(
-            fontSize: 12.5, color: Color(0xFF888888), fontWeight: FontWeight.w500)),
+            fontSize: 12.5, color: Color(0xFF999999), fontWeight: FontWeight.w500)),
           const Spacer(),
           // ── 정렬 버튼 (바텀시트 트리거) ──
           GestureDetector(
@@ -626,24 +628,24 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: const Color(0xFF222222),
+                color: const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFF444444)),
+                border: Border.all(color: const Color(0xFFDDDDDD)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.sort_rounded, size: 14, color: Color(0xFFAAAAAA)),
+                  const Icon(Icons.sort_rounded, size: 14, color: Color(0xFF888888)),
                   const SizedBox(width: 5),
                   Text(
                     currentSortLabel,
                     style: const TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: Color(0xFF333333),
                     ),
                   ),
                   const SizedBox(width: 3),
-                  const Icon(Icons.keyboard_arrow_down_rounded, size: 15, color: Color(0xFF888888)),
+                  const Icon(Icons.keyboard_arrow_down_rounded, size: 15, color: Color(0xFF999999)),
                 ],
               ),
             ),
@@ -656,33 +658,33 @@ class _ProductListScreenState extends State<ProductListScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: _activeFilterCount > 0 || _showPriceFilter
-                    ? Colors.white
-                    : const Color(0xFF222222),
+                    ? const Color(0xFF1A1A2E)
+                    : const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                   color: _activeFilterCount > 0 || _showPriceFilter
-                      ? Colors.white
-                      : const Color(0xFF444444),
+                      ? const Color(0xFF1A1A2E)
+                      : const Color(0xFFDDDDDD),
                 ),
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.tune_rounded, size: 14,
                     color: _activeFilterCount > 0 || _showPriceFilter
-                        ? const Color(0xFF111111) : const Color(0xFF888888)),
+                        ? Colors.white : const Color(0xFF888888)),
                 const SizedBox(width: 5),
                 Text('필터', style: TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w600,
                   color: _activeFilterCount > 0 || _showPriceFilter
-                      ? const Color(0xFF111111) : const Color(0xFF888888),
+                      ? Colors.white : const Color(0xFF777777),
                 )),
                 if (_activeFilterCount > 0) ...[const SizedBox(width: 4),
                   Container(
                     width: 16, height: 16,
                     decoration: const BoxDecoration(
-                      color: Color(0xFF555555), shape: BoxShape.circle,
+                      color: Colors.white, shape: BoxShape.circle,
                     ),
                     child: Center(child: Text('$_activeFilterCount',
-                      style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800))),
+                      style: const TextStyle(fontSize: 9, color: Color(0xFF1A1A2E), fontWeight: FontWeight.w800))),
                   )],
               ]),
             ),
@@ -694,13 +696,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFF222222),
+                color: const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFF444444)),
+                border: Border.all(color: const Color(0xFFDDDDDD)),
               ),
               child: Icon(
                 _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
-                size: 16, color: const Color(0xFFAAAAAA),
+                size: 16, color: const Color(0xFF888888),
               ),
             ),
           ),
@@ -712,17 +714,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
   // ── 가격 범위 + 추가 필터 패널 ──
   Widget _buildPriceFilterPanel() {
     return Container(
-      color: const Color(0xFF1A1A1A),
+      color: const Color(0xFFF8F8F8),
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(loc.filterPriceRange, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white)),
+              Text(loc.filterPriceRange, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
               const Spacer(),
               Text('${_fmt(_minPrice)}${loc.wonUnit} ~ ${_maxPrice >= 500000 ? loc.productListPriceRange : '${_fmt(_maxPrice)}${loc.wonUnit}'}',
-                  style: const TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w600)),
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF333333), fontWeight: FontWeight.w600)),
             ],
           ),
           RangeSlider(
@@ -730,8 +732,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
             min: 0,
             max: 500000,
             divisions: 50,
-            activeColor: Colors.white,
-            inactiveColor: const Color(0xFF333333),
+            activeColor: const Color(0xFF1A1A2E),
+            inactiveColor: const Color(0xFFDDDDDD),
             onChanged: (v) => setState(() { _minPrice = v.start; _maxPrice = v.end; }),
           ),
           const SizedBox(height: 4),
@@ -749,7 +751,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 _minPrice = 0; _maxPrice = 500000;
                 _onlyNew = false; _onlySale = false; _onlyFreeShip = false;
               }),
-              child: Text(loc.filterResetBtn, style: const TextStyle(fontSize: 12, color: Color(0xFF888888), decoration: TextDecoration.underline)),
+              child: Text(loc.filterResetBtn, style: const TextStyle(fontSize: 12, color: Color(0xFF999999), decoration: TextDecoration.underline)),
             )],
         ],
       ),
@@ -758,11 +760,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Widget _filterChip(String label, bool selected, ValueChanged<bool> onChanged) {
     return FilterChip(
-      label: Text(label, style: TextStyle(fontSize: 11, color: selected ? Colors.white : const Color(0xFF444444), fontWeight: FontWeight.w600)),
+      label: Text(label, style: TextStyle(fontSize: 11, color: selected ? Colors.white : const Color(0xFF555555), fontWeight: FontWeight.w600)),
       selected: selected,
       onSelected: onChanged,
       selectedColor: const Color(0xFF1A1A2E),
-      backgroundColor: const Color(0xFF111111),
+      backgroundColor: Colors.white,
       checkmarkColor: Colors.white,
       showCheckmark: false,
       padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -814,9 +816,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF2A2A2A)),
+          border: Border.all(color: const Color(0xFFEEEEEE)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -835,24 +837,24 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               fit: BoxFit.cover,
                               filterQuality: FilterQuality.medium,
                               errorBuilder: (_, __, ___) => Container(
-                                color: const Color(0xFF222222),
-                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFF444444), size: 48)),
+                                color: const Color(0xFFF0F0F0),
+                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)),
                             )
                           : Container(
-                              color: const Color(0xFF222222),
-                              child: const Icon(Icons.checkroom_rounded, color: Color(0xFF444444), size: 48)),
+                              color: const Color(0xFFF0F0F0),
+                              child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)),
                     ),
                   ),
                   // 배지들
                   if (p.isGroupOnly) Positioned(top: 8, left: 8,
-                    child: _badge('단체전용', const Color(0xFF444444))),
+                    child: _badge('단체전용', const Color(0xFF555555))),
                   if (p.isNewActive) Positioned(top: p.isGroupOnly ? 32 : 8, left: 8,
-                    child: _badge('NEW', const Color(0xFF111111))),
+                    child: _badge('NEW', const Color(0xFF1A1A2E))),
                   if (discount > 0) Positioned(
                     top: p.isGroupOnly ? (p.isNewActive ? 56 : 32) : (p.isNewActive ? 32 : 8), left: 8,
-                    child: _badge('-$discount%', const Color(0xFF444444))),
+                    child: _badge('-$discount%', const Color(0xFFE53935))),
                   if (p.isFreeShipping) Positioned(bottom: 8, left: 8,
-                    child: _badge(loc.filterFreeShip, const Color(0xFF333333))),
+                    child: _badge(loc.filterFreeShip, const Color(0xFF43A047))),
                   // 찜 버튼
                   Positioned(top: 8, right: 8,
                     child: Container(
@@ -873,22 +875,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('2FIT KOREA', style: TextStyle(fontSize: 10, color: Color(0xFF666666), letterSpacing: 0.5)),
+                  const Text('2FIT KOREA', style: TextStyle(fontSize: 10, color: Color(0xFF999999), letterSpacing: 0.5)),
                   const SizedBox(height: 2),
                   if (p.isGroupOnly) ...[  
                     Container(
                       margin: const EdgeInsets.only(bottom: 4),
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF555555),
+                        color: const Color(0xFF1A1A2E).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(3),
                       ),
                       child: const Text('단체주문 전용',
-                        style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
+                        style: TextStyle(color: Color(0xFF1A1A2E), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
                     ),
                   ],
                   Text(p.localizedName(_lang), maxLines: 2, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white, height: 1.3)),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3)),
                   const SizedBox(height: 6),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -902,10 +904,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           Row(
                             children: [
                               if (discount > 0) ...[
-                                Text('$discount%', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
+                                Text('$discount%', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
                                 const SizedBox(width: 4),
                               ],
-                              Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.white)),
+                              Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
                             ],
                           ),
                         ],
@@ -915,7 +917,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         children: [
                           const Icon(Icons.star_rounded, size: 11, color: Color(0xFFFFB300)),
                           const SizedBox(width: 1),
-                          Text('${p.rating}', style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
+                          Text('${p.rating}', style: const TextStyle(fontSize: 10, color: Color(0xFF999999))),
                         ],
                       ),
                     ],
@@ -938,9 +940,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFF2A2A2A)),
+          border: Border.all(color: const Color(0xFFEEEEEE)),
         ),
         child: Row(
           children: [
@@ -952,11 +954,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     width: 110, height: 110,
                     child: p.images.isNotEmpty
                         ? Image.network(p.images.first, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFF222222),
-                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFF444444))))
-                        : Container(color: const Color(0xFF222222)),
+                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFFF0F0F0),
+                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC))))
+                        : Container(color: const Color(0xFFF0F0F0)),
                   ),
-                  if (discount > 0) Positioned(top: 6, left: 6, child: _badge('-$discount%', const Color(0xFF444444))),
+                  if (discount > 0) Positioned(top: 6, left: 6, child: _badge('-$discount%', const Color(0xFFE53935))),
                 ],
               ),
             ),
@@ -967,15 +969,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      if (p.isGroupOnly) _badge('단체전용', const Color(0xFF444444)),
+                      if (p.isGroupOnly) _badge('단체전용', const Color(0xFF555555)),
                       if (p.isGroupOnly) const SizedBox(width: 4),
-                      if (p.isNewActive) _badge('NEW', const Color(0xFF111111)),
+                      if (p.isNewActive) _badge('NEW', const Color(0xFF1A1A2E)),
                       if (p.isNewActive) const SizedBox(width: 4),
-                      if (p.isFreeShipping) _badge(loc.filterFreeShip, const Color(0xFF333333)),
+                      if (p.isFreeShipping) _badge(loc.filterFreeShip, const Color(0xFF43A047)),
                     ]),
                     if (p.isGroupOnly || p.isNewActive || p.isFreeShipping) const SizedBox(height: 4),
                     Text(p.localizedName(_lang), maxLines: 2, overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A))),
                     const SizedBox(height: 6),
                     if (p.originalPrice != null)
                       Text('${_fmt(p.originalPrice!)}${loc.wonUnit}',
@@ -983,17 +985,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     Row(
                       children: [
                         if (discount > 0) ...[
-                          Text('$discount%', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
+                          Text('$discount%', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
                           const SizedBox(width: 4),
                         ],
-                        Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
+                        Text('${_fmt(p.price)}${loc.wonUnit}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(children: [
                       const Icon(Icons.star_rounded, size: 12, color: Color(0xFFFFB300)),
                       const SizedBox(width: 2),
-                      Text('${p.rating} (${p.reviewCount})', style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                      Text('${p.rating} (${p.reviewCount})', style: const TextStyle(fontSize: 11, color: Color(0xFF999999))),
                     ]),
                   ],
                 ),
@@ -1016,16 +1018,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.search_off_rounded, size: 64, color: Color(0xFF444444)),
+          const Icon(Icons.search_off_rounded, size: 64, color: Color(0xFFCCCCCC)),
           const SizedBox(height: 16),
           Text(
             _searchQuery.isNotEmpty ? loc.searchNoResult(_searchQuery) : loc.noCategoryProduct,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF888888)),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF999999)),
           ),
           const SizedBox(height: 16),
           TextButton(
             onPressed: () { setState(() { _selectedCategory = loc.catAll; _searchQuery = ''; }); context.read<ProductProvider>().setCategory(loc.catAll); },
-            child: Text(loc.homeAllProducts, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            child: Text(loc.homeAllProducts, style: const TextStyle(color: Color(0xFF1A1A2E), fontWeight: FontWeight.w700)),
           ),
         ],
       ),
