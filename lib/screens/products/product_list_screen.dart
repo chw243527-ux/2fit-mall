@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../utils/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../utils/constants.dart';
+import '../../services/category_service.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
 import 'product_detail_screen.dart';
@@ -354,8 +355,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   // ── 서브카테고리 바 ──
   Widget _buildSubCategoryBar() {
-    // 선택된 대분류 카테고리의 서브카테고리 목록 조회
-    final subs = AppConstants.subCategoryMap[_selectedCategory] ?? [];
+    // CategoryService 기반 서브카테고리 목록 (드로어와 동일한 소스)
+    final subs = CategoryService.subCatsFor(_selectedCategory);
 
     // 서브카테고리가 없거나, 베스트/신상품 탭이면 숨김
     if (subs.isEmpty || _onlyBest || _onlyNew) return const SizedBox.shrink();
