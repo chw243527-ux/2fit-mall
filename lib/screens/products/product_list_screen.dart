@@ -69,7 +69,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
         );
         return;
       }
-      context.read<ProductProvider>().setCategory(_selectedCategory);
+      // 베스트/신상품 탭은 전체 상품을 로드해야 함
+      final cat = (_onlyBest || _onlyNew)
+          ? '전체'
+          : (_selectedCategory.isEmpty ? '전체' : _selectedCategory);
+      context.read<ProductProvider>().setCategory(cat);
     });
   }
 
@@ -90,12 +94,28 @@ class _ProductListScreenState extends State<ProductListScreen> {
     // 가격 범위 필터
     list = list.where((p) => p.price >= _minPrice && p.price <= _maxPrice).toList();
     // 추가 필터
-    if (_onlyNew) list = list.where((p) => p.isNewActive).toList();
+    if (_onlyNew) {
+      final now = DateTime.now();
+      list = list.where((p) {
+        // isNew 플래그가 있으면 기존 로직, 없어도 등록일 30일 이내면 신상품으로 표시
+        if (p.isNew) return p.isNewActive;
+        return now.difference(p.createdAt).inDays <= 30;
+      }).toList();
+    }
     if (_onlySale) list = list.where((p) => p.isSale).toList();
     if (_onlyFreeShip) list = list.where((p) => p.isFreeShipping).toList();
-    // 정렬 (_onlyBest: 판매량 내림차순 우선)
+    // 정렬 (_onlyBest: 판매량 내림차순, salesCount가 모두 0이면 최신순 폴백)
     if (_onlyBest) {
-      list.sort((a, b) => b.salesCount.compareTo(a.salesCount));
+      final totalSales = list.fold(0, (s, p) => s + p.salesCount);
+      if (totalSales == 0) {
+        list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      } else {
+        list.sort((a, b) {
+          final cmp = b.salesCount.compareTo(a.salesCount);
+          if (cmp != 0) return cmp;
+          return b.createdAt.compareTo(a.createdAt); // 동점이면 최신순
+        });
+      }
     } else if (_sortBy == loc.sortPriceLow) {
       list.sort((a, b) => a.price.compareTo(b.price));
     } else if (_sortBy == loc.sortPriceHigh) {
@@ -234,7 +254,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       _searchQuery = '';
                       _searchController.clear();
                     });
-                    provider.setCategory('');
+                    provider.setCategory('전체');
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
@@ -276,7 +296,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       _searchQuery = '';
                       _searchController.clear();
                     });
-                    provider.setCategory('');
+                    provider.setCategory('전체');
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
