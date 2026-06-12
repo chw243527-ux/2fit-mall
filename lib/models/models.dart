@@ -74,6 +74,7 @@ class ProductModel {
     this.nameTranslations = const {},
     this.descriptionTranslations = const {},
     this.bottomLength = '',
+    this.sizeStocks = const {},
   });
 
   /// 현재 언어에 맞는 상품명 반환 (번역 없으면 원본 한국어 사용)
