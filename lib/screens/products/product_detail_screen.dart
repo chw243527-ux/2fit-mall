@@ -4209,60 +4209,61 @@ $productUrl
             ),
         ],
 
-        // ── 기술 특징 리스트 (SEAMLESS / FAST DRY / MOISTURE)
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-          child: Column(
-            children: techRows.asMap().entries.map((entry) {
-              final i = entry.key;
-              final t = entry.value;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (i > 0) const Divider(height: 1, color: Color(0xFFE8E8E8)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 28,
-                          child: Text('0${i + 1}',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900,
-                                color: Color(0xFFCCCCCC), letterSpacing: 1)),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF555555))),
-                                child: Text(t['label']!,
-                                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
-                                      color: Color(0xFF555555), letterSpacing: 1.2)),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(t['desc']!,
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800,
-                                    color: Color(0xFF1A1A1A), height: 1.3)),
-                              const SizedBox(height: 5),
-                              Text(t['sub']!,
-                                style: const TextStyle(fontSize: 12, color: Color(0xFF777777),
-                                    height: 1.6, fontWeight: FontWeight.w400)),
-                            ],
+        // ── 기술 특징 리스트 (SEAMLESS / FAST DRY / MOISTURE) — 하의 카테고리 숨김
+        if (product.category != '하의')
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Column(
+              children: techRows.asMap().entries.map((entry) {
+                final i = entry.key;
+                final t = entry.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (i > 0) const Divider(height: 1, color: Color(0xFFE8E8E8)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 28,
+                            child: Text('0${i + 1}',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900,
+                                  color: Color(0xFFCCCCCC), letterSpacing: 1)),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                  decoration: BoxDecoration(border: Border.all(color: const Color(0xFF555555))),
+                                  child: Text(t['label']!,
+                                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
+                                        color: Color(0xFF555555), letterSpacing: 1.2)),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(t['desc']!,
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800,
+                                      color: Color(0xFF1A1A1A), height: 1.3)),
+                                const SizedBox(height: 5),
+                                Text(t['sub']!,
+                                  style: const TextStyle(fontSize: 12, color: Color(0xFF777777),
+                                      height: 1.6, fontWeight: FontWeight.w400)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              );
-            }).toList(),
+                  ],
+                );
+              }).toList(),
+            ),
           ),
-        ),
 
         // ── 하의길이 참조 이미지 (하의/싱글렛세트만)
         if (_isBottomOrSingletSetProduct(product)) ...[
