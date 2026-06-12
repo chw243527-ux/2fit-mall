@@ -7967,7 +7967,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
       onTap: isSoldOut ? null : onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 130),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: isSoldOut ? 6 : 10,
+        ),
         decoration: BoxDecoration(
           color: isSoldOut
               ? const Color(0xFFF5F5F5)
@@ -7979,8 +7982,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                 : isSelected ? activeColor : const Color(0xFFE0E0E0),
           ),
         ),
-        child: Stack(
-          alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               label,
@@ -7994,19 +7997,18 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                 decorationThickness: 2,
               ),
             ),
-            if (isSoldOut)
-              Positioned(
-                bottom: -2,
-                child: Text(
-                  '품절',
-                  style: const TextStyle(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFFE53935),
-                    height: 1,
-                  ),
+            if (isSoldOut) ...[
+              const SizedBox(height: 2),
+              const Text(
+                '품절',
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFE53935),
+                  height: 1,
                 ),
               ),
+            ],
           ],
         ),
       ),
