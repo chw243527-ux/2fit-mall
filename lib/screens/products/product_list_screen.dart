@@ -50,6 +50,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
   bool _onlyBest = false;
   bool _onlySale = false;
   bool _onlyFreeShip = false;
+  // 서브카테고리 필터
+  String _selectedSubCategory = '';  // '' = 전체
 
   @override
   void initState() {
@@ -91,6 +93,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
             p.category.toLowerCase().contains(_searchQuery.toLowerCase()) ||
             p.description.toLowerCase().contains(_searchQuery.toLowerCase())).toList()
         : List.from(source);
+    // 서브카테고리 필터
+    if (_selectedSubCategory.isNotEmpty) {
+      list = list.where((p) => p.subCategory == _selectedSubCategory).toList();
+    }
     // 가격 범위 필터
     list = list.where((p) => p.price >= _minPrice && p.price <= _maxPrice).toList();
     // 추가 필터
@@ -162,6 +168,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       body: Column(
         children: [
           _buildCategoryBar(provider),
+          _buildSubCategoryBar(),
           _buildSortFilterBar(filteredProducts.length),
           if (_showPriceFilter) _buildPriceFilterPanel(),
           Expanded(
@@ -250,6 +257,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       _onlyBest = true;
                       _onlyNew = false;
                       _selectedCategory = '';
+                      _selectedSubCategory = '';
                       _sortBy = '인기순';
                       _searchQuery = '';
                       _searchController.clear();
@@ -292,6 +300,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       _onlyNew = true;
                       _onlyBest = false;
                       _selectedCategory = '';
+                      _selectedSubCategory = '';
                       _sortBy = '최신순';
                       _searchQuery = '';
                       _searchController.clear();
@@ -343,6 +352,63 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
+  // ── 서브카테고리 바 ──
+  Widget _buildSubCategoryBar() {
+    // 선택된 대분류 카테고리의 서브카테고리 목록 조회
+    final subs = AppConstants.subCategoryMap[_selectedCategory] ?? [];
+
+    // 서브카테고리가 없거나, 베스트/신상품 탭이면 숨김
+    if (subs.isEmpty || _onlyBest || _onlyNew) return const SizedBox.shrink();
+
+    return Container(
+      color: const Color(0xFF1A1A1A),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              children: [
+                // 전체 칩
+                _buildSubCatChip('전체', ''),
+                ...subs.map((sub) => _buildSubCatChip(sub, sub)),
+              ],
+            ),
+          ),
+          Container(height: 1, color: const Color(0xFF252525)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubCatChip(String label, String value) {
+    final isSel = _selectedSubCategory == value;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedSubCategory = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 130),
+        margin: const EdgeInsets.only(right: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+        decoration: BoxDecoration(
+          color: isSel ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSel ? Colors.white : const Color(0xFF3A3A3A),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: isSel ? FontWeight.w800 : FontWeight.w500,
+            color: isSel ? const Color(0xFF111111) : const Color(0xFF888888),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ── 일반 카테고리 탭 위젯 ──
   Widget _buildCatTab(String cat, ProductProvider provider) {
     final isGroup = cat == '단체주문';
@@ -369,6 +435,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
           _selectedCategory = cat;
           _onlyBest = false;
           _onlyNew = false;
+          _selectedSubCategory = '';
           _searchQuery = '';
           _searchController.clear();
         });
