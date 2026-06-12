@@ -6304,45 +6304,144 @@ class _AdminScreenState extends State<AdminScreen>
 
   // ── 재고 수정 다이얼로그
   void _showStockDialog(ProductModel p) {
-    final ctrl = TextEditingController(text: p.stockCount.toString());
+    // 사이즈별 재고가 있으면 사이즈별로, 없으면 전체 재고 수정
+    final hasSizeStocks = p.sizeStocks.isNotEmpty && p.sizes.isNotEmpty;
+    final knownAll = [..._adultSizeOptions, ..._juniorSizeOptions];
+    final orderedSizes = hasSizeStocks
+        ? [
+            ...knownAll.where(p.sizes.contains),
+            ...p.sizes.where((s) => !knownAll.contains(s)),
+          ]
+        : <String>[];
+
+    // 각 사이즈별 컨트롤러 생성
+    final sizeCtrls = {
+      for (final s in orderedSizes)
+        s: TextEditingController(text: (p.sizeStocks[s] ?? 0).toString())
+    };
+    final totalCtrl = TextEditingController(text: p.stockCount.toString());
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('재고 수정', style: TextStyle(fontWeight: FontWeight.w800)),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(p.name, style: const TextStyle(fontSize: 13, color: Color(0xFF555555))),
-          const SizedBox(height: 12),
-          TextField(
-            controller: ctrl,
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: '재고 수량', suffixText: '개',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx2, dlgSetState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(children: [
+            const Icon(Icons.warehouse_rounded, size: 18, color: Color(0xFF1A1A2E)),
+            const SizedBox(width: 8),
+            const Text('재고 수정', style: TextStyle(fontWeight: FontWeight.w800)),
+          ]),
+          content: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text(p.name, style: const TextStyle(fontSize: 13, color: Color(0xFF555555))),
+              const SizedBox(height: 16),
+              if (hasSizeStocks) ...[
+                // 사이즈별 재고 수정
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: orderedSizes.map((s) {
+                    final isSoldOut = p.soldOutSizes.contains(s);
+                    return SizedBox(
+                      width: 85,
+                      child: Column(children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isSoldOut ? const Color(0xFFFFCDD2) : const Color(0xFF1A1A2E),
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                          ),
+                          child: Center(
+                            child: Text(s,
+                                style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w700,
+                                  color: isSoldOut ? const Color(0xFFE53935) : Colors.white,
+                                )),
+                          ),
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+                            border: Border.all(color: const Color(0xFFEEEEEE)),
+                          ),
+                          child: TextField(
+                            controller: sizeCtrls[s],
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            enabled: !isSoldOut,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(vertical: 8),
+                              isDense: true,
+                              suffixText: '개',
+                              suffixStyle: TextStyle(fontSize: 10, color: Colors.grey),
+                            ),
+                            onChanged: (_) => dlgSetState(() {}),
+                          ),
+                        ),
+                      ]),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 12),
+                // 총 합계
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE3F2FD),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '총 재고: ${sizeCtrls.entries.where((e) => !p.soldOutSizes.contains(e.key)).fold(0, (sum, e) => sum + (int.tryParse(e.value.text) ?? 0))}개',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1565C0)),
+                  ),
+                ),
+              ] else ...[
+                // 전체 재고 수정 (사이즈 미설정 상품)
+                TextField(
+                  controller: totalCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: '전체 재고 수량', suffixText: '개',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                ),
+              ],
+            ]),
+          ),
+          actions: [
+            TextButton(onPressed: () { for (final c in sizeCtrls.values) { c.dispose(); } Navigator.pop(ctx); }, child: const Text('취소')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
+              onPressed: () async {
+                int newStock;
+                Map<String, int> newSizeStocks = {};
+                if (hasSizeStocks) {
+                  newSizeStocks = { for (final e in sizeCtrls.entries) e.key: int.tryParse(e.value.text) ?? 0 };
+                  newStock = newSizeStocks.entries.where((e) => !p.soldOutSizes.contains(e.key)).fold(0, (s, e) => s + e.value);
+                } else {
+                  newStock = int.tryParse(totalCtrl.text) ?? p.stockCount;
+                }
+                await ProductService.updateStockWithSizes(p.id, newStock, newSizeStocks);
+                for (final c in sizeCtrls.values) { c.dispose(); }
+                if (!context.mounted) return;
+                await context.read<ProductProvider>().loadAdminProducts();
+                if (!context.mounted) return;
+                Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('${p.name} 재고가 업데이트되었습니다'),
+                    backgroundColor: const Color(0xFF1A1A2E)));
+                }
+              },
+              child: const Text('저장', style: TextStyle(color: Colors.white)),
             ),
-          ),
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A2E)),
-            onPressed: () async {
-              final newStock = int.tryParse(ctrl.text) ?? p.stockCount;
-              await ProductService.updateStock(p.id, newStock);
-              if (!context.mounted) return;
-              await context.read<ProductProvider>().refresh();
-              if (!context.mounted) return;
-              Navigator.pop(ctx);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text('${p.name} 재고가 ${newStock}개로 업데이트되었습니다'),
-                  backgroundColor: const Color(0xFF1A1A2E)));
-              }
-            },
-            child: const Text('저장', style: TextStyle(color: Colors.white)),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -9626,6 +9725,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   // ── 품절 사이즈 (선택된 사이즈 중 품절 표시할 항목)
   final Set<String> _soldOutSizes = {};
 
+  // ── 사이즈별 재고 수량
+  final Map<String, TextEditingController> _sizeStockCtrls = {};
+
   // 성인 사이즈 전체 목록
   static const List<String> _adultSizeOptions = [
     'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL',
@@ -9713,6 +9815,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     ];
     _sizesCtrl = TextEditingController(text: orderedInit.join(', '));
     _stockCtrl = TextEditingController(text: e?.stockCount.toString() ?? '100');
+    // ── 사이즈별 재고 컨트롤러 초기화
+    _initSizeStockCtrls(initSizes, e?.sizeStocks ?? {});
     _urlCtrl = TextEditingController();
     _materialCtrl = TextEditingController(text: e?.material ?? '');
     _bottomLengthCtrl = TextEditingController(text: e?.bottomLength ?? '');
@@ -9789,6 +9893,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _descCtrl.dispose(); _sizesCtrl.dispose();
     _stockCtrl.dispose(); _urlCtrl.dispose();
     _materialCtrl.dispose(); _bottomLengthCtrl.dispose();
+    for (final c in _sizeStockCtrls.values) { c.dispose(); }
     super.dispose();
   }
 
@@ -9955,7 +10060,15 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           : null,
       isSale: _isSale, isFreeShipping: _isFreeShip,
       isGroupOnly: _isGroupOnly, isReadyMade: _isReadyMade,
-      stockCount: int.tryParse(_stockCtrl.text) ?? 100,
+      sizeStocks: {
+        for (final entry in _sizeStockCtrls.entries)
+          entry.key: int.tryParse(entry.value.text) ?? 0,
+      },
+      stockCount: _sizeStockCtrls.isEmpty
+          ? (int.tryParse(_stockCtrl.text) ?? 100)
+          : _sizeStockCtrls.entries
+              .where((e) => !_soldOutSizes.contains(e.key))
+              .fold(0, (sum, e) => sum + (int.tryParse(e.value.text) ?? 0)),
       soldOutSizes: _soldOutSizes.toList(),
       isActive: _isActive,
       createdAt: widget.existing?.createdAt ?? DateTime.now(),
@@ -10478,6 +10591,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                 _buildSoldOutSizeSelector(),
                 const SizedBox(height: 14),
 
+                // ── 사이즈별 재고 입력
+                _buildSizeStockEditor(),
+                const SizedBox(height: 14),
+
                 // ── 소재 직접 입력
                 _lbl('소재 정보 (직접 입력 시 카테고리 기본값 덮어씀)'),
                 TextField(
@@ -10829,8 +10946,13 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       setState(() {
         if (_selectedSizes.contains(s)) {
           _selectedSizes.remove(s);
+          // 사이즈 제거 시 재고 컨트롤러도 제거
+          _sizeStockCtrls[s]?.dispose();
+          _sizeStockCtrls.remove(s);
         } else {
           _selectedSizes.add(s);
+          // 사이즈 추가 시 재고 컨트롤러 생성 (기본값 100)
+          _sizeStockCtrls[s] ??= TextEditingController(text: '100');
         }
         // 선택 순서 보장: adultSizeOptions → juniorSizeOptions 순으로 정렬
         final ordered = [
@@ -10846,6 +10968,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         _selectedSizes
           ..clear()
           ..addAll(preset);
+        // 프리셋 변경 시 재고 컨트롤러 동기화
+        final removed = _sizeStockCtrls.keys.where((s) => !_selectedSizes.contains(s)).toList();
+        for (final s in removed) { _sizeStockCtrls[s]?.dispose(); _sizeStockCtrls.remove(s); }
+        for (final s in preset) { _sizeStockCtrls[s] ??= TextEditingController(text: '100'); }
         final ordered = [
           ..._adultSizeOptions.where(_selectedSizes.contains),
           ..._juniorSizeOptions.where(_selectedSizes.contains),
@@ -11102,6 +11228,177 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  // ── 사이즈별 재고 컨트롤러 초기화
+  void _initSizeStockCtrls(List<String> sizes, Map<String, int> existingStocks) {
+    for (final c in _sizeStockCtrls.values) { c.dispose(); }
+    _sizeStockCtrls.clear();
+    for (final s in sizes) {
+      _sizeStockCtrls[s] = TextEditingController(
+        text: (existingStocks[s] ?? 100).toString(),
+      );
+    }
+  }
+
+  // ── 사이즈별 재고 입력 위젯
+  Widget _buildSizeStockEditor() {
+    if (_selectedSizes.isEmpty) return const SizedBox.shrink();
+    final knownAll = [..._adultSizeOptions, ..._juniorSizeOptions];
+    final orderedSizes = [
+      ...knownAll.where(_selectedSizes.contains),
+      ..._selectedSizes.where((s) => !knownAll.contains(s)),
+    ];
+    // 컨트롤러 동기화: 새로 추가된 사이즈 컨트롤러 생성
+    for (final s in orderedSizes) {
+      if (!_sizeStockCtrls.containsKey(s)) {
+        _sizeStockCtrls[s] = TextEditingController(text: '100');
+      }
+    }
+    // 제거된 사이즈 컨트롤러 정리
+    final removed = _sizeStockCtrls.keys.where((s) => !_selectedSizes.contains(s)).toList();
+    for (final s in removed) { _sizeStockCtrls[s]?.dispose(); _sizeStockCtrls.remove(s); }
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F7FF),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFBBDEFB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.warehouse_rounded, size: 15, color: Color(0xFF1565C0)),
+            const SizedBox(width: 6),
+            const Text('사이즈별 재고',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+            const Spacer(),
+            // 전체 일괄 입력
+            GestureDetector(
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (_) {
+                    final ctrl = TextEditingController(text: '100');
+                    return AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      title: const Text('전체 재고 일괄 설정', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      content: TextField(
+                        controller: ctrl,
+                        keyboardType: TextInputType.number,
+                        autofocus: true,
+                        decoration: const InputDecoration(labelText: '수량', suffixText: '개'),
+                      ),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('취소')),
+                        ElevatedButton(
+                          onPressed: () {
+                            final v = int.tryParse(ctrl.text) ?? 100;
+                            setState(() {
+                              for (final c in _sizeStockCtrls.values) { c.text = v.toString(); }
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: const Text('적용'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1565C0),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text('일괄 설정', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: orderedSizes.map((s) {
+              final isSoldOut = _soldOutSizes.contains(s);
+              return SizedBox(
+                width: 90,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isSoldOut ? const Color(0xFFFFCDD2) : const Color(0xFF1565C0),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                      ),
+                      child: Center(
+                        child: Text(s,
+                            style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w700,
+                              color: isSoldOut ? const Color(0xFFE53935) : Colors.white,
+                              decoration: isSoldOut ? TextDecoration.lineThrough : null,
+                            )),
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(8)),
+                        border: Border.all(color: isSoldOut ? const Color(0xFFEF9A9A) : const Color(0xFFBBDEFB)),
+                      ),
+                      child: TextField(
+                        controller: _sizeStockCtrls[s],
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        enabled: !isSoldOut,
+                        style: TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w700,
+                          color: isSoldOut ? Colors.grey : const Color(0xFF1A1A2E),
+                        ),
+                        decoration: InputDecoration(
+                          hintText: isSoldOut ? '품절' : '0',
+                          hintStyle: TextStyle(fontSize: 12, color: isSoldOut ? Colors.red.shade300 : Colors.grey),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                          isDense: true,
+                          suffixText: isSoldOut ? null : '개',
+                          suffixStyle: const TextStyle(fontSize: 10, color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 10),
+          // 총 재고 합계 표시
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE3F2FD),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: StatefulBuilder(
+              builder: (ctx, localSetState) {
+                int total = 0;
+                for (final entry in _sizeStockCtrls.entries) {
+                  if (!_soldOutSizes.contains(entry.key)) {
+                    total += int.tryParse(entry.value.text) ?? 0;
+                  }
+                }
+                return Text('총 재고: $total개',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1565C0)));
+              },
+            ),
+          ),
         ],
       ),
     );

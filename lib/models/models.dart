@@ -40,6 +40,9 @@ class ProductModel {
   final Map<String, String> descriptionTranslations;
   // 관리자 직접 입력 하의길이 (비어있으면 카테고리 기본값 자동 적용)
   final String bottomLength;
+  /// 사이즈별 재고 수량 (예: {'S': 10, 'M': 20, 'L': 15})
+  /// 비어있으면 stockCount를 전체 재고로 사용
+  final Map<String, int> sizeStocks;
 
   ProductModel({
     required this.id,
@@ -133,6 +136,7 @@ class ProductModel {
       nameTranslations: nameTranslations ?? this.nameTranslations,
       descriptionTranslations: descriptionTranslations ?? this.descriptionTranslations,
       bottomLength: bottomLength,
+      sizeStocks: sizeStocks,
     );
   }
 
@@ -199,6 +203,9 @@ class ProductModel {
       reviewCount: json['reviewCount'] as int? ?? 0,
       stockCount: json['stockCount'] as int? ?? 100,
       soldOutSizes: (json['soldOutSizes'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const [],
+      sizeStocks: (json['sizeStocks'] as Map<String, dynamic>?)
+              ?.map((k, v) => MapEntry(k, (v as num).toInt())) ??
+          const {},
       salesCount: json['salesCount'] as int? ?? 0,
       isActive: json['isActive'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -237,6 +244,7 @@ class ProductModel {
       'reviewCount': reviewCount,
       'stockCount': stockCount,
       'soldOutSizes': soldOutSizes,
+      'sizeStocks': sizeStocks,
       'salesCount': salesCount,
       'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
@@ -258,6 +266,7 @@ class ProductModel {
       isGroupOnly: isGroupOnly, isReadyMade: isReadyMade,
       rating: rating, reviewCount: reviewCount, stockCount: stockCount,
       soldOutSizes: soldOutSizes,
+      sizeStocks: sizeStocks,
       salesCount: salesCount,
       isActive: isActive, createdAt: createdAt,
       productCode: productCode,

@@ -1105,6 +1105,43 @@ class ProductService {
     return true;
   }
 
+  /// 사이즈별 재고 업데이트 (Firestore에 sizeStocks + stockCount 동시 저장)
+  static Future<bool> updateStockWithSizes(
+      String productId, int newStock, Map<String, int> sizeStocks) async {
+    try {
+      await _db.collection('products').doc(productId).update({
+        'stockCount': newStock,
+        'sizeStocks': sizeStocks,
+      });
+      // 로컬 캐시도 업데이트
+      final idx = _products.indexWhere((p) => p.id == productId);
+      if (idx >= 0) {
+        final p = _products[idx];
+        _products[idx] = ProductModel(
+          id: p.id, name: p.name, category: p.category, subCategory: p.subCategory,
+          price: p.price, originalPrice: p.originalPrice,
+          description: p.description, images: p.images,
+          sizes: p.sizes, colors: p.colors, material: p.material,
+          isNew: p.isNew, newExpiresAt: p.newExpiresAt, isSale: p.isSale, isFreeShipping: p.isFreeShipping,
+          isGroupOnly: p.isGroupOnly, isActive: p.isActive,
+          rating: p.rating, reviewCount: p.reviewCount,
+          stockCount: newStock, sizeStocks: sizeStocks,
+          soldOutSizes: p.soldOutSizes,
+          createdAt: p.createdAt, productCode: p.productCode, sectionImages: p.sectionImages,
+          nameTranslations: p.nameTranslations,
+          descriptionTranslations: p.descriptionTranslations,
+          bottomLength: p.bottomLength,
+        );
+        _cache = List.from(_products);
+        await _persist();
+      }
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ Firestore 사이즈별 재고 업데이트 실패: $e');
+      return false;
+    }
+  }
+
   static Future<bool> updateSectionImages(
       String productId, String sectionKey, List<String> urls) async {
     final idx = _products.indexWhere((p) => p.id == productId);
