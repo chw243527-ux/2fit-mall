@@ -3998,7 +3998,7 @@ class _AdminScreenState extends State<AdminScreen>
     final isAdminLoading = context.watch<ProductProvider>().isAdminLoading;
 
     // 검색 + 카테고리 필터 적용
-    final bottomSubCats = ['타이즈', '남성 5부', '여성 2.5부', '트레이닝바지', '반바지'];
+    final bottomSubCats = ['타이즈', '남성 5부', '여성 2.5부', '트레이닝바지', '숏츠'];
     bool _matchesCategory(p, String filter) {
       if (filter == '전체') return true;
       if (p.category == filter) return true;

@@ -6586,7 +6586,7 @@ class AppLocalizations {
       case AppLanguage.japanese: return 'ショーツ';
       case AppLanguage.chinese: return '短裤';
       case AppLanguage.mongolian: return 'Шорт';
-      default: return '반바지';
+      default: return '숏츠';
     }
   }
   String get drawerCatSet {
@@ -9679,7 +9679,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return 'ショーツ';
     case AppLanguage.chinese: return '短裤';
     case AppLanguage.mongolian: return 'Шорт';
-    default: return '반바지';
+    default: return '숏츠';
   }}
   String get catSetAll { switch (language) {
     case AppLanguage.english: return 'All Sets';
@@ -14898,7 +14898,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return ['シングレットセット', 'シングレット', 'レギンス', 'タイツ', 'ショーツ', 'トップス', 'その他'];
     case AppLanguage.chinese: return ['背心套装', '背心', '紧身裤', '打底裤', '短裤', '上衣', '其他'];
     case AppLanguage.mongolian: return ['Сингэлет сет', 'Сингэлет', 'Легинс', 'Колгот', 'Шорт', 'Топ', 'Бусад'];
-    default: return ['싱글렛세트', '싱글렛', '레깅스', '타이즈', '반바지', '상의', '기타'];
+    default: return ['싱글렛세트', '싱글렛', '레깅스', '타이즈', '숏츠', '상의', '기타'];
   }}
   String get defaultCategoryValue { switch (language) {
     case AppLanguage.english: return 'Singlet Set';

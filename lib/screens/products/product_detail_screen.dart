@@ -5656,7 +5656,7 @@ $productUrl
         p.name.contains('타이즈') ||
         p.subCategory.contains('레깅스') ||
         p.subCategory.contains('팬츠') ||
-        p.subCategory.contains('반바지') ||
+        p.subCategory.contains('숏츠') ||
         p.subCategory.contains('숏츠') ||
         p.subCategory.contains('트레이닝');
 
@@ -6873,7 +6873,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
       widget.product.subCategory.contains('타이즈') ||
       widget.product.subCategory.contains('레깅스') ||
       widget.product.subCategory.contains('팬츠') ||
-      widget.product.subCategory.contains('반바지') ||
+      widget.product.subCategory.contains('숏츠') ||
       widget.product.subCategory.contains('숏츠') ||
       widget.product.name.contains('타이즈');
 
@@ -6895,7 +6895,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   bool get _isReadyMadeBottom =>
       widget.product.isReadyMade &&
       (widget.product.category == '하의' ||
-          widget.product.subCategory.contains('반바지') ||
+          widget.product.subCategory.contains('숏츠') ||
           widget.product.subCategory.contains('트레이닝바지') ||
           widget.product.subCategory.contains('타이즈'));
 
