@@ -90,7 +90,7 @@ class AppConstants {
   // ── 2FIT 등록 색상 팔레트 ──
   // 골지원단 실물 촬영 이미지 픽셀 직접 추출 — median sampling (2026-05-28)
   // product_detail_screen.dart _goljiColorMap / allGoljiColors 와 완전 동일
-  // isFree 기준: 블랙(K) · 퍼플네이비(PP) → +₩0 (기본가), 그 외 → +₩20,000
+  // isFree 기준: 블랙(K) → +₩0 (기본가), 그 외 → +₩20,000 (PP 포함)
   static const List<Map<String, dynamic>> twoFitColors = [
     {'name': '블랙',       'nameEn': 'K (Black)',      'hex': 0xFF3A3A3A, 'isFree': true},
     {'name': '네이비',     'nameEn': 'N (Navy)',       'hex': 0xFF2A3668, 'isFree': false},
@@ -105,9 +105,9 @@ class AppConstants {
     {'name': '아이보리',   'nameEn': 'IO (Ivory)',     'hex': 0xFFD2CEC3, 'isFree': false},
     {'name': '라이트그레이','nameEn': 'LG (Lt.Gray)',  'hex': 0xFFBDBDBD, 'isFree': false},
     {'name': '레드',       'nameEn': 'R (Red)',        'hex': 0xFFE03430, 'isFree': false},
-    {'name': '퍼플네이비', 'nameEn': 'PP (PP Navy)',   'hex': 0xFF363752, 'isFree': true},
+    {'name': '퍼플네이비', 'nameEn': 'PP (PP Navy)',   'hex': 0xFF363752, 'isFree': false},
     {'name': '올리브그린', 'nameEn': 'ND (Olive)',     'hex': 0xFF4B5441, 'isFree': false},
-    {'name': '틸블루',     'nameEn': 'BB (Teal Blue)', 'hex': 0xFF116977, 'isFree': false},
+    {'name': '틸블루',     'nameEn': 'BB (Teal Blue)', 'hex': 0xFF116977, 'isFree': true},
     {'name': '형광핑크',   'nameEn': 'FP (Neon Pink)', 'hex': 0xFFFD1691, 'isFree': false},
     {'name': '형광오렌지', 'nameEn': 'FO (Neon Org)',  'hex': 0xFFFE6502, 'isFree': false},
     {'name': '형광그린',   'nameEn': 'FG (Neon Grn)',  'hex': 0xFF7FD905, 'isFree': false},
@@ -231,7 +231,7 @@ class AppConstants {
   };
 
   // ── 기성품 색상 K/PP 기본 색상 (추가비용 없음) ──
-  static const List<String> freeColors = ['K (블랙)', 'PP (퍼플네이비)']; // K/PP 기본 색상 (추가비용 없음)
+  static const List<String> freeColors = ['K (블랙)', 'BB (틸블루)']; // K/틸블루 기본 색상 (추가비용 없음)
   static const int extraColorPrice = 20000; // K/PP 외 색상 추가비용
 
   // ── 단체 커스텀 주문 디자인 확정 기한 ──
