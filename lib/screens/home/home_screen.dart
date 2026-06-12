@@ -2397,13 +2397,10 @@ class _HomeScreenState extends State<HomeScreen>
                           borderRadius: BorderRadius.circular(8),
                           child: Stack(
                             children: [
-                              SizedBox(
-                                width: cardW, height: imgH,
+                              Positioned.fill(
                                 child: p.images.isNotEmpty
                                   ? Image.network(p.images.first,
                                       fit: BoxFit.cover,
-                                      cacheWidth: 300,
-                                      cacheHeight: 375,
                                       errorBuilder: (_, __, ___) => Container(
                                         color: const Color(0xFFF0F0F0),
                                         child: const Icon(Icons.image_not_supported_rounded,
@@ -2576,12 +2573,10 @@ class _HomeScreenState extends State<HomeScreen>
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
                           child: Stack(
                             children: [
-                              SizedBox(
-                                width: cardW, height: imgH,
+                              Positioned.fill(
                                 child: p.images.isNotEmpty
                                     ? Image.network(p.images.first,
                                         fit: BoxFit.cover,
-                                        width: double.infinity, height: double.infinity,
                                         errorBuilder: (_, __, ___) => const Icon(
                                           Icons.image_not_supported_rounded,
                                           color: Color(0xFFCCCCCC), size: 28))
@@ -3042,21 +3037,21 @@ class _HomeScreenState extends State<HomeScreen>
             Expanded(
               child: Stack(
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                    child: p.images.isNotEmpty
-                        ? Image.network(
-                            p.images.first,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                            errorBuilder: (_, __, ___) => const Icon(
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                      child: p.images.isNotEmpty
+                          ? Image.network(
+                              p.images.first,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.image_not_supported_outlined,
+                                color: Color(0xFFBBBBBB), size: 36),
+                            )
+                          : const Icon(
                               Icons.image_not_supported_outlined,
                               color: Color(0xFFBBBBBB), size: 36),
-                          )
-                        : const Icon(
-                            Icons.image_not_supported_outlined,
-                            color: Color(0xFFBBBBBB), size: 36),
+                    ),
                   ),
                   // GROUP ONLY 배지
                   Positioned(

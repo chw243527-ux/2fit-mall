@@ -826,22 +826,22 @@ class _ProductListScreenState extends State<ProductListScreen> {
               aspectRatio: 4 / 5,
               child: Stack(
                 children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                    child: p.images.isNotEmpty
-                        ? Image.network(
-                            p.images.first,
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
-                            filterQuality: FilterQuality.medium,
-                            errorBuilder: (_, __, ___) => Container(
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                      child: p.images.isNotEmpty
+                          ? Image.network(
+                              p.images.first,
+                              fit: BoxFit.cover,
+                              filterQuality: FilterQuality.medium,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: const Color(0xFF222222),
+                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFF444444), size: 48)),
+                            )
+                          : Container(
                               color: const Color(0xFF222222),
                               child: const Icon(Icons.checkroom_rounded, color: Color(0xFF444444), size: 48)),
-                          )
-                        : Container(
-                            color: const Color(0xFF222222),
-                            child: const Icon(Icons.checkroom_rounded, color: Color(0xFF444444), size: 48)),
+                    ),
                   ),
                   // 배지들
                   if (p.isGroupOnly) Positioned(top: 8, left: 8,
