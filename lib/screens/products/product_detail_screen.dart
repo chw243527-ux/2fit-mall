@@ -1530,7 +1530,7 @@ $productUrl
             text: '골지원단 19가지 기본 색상 중 원하는 색상으로 자유롭게 제작 가능',
           ),
           const SizedBox(height: 10),
-          _infoColorChipRow(['K','N','W','G','DG','SB','B','DB','SP','LP','IO','LG','R','PP','ND','BB','FP','FO','FG']),
+          _infoColorChipRow(['K','N','W','G','DG','SB','B','DB','SP','LP','IO','LG','R','PP','ND','BB','FP','FO','FG'], useRib: false),
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
@@ -1578,17 +1578,9 @@ $productUrl
         ],
       );
     } else {
-      // 단체주문 기타 카테고리 + 기성품 전체: 등록된 색상만 표시
-      // 골지 원단: 타이즈, 5부(남성 5부), 2.5부(여성 2.5부) 만 골지 텍스처
-      // 그 외 하의(숏츠, 트레이닝바지 등)는 단색 매끈한 스와치
-      final isRibBottom = product.category == '하의' && (
-          sub.contains('타이즈') || name.contains('타이즈') ||
-          sub.contains('5부')    || name.contains('5부')    ||
-          sub.contains('2.5부')  || name.contains('2.5부')
-      );
-      final useRib = product.category != '하의' || isRibBottom;
+      // 모든 카테고리: 단색 매끈한 원형 스와치
       colorContent = product.colors.isNotEmpty
-          ? _infoColorChipRow(product.colors, useRib: useRib)
+          ? _infoColorChipRow(product.colors, useRib: false)
           : const Text('등록된 색상 정보가 없습니다.',
               style: TextStyle(fontSize: 12, color: Color(0xFF888888)));
     }
