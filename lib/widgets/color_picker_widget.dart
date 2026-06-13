@@ -103,8 +103,6 @@ class RibColorSwatch extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // 골지 텍스처
-            CustomPaint(painter: RibTexturePainter(baseColor: color)),
             // 체크 아이콘
             if (child != null) Center(child: child!),
           ],
