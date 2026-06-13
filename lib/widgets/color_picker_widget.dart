@@ -17,27 +17,26 @@ class RibTexturePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final lum = baseColor.computeLuminance();
 
-    // ─── 리브 파라미터: 주기 줄이고 입체감 제거 ───
-    const ribPeriod = 4.0;  // 주기 9→4px (촘촘하게)
-    const lineW     = 0.8;  // 라인 두께
+    // ─── 골지 리브 파라미터 ───
+    // 골: 어두운 줄 (오목한 부분)
+    const ribPeriod = 5.0;  // 리브 1주기 = 5px
+    const darkW     = 1.6;  // 어두운 골 두께
 
-    // 밝기에 따른 라인 투명도만 조정 (그림자·하이라이트 없음)
-    final lineAlpha = lum > 0.6
-        ? 0.12   // 밝은 색: 연하게
+    final darkAlpha = lum > 0.6
+        ? 0.28   // 밝은 색
         : lum > 0.3
-            ? 0.16   // 중간
-            : 0.22;  // 어두운 색: 조금 진하게
+            ? 0.22   // 중간
+            : 0.18;  // 어두운 색
 
-    final paint = Paint()
+    final darkPaint = Paint()
       ..color = lum > 0.5
-          ? Colors.black.withValues(alpha: lineAlpha)
-          : Colors.white.withValues(alpha: lineAlpha)
-      ..strokeWidth = lineW
+          ? Colors.black.withValues(alpha: darkAlpha)
+          : Colors.black.withValues(alpha: darkAlpha * 0.7)
+      ..strokeWidth = darkW
       ..style = PaintingStyle.stroke;
 
-    // 단순 세로 라인만 반복 (입체 그라디언트 없음)
-    for (double x = 0; x < size.width; x += ribPeriod) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    for (double x = darkW / 2; x < size.width; x += ribPeriod) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), darkPaint);
     }
   }
 
