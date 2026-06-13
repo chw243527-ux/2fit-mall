@@ -254,7 +254,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               SliverToBoxAdapter(child: KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
-              if (product.category != '상의')
+              if (_showPocketSection(product))
                 SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin))),
@@ -303,7 +303,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product)),
                           RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
                           RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
-                          if (product.category != '상의')
+                          if (_showPocketSection(product))
                             RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
                           RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
                           RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
@@ -444,7 +444,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                     KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product)),
                                     RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
                                     RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
-                                    if (product.category != '상의')
+                                    if (_showPocketSection(product))
                                       RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
                                     RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
                                     RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
@@ -4432,6 +4432,24 @@ $productUrl
       onTapGeneral: (imgs, i) => _openLightbox(imgs, i),
       onTapSeamless: (imgs, i) => _openLightbox(imgs, i),
     );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 포켓시스템 표시 여부: 하의 카테고리 중 타이즈·5부·2.5부만 표시
+  // (숏츠·단체주문 상의·세트 등 나머지는 숨김)
+  // ═══════════════════════════════════════════════════════════
+  bool _showPocketSection(ProductModel product) {
+    final cat  = product.category;
+    final sub  = product.subCategory;
+    final name = product.name;
+    // 하의 카테고리이면서 타이즈·5부·2.5부 포함 시만 표시
+    if (cat == '하의') {
+      return sub.contains('타이즈') || name.contains('타이즈') ||
+             sub.contains('5부')    || name.contains('5부')    ||
+             sub.contains('2.5부')  || name.contains('2.5부');
+    }
+    // 상의·세트·단체주문 등 하의 외 카테고리는 모두 숨김
+    return false;
   }
 
   // ═══════════════════════════════════════════════════════════
