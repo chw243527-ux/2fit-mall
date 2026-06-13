@@ -3240,8 +3240,8 @@ $productUrl
           // 일반 유저: 업로드된 이미지 표시
           _buildStaticImageList(effectiveImgs),
         ],
-        // ── 하의길이 순서 및 성별 적용 범위 안내 (업로드된 이미지가 있거나 관리자일 때만)
-        if (isAdmin || hasUploadedImgs) Container(
+        // ── 하의길이 순서 및 성별 적용 범위 안내 (업로드된 이미지가 있을 때만)
+        if (hasUploadedImgs) Container(
           margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
           decoration: BoxDecoration(
