@@ -1579,8 +1579,11 @@ $productUrl
       );
     } else {
       // 단체주문 기타 카테고리 + 기성품 전체: 등록된 색상만 표시
+      // 숏츠 카테고리는 골지 원단이 아니므로 단색 스와치 사용
+      final isShorts = product.category == '하의' &&
+          (product.subCategory == '숏츠' || product.subCategory.contains('숏'));
       colorContent = product.colors.isNotEmpty
-          ? _infoColorChipRow(product.colors)
+          ? _infoColorChipRow(product.colors, useRib: !isShorts)
           : const Text('등록된 색상 정보가 없습니다.',
               style: TextStyle(fontSize: 12, color: Color(0xFF888888)));
     }
@@ -1776,8 +1779,8 @@ $productUrl
     '민트':       Color(0xFF26C9A0),
   };
 
-  // ── 색상 칩: 골지 텍스처 원형 36px 스타일 ──
-  Widget _infoColorChipRow(List<String> codes) {
+  // ── 색상 칩: 원형 스와치 (useRib=true 이면 골지 텍스처, false 이면 단색)
+  Widget _infoColorChipRow(List<String> codes, {bool useRib = true}) {
     return Wrap(
       spacing: 10,
       runSpacing: 14,
@@ -1788,13 +1791,36 @@ $productUrl
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 골지 텍스처 원형 스와치 (borderRadius=18 → 완전 원형)
-            RibColorSwatch(
-              color: dotColor,
-              size: 36,
-              isLight: isLight,
-              borderRadius: 18,
-            ),
+            useRib
+                // 골지 텍스처 원형 스와치 (borderRadius=18 → 완전 원형)
+                ? RibColorSwatch(
+                    color: dotColor,
+                    size: 36,
+                    isLight: isLight,
+                    borderRadius: 18,
+                  )
+                // 단색 원형 스와치 (숏츠 등 골지 없는 원단)
+                : Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: dotColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isLight
+                            ? Colors.black.withValues(alpha: 0.18)
+                            : Colors.white.withValues(alpha: 0.18),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: dotColor.withValues(alpha: 0.30),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                  ),
             const SizedBox(height: 5),
             // 코드명
             Text(
@@ -3165,9 +3191,16 @@ $productUrl
     final imgs = _sectionImages['s2_length'] ?? [];
     // 기존 남자키 데이터도 폴백으로 사용
     final legacyMale = _sectionImages['s2_length_male'] ?? [];
+
+    // ── 실제 업로드된 이미지 여부 (default fallback 제외)
+    final hasUploadedImgs = imgs.isNotEmpty || legacyMale.isNotEmpty;
+
     final effectiveImgs = imgs.isNotEmpty
         ? imgs
         : (legacyMale.isNotEmpty ? legacyMale : [_defaultMaleLengthImg]);
+
+    // 일반 유저이고 업로드된 이미지가 없으면 섹션 전체 숨김
+    if (!isAdmin && !hasUploadedImgs) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -3193,11 +3226,11 @@ $productUrl
           const SizedBox(height: 10),
           _buildAdminImageSection('s2_length', '하의길이 참조 이미지', isAdmin),
         ] else ...[
-          // 일반 유저: 이미지만 표시
+          // 일반 유저: 업로드된 이미지 표시
           _buildStaticImageList(effectiveImgs),
         ],
-        // ── 하의길이 순서 및 성별 적용 범위 안내
-        Container(
+        // ── 하의길이 순서 및 성별 적용 범위 안내 (업로드된 이미지가 있거나 관리자일 때만)
+        if (isAdmin || hasUploadedImgs) Container(
           margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
           decoration: BoxDecoration(
