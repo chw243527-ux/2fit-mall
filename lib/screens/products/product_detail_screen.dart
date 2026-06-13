@@ -1219,6 +1219,13 @@ $productUrl
   // ── 탑텐 스타일: 색상 원형 그리드 선택 UI ──
   Widget _buildToptenColorSection(ProductModel product) {
     String _selectedColor = product.colors.isNotEmpty ? product.colors.first : '';
+    // 골지 텍스처 적용 대상: 타이즈, 단체주문 하의, 5부, 2.5부
+    final sub  = product.subCategory;
+    final name = product.name;
+    final showRib = product.isGroupOnly && product.category == '하의'
+        || sub.contains('타이즈') || name.contains('타이즈')
+        || sub.contains('5부')    || name.contains('5부')
+        || sub.contains('2.5부')  || name.contains('2.5부');
 
     return StatefulBuilder(builder: (ctx, setSt) {
       return Padding(
@@ -1236,7 +1243,7 @@ $productUrl
               ),
             ]),
             const SizedBox(height: 12),
-            // 원형 색상 버튼 그리드 — 골지 텍스처 원형 스와치
+            // 원형 색상 버튼 그리드
             Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -1253,6 +1260,7 @@ $productUrl
                     accentColor: const Color(0xFF1A1A1A),
                     isLight: isLight,
                     borderRadius: 18,
+                    showRib: showRib,
                     child: isSelected
                         ? Icon(Icons.check_rounded, size: 16,
                             color: isLight ? Colors.black87 : Colors.white)
@@ -1530,7 +1538,7 @@ $productUrl
             text: '골지원단 19가지 기본 색상 중 원하는 색상으로 자유롭게 제작 가능',
           ),
           const SizedBox(height: 10),
-          _infoColorChipRow(['K','N','W','G','DG','SB','B','DB','SP','LP','IO','LG','R','PP','ND','BB','FP','FO','FG'], useRib: false),
+          _infoColorChipRow(['K','N','W','G','DG','SB','B','DB','SP','LP','IO','LG','R','PP','ND','BB','FP','FO','FG'], useRib: true),
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
@@ -1578,9 +1586,14 @@ $productUrl
         ],
       );
     } else {
-      // 모든 카테고리: 단색 매끈한 원형 스와치
+      // 기성품: 타이즈·5부·2.5부는 골지, 그 외(숏츠 등)는 단색
+      final isRibBottom =
+          sub.contains('타이즈') || name.contains('타이즈') ||
+          sub.contains('5부')    || name.contains('5부')    ||
+          sub.contains('2.5부')  || name.contains('2.5부');
+      final useRib = isRibBottom;
       colorContent = product.colors.isNotEmpty
-          ? _infoColorChipRow(product.colors, useRib: false)
+          ? _infoColorChipRow(product.colors, useRib: useRib)
           : const Text('등록된 색상 정보가 없습니다.',
               style: TextStyle(fontSize: 12, color: Color(0xFF888888)));
     }
@@ -1795,6 +1808,7 @@ $productUrl
                     size: 36,
                     isLight: isLight,
                     borderRadius: 18,
+                    showRib: true,
                   )
                 // 단색 원형 스와치 (숏츠 등 골지 없는 원단)
                 : Container(
@@ -8429,6 +8443,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                   accentColor: const Color(0xFF1A1A1A),
                   isLight: selColor.computeLuminance() > 0.5,
                   borderRadius: 4,
+                  showRib: true,
                 ),
                 const SizedBox(width: 6),
                 Text(col,
@@ -8471,6 +8486,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                     isSelected: sel,
                     accentColor: const Color(0xFF1A1A1A),
                     isLight: Color(hex).computeLuminance() > 0.5,
+                    showRib: true,
                     child: sel
                         ? Icon(Icons.check_rounded,
                             size: 18,
@@ -9386,6 +9402,7 @@ class _GoljiSwatch extends StatelessWidget {
       color: color,
       size: size,
       isLight: isLight,
+      showRib: true,
     );
   }
 }

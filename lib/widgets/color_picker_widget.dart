@@ -58,6 +58,8 @@ class RibColorSwatch extends StatelessWidget {
   final Widget? child;
   final double? height;
   final double? borderRadius;
+  /// true: 골지 세로 리브 텍스처 표시 / false: 단색 매끈한 원형 (기본 false)
+  final bool showRib;
 
   const RibColorSwatch({
     super.key,
@@ -69,6 +71,7 @@ class RibColorSwatch extends StatelessWidget {
     this.child,
     this.height,
     this.borderRadius,
+    this.showRib = false,
   });
 
   @override
@@ -103,6 +106,8 @@ class RibColorSwatch extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
+            // 골지 텍스처 (showRib=true 일 때만)
+            if (showRib) CustomPaint(painter: RibTexturePainter(baseColor: color)),
             // 체크 아이콘
             if (child != null) Center(child: child!),
           ],
