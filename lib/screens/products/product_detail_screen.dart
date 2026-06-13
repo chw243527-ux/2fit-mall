@@ -1579,12 +1579,16 @@ $productUrl
       );
     } else {
       // 단체주문 기타 카테고리 + 기성품 전체: 등록된 색상만 표시
-      // 하의 중 타이즈가 아닌 경우(숏츠·5부·2.5부 등)는 골지 원단이 아니므로 단색 스와치
-      final isNonRibBottom = product.category == '하의' &&
-          !sub.contains('타이즈') &&
-          !name.contains('타이즈');
+      // 골지 원단: 타이즈, 5부(남성 5부), 2.5부(여성 2.5부) 만 골지 텍스처
+      // 그 외 하의(숏츠, 트레이닝바지 등)는 단색 매끈한 스와치
+      final isRibBottom = product.category == '하의' && (
+          sub.contains('타이즈') || name.contains('타이즈') ||
+          sub.contains('5부')    || name.contains('5부')    ||
+          sub.contains('2.5부')  || name.contains('2.5부')
+      );
+      final useRib = product.category != '하의' || isRibBottom;
       colorContent = product.colors.isNotEmpty
-          ? _infoColorChipRow(product.colors, useRib: !isNonRibBottom)
+          ? _infoColorChipRow(product.colors, useRib: useRib)
           : const Text('등록된 색상 정보가 없습니다.',
               style: TextStyle(fontSize: 12, color: Color(0xFF888888)));
     }
