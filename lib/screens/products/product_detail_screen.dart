@@ -4442,13 +4442,15 @@ $productUrl
     final cat  = product.category;
     final sub  = product.subCategory;
     final name = product.name;
+    // 단체주문은 항상 표시
+    if (product.isGroupOnly) return true;
     // 하의 카테고리이면서 타이즈·5부·2.5부 포함 시만 표시
     if (cat == '하의') {
       return sub.contains('타이즈') || name.contains('타이즈') ||
              sub.contains('5부')    || name.contains('5부')    ||
              sub.contains('2.5부')  || name.contains('2.5부');
     }
-    // 상의·세트·단체주문 등 하의 외 카테고리는 모두 숨김
+    // 상의·세트 등 나머지는 숨김
     return false;
   }
 
