@@ -11680,9 +11680,21 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
 
   // ── 등록/수정 다이얼로그 ──
   Future<void> _openEditor({NoticeModel? existing}) async {
-    final titleCtrl = TextEditingController(text: existing?.titleKo ?? '');
+    final titleCtrl   = TextEditingController(text: existing?.titleKo ?? '');
     final contentCtrl = TextEditingController(text: existing?.contentKo ?? '');
+    final imageCtrl   = TextEditingController(text: existing?.imageUrl ?? '');
     bool isActive = existing?.isActive ?? true;
+    String selectedTheme = existing?.theme ?? 'general';
+
+    // 테마 옵션 정의
+    const themes = [
+      {'id': 'general',  'label': '📢 일반공지',   'color': Color(0xFF1A1A2E)},
+      {'id': 'event',    'label': '🎉 이벤트',      'color': Color(0xFF6A1B9A)},
+      {'id': 'delivery', 'label': '🚚 배송안내',    'color': Color(0xFF1565C0)},
+      {'id': 'warning',  'label': '⚠️ 주의사항',   'color': Color(0xFFE65100)},
+      {'id': 'update',   'label': '✅ 업데이트',    'color': Color(0xFF2E7D32)},
+      {'id': 'promo',    'label': '🛒 할인/프로모', 'color': Color(0xFFC62828)},
+    ];
 
     await showDialog(
       context: context,
@@ -11714,6 +11726,43 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // ── 테마 선택 ──
+                  const Text('테마 *', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: themes.map((t) {
+                      final id    = t['id']    as String;
+                      final label = t['label'] as String;
+                      final color = t['color'] as Color;
+                      final isSel = selectedTheme == id;
+                      return GestureDetector(
+                        onTap: () => setD(() => selectedTheme = id),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSel ? color : Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isSel ? color : const Color(0xFFDDDDDD),
+                              width: isSel ? 2 : 1,
+                            ),
+                          ),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isSel ? Colors.white : const Color(0xFF444444),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
                   const Text('제목 *', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
                   TextField(
@@ -11734,6 +11783,25 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                       hintText: '공지사항 내용을 입력하세요\n\n이모지 사용 가능 (예: ✅ 📦 🎉)',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       contentPadding: const EdgeInsets.all(12),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // ── 이미지 URL ──
+                  const Text('이미지 URL (선택)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 4),
+                  const Text(
+                    '팝업 본문 위에 표시될 이미지 주소를 입력하세요',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: imageCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'https://example.com/image.jpg',
+                      hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
+                      prefixIcon: const Icon(Icons.image_rounded, size: 18, color: Color(0xFF888888)),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -11784,7 +11852,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () async {
-                final title = titleCtrl.text.trim();
+                final title   = titleCtrl.text.trim();
                 final content = contentCtrl.text.trim();
                 if (title.isEmpty || content.isEmpty) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
@@ -11793,16 +11861,18 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   return;
                 }
                 // 수정 시 제목/내용이 변경되면 번역 초기화 (재번역 유도)
-                final titleChanged = existing != null && existing.titleKo != title;
+                final titleChanged   = existing != null && existing.titleKo != title;
                 final contentChanged = existing != null && existing.contentKo != content;
                 final notice = NoticeModel(
                   id: existing?.id ?? 'notice_${DateTime.now().millisecondsSinceEpoch}',
                   titleKo: title,
                   contentKo: content,
-                  titleTranslations: titleChanged ? const {} : (existing?.titleTranslations ?? const {}),
+                  titleTranslations:   titleChanged   ? const {} : (existing?.titleTranslations   ?? const {}),
                   contentTranslations: contentChanged ? const {} : (existing?.contentTranslations ?? const {}),
                   isActive: isActive,
                   createdAt: existing?.createdAt ?? DateTime.now(),
+                  theme: selectedTheme,
+                  imageUrl: imageCtrl.text.trim(),
                 );
                 // provider 참조를 팝업 닫기 전에 미리 가져옴
                 final noticeProvider = context.read<NoticeProvider>();

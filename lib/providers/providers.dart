@@ -700,6 +700,10 @@ class NoticeModel {
   final Map<String, String> contentTranslations;
   final bool isActive;
   final DateTime createdAt;
+  /// 테마: 'general'|'event'|'delivery'|'warning'|'update'|'promo'
+  final String theme;
+  /// 본문 위에 표시할 이미지 URL (선택)
+  final String imageUrl;
 
   const NoticeModel({
     required this.id,
@@ -709,6 +713,8 @@ class NoticeModel {
     this.contentTranslations = const {},
     this.isActive = true,
     required this.createdAt,
+    this.theme = 'general',
+    this.imageUrl = '',
   });
 
   String localizedTitle(AppLanguage lang) {
@@ -763,6 +769,8 @@ class NoticeModel {
           : const {},
       isActive: data['isActive'] as bool? ?? true,
       createdAt: createdAt,
+      theme: data['theme'] as String? ?? 'general',
+      imageUrl: data['imageUrl'] as String? ?? '',
     );
   }
 
@@ -773,6 +781,8 @@ class NoticeModel {
     'contentTranslations': contentTranslations,
     'isActive': isActive,
     'createdAt': Timestamp.fromDate(createdAt),
+    'theme': theme,
+    'imageUrl': imageUrl,
   };
 }
 

@@ -5384,6 +5384,22 @@ class _NoticePopupState extends State<_NoticePopup> {
   @override
   void dispose() { _pc.dispose(); super.dispose(); }
 
+  // ── 테마별 색상/아이콘 헬퍼 ──
+  static const _themeData = {
+    'general':  {'color': Color(0xFF1A1A2E), 'icon': Icons.campaign_rounded},
+    'event':    {'color': Color(0xFF6A1B9A), 'icon': Icons.celebration_rounded},
+    'delivery': {'color': Color(0xFF1565C0), 'icon': Icons.local_shipping_rounded},
+    'warning':  {'color': Color(0xFFE65100), 'icon': Icons.warning_amber_rounded},
+    'update':   {'color': Color(0xFF2E7D32), 'icon': Icons.new_releases_rounded},
+    'promo':    {'color': Color(0xFFC62828), 'icon': Icons.local_offer_rounded},
+  };
+
+  Color _headerColor(String theme) =>
+      (_themeData[theme]?['color'] as Color?) ?? const Color(0xFF1A1A2E);
+
+  IconData _headerIcon(String theme) =>
+      (_themeData[theme]?['icon'] as IconData?) ?? Icons.campaign_rounded;
+
   @override
   Widget build(BuildContext context) {
     final notice  = widget.notices[_page];
@@ -5391,8 +5407,10 @@ class _NoticePopupState extends State<_NoticePopup> {
     final content = notice.localizedContent(widget.language);
     final total   = widget.notices.length;
     final sw      = MediaQuery.of(context).size.width;
-    // PC는 최대 460, 모바일은 화면 너비 - 48
     final dialogW = sw > 600 ? 460.0 : sw - 48.0;
+
+    final headerColor = _headerColor(notice.theme);
+    final headerIcon  = _headerIcon(notice.theme);
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -5407,11 +5425,11 @@ class _NoticePopupState extends State<_NoticePopup> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ── 헤더 ──
+              // ── 헤더 (테마 색상 적용) ──
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(18, 14, 14, 14),
-                decoration: const BoxDecoration(color: Color(0xFF1A1A2E)),
+                decoration: BoxDecoration(color: headerColor),
                 child: Row(
                   children: [
                     Container(
@@ -5420,7 +5438,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                         color: Colors.white.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Icon(Icons.campaign_rounded, color: Colors.white, size: 15),
+                      child: Icon(headerIcon, color: Colors.white, size: 15),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -5456,12 +5474,30 @@ class _NoticePopupState extends State<_NoticePopup> {
               // ── 본문 ──
               Container(
                 color: Colors.white,
-                constraints: const BoxConstraints(maxHeight: 300),
+                constraints: const BoxConstraints(maxHeight: 360),
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-                  child: Text(
-                    content,
-                    style: const TextStyle(fontSize: 13, color: Color(0xFF333333), height: 1.75),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 이미지 (등록 시 URL 있을 때만)
+                      if (notice.imageUrl.isNotEmpty) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            notice.imageUrl,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+                      Text(
+                        content,
+                        style: const TextStyle(fontSize: 13, color: Color(0xFF333333), height: 1.75),
+                      ),
+                    ],
                   ),
                 ),
               ),
