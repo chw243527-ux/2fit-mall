@@ -5480,7 +5480,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 이미지 (등록 시 URL 있을 때만)
+                      // ── B방법: 이미지 URL 있으면 이미지 표시
                       if (notice.imageUrl.isNotEmpty) ...[
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
@@ -5488,9 +5488,14 @@ class _NoticePopupState extends State<_NoticePopup> {
                             notice.imageUrl,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                            errorBuilder: (_, __, ___) => _buildEmojiBanner(notice.theme),
                           ),
                         ),
+                        const SizedBox(height: 14),
+                      ]
+                      // ── A방법: 이미지 없으면 테마 이모지 배너 표시
+                      else if (notice.theme != 'general') ...[
+                        _buildEmojiBanner(notice.theme),
                         const SizedBox(height: 14),
                       ],
                       Text(
@@ -5582,6 +5587,39 @@ class _NoticePopupState extends State<_NoticePopup> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // ── A방법: 테마 이모지 배너 위젯 ──
+  Widget _buildEmojiBanner(String theme) {
+    final emoji = _NoticePopupState._themeData[theme] != null
+        ? (NoticeThemeHelper.themeEmoji[theme] ?? '📢')
+        : '📢';
+    final label = NoticeThemeHelper.themeLabel[theme] ?? '공지사항';
+    final color = _headerColor(theme);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 18),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 44)),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
       ),
     );
   }

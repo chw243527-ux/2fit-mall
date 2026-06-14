@@ -691,6 +691,97 @@ class NotificationProvider extends ChangeNotifier {
   }
 }
 
+// ══════════════════════════════════════════════════════════════
+// NoticeThemeHelper — 제목/내용 키워드 → 테마 자동 감지 + 이미지 매핑
+// ══════════════════════════════════════════════════════════════
+class NoticeThemeHelper {
+
+  // ── A) 테마별 이모지 배너 (이미지 없을 때 텍스트 배너로 표시) ──
+  static const Map<String, String> themeEmoji = {
+    'general':  '📢',
+    'event':    '🎉',
+    'delivery': '🚚',
+    'warning':  '⚠️',
+    'update':   '✅',
+    'promo':    '🛒',
+    'holiday':  '🗓️',
+    'weather':  '🌤️',
+    'newitem':  '🆕',
+    'review':   '⭐',
+  };
+
+  static const Map<String, String> themeLabel = {
+    'general':  '일반 공지',
+    'event':    '이벤트',
+    'delivery': '배송 안내',
+    'warning':  '주의 사항',
+    'update':   '업데이트',
+    'promo':    '할인/프로모션',
+    'holiday':  '휴무/일정',
+    'weather':  '날씨/계절',
+    'newitem':  '신상품',
+    'review':   '리뷰/후기',
+  };
+
+  // ── B) 테마별 일러스트 이미지 URL (무료 오픈소스 SVG — unDraw / OpenMoji) ──
+  static const Map<String, String> themeImageUrl = {
+    'holiday':  'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c5.svg',
+    'event':    'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f389.svg',
+    'delivery': 'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f69a.svg',
+    'warning':  'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/26a0.svg',
+    'update':   'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2705.svg',
+    'promo':    'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6d2.svg',
+    'newitem':  'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f195.svg',
+    'weather':  'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/26c5.svg',
+    'review':   'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2b50.svg',
+    'general':  '',  // 일반공지는 이미지 없음
+  };
+
+  // ── 키워드 → 테마 자동 감지 ──
+  static String detectTheme(String title, String content) {
+    final text = '${title.toLowerCase()} ${content.toLowerCase()}';
+
+    // 휴무/일정 (달력)
+    if (_has(text, ['휴무', '휴일', '공휴일', '달력', '일정', '영업시간', '운영시간',
+                    '쉬는날', '명절', '연휴', '설날', '추석', '크리스마스'])) return 'holiday';
+
+    // 이벤트
+    if (_has(text, ['이벤트', '기념', '축제', '파티', '선물', '경품', '추첨',
+                    'event', '기회', '특별'])) return 'event';
+
+    // 배송
+    if (_has(text, ['배송', '출고', '택배', '발송', '배달', '도착', '운송',
+                    'delivery', '입고', '재고'])) return 'delivery';
+
+    // 신상품
+    if (_has(text, ['신상', '신제품', '새로운', '출시', '런칭', 'new', '신규'])) return 'newitem';
+
+    // 할인/프로모
+    if (_has(text, ['할인', '세일', '프로모', '쿠폰', '적립', '혜택', '특가',
+                    'sale', '% off', '무료', '증정'])) return 'promo';
+
+    // 주의/안내
+    if (_has(text, ['주의', '경고', '중요', '긴급', '안전', '필독', '꼭 확인'])) return 'warning';
+
+    // 업데이트
+    if (_has(text, ['업데이트', '개선', '변경', '수정', '패치', '버전', '기능 추가'])) return 'update';
+
+    // 날씨/계절
+    if (_has(text, ['날씨', '기온', '여름', '겨울', '봄', '가을', '비', '눈', '더위', '추위'])) return 'weather';
+
+    // 리뷰
+    if (_has(text, ['리뷰', '후기', '평점', '만족', '추천'])) return 'review';
+
+    return 'general';
+  }
+
+  static bool _has(String text, List<String> keywords) =>
+      keywords.any((k) => text.contains(k));
+
+  // ── 테마에 어울리는 자동 이미지 URL 반환 (없으면 빈 문자열) ──
+  static String autoImageUrl(String theme) => themeImageUrl[theme] ?? '';
+}
+
 // ── 공지사항 Provider ──────────────────────────────────────
 class NoticeModel {
   final String id;
@@ -926,6 +1017,8 @@ class NoticeProvider extends ChangeNotifier {
               contentTranslations: contentT.isNotEmpty ? contentT : old.contentTranslations,
               isActive: old.isActive,
               createdAt: old.createdAt,
+              theme: old.theme,
+              imageUrl: old.imageUrl,
             );
             notifyListeners();
           }

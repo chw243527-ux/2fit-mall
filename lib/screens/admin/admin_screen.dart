@@ -11683,17 +11683,24 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
     final titleCtrl   = TextEditingController(text: existing?.titleKo ?? '');
     final contentCtrl = TextEditingController(text: existing?.contentKo ?? '');
     final imageCtrl   = TextEditingController(text: existing?.imageUrl ?? '');
-    bool isActive = existing?.isActive ?? true;
-    String selectedTheme = existing?.theme ?? 'general';
+    bool isActive     = existing?.isActive ?? true;
+    // 'auto' = 제목+내용 저장 시 자동감지
+    String selectedTheme = existing != null ? (existing.theme) : 'auto';
+    bool autoImage = existing == null || existing.imageUrl.isEmpty;
 
-    // 테마 옵션 정의
+    // 테마 옵션 정의 (auto 포함)
     const themes = [
-      {'id': 'general',  'label': '📢 일반공지',   'color': Color(0xFF1A1A2E)},
+      {'id': 'auto',     'label': '✨ 자동감지',    'color': Color(0xFF607D8B)},
+      {'id': 'general',  'label': '📢 일반공지',    'color': Color(0xFF1A1A2E)},
+      {'id': 'holiday',  'label': '🗓️ 휴무/일정', 'color': Color(0xFF00695C)},
       {'id': 'event',    'label': '🎉 이벤트',      'color': Color(0xFF6A1B9A)},
       {'id': 'delivery', 'label': '🚚 배송안내',    'color': Color(0xFF1565C0)},
       {'id': 'warning',  'label': '⚠️ 주의사항',   'color': Color(0xFFE65100)},
       {'id': 'update',   'label': '✅ 업데이트',    'color': Color(0xFF2E7D32)},
       {'id': 'promo',    'label': '🛒 할인/프로모', 'color': Color(0xFFC62828)},
+      {'id': 'newitem',  'label': '🆕 신상품',      'color': Color(0xFF0277BD)},
+      {'id': 'weather',  'label': '🌤️ 날씨/계절', 'color': Color(0xFF0288D1)},
+      {'id': 'review',   'label': '⭐ 리뷰/후기',  'color': Color(0xFFF9A825)},
     ];
 
     await showDialog(
@@ -11786,24 +11793,80 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // ── 이미지 URL ──
-                  const Text('이미지 URL (선택)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '팝업 본문 위에 표시될 이미지 주소를 입력하세요',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                  // ── 이미지 설정 ──
+                  Row(
+                    children: [
+                      const Text('이미지', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      const Spacer(),
+                      const Text('자동 이미지', style: TextStyle(fontSize: 12, color: Color(0xFF666666))),
+                      const SizedBox(width: 4),
+                      Switch(
+                        value: autoImage,
+                        activeColor: const Color(0xFF607D8B),
+                        onChanged: (v) => setD(() {
+                          autoImage = v;
+                          if (v) imageCtrl.clear();
+                        }),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 6),
-                  TextField(
-                    controller: imageCtrl,
-                    decoration: InputDecoration(
-                      hintText: 'https://example.com/image.jpg',
-                      hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
-                      prefixIcon: const Icon(Icons.image_rounded, size: 18, color: Color(0xFF888888)),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  if (autoImage) ...[
+                    // 자동 이미지 미리보기
+                    Builder(builder: (_) {
+                      final previewTheme = selectedTheme == 'auto'
+                          ? NoticeThemeHelper.detectTheme(titleCtrl.text, contentCtrl.text)
+                          : selectedTheme;
+                      final emoji = NoticeThemeHelper.themeEmoji[previewTheme] ?? '📢';
+                      final label = NoticeThemeHelper.themeLabel[previewTheme] ?? '일반공지';
+                      final autoUrl = NoticeThemeHelper.autoImageUrl(previewTheme);
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F4F8),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFCFD8DC)),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(emoji, style: const TextStyle(fontSize: 28)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('자동 감지 테마: $label',
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF37474F))),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    autoUrl.isNotEmpty ? '테마 이미지 자동 적용됨' : '이미지 없음 (이모지 배너 표시)',
+                                    style: TextStyle(fontSize: 11,
+                                        color: autoUrl.isNotEmpty ? const Color(0xFF2E7D32) : const Color(0xFF888888)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.auto_awesome_rounded, size: 16, color: Color(0xFF607D8B)),
+                          ],
+                        ),
+                      );
+                    }),
+                  ] else ...[
+                    const SizedBox(height: 4),
+                    const Text('팝업 본문 위에 표시될 이미지 주소를 입력하세요',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: imageCtrl,
+                      onChanged: (_) => setD(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'https://example.com/image.jpg',
+                        hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
+                        prefixIcon: const Icon(Icons.image_rounded, size: 18, color: Color(0xFF888888)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
                     ),
-                  ),
+                  ],
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -11860,7 +11923,15 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   );
                   return;
                 }
-                // 수정 시 제목/내용이 변경되면 번역 초기화 (재번역 유도)
+                // 자동감지: 제목+내용으로 테마 결정
+                final finalTheme = selectedTheme == 'auto'
+                    ? NoticeThemeHelper.detectTheme(title, content)
+                    : selectedTheme;
+                // 자동 이미지: 테마 이미지 URL 자동 적용, 직접 입력이면 그대로
+                final finalImageUrl = autoImage
+                    ? NoticeThemeHelper.autoImageUrl(finalTheme)
+                    : imageCtrl.text.trim();
+
                 final titleChanged   = existing != null && existing.titleKo != title;
                 final contentChanged = existing != null && existing.contentKo != content;
                 final notice = NoticeModel(
@@ -11871,8 +11942,8 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   contentTranslations: contentChanged ? const {} : (existing?.contentTranslations ?? const {}),
                   isActive: isActive,
                   createdAt: existing?.createdAt ?? DateTime.now(),
-                  theme: selectedTheme,
-                  imageUrl: imageCtrl.text.trim(),
+                  theme: finalTheme,
+                  imageUrl: finalImageUrl,
                 );
                 // provider 참조를 팝업 닫기 전에 미리 가져옴
                 final noticeProvider = context.read<NoticeProvider>();
