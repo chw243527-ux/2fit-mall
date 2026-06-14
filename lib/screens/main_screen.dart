@@ -27,6 +27,7 @@ class MainScreenState extends State<MainScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   late int _currentIndex;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String? _lastUid; // 유저 변경 감지용
 
   void navigateToMyPage() => setState(() => _currentIndex = 3);
   void navigateTo(int index) => setState(() => _currentIndex = index);
@@ -35,12 +36,13 @@ class MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
-    // 공지사항 팝업 - MainScreen 레벨에서 표시 (가장 안정적)
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final noticeProv = context.read<NoticeProvider>();
-      // SharedPreferences에서 닫기 날짜 복원 (로그인 후에도 유지)
-      await noticeProv.loadDismissState();
-      // Firestore에서 공지사항 로드 (번역 없으면 자동 번역)
+      final noticeProv  = context.read<NoticeProvider>();
+      final userProv    = context.read<UserProvider>();
+      final uid         = userProv.user?.uid;
+      _lastUid = uid;
+      // UID 기반으로 dismiss 상태 복원
+      await noticeProv.onUserChanged(uid);
       noticeProv.loadFromFirestore();
       Future.delayed(const Duration(milliseconds: 1500), _showNoticePopup);
     });
@@ -69,11 +71,22 @@ class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
-    // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final width = MediaQuery.of(context).size.width;
-    final isPc = width >= kPcBreakpoint; // 태블릿 포함: 너비 900 이상이면 PC 레이아웃
+    final isPc = width >= kPcBreakpoint;
     final userProvider = context.watch<UserProvider>();
+    final uid = userProvider.user?.uid;
+
+    // 유저 변경 감지 → 새 유저 dismiss 상태 로드 + 팝업 재표시
+    if (uid != _lastUid) {
+      _lastUid = uid;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        final noticeProv = context.read<NoticeProvider>();
+        await noticeProv.onUserChanged(uid);
+        _showNoticePopup();
+      });
+    }
 
     // 로그아웃 감지: user가 null이 되면 로그인 화면으로 이동
     if (userProvider.user == null) {

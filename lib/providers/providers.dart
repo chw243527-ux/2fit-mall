@@ -881,14 +881,32 @@ class NoticeProvider extends ChangeNotifier {
   bool _dismissedToday = false;
   DateTime? _dismissedDate;
   bool _isLoading = false;
+  // 현재 로그인된 유저 UID (유저별 dismiss 키 분리용)
+  String? _currentUid;
 
   static const String _kPopupDismissKey = 'popup_dismiss_date';
 
-  /// 앱 시작 시 SharedPreferences에서 닫기 날짜 복원
-  Future<void> loadDismissState() async {
+  // UID 포함 dismiss 키 → 유저별로 팝업 상태 분리
+  String _dismissKey(String? uid) =>
+      uid != null && uid.isNotEmpty ? '${_kPopupDismissKey}_$uid' : _kPopupDismissKey;
+
+  /// 로그인한 유저가 바뀔 때 호출 — 새 유저의 dismiss 상태 로드
+  Future<void> onUserChanged(String? uid) async {
+    if (_currentUid == uid) return; // 같은 유저면 무시
+    _currentUid = uid;
+    // 상태 초기화 후 새 유저 기준으로 재로드
+    _dismissedToday = false;
+    _dismissedDate = null;
+    notifyListeners();
+    await loadDismissState(uid: uid);
+  }
+
+  /// 앱 시작 또는 유저 변경 시 SharedPreferences에서 닫기 날짜 복원
+  Future<void> loadDismissState({String? uid}) async {
+    final key = _dismissKey(uid ?? _currentUid);
     try {
       final prefs = await SharedPreferences.getInstance();
-      final saved = prefs.getString(_kPopupDismissKey);
+      final saved = prefs.getString(key);
       if (saved != null) {
         final date = DateTime.tryParse(saved);
         if (date != null) {
@@ -942,10 +960,10 @@ class NoticeProvider extends ChangeNotifier {
   Future<void> dismissToday() async {
     _dismissedToday = true;
     _dismissedDate = DateTime.now();
-    // SharedPreferences에 날짜 저장 → 로그아웃 후 재로그인해도 유지
+    // UID 포함 키로 저장 → 유저별 독립 관리
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_kPopupDismissKey, _dismissedDate!.toIso8601String());
+      await prefs.setString(_dismissKey(_currentUid), _dismissedDate!.toIso8601String());
     } catch (_) {}
     notifyListeners();
   }
