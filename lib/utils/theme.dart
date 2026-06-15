@@ -49,9 +49,13 @@ class AppColors {
 }
 
 class AppTheme {
+  // 쇼핑몰 전체 폰트패밀리 상수 (Pretendard Variable)
+  static const String fontFamily = 'Pretendard Variable';
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: fontFamily,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         brightness: Brightness.light,
@@ -72,10 +76,11 @@ class AppTheme {
         centerTitle: true,
         shadowColor: Color(0x14000000),
         titleTextStyle: TextStyle(
+          fontFamily: 'Pretendard Variable',
           color: AppColors.textPrimary,
           fontSize: 16,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.3,
+          letterSpacing: -0.3,
         ),
         iconTheme: IconThemeData(color: AppColors.textPrimary),
         surfaceTintColor: Colors.transparent,
@@ -105,9 +110,10 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(
+            fontFamily: 'Pretendard Variable',
             fontSize: 15,
             fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
+            letterSpacing: -0.2,
           ),
         ),
       ),
@@ -122,9 +128,10 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(
+            fontFamily: 'Pretendard Variable',
             fontSize: 15,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
+            letterSpacing: -0.2,
           ),
         ),
       ),
@@ -134,9 +141,10 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           textStyle: const TextStyle(
+            fontFamily: 'Pretendard Variable',
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.2,
+            letterSpacing: -0.1,
           ),
         ),
       ),
@@ -188,13 +196,16 @@ class AppTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         selectedLabelStyle: TextStyle(
+          fontFamily: 'Pretendard Variable',
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          letterSpacing: 0.2,
+          letterSpacing: -0.2,
         ),
         unselectedLabelStyle: TextStyle(
+          fontFamily: 'Pretendard Variable',
           fontSize: 11,
           fontWeight: FontWeight.w400,
+          letterSpacing: -0.1,
         ),
       ),
 
