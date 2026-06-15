@@ -11684,11 +11684,16 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
     final contentCtrl = TextEditingController(text: existing?.contentKo ?? '');
     final imageCtrl   = TextEditingController(text: existing?.imageUrl ?? '');
     bool isActive     = existing?.isActive ?? true;
-    // 'auto' = 제목+내용 저장 시 자동감지
     String selectedTheme = existing != null ? (existing.theme) : 'auto';
     bool autoImage = existing == null || existing.imageUrl.isEmpty;
 
-    // 테마 옵션 정의 (auto 포함)
+    // 이미지 직접 업로드 관련
+    Uint8List? pickedImageBytes;
+    String?   pickedFileName;
+    bool      isUploading   = false;
+    double    uploadProgress = 0.0;
+    String?   uploadedUrl;   // 업로드 완료된 URL
+
     const themes = [
       {'id': 'auto',     'label': '✨ 자동감지',    'color': Color(0xFF607D8B)},
       {'id': 'general',  'label': '📢 일반공지',    'color': Color(0xFF1A1A2E)},
@@ -11793,10 +11798,11 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                     ),
                   ),
                   const SizedBox(height: 16),
+
                   // ── 이미지 설정 ──
                   Row(
                     children: [
-                      const Text('이미지', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      const Text('팝업 이미지', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                       const Spacer(),
                       const Text('자동 이미지', style: TextStyle(fontSize: 12, color: Color(0xFF666666))),
                       const SizedBox(width: 4),
@@ -11805,19 +11811,24 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                         activeColor: const Color(0xFF607D8B),
                         onChanged: (v) => setD(() {
                           autoImage = v;
-                          if (v) imageCtrl.clear();
+                          if (v) {
+                            imageCtrl.clear();
+                            pickedImageBytes = null;
+                            uploadedUrl = null;
+                          }
                         }),
                       ),
                     ],
                   ),
+
                   if (autoImage) ...[
                     // 자동 이미지 미리보기
                     Builder(builder: (_) {
                       final previewTheme = selectedTheme == 'auto'
                           ? NoticeThemeHelper.detectTheme(titleCtrl.text, contentCtrl.text)
                           : selectedTheme;
-                      final emoji = NoticeThemeHelper.themeEmoji[previewTheme] ?? '📢';
-                      final label = NoticeThemeHelper.themeLabel[previewTheme] ?? '일반공지';
+                      final emoji  = NoticeThemeHelper.themeEmoji[previewTheme] ?? '📢';
+                      final label  = NoticeThemeHelper.themeLabel[previewTheme] ?? '일반공지';
                       final autoUrl = NoticeThemeHelper.autoImageUrl(previewTheme);
                       return Container(
                         padding: const EdgeInsets.all(12),
@@ -11851,22 +11862,181 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                       );
                     }),
                   ] else ...[
+                    // ── 직접 업로드 영역 ──
                     const SizedBox(height: 4),
-                    const Text('팝업 본문 위에 표시될 이미지 주소를 입력하세요',
-                        style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
-                    const SizedBox(height: 6),
+
+                    // 이미지 미리보기 / 업로드 버튼
+                    GestureDetector(
+                      onTap: isUploading ? null : () async {
+                        final picker = ImagePicker();
+                        final file = await picker.pickImage(
+                          source: ImageSource.gallery,
+                          imageQuality: 90,
+                          maxWidth: 1200,
+                        );
+                        if (file == null) return;
+                        final bytes = await file.readAsBytes();
+                        setD(() {
+                          pickedImageBytes = bytes;
+                          pickedFileName   = file.name;
+                          uploadedUrl      = null;
+                          imageCtrl.clear();
+                        });
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: pickedImageBytes != null || imageCtrl.text.isNotEmpty
+                                ? const Color(0xFF4A148C)
+                                : const Color(0xFFDDDDDD),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: pickedImageBytes != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(9),
+                                child: Image.memory(pickedImageBytes!, fit: BoxFit.cover),
+                              )
+                            : imageCtrl.text.isNotEmpty
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(9),
+                                    child: Image.network(
+                                      imageCtrl.text,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const Center(
+                                        child: Icon(Icons.broken_image_rounded, size: 40, color: Color(0xFFBBBBBB)),
+                                      ),
+                                    ),
+                                  )
+                                : const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.add_photo_alternate_rounded, size: 40, color: Color(0xFFAAAAAA)),
+                                      SizedBox(height: 8),
+                                      Text('탭하여 이미지 선택', style: TextStyle(fontSize: 13, color: Color(0xFF888888))),
+                                      SizedBox(height: 4),
+                                      Text('JPG / PNG 권장', style: TextStyle(fontSize: 11, color: Color(0xFFBBBBBB))),
+                                    ],
+                                  ),
+                      ),
+                    ),
+
+                    // 이미지 선택됐을 때 업로드 버튼 + 삭제
+                    if (pickedImageBytes != null) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: isUploading ? null : () async {
+                                if (pickedImageBytes == null) return;
+                                setD(() { isUploading = true; uploadProgress = 0.0; });
+                                final noticeId = existing?.id ?? 'notice_${DateTime.now().millisecondsSinceEpoch}';
+                                await for (final p in StorageService.uploadNoticeImageWithProgress(
+                                  noticeId: noticeId,
+                                  imageBytes: pickedImageBytes!,
+                                  fileName: pickedFileName ?? 'notice.jpg',
+                                  onComplete: (url) {
+                                    setD(() {
+                                      uploadedUrl      = url;
+                                      imageCtrl.text   = url;
+                                      isUploading      = false;
+                                      pickedImageBytes = null;
+                                    });
+                                  },
+                                  onError: (e) {
+                                    setD(() => isUploading = false);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('업로드 실패: $e')),
+                                    );
+                                  },
+                                )) {
+                                  setD(() => uploadProgress = p);
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF4A148C),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              icon: const Icon(Icons.cloud_upload_rounded, size: 16),
+                              label: Text(isUploading
+                                  ? '업로드 중... ${(uploadProgress * 100).toStringAsFixed(0)}%'
+                                  : '업로드'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: () => setD(() {
+                              pickedImageBytes = null;
+                              pickedFileName   = null;
+                            }),
+                            icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFE53935)),
+                          ),
+                        ],
+                      ),
+                      if (isUploading)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: LinearProgressIndicator(
+                            value: uploadProgress > 0 ? uploadProgress : null,
+                            backgroundColor: const Color(0xFFE8EAF6),
+                            color: const Color(0xFF4A148C),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                    ],
+
+                    // 업로드 완료 표시
+                    if (uploadedUrl != null) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF2E7D32)),
+                            SizedBox(width: 6),
+                            Text('업로드 완료', style: TextStyle(fontSize: 12, color: Color(0xFF2E7D32), fontWeight: FontWeight.w600)),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    // URL 직접 입력 (대안)
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Text('또는 URL 직접 입력', style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                        const Spacer(),
+                        if (imageCtrl.text.isNotEmpty)
+                          GestureDetector(
+                            onTap: () => setD(() { imageCtrl.clear(); uploadedUrl = null; }),
+                            child: const Text('초기화', style: TextStyle(fontSize: 11, color: Color(0xFFE53935))),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
                     TextField(
                       controller: imageCtrl,
                       onChanged: (_) => setD(() {}),
                       decoration: InputDecoration(
                         hintText: 'https://example.com/image.jpg',
                         hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
-                        prefixIcon: const Icon(Icons.image_rounded, size: 18, color: Color(0xFF888888)),
+                        prefixIcon: const Icon(Icons.link_rounded, size: 18, color: Color(0xFF888888)),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       ),
                     ),
                   ],
+
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -11923,11 +12093,9 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   );
                   return;
                 }
-                // 자동감지: 제목+내용으로 테마 결정
                 final finalTheme = selectedTheme == 'auto'
                     ? NoticeThemeHelper.detectTheme(title, content)
                     : selectedTheme;
-                // 자동 이미지: 테마 이미지 URL 자동 적용, 직접 입력이면 그대로
                 final finalImageUrl = autoImage
                     ? NoticeThemeHelper.autoImageUrl(finalTheme)
                     : imageCtrl.text.trim();
@@ -11945,7 +12113,6 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   theme: finalTheme,
                   imageUrl: finalImageUrl,
                 );
-                // provider 참조를 팝업 닫기 전에 미리 가져옴
                 final noticeProvider = context.read<NoticeProvider>();
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
                 final isEdit = existing != null;

@@ -205,4 +205,40 @@ class StorageService {
       onError(e.toString());
     }
   }
+
+  /// 공지사항 팝업 이미지 업로드 (진행률 스트림)
+  static Stream<double> uploadNoticeImageWithProgress({
+    required String noticeId,
+    required Uint8List imageBytes,
+    required String fileName,
+    required void Function(String url) onComplete,
+    required void Function(String error) onError,
+  }) async* {
+    try {
+      final ext = fileName.contains('.') ? fileName.split('.').last : 'jpg';
+      final ref = _storage
+          .ref()
+          .child('notices/$noticeId/${DateTime.now().millisecondsSinceEpoch}.$ext');
+      final task = ref.putData(
+        imageBytes,
+        SettableMetadata(contentType: 'image/${ext == 'png' ? 'png' : 'jpeg'}'),
+      );
+      await for (final snapshot in task.snapshotEvents) {
+        final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+        yield progress;
+        if (snapshot.state == TaskState.success) {
+          final url = await snapshot.ref.getDownloadURL();
+          onComplete(url);
+          return;
+        }
+        if (snapshot.state == TaskState.error) {
+          onError('공지 이미지 업로드 중 오류가 발생했습니다');
+          return;
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('uploadNoticeImageWithProgress error: $e');
+      onError(e.toString());
+    }
+  }
 }
