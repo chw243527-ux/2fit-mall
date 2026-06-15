@@ -5411,7 +5411,7 @@ class _NoticePopupState extends State<_NoticePopup> {
     final emoji      = NoticeThemeHelper.themeEmoji[notice.theme] ?? '📢';
 
     // 이미지 영역 높이: 화면 높이의 50%
-    final imgH = (sh * 0.50).clamp(240.0, 420.0);
+    final imgH = (sh * 0.35).clamp(180.0, 300.0);
 
     return Container(
       width: sw > 600 ? 480.0 : sw,
@@ -5543,7 +5543,7 @@ class _NoticePopupState extends State<_NoticePopup> {
               Container(
                 color: Colors.white,
                 width: double.infinity,
-                constraints: const BoxConstraints(maxHeight: 110),
+                constraints: const BoxConstraints(maxHeight: 80),
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
                   child: Text(
@@ -5567,7 +5567,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                 children: [
                   Container(height: 1, color: const Color(0xFFEEEEEE)),
                   SizedBox(
-                    height: 52,
+                    height: 44,
                     child: Row(
                       children: [
                         Expanded(
