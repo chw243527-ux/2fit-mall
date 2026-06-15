@@ -39,7 +39,7 @@ class MainScreenState extends State<MainScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final noticeProv  = context.read<NoticeProvider>();
       final userProv    = context.read<UserProvider>();
-      final uid         = userProv.user?.uid;
+      final uid         = userProv.user?.id;
       _lastUid = uid;
       // UID 기반으로 dismiss 상태 복원
       await noticeProv.onUserChanged(uid);
@@ -75,7 +75,7 @@ class MainScreenState extends State<MainScreen> {
     final width = MediaQuery.of(context).size.width;
     final isPc = width >= kPcBreakpoint;
     final userProvider = context.watch<UserProvider>();
-    final uid = userProvider.user?.uid;
+    final uid = userProvider.user?.id;
 
     // 유저 변경 감지 → 새 유저 dismiss 상태 로드 + 팝업 재표시
     if (uid != _lastUid) {
