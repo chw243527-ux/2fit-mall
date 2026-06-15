@@ -5522,7 +5522,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '\${(_page + 1).toString().padLeft(2, '0')} / \${total.toString().padLeft(2, '0')}',
+                        '${(_page + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,
