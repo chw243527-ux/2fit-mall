@@ -55,19 +55,40 @@ class MainScreenState extends State<MainScreen> {
     final notices = noticeProv.activeNotices;
     if (notices.isEmpty) return;
     final langProv = context.read<LanguageProvider>();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
-      useRootNavigator: false,
-      builder: (_) => _NoticePopupDialog(
-        notices: notices,
-        language: langProv.language,
-        loc: langProv.loc,
-        onDismissToday: () { noticeProv.dismissToday(); },
-      ),
+    final isPc = MediaQuery.of(context).size.width >= kPcBreakpoint;
+
+    final popupWidget = _NoticePopupDialog(
+      notices: notices,
+      language: langProv.language,
+      loc: langProv.loc,
+      onDismissToday: () { noticeProv.dismissToday(); },
+      isPc: isPc,
     );
+
+    if (isPc) {
+      // PC: 화면 중앙 다이얼로그
+      showDialog(
+        context: context,
+        barrierColor: Colors.black.withValues(alpha: 0.5),
+        barrierDismissible: true,
+        builder: (_) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
+          child: popupWidget,
+        ),
+      );
+    } else {
+      // 모바일: 하단 슬라이드 시트
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        barrierColor: Colors.black.withValues(alpha: 0.5),
+        useRootNavigator: false,
+        builder: (_) => popupWidget,
+      );
+    }
+
   }
 
   @override
@@ -1061,12 +1082,14 @@ class _NoticePopupDialog extends StatefulWidget {
   final AppLanguage language;
   final AppLocalizations loc;
   final VoidCallback onDismissToday;
+  final bool isPc;
 
   const _NoticePopupDialog({
     required this.notices,
     required this.language,
     required this.loc,
     required this.onDismissToday,
+    this.isPc = false,
   });
 
   @override
@@ -1115,20 +1138,25 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
         ? (sheetW / _imageAspectRatio!).clamp(160.0, sh * 0.55)
         : (sh * 0.35).clamp(180.0, 300.0);
 
+    // PC: 전체 둥근 모서리 / 모바일: 상단만 둥근 모서리
+    final borderRadius = widget.isPc
+        ? BorderRadius.circular(20)
+        : const BorderRadius.vertical(top: Radius.circular(20));
+
     return Container(
       width: sheetW,
-      // 하단 시트: 상단만 둥근 모서리
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: borderRadius,
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: borderRadius,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
 
-            // ── 드래그 핸들 (상단 중앙 바) ──
+            // ── 드래그 핸들: 모바일만 표시 ──
+            if (!widget.isPc)
             Container(
               margin: const EdgeInsets.only(top: 10, bottom: 6),
               width: 40, height: 4,
@@ -1330,7 +1358,8 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                       ],
                     ),
                   ),
-                  // iOS 홈 인디케이터 여백
+                  // iOS 홈 인디케이터 여백 (모바일만)
+                  if (!widget.isPc)
                   SizedBox(height: MediaQuery.of(context).padding.bottom),
                 ],
               ),
