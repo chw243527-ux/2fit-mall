@@ -11731,8 +11731,10 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
               ),
             ],
           ),
+          contentPadding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           content: SizedBox(
             width: 480,
+            height: MediaQuery.of(ctx).size.height * 0.72,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -11790,7 +11792,8 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   const SizedBox(height: 6),
                   TextField(
                     controller: contentCtrl,
-                    maxLines: 8,
+                    maxLines: 4,
+                    minLines: 2,
                     decoration: InputDecoration(
                       hintText: '공지사항 내용을 입력하세요\n\n이모지 사용 가능 (예: ✅ 📦 🎉)',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),

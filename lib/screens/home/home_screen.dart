@@ -5379,6 +5379,8 @@ class _NoticePopup extends StatefulWidget {
 class _NoticePopupState extends State<_NoticePopup> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   int _page = 0;
+  // 실제 이미지 비율 (로드 후 동적 업데이트)
+  double? _imageAspectRatio;
 
   // ── 테마별 그라디언트 (이미지 없을 때) ──
   static const Map<String, List<Color>> _themeGradients = {
@@ -5409,12 +5411,14 @@ class _NoticePopupState extends State<_NoticePopup> {
     final hasImage   = notice.imageUrl.isNotEmpty;
     final gradColors = _gradientColors(notice.theme);
     final emoji      = NoticeThemeHelper.themeEmoji[notice.theme] ?? '📢';
-
-    // 이미지 영역 높이: 화면 높이의 50%
-    final imgH = (sh * 0.35).clamp(180.0, 300.0);
+    final sheetW = sw > 600 ? 480.0 : sw;
+    // 이미지 높이: 실제 비율 기반 or 기본값
+    final imgH = _imageAspectRatio != null
+        ? (sheetW / _imageAspectRatio!).clamp(160.0, sh * 0.55)
+        : (sh * 0.35).clamp(180.0, 300.0);
 
     return Container(
-      width: sw > 600 ? 480.0 : sw,
+      width: sheetW,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -5438,7 +5442,9 @@ class _NoticePopupState extends State<_NoticePopup> {
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             // ① 이미지 / 그라디언트 배너
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            SizedBox(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
               width: double.infinity,
               height: imgH,
               child: Stack(
@@ -5449,7 +5455,22 @@ class _NoticePopupState extends State<_NoticePopup> {
                   if (hasImage)
                     Image.network(
                       notice.imageUrl,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
+                      alignment: Alignment.topCenter,
+                      frameBuilder: (_, child, frame, __) {
+                        if (frame != null) {
+                          final provider = NetworkImage(notice.imageUrl);
+                          provider.resolve(ImageConfiguration.empty)
+                              .addListener(ImageStreamListener((info, _) {
+                            final w = info.image.width.toDouble();
+                            final h = info.image.height.toDouble();
+                            if (h > 0 && mounted) {
+                              setState(() => _imageAspectRatio = w / h);
+                            }
+                          }));
+                        }
+                        return child;
+                      },
                       errorBuilder: (_, __, ___) =>
                           _buildGradientBg(gradColors, emoji, title),
                     )
@@ -5481,8 +5502,6 @@ class _NoticePopupState extends State<_NoticePopup> {
                               const SizedBox(height: 6),
                               Text(
                                 content,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: Color(0xFF666666),
                                   fontSize: 13,
@@ -5537,22 +5556,19 @@ class _NoticePopupState extends State<_NoticePopup> {
             ),
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // ② 이미지 없을 때: 본문 텍스트
+            // ② 이미지 없을 때 / 공통: 본문 텍스트
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             if (!hasImage && content.isNotEmpty)
               Container(
                 color: Colors.white,
                 width: double.infinity,
-                constraints: const BoxConstraints(maxHeight: 80),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-                  child: Text(
-                    content,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF555555),
-                      height: 1.7,
-                    ),
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                child: Text(
+                  content,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF555555),
+                    height: 1.7,
                   ),
                 ),
               ),
