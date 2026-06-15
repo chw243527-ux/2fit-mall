@@ -5,6 +5,12 @@ import 'package:flutter/material.dart';
 /// - Deep Charcoal primary with warm white surfaces
 /// - Soft shadows and gentle radii
 /// - Refined typography with balanced spacing
+
+/// 2FIT Mall - Refined Minimal Design System
+/// Clean, modern, premium feel
+/// - Deep Charcoal primary with warm white surfaces
+/// - Soft shadows and gentle radii
+/// - Refined typography with balanced spacing
 class AppColors {
   // ── Core ──
   static const Color primary      = Color(0xFF1A1A2E); // deep navy-charcoal
@@ -52,10 +58,54 @@ class AppTheme {
   // 쇼핑몰 전체 폰트패밀리 상수 (Pretendard Variable)
   static const String fontFamily = 'Pretendard Variable';
 
-  static ThemeData get lightTheme {
+  // ── 반응형 TextTheme ────────────────────────────────────────
+  // 기기 너비에 따라 폰트 크기가 자동 조정됩니다.
+  // 모바일(< 600): 기준, 태블릿(600~899): ×1.05, PC(≥ 900): ×1.10
+  static TextTheme responsiveTextTheme(double screenWidth) {
+    final double s = screenWidth < 600
+        ? 1.00   // 모바일
+        : screenWidth < 900
+            ? 1.05   // 태블릿
+            : 1.10;  // PC
+
+    return TextTheme(
+      // 대형 제목 (헤로 배너, 섹션 제목)
+      displayLarge:  _ts(32 * s, FontWeight.w900, -1.0),
+      displayMedium: _ts(28 * s, FontWeight.w900, -0.8),
+      displaySmall:  _ts(24 * s, FontWeight.w800, -0.6),
+      // 화면 제목
+      headlineLarge:  _ts(22 * s, FontWeight.w800, -0.5),
+      headlineMedium: _ts(20 * s, FontWeight.w700, -0.4),
+      headlineSmall:  _ts(18 * s, FontWeight.w700, -0.3),
+      // AppBar / 카드 제목
+      titleLarge:  _ts(17 * s, FontWeight.w700, -0.3),
+      titleMedium: _ts(15 * s, FontWeight.w600, -0.2),
+      titleSmall:  _ts(13 * s, FontWeight.w600, -0.1),
+      // 본문
+      bodyLarge:   _ts(15 * s, FontWeight.w400,  0.0),
+      bodyMedium:  _ts(14 * s, FontWeight.w400,  0.0),
+      bodySmall:   _ts(12 * s, FontWeight.w400,  0.0),
+      // 라벨 (버튼, 탭, 뱃지)
+      labelLarge:  _ts(14 * s, FontWeight.w600, -0.1),
+      labelMedium: _ts(12 * s, FontWeight.w600, -0.1),
+      labelSmall:  _ts(10 * s, FontWeight.w500,  0.0),
+    );
+  }
+
+  static TextStyle _ts(double size, FontWeight weight, double ls) => TextStyle(
+    fontFamily: fontFamily,
+    fontSize: size,
+    fontWeight: weight,
+    letterSpacing: ls,
+    color: AppColors.textPrimary,
+  );
+
+  static ThemeData lightTheme({double screenWidth = 390}) {
+    final textTheme = responsiveTextTheme(screenWidth);
     return ThemeData(
       useMaterial3: true,
       fontFamily: fontFamily,
+      textTheme: textTheme,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         brightness: Brightness.light,

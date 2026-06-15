@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/fcm_service.dart';
 import 'utils/theme.dart';
+import 'utils/responsive.dart';
 import 'providers/providers.dart';
 import 'services/auth_service.dart';
 import 'screens/home/splash_screen.dart';
@@ -101,10 +102,25 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         navigatorKey: navigatorKey,
         // 웹에서 마우스/터치 드래그 스크롤 모두 활성화
         scrollBehavior: const _AppScrollBehavior(),
-        builder: (context, child) => child!,
+        // ── 전역 반응형 처리 ──────────────────────────────────
+        // 1) 시스템 textScaler를 0.9~1.2 범위로 클램프
+        //    → 접근성 설정에 의해 레이아웃 깨지는 현상 방지
+        // 2) 화면 너비 기반 AppTheme(반응형 TextTheme) 적용
+        builder: (context, child) {
+          final sw = MediaQuery.of(context).size.width;
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: clampedTextScaler(context),
+            ),
+            child: Theme(
+              data: AppTheme.lightTheme(screenWidth: sw),
+              child: child!,
+            ),
+          );
+        },
         home: const _AppInit(),
-        // 전역 페이지 전환: 빠른 페이드 (끊김 없이)
-        theme: ThemeData(
+        // 기본 테마 (builder에서 반응형으로 덮어씀)
+        theme: AppTheme.lightTheme().copyWith(
           pageTransitionsTheme: const PageTransitionsTheme(
             builders: {
               TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
@@ -265,10 +281,7 @@ class _AppInitState extends State<_AppInit> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: AppTheme.lightTheme,
-      child: const SplashScreen(),
-    );
+    return const SplashScreen();
   }
 }
 
