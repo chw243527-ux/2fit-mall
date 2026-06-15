@@ -5398,6 +5398,7 @@ class _NoticePopupState extends State<_NoticePopup> {
       _themeGradients[theme] ?? _themeGradients['general']!;
 
   @override
+  @override
   Widget build(BuildContext context) {
     final notice     = widget.notices[_page];
     final title      = notice.localizedTitle(widget.language);
@@ -5405,228 +5406,221 @@ class _NoticePopupState extends State<_NoticePopup> {
     final total      = widget.notices.length;
     final sw         = MediaQuery.of(context).size.width;
     final sh         = MediaQuery.of(context).size.height;
-    // 탑텐몰처럼 화면 폭 거의 꽉 채움 (양쪽 12px 여백)
-    final dialogW    = sw > 520 ? 440.0 : (sw - 24.0).clamp(300.0, 440.0);
     final hasImage   = notice.imageUrl.isNotEmpty;
     final gradColors = _gradientColors(notice.theme);
     final emoji      = NoticeThemeHelper.themeEmoji[notice.theme] ?? '📢';
 
-    // 이미지 영역 높이: 화면 높이의 55%
-    final imgH = (sh * 0.55).clamp(280.0, 460.0);
+    // 이미지 영역 높이: 화면 높이의 50%
+    final imgH = (sh * 0.50).clamp(240.0, 420.0);
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.symmetric(
-        horizontal: sw > 520 ? (sw - dialogW) / 2 : 12,
-        vertical: 40,
+    return Container(
+      width: sw > 600 ? 480.0 : sw,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: dialogW),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
 
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              // ① 상단: 이미지 / 그라디언트 배너
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              SizedBox(
-                width: double.infinity,
-                height: imgH,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
+            // ── 드래그 핸들 ──
+            Container(
+              margin: const EdgeInsets.only(top: 10, bottom: 6),
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFDDDDDD),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
 
-                    // 배경: 실제 이미지 or 테마 그라디언트
-                    if (hasImage)
-                      Image.network(
-                        notice.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            _buildGradientBg(gradColors, emoji, title),
-                      )
-                    else
-                      _buildGradientBg(gradColors, emoji, title),
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // ① 이미지 / 그라디언트 배너
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            SizedBox(
+              width: double.infinity,
+              height: imgH,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
 
-                    // 이미지 있을 때: 이미지 아래 흰색 배경에 텍스트 (탑텐몰 원본)
-                    if (hasImage)
-                      Positioned(
-                        left: 0, right: 0, bottom: 0,
-                        child: Container(
-                          color: Colors.white,
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
+                  // 배경: 이미지 or 그라디언트
+                  if (hasImage)
+                    Image.network(
+                      notice.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          _buildGradientBg(gradColors, emoji, title),
+                    )
+                  else
+                    _buildGradientBg(gradColors, emoji, title),
+
+                  // 이미지 있을 때: 하단 흰 배경 텍스트
+                  if (hasImage)
+                    Positioned(
+                      left: 0, right: 0, bottom: 0,
+                      child: Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                color: Color(0xFF111111),
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                height: 1.4,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            if (content.isNotEmpty) ...[
+                              const SizedBox(height: 6),
                               Text(
-                                title,
+                                content,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color: Color(0xFF111111),
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.4,
-                                  letterSpacing: -0.3,
+                                  color: Color(0xFF666666),
+                                  fontSize: 13,
+                                  height: 1.55,
                                 ),
                               ),
-                              if (content.isNotEmpty) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                  content,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Color(0xFF666666),
-                                    fontSize: 13,
-                                    height: 1.55,
-                                  ),
-                                ),
-                              ],
                             ],
-                          ),
-                        ),
-                      ),
-
-                    // 우상단 X 닫기 버튼
-                    Positioned(
-                      top: 12, right: 12,
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Container(
-                          width: 32, height: 32,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.32),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close_rounded,
-                            color: Colors.white,
-                            size: 17,
-                          ),
+                          ],
                         ),
                       ),
                     ),
 
-                    // 좌하단 '01 / 01' 페이지 캡슐
-                    Positioned(
-                      left: 16,
-                      bottom: hasImage ? _textBoxHeight(content) + 12 : 14,
+                  // 우상단 X 버튼
+                  Positioned(
+                    top: 12, right: 12,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+                        width: 32, height: 32,
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.50),
-                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.black.withValues(alpha: 0.32),
+                          shape: BoxShape.circle,
                         ),
-                        child: Text(
-                          '${(_page + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              // ② 이미지 없을 때: 본문 텍스트
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              if (!hasImage && content.isNotEmpty)
-                Container(
-                  color: Colors.white,
-                  width: double.infinity,
-                  constraints: const BoxConstraints(maxHeight: 110),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-                    child: Text(
-                      content,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF555555),
-                        height: 1.7,
+                        child: const Icon(Icons.close_rounded, color: Colors.white, size: 17),
                       ),
                     ),
                   ),
-                ),
 
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              // ③ 하단 버튼 바 (탑텐몰 스타일)
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              Container(
-                color: Colors.white,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(height: 1, color: const Color(0xFFEEEEEE)),
-                    SizedBox(
-                      height: 52,
-                      child: Row(
-                        children: [
-                          // 오늘 하루 안보기 (왼쪽, 회색)
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () {
-                                widget.onDismissToday();
-                                Navigator.of(context).pop();
-                              },
-                              style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFF888888),
-                                padding: EdgeInsets.zero,
-                                shape: const RoundedRectangleBorder(),
-                                minimumSize: const Size(0, 52),
-                              ),
-                              child: Text(
-                                loc.homePopupDismiss,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // 다음 공지 or 닫기 (오른쪽, 검정)
-                          Expanded(
-                            child: TextButton(
-                              onPressed: total > 1 && _page < total - 1
-                                  ? () => setState(() => _page++)
-                                  : () => Navigator.of(context).pop(),
-                              style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFF111111),
-                                padding: EdgeInsets.zero,
-                                shape: const RoundedRectangleBorder(),
-                                minimumSize: const Size(0, 52),
-                              ),
-                              child: Text(
-                                total > 1 && _page < total - 1
-                                    ? loc.nextNoticeBtn
-                                    : loc.confirm,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                  // 좌하단 '01 / 01' 캡슐
+                  Positioned(
+                    left: 16,
+                    bottom: hasImage ? _textBoxHeight(content) + 12 : 14,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.50),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '\${(_page + 1).toString().padLeft(2, '0')} / \${total.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                        ),
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // ② 이미지 없을 때: 본문 텍스트
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            if (!hasImage && content.isNotEmpty)
+              Container(
+                color: Colors.white,
+                width: double.infinity,
+                constraints: const BoxConstraints(maxHeight: 110),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                  child: Text(
+                    content,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF555555),
+                      height: 1.7,
+                    ),
+                  ),
                 ),
               ),
 
-            ],
-          ),
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // ③ 하단 버튼 바
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            Container(
+              color: Colors.white,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(height: 1, color: const Color(0xFFEEEEEE)),
+                  SizedBox(
+                    height: 52,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              widget.onDismissToday();
+                              Navigator.of(context).pop();
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF888888),
+                              padding: EdgeInsets.zero,
+                              shape: const RoundedRectangleBorder(),
+                              minimumSize: const Size(0, 52),
+                            ),
+                            child: Text(
+                              loc.homePopupDismiss,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextButton(
+                            onPressed: total > 1 && _page < total - 1
+                                ? () => setState(() => _page++)
+                                : () => Navigator.of(context).pop(),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF111111),
+                              padding: EdgeInsets.zero,
+                              shape: const RoundedRectangleBorder(),
+                              minimumSize: const Size(0, 52),
+                            ),
+                            child: Text(
+                              total > 1 && _page < total - 1
+                                  ? loc.nextNoticeBtn
+                                  : loc.confirm,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // iOS 홈 인디케이터 여백
+                  SizedBox(height: MediaQuery.of(context).padding.bottom),
+                ],
+              ),
+            ),
+
+          ],
         ),
       ),
     );
   }
-
-  // 이미지 위 텍스트 박스 높이 (인디케이터 bottom 위치 계산용)
   double _textBoxHeight(String content) =>
       content.isNotEmpty ? 124.0 : 84.0;
 

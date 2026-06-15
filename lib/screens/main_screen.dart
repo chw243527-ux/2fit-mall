@@ -55,9 +55,11 @@ class MainScreenState extends State<MainScreen> {
     final notices = noticeProv.activeNotices;
     if (notices.isEmpty) return;
     final langProv = context.read<LanguageProvider>();
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      barrierDismissible: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       useRootNavigator: false,
       builder: (_) => _NoticePopupDialog(
         notices: notices,
@@ -1100,226 +1102,224 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
     final total      = widget.notices.length;
     final sw         = MediaQuery.of(context).size.width;
     final sh         = MediaQuery.of(context).size.height;
-    // 탑텐몰처럼 화면 폭을 거의 꽉 채움 (양쪽 12px 여백)
-    final dialogW    = sw > 520 ? 440.0 : (sw - 24.0).clamp(300.0, 440.0);
     final hasImage   = notice.imageUrl.isNotEmpty;
     final gradColors = _gradientColors(notice.theme);
     final emoji      = NoticeThemeHelper.themeEmoji[notice.theme] ?? '📢';
 
-    // 이미지 영역 높이: 화면 높이의 55% (탑텐몰 비율)
-    final imgH = (sh * 0.55).clamp(280.0, 460.0);
+    // 이미지 영역 높이: 화면 높이의 50%
+    final imgH = (sh * 0.50).clamp(240.0, 420.0);
+    // 하단 시트 최대 너비 (PC 대응)
+    final sheetW = sw > 600 ? 480.0 : sw;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.symmetric(
-        horizontal: sw > 520 ? (sw - dialogW) / 2 : 12,
-        vertical: 40,
+    return Container(
+      width: sheetW,
+      // 하단 시트: 상단만 둥근 모서리
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: dialogW),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
 
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              // ① 상단: 이미지 / 그라디언트 배너
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              SizedBox(
-                width: double.infinity,
-                height: imgH,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
+            // ── 드래그 핸들 (상단 중앙 바) ──
+            Container(
+              margin: const EdgeInsets.only(top: 10, bottom: 6),
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
 
-                    // 배경: 실제 이미지 or 테마 그라디언트
-                    if (hasImage)
-                      Image.network(
-                        notice.imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            _buildGradientBg(gradColors, emoji, title),
-                      )
-                    else
-                      _buildGradientBg(gradColors, emoji, title),
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // ① 이미지 / 그라디언트 배너
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            SizedBox(
+              width: double.infinity,
+              height: imgH,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
 
-                    // 이미지 있을 때: 하단 텍스트 영역
-                    // 흰 배경 위에 제목+내용 (탑텐몰 원본 스타일)
-                    if (hasImage)
-                      Positioned(
-                        left: 0, right: 0, bottom: 0,
-                        child: Container(
-                          color: Colors.white,
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
+                  // 배경: 이미지 or 그라디언트
+                  if (hasImage)
+                    Image.network(
+                      notice.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          _buildGradientBg(gradColors, emoji, title),
+                    )
+                  else
+                    _buildGradientBg(gradColors, emoji, title),
+
+                  // 이미지 있을 때: 하단 흰 배경 텍스트 영역
+                  if (hasImage)
+                    Positioned(
+                      left: 0, right: 0, bottom: 0,
+                      child: Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                color: Color(0xFF111111),
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                height: 1.4,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            if (content.isNotEmpty) ...[
+                              const SizedBox(height: 6),
                               Text(
-                                title,
+                                content,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color: Color(0xFF111111),
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.4,
-                                  letterSpacing: -0.3,
+                                  color: Color(0xFF666666),
+                                  fontSize: 13,
+                                  height: 1.55,
                                 ),
                               ),
-                              if (content.isNotEmpty) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                  content,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Color(0xFF666666),
-                                    fontSize: 13,
-                                    height: 1.55,
-                                  ),
-                                ),
-                              ],
                             ],
-                          ),
-                        ),
-                      ),
-
-                    // 우상단 X 닫기 버튼 (반투명 원형)
-                    Positioned(
-                      top: 12, right: 12,
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Container(
-                          width: 32, height: 32,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.32),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close_rounded,
-                            color: Colors.white,
-                            size: 17,
-                          ),
+                          ],
                         ),
                       ),
                     ),
 
-                    // 좌하단 '01 / 01' 페이지 캡슐 (탑텐몰 원본)
-                    Positioned(
-                      left: 16,
-                      // 이미지 있으면 텍스트 박스 위에 띄움, 없으면 하단
-                      bottom: hasImage ? _bottomTextHeight(content) + 12 : 14,
+                  // 우상단 X 닫기 버튼
+                  Positioned(
+                    top: 12, right: 12,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+                        width: 32, height: 32,
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.50),
-                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.black.withValues(alpha: 0.32),
+                          shape: BoxShape.circle,
                         ),
-                        child: Text(
-                          '${(_page + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.2,
-                          ),
+                        child: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                          size: 17,
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              // ② 이미지 없을 때: 본문 텍스트 영역
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              if (!hasImage && content.isNotEmpty)
-                Container(
-                  color: Colors.white,
-                  width: double.infinity,
-                  constraints: const BoxConstraints(maxHeight: 110),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-                    child: Text(
-                      content,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF555555),
-                        height: 1.7,
                       ),
                     ),
                   ),
-                ),
 
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              // ③ 하단 버튼 바 (탑텐몰 원본: 구분선 없음)
-              // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-              Container(
-                color: Colors.white,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 상단 얇은 구분선
-                    Container(height: 1, color: const Color(0xFFEEEEEE)),
-                    SizedBox(
-                      height: 52,
-                      child: Row(
-                        children: [
-                          // 오늘 하루 안보기 (왼쪽, 회색)
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () {
-                                widget.onDismissToday();
-                                Navigator.of(context).pop();
-                              },
-                              style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFF888888),
-                                padding: EdgeInsets.zero,
-                                shape: const RoundedRectangleBorder(),
-                                minimumSize: const Size(0, 52),
-                              ),
-                              child: Text(
-                                widget.loc.noticeDontShowToday,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // 탑텐몰 원본: 구분선 없이 오른쪽 텍스트만
-                          // (시각적 구분은 색상 차이로만)
-                          Expanded(
-                            child: TextButton(
-                              onPressed: total > 1 && _page < total - 1
-                                  ? () => setState(() => _page++)
-                                  : () => Navigator.of(context).pop(),
-                              style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFF111111),
-                                padding: EdgeInsets.zero,
-                                shape: const RoundedRectangleBorder(),
-                                minimumSize: const Size(0, 52),
-                              ),
-                              child: Text(
-                                total > 1 && _page < total - 1
-                                    ? widget.loc.noticeNext
-                                    : widget.loc.noticeConfirm,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                  // 좌하단 '01 / 01' 캡슐
+                  Positioned(
+                    left: 16,
+                    bottom: hasImage ? _bottomTextHeight(content) + 12 : 14,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.50),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${(_page + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                        ),
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // ② 이미지 없을 때: 본문 텍스트
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            if (!hasImage && content.isNotEmpty)
+              Container(
+                color: Colors.white,
+                width: double.infinity,
+                constraints: const BoxConstraints(maxHeight: 110),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                  child: Text(
+                    content,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF555555),
+                      height: 1.7,
+                    ),
+                  ),
                 ),
               ),
 
-            ],
-          ),
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            // ③ 하단 버튼 바
+            // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            Container(
+              color: Colors.white,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(height: 1, color: const Color(0xFFEEEEEE)),
+                  SizedBox(
+                    height: 52,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              widget.onDismissToday();
+                              Navigator.of(context).pop();
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF888888),
+                              padding: EdgeInsets.zero,
+                              shape: const RoundedRectangleBorder(),
+                              minimumSize: const Size(0, 52),
+                            ),
+                            child: Text(
+                              widget.loc.noticeDontShowToday,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextButton(
+                            onPressed: total > 1 && _page < total - 1
+                                ? () => setState(() => _page++)
+                                : () => Navigator.of(context).pop(),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF111111),
+                              padding: EdgeInsets.zero,
+                              shape: const RoundedRectangleBorder(),
+                              minimumSize: const Size(0, 52),
+                            ),
+                            child: Text(
+                              total > 1 && _page < total - 1
+                                  ? widget.loc.noticeNext
+                                  : widget.loc.noticeConfirm,
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // iOS 홈 인디케이터 여백
+                  SizedBox(height: MediaQuery.of(context).padding.bottom),
+                ],
+              ),
+            ),
+
+          ],
         ),
       ),
     );
