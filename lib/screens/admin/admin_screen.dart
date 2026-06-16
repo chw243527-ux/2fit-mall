@@ -12013,32 +12013,6 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                         ),
                       ),
                     ],
-
-                    // URL 직접 입력 (대안)
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Text('또는 URL 직접 입력', style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
-                        const Spacer(),
-                        if (imageCtrl.text.isNotEmpty)
-                          GestureDetector(
-                            onTap: () => setD(() { imageCtrl.clear(); uploadedUrl = null; }),
-                            child: const Text('초기화', style: TextStyle(fontSize: 11, color: Color(0xFFE53935))),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    TextField(
-                      controller: imageCtrl,
-                      onChanged: (_) => setD(() {}),
-                      decoration: InputDecoration(
-                        hintText: 'https://example.com/image.jpg',
-                        hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
-                        prefixIcon: const Icon(Icons.link_rounded, size: 18, color: Color(0xFF888888)),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      ),
-                    ),
                   ],
 
                   const SizedBox(height: 16),
