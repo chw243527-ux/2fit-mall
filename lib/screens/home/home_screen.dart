@@ -1981,107 +1981,98 @@ class _HomeScreenState extends State<HomeScreen>
         context,
         MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
       ),
-      child: Container(
-        // shadow 전용 — clipBehavior 없음 (shadow + clip 동시 사용 시 Flutter Web clip 미동작)
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2)),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          clipBehavior: Clip.antiAlias,
-          child: Container(
-            color: Colors.white,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 이미지 — 카드 완전히 채움
-                AspectRatio(
-                    aspectRatio: 4 / 5,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Positioned.fill(
-                          child: product.images.isNotEmpty
-                              ? NetImage(
-                                  product.images.first,
-                                  fit: BoxFit.cover,
-                                  alignment: Alignment.topCenter,
-                                )
-                              : const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
-                        ),
-                        if (product.isNewActive)
-                          Positioned(
-                            top: 8, left: 8,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF111111),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                              child: Text('NEW', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 0.5)),
-                            ),
-                          ),
-                        if (product.isSale)
-                          Positioned(
-                            top: product.isNewActive ? 32 : 8, left: 8,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE53935),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                              child: Text('BEST', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 0.5)),
-                            ),
-                          ),
-                      ],
-                    ),
-                ),
-              // 정보
-              Padding(
-                padding: EdgeInsets.fromLTRB(r.w(8), r.h(7), r.w(8), r.h(8)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        clipBehavior: Clip.antiAlias,
+        elevation: 2,
+        shadowColor: Colors.black.withValues(alpha: 0.06),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 이미지 — 카드 완전히 채움
+            AspectRatio(
+                aspectRatio: 4 / 5,
+                child: Stack(
+                  fit: StackFit.expand,
                   children: [
-                    Text('2FIT KOREA',
-                        style: TextStyle(fontSize: r.sp(9), color: Color(0xFF888888), letterSpacing: 0.5)),
-                    SizedBox(height: r.h(2)),
-                    Text(
-                      product.localizedName(_lang),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3),
+                    Positioned.fill(
+                      child: product.images.isNotEmpty
+                          ? NetImage(
+                              product.images.first,
+                              fit: BoxFit.cover,
+                              alignment: Alignment.topCenter,
+                            )
+                          : const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
                     ),
-                    SizedBox(height: r.h(4)),
-                    Text(
-                      '${_fmtPrice(product.price)}${loc.wonUnit2}',
-                      style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFF111111)),
-                    ),
-                    if (product.rating > 0 && product.reviewCount > 0) ...[
-                      SizedBox(height: r.h(2)),
-                      Row(
-                        children: [
-                          const Icon(Icons.star_rounded, size: 11, color: Color(0xFFFFB300)),
-                          SizedBox(width: r.w(2)),
-                          Text('${product.rating}',
-                              style: TextStyle(fontSize: r.sp(10), color: Color(0xFF888888))),
-                          SizedBox(width: r.w(3)),
-                          Text('(${product.reviewCount})',
-                              style: TextStyle(fontSize: r.sp(10), color: Color(0xFFAAAAAA))),
-                        ],
+                    if (product.isNewActive)
+                      Positioned(
+                        top: 8, left: 8,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF111111),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          child: Text('NEW', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                        ),
                       ),
-                    ],
+                    if (product.isSale)
+                      Positioned(
+                        top: product.isNewActive ? 32 : 8, left: 8,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE53935),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          child: Text('BEST', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                        ),
+                      ),
                   ],
                 ),
+            ),
+            // 정보
+            Padding(
+              padding: EdgeInsets.fromLTRB(r.w(8), r.h(7), r.w(8), r.h(8)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('2FIT KOREA',
+                      style: TextStyle(fontSize: r.sp(9), color: Color(0xFF888888), letterSpacing: 0.5)),
+                  SizedBox(height: r.h(2)),
+                  Text(
+                    product.localizedName(_lang),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3),
+                  ),
+                  SizedBox(height: r.h(4)),
+                  Text(
+                    '${_fmtPrice(product.price)}${loc.wonUnit2}',
+                    style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFF111111)),
+                  ),
+                  if (product.rating > 0 && product.reviewCount > 0) ...[
+                    SizedBox(height: r.h(2)),
+                    Row(
+                      children: [
+                        const Icon(Icons.star_rounded, size: 11, color: Color(0xFFFFB300)),
+                        SizedBox(width: r.w(2)),
+                        Text('${product.rating}',
+                            style: TextStyle(fontSize: r.sp(10), color: Color(0xFF888888))),
+                        SizedBox(width: r.w(3)),
+                        Text('(${product.reviewCount})',
+                            style: TextStyle(fontSize: r.sp(10), color: Color(0xFFAAAAAA))),
+                      ],
+                    ),
+                  ],
+                ],
               ),
-            ],
-          ),          // Column
-        ),            // Container(color)
-        ),            // ClipRRect
-      ),              // Container(shadow)
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -2411,74 +2402,89 @@ class _HomeScreenState extends State<HomeScreen>
                 return GestureDetector(
                   onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-                  child: Container(
-                    width: cardW,
-                    margin: EdgeInsets.only(right: r.w(8)),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFEEEEEE)),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 6, offset: const Offset(0, 2)),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    clipBehavior: Clip.antiAlias,
+                    elevation: 1,
+                    shadowColor: Colors.black.withValues(alpha: 0.05),
+                    child: SizedBox(
+                      width: cardW,
+                      child: Stack(
                         children: [
-                          // 이미지
-                          AspectRatio(
-                              aspectRatio: 4 / 5,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Positioned.fill(
-                                    child: p.images.isNotEmpty
-                                        ? NetImage(p.images.first,
-                                            fit: BoxFit.cover,
-                                            alignment: Alignment.topCenter,
-                                          )
-                                        : Container(
-                                            color: const Color(0xFFF0F0F0),
-                                            child: const Icon(Icons.image_not_supported_rounded,
-                                              color: Colors.white54, size: 28),
-                                          ),
-                                  ),
-                              if (discount > 0)
-                                Positioned(
-                                  top: 5, left: 5,
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(horizontal: r.w(4), vertical: r.h(2)),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFE53935),
-                                      borderRadius: BorderRadius.circular(3),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 이미지
+                              AspectRatio(
+                                  aspectRatio: 4 / 5,
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Positioned.fill(
+                                        child: p.images.isNotEmpty
+                                            ? NetImage(p.images.first,
+                                                fit: BoxFit.cover,
+                                                alignment: Alignment.topCenter,
+                                              )
+                                            : Container(
+                                                color: const Color(0xFFF0F0F0),
+                                                child: const Icon(Icons.image_not_supported_rounded,
+                                                  color: Colors.white54, size: 28),
+                                              ),
+                                      ),
+                                  if (discount > 0)
+                                    Positioned(
+                                      top: 5, left: 5,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: r.w(4), vertical: r.h(2)),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE53935),
+                                          borderRadius: BorderRadius.circular(3),
+                                        ),
+                                        child: Text('$discount%',
+                                          style: TextStyle(color: Colors.white,
+                                              fontSize: r.sp(9), fontWeight: FontWeight.w800)),
+                                      ),
                                     ),
-                                    child: Text('$discount%',
-                                      style: TextStyle(color: Colors.white,
-                                          fontSize: r.sp(9), fontWeight: FontWeight.w800)),
-                                  ),
+                                ],
+                              ),
+                              ),
+                              SizedBox(height: r.h(6)),
+                              // 상품명
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: r.w(8)),
+                                child: Text(p.name,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w600,
+                                      color: Color(0xFF222222), height: 1.3)),
+                              ),
+                              SizedBox(height: r.h(2)),
+                              // 가격
+                              Padding(
+                                padding: EdgeInsets.fromLTRB(r.w(8), 0, r.w(8), r.h(8)),
+                                child: Text(
+                                  '${p.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
+                                  style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800,
+                                      color: Color(0xFF111111)),
                                 ),
+                              ),
                             ],
                           ),
+                          // border overlay
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFEEEEEE)),
+                                ),
+                              ),
+                            ),
                           ),
-                        SizedBox(height: r.h(6)),
-                        // 상품명
-                        Text(p.name,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w600,
-                              color: Color(0xFF222222), height: 1.3)),
-                        SizedBox(height: r.h(2)),
-                        // 가격
-                        Text(
-                          '${p.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
-                          style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800,
-                              color: Color(0xFF111111)),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -2594,87 +2600,96 @@ class _HomeScreenState extends State<HomeScreen>
                 return GestureDetector(
                   onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-                  child: Container(
-                    width: cardW,
-                    margin: EdgeInsets.only(right: r.w(10)),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFEEEEEE)),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 6, offset: const Offset(0, 2)),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    clipBehavior: Clip.antiAlias,
+                    elevation: 1,
+                    shadowColor: Colors.black.withValues(alpha: 0.05),
+                    child: SizedBox(
+                      width: cardW,
+                      child: Stack(
                         children: [
-                          // 이미지
-                          AspectRatio(
-                              aspectRatio: 4 / 5,
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Positioned.fill(
-                                    child: p.images.isNotEmpty
-                                        ? NetImage(p.images.first,
-                                            fit: BoxFit.cover,
-                                            alignment: Alignment.topCenter,
-                                          )
-                                        : const Icon(Icons.image_not_supported_rounded,
-                                            color: Color(0xFFCCCCCC), size: 28),
-                                  ),
-                              Positioned(
-                                top: 6, left: 6,
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(2)),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF6A1B9A),
-                                    borderRadius: BorderRadius.circular(3),
-                                  ),
-                                  child: Text('GROUP',
-                                    style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900)),
-                                ),
-                              ),
-                              if (discount > 0)
-                                Positioned(
-                                  top: 6, right: 6,
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(2)),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFE53935),
-                                      borderRadius: BorderRadius.circular(3),
-                                    ),
-                                    child: Text('$discount%',
-                                      style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900)),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          ),
-                        // 상품 정보
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(r.w(8), r.h(7), r.w(8), r.h(8)),
-                          child: Column(
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(p.name,
-                                maxLines: 2, overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700,
-                                  color: Color(0xFF111111), height: 1.3)),
-                              SizedBox(height: r.h(3)),
-                              Text(
-                                '${_fmtGroupPrice(p.price)}원',
-                                style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w900,
-                                  color: Color(0xFF111111)),
+                              // 이미지
+                              AspectRatio(
+                                  aspectRatio: 4 / 5,
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Positioned.fill(
+                                        child: p.images.isNotEmpty
+                                            ? NetImage(p.images.first,
+                                                fit: BoxFit.cover,
+                                                alignment: Alignment.topCenter,
+                                              )
+                                            : const Icon(Icons.image_not_supported_rounded,
+                                                color: Color(0xFFCCCCCC), size: 28),
+                                      ),
+                                  Positioned(
+                                    top: 6, left: 6,
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(2)),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF6A1B9A),
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                      child: Text('GROUP',
+                                        style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900)),
+                                    ),
+                                  ),
+                                  if (discount > 0)
+                                    Positioned(
+                                      top: 6, right: 6,
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(2)),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE53935),
+                                          borderRadius: BorderRadius.circular(3),
+                                        ),
+                                        child: Text('$discount%',
+                                          style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900)),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              ),
+                              // 상품 정보
+                              Padding(
+                                padding: EdgeInsets.fromLTRB(r.w(8), r.h(7), r.w(8), r.h(8)),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(p.name,
+                                      maxLines: 2, overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700,
+                                        color: Color(0xFF111111), height: 1.3)),
+                                    SizedBox(height: r.h(3)),
+                                    Text(
+                                      '${_fmtGroupPrice(p.price)}원',
+                                      style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w900,
+                                        color: Color(0xFF111111)),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
+                          // border overlay
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFEEEEEE)),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -3088,23 +3103,15 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(context,
         MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
       child: Container(
-        // shadow 전용 — clipBehavior 없음 (shadow + clip 동시 사용 시 Flutter Web clip 미동작)
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2)),
-          ],
-        ),
-        child: ClipRRect(
-          // 실제 클리핑 담당 — border + color + clip 모두 여기서
-          borderRadius: BorderRadius.circular(10),
-          clipBehavior: Clip.antiAlias,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: const Color(0xFFEEEEEE)),
-            ),
-            child: Column(
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        clipBehavior: Clip.antiAlias,
+        elevation: 1,
+        shadowColor: Colors.black.withValues(alpha: 0.04),
+        child: Stack(
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 이미지
@@ -3148,42 +3155,53 @@ class _HomeScreenState extends State<HomeScreen>
                     ],
                   ),
                 ),
-              // 정보
-              Padding(
-                padding: EdgeInsets.fromLTRB(r.w(10), r.h(8), r.w(10), r.h(10)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (p.subCategory.isNotEmpty)
-                      Text(p.subCategory,
-                        style: TextStyle(fontSize: r.sp(10), color: Color(0xFF888888), fontWeight: FontWeight.w500),
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
-                    SizedBox(height: r.h(2)),
-                    Text(p.name,
-                      style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF111111)),
-                      maxLines: 2, overflow: TextOverflow.ellipsis),
-                    SizedBox(height: r.h(4)),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text('${_fmtGroupPrice(p.price)}원',
-                          style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w900, color: Color(0xFF111111))),
-                        if (p.originalPrice != null && p.originalPrice! > p.price) ...[
-                          SizedBox(width: r.w(5)),
-                          Text('${_fmtGroupPrice(p.originalPrice!)}원',
-                            style: TextStyle(fontSize: r.sp(11), color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
+                // 정보
+                Padding(
+                  padding: EdgeInsets.fromLTRB(r.w(10), r.h(8), r.w(10), r.h(10)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (p.subCategory.isNotEmpty)
+                        Text(p.subCategory,
+                          style: TextStyle(fontSize: r.sp(10), color: Color(0xFF888888), fontWeight: FontWeight.w500),
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      SizedBox(height: r.h(2)),
+                      Text(p.name,
+                        style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF111111)),
+                        maxLines: 2, overflow: TextOverflow.ellipsis),
+                      SizedBox(height: r.h(4)),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text('${_fmtGroupPrice(p.price)}원',
+                            style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w900, color: Color(0xFF111111))),
+                          if (p.originalPrice != null && p.originalPrice! > p.price) ...[
+                            SizedBox(width: r.w(5)),
+                            Text('${_fmtGroupPrice(p.originalPrice!)}원',
+                              style: TextStyle(fontSize: r.sp(11), color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
+                          ],
                         ],
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // border overlay
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFEEEEEE)),
+                  ),
                 ),
               ),
-            ],
-          ),        // Column
-        ),          // Container(color/border)
-        ),          // ClipRRect
-      ),            // Container(shadow)
+            ),
+          ],
+        ),
+      ),
     ),              // GestureDetector
     );              // RepaintBoundary
   }

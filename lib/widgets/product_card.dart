@@ -32,19 +32,14 @@ class ProductCard extends StatelessWidget {
           context,
           MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
         ),
-        child: Container(
-          // border 전용 — clipBehavior 없음 (border + clip 동시 사용 시 clip이 border 바깥 기준)
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF2A2A2A)),
-          ),
-          child: ClipRRect(
-            // 실제 클리핑 담당
-            borderRadius: BorderRadius.circular(10),
-            clipBehavior: Clip.antiAlias,
-            child: Container(
-              color: const Color(0xFF1A1A1A),
-              child: Column(
+        child: Material(
+          // Material.clipBehavior 는 Flutter에서 clip을 100% 보장
+          color: const Color(0xFF1A1A1A),
+          borderRadius: BorderRadius.circular(10),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -52,7 +47,18 @@ class ProductCard extends StatelessWidget {
                   _buildInfo(context),
                 ],
               ),
-            ),
+              // border overlay (Material은 border 미지원 → Stack으로 overlay)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF2A2A2A)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
