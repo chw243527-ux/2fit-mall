@@ -715,21 +715,25 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 이미지 영역 — 4:5 비율 고정
-              AspectRatio(
-                aspectRatio: 4 / 5,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Positioned.fill(
-                      child: p.images.isNotEmpty
-                          ? NetImage(
-                              p.images.first,
-                              fit: BoxFit.cover,
-                              alignment: Alignment.topCenter,
-                            )
-                          : _imgPlaceholder(full: true),
-                    ),
+              // 이미지 영역 — 패딩+라운드로 카드 배경색 살짝 보이도록
+              Padding(
+                padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: AspectRatio(
+                    aspectRatio: 4 / 5,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Positioned.fill(
+                          child: p.images.isNotEmpty
+                              ? NetImage(
+                                  p.images.first,
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.topCenter,
+                                )
+                              : _imgPlaceholder(full: true),
+                        ),
                     if (p.isSale || p.isNewActive)
                       Positioned(
                         top: 8, left: 8,
@@ -784,6 +788,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                   ],
                 ),
               ),
+            ),
               // 정보 영역
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
@@ -847,6 +852,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           ),
         ),
       ),
+    ),
     );
   }
 

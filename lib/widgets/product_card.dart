@@ -77,118 +77,128 @@ class ProductCard extends StatelessWidget {
       badgeText = '';
     }
 
-    return AspectRatio(
-      aspectRatio: 4 / 5,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          // ── 상품 이미지: 4:5 비율 고정, 상단 기준 cover ──
-          Positioned.fill(
-            child: product.images.isNotEmpty
-                ? NetImage(
-                    product.images.first,
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                  )
-                : _placeholder(),
-          ),
+    // 이미지 패딩: 카드 배경색(#1A1A1A)이 주변에 살짝 보이도록
+    const double imgPad = 6.0;
+    const double imgRadius = 8.0;
 
-          // ── 좌상단 배지 (GROUP / NEW / SALE) ──
-          if (badgeText.isNotEmpty)
-            Positioned(
-              top: 6,
-              left: 6,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(
-                  color: badgeBg,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: Text(
-                  badgeText,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 8,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  ),
-                ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(imgPad, imgPad, imgPad, 0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(imgRadius),
+        child: AspectRatio(
+          aspectRatio: 4 / 5,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // ── 상품 이미지 ──
+              Positioned.fill(
+                child: product.images.isNotEmpty
+                    ? NetImage(
+                        product.images.first,
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                      )
+                    : _placeholder(),
               ),
-            ),
 
-          // ── 우상단 할인율 ──
-          if (discount > 0)
-            Positioned(
-              top: 6,
-              right: 6,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: Text(
-                  '-$discount%',
-                  style: const TextStyle(
-                    color: Color(0xFF111111),
-                    fontSize: 8,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ),
-
-          // ── 무료배송 (우하단) ──
-          if (product.isFreeShipping)
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF111111),
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(6)),
-                ),
-                child: const Text(
-                  'FREE',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 7,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ),
-
-          // ── 품절 오버레이 ──
-          if (product.stockCount <= 0)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.55),
-                ),
-                child: Center(
+              // ── 좌상단 배지 (GROUP / NEW / SALE) ──
+              if (badgeText.isNotEmpty)
+                Positioned(
+                  top: 6,
+                  left: 6,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(4),
+                      color: badgeBg,
+                      borderRadius: BorderRadius.circular(3),
                     ),
-                    child: const Text(
-                      'SOLD OUT',
-                      style: TextStyle(
-                        color: Color(0xFF111111),
-                        fontSize: 11,
+                    child: Text(
+                      badgeText,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-        ],
+
+              // ── 우상단 할인율 ──
+              if (discount > 0)
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: Text(
+                      '-$discount%',
+                      style: const TextStyle(
+                        color: Color(0xFF111111),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // ── 무료배송 (우하단) ──
+              if (product.isFreeShipping)
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF111111),
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(6)),
+                    ),
+                    child: const Text(
+                      'FREE',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 7,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+
+              // ── 품절 오버레이 ──
+              if (product.stockCount <= 0)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                    ),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'SOLD OUT',
+                          style: TextStyle(
+                            color: Color(0xFF111111),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
