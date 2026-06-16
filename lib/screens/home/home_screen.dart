@@ -1981,10 +1981,12 @@ class _HomeScreenState extends State<HomeScreen>
         context,
         MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
       ),
-      child: Container(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2)),
           ],
@@ -2082,6 +2084,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ],
+        ),
         ),
       ),
     );
@@ -2413,9 +2416,20 @@ class _HomeScreenState extends State<HomeScreen>
                 return GestureDetector(
                   onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-                  child: Container(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
                     width: cardW,
                     margin: EdgeInsets.only(right: r.w(8)),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFEEEEEE)),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 6, offset: const Offset(0, 2)),
+                      ],
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -2475,6 +2489,7 @@ class _HomeScreenState extends State<HomeScreen>
                               color: Color(0xFF111111)),
                         ),
                       ],
+                    ),
                     ),
                   ),
                 );
@@ -2590,7 +2605,9 @@ class _HomeScreenState extends State<HomeScreen>
                 return GestureDetector(
                   onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-                  child: Container(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
                     width: cardW,
                     margin: EdgeInsets.only(right: r.w(10)),
                     decoration: BoxDecoration(
@@ -2674,6 +2691,7 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                       ],
+                    ),
                     ),
                   ),
                 );
@@ -3086,7 +3104,9 @@ class _HomeScreenState extends State<HomeScreen>
       child: GestureDetector(
       onTap: () => Navigator.push(context,
         MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-      child: Container(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -3177,6 +3197,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ],
+        ),
         ),
       ),
     ),  // GestureDetector
