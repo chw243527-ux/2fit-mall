@@ -78,7 +78,9 @@ class ProductCard extends StatelessWidget {
       badgeText = '';
     }
 
-    return AspectRatio(
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+      child: AspectRatio(
           aspectRatio: 4 / 5,
           child: Stack(
             fit: StackFit.expand,
@@ -191,6 +193,7 @@ class ProductCard extends StatelessWidget {
                 ),
             ],
           ),
+      ),
     );
   }
 
