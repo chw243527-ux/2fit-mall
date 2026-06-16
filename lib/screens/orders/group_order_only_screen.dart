@@ -789,6 +789,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 ),
               ),
             ),
+            ),
               // 정보 영역
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
@@ -852,7 +853,6 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           ),
         ),
       ),
-    ),
     );
   }
 
