@@ -2043,6 +2043,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ),
+        ),
             // 정보
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(8), r.h(7), r.w(8), r.h(8)),
@@ -2083,7 +2084,6 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
       ),
-    )
     );
   }
 
@@ -2457,8 +2457,9 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                             ],
                           ),
-                          ),
                         ),
+                      ),
+                    ),
                         SizedBox(height: r.h(6)),
                         // 상품명
                         Text(p.name,
@@ -2514,7 +2515,6 @@ class _HomeScreenState extends State<HomeScreen>
             SizedBox(height: r.h(20)),
         ],
       ),
-    )
     );
   }
 
