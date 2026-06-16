@@ -723,7 +723,6 @@ class _PcTopBarState extends State<_PcTopBar> {
 
   // ─── 2줄 아이콘 (아이콘 + 라벨) ───
   Widget _topIcon({
-    final r = Responsive.of(context);
     required IconData icon,
     required String label,
     required VoidCallback onTap,
@@ -750,7 +749,6 @@ class _PcTopBarState extends State<_PcTopBar> {
 
   // ─── 2줄 아이콘 + 뱃지 ───
   Widget _topIconBadge({
-    final r = Responsive.of(context);
     required IconData icon,
     required String label,
     required int badge,

@@ -740,7 +740,6 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 메인 영역 상품 그리드 (4컬럼, 사이드바와 함께) ──
   // ignore: unused_element
   Widget _buildPcMainProductSection({
-    final r = Responsive.of(context);
     required String title,
     required String englishTitle,
     required Color accentColor,
@@ -1231,6 +1230,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── PC 로컬 asset 배너 (Firestore 배너 없을 때 즉시 표시) ──
   Widget _buildPcLocalBanner(AppLocalizations loc) {
+    final r = Responsive.of(context);
     void goShop() => Navigator.push(context,
         MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '전체')));
     return Stack(
@@ -1797,7 +1797,6 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 상품 그리드 섹션 (신상품/베스트 — 모바일 가로 스크롤 대신 5컬럼 그리드) ──
   // ignore: unused_element
   Widget _buildPcProductGridSection({
-    final r = Responsive.of(context);
     required String title,
     required String englishTitle,
     required Color accentColor,
@@ -1967,6 +1966,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildPcHomeProductCard(ProductModel product) {
+    final r = Responsive.of(context);
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
@@ -3566,6 +3566,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 플래시세일 섹션 ──
   // ignore: unused_element
   Widget _buildFlashSaleSection(AppLocalizations loc) {
+    final r = Responsive.of(context);
     final saleProducts = context.watch<ProductProvider>().products
         .where((p) => p.isSale || (p.originalPrice != null && p.originalPrice! > p.price))
         .take(6).toList();
@@ -4358,7 +4359,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 배너 하단 텍스트/CTA 오버레이 (공통) ──
   Widget _buildBannerOverlay({
-    final r = Responsive.of(context);
     required BannerModel banner,
     required String title,
     required String cta,
@@ -4911,7 +4911,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildProductSection({
-    final r = Responsive.of(context);
     required String title,
     required String englishTitle,
     required Color accentColor,

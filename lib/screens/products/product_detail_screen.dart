@@ -763,7 +763,6 @@ $productUrl
   }
 
   Widget _shareOption({
-    final r = Responsive.of(context);
     required IconData icon,
     required Color color,
     required String label,
@@ -1715,7 +1714,6 @@ $productUrl
 
   // ── 색상 안내 배지 (라벨 + 설명 텍스트) ──
   Widget _infoColorBadge({
-    final r = Responsive.of(context);
     required String label,
     required Color labelColor,
     required String text,
@@ -1872,7 +1870,6 @@ $productUrl
 
   // ── 탑텐 스타일: 번호+라벨+컨텐츠 블록
   Widget _toptenInfoBlock({
-    final r = Responsive.of(context);
     required String num,
     required String label,
     required String labelSub,
@@ -3428,7 +3425,6 @@ $productUrl
   }
 
   Widget _buildGenderImageHeader({
-    final r = Responsive.of(context);
     required IconData icon,
     required String label,
     required Color color,
@@ -3563,7 +3559,6 @@ $productUrl
 
   // 드래그 가능한 이미지 아이템 (관리자)
   Widget _buildReorderableImageItem({
-    final r = Responsive.of(context);
     required Key key,
     required String url,
     required int index,
@@ -4162,7 +4157,6 @@ $productUrl
 
   // ── 공통: 섹션 헤더 배너 (검정 배경 + 영문 대제목 + 한글 서브) ──
   Widget _sectionHeaderBanner({
-    final r = Responsive.of(context);
     required String engTitle,
     required String engSub,
     required String korSub,
@@ -4418,7 +4412,6 @@ $productUrl
 
   // ── 관리자 패브릭 슬롯 (헤더 뱃지 + 업로드 버튼 + 이미지 목록) ──
   Widget _buildFabricAdminSlot({
-    final r = Responsive.of(context);
     required String key,
     required String label,
     required IconData icon,
@@ -5481,7 +5474,6 @@ $productUrl
   }
 
   Widget _orderTypeBtn({
-    final r = Responsive.of(context);
     required String emoji,
     required String title,
     required String description,
@@ -8084,7 +8076,6 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   /// 사이즈 선택 칩 (공통 스타일)
   Widget _sizeChip({
-    final r = Responsive.of(context);
     required String label,
     required bool isSelected,
     required Color activeColor,
@@ -9808,7 +9799,6 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
 
   // ── 정보 카드 (텍스트) ────────────────────────────────────────
   Widget _infoCard({
-    final r = Responsive.of(context);
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
@@ -9849,7 +9839,6 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
 
   // ── 정보 카드 (위젯) ─────────────────────────────────────────
   Widget _infoCardWidget({
-    final r = Responsive.of(context);
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
@@ -9891,7 +9880,6 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
   // ── 옵션 카드 ─────────────────────────────────────────────────
   // ── 사이즈 표 ─────────────────────────────────────────────────
   Widget _sizeTable({
-    final r = Responsive.of(context);
     required String title,
     required String emoji,
     required Color headerColor,
