@@ -1989,6 +1989,7 @@ class _HomeScreenState extends State<HomeScreen>
             BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2)),
           ],
         ),
+        clipBehavior: Clip.antiAlias,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: Column(
@@ -3113,6 +3114,7 @@ class _HomeScreenState extends State<HomeScreen>
             BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2)),
           ],
         ),
+        clipBehavior: Clip.antiAlias,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: Column(
@@ -5099,10 +5101,10 @@ class _HomeScreenState extends State<HomeScreen>
           // ── 가로 스크롤 (최대 10개 + 전체보기 카드) ─
           if (isHorizontal)
             SizedBox(
-              height: imgH + 100, // 이미지(4:5) + 정보영역(약 100px)
+              height: imgH + 120, // 이미지(4:5) + 정보영역 + 상하 shadow 여백
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: r.w(12)),
+                padding: EdgeInsets.fromLTRB(r.w(12), 6, r.w(12), 6), // 상하 6px: shadow 클리핑 방지
                 itemCount: products.length.clamp(0, 10) + 1, // 최대 10개 + 전체보기 카드
                 itemBuilder: (_, i) {
                   final display = products.take(10).toList();
@@ -5165,6 +5167,7 @@ class _HomeScreenState extends State<HomeScreen>
                   return Container(
                     width: cardW,
                     margin: EdgeInsets.only(right: r.w(10)),
+                    // clipBehavior 없음 — ProductCard 자체 borderRadius가 모서리 처리
                     child: ProductCard(product: p),
                   );
                 },

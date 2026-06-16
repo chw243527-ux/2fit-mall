@@ -38,6 +38,7 @@ class ProductCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: const Color(0xFF2A2A2A)),
           ),
+          clipBehavior: Clip.antiAlias, // 외곽 borderRadius 실제 클리핑 적용
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Column(
