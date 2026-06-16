@@ -560,6 +560,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     // LayoutBuilder로 실제 부모 너비 기준 → PC/태블릿/모바일 모두 자동 대응
     return LayoutBuilder(
       builder: (_, constraints) {
+        final r = Responsive.of(context);
+
         final w = constraints.maxWidth;
         final imgH = w * (5 / 4); // 4:5 비율 고정
 
@@ -681,6 +683,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ══ 상품 공유 ══
   void _shareProduct(ProductModel product) {
+    final r = Responsive.of(context);
+
     final productUrl = 'https://2fit-mall.co.kr/#/product/${product.id}';
     final price = product.price > 0
         ? '₩${product.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원'
@@ -763,6 +767,8 @@ $productUrl
   }
 
   Widget _shareOption({
+    final r = Responsive.of(context);
+
     required IconData icon,
     required Color color,
     required String label,
@@ -1241,6 +1247,8 @@ $productUrl
         || sub.contains('2.5부')  || name.contains('2.5부');
 
     return StatefulBuilder(builder: (ctx, setSt) {
+      final r = Responsive.of(context);
+
       return Padding(
         padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
         child: Column(
@@ -1367,6 +1375,8 @@ $productUrl
   Widget _buildToptenBrandSection(ProductModel product) {
     final r = Responsive.of(context);
     return Consumer<UserProvider>(builder: (_, up, __) {
+      final r = Responsive.of(context);
+
       final isWish = up.isInWishlist(product.id);
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(14)),
@@ -1459,6 +1469,8 @@ $productUrl
       ),
       child: Row(
         children: tabs.map((t) {
+          final r = Responsive.of(context);
+
           final label = t.$1;
           final idx   = t.$2;
           final key   = t.$3;
@@ -1546,6 +1558,8 @@ $productUrl
     // 기타: 등록된 색상만
     Widget colorContent;
     if (isGroupOnly && (isSingletSet || isTaiz)) {
+      final r = Responsive.of(context);
+
       // 단체주문 싱글렛세트·하의: 골지 19색 전체 안내
       colorContent = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1714,6 +1728,8 @@ $productUrl
 
   // ── 색상 안내 배지 (라벨 + 설명 텍스트) ──
   Widget _infoColorBadge({
+    final r = Responsive.of(context);
+
     required String label,
     required Color labelColor,
     required String text,
@@ -1814,6 +1830,8 @@ $productUrl
       spacing: 10,
       runSpacing: 14,
       children: codes.map((c) {
+        final r = Responsive.of(context);
+
         final dotColor = _goljiColorMap[c] ?? _goljiColorMap[c.toUpperCase()] ?? const Color(0xFFCCCCCC);
         final isLight = dotColor.computeLuminance() > 0.5;
 
@@ -1870,6 +1888,8 @@ $productUrl
 
   // ── 탑텐 스타일: 번호+라벨+컨텐츠 블록
   Widget _toptenInfoBlock({
+    final r = Responsive.of(context);
+
     required String num,
     required String label,
     required String labelSub,
@@ -1904,6 +1924,8 @@ $productUrl
       ),
       child: Column(
         children: rows.asMap().entries.map((entry) {
+          final r = Responsive.of(context);
+
           final i = entry.key;
           final row = entry.value;
           final isLast = i == rows.length - 1;
@@ -2046,6 +2068,8 @@ $productUrl
               children: [
                 // 팁 리스트
                 ..._washingTips.asMap().entries.map((entry) {
+                  final r = Responsive.of(context);
+
                   final tip = entry.value;
                   final isLast = entry.key == _washingTips.length - 1;
                   return Column(
@@ -2209,6 +2233,8 @@ $productUrl
     ];
     return Column(
       children: items.asMap().entries.map((entry) {
+        final r = Responsive.of(context);
+
         final r = entry.value;
         final isHighlight = r['highlight'] as bool;
         final isLast = entry.key == items.length - 1;
@@ -2407,6 +2433,8 @@ $productUrl
 
     // 싱글렛세트: 남/여 선택 → 5부/2.5부 자동고정 UI
     if (isSingletSet) {
+      final r = Responsive.of(context);
+
       // 성별에 따라 하의길이 자동반영
       final autoLength = _singletGender == '남' ? '5부' : '2.5부';
       // 상태가 아직 반영 안 됐으면 반영
@@ -2521,6 +2549,8 @@ $productUrl
             spacing: 6,
             runSpacing: 6,
             children: lengths.map((l) {
+              final r = Responsive.of(context);
+
               final label = l['label']!;
               final isAllowed = allowedLengths == null || allowedLengths.contains(label);
               final sel = _selectedBottomLength == label;
@@ -3147,6 +3177,8 @@ $productUrl
               spacing: 7,
               runSpacing: 7,
               children: AppConstants.bottomLengths.map((l) {
+                final r = Responsive.of(context);
+
                 final label = l['label']!;
                 final desc  = l['desc']!;
                 final sel   = _selectedBottomLength == label;
@@ -3425,6 +3457,8 @@ $productUrl
   }
 
   Widget _buildGenderImageHeader({
+    final r = Responsive.of(context);
+
     required IconData icon,
     required String label,
     required Color color,
@@ -3559,6 +3593,8 @@ $productUrl
 
   // 드래그 가능한 이미지 아이템 (관리자)
   Widget _buildReorderableImageItem({
+    final r = Responsive.of(context);
+
     required Key key,
     required String url,
     required int index,
@@ -3732,6 +3768,8 @@ $productUrl
   // ── 파일 선택 → Base64 변환 → 자동 저장 ──
   Future<void> _pickAndUploadImages(
       String sectionKey, String sectionLabel, List<String> existingImgs) async {
+    final r = Responsive.of(context);
+
     final picker = ImagePicker();
 
     // 1) 이미지 선택
@@ -3777,6 +3815,8 @@ $productUrl
     );
 
     try {
+      final r = Responsive.of(context);
+
       // 3) Firebase Storage 업로드 → 다운로드 URL 획득
       final productId = widget.product.id;
       final ts = DateTime.now().millisecondsSinceEpoch;
@@ -4004,6 +4044,8 @@ $productUrl
               itemCount: imgs.length,
               separatorBuilder: (_, __) => SizedBox(width: r.w(8)),
               itemBuilder: (_, i) {
+                final r = Responsive.of(context);
+
                 return GestureDetector(
                   onTap: () => _showDesignLightbox(imgs, i),
                   child: Stack(
@@ -4157,6 +4199,8 @@ $productUrl
 
   // ── 공통: 섹션 헤더 배너 (검정 배경 + 영문 대제목 + 한글 서브) ──
   Widget _sectionHeaderBanner({
+    final r = Responsive.of(context);
+
     required String engTitle,
     required String engSub,
     required String korSub,
@@ -4304,6 +4348,8 @@ $productUrl
                 .where((t) => product.category != '하의' || t['label'] != 'SEAMLESS')
                 .toList()
                 .asMap().entries.map((entry) {
+                final r = Responsive.of(context);
+
                 final i = entry.key;
                 final t = entry.value;
                 return Column(
@@ -4412,6 +4458,8 @@ $productUrl
 
   // ── 관리자 패브릭 슬롯 (헤더 뱃지 + 업로드 버튼 + 이미지 목록) ──
   Widget _buildFabricAdminSlot({
+    final r = Responsive.of(context);
+
     required String key,
     required String label,
     required IconData icon,
@@ -4535,6 +4583,8 @@ $productUrl
           padding: EdgeInsets.fromLTRB(r.w(20), r.h(8), r.w(20), r.h(32)),
           child: Column(
             children: pockets.asMap().entries.map((entry) {
+              final r = Responsive.of(context);
+
               final i = entry.key;
               final p = entry.value;
               return Column(
@@ -4879,6 +4929,8 @@ $productUrl
     final r = Responsive.of(context);
     return Consumer<ReviewProvider>(
       builder: (_, reviewProv, __) {
+        final r = Responsive.of(context);
+
         final reviews = reviewProv.getProductReviews(product.id);
         final avg = reviewProv.getProductRating(product.id);
 
@@ -5031,6 +5083,8 @@ $productUrl
                 // ── 품절 상태 ──
                 Consumer<UserProvider>(
                   builder: (_, up, __) {
+                    final r = Responsive.of(context);
+
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -5076,6 +5130,8 @@ $productUrl
                     // 찜 버튼 (탑텐: 하트 + 숫자 세로 배치, 좌측 독립)
                     Consumer<UserProvider>(
                       builder: (_, up, __) {
+                        final r = Responsive.of(context);
+
                         final isWish = up.isInWishlist(product.id);
                         final wishCount = up.user?.wishlist.length ?? 0;
                         return GestureDetector(
@@ -5257,6 +5313,8 @@ $productUrl
 
   // ignore: unused_element
   void _showOrderModal(ProductModel product) {
+    final r = Responsive.of(context);
+
     final isSingletProduct = product.name.contains('싱글렛');
     showModalBottomSheet(
       context: context,
@@ -5311,6 +5369,8 @@ $productUrl
                     SizedBox(height: r.h(8)),
                     Row(
                       children: ['남성', '여성'].map((g) {
+                        final r = Responsive.of(context);
+
                         final isSelected = _singletGender == (g == '남성' ? '남' : '여');
                         return Expanded(
                           child: GestureDetector(
@@ -5361,6 +5421,8 @@ $productUrl
                       children: [
                         {'type': 'B', 'label': loc.singletTypeB, 'desc': loc.singletTypeBDesc},
                       ].map((t) {
+                        final r = Responsive.of(context);
+
                         final isSelected = _singletType == t['type'];
                         return Expanded(
                           child: GestureDetector(
@@ -5474,6 +5536,8 @@ $productUrl
   }
 
   Widget _orderTypeBtn({
+    final r = Responsive.of(context);
+
     required String emoji,
     required String title,
     required String description,
@@ -5554,6 +5618,8 @@ $productUrl
 
   // ─── 재입고 알림 신청 ───────────────────────────────────────────
   void _showRestockAlert(ProductModel product, UserProvider up) async {
+    final r = Responsive.of(context);
+
     if (!up.isLoggedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.loginRequired)),
@@ -5565,6 +5631,8 @@ $productUrl
 
     // Firestore에 재입고 알림 등록
     try {
+      final r = Responsive.of(context);
+
       final db = FirebaseFirestore.instance;
       final docId = '${product.id}_${user.id}';
       await db.collection('restock_alerts').doc(docId).set({
@@ -5673,6 +5741,8 @@ $productUrl
     String? bottomLength,
     int qty,
   ) {
+    final r = Responsive.of(context);
+
     // ignore: unused_local_variable
     final extra = _calcExtraForColor(color);
     context.read<CartProvider>().addItem(
@@ -5717,6 +5787,8 @@ $productUrl
   // ─── 사이즈 가이드 ───
   // ignore: unused_element
   void _showSizeGuide() {
+    final r = Responsive.of(context);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -6086,6 +6158,8 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                       ),
                       itemCount: _allImages.length,
                       itemBuilder: (_, i) {
+                        final r = Responsive.of(context);
+
                         final url = _allImages[i];
                         return Stack(
                           children: [
@@ -6492,6 +6566,8 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             Wrap(
               spacing: 8, runSpacing: 8,
               children: adultSizes.map((s) {
+                final r = Responsive.of(context);
+
                 final sel = _selectedSize == s;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedSize = s),
@@ -6523,6 +6599,8 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             Wrap(
               spacing: 8, runSpacing: 8,
               children: juniorSizes.map((s) {
+                final r = Responsive.of(context);
+
                 final sel = _selectedSize == s;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedSize = s),
@@ -6545,6 +6623,8 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             Wrap(
               spacing: 8, runSpacing: 8,
               children: allSizes.map((s) {
+                final r = Responsive.of(context);
+
                 final sel = _selectedSize == s;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedSize = s),
@@ -6579,6 +6659,8 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
           SizedBox(height: r.h(8)),
           Row(
             children: AppConstants.fabricWeights.map((w) {
+              final r = Responsive.of(context);
+
               final sel = _selectedWeight == w;
               return Expanded(
                 child: GestureDetector(
@@ -6743,6 +6825,8 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
 
           // 사이즈 선택 그리드 (성인/주니어 구분)
           Builder(builder: (context) {
+            final r = Responsive.of(context);
+
             final adultSizes  = sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
             final juniorSizes = sizes.where((s) =>  _isJuniorSizeLabel(s)).toList();
             final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
@@ -6750,6 +6834,8 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
             Widget chipWrap(List<String> list, Color activeColor) => Wrap(
               spacing: 8, runSpacing: 8,
               children: list.map((s) {
+                final r = Responsive.of(context);
+
                 final sel = _selectedSize == s;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedSize = s),
@@ -6777,6 +6863,8 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
             );
 
             if (hasBoth) {
+              final r = Responsive.of(context);
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -7124,6 +7212,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   void _removeItem(int index) => setState(() => _items.removeAt(index));
 
   void _proceedToCart() {
+    final r = Responsive.of(context);
+
     final cart = context.read<CartProvider>();
     for (final item in _items) {
       cart.addItem(
@@ -7275,6 +7365,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     ),
                     Row(
                       children: ['남', '여'].map((g) {
+                        final r = Responsive.of(context);
+
                         final isSel = _gender == g;
                         return Expanded(
                           child: GestureDetector(
@@ -7372,6 +7464,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     Wrap(
                       spacing: 8, runSpacing: 8,
                       children: lengths.map((len) {
+                        final r = Responsive.of(context);
+
                         final isSel = _length == len;
                         return GestureDetector(
                           onTap: () => setState(() => _length = len),
@@ -7796,6 +7890,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     ),
                     SizedBox(height: r.h(10)),
                     ..._items.asMap().entries.map((e) {
+                      final r = Responsive.of(context);
+
                       final idx = e.key;
                       final item = e.value;
                       final base = (widget.product.price as num).toInt();
@@ -8076,6 +8172,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   /// 사이즈 선택 칩 (공통 스타일)
   Widget _sizeChip({
+    final r = Responsive.of(context);
+
     required String label,
     required bool isSelected,
     required Color activeColor,
@@ -8272,6 +8370,8 @@ class _QuickSizeColorSelectSheetState
                 style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
             SizedBox(height: r.h(10)),
             Builder(builder: (context) {
+              final r = Responsive.of(context);
+
               final adultSizes  = sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
               final juniorSizes = sizes.where((s) =>  _isJuniorSizeLabel(s)).toList();
               final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
@@ -8279,6 +8379,8 @@ class _QuickSizeColorSelectSheetState
               Widget chipWrap(List<String> list, Color activeColor) => Wrap(
                 spacing: 8, runSpacing: 8,
                 children: list.map((s) {
+                  final r = Responsive.of(context);
+
                   final sel = _selectedSize == s;
                   return GestureDetector(
                     onTap: () => setState(() => _selectedSize = s),
@@ -8305,6 +8407,8 @@ class _QuickSizeColorSelectSheetState
               );
 
               if (hasBoth) {
+                final r = Responsive.of(context);
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -8498,6 +8602,8 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
         // ── 선택된 색상 표시 ──
         if (widget.selectedColor != null) ...[
           Builder(builder: (_) {
+            final r = Responsive.of(context);
+
             final col = widget.selectedColor!;
             final found = palette.firstWhere(
               (c) => c['name'] == col,
@@ -8548,6 +8654,8 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
           spacing: 8,
           runSpacing: 10,
           children: palette.map((c) {
+            final r = Responsive.of(context);
+
             final name = c['name'] as String;
             final hex = c['hex'] as int;
             final code = c['code'] as String;
@@ -8790,6 +8898,8 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
     final currentUid = context.watch<UserProvider>().user?.id;
     return Consumer<ReviewProvider>(
       builder: (_, reviewProv, __) {
+        final r = Responsive.of(context);
+
         final reviews = List<ReviewModel>.from(reviewProv.getProductReviews(widget.product.id).isNotEmpty
             ? reviewProv.getProductReviews(widget.product.id)
             : widget.reviews);
@@ -8897,6 +9007,8 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                         itemCount: reviews.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (_, i) {
+                          final r = Responsive.of(context);
+
                           final r = reviews[i];
                           final isMyReview = currentUid != null && r.userId == currentUid;
                           return Padding(
@@ -9337,6 +9449,8 @@ class _RibTableHeader extends StatelessWidget {
           ),
           child: Row(
             children: headers.asMap().entries.map((e) {
+              final r = Responsive.of(context);
+
               final isFirst = e.key == 0;
               return Expanded(
                 flex: isFirst ? 3 : 3,
@@ -9417,6 +9531,8 @@ class _RibTableRow extends StatelessWidget {
           ),
           child: Row(
             children: values.asMap().entries.map((e) {
+              final r = Responsive.of(context);
+
               final isFirst = e.key == 0;
               final isSize = isFirst && isSizeCol;
               return Expanded(
@@ -9799,6 +9915,8 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
 
   // ── 정보 카드 (텍스트) ────────────────────────────────────────
   Widget _infoCard({
+    final r = Responsive.of(context);
+
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
@@ -9839,6 +9957,8 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
 
   // ── 정보 카드 (위젯) ─────────────────────────────────────────
   Widget _infoCardWidget({
+    final r = Responsive.of(context);
+
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
@@ -9880,6 +10000,8 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
   // ── 옵션 카드 ─────────────────────────────────────────────────
   // ── 사이즈 표 ─────────────────────────────────────────────────
   Widget _sizeTable({
+    final r = Responsive.of(context);
+
     required String title,
     required String emoji,
     required Color headerColor,
@@ -9916,6 +10038,8 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
             color: headerColor,
             child: Row(
               children: headers.asMap().entries.map((e) {
+                final r = Responsive.of(context);
+
                 return Expanded(
                   flex: e.key == 0 ? 3 : 3,
                   child: Padding(
@@ -9933,11 +10057,15 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
           ),
           // 데이터 행
           ...rows.asMap().entries.map((entry) {
+            final r = Responsive.of(context);
+
             final rowBg = entry.key.isEven ? Colors.white : headerBg.withValues(alpha: 0.3);
             return Container(
               color: rowBg,
               child: Row(
                 children: entry.value.asMap().entries.map((cell) {
+                  final r = Responsive.of(context);
+
                   return Expanded(
                     flex: cell.key == 0 ? 3 : 3,
                     child: Padding(
@@ -10044,6 +10172,8 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
     final imgs = widget.imgs;
     return LayoutBuilder(
       builder: (_, constraints) {
+        final r = Responsive.of(context);
+
         final w = constraints.maxWidth;
         // _measuredHeight 값은 실제로 "비율(height/width)"을 저장함
         // PageView 높이 = 너비 × 비율 (로드 전에는 기본 비율 4:5 사용)
@@ -10088,6 +10218,8 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
                 children: [
                   // pill dots
                   ...List.generate(imgs.length, (i) {
+                    final r = Responsive.of(context);
+
                     final active = _idx == i;
                     return GestureDetector(
                       onTap: () => _ctrl.animateToPage(
@@ -10232,6 +10364,8 @@ class _Section2FabricTabsWidgetState
   ) {
     final r = Responsive.of(context);
     if (imgs.isEmpty) {
+      final r = Responsive.of(context);
+
       return Container(
         height: 120,
         color: const Color(0xFFF9F9F9),

@@ -50,6 +50,8 @@ class MainScreenState extends State<MainScreen> {
   }
 
   void _showNoticePopup() {
+    final r = Responsive.of(context);
+
     if (!mounted) return;
     final noticeProv = context.read<NoticeProvider>();
     if (!noticeProv.shouldShow) return;
@@ -67,6 +69,8 @@ class MainScreenState extends State<MainScreen> {
     );
 
     if (isPc) {
+      final r = Responsive.of(context);
+
       // PC: 화면 중앙 다이얼로그
       showDialog(
         context: context,
@@ -480,6 +484,8 @@ class _LangDialog extends StatelessWidget {
               SizedBox(height: r.h(16)),
               // ── 언어 목록 ──
               ...AppLanguage.values.map((lang) {
+                final r = Responsive.of(context);
+
                 final isSel = langProv.language == lang;
                 return Padding(
                   padding: EdgeInsets.only(bottom: r.h(8)),
@@ -723,6 +729,8 @@ class _PcTopBarState extends State<_PcTopBar> {
 
   // ─── 2줄 아이콘 (아이콘 + 라벨) ───
   Widget _topIcon({
+    final r = Responsive.of(context);
+
     required IconData icon,
     required String label,
     required VoidCallback onTap,
@@ -749,6 +757,8 @@ class _PcTopBarState extends State<_PcTopBar> {
 
   // ─── 2줄 아이콘 + 뱃지 ───
   Widget _topIconBadge({
+    final r = Responsive.of(context);
+
     required IconData icon,
     required String label,
     required int badge,

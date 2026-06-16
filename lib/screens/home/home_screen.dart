@@ -355,6 +355,8 @@ class _HomeScreenState extends State<HomeScreen>
             child: SingleChildScrollView(
               child: Column(
                 children: getCategories(loc).map((cat) {
+                  final r = Responsive.of(context);
+
                   final isExpanded = _expandedCatName == cat.name;
                   final subs = cat.subCategories.where((s) => !s.name.startsWith('전체')).toList();
                   return Column(
@@ -439,6 +441,8 @@ class _HomeScreenState extends State<HomeScreen>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: subs.map((sub) {
+                                final r = Responsive.of(context);
+
                                 final isSubSel = _selectedCategoryKey == '${cat.name}/${sub.name}';
                                 return InkWell(
                                   onTap: () {
@@ -560,6 +564,8 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           // ── 카테고리 아코디언 목록 ──
           ...getCategories(loc).map((cat) {
+            final r = Responsive.of(context);
+
             final isExpanded = _expandedCatName == cat.name;
             final subs = cat.subCategories.where((s) => !s.name.startsWith('전체')).toList();
             return Column(
@@ -663,6 +669,8 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                         // 서브카테고리 항목들
                         ...subs.map((sub) {
+                          final r = Responsive.of(context);
+
                           final isSubSel = _selectedCategoryKey == '${cat.name}/${sub.name}';
                           return InkWell(
                             onTap: () {
@@ -740,6 +748,8 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 메인 영역 상품 그리드 (4컬럼, 사이드바와 함께) ──
   // ignore: unused_element
   Widget _buildPcMainProductSection({
+    final r = Responsive.of(context);
+
     required String title,
     required String englishTitle,
     required Color accentColor,
@@ -759,6 +769,8 @@ class _HomeScreenState extends State<HomeScreen>
     }
 
     if (products.isEmpty) {
+      final r = Responsive.of(context);
+
       return Container(
         color: Colors.white,
         padding: EdgeInsets.all(r.w(20)),
@@ -941,6 +953,8 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 Consumer<UserProvider>(
                   builder: (ctx, userProv, _) {
+                    final r = Responsive.of(context);
+
                     final userId = userProv.user?.id;
                     if (userId == null) {
                       return IconButton(icon: const Icon(Icons.notifications_outlined, color: Color(0xFF333333), size: 22), onPressed: () => _showNotificationsSheet(context, loc));
@@ -948,6 +962,8 @@ class _HomeScreenState extends State<HomeScreen>
                     return StreamBuilder<int>(
                       stream: FcmService.watchUnreadCount(userId),
                       builder: (ctx2, snap) {
+                        final r = Responsive.of(context);
+
                         final unread = snap.data ?? 0;
                         return Stack(clipBehavior: Clip.none, children: [
                           IconButton(icon: const Icon(Icons.notifications_outlined, color: Color(0xFF333333), size: 22), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationCenterScreen()))),
@@ -1069,6 +1085,8 @@ class _HomeScreenState extends State<HomeScreen>
             onPageChanged: (i) => setState(() => _bannerIndex = i),
             itemCount: banners.length,
             itemBuilder: (_, idx) {
+              final r = Responsive.of(context);
+
               final b = banners[idx];
               final accent = Color(b.accentColor);
               // order==0 인 슬라이드는 videoUrl 우선 (없으면 이미지)
@@ -1208,6 +1226,8 @@ class _HomeScreenState extends State<HomeScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: banners.asMap().entries.map((e) {
+                  final r = Responsive.of(context);
+
                   final active = _bannerIndex == e.key;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 280),
@@ -1422,6 +1442,8 @@ class _HomeScreenState extends State<HomeScreen>
                       // 알림
                       Consumer<UserProvider>(
                         builder: (ctx, userProv, _) {
+                          final r = Responsive.of(context);
+
                           final userId = userProv.user?.id;
                           if (userId == null) {
                             return IconButton(
@@ -1432,6 +1454,8 @@ class _HomeScreenState extends State<HomeScreen>
                           return StreamBuilder<int>(
                             stream: FcmService.watchUnreadCount(userId),
                             builder: (ctx2, snap) {
+                              final r = Responsive.of(context);
+
                               final unread = snap.data ?? 0;
                               return Stack(
                                 clipBehavior: Clip.none,
@@ -1505,6 +1529,8 @@ class _HomeScreenState extends State<HomeScreen>
               onPageChanged: (index, _) => setState(() => _bannerIndex = index),
             ),
             items: banners.asMap().entries.map((e) {
+              final r = Responsive.of(context);
+
               final b = e.value;
               final btnAction = b['btnAction'] as int? ?? 0;
               void onShop() {
@@ -1683,6 +1709,8 @@ class _HomeScreenState extends State<HomeScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: banners.asMap().entries.map((e) {
+                final r = Responsive.of(context);
+
                 final active = _bannerIndex == e.key;
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
@@ -1797,6 +1825,8 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 상품 그리드 섹션 (신상품/베스트 — 모바일 가로 스크롤 대신 5컬럼 그리드) ──
   // ignore: unused_element
   Widget _buildPcProductGridSection({
+    final r = Responsive.of(context);
+
     required String title,
     required String englishTitle,
     required Color accentColor,
@@ -1818,6 +1848,8 @@ class _HomeScreenState extends State<HomeScreen>
     }
     // 빈 리스트이면 로딩 스켈레톤 표시
     if (products.isEmpty) {
+      final r = Responsive.of(context);
+
       return Container(
         color: Colors.white,
         child: Column(
@@ -2395,6 +2427,8 @@ class _HomeScreenState extends State<HomeScreen>
               padding: EdgeInsets.symmetric(horizontal: r.w(12)),
               itemCount: previewProds.length,
               itemBuilder: (_, i) {
+                final r = Responsive.of(context);
+
                 final p = previewProds[i];
                 final discount = p.originalPrice != null && p.originalPrice! > p.price
                     ? ((1 - p.price / p.originalPrice!) * 100).round()
@@ -2526,8 +2560,12 @@ class _HomeScreenState extends State<HomeScreen>
               padding: EdgeInsets.symmetric(horizontal: r.w(12)),
               itemCount: preview.length + 1, // +1 = 전체보기 카드
               itemBuilder: (_, i) {
+                final r = Responsive.of(context);
+
                 // 마지막 아이템: 전체보기 카드
                 if (i == preview.length) {
+                  final r = Responsive.of(context);
+
                   return GestureDetector(
                     onTap: () => Navigator.push(context,
                       MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen())),
@@ -2776,6 +2814,8 @@ class _HomeScreenState extends State<HomeScreen>
               padding: EdgeInsets.symmetric(horizontal: r.w(12)),
               itemCount: cats.length,
               itemBuilder: (_, i) {
+                final r = Responsive.of(context);
+
                 final cat = cats[i];
                 final isGroup = cat == '단체주문';
                 return GestureDetector(
@@ -2839,6 +2879,8 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 오버레이 즉시 표시
     if (activeBanners.isEmpty) {
+      final r = Responsive.of(context);
+
       void goShop() => Navigator.push(context,
           MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '전체')));
       // 배너 높이 비례 텍스트 크기 (스크린샷 기준: bannerH≈580 → title≈62px)
@@ -2948,6 +2990,8 @@ class _HomeScreenState extends State<HomeScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: activeBanners.asMap().entries.map((e) {
+                  final r = Responsive.of(context);
+
                   final active = _bannerIndex == e.key;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 280),
@@ -3528,6 +3572,8 @@ class _HomeScreenState extends State<HomeScreen>
       padding: EdgeInsets.symmetric(vertical: r.h(16)),
       child: Row(
         children: menus.asMap().entries.map((e) {
+          final r = Responsive.of(context);
+
           final m = e.value;
           return Expanded(
             child: GestureDetector(
@@ -3609,6 +3655,8 @@ class _HomeScreenState extends State<HomeScreen>
               padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(12)),
               itemCount: saleProducts.length,
               itemBuilder: (_, i) {
+                final r = Responsive.of(context);
+
                 final p = saleProducts[i];
                 final discount = p.originalPrice != null
                     ? ((1 - p.price / p.originalPrice!) * 100).round()
@@ -3855,6 +3903,8 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 언어 선택 바텀시트 ──
   void _showLanguageSheet(BuildContext context, AppLocalizations loc) {
+    final r = Responsive.of(context);
+
     final langProv = context.read<LanguageProvider>();
     showModalBottomSheet(
       context: context,
@@ -3896,6 +3946,8 @@ class _HomeScreenState extends State<HomeScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: AppLanguage.values.map((lang) {
+                    final r = Responsive.of(context);
+
                     final isSelected = langProv.language == lang;
                     return GestureDetector(
                       onTap: () {
@@ -3949,6 +4001,8 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 알림 바텀시트 ──
   void _showNotificationsSheet(BuildContext context, AppLocalizations loc) {
+    final r = Responsive.of(context);
+
     final notifProv = context.read<NotificationProvider>();
     showModalBottomSheet(
       context: context,
@@ -4000,8 +4054,12 @@ class _HomeScreenState extends State<HomeScreen>
               Expanded(
                 child: Consumer<NotificationProvider>(
                   builder: (_, np, __) {
+                    final r = Responsive.of(context);
+
                     final list = np.notifications;
                     if (list.isEmpty) {
+                      final r = Responsive.of(context);
+
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -4020,6 +4078,8 @@ class _HomeScreenState extends State<HomeScreen>
                       separatorBuilder: (_, __) => const Divider(
                           height: 1, indent: 60),
                       itemBuilder: (_, i) {
+                        final r = Responsive.of(context);
+
                         final n = list[i];
                         final iconData = n.type == 'order'
                             ? Icons.receipt_long_rounded
@@ -4143,6 +4203,8 @@ class _HomeScreenState extends State<HomeScreen>
 
     // Firestore 로딩 중이거나 배너가 없을 때 → 로컬 asset 동영상 + 텍스트 즉시 표시
     if (activeBanners.isEmpty) {
+      final r = Responsive.of(context);
+
       void goShop() => Navigator.push(context,
           MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '전체')));
       return SizedBox(
@@ -4241,6 +4303,8 @@ class _HomeScreenState extends State<HomeScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: activeBanners.asMap().entries.map((e) {
+                  final r = Responsive.of(context);
+
                   final active = _bannerIndex == e.key;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 280),
@@ -4359,6 +4423,8 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 배너 하단 텍스트/CTA 오버레이 (공통) ──
   Widget _buildBannerOverlay({
+    final r = Responsive.of(context);
+
     required BannerModel banner,
     required String title,
     required String cta,
@@ -4496,6 +4562,8 @@ class _HomeScreenState extends State<HomeScreen>
           SizedBox(height: r.h(12)),
           // ── 카테고리 아코디언 목록 ──
           ...getCategories(loc).map((cat) {
+            final r = Responsive.of(context);
+
             final isExpanded = _expandedCatName == cat.name;
             final subs = cat.subCategories.where((s) => !s.name.startsWith('전체')).toList();
             return Column(
@@ -4587,6 +4655,8 @@ class _HomeScreenState extends State<HomeScreen>
                         children: [
                           SizedBox(width: r.w(0)), // 좌측 패딩용
                           ...subs.map((sub) {
+                            final r = Responsive.of(context);
+
                             final isSubSel = _selectedCategoryKey == '${cat.name}/${sub.name}';
                             return Padding(
                               padding: EdgeInsets.only(left: r.w(52)),
@@ -4911,6 +4981,8 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildProductSection({
+    final r = Responsive.of(context);
+
     required String title,
     required String englishTitle,
     required Color accentColor,
@@ -5031,9 +5103,13 @@ class _HomeScreenState extends State<HomeScreen>
                 padding: EdgeInsets.symmetric(horizontal: r.w(12)),
                 itemCount: products.length.clamp(0, 10) + 1, // 최대 10개 + 전체보기 카드
                 itemBuilder: (_, i) {
+                  final r = Responsive.of(context);
+
                   final display = products.take(10).toList();
                   // ── 마지막: 전체보기 카드 ──────────
                   if (i == display.length) {
+                    final r = Responsive.of(context);
+
                     return GestureDetector(
                       onTap: () => Navigator.push(
                         context,
@@ -5316,6 +5392,8 @@ class _HomeScreenState extends State<HomeScreen>
   // 검색 시트
   // ────────────────────────────────────────────
   void _showSearchSheet(BuildContext context, AppLocalizations loc) {
+    final r = Responsive.of(context);
+
     final ctrl = TextEditingController();
     showModalBottomSheet(
       context: context,
@@ -5883,6 +5961,8 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                 // 알림
                 Consumer<UserProvider>(
                   builder: (_, userProv, __) {
+                    final r = Responsive.of(context);
+
                     final userId = userProv.user?.id;
                     if (userId == null) {
                       return Expanded(
@@ -5899,6 +5979,8 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                       child: StreamBuilder<int>(
                         stream: FcmService.watchUnreadCount(userId),
                         builder: (ctx2, snap) {
+                          final r = Responsive.of(context);
+
                           final unread = snap.data ?? 0;
                           return Stack(
                             alignment: Alignment.center,
