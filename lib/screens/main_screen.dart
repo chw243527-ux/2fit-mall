@@ -46,13 +46,18 @@ class MainScreenState extends State<MainScreen> {
       _lastUid = uid;
       // UID 기반으로 dismiss 상태 복원
       await noticeProv.onUserChanged(uid);
-      noticeProv.loadFromFirestore();
-      Future.delayed(const Duration(milliseconds: 1500), _showNoticePopup);
+      // Firestore 로드 완료 후 팝업 표시 (홈탭에서만)
+      await noticeProv.loadFromFirestore();
+      if (mounted && _currentIndex == 0) {
+        Future.delayed(const Duration(milliseconds: 300), _showNoticePopup);
+      }
     });
   }
 
   void _showNoticePopup() {
     if (!mounted) return;
+    // 홈탭(index=0)에서만 팝업 표시
+    if (_currentIndex != 0) return;
     final noticeProv = context.read<NoticeProvider>();
     if (!noticeProv.shouldShow) return;
     final notices = noticeProv.activeNotices;
@@ -107,14 +112,17 @@ class MainScreenState extends State<MainScreen> {
     final uid = userProvider.user?.id;
 
     // 유저 변경 감지 → 새 유저 dismiss 상태 로드 + 팝업 재표시
-    if (uid != _lastUid) {
+    // null → uid: 최초 로그인은 initState에서 처리됨, 여기서는 사용자 교체 시만 동작
+    if (uid != _lastUid && _lastUid != null) {
       _lastUid = uid;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
         final noticeProv = context.read<NoticeProvider>();
         await noticeProv.onUserChanged(uid);
-        _showNoticePopup();
+        if (_currentIndex == 0) _showNoticePopup();
       });
+    } else if (uid != _lastUid) {
+      _lastUid = uid; // null→uid 변경은 _lastUid만 갱신, 팝업 재실행 안 함
     }
 
     // 로그아웃 감지: user가 null이 되면 로그인 화면으로 이동
