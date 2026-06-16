@@ -150,8 +150,11 @@ class _WebImageState extends State<_WebImage> {
   }
 
   void _loadImage() {
-    final w = widget.width != null ? (widget.width! * 3).clamp(1, 1200).toInt() : null;
-    final h = widget.height != null ? (widget.height! * 3).clamp(1, 1200).toInt() : null;
+    // double.infinity 방어: infinite 값은 null로 처리 (ResizeImage 크래시 방지)
+    final rawW = widget.width;
+    final rawH = widget.height;
+    final w = (rawW != null && rawW.isFinite && rawW > 0) ? (rawW * 3).clamp(1, 1200).toInt() : null;
+    final h = (rawH != null && rawH.isFinite && rawH > 0) ? (rawH * 3).clamp(1, 1200).toInt() : null;
 
     _provider = ResizeImage.resizeIfNeeded(
       w,
@@ -185,6 +188,7 @@ class _WebImageState extends State<_WebImage> {
     }
 
     return Stack(
+      fit: StackFit.expand,
       children: [
         // shimmer - 로딩 중에만 표시
         if (!_loaded)
