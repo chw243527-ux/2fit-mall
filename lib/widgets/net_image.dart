@@ -192,22 +192,27 @@ class _WebImageState extends State<_WebImage> {
       children: [
         // shimmer - 로딩 중에만 표시
         if (!_loaded)
-          _ShimmerBox(
-            width: widget.width,
-            height: widget.height,
-            backgroundColor: widget.backgroundColor,
+          SizedBox.expand(
+            child: _ShimmerBox(
+              width: widget.width,
+              height: widget.height,
+              backgroundColor: widget.backgroundColor,
+            ),
           ),
         // 실제 이미지 - 로드 완료 후 페이드인
+        // SizedBox.expand: width/height가 null이어도 부모 Stack 전체를 채움
         AnimatedOpacity(
           opacity: _loaded ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 200),
-          child: Image(
-            image: _provider,
-            width: widget.width,
-            height: widget.height,
-            fit: widget.fit,
-            alignment: widget.alignment,
-            gaplessPlayback: true,
+          child: SizedBox.expand(
+            child: Image(
+              image: _provider,
+              width: double.infinity,
+              height: double.infinity,
+              fit: widget.fit,
+              alignment: widget.alignment,
+              gaplessPlayback: true,
+            ),
           ),
         ),
       ],
