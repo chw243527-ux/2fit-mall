@@ -753,6 +753,7 @@ class _HomeScreenState extends State<HomeScreen>
     required bool isNew,
     required AppLocalizations loc,
   }) {
+    final r = Responsive.of(context);
     final provider = context.watch<ProductProvider>();
     List<ProductModel> allProds = provider.products;
     if (allProds.isEmpty) allProds = ProductService.getAllProductsSync();
@@ -1823,6 +1824,7 @@ class _HomeScreenState extends State<HomeScreen>
     required bool isNew,
     required AppLocalizations loc,
   }) {
+    final r = Responsive.of(context);
     final provider = context.watch<ProductProvider>();
     // 로딩 중이더라도 더미 데이터(sync)로 즉시 표시
     List<ProductModel> allProds = provider.products;
@@ -2789,6 +2791,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 카테고리 가로 탭바 ──
   Widget _buildCategoryTabBar(AppLocalizations loc) {
+    final r = Responsive.of(context);
     const cats = ['전체', '상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '단체주문'];
     return Container(
       color: Colors.white,
@@ -3551,6 +3554,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 퀵메뉴 바 (이벤트/신상품) ──
   // ignore: unused_element
   Widget _buildQuickMenuBar(AppLocalizations loc) {
+    final r = Responsive.of(context);
     final menus = [
       {'icon': Icons.local_offer_rounded, 'label': loc.homeEvent, 'color': const Color(0xFFE53935)},
       {'icon': Icons.fiber_new_rounded, 'label': loc.homeNewArrival, 'color': const Color(0xFF6A1B9A)},
@@ -5294,6 +5298,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _footerInfoRow(String text) {
+    final r = Responsive.of(context);
     return Padding(
     padding: EdgeInsets.only(bottom: r.h(5)),
     child: Text(text, style: TextStyle(color: Colors.white54, fontSize: r.sp(12.5))),
@@ -5301,6 +5306,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _footerSocialBtn(String label, Color bg, Color fg, VoidCallback onTap) {
+    final r = Responsive.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(

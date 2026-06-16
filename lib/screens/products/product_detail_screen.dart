@@ -5021,7 +5021,9 @@ $productUrl
 
   // 예시 리뷰 제거됨 - 실제 회원 리뷰만 표시
 
-  Widget _reviewChip(String text) => Container(
+  Widget _reviewChip(String text) {
+    final r = Responsive.of(context);
+    return Container(
         padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -5031,6 +5033,7 @@ $productUrl
         child: Text(text,
             style: TextStyle(fontSize: r.sp(10), color: Color(0xFF888888))),
       );
+  }
 
   // ═══════════════════════════════════════════════════════════
   // 하단 바 (탑텐 스타일)
