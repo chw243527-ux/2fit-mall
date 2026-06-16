@@ -658,7 +658,6 @@ class _PcTopBarState extends State<_PcTopBar> {
                               'assets/images/logo_2fit.png',
                               fit: BoxFit.contain,
                             ),
-                            ),
                           ),
                         ),
                       ),

@@ -4051,7 +4051,6 @@ $productUrl
                                 width: 100, height: 100,
                                 fit: BoxFit.cover,
                               ),
-                              ),
                       ),
                       // 확대 아이콘 오버레이
                       Positioned(
@@ -10153,7 +10152,6 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
                     width: w,
                     height: pageViewHeight,
                     fit: BoxFit.fitWidth,
-                  ),
                   ),
                 ),
               ),

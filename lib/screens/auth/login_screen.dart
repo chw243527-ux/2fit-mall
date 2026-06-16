@@ -191,7 +191,6 @@ class _LoginScreenState extends State<LoginScreen>
                               fit: BoxFit.contain,
                             ),
                           ),
-                          ),
                           const SizedBox(height: 16),
                           // ── 언어 선택 버튼 ──
                           const LanguageSelectorWidget(),
@@ -464,7 +463,6 @@ class _LoginScreenState extends State<LoginScreen>
                       width: 180,
                       height: 70,
                       fit: BoxFit.contain,
-                    ),
                     ),
                   ),
                   const SizedBox(height: 24),
