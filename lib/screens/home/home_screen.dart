@@ -916,10 +916,7 @@ class _HomeScreenState extends State<HomeScreen>
                       height: 28,
                       child: Image.asset(
                         'assets/images/2fit_logo.png',
-                        fit: BoxFit.contain
-                          '2FIT',
-                          style: TextStyle(color: Color(0xFF111111), fontSize: r.sp(18), fontWeight: FontWeight.w900, letterSpacing: 3),
-                        ),
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ),
@@ -1387,15 +1384,7 @@ class _HomeScreenState extends State<HomeScreen>
                             height: 28,
                             child: Image.asset(
                               'assets/images/logo_2fit_white.png',
-                              fit: BoxFit.contain
-                                '2FIT',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: r.sp(18),
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 3,
-                                ),
-                              ),
+                              fit: BoxFit.contain,
                             ),
                           ),
                         ),
@@ -1580,7 +1569,7 @@ class _HomeScreenState extends State<HomeScreen>
                   Positioned.fill(
                     child: NetImage(
                       b['image'] as String,
-                      fit: BoxFit.cover
+                      fit: BoxFit.cover,
                     ),
                   ),
                   Positioned.fill(
@@ -2441,13 +2430,13 @@ class _HomeScreenState extends State<HomeScreen>
                               Positioned.fill(
                                 child: p.images.isNotEmpty
                                   ? NetImage(p.images.first,
-                                      fit: BoxFit.cover
-                                        color: const Color(0xFFF0F0F0),
-                                        child: const Icon(Icons.image_not_supported_rounded,
-                                          color: Colors.white54, size: 28)))
-                                  : Container(color: const Color(0xFFF0F0F0),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Container(
+                                      color: const Color(0xFFF0F0F0),
                                       child: const Icon(Icons.image_not_supported_rounded,
-                                        color: Colors.white54, size: 28)),
+                                        color: Colors.white54, size: 28),
+                                    ),
                               ),
                               if (discount > 0)
                                 Positioned(
@@ -2619,9 +2608,8 @@ class _HomeScreenState extends State<HomeScreen>
                               Positioned.fill(
                                 child: p.images.isNotEmpty
                                     ? NetImage(p.images.first,
-                                        fit: BoxFit.cover
-                                          Icons.image_not_supported_rounded,
-                                          color: Color(0xFFCCCCCC), size: 28))
+                                        fit: BoxFit.cover,
+                                      )
                                     : const Icon(Icons.image_not_supported_rounded,
                                         color: Color(0xFFCCCCCC), size: 28),
                               ),
@@ -2709,19 +2697,7 @@ class _HomeScreenState extends State<HomeScreen>
                 child: Image.asset(
                   'assets/images/logo_2fit.png',
                   height: 26,
-                  fit: BoxFit.contain
-                    'assets/images/2fit_logo.png',
-                    height: 26,
-                    fit: BoxFit.contain
-                      '2FIT KOREA',
-                      style: TextStyle(
-                        color: Color(0xFF111111),
-                        fontSize: r.sp(16),
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
+                  fit: BoxFit.contain,
                 ),
               ),
             ),
@@ -3119,9 +3095,7 @@ class _HomeScreenState extends State<HomeScreen>
                       child: p.images.isNotEmpty
                           ? NetImage(
                               p.images.first,
-                              fit: BoxFit.cover
-                                Icons.image_not_supported_outlined,
-                                color: Color(0xFFBBBBBB), size: 36),
+                              fit: BoxFit.cover,
                             )
                           : const Icon(
                               Icons.image_not_supported_outlined,
@@ -3274,21 +3248,9 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Image.asset(
                       'assets/images/logo_2fit_white.png',
                       height: 30,
-                      fit: BoxFit.contain
-                        'assets/images/2fit_logo.png',
-                        height: 30,
-                        fit: BoxFit.contain,
-                        color: Colors.white,
-                        colorBlendMode: BlendMode.srcIn
-                          '2FIT KOREA',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: r.sp(18),
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 2,
-                          ),
-                        ),
-                      ),
+                      fit: BoxFit.contain,
+                      color: Colors.white,
+                      colorBlendMode: BlendMode.srcIn,
                     ),
                   ),
                 ),
@@ -3690,8 +3652,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ClipRRect(
                               borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
                               child: p.images.isNotEmpty
-                                  ? NetImage(p.images.first, width: 130, height: 120, fit: BoxFit.cover
-                                          child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 40)))
+                                  ? NetImage(p.images.first, width: 130, height: 120, fit: BoxFit.cover)
                                   : Container(height: 120, color: const Color(0xFFF5F5F5)),
                             ),
                             if (discount > 0)
@@ -5969,21 +5930,9 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                       child: Image.asset(
                         'assets/images/logo_2fit_white.png',
                         height: 30,
-                        fit: BoxFit.contain
-                          'assets/images/2fit_logo.png',
-                          height: 30,
-                          fit: BoxFit.contain,
-                          color: Colors.white,
-                          colorBlendMode: BlendMode.srcIn
-                            '2FIT',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: r.sp(22),
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 3,
-                            ),
-                          ),
-                        ),
+                        fit: BoxFit.contain,
+                        color: Colors.white,
+                        colorBlendMode: BlendMode.srcIn,
                       ),
                     ),
                   ),

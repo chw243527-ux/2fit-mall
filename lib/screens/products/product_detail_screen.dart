@@ -3441,7 +3441,7 @@ $productUrl
           child: NetImage(
             url,
             width: double.infinity,
-            fit: BoxFit.cover
+            fit: BoxFit.cover,
           ),
         ),
       )).toList(),
@@ -3489,7 +3489,7 @@ $productUrl
         child: NetImage(
           imgs.first,
           width: double.infinity,
-          fit: BoxFit.fitWidth
+          fit: BoxFit.fitWidth,
         ),
       );
     }
@@ -4044,20 +4044,13 @@ $productUrl
                             ? Image.memory(
                                 base64Decode(imgs[i].split(',').last),
                                 width: 100, height: 100,
-                                fit: BoxFit.cover
-                                  width: 100, height: 100,
-                                  color: const Color(0xFFEEEEEE),
-                                  child: const Icon(Icons.broken_image_outlined, color: Color(0xFFAAAAAA)),
-                                ),
+                                fit: BoxFit.cover,
                               )
                             : NetImage(
                                 imgs[i],
                                 width: 100, height: 100,
-                                fit: BoxFit.cover
-                                  width: 100, height: 100,
-                                  color: const Color(0xFFEEEEEE),
-                                  child: const Icon(Icons.broken_image_outlined, color: Color(0xFFAAAAAA)),
-                                ),
+                                fit: BoxFit.cover,
+                              ),
                               ),
                       ),
                       // 확대 아이콘 오버레이
@@ -6159,12 +6152,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                                       url,
                                       width: double.infinity,
                                       height: double.infinity,
-                                      fit: BoxFit.cover
-                                        color: const Color(0xFFEEEEEE),
-                                        child: const Icon(
-                                            Icons.broken_image_outlined,
-                                            color: Color(0xFFCCCCCC)),
-                                      ),
+                                      fit: BoxFit.cover,
                                     ),
                             ),
                             // 순서 번호
@@ -9063,7 +9051,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                       separatorBuilder: (_, __) => SizedBox(width: r.w(6)),
                                       itemBuilder: (_, j) => ClipRRect(
                                         borderRadius: BorderRadius.circular(6),
-                                        child: NetImage(rev.images[j], width: 60, height: 60, fit: BoxFit.cover
+                                        child: NetImage(rev.images[j], width: 60, height: 60, fit: BoxFit.cover),
                                       ),
                                     ),
                                   ),
@@ -10164,13 +10152,8 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
                     imgs[i],
                     width: w,
                     height: pageViewHeight,
-                    fit: BoxFit.fitWidth
-                      height: pageViewHeight,
-                      child: const Center(
-                        child: Icon(Icons.broken_image_outlined,
-                            size: 48, color: Color(0xFFCCCCCC)),
-                      ),
-                    ),
+                    fit: BoxFit.fitWidth,
+                  ),
                   ),
                 ),
               ),
@@ -10349,7 +10332,7 @@ class _Section2FabricTabsWidgetState
         child: NetImage(
           imgs.first,
           width: double.infinity,
-          fit: BoxFit.fitWidth
+          fit: BoxFit.fitWidth,
         ),
       );
     }

@@ -596,7 +596,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           ClipRRect(
             borderRadius: BorderRadius.zero,
             child: imageUrl.isNotEmpty
-                ? NetImage(imageUrl, width: 72, height: 72, fit: BoxFit.cover
+                ? NetImage(imageUrl, width: 72, height: 72, fit: BoxFit.cover)
                 : _productPlaceholder(),
           ),
           const SizedBox(width: 14),

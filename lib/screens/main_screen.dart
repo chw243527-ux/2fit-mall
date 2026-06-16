@@ -656,14 +656,8 @@ class _PcTopBarState extends State<_PcTopBar> {
                             height: 44,
                             child: Image.asset(
                               'assets/images/logo_2fit.png',
-                              fit: BoxFit.contain
-                                '2FIT\nKOREA',
-                                style: TextStyle(
-                                    fontSize: r.sp(18),
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 2,
-                                    height: 1.1),
-                              ),
+                              fit: BoxFit.contain,
+                            ),
                             ),
                           ),
                         ),

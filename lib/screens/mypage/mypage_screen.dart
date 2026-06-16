@@ -1080,11 +1080,7 @@ class _PcOrderCard extends StatelessWidget {
                         child: item.imageUrl != null && item.imageUrl!.isNotEmpty
                           ? NetImage(
                               item.imageUrl!,
-                              width: 52, height: 52, fit: BoxFit.cover
-                                width: 52, height: 52,
-                                decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
-                                child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
-                              ),
+                              width: 52, height: 52, fit: BoxFit.cover,
                             )
                           : Container(
                               width: 52, height: 52,
@@ -1393,7 +1389,7 @@ class _PcWishlistTab extends StatelessWidget {
                               children: [
                                 ClipRRect(
                                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                  child: NetImage(p.images.first, width: double.infinity, fit: BoxFit.cover
+                                  child: NetImage(p.images.first, width: double.infinity, fit: BoxFit.cover),
                                 ),
                                 Positioned(top: 8, right: 8,
                                   child: GestureDetector(
@@ -2190,11 +2186,7 @@ class _MobileOrderCard extends StatelessWidget {
                   child: order.items.isNotEmpty && order.items.first.imageUrl != null && order.items.first.imageUrl!.isNotEmpty
                     ? NetImage(
                         order.items.first.imageUrl!,
-                        width: 56, height: 56, fit: BoxFit.cover
-                          width: 56, height: 56,
-                          color: Colors.grey[100],
-                          child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
-                        ),
+                        width: 56, height: 56, fit: BoxFit.cover,
                       )
                     : Container(
                         width: 56, height: 56,
@@ -2488,7 +2480,7 @@ class _MobileWishlistTab extends StatelessWidget {
                     children: [
                       ClipRRect(
                         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                        child: NetImage(p.images.first, width: double.infinity, fit: BoxFit.cover
+                        child: NetImage(p.images.first, width: double.infinity, fit: BoxFit.cover),
                       ),
                       Positioned(top: 6, right: 6,
                         child: GestureDetector(
@@ -4319,11 +4311,7 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(6),
                             child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                              ? NetImage(item.imageUrl!, width: 52, height: 52, fit: BoxFit.cover
-                                    width: 52, height: 52,
-                                    color: Colors.grey[100],
-                                    child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
-                                  ))
+                              ? NetImage(item.imageUrl!, width: 52, height: 52, fit: BoxFit.cover)
                               : Container(
                                   width: 52, height: 52,
                                   color: Colors.grey[100],

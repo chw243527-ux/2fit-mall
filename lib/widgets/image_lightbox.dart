@@ -57,20 +57,12 @@ class _ImageLightboxDialogState extends State<ImageLightboxDialog> {
     if (src.startsWith('data:image')) {
       return Image.memory(
         base64Decode(src.split(',').last),
-        fit: BoxFit.contain
-          Icons.broken_image_rounded,
-          color: Colors.white54,
-          size: 80,
-        ),
+        fit: BoxFit.contain,
       );
     }
     return NetImage(
       src,
-      fit: BoxFit.contain
-        Icons.broken_image_rounded,
-        color: Colors.white54,
-        size: 80,
-      ),
+      fit: BoxFit.contain,
     );
   }
 

@@ -463,18 +463,8 @@ class _AppDrawerState extends State<AppDrawer> {
                     height: 36,
                     child: Image.asset(
                       'assets/images/logo_2fit.png',
-                      fit: BoxFit.contain
-                        'assets/images/2fit_logo.png',
-                        fit: BoxFit.contain
-                          '2FIT',
-                          style: TextStyle(
-                            color: Color(0xFF111111),
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 3,
-                          ),
-                        ),
-                      ),
+                      fit: BoxFit.contain,
+                    ),
                     ),
                   ),
                   const Spacer(),

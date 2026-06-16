@@ -1377,7 +1377,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     child: heroImg != null
                         ? NetImage(
                             heroImg,
-                            width: 72, height: 72, fit: BoxFit.cover
+                            width: 72, height: 72, fit: BoxFit.cover,
                           )
                         : _productImgPlaceholder(),
                   ),
@@ -1489,14 +1489,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         borderRadius: BorderRadius.circular(10),
                         child: NetImage(
                           designImgs[i],
-                          width: 120, height: 120, fit: BoxFit.cover
-                            width: 120, height: 120,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(Icons.image_outlined, color: Colors.grey.shade400, size: 36),
-                          ),
+                          width: 120, height: 120, fit: BoxFit.cover,
                         ),
                       ),
                       // 대표 배지 (첫 번째 이미지)

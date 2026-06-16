@@ -335,11 +335,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                 ? NetImage(
                     p.images.first,
                     width: 80, height: 80,
-                    fit: BoxFit.cover
-                      width: 80, height: 80,
-                      color: const Color(0xFFF0F0F0),
-                      child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 32),
-                    ),
+                    fit: BoxFit.cover,
                   )
                 : Container(
                     width: 80, height: 80,
@@ -1101,12 +1097,8 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                             child: NetImage(
                               imgs[i],
                               width: 110, height: 110,
-                              fit: BoxFit.cover
-                                width: 110, height: 110,
-                                color: const Color(0xFFEEEEEE),
-                                child: const Icon(Icons.broken_image_outlined,
-                                    color: Color(0xFFAAAAAA)),
-                              ),
+                              fit: BoxFit.cover,
+                            ),
                             ),
                           ),
                           Positioned(
@@ -1728,9 +1720,7 @@ class _DesignLightboxDialogState extends State<_DesignLightboxDialog> {
                   maxScale: 5.0,
                   child: NetImage(
                     widget.images[i],
-                    fit: BoxFit.contain
-                        Icons.broken_image_outlined,
-                        color: Colors.white54, size: 60),
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),

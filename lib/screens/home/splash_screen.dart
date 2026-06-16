@@ -186,12 +186,7 @@ class _SplashScreenState extends State<SplashScreen>
                               'assets/images/app_icon.png',
                               width: iconSize,
                               height: iconSize,
-                              fit: BoxFit.contain
-                                'assets/images/logo_2fit_korea.png',
-                                width: iconSize,
-                                height: iconSize,
-                                fit: BoxFit.contain
-                              ),
+                              fit: BoxFit.contain,
                             ),
                           );
                         },
