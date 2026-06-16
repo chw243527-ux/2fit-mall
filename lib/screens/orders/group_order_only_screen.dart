@@ -371,8 +371,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           NetImage(
             'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800',
             fit: BoxFit.cover,
-            alignment: Alignment.topCenter
-                Container(color: const Color(0xFF1A1A2E)),
+            alignment: Alignment.topCenter,
           ),
           // 그라데이션 오버레이
           DecoratedBox(
@@ -435,8 +434,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           NetImage(
             'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1600',
             fit: BoxFit.cover,
-            alignment: Alignment.topCenter
-                Container(color: const Color(0xFF1A1A2E)),
+            alignment: Alignment.topCenter,
           ),
           DecoratedBox(
             decoration: BoxDecoration(
@@ -723,8 +721,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                             width: double.infinity,
                             height: double.infinity,
                             fit: BoxFit.cover,
-                            alignment: Alignment.topCenter
-                                _imgPlaceholder(full: true),
+                            alignment: Alignment.topCenter,
                           )
                         : _imgPlaceholder(full: true),
                   ),
@@ -875,7 +872,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                       width: 110,
                       height: 120,
                       fit: BoxFit.cover,
-                      alignment: Alignment.topCenter
+                      alignment: Alignment.topCenter,
                     )
                   : _imgPlaceholder(),
             ),
