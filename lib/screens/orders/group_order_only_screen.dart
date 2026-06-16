@@ -717,7 +717,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
             children: [
               // 이미지 영역 — 패딩+라운드로 카드 배경색 살짝 보이도록
               Padding(
-                padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+                padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: AspectRatio(
