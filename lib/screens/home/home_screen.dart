@@ -3199,9 +3199,10 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ],
-        ),
-    ),              // GestureDetector
-    );              // RepaintBoundary
+        ),        // Stack
+      ),          // Material
+    ),            // GestureDetector
+    );            // RepaintBoundary
   }
 
   // ── 단체주문 상품 없음 상태 ──
