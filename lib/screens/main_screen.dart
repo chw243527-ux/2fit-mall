@@ -1183,7 +1183,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   int _page = 0;
   // 실제 이미지 비율 (로드 후 동적 업데이트)
-  double? _imageAspectRatio;
+  // 더 이상 사용 안 함 (이미지 비율 자동 계산으로 대체됨)
 
   // ── 테마별 그라디언트 (이미지 없을 때 배너 배경) ──
   static const Map<String, List<Color>> _themeGradients = {
@@ -1217,10 +1217,8 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
     // 하단 시트 최대 너비 (PC 대응)
     final sheetW = sw > 600 ? 480.0 : sw;
-    // 이미지 높이: 실제 비율 기반 (없으면 sh*35% 기본값)
-    final imgH = _imageAspectRatio != null
-        ? (sheetW / _imageAspectRatio!).clamp(160.0, sh * 0.55)
-        : (sh * 0.35).clamp(180.0, 300.0);
+    // 최대 이미지 높이 제한 (화면의 55% 이하)
+    final imgMaxH = sh * 0.55;
 
     // PC: 전체 둥근 모서리 / 모바일: 상단만 둥근 모서리
     final borderRadius = widget.isPc
@@ -1253,141 +1251,113 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             // ① 이미지 / 그라디언트 배너
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOut,
-              width: double.infinity,
-              height: imgH,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-
-                  // 배경: 이미지 or 그라디언트
-                  if (hasImage)
-                    Image.network(
+            Stack(
+              children: [
+                // 배경: 이미지 or 그라디언트
+                if (hasImage)
+                  // 이미지를 팝업 너비에 꽉 맞춰 비율 유지, 최대 높이 제한
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: sheetW,
+                      maxHeight: imgMaxH,
+                    ),
+                    child: Image.network(
                       notice.imageUrl,
-                      fit: BoxFit.contain,
+                      width: sheetW,
+                      fit: BoxFit.fitWidth,   // 가로 꽉 채우고 세로는 비율에 맞게 자동
                       alignment: Alignment.topCenter,
-                      frameBuilder: (_, child, frame, __) {
-                        if (frame != null) {
-                          // 이미지 로드 완료 → 실제 해상도로 비율 계산
-                          final provider = NetworkImage(notice.imageUrl);
-                          provider.resolve(ImageConfiguration.empty)
-                              .addListener(ImageStreamListener((info, _) {
-                            final w = info.image.width.toDouble();
-                            final h = info.image.height.toDouble();
-                            if (h > 0 && mounted) {
-                              setState(() => _imageAspectRatio = w / h);
-                            }
-                          }));
-                        }
-                        return child;
-                      },
                       errorBuilder: (_, __, ___) =>
-                          _buildGradientBg(gradColors, emoji, title),
-                    )
-                  else
-                    _buildGradientBg(gradColors, emoji, title),
-
-                  // 이미지 있을 때: 하단 흰 배경 텍스트 영역
-                  if (hasImage)
-                    Positioned(
-                      left: 0, right: 0, bottom: 0,
-                      child: Container(
-                        color: Colors.white,
-                        padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(18)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              title,
-                              style: TextStyle(
-                                color: Color(0xFF111111),
-                                fontSize: r.sp(17),
-                                fontWeight: FontWeight.w800,
-                                height: 1.4,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                            if (content.isNotEmpty) ...[
-                              SizedBox(height: r.h(6)),
-                              Text(
-                                content,
-                                style: TextStyle(
-                                  color: Color(0xFF666666),
-                                  fontSize: r.sp(13),
-                                  height: 1.55,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
+                          SizedBox(
+                            height: sh * 0.35,
+                            child: _buildGradientBg(gradColors, emoji, title),
+                          ),
                     ),
-
-                  // 우상단 X 닫기 버튼
-                  Positioned(
-                    top: 12, right: 12,
-                    child: GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        width: 32, height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.32),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close_rounded,
-                          color: Colors.white,
-                          size: 17,
-                        ),
-                      ),
-                    ),
+                  )
+                else
+                  SizedBox(
+                    width: double.infinity,
+                    height: (sh * 0.35).clamp(180.0, 300.0),
+                    child: _buildGradientBg(gradColors, emoji, title),
                   ),
 
-                  // 좌하단 '01 / 01' 캡슐
-                  Positioned(
-                    left: 16,
-                    bottom: hasImage ? _bottomTextHeight(content) + 12 : 14,
+                // 우상단 X 닫기 버튼
+                Positioned(
+                  top: 12, right: 12,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: r.w(11), vertical: r.h(5)),
+                      width: 32, height: 32,
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.50),
-                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.black.withValues(alpha: 0.32),
+                        shape: BoxShape.circle,
                       ),
-                      child: Text(
-                        '${(_page + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: r.sp(11),
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 1.2,
-                        ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                        size: 17,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+
+                // 좌하단 '01 / 01' 캡슐
+                Positioned(
+                  left: 16, bottom: 14,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: r.w(11), vertical: r.h(5)),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.50),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${(_page + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: r.sp(11),
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // ② 이미지 없을 때 / 이미지 있을 때 공통: 본문 텍스트
+            // ② 제목 + 본문 텍스트 영역
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            if (content.isNotEmpty && (!hasImage))
-              Container(
-                color: Colors.white,
-                width: double.infinity,
-                padding: EdgeInsets.fromLTRB(r.w(20), r.h(14), r.w(20), r.h(14)),
-                child: Text(
-                  content,
-                  style: TextStyle(
-                    fontSize: r.sp(13),
-                    color: const Color(0xFF555555),
-                    height: 1.7,
+            Container(
+              color: Colors.white,
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(14)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: const Color(0xFF111111),
+                      fontSize: r.sp(17),
+                      fontWeight: FontWeight.w800,
+                      height: 1.4,
+                      letterSpacing: -0.3,
+                    ),
                   ),
-                ),
+                  if (content.isNotEmpty) ...[
+                    SizedBox(height: r.h(6)),
+                    Text(
+                      content,
+                      style: TextStyle(
+                        fontSize: r.sp(13),
+                        color: const Color(0xFF555555),
+                        height: 1.7,
+                      ),
+                    ),
+                  ],
+                ],
               ),
+            ),
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             // ③ 하단 버튼 바
@@ -1453,12 +1423,6 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
         ),
       ),
     );
-  }
-
-  // 이미지 위에 올라오는 텍스트박스의 높이 (인디케이터 위치 계산용)
-  double _bottomTextHeight(String content) {
-    // 제목 약 50px + 내용 있으면 +40px + 패딩 34px
-    return content.isNotEmpty ? 124.0 : 84.0;
   }
 
   // 테마 그라디언트 배너 (이미지 없을 때)
