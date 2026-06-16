@@ -538,7 +538,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // 앱바 원형 아이콘 버튼 헬퍼
   Widget _appBarIconBtn({required IconData icon, required VoidCallback onTap, EdgeInsetsGeometry? margin}) {
-    final r = Responsive.of(context);
     return Container(
       margin: margin ?? EdgeInsets.only(right: r.w(2), top: r.h(8), bottom: r.h(8)),
       decoration: const BoxDecoration(color: Color(0xFFF5F5F5), shape: BoxShape.circle),
@@ -552,7 +551,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 이미지 슬라이더 (탑텐 스타일: 전체화면형, 하단 바 인디케이터) ──
   Widget _buildImageSlider(ProductModel product) {
-    final r = Responsive.of(context);
     // _mainImages: Firestore fresh 로드 후 갱신된 메인 이미지 (배포 후에도 유지)
     final imgs = _mainImages.isNotEmpty ? _mainImages : product.images;
     final imgCount = imgs.isNotEmpty ? imgs.length : 1;
@@ -640,7 +638,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 color: Colors.black.withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -1018,7 +1016,7 @@ $productUrl
               children: [
                 GestureDetector(
                   onTap: () {},
-                  child: const Row(
+                  child: Row(
                     children: [
                       Text(
                         '2FIT KOREA',
@@ -1235,7 +1233,6 @@ $productUrl
 
   // ── 탑텐 스타일: 색상 원형 그리드 선택 UI ──
   Widget _buildToptenColorSection(ProductModel product) {
-    final r = Responsive.of(context);
     String _selectedColor = product.colors.isNotEmpty ? product.colors.first : '';
     // 골지 텍스처 적용 대상: 타이즈, 단체주문 하의, 5부, 2.5부
     final sub  = product.subCategory;
@@ -1293,7 +1290,7 @@ $productUrl
             // 색상 안내 disclaimer
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Icon(Icons.info_outline_rounded, size: 11, color: Color(0xFFBBBBBB)),
                 SizedBox(width: r.w(4)),
                 Expanded(
@@ -1312,7 +1309,6 @@ $productUrl
 
   // ── 탑텐 스타일: 해시태그 칩 ──
   Widget _hashtagChip(String label) {
-    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
       decoration: BoxDecoration(
@@ -1372,7 +1368,6 @@ $productUrl
 
   // ── 탑텐 스타일: 브랜드 로고 박스 섹션 ──
   Widget _buildToptenBrandSection(ProductModel product) {
-    final r = Responsive.of(context);
     return Consumer<UserProvider>(builder: (_, up, __) {
       final r = Responsive.of(context);
 
@@ -1403,7 +1398,7 @@ $productUrl
           // 브랜드명 텍스트
           GestureDetector(
             onTap: () {},
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('2FIT', style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A), letterSpacing: -0.3)),
@@ -1454,7 +1449,6 @@ $productUrl
   }
 
   Widget _buildToptenTabBar() {
-    final r = Responsive.of(context);
     final tabs = [
       ('상품정보', 0, _keyInfo),
       ('사이즈',   1, _keySize),
@@ -1595,7 +1589,7 @@ $productUrl
                   child: const Icon(Icons.auto_awesome_rounded, size: 15, color: Color(0xFF6A1B9A)),
                 ),
                 SizedBox(width: r.w(10)),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1823,7 +1817,6 @@ $productUrl
 
   // ── 색상 칩: 원형 스와치 (useRib=true 이면 골지 텍스처, false 이면 단색)
   Widget _infoColorChipRow(List<String> codes, {bool useRib = true}) {
-    final r = Responsive.of(context);
     return Wrap(
       spacing: 10,
       runSpacing: 14,
@@ -1913,7 +1906,6 @@ $productUrl
 
   // ── 탑텐 스타일: 키-값 테이블
   Widget _toptenInfoTable(List<(String, String)> rows) {
-    final r = Responsive.of(context);
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: const Color(0xFFE0E0E0)),
@@ -2230,10 +2222,8 @@ $productUrl
     ];
     return Column(
       children: items.asMap().entries.map((entry) {
-        final r = Responsive.of(context);
-
-        final r = entry.value;
-        final isHighlight = r['highlight'] as bool;
+        final item = entry.value;
+        final isHighlight = item['highlight'] as bool;
         final isLast = entry.key == items.length - 1;
         return Container(
           padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(13)),
@@ -2248,18 +2238,18 @@ $productUrl
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(r['icon'] as IconData, size: 15, color: isHighlight ? const Color(0xFF2E7D32) : const Color(0xFF999999)),
+              Icon(item['icon'] as IconData, size: 15, color: isHighlight ? const Color(0xFF2E7D32) : const Color(0xFF999999)),
               SizedBox(width: r.w(10)),
               SizedBox(
                 width: 52,
                 child: Text(
-                  r['label'] as String,
+                  item['label'] as String,
                   style: TextStyle(fontSize: r.sp(12), color: Color(0xFF999999), fontWeight: FontWeight.w500),
                 ),
               ),
               Expanded(
                 child: Text(
-                  r['value'] as String,
+                  item['value'] as String,
                   style: TextStyle(
                     fontSize: r.sp(12),
                     color: isHighlight ? const Color(0xFF2E7D32) : const Color(0xFF333333),
@@ -2405,7 +2395,6 @@ $productUrl
   }
 
   Widget _tag(String text, Color color) {
-    final r = Responsive.of(context);
     return Container(
         padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
@@ -2420,7 +2409,6 @@ $productUrl
   // ═══════════════════════════════════════
   // ignore: unused_element
   Widget _buildInlineLengthSection() {
-    final r = Responsive.of(context);
     const lengths = AppConstants.bottomLengths;
     final product = widget.product;
     final isSingletSet = (product.category == '세트' &&
@@ -2956,7 +2944,7 @@ $productUrl
                         children: [
                           const Icon(Icons.touch_app_rounded, size: 13, color: Color(0xFF888888)),
                           SizedBox(width: r.w(6)),
-                          const Expanded(
+                          Expanded(
                             child: Text(
                               '하의 색상 선택은 장바구니 / 바로구매 버튼을 눌러 진행하세요',
                               style: TextStyle(fontSize: r.sp(10.5), color: Color(0xFF666666), height: 1.4),
@@ -3375,7 +3363,7 @@ $productUrl
                     child: Text('숏사각', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Color(0xFFE65100))),
                   ),
                   SizedBox(width: r.w(8)),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       '주머니 추가 불가',
                       style: TextStyle(fontSize: r.sp(12), color: Color(0xFFE65100), height: 1.5, fontWeight: FontWeight.w600),
@@ -3399,7 +3387,7 @@ $productUrl
                     child: Text('남성', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
                   ),
                   SizedBox(width: r.w(8)),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       '9부 · 5부 · 4부 · 3부까지 적용 가능',
                       style: TextStyle(fontSize: r.sp(12), color: Color(0xFF444444), height: 1.5),
@@ -3421,7 +3409,7 @@ $productUrl
                     child: Text('여성', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Color(0xFFC62828))),
                   ),
                   SizedBox(width: r.w(8)),
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       '9부 · 5부 · 4부 · 3부 · 2.5부 · 숏사각까지 적용 가능',
                       style: TextStyle(fontSize: r.sp(12), color: Color(0xFF444444), height: 1.5),
@@ -4137,7 +4125,7 @@ $productUrl
                   color: const Color(0xFF4A148C).withValues(alpha: 0.2),
                   style: BorderStyle.solid),
             ),
-            child: const Column(
+            child: Column(
               children: [
                 Icon(Icons.image_outlined, size: 28, color: Color(0xFF9E9E9E)),
                 SizedBox(height: r.h(6)),
@@ -4806,7 +4794,7 @@ $productUrl
                       children: [
                         Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
                         SizedBox(width: r.w(6)),
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.',
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
@@ -4820,7 +4808,7 @@ $productUrl
                       children: [
                         Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
                         SizedBox(width: r.w(6)),
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.',
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
@@ -4834,7 +4822,7 @@ $productUrl
                       children: [
                         Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
                         SizedBox(width: r.w(6)),
-                        const Expanded(
+                        Expanded(
                           child: Text(
                             '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.',
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
@@ -4922,7 +4910,6 @@ $productUrl
   // 리뷰 섹션
   // ═══════════════════════════════════════════════════════════
   Widget _buildReviewSection(ProductModel product) {
-    final r = Responsive.of(context);
     return Consumer<ReviewProvider>(
       builder: (_, reviewProv, __) {
         final r = Responsive.of(context);
@@ -5091,7 +5078,7 @@ $productUrl
                             color: const Color(0xFFF5F5F5),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.remove_shopping_cart_outlined, size: 15, color: Color(0xFFAAAAAA)),
@@ -5613,8 +5600,6 @@ $productUrl
 
   // ─── 재입고 알림 신청 ───────────────────────────────────────────
   void _showRestockAlert(ProductModel product, UserProvider up) async {
-    final r = Responsive.of(context);
-
     if (!up.isLoggedIn) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.loginRequired)),
@@ -5644,7 +5629,7 @@ $productUrl
         context: context,
         builder: (ctx) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(children: [
+          title: Row(children: [
             Icon(Icons.notifications_active_rounded, color: Color(0xFF1565C0), size: 22),
             SizedBox(width: r.w(8)),
             Text('재입고 알림 신청 완료', style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800)),
@@ -6372,7 +6357,6 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20), MediaQuery.of(context).padding.bottom + 24),
       decoration: const BoxDecoration(
@@ -6403,7 +6387,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color:const Color(0xFFFFCC02).withValues(alpha:0.5)),
           ),
-          child: const Row(children: [
+          child: Row(children: [
             Icon(Icons.info_outline_rounded, size:14, color:Color(0xFF7A5000)),
             SizedBox(width: r.w(6)),
             Expanded(child: Text(
@@ -6536,7 +6520,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFF43A047).withValues(alpha:0.3)),
             ),
-            child: const Row(children: [
+            child: Row(children: [
               Icon(Icons.check_circle_rounded, size:14, color:Color(0xFF2E7D32)),
               SizedBox(width: r.w(5)),
               Expanded(child: Text('기성품 · 2~3일 이내 배송',
@@ -6820,8 +6804,6 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
 
           // 사이즈 선택 그리드 (성인/주니어 구분)
           Builder(builder: (context) {
-            final r = Responsive.of(context);
-
             final adultSizes  = sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
             final juniorSizes = sizes.where((s) =>  _isJuniorSizeLabel(s)).toList();
             final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
@@ -7690,7 +7672,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         children: [
                           const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF6A1B9A)),
                           SizedBox(width: r.w(6)),
-                          const Expanded(
+                          Expanded(
                             child: Text(
                               '기본 옵션: 주머니 포함\n주머니 제거 선택 시 10,000원 할인됩니다.',
                               style: TextStyle(fontSize: r.sp(11), color: Color(0xFF6A1B9A),
@@ -8126,7 +8108,6 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   // UI 헬퍼
   // ─────────────────────────────────────────────
   Widget _sectionTitle(String title, {bool required = false}) {
-    final r = Responsive.of(context);
     return Row(
       children: [
         Text(title, style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
@@ -8364,8 +8345,6 @@ class _QuickSizeColorSelectSheetState
                 style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
             SizedBox(height: r.h(10)),
             Builder(builder: (context) {
-              final r = Responsive.of(context);
-
               final adultSizes  = sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
               final juniorSizes = sizes.where((s) =>  _isJuniorSizeLabel(s)).toList();
               final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
@@ -8888,7 +8867,6 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final r = Responsive.of(context);
     final currentUid = context.watch<UserProvider>().user?.id;
     return Consumer<ReviewProvider>(
       builder: (_, reviewProv, __) {
@@ -9101,7 +9079,6 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
   }
 
   Widget _sortBtn(String label, String value) {
-    final r = Responsive.of(context);
     final sel = _sort == value;
     return GestureDetector(
       onTap: () => setState(() => _sort = value),
@@ -9434,7 +9411,6 @@ class _RibTableHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final r = Responsive.of(context);
     return Stack(
       children: [
         // 기본 배경 (라이트 테마)
@@ -10030,8 +10006,6 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
             color: headerColor,
             child: Row(
               children: headers.asMap().entries.map((e) {
-                final r = Responsive.of(context);
-
                 return Expanded(
                   flex: e.key == 0 ? 3 : 3,
                   child: Padding(
@@ -10049,8 +10023,6 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
           ),
           // 데이터 행
           ...rows.asMap().entries.map((entry) {
-            final r = Responsive.of(context);
-
             final rowBg = entry.key.isEven ? Colors.white : headerBg.withValues(alpha: 0.3);
             return Container(
               color: rowBg,
@@ -10160,7 +10132,6 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final r = Responsive.of(context);
     final imgs = widget.imgs;
     return LayoutBuilder(
       builder: (_, constraints) {
@@ -10354,14 +10325,13 @@ class _Section2FabricTabsWidgetState
     List<String> imgs,
     void Function(List<String>, int) onTap,
   ) {
-    final r = Responsive.of(context);
     if (imgs.isEmpty) {
       final r = Responsive.of(context);
 
       return Container(
         height: 120,
         color: const Color(0xFFF9F9F9),
-        child: const Center(
+        child: Center(
           child: Text(
             '등록된 이미지가 없습니다.',
             style: TextStyle(fontSize: r.sp(13), color: Color(0xFFAAAAAA)),

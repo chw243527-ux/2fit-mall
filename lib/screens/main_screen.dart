@@ -50,8 +50,6 @@ class MainScreenState extends State<MainScreen> {
   }
 
   void _showNoticePopup() {
-    final r = Responsive.of(context);
-
     if (!mounted) return;
     final noticeProv = context.read<NoticeProvider>();
     if (!noticeProv.shouldShow) return;

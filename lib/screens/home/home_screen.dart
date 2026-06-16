@@ -111,7 +111,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final r = Responsive.of(context);
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     final w = MediaQuery.of(context).size.width;
     // PC(≥900px): PC NavBar + 풀스크린 배너 레이아웃
@@ -754,7 +753,6 @@ class _HomeScreenState extends State<HomeScreen>
     required bool isNew,
     required AppLocalizations loc,
   }) {
-    final r = Responsive.of(context);
     final provider = context.watch<ProductProvider>();
     List<ProductModel> allProds = provider.products;
     if (allProds.isEmpty) allProds = ProductService.getAllProductsSync();
@@ -952,8 +950,6 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 Consumer<UserProvider>(
                   builder: (ctx, userProv, _) {
-                    final r = Responsive.of(context);
-
                     final userId = userProv.user?.id;
                     if (userId == null) {
                       return IconButton(icon: const Icon(Icons.notifications_outlined, color: Color(0xFF333333), size: 22), onPressed: () => _showNotificationsSheet(context, loc));
@@ -1075,7 +1071,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── PC 배너 슬라이더 본체 (BannerModel 리스트 사용) ──
   Widget _buildPcBannerBody(AppLocalizations loc, List<BannerModel> banners) {
-    final r = Responsive.of(context);
     final isKo = loc.language == AppLanguage.korean;
     return Stack(
         children: [
@@ -1441,8 +1436,6 @@ class _HomeScreenState extends State<HomeScreen>
                       // 알림
                       Consumer<UserProvider>(
                         builder: (ctx, userProv, _) {
-                          final r = Responsive.of(context);
-
                           final userId = userProv.user?.id;
                           if (userId == null) {
                             return IconButton(
@@ -1830,7 +1823,6 @@ class _HomeScreenState extends State<HomeScreen>
     required bool isNew,
     required AppLocalizations loc,
   }) {
-    final r = Responsive.of(context);
     final provider = context.watch<ProductProvider>();
     // 로딩 중이더라도 더미 데이터(sync)로 즉시 표시
     List<ProductModel> allProds = provider.products;
@@ -2558,8 +2550,6 @@ class _HomeScreenState extends State<HomeScreen>
               padding: EdgeInsets.symmetric(horizontal: r.w(12)),
               itemCount: preview.length + 1, // +1 = 전체보기 카드
               itemBuilder: (_, i) {
-                final r = Responsive.of(context);
-
                 // 마지막 아이템: 전체보기 카드
                 if (i == preview.length) {
                   final r = Responsive.of(context);
@@ -2799,7 +2789,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 카테고리 가로 탭바 ──
   Widget _buildCategoryTabBar(AppLocalizations loc) {
-    final r = Responsive.of(context);
     const cats = ['전체', '상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '단체주문'];
     return Container(
       color: Colors.white,
@@ -2866,7 +2855,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 모바일 풀스크린 배너 (헤더 오버레이 포함) ──
   Widget _buildCompactBanner(AppLocalizations loc) {
-    final r = Responsive.of(context);
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
     final mq      = MediaQuery.of(context);
@@ -3563,7 +3551,6 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 퀵메뉴 바 (이벤트/신상품) ──
   // ignore: unused_element
   Widget _buildQuickMenuBar(AppLocalizations loc) {
-    final r = Responsive.of(context);
     final menus = [
       {'icon': Icons.local_offer_rounded, 'label': loc.homeEvent, 'color': const Color(0xFFE53935)},
       {'icon': Icons.fiber_new_rounded, 'label': loc.homeNewArrival, 'color': const Color(0xFF6A1B9A)},
@@ -4055,8 +4042,6 @@ class _HomeScreenState extends State<HomeScreen>
               Expanded(
                 child: Consumer<NotificationProvider>(
                   builder: (_, np, __) {
-                    final r = Responsive.of(context);
-
                     final list = np.notifications;
                     if (list.isEmpty) {
                       final r = Responsive.of(context);
@@ -4190,7 +4175,6 @@ class _HomeScreenState extends State<HomeScreen>
   // 모바일 배너 섹션 (Firestore BannerProvider 실시간)
   // ────────────────────────────────────────────
   Widget _buildBannerSection(AppLocalizations loc) {
-    final r = Responsive.of(context);
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
 
@@ -5102,8 +5086,6 @@ class _HomeScreenState extends State<HomeScreen>
                 padding: EdgeInsets.symmetric(horizontal: r.w(12)),
                 itemCount: products.length.clamp(0, 10) + 1, // 최대 10개 + 전체보기 카드
                 itemBuilder: (_, i) {
-                  final r = Responsive.of(context);
-
                   final display = products.take(10).toList();
                   // ── 마지막: 전체보기 카드 ──────────
                   if (i == display.length) {
@@ -5312,7 +5294,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _footerInfoRow(String text) {
-    final r = Responsive.of(context);
     return Padding(
     padding: EdgeInsets.only(bottom: r.h(5)),
     child: Text(text, style: TextStyle(color: Colors.white54, fontSize: r.sp(12.5))),
@@ -5320,7 +5301,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _footerSocialBtn(String label, Color bg, Color fg, VoidCallback onTap) {
-    final r = Responsive.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -5968,8 +5948,6 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                 // 알림
                 Consumer<UserProvider>(
                   builder: (_, userProv, __) {
-                    final r = Responsive.of(context);
-
                     final userId = userProv.user?.id;
                     if (userId == null) {
                       return Expanded(
