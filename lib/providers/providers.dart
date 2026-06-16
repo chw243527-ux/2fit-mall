@@ -910,8 +910,20 @@ class NoticeProvider extends ChangeNotifier {
       if (saved != null) {
         final date = DateTime.tryParse(saved);
         if (date != null) {
-          _dismissedDate = date;
-          _dismissedToday = true;
+          final now = DateTime.now();
+          final isToday = date.year == now.year &&
+              date.month == now.month &&
+              date.day == now.day;
+          if (isToday) {
+            // 오늘 날짜 → 유효한 dismiss 상태 복원
+            _dismissedDate = date;
+            _dismissedToday = true;
+          } else {
+            // 오늘이 아닌 날짜 → 만료된 키 삭제
+            await prefs.remove(key);
+            _dismissedDate = null;
+            _dismissedToday = false;
+          }
           notifyListeners();
         }
       }
