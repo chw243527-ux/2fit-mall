@@ -3102,7 +3102,6 @@ class _HomeScreenState extends State<HomeScreen>
       child: GestureDetector(
       onTap: () => Navigator.push(context,
         MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-      child: Container(
       child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -3201,7 +3200,6 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ],
         ),
-      ),
     ),              // GestureDetector
     );              // RepaintBoundary
   }
