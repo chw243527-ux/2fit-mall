@@ -465,7 +465,6 @@ class _AppDrawerState extends State<AppDrawer> {
                       'assets/images/logo_2fit.png',
                       fit: BoxFit.contain,
                     ),
-                    ),
                   ),
                   const Spacer(),
                   IconButton(
