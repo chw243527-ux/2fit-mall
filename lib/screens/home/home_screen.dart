@@ -1982,24 +1982,24 @@ class _HomeScreenState extends State<HomeScreen>
         MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
       ),
       child: Container(
+        // shadow 전용 — clipBehavior 없음 (shadow + clip 동시 사용 시 Flutter Web clip 미동작)
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2)),
           ],
         ),
-        clipBehavior: Clip.antiAlias,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 이미지 — 카드 완전히 채움
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                child: AspectRatio(
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            color: Colors.white,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 이미지 — 카드 완전히 채움
+                AspectRatio(
                     aspectRatio: 4 / 5,
                     child: Stack(
                       fit: StackFit.expand,
@@ -2040,7 +2040,6 @@ class _HomeScreenState extends State<HomeScreen>
                       ],
                     ),
                 ),
-              ),
               // 정보
               Padding(
                 padding: EdgeInsets.fromLTRB(r.w(8), r.h(7), r.w(8), r.h(8)),
@@ -2079,9 +2078,10 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
             ],
-          ),
-        ),
-      ),
+          ),          // Column
+        ),            // Container(color)
+        ),            // ClipRRect
+      ),              // Container(shadow)
     );
   }
 
@@ -3094,24 +3094,27 @@ class _HomeScreenState extends State<HomeScreen>
       onTap: () => Navigator.push(context,
         MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
       child: Container(
+        // shadow 전용 — clipBehavior 없음 (shadow + clip 동시 사용 시 Flutter Web clip 미동작)
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
           boxShadow: [
             BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2)),
           ],
         ),
-        clipBehavior: Clip.antiAlias,
         child: ClipRRect(
+          // 실제 클리핑 담당 — border + color + clip 모두 여기서
           borderRadius: BorderRadius.circular(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 이미지 — 패딩+라운드
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                child: AspectRatio(
+          clipBehavior: Clip.antiAlias,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFEEEEEE)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 이미지
+                AspectRatio(
                   aspectRatio: 4 / 5,
                   child: Stack(
                     fit: StackFit.expand,
@@ -3151,7 +3154,6 @@ class _HomeScreenState extends State<HomeScreen>
                     ],
                   ),
                 ),
-              ),
               // 정보
               Padding(
                 padding: EdgeInsets.fromLTRB(r.w(10), r.h(8), r.w(10), r.h(10)),
@@ -3184,11 +3186,12 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    ),  // GestureDetector
-    );  // RepaintBoundary
+          ),        // Column
+        ),          // Container(color/border)
+        ),          // ClipRRect
+      ),            // Container(shadow)
+    ),              // GestureDetector
+    );              // RepaintBoundary
   }
 
   // ── 단체주문 상품 없음 상태 ──
