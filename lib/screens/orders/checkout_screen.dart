@@ -1035,12 +1035,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   item.product.images.first,
                   width: 60,
                   height: 60,
-                  fit: BoxFit.cover
-                    width: 60,
-                    height: 60,
-                    color: AppColors.background,
-                    child: const Icon(Icons.checkroom_rounded, color: AppColors.textHint),
-                  ),
+                  fit: BoxFit.cover,
                 ),
               ),
               const SizedBox(width: 12),

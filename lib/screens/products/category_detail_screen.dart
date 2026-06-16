@@ -1151,10 +1151,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
               child: SizedBox(
                 width: imgSize, height: imgSize,
                 child: product.images.isNotEmpty
-                    ? NetImage(product.images.first, fit: BoxFit.cover
-                            color: _surface,
-                            child: const Icon(Icons.image_not_supported_outlined,
-                                color: _greyDim, size: 28)))
+                    ? NetImage(product.images.first, fit: BoxFit.cover)
                     : Container(color: _surface,
                         child: const Icon(Icons.image_not_supported_outlined,
                             color: _greyDim, size: 28)),

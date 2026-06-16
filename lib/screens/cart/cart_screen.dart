@@ -324,10 +324,7 @@ class CartScreen extends StatelessWidget {
                 child: item.product.images.isNotEmpty
                     ? NetImage(
                         item.product.images.first,
-                        fit: BoxFit.cover
-                          color: AppColors.background,
-                          child: const Icon(Icons.image_outlined),
-                        ),
+                        fit: BoxFit.cover,
                       )
                     : Container(color: AppColors.background),
               ),
@@ -949,10 +946,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
               height: 48,
               child: item.product.images.isNotEmpty
                   ? NetImage(item.product.images.first,
-                      fit: BoxFit.cover
-                            color: AppColors.background,
-                            child: const Icon(Icons.image_outlined, size: 20),
-                          ))
+                      fit: BoxFit.cover,
+                    )
                   : Container(color: AppColors.background),
             ),
           ),

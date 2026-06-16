@@ -953,8 +953,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   SizedBox(
                     width: 110, height: 110,
                     child: p.images.isNotEmpty
-                        ? NetImage(p.images.first, fit: BoxFit.cover
-                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC))))
+                        ? NetImage(p.images.first, fit: BoxFit.cover)
                         : Container(color: const Color(0xFFF0F0F0)),
                   ),
                   if (discount > 0) Positioned(top: 6, left: 6, child: _badge('-$discount%', const Color(0xFFE53935))),

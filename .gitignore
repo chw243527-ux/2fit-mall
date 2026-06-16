@@ -21,3 +21,7 @@
 Thumbs.db
 # .github 워크플로우는 추적 대상 (자동배포용)
 functions/node_modules/
+lib/screens/home/home_screen.dart.bak
+lib/screens/main_screen.dart.bak
+lib/screens/products/product_detail_screen.dart.bak
+scripts/
