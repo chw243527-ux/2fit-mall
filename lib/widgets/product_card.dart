@@ -32,19 +32,22 @@ class ProductCard extends StatelessWidget {
           context,
           MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
         ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF2A2A2A)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildImage(context),
-              _buildInfo(context),
-            ],
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF2A2A2A)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildImage(context),
+                _buildInfo(context),
+              ],
+            ),
           ),
         ),
       ),
@@ -74,23 +77,21 @@ class ProductCard extends StatelessWidget {
       badgeText = '';
     }
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-      child: AspectRatio(
-        aspectRatio: 4 / 5,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // ── 상품 이미지: 4:5 비율 고정, 상단 기준 cover ──
-            Positioned.fill(
-              child: product.images.isNotEmpty
-                  ? NetImage(
-                      product.images.first,
-                      fit: BoxFit.cover,
-                      alignment: Alignment.topCenter,
-                    )
-                  : _placeholder(),
-            ),
+    return AspectRatio(
+      aspectRatio: 4 / 5,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ── 상품 이미지: 4:5 비율 고정, 상단 기준 cover ──
+          Positioned.fill(
+            child: product.images.isNotEmpty
+                ? NetImage(
+                    product.images.first,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  )
+                : _placeholder(),
+          ),
 
             // ── 좌상단 배지 (GROUP / NEW / SALE) ──
             if (badgeText.isNotEmpty)

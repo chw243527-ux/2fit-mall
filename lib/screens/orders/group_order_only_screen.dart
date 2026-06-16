@@ -670,13 +670,17 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
 
   // ── 그리드 뷰 ──
   Widget _buildGridView(List<ProductModel> list, {int columns = 2}) {
+    // childAspectRatio = 카드너비 / (카드너비×1.25 + 정보영역높이)
+    // 정보영역: 카테고리+상품명2줄+가격+할인율+패딩 ≈ 106px (고정)
+    // 4열일 때 카드가 좁으므로 정보영역 비중 증가 → 별도 계산
+    final ratio = columns == 4 ? 0.58 : 0.54;
     return GridView.builder(
       padding: const EdgeInsets.all(12),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: columns,
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: columns == 4 ? 0.72 : 0.68,
+        childAspectRatio: ratio,
       ),
       itemCount: list.length,
       itemBuilder: (_, i) => _buildGridCard(list[i]),
@@ -692,144 +696,161 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
         context,
         MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p)),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 이미지 영역
-            Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // 이미지 — Stack 전체를 꽉 채움
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12)),
-                    child: p.images.isNotEmpty
-                        ? NetImage(
-                            p.images.first,
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.topCenter,
-                          )
-                        : _imgPlaceholder(full: true),
-                  ),
-                  // 배지들 (단체전용 배지 제거 — 이 화면 자체가 단체주문 전용)
-                  if (p.isSale || p.isNewActive)
-                    Positioned(
-                      top: 8, left: 8,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (p.isSale) _gridBadge('SALE', const Color(0xFFC62828)),
-                          if (p.isSale && p.isNewActive) const SizedBox(height: 4),
-                          if (p.isNewActive) _gridBadge('NEW', const Color(0xFF1565C0)),
-                        ],
-                      ),
-                    ),
-                  // 무료배송 태그
-                  if (p.isFreeShipping)
-                    Positioned(
-                      bottom: 8, right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 7, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.65),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text('무료배송',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700)),
-                      ),
-                    ),
-                ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFEEEEEE)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            ),
-
-            // 정보 영역
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (p.subCategory.isNotEmpty)
-                    Text(p.subCategory,
-                        style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: accentColor)),
-                  const SizedBox(height: 2),
-                  Text(p.name,
-                      style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF1A1A1A)),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 6),
-                  // 가격
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${_fmt(p.price)}원',
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF1A1A2E)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 이미지 영역 — 4:5 비율 고정
+              AspectRatio(
+                aspectRatio: 4 / 5,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Positioned.fill(
+                      child: p.images.isNotEmpty
+                          ? NetImage(
+                              p.images.first,
+                              fit: BoxFit.cover,
+                              alignment: Alignment.topCenter,
+                            )
+                          : _imgPlaceholder(full: true),
+                    ),
+                    if (p.isSale || p.isNewActive)
+                      Positioned(
+                        top: 8, left: 8,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (p.isSale) _gridBadge('SALE', const Color(0xFFC62828)),
+                            if (p.isSale && p.isNewActive) const SizedBox(height: 4),
+                            if (p.isNewActive) _gridBadge('NEW', const Color(0xFF1565C0)),
+                          ],
+                        ),
                       ),
-                      if (p.originalPrice != null &&
-                          p.originalPrice! > p.price) ...[
-                        const SizedBox(width: 5),
-                        Text(
-                          '${_fmt(p.originalPrice!)}원',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFFAAAAAA),
-                            decoration: TextDecoration.lineThrough,
+                    if (p.isFreeShipping)
+                      Positioned(
+                        bottom: 8, right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.65),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text('무료배송',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                    if (p.stockCount <= 0)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.95),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text('SOLD OUT',
+                                  style: TextStyle(
+                                      color: Color(0xFF111111),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2)),
+                            ),
                           ),
                         ),
-                      ],
-                    ],
-                  ),
-                  // 할인율
-                  if (p.originalPrice != null && p.originalPrice! > p.price)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Text(
-                        '${(((p.originalPrice! - p.price) / p.originalPrice!) * 100).round()}% 할인',
-                        style: const TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFFE53935),
-                            fontWeight: FontWeight.w700),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              // 정보 영역
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (p.subCategory.isNotEmpty)
+                      Text(p.subCategory,
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: accentColor)),
+                    const SizedBox(height: 2),
+                    Text(p.name,
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1A1A1A)),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 6),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '${_fmt(p.price)}원',
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF1A1A2E)),
+                        ),
+                        if (p.originalPrice != null &&
+                            p.originalPrice! > p.price) ...[
+                          const SizedBox(width: 5),
+                          Text(
+                            '${_fmt(p.originalPrice!)}원',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFFAAAAAA),
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    if (p.originalPrice != null && p.originalPrice! > p.price)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          '${(((p.originalPrice! - p.price) / p.originalPrice!) * 100).round()}% 할인',
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFFE53935),
+                              fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // ── 리스트 뷰 ──
+    // ── 리스트 뷰 ──
   Widget _buildListView(List<ProductModel> list) {
     return ListView.separated(
       padding: const EdgeInsets.all(12),

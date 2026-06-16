@@ -5066,7 +5066,7 @@ class _HomeScreenState extends State<HomeScreen>
           // ── 가로 스크롤 (최대 10개 + 전체보기 카드) ─
           if (isHorizontal)
             SizedBox(
-              height: imgH + 82,
+              height: imgH + 100, // 이미지(4:5) + 정보영역(약 100px)
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: EdgeInsets.symmetric(horizontal: r.w(12)),
