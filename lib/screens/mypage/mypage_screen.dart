@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -1077,10 +1078,9 @@ class _PcOrderCard extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                          ? Image.network(
+                          ? NetImage(
                               item.imageUrl!,
-                              width: 52, height: 52, fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              width: 52, height: 52, fit: BoxFit.cover
                                 width: 52, height: 52,
                                 decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
                                 child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
@@ -1393,8 +1393,7 @@ class _PcWishlistTab extends StatelessWidget {
                               children: [
                                 ClipRRect(
                                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                  child: Image.network(p.images.first, width: double.infinity, fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(color: Colors.grey[100], child: const Icon(Icons.checkroom_rounded))),
+                                  child: NetImage(p.images.first, width: double.infinity, fit: BoxFit.cover
                                 ),
                                 Positioned(top: 8, right: 8,
                                   child: GestureDetector(
@@ -2189,10 +2188,9 @@ class _MobileOrderCard extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: order.items.isNotEmpty && order.items.first.imageUrl != null && order.items.first.imageUrl!.isNotEmpty
-                    ? Image.network(
+                    ? NetImage(
                         order.items.first.imageUrl!,
-                        width: 56, height: 56, fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        width: 56, height: 56, fit: BoxFit.cover
                           width: 56, height: 56,
                           color: Colors.grey[100],
                           child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
@@ -2490,8 +2488,7 @@ class _MobileWishlistTab extends StatelessWidget {
                     children: [
                       ClipRRect(
                         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                        child: Image.network(p.images.first, width: double.infinity, fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(color: Colors.grey[100], child: const Icon(Icons.checkroom_rounded))),
+                        child: NetImage(p.images.first, width: double.infinity, fit: BoxFit.cover
                       ),
                       Positioned(top: 6, right: 6,
                         child: GestureDetector(
@@ -4322,8 +4319,7 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(6),
                             child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                              ? Image.network(item.imageUrl!, width: 52, height: 52, fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
+                              ? NetImage(item.imageUrl!, width: 52, height: 52, fit: BoxFit.cover
                                     width: 52, height: 52,
                                     color: Colors.grey[100],
                                     child: const Icon(Icons.checkroom_rounded, color: Colors.grey),

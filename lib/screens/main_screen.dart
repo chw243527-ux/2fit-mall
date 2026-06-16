@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/providers.dart';
@@ -655,8 +656,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                             height: 44,
                             child: Image.asset(
                               'assets/images/logo_2fit.png',
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => Text(
+                              fit: BoxFit.contain
                                 '2FIT\nKOREA',
                                 style: TextStyle(
                                     fontSize: r.sp(18),
@@ -1251,12 +1251,11 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                       maxWidth: sheetW,
                       maxHeight: imgMaxH,
                     ),
-                    child: Image.network(
+                    child: NetImage(
                       notice.imageUrl,
                       width: sheetW,
                       fit: BoxFit.fitWidth,   // 가로 꽉 채우고 세로는 비율에 맞게 자동
-                      alignment: Alignment.topCenter,
-                      errorBuilder: (_, __, ___) =>
+                      alignment: Alignment.topCenter
                           SizedBox(
                             height: sh * 0.35,
                             child: _buildGradientBg(gradColors, emoji, title),

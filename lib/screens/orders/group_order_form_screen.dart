@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -1358,7 +1359,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.network(heroImg, fit: BoxFit.contain),
+                                child: NetImage(heroImg, fit: BoxFit.contain),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.close_rounded, color: Colors.white),
@@ -1374,10 +1375,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: heroImg != null
-                        ? Image.network(
+                        ? NetImage(
                             heroImg,
-                            width: 72, height: 72, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _productImgPlaceholder(),
+                            width: 72, height: 72, fit: BoxFit.cover
                           )
                         : _productImgPlaceholder(),
                   ),
@@ -1473,7 +1473,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.network(designImgs[i], fit: BoxFit.contain),
+                            child: NetImage(designImgs[i], fit: BoxFit.contain),
                           ),
                           IconButton(
                             icon: const Icon(Icons.close_rounded, color: Colors.white),
@@ -1487,10 +1487,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
-                        child: Image.network(
+                        child: NetImage(
                           designImgs[i],
-                          width: 120, height: 120, fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
+                          width: 120, height: 120, fit: BoxFit.cover
                             width: 120, height: 120,
                             decoration: BoxDecoration(
                               color: Colors.grey.shade100,

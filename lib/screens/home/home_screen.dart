@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
@@ -915,8 +916,7 @@ class _HomeScreenState extends State<HomeScreen>
                       height: 28,
                       child: Image.asset(
                         'assets/images/2fit_logo.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => Text(
+                        fit: BoxFit.contain
                           '2FIT',
                           style: TextStyle(color: Color(0xFF111111), fontSize: r.sp(18), fontWeight: FontWeight.w900, letterSpacing: 3),
                         ),
@@ -1180,11 +1180,10 @@ class _HomeScreenState extends State<HomeScreen>
                   else if (b.imageUrl.isNotEmpty)
                     GestureDetector(
                       onTap: onTap,
-                      child: Image.network(b.imageUrl,
+                      child: NetImage(b.imageUrl,
                         fit: BoxFit.cover, width: double.infinity, height: double.infinity,
                         cacheWidth: 1200,
-                        filterQuality: FilterQuality.medium,
-                        errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF2A2A2A))),
+                        filterQuality: FilterQuality.medium
                     )
                   else
                     GestureDetector(onTap: onTap,
@@ -1388,8 +1387,7 @@ class _HomeScreenState extends State<HomeScreen>
                             height: 28,
                             child: Image.asset(
                               'assets/images/logo_2fit_white.png',
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => Text(
+                              fit: BoxFit.contain
                                 '2FIT',
                                 style: TextStyle(
                                   color: Colors.white,
@@ -1543,8 +1541,7 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Image.asset(
                       assetImage,
                       fit: BoxFit.contain,
-                      alignment: Alignment.center,
-                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
+                      alignment: Alignment.center
                     ),
                   ),
                 );
@@ -1557,11 +1554,10 @@ class _HomeScreenState extends State<HomeScreen>
                   child: SizedBox(
                     width: double.infinity,
                     height: double.infinity,
-                    child: Image.network(
+                    child: NetImage(
                       imageUrl,
                       fit: BoxFit.cover,
                       // loadingBuilder 제거 → 배경색이 placeholder 역할, 텍스트 즉시 표시
-                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF111111)),
                     ),
                   ),
                 );
@@ -1582,10 +1578,9 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   Positioned.fill(
-                    child: Image.network(
+                    child: NetImage(
                       b['image'] as String,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(color: const Color(0xFF2A2A2A)),
+                      fit: BoxFit.cover
                     ),
                   ),
                   Positioned.fill(
@@ -2020,13 +2015,12 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Container(
                       color: const Color(0xFFF5F5F5),
                       child: product.images.isNotEmpty
-                          ? Image.network(
+                          ? NetImage(
                               product.images.first,
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.contain,
-                              filterQuality: FilterQuality.medium,
-                              errorBuilder: (_, __, ___) => Container(
+                              filterQuality: FilterQuality.medium
                                 color: const Color(0xFFF0F0F0),
                                 child: const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
                               ),
@@ -2446,9 +2440,8 @@ class _HomeScreenState extends State<HomeScreen>
                             children: [
                               Positioned.fill(
                                 child: p.images.isNotEmpty
-                                  ? Image.network(p.images.first,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
+                                  ? NetImage(p.images.first,
+                                      fit: BoxFit.cover
                                         color: const Color(0xFFF0F0F0),
                                         child: const Icon(Icons.image_not_supported_rounded,
                                           color: Colors.white54, size: 28)))
@@ -2625,9 +2618,8 @@ class _HomeScreenState extends State<HomeScreen>
                             children: [
                               Positioned.fill(
                                 child: p.images.isNotEmpty
-                                    ? Image.network(p.images.first,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(
+                                    ? NetImage(p.images.first,
+                                        fit: BoxFit.cover
                                           Icons.image_not_supported_rounded,
                                           color: Color(0xFFCCCCCC), size: 28))
                                     : const Icon(Icons.image_not_supported_rounded,
@@ -2717,12 +2709,10 @@ class _HomeScreenState extends State<HomeScreen>
                 child: Image.asset(
                   'assets/images/logo_2fit.png',
                   height: 26,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => Image.asset(
+                  fit: BoxFit.contain
                     'assets/images/2fit_logo.png',
                     height: 26,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Text(
+                    fit: BoxFit.contain
                       '2FIT KOREA',
                       style: TextStyle(
                         color: Color(0xFF111111),
@@ -3127,10 +3117,9 @@ class _HomeScreenState extends State<HomeScreen>
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
                       child: p.images.isNotEmpty
-                          ? Image.network(
+                          ? NetImage(
                               p.images.first,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
+                              fit: BoxFit.cover
                                 Icons.image_not_supported_outlined,
                                 color: Color(0xFFBBBBBB), size: 36),
                             )
@@ -3285,14 +3274,12 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Image.asset(
                       'assets/images/logo_2fit_white.png',
                       height: 30,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Image.asset(
+                      fit: BoxFit.contain
                         'assets/images/2fit_logo.png',
                         height: 30,
                         fit: BoxFit.contain,
                         color: Colors.white,
-                        colorBlendMode: BlendMode.srcIn,
-                        errorBuilder: (_, __, ___) => Text(
+                        colorBlendMode: BlendMode.srcIn
                           '2FIT KOREA',
                           style: TextStyle(
                             color: Colors.white,
@@ -3703,8 +3690,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ClipRRect(
                               borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
                               child: p.images.isNotEmpty
-                                  ? Image.network(p.images.first, width: 130, height: 120, fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(height: 120, color: const Color(0xFFF5F5F5),
+                                  ? NetImage(p.images.first, width: 130, height: 120, fit: BoxFit.cover
                                           child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 40)))
                                   : Container(height: 120, color: const Color(0xFFF5F5F5)),
                             ),
@@ -4419,14 +4405,13 @@ class _HomeScreenState extends State<HomeScreen>
           const ColoredBox(color: Color(0xFF111111)),
           GestureDetector(
             onTap: onTap,
-            child: Image.network(
+            child: NetImage(
               imageUrl,
               fit: BoxFit.cover,
               alignment: Alignment.center,
               width: double.infinity,
               height: double.infinity,
               // loadingBuilder 스피너 제거 → 배경색이 placeholder 역할
-              errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF2A2A2A),
                   child: Center(child: Icon(Icons.image_not_supported_rounded, color: Colors.white24, size: 48))),
             ),
           ),
@@ -5681,26 +5666,10 @@ class _NoticePopupState extends State<_NoticePopup> {
 
                   // 배경: 이미지 or 그라디언트
                   if (hasImage)
-                    Image.network(
+                    NetImage(
                       notice.imageUrl,
                       fit: BoxFit.contain,
                       alignment: Alignment.topCenter,
-                      frameBuilder: (_, child, frame, __) {
-                        if (frame != null) {
-                          final provider = NetworkImage(notice.imageUrl);
-                          provider.resolve(ImageConfiguration.empty)
-                              .addListener(ImageStreamListener((info, _) {
-                            final w = info.image.width.toDouble();
-                            final h = info.image.height.toDouble();
-                            if (h > 0 && mounted) {
-                              setState(() => _imageAspectRatio = w / h);
-                            }
-                          }));
-                        }
-                        return child;
-                      },
-                      errorBuilder: (_, __, ___) =>
-                          _buildGradientBg(gradColors, emoji, title),
                     )
                   else
                     _buildGradientBg(gradColors, emoji, title),
@@ -6000,14 +5969,12 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                       child: Image.asset(
                         'assets/images/logo_2fit_white.png',
                         height: 30,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => Image.asset(
+                        fit: BoxFit.contain
                           'assets/images/2fit_logo.png',
                           height: 30,
                           fit: BoxFit.contain,
                           color: Colors.white,
-                          colorBlendMode: BlendMode.srcIn,
-                          errorBuilder: (_, __, ___) => Text(
+                          colorBlendMode: BlendMode.srcIn
                             '2FIT',
                             style: TextStyle(
                               color: Colors.white,

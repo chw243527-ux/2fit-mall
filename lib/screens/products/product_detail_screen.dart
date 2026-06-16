@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:provider/provider.dart';
@@ -580,14 +581,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               return GestureDetector(
                 onTap: () => _showLightbox(product, i),
                 child: url.isNotEmpty
-                    ? Image.network(
+                    ? NetImage(
                         url,
                         fit: BoxFit.contain,
                         width: w,
                         height: imgH,
                         gaplessPlayback: true,
-                        filterQuality: FilterQuality.high,
-                        errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                        filterQuality: FilterQuality.high
                       )
                     : _imagePlaceholder(),
               );
@@ -893,14 +893,13 @@ $productUrl
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: Image.network(
+                child: NetImage(
                   imgs[i],
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
                   cacheWidth: 150,
-                  gaplessPlayback: true,
-                  errorBuilder: (_, __, ___) => Container(
+                  gaplessPlayback: true
                     color: const Color(0xFFEEEEEE),
                     child: const Icon(Icons.image, size: 20, color: Color(0xFFCCCCCC)),
                   ),
@@ -1387,8 +1386,7 @@ $productUrl
             child: Image.asset(
               'assets/images/logo_2fit_text.png',
               fit: BoxFit.contain,
-              alignment: Alignment.centerLeft,
-              errorBuilder: (_, __, ___) => Text(
+              alignment: Alignment.centerLeft
                 '2FIT',
                 style: TextStyle(
                   color: Color(0xFF1A1A1A),
@@ -3440,11 +3438,10 @@ $productUrl
         padding: EdgeInsets.only(bottom: r.h(6)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Image.network(
+          child: NetImage(
             url,
             width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            fit: BoxFit.cover
           ),
         ),
       )).toList(),
@@ -3489,11 +3486,10 @@ $productUrl
     if (imgs.length == 1) {
       return GestureDetector(
         onTap: () => _openLightbox(imgs, 0),
-        child: Image.network(
+        child: NetImage(
           imgs.first,
           width: double.infinity,
-          fit: BoxFit.fitWidth,
-          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          fit: BoxFit.fitWidth
         ),
       );
     }
@@ -3627,12 +3623,11 @@ $productUrl
                             width: double.infinity,
                             fit: BoxFit.contain,
                           )
-                        : Image.network(
+                        : NetImage(
                             url,
                             width: double.infinity,
                             fit: BoxFit.contain,
-                            cacheWidth: 800,
-                            errorBuilder: (_, __, ___) => Container(
+                            cacheWidth: 800
                               height: 80,
                               color: const Color(0xFFEEEEEE),
                               child: const Center(
@@ -3701,12 +3696,11 @@ $productUrl
                   width: double.infinity,
                   fit: BoxFit.contain,
                 )
-              : Image.network(
+              : NetImage(
                   url,
                   width: double.infinity,
                   fit: BoxFit.contain,
-                  cacheWidth: 800,
-                  errorBuilder: (_, __, ___) => Container(
+                  cacheWidth: 800
                     height: 80,
                     color: const Color(0xFFEEEEEE),
                     child: const Center(
@@ -4050,18 +4044,16 @@ $productUrl
                             ? Image.memory(
                                 base64Decode(imgs[i].split(',').last),
                                 width: 100, height: 100,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
+                                fit: BoxFit.cover
                                   width: 100, height: 100,
                                   color: const Color(0xFFEEEEEE),
                                   child: const Icon(Icons.broken_image_outlined, color: Color(0xFFAAAAAA)),
                                 ),
                               )
-                            : Image.network(
+                            : NetImage(
                                 imgs[i],
                                 width: 100, height: 100,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Container(
+                                fit: BoxFit.cover
                                   width: 100, height: 100,
                                   color: const Color(0xFFEEEEEE),
                                   child: const Icon(Icons.broken_image_outlined, color: Color(0xFFAAAAAA)),
@@ -6163,12 +6155,11 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                                       height: double.infinity,
                                       fit: BoxFit.cover,
                                     )
-                                  : Image.network(
+                                  : NetImage(
                                       url,
                                       width: double.infinity,
                                       height: double.infinity,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
+                                      fit: BoxFit.cover
                                         color: const Color(0xFFEEEEEE),
                                         child: const Icon(
                                             Icons.broken_image_outlined,
@@ -9072,8 +9063,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                       separatorBuilder: (_, __) => SizedBox(width: r.w(6)),
                                       itemBuilder: (_, j) => ClipRRect(
                                         borderRadius: BorderRadius.circular(6),
-                                        child: Image.network(rev.images[j], width: 60, height: 60, fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) => Container(width: 60, height: 60, color: const Color(0xFFF0F0F0))),
+                                        child: NetImage(rev.images[j], width: 60, height: 60, fit: BoxFit.cover
                                       ),
                                     ),
                                   ),
@@ -10170,12 +10160,11 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
                 onPageChanged: (i) => setState(() => _idx = i),
                 itemBuilder: (_, i) => GestureDetector(
                   onTap: () => widget.onTap?.call(i),
-                  child: Image.network(
+                  child: NetImage(
                     imgs[i],
                     width: w,
                     height: pageViewHeight,
-                    fit: BoxFit.fitWidth,
-                    errorBuilder: (_, __, ___) => SizedBox(
+                    fit: BoxFit.fitWidth
                       height: pageViewHeight,
                       child: const Center(
                         child: Icon(Icons.broken_image_outlined,
@@ -10357,11 +10346,10 @@ class _Section2FabricTabsWidgetState
     if (imgs.length == 1) {
       return GestureDetector(
         onTap: () => onTap(imgs, 0),
-        child: Image.network(
+        child: NetImage(
           imgs.first,
           width: double.infinity,
-          fit: BoxFit.fitWidth,
-          errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          fit: BoxFit.fitWidth
         ),
       );
     }

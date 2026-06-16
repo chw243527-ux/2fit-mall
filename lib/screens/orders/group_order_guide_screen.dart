@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
@@ -595,8 +596,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           ClipRRect(
             borderRadius: BorderRadius.zero,
             child: imageUrl.isNotEmpty
-                ? Image.network(imageUrl, width: 72, height: 72, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _productPlaceholder())
+                ? NetImage(imageUrl, width: 72, height: 72, fit: BoxFit.cover
                 : _productPlaceholder(),
           ),
           const SizedBox(width: 14),

@@ -1,6 +1,7 @@
 // group_order_only_screen.dart
 // 단체주문 전용 상품 목록 — 카테고리 탭 + 그리드 뷰
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../utils/app_localizations.dart';
@@ -367,11 +368,10 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       return Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(
+          NetImage(
             'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800',
             fit: BoxFit.cover,
-            alignment: Alignment.topCenter,
-            errorBuilder: (_, __, ___) =>
+            alignment: Alignment.topCenter
                 Container(color: const Color(0xFF1A1A2E)),
           ),
           // 그라데이션 오버레이
@@ -432,11 +432,10 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(
+          NetImage(
             'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1600',
             fit: BoxFit.cover,
-            alignment: Alignment.topCenter,
-            errorBuilder: (_, __, ___) =>
+            alignment: Alignment.topCenter
                 Container(color: const Color(0xFF1A1A2E)),
           ),
           DecoratedBox(
@@ -719,13 +718,12 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                     borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(12)),
                     child: p.images.isNotEmpty
-                        ? Image.network(
+                        ? NetImage(
                             p.images.first,
                             width: double.infinity,
                             height: double.infinity,
                             fit: BoxFit.cover,
-                            alignment: Alignment.topCenter,
-                            errorBuilder: (_, __, ___) =>
+                            alignment: Alignment.topCenter
                                 _imgPlaceholder(full: true),
                           )
                         : _imgPlaceholder(full: true),
@@ -872,13 +870,12 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
               borderRadius:
                   const BorderRadius.horizontal(left: Radius.circular(12)),
               child: p.images.isNotEmpty
-                  ? Image.network(
+                  ? NetImage(
                       p.images.first,
                       width: 110,
                       height: 120,
                       fit: BoxFit.cover,
-                      alignment: Alignment.topCenter,
-                      errorBuilder: (_, __, ___) => _imgPlaceholder(),
+                      alignment: Alignment.topCenter
                     )
                   : _imgPlaceholder(),
             ),

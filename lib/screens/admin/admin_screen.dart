@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
@@ -4299,7 +4300,7 @@ class _AdminScreenState extends State<AdminScreen>
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: p.images.isNotEmpty
-                ? Image.network(
+                ? NetImage(
                     p.images.first,
                     width: 54,
                     height: 54,
@@ -4534,7 +4535,7 @@ class _AdminScreenState extends State<AdminScreen>
                                     children: [
                                       // 배경 이미지
                                       if (b.imageUrl.isNotEmpty)
-                                        Image.network(b.imageUrl,
+                                        NetImage(b.imageUrl,
                                             fit: BoxFit.cover,
                                             errorBuilder: (_, __, ___) =>
                                                 Container(color: const Color(0xFF2A2A2A)))
@@ -5680,7 +5681,7 @@ class _AdminScreenState extends State<AdminScreen>
             }
             if (banner.imageUrl.isNotEmpty) {
               return Stack(children: [
-                Image.network(banner.imageUrl, width: double.infinity, height: 130, fit: BoxFit.cover,
+                NetImage(banner.imageUrl, width: double.infinity, height: 130, fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 40, color: Color(0xFFCCCCCC))),
                 Positioned(
                   bottom: 0, left: 0, right: 0,
@@ -7693,7 +7694,7 @@ class _AdminScreenState extends State<AdminScreen>
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(6),
-                            child: Image.network(
+                            child: NetImage(
                               p.images.isNotEmpty ? p.images.first : '',
                               width: 32, height: 32, fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Container(
@@ -8187,7 +8188,7 @@ class _AdminScreenState extends State<AdminScreen>
                                         ClipRRect(
                                           borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
                                           child: hasImage && (c['imageUrl'] as String).isNotEmpty
-                                              ? Image.network(
+                                              ? NetImage(
                                                   c['imageUrl'] as String,
                                                   height: 90,
                                                   width: double.infinity,
@@ -9552,7 +9553,7 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                                       width: 70, height: 70,
                                       fit: BoxFit.cover,
                                     )
-                                  : Image.network(
+                                  : NetImage(
                                       url,
                                       width: 70, height: 70,
                                       fit: BoxFit.cover,
@@ -10510,7 +10511,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                   child: isBase64
                                       ? Image.memory(base64Decode(img.split(',').last), fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 32, color: Colors.grey))
-                                      : Image.network(img, fit: BoxFit.cover,
+                                      : NetImage(img, fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 32, color: Colors.grey)),
                                 ),
                               ),
@@ -11907,7 +11908,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                             : imageCtrl.text.isNotEmpty
                                 ? ClipRRect(
                                     borderRadius: BorderRadius.circular(9),
-                                    child: Image.network(
+                                    child: NetImage(
                                       imageCtrl.text,
                                       fit: BoxFit.cover,
                                       errorBuilder: (_, __, ___) => const Center(

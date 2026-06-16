@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'net_image.dart';
 
 /// 이미지 라이트박스 다이얼로그 오픈 유틸
 /// - 어디서든 호출 가능한 공통 함수
@@ -56,18 +57,16 @@ class _ImageLightboxDialogState extends State<ImageLightboxDialog> {
     if (src.startsWith('data:image')) {
       return Image.memory(
         base64Decode(src.split(',').last),
-        fit: BoxFit.contain,
-        errorBuilder: (_, __, ___) => const Icon(
+        fit: BoxFit.contain
           Icons.broken_image_rounded,
           color: Colors.white54,
           size: 80,
         ),
       );
     }
-    return Image.network(
+    return NetImage(
       src,
-      fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) => const Icon(
+      fit: BoxFit.contain
         Icons.broken_image_rounded,
         color: Colors.white54,
         size: 80,

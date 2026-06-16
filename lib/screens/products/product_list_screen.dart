@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import '../../utils/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../utils/constants.dart';
@@ -832,11 +833,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
                       child: p.images.isNotEmpty
-                          ? Image.network(
+                          ? NetImage(
                               p.images.first,
                               fit: BoxFit.cover,
-                              filterQuality: FilterQuality.medium,
-                              errorBuilder: (_, __, ___) => Container(
+                              filterQuality: FilterQuality.medium
                                 color: const Color(0xFFF0F0F0),
                                 child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)),
                             )
@@ -953,8 +953,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   SizedBox(
                     width: 110, height: 110,
                     child: p.images.isNotEmpty
-                        ? Image.network(p.images.first, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: const Color(0xFFF0F0F0),
+                        ? NetImage(p.images.first, fit: BoxFit.cover
                                 child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC))))
                         : Container(color: const Color(0xFFF0F0F0)),
                   ),

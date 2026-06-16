@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
@@ -331,11 +332,10 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: p.images.isNotEmpty
-                ? Image.network(
+                ? NetImage(
                     p.images.first,
                     width: 80, height: 80,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+                    fit: BoxFit.cover
                       width: 80, height: 80,
                       color: const Color(0xFFF0F0F0),
                       child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 32),
@@ -1098,11 +1098,10 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10),
-                            child: Image.network(
+                            child: NetImage(
                               imgs[i],
                               width: 110, height: 110,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
+                              fit: BoxFit.cover
                                 width: 110, height: 110,
                                 color: const Color(0xFFEEEEEE),
                                 child: const Icon(Icons.broken_image_outlined,
@@ -1727,10 +1726,9 @@ class _DesignLightboxDialogState extends State<_DesignLightboxDialog> {
                 child: InteractiveViewer(
                   minScale: 0.8,
                   maxScale: 5.0,
-                  child: Image.network(
+                  child: NetImage(
                     widget.images[i],
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Icon(
+                    fit: BoxFit.contain
                         Icons.broken_image_outlined,
                         color: Colors.white54, size: 60),
                   ),

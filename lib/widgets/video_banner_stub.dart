@@ -2,6 +2,7 @@
 // Android / iOS 네이티브: video_player 패키지로 실제 동영상 재생
 // loop = true → 영상 끝나면 처음부터 반복 재생
 import 'package:flutter/material.dart';
+import 'net_image.dart';
 import 'package:video_player/video_player.dart';
 
 /// 네이티브 stub: 웹 전용 함수이므로 no-op
@@ -114,12 +115,11 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
   Widget _buildFallback() {
     final thumb = widget.thumbnailUrl;
     if (thumb != null && thumb.isNotEmpty) {
-      return Image.network(
+      return NetImage(
         thumb,
         fit: BoxFit.cover,
         width: double.infinity,
-        height: double.infinity,
-        errorBuilder: (_, __, ___) =>
+        height: double.infinity
             Container(color: const Color(0xFF111111)),
       );
     }
