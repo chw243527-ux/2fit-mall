@@ -1237,17 +1237,6 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
 
-            // ── 드래그 핸들: 모바일만 표시 ──
-            if (!widget.isPc)
-            Container(
-              margin: EdgeInsets.only(top: r.h(10), bottom: r.h(6)),
-              width: 40, height: 4,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             // ① 이미지 / 그라디언트 배너
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1278,6 +1267,21 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                     width: double.infinity,
                     height: (sh * 0.35).clamp(180.0, 300.0),
                     child: _buildGradientBg(gradColors, emoji, title),
+                  ),
+
+                // ── 드래그 핸들: 모바일 + 이미지 위에 오버레이 ──
+                if (!widget.isPc)
+                  Positioned(
+                    top: 10, left: 0, right: 0,
+                    child: Center(
+                      child: Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
                   ),
 
                 // 우상단 X 닫기 버튼
