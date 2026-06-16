@@ -12354,7 +12354,9 @@ class _NoticeCard extends StatelessWidget {
     final dateStr = '${notice.createdAt.year}.${notice.createdAt.month.toString().padLeft(2,'0')}.${notice.createdAt.day.toString().padLeft(2,'0')}';
     final hasTranslations = notice.titleTranslations.containsKey('en');
 
-    return Container(
+    return GestureDetector(
+      onTap: onEdit, // 카드 전체 탭 → 수정
+      child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -12445,6 +12447,10 @@ class _NoticeCard extends StatelessWidget {
           // ── 액션 버튼 ──
           Container(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFAFAFA),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(13)),
+            ),
             child: Row(
               children: [
                 // 활성/비활성 토글
@@ -12497,6 +12503,7 @@ class _NoticeCard extends StatelessWidget {
           ),
         ],
       ),
+      ), // GestureDetector
     );
   }
 }
