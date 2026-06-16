@@ -91,6 +91,10 @@ class ProductCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
+              // ── 이미지 배경 (흰색) — 검은 카드 배경 비침 방지 ──
+              const Positioned.fill(
+                child: ColoredBox(color: Colors.white),
+              ),
               // ── 상품 이미지 ──
               Positioned.fill(
                 child: product.images.isNotEmpty
