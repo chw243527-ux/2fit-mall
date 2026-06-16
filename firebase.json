@@ -3,6 +3,9 @@
     "source": "functions",
     "runtime": "nodejs20"
   },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "hosting": {
     "site": "fit-mall",
     "public": "build/web",
