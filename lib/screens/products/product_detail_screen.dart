@@ -1386,15 +1386,8 @@ $productUrl
             child: Image.asset(
               'assets/images/logo_2fit_text.png',
               fit: BoxFit.contain,
-              alignment: Alignment.centerLeft
-                '2FIT',
-                style: TextStyle(
-                  color: Color(0xFF1A1A1A),
-                  fontSize: r.sp(18),
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
-                ),
-              ),
+              alignment: Alignment.centerLeft,
+            ),
             ),
           ),
           SizedBox(width: r.w(10)),
