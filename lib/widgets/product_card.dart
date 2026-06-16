@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'net_image.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +11,7 @@ import '../utils/app_localizations.dart';
 
 /// 공유 상품 카드 — 홈화면 단체주문 카드와 동일한 스타일
 /// · 흰 배경 / radius 10 / 연한 테두리 / 미세 그림자
-/// · 이미지 4:5 비율 / BoxFit.contain / 밝은 회색 배경
+/// · 이미지 4:5 비율 / 이미지 비율 자동 감지 → cover/contain 자동 결정
 /// · 좌상단: NEW / SALE / GROUP 배지
 /// · 우상단: 할인율 배지 (있을 때만)
 /// · 하단: [단체주문 전용 뱃지] → 상품명 → 가격
@@ -81,16 +82,10 @@ class ProductCard extends StatelessWidget {
         aspectRatio: 4 / 5,
         child: Stack(
           children: [
-            // ── 상품 이미지 ──
-            Container(
-              color: const Color(0xFF1E1E1E),
+            // ── 상품 이미지 (비율 자동 감지 → fit 자동 결정) ──
+            Positioned.fill(
               child: product.images.isNotEmpty
-                  ? NetImage(
-                      product.images.first,
-                      fit: BoxFit.contain,
-                      width: double.infinity,
-                      height: double.infinity,
-                    )
+                  ? _SmartProductImage(url: product.images.first)
                   : _placeholder(),
             ),
 
@@ -392,5 +387,107 @@ class ProductCard extends StatelessWidget {
     return price
         .toStringAsFixed(0)
         .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+/// 이미지 비율을 실시간 감지해 BoxFit을 자동 결정하는 위젯
+///
+/// 카드 비율 = 4:5 = 0.8
+/// • 이미지 비율이 카드 비율과 ±30% 이내  → BoxFit.cover  (꽉 채움)
+/// • 이미지가 카드보다 훨씬 가로형(>1.1)   → BoxFit.cover  (가로 꽉 채움)
+/// • 이미지가 카드보다 훨씬 세로형(<0.55)  → BoxFit.contain (여백 유지)
+///
+/// 로딩 중에는 shimmer placeholder, 감지 완료 후 애니메이션 전환
+// ─────────────────────────────────────────────────────────────
+class _SmartProductImage extends StatefulWidget {
+  final String url;
+  const _SmartProductImage({required this.url});
+
+  @override
+  State<_SmartProductImage> createState() => _SmartProductImageState();
+}
+
+class _SmartProductImageState extends State<_SmartProductImage> {
+  // 카드 비율 (4:5)
+  static const double _cardRatio = 4 / 5;
+
+  BoxFit _fit = BoxFit.cover; // 기본값: cover
+  bool _resolved = false;     // 비율 감지 완료 여부
+
+  @override
+  void initState() {
+    super.initState();
+    _detectFit(widget.url);
+  }
+
+  @override
+  void didUpdateWidget(_SmartProductImage old) {
+    super.didUpdateWidget(old);
+    if (old.url != widget.url) {
+      setState(() { _resolved = false; _fit = BoxFit.cover; });
+      _detectFit(widget.url);
+    }
+  }
+
+  /// 이미지를 한 번만 로드해 실제 픽셀 크기를 읽고 fit을 결정
+  void _detectFit(String url) {
+    if (url.isEmpty) return;
+
+    ImageProvider provider;
+    if (kIsWeb) {
+      // 웹: ResizeImage 없이 원본 비율 그대로 읽음
+      provider = NetworkImage(url);
+    } else {
+      provider = NetworkImage(url);
+    }
+
+    final stream = provider.resolve(ImageConfiguration.empty);
+    final listener = ImageStreamListener(
+      (ImageInfo info, bool _) {
+        if (!mounted) return;
+        final w = info.image.width.toDouble();
+        final h = info.image.height.toDouble();
+        if (w <= 0 || h <= 0) return;
+
+        final imgRatio = w / h;
+        BoxFit decided;
+
+        if (imgRatio > 1.1) {
+          // 가로형(배너/풍경) → cover로 꽉 채움
+          decided = BoxFit.cover;
+        } else if (imgRatio < 0.55) {
+          // 세로형이 카드보다 훨씬 길면 → contain으로 전신 표시
+          decided = BoxFit.contain;
+        } else {
+          // 카드 비율(0.8)과 ±35% 이내면 cover, 아니면 contain
+          final ratio = imgRatio / _cardRatio;
+          decided = (ratio >= 0.65 && ratio <= 1.35) ? BoxFit.cover : BoxFit.contain;
+        }
+
+        setState(() {
+          _fit = decided;
+          _resolved = true;
+        });
+      },
+      onError: (_, __) {
+        if (mounted) setState(() => _resolved = true);
+      },
+    );
+    stream.addListener(listener);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      child: NetImage(
+        widget.url,
+        key: ValueKey('${widget.url}_$_fit'),
+        fit: _fit,
+        width: double.infinity,
+        height: double.infinity,
+      ),
+    );
   }
 }
