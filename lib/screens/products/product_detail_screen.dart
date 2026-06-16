@@ -1388,7 +1388,6 @@ $productUrl
               fit: BoxFit.contain,
               alignment: Alignment.centerLeft,
             ),
-            ),
           ),
           SizedBox(width: r.w(10)),
           // 브랜드명 텍스트
