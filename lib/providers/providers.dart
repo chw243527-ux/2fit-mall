@@ -918,27 +918,7 @@ class NoticeProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
-  final List<NoticeModel> _notices = [
-    NoticeModel(
-      id: 'n001',
-      titleKo: '2FIT MALL 오픈 안내 🎉',
-      contentKo: '안녕하세요, 2FIT MALL을 찾아주셔서 감사합니다!\n\n🏃 러너를 위한 최고의 스포츠웨어 쇼핑몰\n✅ 기성품 즉시 구매 가능\n✅ 단체 커스텀 (5명~)\n\n📦 3만원 이상 주문 시 무료배송\n📞 문의: 카카오톡 @2FIT',
-      titleTranslations: {
-        'en': '2FIT MALL Grand Opening 🎉',
-        'ja': '2FIT MALLオープンのご案内 🎉',
-        'zh': '2FIT MALL 盛大开业 🎉',
-        'mn': '2FIT MALL Нээлт 🎉',
-      },
-      contentTranslations: {
-        'en': 'Welcome to 2FIT MALL!\n\n🏃 Best sportswear for runners\n✅ Ready-made items\n✅ Group custom (5+ people)\n✅ Personal custom (1 piece+)\n\n📦 Free shipping on orders over ₩30,000\n📞 Contact: KakaoTalk @2FIT',
-        'ja': '2FIT MALLへようこそ！\n\n🏃 ランナーのためのスポーツウエア\n✅ 既製品即日購入\n✅ 団体カスタム（5名以上）\n✅ 個人カスタム（1枚~）\n\n📦 3万ウォン以上送料無料\n📞 お問合わせ: カカオトーク @2FIT',
-        'zh': '欢迎来到2FIT MALL！\n\n🏃 专为跑者打造的运动服饰\n✅ 成衣现货即买\n✅ 团体定制（5人起订）\n✅ 个人定制（1件起）\n\n📦 充₩30,000免费配送\n📞 联系: KakaoTalk @2FIT',
-        'mn': 'Тавтай морилно уу!\n\n🏃 Гүйгчдэд зориулсан спортын хувцас\n✅ Бэлэн барааг шууд захиалах\n✅ Бүгийн захиалга (5+ хүн)\n✅ Хувийн захиалга (1ш-ааас)\n\n📦 30,000₩-аас дээш үнэгүй хүргэлт\n📞 KakaoTalk @2FIT',
-      },
-      isActive: true,
-      createdAt: DateTime(2025, 1, 1),
-    ),
-  ];
+  final List<NoticeModel> _notices = [];
 
   List<NoticeModel> get activeNotices => _notices.where((n) => n.isActive).toList();
   bool get isLoading => _isLoading;
@@ -978,23 +958,16 @@ class NoticeProvider extends ChangeNotifier {
           .get()
           .timeout(const Duration(seconds: 10));
 
-      if (snap.docs.isNotEmpty) {
-        final loaded = snap.docs
-            .map((d) => NoticeModel.fromFirestore(d.data(), d.id))
-            .toList();
-        // 메모리에서 최신순 정렬 (Firestore 복합 인덱스 불필요)
-        loaded.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        _notices.removeWhere((n) => n.id == 'n001');
-        for (final n in loaded) {
-          final idx = _notices.indexWhere((e) => e.id == n.id);
-          if (idx >= 0) {
-            _notices[idx] = n;
-          } else {
-            _notices.insert(0, n);
-          }
-        }
-        _autoTranslateNotices(loaded);
-      }
+      final loaded = snap.docs
+          .map((d) => NoticeModel.fromFirestore(d.data(), d.id))
+          .toList();
+      // 메모리에서 최신순 정렬 (Firestore 복합 인덱스 불필요)
+      loaded.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      // Firestore 결과로 완전 교체 (하드코딩 샘플 제거)
+      _notices
+        ..clear()
+        ..addAll(loaded);
+      if (loaded.isNotEmpty) _autoTranslateNotices(loaded);
     } catch (e) {
       if (kDebugMode) debugPrint('공지사항 Firestore 로드 실패: $e');
     }
