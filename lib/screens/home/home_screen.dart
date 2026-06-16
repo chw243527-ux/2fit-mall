@@ -2007,7 +2007,7 @@ class _HomeScreenState extends State<HomeScreen>
                               product.images.first,
                               width: double.infinity,
                               height: double.infinity,
-                              fit: BoxFit.contain,
+                              fit: BoxFit.cover,
                             )
                           : Container(
                               color: const Color(0xFFF5F5F5),
