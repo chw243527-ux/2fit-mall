@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 // ignore: unused_import
 import '../main_screen.dart' show kPcBreakpoint;
@@ -26,6 +27,7 @@ import '../../services/fcm_service.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../utils/responsive.dart';
+import '../../utils/constants.dart';
 
 class HomeScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -181,8 +183,8 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
-          // 하단 여백
-          SliverToBoxAdapter(child: SizedBox(height: r.h(80))),
+          // ⑤ PC 푸터
+          SliverToBoxAdapter(child: _buildPcFooter(loc)),
         ],
       ),
     );
@@ -2367,6 +2369,9 @@ class _HomeScreenState extends State<HomeScreen>
                   // ── 신상품 (모바일/태블릿 모두 표시) ──
                   SliverToBoxAdapter(child: _buildNewArrivalsSection(loc)),
 
+                  // ── 모바일 푸터 ──
+                  SliverToBoxAdapter(child: _buildMobileFooter(loc)),
+
                   SliverToBoxAdapter(
                       child: SizedBox(height: isMobile ? 80 : 48)),
                 ],
@@ -3032,6 +3037,32 @@ class _HomeScreenState extends State<HomeScreen>
               SizedBox(height: r.h(2)),
               Text('5명 이상 · 팀 맞춤 제작 · 무료배송',
                 style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888))),
+              SizedBox(height: r.h(6)),
+              // 엘리트 선수 안내
+              GestureDetector(
+                onTap: () async {
+                  final uri = Uri(scheme: 'tel', path: AppConstants.eliteAthletePhone.replaceAll('-', ''));
+                  // ignore: deprecated_member_use
+                  if (await canLaunchUrl(uri)) launchUrl(uri);
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4A148C).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(color: const Color(0xFF7B1FA2).withValues(alpha: 0.35)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.emoji_events_rounded, size: 12, color: Color(0xFF7B1FA2)),
+                      SizedBox(width: r.w(4)),
+                      Text('🏅 엘리트 선수 주문: ${AppConstants.eliteAthletePhone}',
+                        style: TextStyle(fontSize: r.sp(10.5), color: const Color(0xFF4A148C), fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           const Spacer(),
@@ -5165,6 +5196,94 @@ class _HomeScreenState extends State<HomeScreen>
   // ────────────────────────────────────────────
   // ── PC 푸터 (홈 스크롤 맨 아래) ──
   // ignore: unused_element
+  // ── 모바일/태블릿 푸터 ──
+  Widget _buildMobileFooter(AppLocalizations loc) {
+    final r = Responsive.of(context);
+    return Container(
+      color: const Color(0xFF1A1A1A),
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(32), r.w(20), r.h(32)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 브랜드명
+          Text(
+            '2FIT MALL',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              fontSize: r.sp(18),
+              letterSpacing: 1.5,
+            ),
+          ),
+          SizedBox(height: r.h(6)),
+          Text(
+            loc.homeBrandSlogan,
+            style: TextStyle(color: Colors.white54, fontSize: r.sp(12), height: 1.6),
+          ),
+          SizedBox(height: r.h(16)),
+          // 사업자 정보
+          _footerInfoRow('🏢 주식회사 2FIT Korea'),
+          _footerInfoRow('📋 사업자등록번호: 787-19-02539'),
+          _footerInfoRow('🛒 통신판매업신고번호: 신고 진행 중'),
+          _footerInfoRow('📞 010-7227-6914'),
+          _footerInfoRow('✉ tbrk2435@kakao.com'),
+          _footerInfoRow('💬 카카오톡 @2fitkorea'),
+          _footerInfoRow('🕐 평일 10:00 - 18:00 (점심 12:00 - 14:00)'),
+          _footerInfoRow('🚫 토·일·공휴일 휴무'),
+          SizedBox(height: r.h(14)),
+          // 소셜 버튼
+          Row(
+            children: [
+              _footerSocialBtn(loc.homeKakao, const Color(0xFFFFE000), Colors.black,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
+              SizedBox(width: r.w(8)),
+              _footerSocialBtn('고객센터', const Color(0xFF333333), Colors.white,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
+            ],
+          ),
+          SizedBox(height: r.h(20)),
+          const Divider(color: Colors.white12),
+          SizedBox(height: r.h(12)),
+          // 링크 모음
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              _footerLink('상품 목록', () => widget.onNavigate?.call(1)),
+              _footerLink(loc.footerGroupOrder, () => Navigator.pushNamed(context, '/group-guide')),
+              _footerLink('주문 현황', () => widget.onNavigate?.call(3)),
+              _footerLink('1:1 문의', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
+              _footerLink('카카오톡 채널', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
+            ],
+          ),
+          SizedBox(height: r.h(16)),
+          const Divider(color: Colors.white12),
+          SizedBox(height: r.h(12)),
+          // 저작권 및 약관
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  '© 2025 2FIT Korea Co., Ltd.',
+                  style: TextStyle(color: Colors.white30, fontSize: r.sp(11)),
+                ),
+              ),
+              Row(
+                children: [
+                  Text(loc.homeTermsOfUse, style: TextStyle(color: Colors.white38, fontSize: r.sp(11))),
+                  SizedBox(width: r.w(10)),
+                  Text(loc.homePrivacyPolicy,
+                      style: TextStyle(color: Colors.white38, fontSize: r.sp(11), fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPcFooter(AppLocalizations loc) {
     final r = Responsive.of(context);
     return Container(
@@ -5206,8 +5325,10 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                           SizedBox(height: r.h(20)),
                           _footerInfoRow('🏢 주식회사 2FIT Korea'),
+                          _footerInfoRow('📋 사업자등록번호: 787-19-02539'),
+                          _footerInfoRow('🛒 통신판매업신고번호: 신고 진행 중'),
                           _footerInfoRow('📞 010-7227-6914'),
-                          _footerInfoRow('✉ chw243527@gmail.com'),
+                          _footerInfoRow('✉ tbrk2435@kakao.com'),
                           _footerInfoRow('💬 카카오톡 @2fitkorea'),
                           _footerInfoRow('🕐 평일 10:00 - 18:00 (점심 12:00 - 14:00)'),
                           _footerInfoRow('🚫 토·일·공휴일 휴무'),
