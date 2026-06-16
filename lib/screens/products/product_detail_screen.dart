@@ -538,6 +538,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // 앱바 원형 아이콘 버튼 헬퍼
   Widget _appBarIconBtn({required IconData icon, required VoidCallback onTap, EdgeInsetsGeometry? margin}) {
+    final r = Responsive.of(context);
     return Container(
       margin: margin ?? EdgeInsets.only(right: r.w(2), top: r.h(8), bottom: r.h(8)),
       decoration: const BoxDecoration(color: Color(0xFFF5F5F5), shape: BoxShape.circle),
@@ -790,6 +791,7 @@ $productUrl
   }
 
   Future<void> _shareViaKakao(ProductModel product, String url) async {
+    final r = Responsive.of(context);
     // 카카오톡 앱 링크로 공유 (웹 폴백 포함)
     final kakaoShareUrl = Uri.parse(
       'kakaolink://send?url=${Uri.encodeComponent(url)}&text=${Uri.encodeComponent(product.name)}',
@@ -848,6 +850,7 @@ $productUrl
 
   // ══ 모바일: 메인이미지 아래 디자인 이미지 배너 ══
   Widget _buildMobileDesignImageBanner(ProductModel product) {
+    final r = Responsive.of(context);
     // 디자인 이미지는 풀사이즈 배너로 표시하지 않음
     // → 상품정보 탭의 '디자인 이미지' 섹션(_buildDesignImageSection)에서만 표시
     return const SizedBox.shrink();
@@ -868,6 +871,7 @@ $productUrl
         itemCount: imgs.length,
         separatorBuilder: (_, __) => SizedBox(width: r.w(6)),
         itemBuilder: (_, i) {
+    final r = Responsive.of(context);
           final selected = _mainImageIndex == i;
           return GestureDetector(
             onTap: () {
@@ -1309,6 +1313,7 @@ $productUrl
 
   // ── 탑텐 스타일: 해시태그 칩 ──
   Widget _hashtagChip(String label) {
+    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
       decoration: BoxDecoration(
@@ -2395,6 +2400,7 @@ $productUrl
   }
 
   Widget _tag(String text, Color color) {
+    final r = Responsive.of(context);
     return Container(
         padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
@@ -2409,6 +2415,7 @@ $productUrl
   // ═══════════════════════════════════════
   // ignore: unused_element
   Widget _buildInlineLengthSection() {
+    final r = Responsive.of(context);
     const lengths = AppConstants.bottomLengths;
     final product = widget.product;
     final isSingletSet = (product.category == '세트' &&
@@ -3550,6 +3557,7 @@ $productUrl
                     widget.product.id, sectionKey, newList);
               },
               children: imgs.asMap().entries.map((e) {
+    final r = Responsive.of(context);
                 final i = e.key;
                 final url = e.value;
                 return _buildReorderableImageItem(
@@ -6357,6 +6365,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20), MediaQuery.of(context).padding.bottom + 24),
       decoration: const BoxDecoration(
@@ -8108,6 +8117,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   // UI 헬퍼
   // ─────────────────────────────────────────────
   Widget _sectionTitle(String title, {bool required = false}) {
+    final r = Responsive.of(context);
     return Row(
       children: [
         Text(title, style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
@@ -9079,6 +9089,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
   }
 
   Widget _sortBtn(String label, String value) {
+    final r = Responsive.of(context);
     final sel = _sort == value;
     return GestureDetector(
       onTap: () => setState(() => _sort = value),
