@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'net_image.dart';
 import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../providers/providers.dart';
@@ -84,15 +85,14 @@ class ProductCard extends StatelessWidget {
             Container(
               color: const Color(0xFF1E1E1E),
               child: product.images.isNotEmpty
-                  ? Image.network(
+                  ? NetImage(
                       product.images.first,
                       fit: BoxFit.contain,
                       width: double.infinity,
                       height: double.infinity,
                       filterQuality: FilterQuality.medium,
                       cacheWidth: 400,
-                      cacheHeight: 500,
-                      errorBuilder: (_, __, ___) => _placeholder(),
+                      cacheHeight: 500
                     )
                   : _placeholder(),
             ),

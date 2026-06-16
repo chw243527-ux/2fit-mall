@@ -188,8 +188,7 @@ class _LoginScreenState extends State<LoginScreen>
                               'assets/images/2fit_logo.png',
                               width: 200,
                               height: 80,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const Text(
+                              fit: BoxFit.contain
                                 '2FiT',
                                 style: TextStyle(
                                   color: Color(0xFF1A1A1A),
@@ -470,8 +469,7 @@ class _LoginScreenState extends State<LoginScreen>
                       'assets/images/logo_2fit_white.png',
                       width: 180,
                       height: 70,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Text(
+                      fit: BoxFit.contain
                         '2FiT',
                         style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900),
                       ),

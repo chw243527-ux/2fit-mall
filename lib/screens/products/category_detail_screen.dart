@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import '../../utils/app_localizations.dart';
 import '../../utils/theme.dart';
@@ -1150,8 +1151,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
               child: SizedBox(
                 width: imgSize, height: imgSize,
                 child: product.images.isNotEmpty
-                    ? Image.network(product.images.first, fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                    ? NetImage(product.images.first, fit: BoxFit.cover
                             color: _surface,
                             child: const Icon(Icons.image_not_supported_outlined,
                                 color: _greyDim, size: 28)))

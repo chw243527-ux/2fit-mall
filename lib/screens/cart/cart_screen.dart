@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import '../../utils/theme.dart';
 import '../../providers/providers.dart';
@@ -321,10 +322,9 @@ class CartScreen extends StatelessWidget {
                 width: 80,
                 height: 80,
                 child: item.product.images.isNotEmpty
-                    ? Image.network(
+                    ? NetImage(
                         item.product.images.first,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                        fit: BoxFit.cover
                           color: AppColors.background,
                           child: const Icon(Icons.image_outlined),
                         ),
@@ -948,9 +948,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
               width: 48,
               height: 48,
               child: item.product.images.isNotEmpty
-                  ? Image.network(item.product.images.first,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
+                  ? NetImage(item.product.images.first,
+                      fit: BoxFit.cover
                             color: AppColors.background,
                             child: const Icon(Icons.image_outlined, size: 20),
                           ))
