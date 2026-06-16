@@ -1993,28 +1993,28 @@ class _HomeScreenState extends State<HomeScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 이미지 — 4:5 고정 비율, contain으로 전신 표시
-            AspectRatio(
-              aspectRatio: 4 / 5,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                    child: Container(
-                      color: const Color(0xFFF5F5F5),
-                      child: product.images.isNotEmpty
-                          ? NetImage(
-                              product.images.first,
-                              width: double.infinity,
-                              height: double.infinity,
-                              fit: BoxFit.cover,
-                            )
-                          : Container(
-                              color: const Color(0xFFF5F5F5),
-                              child: const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
-                            ),
-                    ),
-                  ),
+            // 이미지 — 패딩+라운드로 카드 배경색 살짝 보이도록
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: AspectRatio(
+                  aspectRatio: 4 / 5,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Positioned.fill(
+                        child: Container(
+                          color: const Color(0xFFF5F5F5),
+                          child: product.images.isNotEmpty
+                              ? NetImage(
+                                  product.images.first,
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.topCenter,
+                                )
+                              : const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
+                        ),
+                      ),
                   if (product.isNewActive)
                     Positioned(
                       top: 8, left: 8,
@@ -2042,6 +2042,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ],
               ),
             ),
+          ),
             // 정보
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(8), r.h(7), r.w(8), r.h(8)),
@@ -2082,6 +2083,7 @@ class _HomeScreenState extends State<HomeScreen>
           ],
         ),
       ),
+    )
     );
   }
 
@@ -2417,27 +2419,28 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 이미지
-                        SizedBox(
-                          width: cardW,
-                          height: imgH,
+                        // 이미지 — 패딩+라운드
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
                           child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: p.images.isNotEmpty
-                                  ? NetImage(p.images.first,
-                                      width: cardW,
-                                      height: imgH,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Container(
-                                      color: const Color(0xFFF0F0F0),
-                                      child: const Icon(Icons.image_not_supported_rounded,
-                                        color: Colors.white54, size: 28),
-                                    ),
-                              ),
+                            borderRadius: BorderRadius.circular(8),
+                            child: AspectRatio(
+                              aspectRatio: 4 / 5,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Positioned.fill(
+                                    child: p.images.isNotEmpty
+                                        ? NetImage(p.images.first,
+                                            fit: BoxFit.cover,
+                                            alignment: Alignment.topCenter,
+                                          )
+                                        : Container(
+                                            color: const Color(0xFFF0F0F0),
+                                            child: const Icon(Icons.image_not_supported_rounded,
+                                              color: Colors.white54, size: 28),
+                                          ),
+                                  ),
                               if (discount > 0)
                                 Positioned(
                                   top: 5, left: 5,
@@ -2511,6 +2514,7 @@ class _HomeScreenState extends State<HomeScreen>
             SizedBox(height: r.h(20)),
         ],
       ),
+    )
     );
   }
 
@@ -2601,24 +2605,25 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 이미지
-                        SizedBox(
-                          width: cardW,
-                          height: imgH,
+                        // 이미지 — 패딩+라운드
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
                           child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                          child: Stack(
-                            children: [
-                              Positioned.fill(
-                                child: p.images.isNotEmpty
-                                    ? NetImage(p.images.first,
-                                        width: cardW,
-                                        height: imgH,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : const Icon(Icons.image_not_supported_rounded,
-                                        color: Color(0xFFCCCCCC), size: 28),
-                              ),
+                            borderRadius: BorderRadius.circular(8),
+                            child: AspectRatio(
+                              aspectRatio: 4 / 5,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Positioned.fill(
+                                    child: p.images.isNotEmpty
+                                        ? NetImage(p.images.first,
+                                            fit: BoxFit.cover,
+                                            alignment: Alignment.topCenter,
+                                          )
+                                        : const Icon(Icons.image_not_supported_rounded,
+                                            color: Color(0xFFCCCCCC), size: 28),
+                                  ),
                               Positioned(
                                 top: 6, left: 6,
                                 child: Container(
@@ -2647,6 +2652,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ],
                           ),
                           ),
+                        ),
                         ),
                         // 상품 정보
                         Padding(
@@ -3092,23 +3098,27 @@ class _HomeScreenState extends State<HomeScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 이미지
-            Expanded(
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                      child: p.images.isNotEmpty
-                          ? NetImage(
-                              p.images.first,
-                              fit: BoxFit.cover,
-                            )
-                          : const Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Color(0xFFBBBBBB), size: 36),
-                    ),
-                  ),
+            // 이미지 — 패딩+라운드
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: AspectRatio(
+                  aspectRatio: 4 / 5,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Positioned.fill(
+                        child: p.images.isNotEmpty
+                            ? NetImage(
+                                p.images.first,
+                                fit: BoxFit.cover,
+                                alignment: Alignment.topCenter,
+                              )
+                            : const Icon(
+                                Icons.image_not_supported_outlined,
+                                color: Color(0xFFBBBBBB), size: 36),
+                      ),
                   // GROUP ONLY 배지
                   Positioned(
                     top: 8, left: 8,
@@ -3133,6 +3143,8 @@ class _HomeScreenState extends State<HomeScreen>
                 ],
               ),
             ),
+          ),
+        ),
             // 정보
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(10), r.h(8), r.w(10), r.h(10)),
