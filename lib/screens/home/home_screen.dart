@@ -5697,43 +5697,6 @@ class _NoticePopupState extends State<_NoticePopup> {
                   else
                     _buildGradientBg(gradColors, emoji, title),
 
-                  // 이미지 있을 때: 하단 흰 배경 텍스트
-                  if (hasImage)
-                    Positioned(
-                      left: 0, right: 0, bottom: 0,
-                      child: Container(
-                        color: Colors.white,
-                        padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(18)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              title,
-                              style: TextStyle(
-                                color: Color(0xFF111111),
-                                fontSize: r.sp(17),
-                                fontWeight: FontWeight.w800,
-                                height: 1.4,
-                                letterSpacing: -0.3,
-                              ),
-                            ),
-                            if (content.isNotEmpty) ...[
-                              SizedBox(height: r.h(6)),
-                              Text(
-                                content,
-                                style: TextStyle(
-                                  color: Color(0xFF666666),
-                                  fontSize: r.sp(13),
-                                  height: 1.55,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-
                   // 우상단 X 버튼
                   Positioned(
                     top: 12, right: 12,
@@ -5753,7 +5716,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                   // 좌하단 '01 / 01' 캡슐
                   Positioned(
                     left: 16,
-                    bottom: hasImage ? _textBoxHeight(content) + 12 : 14,
+                    bottom: 14,
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: r.w(11), vertical: r.h(5)),
                       decoration: BoxDecoration(
@@ -5776,20 +5739,40 @@ class _NoticePopupState extends State<_NoticePopup> {
             ),
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            // ② 이미지 없을 때 / 공통: 본문 텍스트
+            // ② 제목 + 본문 텍스트 (이미지 아래 항상 표시)
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-            if (!hasImage && content.isNotEmpty)
+            if (title.isNotEmpty || content.isNotEmpty)
               Container(
                 color: Colors.white,
                 width: double.infinity,
-                padding: EdgeInsets.fromLTRB(r.w(20), r.h(14), r.w(20), r.h(14)),
-                child: Text(
-                  content,
-                  style: TextStyle(
-                    fontSize: r.sp(13),
-                    color: Color(0xFF555555),
-                    height: 1.7,
-                  ),
+                padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(16)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (title.isNotEmpty)
+                      Text(
+                        title,
+                        style: TextStyle(
+                          color: const Color(0xFF111111),
+                          fontSize: r.sp(17),
+                          fontWeight: FontWeight.w800,
+                          height: 1.4,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    if (title.isNotEmpty && content.isNotEmpty)
+                      SizedBox(height: r.h(8)),
+                    if (content.isNotEmpty)
+                      Text(
+                        content,
+                        style: TextStyle(
+                          fontSize: r.sp(13),
+                          color: const Color(0xFF555555),
+                          height: 1.65,
+                        ),
+                      ),
+                  ],
                 ),
               ),
 
