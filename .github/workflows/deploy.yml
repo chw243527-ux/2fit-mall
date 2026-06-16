@@ -1,12 +1,9 @@
 name: Build & Deploy — Cloudflare Pages
 
-# ──────────────────────────────────────────────────────────
-#  트리거: main 브랜치 push 또는 수동 실행(workflow_dispatch)
-# ──────────────────────────────────────────────────────────
 on:
   push:
     branches: [main]
-  workflow_dispatch:          # 수동 배포 (Actions 탭 → "Run workflow")
+  workflow_dispatch:
     inputs:
       skip_cache:
         description: 'pub/Flutter 캐시 무시 (패키지 오류 시 true)'
@@ -14,31 +11,31 @@ on:
         default: 'false'
         type: boolean
 
-# 동일 브랜치 중복 실행 방지 — 이전 실행을 자동 취소
+# 동일 브랜치 중복 실행 방지
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: '3.32.2'          # ← 로컬 flutter --version 과 맞추세요
-  WRANGLER_VERSION: '3.78.12'        # Cloudflare wrangler 고정 버전
-  BUILD_DIR: build/web               # Flutter 웹 빌드 출력 경로
-  CF_PROJECT: twofit-mall            # Cloudflare Pages 프로젝트 이름
+  FLUTTER_VERSION: '3.32.2'
+  WRANGLER_VERSION: '3.78.12'
+  BUILD_DIR: build/web
+  CF_PROJECT: twofit-mall
 
 jobs:
   build_and_deploy:
     name: Flutter Build → Cloudflare Pages
     runs-on: ubuntu-latest
-    timeout-minutes: 30              # 30분 초과 시 자동 실패 (무한 대기 방지)
+    timeout-minutes: 20
 
     steps:
-      # ── 0. 소스 체크아웃 ──────────────────────────────────
+      # ── 0. 소스 체크아웃 (shallow clone — 히스토리 불필요)
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0             # 전체 히스토리 (커밋 해시 정확도)
+          fetch-depth: 1
 
-      # ── 1. Flutter SDK 설치 + 캐시 ───────────────────────
+      # ── 1. Flutter SDK + 캐시
       - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
         with:
@@ -47,126 +44,83 @@ jobs:
           cache: ${{ github.event.inputs.skip_cache != 'true' }}
           cache-key: flutter-${{ runner.os }}-${{ env.FLUTTER_VERSION }}
 
-      # ── 2. pub 패키지 캐시 ───────────────────────────────
+      # ── 2. pub 패키지 캐시 (pubspec.lock 해시 기반 — 변경 없으면 100% hit)
       - name: Cache pub packages
         if: github.event.inputs.skip_cache != 'true'
         uses: actions/cache@v4
+        id: pub-cache
         with:
           path: |
             ~/.pub-cache
             .dart_tool
           key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
-          restore-keys: |
-            pub-${{ runner.os }}-
+          restore-keys: pub-${{ runner.os }}-
 
-      # ── 3. npm(wrangler) 캐시 ────────────────────────────
-      - name: Cache npm (wrangler)
+      # ── 3. wrangler 전역 설치 캐시 (버전 고정 → 항상 hit)
+      - name: Cache wrangler install
         uses: actions/cache@v4
+        id: wrangler-cache
         with:
-          path: ~/.npm
-          key: npm-wrangler-${{ env.WRANGLER_VERSION }}
+          path: ~/.npm/_npx
+          key: wrangler-${{ env.WRANGLER_VERSION }}
 
-      # ── 4. 의존성 설치 ────────────────────────────────────
+      # ── 4. 의존성 설치 (캐시 hit 시 약 5초, miss 시 약 60초)
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      # ── 5. 빠른 분석 (심각한 오류만 차단, 경고는 허용) ──────
-      - name: Analyze (errors only)
-        run: flutter analyze --no-fatal-warnings
-        continue-on-error: true     # 분석 실패가 배포를 막지 않도록
-
-      # ── 6. Flutter 웹 릴리즈 빌드 ─────────────────────────
-      #   --pwa-strategy=offline-first : flutter_service_worker.js 자동 생성
-      #                                  PWA 홈화면 앱에서 새 배포 자동 감지·적용
-      #   --no-tree-shake-icons        : 아이콘 트리쉐이킹 비활성화 (빌드 오류 방지)
-      #   --dart-define                : 빌드 번호를 Dart 코드에서 참조 가능
+      # ── 5. Flutter 웹 릴리즈 빌드
+      #   --tree-shake-icons 제거(기본 활성화)로 빌드 크기↓ 속도↑
+      #   --source-maps 제거 (배포 불필요)
       - name: Build Flutter Web (release)
         run: |
           flutter build web \
             --release \
-            --no-tree-shake-icons \
+            --tree-shake-icons \
             --pwa-strategy=offline-first \
             --dart-define=BUILD_NUMBER=${{ github.run_number }} \
             --dart-define=BUILD_SHA=${{ github.sha }}
 
-      # ── 7. 빌드 후 패치 ──────────────────────────────────
-      #   ① renderer: 브라우저 자동 감지 모드 유지 (canvaskit/html 자동)
-      #      → flutter_bootstrap.js 내 _flutter.loader.load({}) 는 건드리지 않음
-      #   ② main.dart.js 캐시 버스팅: ?v=빌드번호 쿼리 파라미터 추가
-      #   ③ flutter_service_worker.js: CDN 캐시 무효화용 버전 주석 삽입
-      - name: Patch build output
+      # ── 6. 빌드 후 캐시버스팅 패치
+      - name: Patch build output (cache busting)
         run: |
           BUILD_VER="${{ github.run_number }}"
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
 
-          echo "── [1/3] main.dart.js 캐시 버스팅 ──"
-          # flutter_bootstrap.js 안의 main.dart.js 참조에 ?v= 추가
+          # flutter_bootstrap.js — main.dart.js?v= 쿼리 추가
           sed -i \
             "s|main\.dart\.js\"|main.dart.js?v=${BUILD_VER}\"|g" \
             ${{ env.BUILD_DIR }}/flutter_bootstrap.js
-          # index.html 에도 동일하게 적용 (혹시 직접 참조하는 경우 대비)
-          sed -i \
-            "s|main\.dart\.js\"|main.dart.js?v=${BUILD_VER}\"|g" \
-            ${{ env.BUILD_DIR }}/index.html 2>/dev/null || true
 
-          echo "── [2/3] flutter_service_worker.js 버전 주입 ──"
-          # --pwa-strategy=offline-first 로 빌드 시 반드시 파일이 생성됨
-          # 파일이 없으면 pwa-strategy 설정 오류 → 배포 실패 처리
+          # flutter_service_worker.js 패치
           if [ -f "${{ env.BUILD_DIR }}/flutter_service_worker.js" ]; then
             sed -i \
               "s|main\.dart\.js|main.dart.js?v=${BUILD_VER}|g" \
               ${{ env.BUILD_DIR }}/flutter_service_worker.js
             echo "// build: ${BUILD_VER} (${SHORT_SHA})" \
               >> ${{ env.BUILD_DIR }}/flutter_service_worker.js
-            echo "✅ flutter_service_worker.js 패치 완료"
           else
-            echo "❌ flutter_service_worker.js 없음 — --pwa-strategy=offline-first 확인 필요"
+            echo "❌ flutter_service_worker.js 없음"
             exit 1
           fi
 
-          echo "── [3/3] 패치 결과 검증 ──"
-          echo "flutter_bootstrap.js 마지막 10줄:"
-          tail -10 ${{ env.BUILD_DIR }}/flutter_bootstrap.js
-          echo ""
-          echo "빌드 파일 목록:"
-          ls -lh ${{ env.BUILD_DIR }} | head -20
-
-      # ── 8. 빌드 결과물 크기 리포트 ───────────────────────
-      - name: Build size report
-        run: |
-          echo "=== Build size report ==="
-          du -sh ${{ env.BUILD_DIR }}
-          echo ""
-          echo "=== 주요 파일 크기 ==="
-          find ${{ env.BUILD_DIR }} \
-            -maxdepth 2 \
-            -name "*.js" -o -name "*.wasm" \
-            | xargs ls -lh 2>/dev/null | sort -k5 -rh | head -10
-
-      # ── 9. Cloudflare Pages 배포 ──────────────────────────
-      #   필요한 GitHub Secrets:
-      #     CLOUDFLARE_API_TOKEN   : Cloudflare API 토큰 (아래 가이드 참조)
-      #     CLOUDFLARE_ACCOUNT_ID  : Cloudflare 계정 ID
+      # ── 7. Cloudflare Pages 배포
       - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-          RUN_NUM="${{ github.run_number }}"
-
           npx wrangler@${{ env.WRANGLER_VERSION }} pages deploy \
             ${{ env.BUILD_DIR }} \
             --project-name="${{ env.CF_PROJECT }}" \
             --branch=main \
             --commit-dirty=true \
-            --commit-message="deploy: build-${RUN_NUM} (${SHORT_SHA})"
+            --commit-message="deploy: build-${{ github.run_number }} (${SHORT_SHA})"
 
-      # ── 10. Cloudflare 캐시 purge (배포 직후 CDN 캐시 즉시 무효화) ────
+      # ── 8. Cloudflare 캐시 purge
       - name: Purge Cloudflare cache
         if: success()
         run: |
-          # SW 포함 전체 진입점 파일 즉시 purge (PWA 홈화면 앱 새 배포 즉시 반영)
           curl -s -X POST \
             "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
             -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
@@ -188,9 +142,9 @@ jobs:
               print('✅ Cloudflare 캐시 purge 성공')
           else:
               print('⚠️  purge 응답:', json.dumps(r, ensure_ascii=False))
-          " || echo "⚠️  CLOUDFLARE_ZONE_ID 미설정 — purge 건너뜀 (배포는 완료)"
+          " || echo "⚠️  CLOUDFLARE_ZONE_ID 미설정 — purge 건너뜀"
 
-      # ── 11. 배포 성공 알림 (Summary) ─────────────────────
+      # ── 9. 배포 완료 Summary
       - name: Deployment summary
         if: success()
         run: |
@@ -200,13 +154,11 @@ jobs:
           echo "|------|-----|" >> $GITHUB_STEP_SUMMARY
           echo "| 빌드 번호 | #${{ github.run_number }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 커밋 | \`$(echo '${{ github.sha }}' | cut -c1-7)\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| 브랜치 | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Flutter | ${{ env.FLUTTER_VERSION }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "🌐 **URL**: https://twofit-mall.pages.dev" >> $GITHUB_STEP_SUMMARY
-          echo "🌐 **커스텀 도메인**: https://2fit-mall.co.kr" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 https://2fit-mall.co.kr" >> $GITHUB_STEP_SUMMARY
 
-      # ── 11. 빌드 실패 시 상세 로그 ───────────────────────
+      # ── 10. 실패 시 로그 업로드
       - name: Upload build logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
