@@ -93,130 +93,107 @@ class ProductCard extends StatelessWidget {
                 : _placeholder(),
           ),
 
-            // ── 좌상단 배지 (GROUP / NEW / SALE) ──
-            if (badgeText.isNotEmpty)
-              Positioned(
-                top: 6,
-                left: 6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: badgeBg,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: Text(
-                    badgeText,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
+          // ── 좌상단 배지 (GROUP / NEW / SALE) ──
+          if (badgeText.isNotEmpty)
+            Positioned(
+              top: 6,
+              left: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: badgeBg,
+                  borderRadius: BorderRadius.circular(3),
                 ),
-              ),
-
-            // ── 우상단 할인율 ──
-            if (discount > 0 && !product.isGroupOnly)
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                  decoration: BoxDecoration(
+                child: Text(
+                  badgeText,
+                  style: const TextStyle(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: Text(
-                    '-$discount%',
-                    style: const TextStyle(
-                      color: Color(0xFF111111),
-                      fontSize: 8,
-                      fontWeight: FontWeight.w900,
-                    ),
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
+            ),
 
-            // ── 단체주문: GROUP일 때 할인율도 표시 ──
-            if (discount > 0 && product.isGroupOnly)
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: Text(
-                    '-$discount%',
-                    style: const TextStyle(
-                      color: Color(0xFF111111),
-                      fontSize: 8,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
+          // ── 우상단 할인율 ──
+          if (discount > 0)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(3),
                 ),
-              ),
-
-            // ── 무료배송 (우하단) ──
-            if (product.isFreeShipping)
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: const BoxDecoration(
+                child: Text(
+                  '-$discount%',
+                  style: const TextStyle(
                     color: Color(0xFF111111),
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(6)),
-                  ),
-                  child: const Text(
-                    'FREE',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 7,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                    ),
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
+            ),
 
-            // ── 품절 오버레이 (stockCount == 0) ──
-            if (product.stockCount <= 0)
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.55),
+          // ── 무료배송 (우하단) ──
+          if (product.isFreeShipping)
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF111111),
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(6)),
+                ),
+                child: const Text(
+                  'FREE',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 7,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
                   ),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text(
-                        'SOLD OUT',
-                        style: TextStyle(
-                          color: Color(0xFF111111),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.5,
-                        ),
+                ),
+              ),
+            ),
+
+          // ── 품절 오버레이 ──
+          if (product.stockCount <= 0)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                ),
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Text(
+                      'SOLD OUT',
+                      style: TextStyle(
+                        color: Color(0xFF111111),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
                       ),
                     ),
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _placeholder() {
+    Widget _placeholder() {
     return const Center(
       child: Icon(Icons.image_not_supported_rounded, color: Color(0xFF444444), size: 28),
     );
