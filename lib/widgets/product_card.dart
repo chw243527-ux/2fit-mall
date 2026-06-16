@@ -78,24 +78,12 @@ class ProductCard extends StatelessWidget {
       badgeText = '';
     }
 
-    // 이미지 패딩: 카드 배경색(#1A1A1A)이 주변에 살짝 보이도록
-    const double imgPad = 6.0;
-    const double imgRadius = 8.0;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(imgPad, imgPad, imgPad, imgPad),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(imgRadius),
-        child: AspectRatio(
+    return AspectRatio(
           aspectRatio: 4 / 5,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // ── 이미지 배경 (흰색) — 검은 카드 배경 비침 방지 ──
-              const Positioned.fill(
-                child: ColoredBox(color: Colors.white),
-              ),
-              // ── 상품 이미지 ──
+              // ── 상품 이미지 (카드 완전히 채움) ──
               Positioned.fill(
                 child: product.images.isNotEmpty
                     ? NetImage(
@@ -203,8 +191,6 @@ class ProductCard extends StatelessWidget {
                 ),
             ],
           ),
-        ),
-      ),
     );
   }
 

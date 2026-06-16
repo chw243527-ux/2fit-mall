@@ -1996,27 +1996,20 @@ class _HomeScreenState extends State<HomeScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 이미지 — 패딩+라운드로 카드 배경색 살짝 보이도록
-              Padding(
-                padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: AspectRatio(
+              // 이미지 — 카드 완전히 채움
+              AspectRatio(
                     aspectRatio: 4 / 5,
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
                         Positioned.fill(
-                          child: Container(
-                            color: const Color(0xFFF5F5F5),
-                            child: product.images.isNotEmpty
-                                ? NetImage(
-                                    product.images.first,
-                                    fit: BoxFit.cover,
-                                    alignment: Alignment.topCenter,
-                                  )
-                                : const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
-                          ),
+                          child: product.images.isNotEmpty
+                              ? NetImage(
+                                  product.images.first,
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.topCenter,
+                                )
+                              : const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
                         ),
                         if (product.isNewActive)
                           Positioned(
@@ -2044,8 +2037,6 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                       ],
                     ),
-                  ),
-                ),
               ),
               // 정보
               Padding(
@@ -2434,20 +2425,12 @@ class _HomeScreenState extends State<HomeScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 이미지 — 패딩+라운드
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: AspectRatio(
+                          // 이미지 — 카드 완전히 채움
+                        AspectRatio(
                               aspectRatio: 4 / 5,
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
-                                  // 이미지 배경 (흰색)
-                                  const Positioned.fill(
-                                    child: ColoredBox(color: Colors.white),
-                                  ),
                                   Positioned.fill(
                                     child: p.images.isNotEmpty
                                         ? NetImage(p.images.first,
@@ -2477,8 +2460,6 @@ class _HomeScreenState extends State<HomeScreen>
                             ],
                           ),
                         ),
-                      ),
-                    ),
                         SizedBox(height: r.h(6)),
                         // 상품명
                         Text(p.name,
@@ -2627,20 +2608,12 @@ class _HomeScreenState extends State<HomeScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 이미지 — 패딩+라운드
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: AspectRatio(
+                          // 이미지 — 카드 완전히 채움
+                        AspectRatio(
                               aspectRatio: 4 / 5,
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
-                                  // 이미지 배경 (흰색)
-                                  const Positioned.fill(
-                                    child: ColoredBox(color: Colors.white),
-                                  ),
                                   Positioned.fill(
                                     child: p.images.isNotEmpty
                                         ? NetImage(p.images.first,
@@ -2677,8 +2650,6 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                             ],
                           ),
-                          ),
-                        ),
                         ),
                         // 상품 정보
                         Padding(
@@ -3129,30 +3100,22 @@ class _HomeScreenState extends State<HomeScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 이미지 — 패딩+라운드
-              Padding(
-                padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: AspectRatio(
-                    aspectRatio: 4 / 5,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        // 이미지 배경 (흰색) — 카드 배경 비침 방지
-                        const Positioned.fill(
-                          child: ColoredBox(color: Colors.white),
-                        ),
-                        Positioned.fill(
-                          child: p.images.isNotEmpty
-                              ? NetImage(
-                                  p.images.first,
-                                  fit: BoxFit.cover,
-                                  alignment: Alignment.topCenter,
-                                )
-                              : const Icon(
-                                  Icons.image_not_supported_outlined,
-                                  color: Color(0xFFBBBBBB), size: 36),
-                        ),
+              AspectRatio(
+                aspectRatio: 4 / 5,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Positioned.fill(
+                      child: p.images.isNotEmpty
+                          ? NetImage(
+                              p.images.first,
+                              fit: BoxFit.cover,
+                              alignment: Alignment.topCenter,
+                            )
+                          : const Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Color(0xFFBBBBBB), size: 36),
+                    ),
                         // GROUP ONLY 배지
                         Positioned(
                           top: 8, left: 8,
@@ -3174,9 +3137,7 @@ class _HomeScreenState extends State<HomeScreen>
                               child: Text('$discount%', style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w900)),
                             ),
                           ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
               ),
               // 정보
