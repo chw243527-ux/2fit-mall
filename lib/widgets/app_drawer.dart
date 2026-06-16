@@ -463,11 +463,9 @@ class _AppDrawerState extends State<AppDrawer> {
                     height: 36,
                     child: Image.asset(
                       'assets/images/logo_2fit.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Image.asset(
+                      fit: BoxFit.contain
                         'assets/images/2fit_logo.png',
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Text(
+                        fit: BoxFit.contain
                           '2FIT',
                           style: TextStyle(
                             color: Color(0xFF111111),

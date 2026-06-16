@@ -186,13 +186,11 @@ class _SplashScreenState extends State<SplashScreen>
                               'assets/images/app_icon.png',
                               width: iconSize,
                               height: iconSize,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => Image.asset(
+                              fit: BoxFit.contain
                                 'assets/images/logo_2fit_korea.png',
                                 width: iconSize,
                                 height: iconSize,
-                                fit: BoxFit.contain,
-                                errorBuilder: (_, __, ___2) => _fallbackLogo(),
+                                fit: BoxFit.contain
                               ),
                             ),
                           );

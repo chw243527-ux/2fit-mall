@@ -1254,12 +1254,8 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                     child: NetImage(
                       notice.imageUrl,
                       width: sheetW,
-                      fit: BoxFit.fitWidth,   // 가로 꽉 채우고 세로는 비율에 맞게 자동
-                      alignment: Alignment.topCenter
-                          SizedBox(
-                            height: sh * 0.35,
-                            child: _buildGradientBg(gradColors, emoji, title),
-                          ),
+                      fit: BoxFit.fitWidth,
+                      alignment: Alignment.topCenter,
                     ),
                   )
                 else
