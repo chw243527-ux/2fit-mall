@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/providers.dart';
 import '../utils/app_localizations.dart';
+import '../utils/constants.dart';
 import 'home/home_screen.dart';
 import 'products/product_list_screen.dart';
 import 'products/category_detail_screen.dart';
@@ -955,6 +957,59 @@ class _PcFooter extends StatelessWidget {
                           _footerInfoRow('💬 카카오톡 @2fitkorea', r),
                           _footerInfoRow('🕐 평일 10:00 - 18:00 (점심 12:00 - 14:00)', r),
                           _footerInfoRow('🚫 토·일·공휴일 휴무', r),
+                          SizedBox(height: r.h(12)),
+                          // ── 엘리트 선수 전용 안내 ──
+                          GestureDetector(
+                            onTap: () async {
+                              final uri = Uri(scheme: 'tel', path: AppConstants.eliteAthletePhone.replaceAll('-', ''));
+                              // ignore: deprecated_member_use
+                              if (await canLaunchUrl(uri)) launchUrl(uri);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(10)),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFF4A148C), Color(0xFF7B1FA2)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 18),
+                                  SizedBox(width: r.w(8)),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('🏅 엘리트 선수 주문 전용 상담',
+                                          style: TextStyle(color: Colors.white, fontSize: r.sp(11), fontWeight: FontWeight.w800)),
+                                        SizedBox(height: r.h(2)),
+                                        Text(AppConstants.eliteAthletePhone,
+                                          style: TextStyle(color: Colors.amber, fontSize: r.sp(13), fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber,
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.phone_rounded, size: 12, color: Colors.black87),
+                                        SizedBox(width: r.w(3)),
+                                        Text('전화', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Colors.black87)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                           SizedBox(height: r.h(16)),
                           // 소셜 링크 버튼
                           Row(

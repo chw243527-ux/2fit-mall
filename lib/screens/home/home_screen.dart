@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 // ignore: unused_import
 import '../main_screen.dart' show kPcBreakpoint;
@@ -26,6 +27,7 @@ import '../../services/fcm_service.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../utils/responsive.dart';
+import '../../utils/constants.dart';
 
 class HomeScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -3035,6 +3037,32 @@ class _HomeScreenState extends State<HomeScreen>
               SizedBox(height: r.h(2)),
               Text('5명 이상 · 팀 맞춤 제작 · 무료배송',
                 style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888))),
+              SizedBox(height: r.h(6)),
+              // 엘리트 선수 안내
+              GestureDetector(
+                onTap: () async {
+                  final uri = Uri(scheme: 'tel', path: AppConstants.eliteAthletePhone.replaceAll('-', ''));
+                  // ignore: deprecated_member_use
+                  if (await canLaunchUrl(uri)) launchUrl(uri);
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4A148C).withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(color: const Color(0xFF7B1FA2).withValues(alpha: 0.35)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.emoji_events_rounded, size: 12, color: Color(0xFF7B1FA2)),
+                      SizedBox(width: r.w(4)),
+                      Text('🏅 엘리트 선수 주문: ${AppConstants.eliteAthletePhone}',
+                        style: TextStyle(fontSize: r.sp(10.5), color: const Color(0xFF4A148C), fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           const Spacer(),

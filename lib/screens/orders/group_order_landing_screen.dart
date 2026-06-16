@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
 import '../../widgets/pc_layout.dart';
 import 'group_order_guide_screen.dart';
 import '../../utils/navigation_helper.dart';
+import '../../utils/constants.dart';
 
 /// 사이드바 "단체주문하기" 전용 랜딩 페이지
 /// - 단체주문 안내 + 주문서 작성 바로가기
@@ -441,42 +443,113 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   }
 
   Widget _buildContactCard() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: const Column(
-        children: [
-          Row(
+    return Column(
+      children: [
+        // ── 엘리트 선수 전용 안내 박스 ──
+        GestureDetector(
+          onTap: () async {
+            final uri = Uri(scheme: 'tel', path: AppConstants.eliteAthletePhone.replaceAll('-', ''));
+            if (await canLaunchUrl(uri)) launchUrl(uri);
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4A148C), Color(0xFF7B1FA2)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(color: Colors.purple.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3)),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 22),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('🏅 엘리트 선수 주문',
+                          style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900)),
+                      SizedBox(height: 3),
+                      Text('전담 상담사 직통 연결',
+                          style: TextStyle(color: Colors.white70, fontSize: 11)),
+                      SizedBox(height: 4),
+                      Text(AppConstants.eliteAthletePhone,
+                          style: TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.amber,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.phone_rounded, size: 14, color: Colors.black87),
+                      SizedBox(width: 4),
+                      Text('전화', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black87)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        // ── 일반 문의 ──
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1A1A),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Column(
             children: [
-              Icon(Icons.chat_rounded, size: 16, color: Color(0xFFFF6B35)),
-              SizedBox(width: 8),
-              Text('카카오톡 채널: @2FIT KOREA',
-                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+              Row(
+                children: [
+                  Icon(Icons.chat_rounded, size: 16, color: Color(0xFFFF6B35)),
+                  SizedBox(width: 8),
+                  Text('카카오톡 채널: @2FIT KOREA',
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.email_rounded, size: 16, color: Color(0xFFFF6B35)),
+                  SizedBox(width: 8),
+                  Text('이메일: tbrk2435@kakao.com',
+                      style: TextStyle(color: Colors.white, fontSize: 12)),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.schedule_rounded, size: 16, color: Color(0xFFFF6B35)),
+                  SizedBox(width: 8),
+                  Text('운영시간: 평일 10:00 ~ 18:00',
+                      style: TextStyle(color: Colors.white70, fontSize: 11)),
+                ],
+              ),
             ],
           ),
-          SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.email_rounded, size: 16, color: Color(0xFFFF6B35)),
-              SizedBox(width: 8),
-              Text('이메일: admin@2fit.co.kr',
-                  style: TextStyle(color: Colors.white, fontSize: 12)),
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.schedule_rounded, size: 16, color: Color(0xFFFF6B35)),
-              SizedBox(width: 8),
-              Text('운영시간: 평일 09:00 ~ 18:00',
-                  style: TextStyle(color: Colors.white70, fontSize: 11)),
-            ],
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
