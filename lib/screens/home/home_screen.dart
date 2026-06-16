@@ -1180,7 +1180,8 @@ class _HomeScreenState extends State<HomeScreen>
                       child: NetImage(b.imageUrl,
                         fit: BoxFit.cover, width: double.infinity, height: double.infinity,
                         cacheWidth: 1200,
-                        filterQuality: FilterQuality.medium
+                        filterQuality: FilterQuality.medium,
+                      ),
                     )
                   else
                     GestureDetector(onTap: onTap,
@@ -2009,10 +2010,7 @@ class _HomeScreenState extends State<HomeScreen>
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.contain,
-                              filterQuality: FilterQuality.medium
-                                color: const Color(0xFFF0F0F0),
-                                child: const Icon(Icons.checkroom_rounded, size: 40, color: Color(0xFFCCCCCC)),
-                              ),
+                              filterQuality: FilterQuality.medium,
                             )
                           : Container(
                               color: const Color(0xFFF5F5F5),

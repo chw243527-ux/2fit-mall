@@ -3619,14 +3619,7 @@ $productUrl
                             url,
                             width: double.infinity,
                             fit: BoxFit.contain,
-                            cacheWidth: 800
-                              height: 80,
-                              color: const Color(0xFFEEEEEE),
-                              child: const Center(
-                                child: Icon(Icons.broken_image_outlined,
-                                    size: 36, color: Color(0xFFCCCCCC)),
-                              ),
-                            ),
+                            cacheWidth: 800,
                           ),
                   ),
                 ),

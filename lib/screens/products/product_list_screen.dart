@@ -836,9 +836,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ? NetImage(
                               p.images.first,
                               fit: BoxFit.cover,
-                              filterQuality: FilterQuality.medium
-                                color: const Color(0xFFF0F0F0),
-                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)),
+                              filterQuality: FilterQuality.medium,
                             )
                           : Container(
                               color: const Color(0xFFF0F0F0),
