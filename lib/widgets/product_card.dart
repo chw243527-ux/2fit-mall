@@ -10,8 +10,7 @@ import '../screens/products/product_detail_screen.dart';
 import '../utils/app_localizations.dart';
 
 /// 공유 상품 카드 — 홈화면 단체주문 카드와 동일한 스타일
-/// · 흰 배경 / radius 10 / 연한 테두리 / 미세 그림자
-/// · 이미지 4:5 비율 / 이미지 비율 자동 감지 → cover/contain 자동 결정
+/// · 이미지 4:5 비율 / BoxFit.cover (이미지 꽉 채움)
 /// · 좌상단: NEW / SALE / GROUP 배지
 /// · 우상단: 할인율 배지 (있을 때만)
 /// · 하단: [단체주문 전용 뱃지] → 상품명 → 가격
@@ -412,8 +411,8 @@ class _SmartProductImageState extends State<_SmartProductImage> {
   // 카드 비율 (4:5)
   static const double _cardRatio = 4 / 5;
 
-  BoxFit _fit = BoxFit.cover; // 기본값: cover
-  bool _resolved = false;     // 비율 감지 완료 여부
+  BoxFit _fit = BoxFit.cover; // 항상 cover
+  bool _resolved = false;
 
   @override
   void initState() {
@@ -453,17 +452,8 @@ class _SmartProductImageState extends State<_SmartProductImage> {
         final imgRatio = w / h;
         BoxFit decided;
 
-        if (imgRatio > 1.1) {
-          // 가로형(배너/풍경) → cover로 꽉 채움
-          decided = BoxFit.cover;
-        } else if (imgRatio < 0.55) {
-          // 세로형이 카드보다 훨씬 길면 → contain으로 전신 표시
-          decided = BoxFit.contain;
-        } else {
-          // 카드 비율(0.8)과 ±35% 이내면 cover, 아니면 contain
-          final ratio = imgRatio / _cardRatio;
-          decided = (ratio >= 0.65 && ratio <= 1.35) ? BoxFit.cover : BoxFit.contain;
-        }
+        // 모든 비율 → cover (카드에 꽉 채움)
+        decided = BoxFit.cover;
 
         setState(() {
           _fit = decided;
