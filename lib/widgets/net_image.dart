@@ -59,19 +59,25 @@ class NetImage extends StatelessWidget {
       );
     }
 
-    // 네이티브: CachedNetworkImage (메모리+디스크 캐시)
-    return CachedNetworkImage(
-      imageUrl: url,
+    // 네이티브: CachedNetworkImage → FittedBox로 감싸 항상 영역 꽉 채움
+    return SizedBox(
       width: width,
       height: height,
-      fit: fit,
-      alignment: alignment,
-      placeholder: (_, __) => _placeholder(),
-      errorWidget: (_, __, ___) => _errorWidget(),
-      fadeInDuration: const Duration(milliseconds: 200),
-      fadeOutDuration: const Duration(milliseconds: 100),
-      memCacheWidth: _memWidth(),
-      memCacheHeight: _memHeight(),
+      child: FittedBox(
+        fit: BoxFit.cover,
+        clipBehavior: Clip.hardEdge,
+        child: CachedNetworkImage(
+          imageUrl: url,
+          fit: BoxFit.cover,
+          alignment: alignment,
+          placeholder: (_, __) => _placeholder(),
+          errorWidget: (_, __, ___) => _errorWidget(),
+          fadeInDuration: const Duration(milliseconds: 200),
+          fadeOutDuration: const Duration(milliseconds: 100),
+          memCacheWidth: _memWidth(),
+          memCacheHeight: _memHeight(),
+        ),
+      ),
     );
   }
 
@@ -207,13 +213,16 @@ class _WebImageState extends State<_WebImage> {
           opacity: _loaded ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 200),
           child: SizedBox.expand(
-            child: Image(
-              image: _provider,
-              width: double.infinity,
-              height: double.infinity,
-              fit: widget.fit,
-              alignment: widget.alignment,
-              gaplessPlayback: true,
+            // FittedBox: 어떤 비율 이미지도 영역을 완전히 채움
+            child: FittedBox(
+              fit: BoxFit.cover,
+              clipBehavior: Clip.hardEdge,
+              child: Image(
+                image: _provider,
+                fit: BoxFit.cover,
+                alignment: widget.alignment,
+                gaplessPlayback: true,
+              ),
             ),
           ),
         ),
