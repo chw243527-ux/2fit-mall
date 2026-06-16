@@ -2423,13 +2423,18 @@ class _HomeScreenState extends State<HomeScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // 이미지
-                        ClipRRect(
+                        SizedBox(
+                          width: cardW,
+                          height: imgH,
+                          child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Stack(
                             children: [
                               Positioned.fill(
                                 child: p.images.isNotEmpty
                                   ? NetImage(p.images.first,
+                                      width: cardW,
+                                      height: imgH,
                                       fit: BoxFit.cover,
                                     )
                                   : Container(
@@ -2453,6 +2458,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                 ),
                             ],
+                          ),
                           ),
                         ),
                         SizedBox(height: r.h(6)),
@@ -2601,13 +2607,18 @@ class _HomeScreenState extends State<HomeScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // 이미지
-                        ClipRRect(
+                        SizedBox(
+                          width: cardW,
+                          height: imgH,
+                          child: ClipRRect(
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
                           child: Stack(
                             children: [
                               Positioned.fill(
                                 child: p.images.isNotEmpty
                                     ? NetImage(p.images.first,
+                                        width: cardW,
+                                        height: imgH,
                                         fit: BoxFit.cover,
                                       )
                                     : const Icon(Icons.image_not_supported_rounded,
@@ -2639,6 +2650,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                 ),
                             ],
+                          ),
                           ),
                         ),
                         // 상품 정보
