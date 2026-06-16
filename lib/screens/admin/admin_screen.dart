@@ -11949,6 +11949,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                                       imageCtrl.text   = url;
                                       isUploading      = false;
                                       pickedImageBytes = null;
+                                      autoImage        = false; // ← 업로드 완료 시 자동이미지 OFF
                                     });
                                   },
                                   onError: (e) {
@@ -12099,9 +12100,12 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 final finalTheme = selectedTheme == 'auto'
                     ? NoticeThemeHelper.detectTheme(title, content)
                     : selectedTheme;
-                final finalImageUrl = autoImage
-                    ? NoticeThemeHelper.autoImageUrl(finalTheme)
-                    : imageCtrl.text.trim();
+                // imageCtrl에 URL이 있으면 항상 우선 사용 (업로드 이미지 보호)
+                final finalImageUrl = imageCtrl.text.trim().isNotEmpty
+                    ? imageCtrl.text.trim()
+                    : autoImage
+                        ? NoticeThemeHelper.autoImageUrl(finalTheme)
+                        : '';
 
                 final titleChanged   = existing != null && existing.titleKo != title;
                 final contentChanged = existing != null && existing.contentKo != content;
