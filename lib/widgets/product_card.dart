@@ -82,7 +82,7 @@ class ProductCard extends StatelessWidget {
     const double imgRadius = 8.0;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(imgPad, imgPad, imgPad, 0),
+      padding: const EdgeInsets.fromLTRB(imgPad, imgPad, imgPad, imgPad),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(imgRadius),
         child: AspectRatio(
