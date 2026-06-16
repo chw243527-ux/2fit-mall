@@ -126,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen>
   final GlobalKey<ScaffoldState> _pcScaffoldKey = GlobalKey<ScaffoldState>();
 
   Widget _buildPcLayout(AppLocalizations loc) {
+    final r = Responsive.of(context);
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
 
@@ -194,6 +195,7 @@ class _HomeScreenState extends State<HomeScreen>
   // PC 섹션 공통 래퍼 (maxWidth 1280 + 좌우 패딩 + 배경색)
   // 단체주문처럼 자체 배경색이 없는 섹션에 사용
   Widget _buildPcHomeSectionWrapper({required Widget child, Color color = Colors.white}) {
+    final r = Responsive.of(context);
     return Container(
       color: color,
       width: double.infinity,
@@ -239,6 +241,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 카테고리 드로어 (햄버거 버튼으로 열림) ──
   // ignore: unused_element
   Widget _buildPcCategoryDrawer(AppLocalizations loc) {
+    final r = Responsive.of(context);
     return Drawer(
       width: 300,
       backgroundColor: Colors.white,
@@ -508,6 +511,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 전용 카테고리 사이드바 (아코디언) — 드로어로 대체됨 ──
   // ignore: unused_element
   Widget _buildPcCategorySidebar(AppLocalizations loc) {
+    final r = Responsive.of(context);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -736,6 +740,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 메인 영역 상품 그리드 (4컬럼, 사이드바와 함께) ──
   // ignore: unused_element
   Widget _buildPcMainProductSection({
+    final r = Responsive.of(context);
     required String title,
     required String englishTitle,
     required Color accentColor,
@@ -878,6 +883,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 전용 NavBar (배너 위에 표시) ──
   // ignore: unused_element
   Widget _buildPcNavBar(AppLocalizations loc) {
+    final r = Responsive.of(context);
     return Container(
       color: Colors.white,
       decoration: const BoxDecoration(
@@ -1055,6 +1061,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── PC 배너 슬라이더 본체 (BannerModel 리스트 사용) ──
   Widget _buildPcBannerBody(AppLocalizations loc, List<BannerModel> banners) {
+    final r = Responsive.of(context);
     final isKo = loc.language == AppLanguage.korean;
     return Stack(
         children: [
@@ -1308,6 +1315,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 배너 섹션 (모바일과 동일, 높이만 조정) ──
   // ignore: unused_element
   Widget _buildPcBannerSection(AppLocalizations loc) {
+    final r = Responsive.of(context);
     final banners = [
       {
         'title': 'JUST\nDO IT.',
@@ -1697,6 +1705,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 카테고리 탭 섹션 (모바일 카테고리바와 동일) ──
   // ignore: unused_element
   Widget _buildPcCategoryTabSection(AppLocalizations loc) {
+    final r = Responsive.of(context);
     final items = _getCategoryItems(loc);
     return Container(
       color: Colors.white,
@@ -1727,6 +1736,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildPcCategoryTabItem(Map<String, dynamic> item, AppLocalizations loc) {
+    final r = Responsive.of(context);
     final isSelected = _selectedCategoryKey == item['key'];
     final label = item['label'] as String;
     final key = item['key'] as String;
@@ -1787,6 +1797,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 상품 그리드 섹션 (신상품/베스트 — 모바일 가로 스크롤 대신 5컬럼 그리드) ──
   // ignore: unused_element
   Widget _buildPcProductGridSection({
+    final r = Responsive.of(context);
     required String title,
     required String englishTitle,
     required Color accentColor,
@@ -2083,6 +2094,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 단체주문전용 상품 섹션 ──
   // ignore: unused_element
   Widget _buildPcGroupOrderSection(AppLocalizations loc) {
+    final r = Responsive.of(context);
     List<ProductModel> allProds = context.watch<ProductProvider>().products;
     // 비어있으면 더미 데이터로 즉시 폴백
     if (allProds.isEmpty) {
@@ -2189,6 +2201,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 단체주문 CTA 배너 ──
   // ignore: unused_element
   Widget _buildPcNewArrivalCta() {
+    final r = Responsive.of(context);
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF111111),
@@ -2354,6 +2367,7 @@ class _HomeScreenState extends State<HomeScreen>
     bool hasMore,
     List<ProductModel> allGroupProds,
   ) {
+    final r = Responsive.of(context);
     void goAll() => Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()),
@@ -2491,6 +2505,7 @@ class _HomeScreenState extends State<HomeScreen>
     AppLocalizations loc,
     List<ProductModel> allGroupProds,
   ) {
+    final r = Responsive.of(context);
     final preview = allGroupProds.take(5).toList();
     final screenW = MediaQuery.of(context).size.width;
     final isTabletW = screenW >= 600;
@@ -2646,6 +2661,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 고정 헤더 (흰 배경) ──
   Widget _buildFixedHeader(AppLocalizations loc) {
+    final r = Responsive.of(context);
     return Container(
       height: 52,
       color: Colors.white,
@@ -2747,6 +2763,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 카테고리 가로 탭바 ──
   Widget _buildCategoryTabBar(AppLocalizations loc) {
+    final r = Responsive.of(context);
     const cats = ['전체', '상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '단체주문'];
     return Container(
       color: Colors.white,
@@ -2811,6 +2828,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 모바일 풀스크린 배너 (헤더 오버레이 포함) ──
   Widget _buildCompactBanner(AppLocalizations loc) {
+    final r = Responsive.of(context);
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
     final mq      = MediaQuery.of(context);
@@ -2952,6 +2970,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 단체주문 전용 상품 섹션 헤더 ──
   Widget _buildGroupSectionHeader(AppLocalizations loc, int count) {
+    final r = Responsive.of(context);
     return Container(
       color: Colors.white,
       padding: EdgeInsets.fromLTRB(r.w(16), r.h(18), r.w(16), r.h(12)),
@@ -3015,6 +3034,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 단체주문 전용 상품 카드 (홈화면용) ──
   Widget _buildGroupProductCard(ProductModel p) {
+    final r = Responsive.of(context);
     final discount = p.originalPrice != null && p.originalPrice! > p.price
         ? ((1 - p.price / p.originalPrice!) * 100).round()
         : 0;
@@ -3119,6 +3139,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 단체주문 상품 없음 상태 ──
   Widget _buildGroupEmptyState(AppLocalizations loc) {
+    final r = Responsive.of(context);
     return Container(
       color: Colors.white,
       padding: EdgeInsets.symmetric(vertical: r.h(48), horizontal: r.w(24)),
@@ -3160,6 +3181,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 1행 오버레이 헤더 ──
   Widget _buildOverlayHeader(AppLocalizations loc) {
+    final r = Responsive.of(context);
     // 배너 풀스크린 위에 올라오는 헤더 — 상단 그라데이션으로 가독성 확보
     return Container(
       decoration: BoxDecoration(
@@ -3306,6 +3328,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 단체주문전용 상품 섹션 ──
   // ignore: unused_element
   Widget _buildGroupOrderSection(AppLocalizations loc) {
+    final r = Responsive.of(context);
     List<ProductModel> allProds = context.watch<ProductProvider>().products;
     if (allProds.isEmpty) allProds = ProductService.getAllProductsSync();
     final groupProducts = allProds.where((p) => p.isGroupOnly).toList();
@@ -3472,6 +3495,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 상단 알림 띠배너 ──
   // ignore: unused_element
   Widget _buildNoticeBanner() {
+    final r = Responsive.of(context);
     return Container(
       color: const Color(0xFFE53935),
       padding: EdgeInsets.symmetric(vertical: r.h(8)),
@@ -3494,6 +3518,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 퀵메뉴 바 (이벤트/신상품) ──
   // ignore: unused_element
   Widget _buildQuickMenuBar(AppLocalizations loc) {
+    final r = Responsive.of(context);
     final menus = [
       {'icon': Icons.local_offer_rounded, 'label': loc.homeEvent, 'color': const Color(0xFFE53935)},
       {'icon': Icons.fiber_new_rounded, 'label': loc.homeNewArrival, 'color': const Color(0xFF6A1B9A)},
@@ -3652,6 +3677,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 중간 프로모션 배너 (복수 배너) ──
   // ignore: unused_element
   Widget _buildPromoBanner() {
+    final r = Responsive.of(context);
     return Container(
       margin: EdgeInsets.only(top: r.h(8)),
       child: Column(
@@ -3741,6 +3767,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 브랜드 특징 섹션 ──
   // ignore: unused_element
   Widget _buildBrandFeatureSection() {
+    final r = Responsive.of(context);
     final features = [
       {'icon': Icons.local_shipping_outlined, 'title': loc.homeFreeShipping, 'sub': loc.homeFreeShippingSub},
       {'icon': Icons.verified_outlined, 'title': loc.homeQualityGuarantee, 'sub': loc.homeQualityGuaranteeSub},
@@ -3796,6 +3823,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 언어 선택 버튼 ──
   Widget _buildLanguageButton(AppLocalizations loc) {
+    final r = Responsive.of(context);
     final langProv = context.watch<LanguageProvider>();
     return GestureDetector(
       onTap: () => _showLanguageSheet(context, loc),
@@ -4100,6 +4128,7 @@ class _HomeScreenState extends State<HomeScreen>
   // 모바일 배너 섹션 (Firestore BannerProvider 실시간)
   // ────────────────────────────────────────────
   Widget _buildBannerSection(AppLocalizations loc) {
+    final r = Responsive.of(context);
     final bannerProv = context.watch<BannerProvider>();
     final activeBanners = bannerProv.activeBanners;
 
@@ -4329,6 +4358,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 배너 하단 텍스트/CTA 오버레이 (공통) ──
   Widget _buildBannerOverlay({
+    final r = Responsive.of(context);
     required BannerModel banner,
     required String title,
     required String cta,
@@ -4442,6 +4472,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 쇼핑몰 스타일 카테고리 그리드 ──
   // ignore: unused_element
   Widget _buildCategoryBar(AppLocalizations loc) {
+    final r = Responsive.of(context);
     return Container(
       color: Colors.white,
       margin: EdgeInsets.only(top: r.h(8)),
@@ -4632,6 +4663,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ignore: unused_element
   Widget _buildCategoryGridItem(Map<String, dynamic> item, AppLocalizations loc) {
+    final r = Responsive.of(context);
     final label = item['label'] as String;
     final key   = item['key']   as String;
     final color = item['color'] as Color;
@@ -4689,6 +4721,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ignore: unused_element
   Widget _buildCategoryItem(Map<String, dynamic> item, AppLocalizations loc) {
+    final r = Responsive.of(context);
     final isSelected = _selectedCategoryKey == item['key'];
     final label = item['label'] as String;
     final key   = item['key']   as String;
@@ -4821,6 +4854,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   /// 섹션 로딩 중 스켈레톤 (shimmer 효과)
   Widget _buildSectionSkeleton(String title) {
+    final r = Responsive.of(context);
     return Container(
       color: Colors.white,
       padding: EdgeInsets.symmetric(vertical: r.h(24), horizontal: r.w(16)),
@@ -4877,6 +4911,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildProductSection({
+    final r = Responsive.of(context);
     required String title,
     required String englishTitle,
     required Color accentColor,
@@ -5071,6 +5106,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 푸터 (홈 스크롤 맨 아래) ──
   // ignore: unused_element
   Widget _buildPcFooter(AppLocalizations loc) {
+    final r = Responsive.of(context);
     return Container(
       color: const Color(0xFF1A1A1A),
       padding: EdgeInsets.symmetric(vertical: r.h(40)),
@@ -5643,6 +5679,7 @@ class _NoticePopupState extends State<_NoticePopup> {
 
   // 테마 그라디언트 배너 (이미지 없을 때)
   Widget _buildGradientBg(List<Color> colors, String emoji, String title) {
+    final r = Responsive.of(context);
     return Stack(
       fit: StackFit.expand,
       children: [

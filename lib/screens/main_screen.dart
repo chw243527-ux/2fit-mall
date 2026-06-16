@@ -264,6 +264,7 @@ class _PcLayoutState extends State<_PcLayout> {
   }
 
   Widget _buildPcCategoryDrawer(BuildContext context, AppLocalizations loc) {
+    final r = Responsive.of(context);
     return Drawer(
       width: 300,
       backgroundColor: Colors.white,
@@ -704,6 +705,7 @@ class _PcTopBarState extends State<_PcTopBar> {
 
   // ─── 유틸바 버튼 ───
   Widget _utilBtn(String label, IconData icon, {VoidCallback? onTap}) {
+    final r = Responsive.of(context);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -721,6 +723,7 @@ class _PcTopBarState extends State<_PcTopBar> {
 
   // ─── 2줄 아이콘 (아이콘 + 라벨) ───
   Widget _topIcon({
+    final r = Responsive.of(context);
     required IconData icon,
     required String label,
     required VoidCallback onTap,
@@ -747,6 +750,7 @@ class _PcTopBarState extends State<_PcTopBar> {
 
   // ─── 2줄 아이콘 + 뱃지 ───
   Widget _topIconBadge({
+    final r = Responsive.of(context);
     required IconData icon,
     required String label,
     required int badge,
@@ -1019,6 +1023,7 @@ class _PcFooter extends StatelessWidget {
   }
 
   Widget _footerInfoRow(String text) {
+    final r = Responsive.of(context);
     return Padding(
       padding: EdgeInsets.only(bottom: r.h(5)),
       child: Text(text, style: TextStyle(color: Colors.white54, fontSize: r.sp(12.5))),
@@ -1026,6 +1031,7 @@ class _PcFooter extends StatelessWidget {
   }
 
   Widget _socialBtn(String label, Color bg, Color fg, VoidCallback onTap) {
+    final r = Responsive.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1040,6 +1046,7 @@ class _PcFooter extends StatelessWidget {
   }
 
   Widget _footerLinkCol(String title, List<_FooterLink> links) {
+    final r = Responsive.of(context);
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1387,6 +1394,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
   // 테마 그라디언트 배너 (이미지 없을 때)
   Widget _buildGradientBg(List<Color> colors, String emoji, String title) {
+    final r = Responsive.of(context);
     return Stack(
       fit: StackFit.expand,
       children: [

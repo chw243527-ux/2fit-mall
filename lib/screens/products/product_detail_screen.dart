@@ -228,6 +228,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 모바일 상세 (<600px) — 기존 레이아웃 그대로 ──
   Widget _buildMobileDetailLayout(BuildContext context, ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
     return wrapWithPopScope(context, Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -276,6 +277,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 태블릿 상세 (600~899px) — 중앙 정렬 + 최대폭 720 ──
   Widget _buildTabletDetailLayout(BuildContext context, ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
     return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: Stack(
@@ -336,6 +338,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── PC 상세 (≥900px) — 2컬럼: 좌 이미지 고정 / 우 정보+스크롤 ──
   Widget _buildPcDetailLayout(BuildContext context, ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
     final screenW = MediaQuery.of(context).size.width;
     final screenH = MediaQuery.of(context).size.height;
     // 전체 최대 1280, 좌우 나눔: 이미지 45% / 정보 55%
@@ -481,6 +484,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // ═══════════════════════════════════════
   // ── 탑텐 스타일: 상단 앱바 (투명 → 스크롤 시 흰색) ──
   Widget _buildSliverAppBarOnly(ProductModel product) {
+    final r = Responsive.of(context);
     return SliverAppBar(
       pinned: true,
       backgroundColor: Colors.white,
@@ -534,6 +538,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // 앱바 원형 아이콘 버튼 헬퍼
   Widget _appBarIconBtn({required IconData icon, required VoidCallback onTap, EdgeInsetsGeometry? margin}) {
+    final r = Responsive.of(context);
     return Container(
       margin: margin ?? EdgeInsets.only(right: r.w(2), top: r.h(8), bottom: r.h(8)),
       decoration: const BoxDecoration(color: Color(0xFFF5F5F5), shape: BoxShape.circle),
@@ -547,6 +552,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   // ── 이미지 슬라이더 (탑텐 스타일: 전체화면형, 하단 바 인디케이터) ──
   Widget _buildImageSlider(ProductModel product) {
+    final r = Responsive.of(context);
     // _mainImages: Firestore fresh 로드 후 갱신된 메인 이미지 (배포 후에도 유지)
     final imgs = _mainImages.isNotEmpty ? _mainImages : product.images;
     final imgCount = imgs.isNotEmpty ? imgs.length : 1;
@@ -757,6 +763,7 @@ $productUrl
   }
 
   Widget _shareOption({
+    final r = Responsive.of(context);
     required IconData icon,
     required Color color,
     required String label,
@@ -846,6 +853,7 @@ $productUrl
 
   // ══ 탑텐 스타일: 썸네일 바 (심플 정사각형, 선택 시 검정 테두리) ══
   Widget _buildThumbnailBar(ProductModel product) {
+    final r = Responsive.of(context);
     // _mainImages: Firestore fresh 로드 후 갱신된 메인 이미지 사용
     final imgs = _mainImages.isNotEmpty ? _mainImages : product.images;
     if (imgs.length <= 1) return const SizedBox.shrink();
@@ -903,6 +911,7 @@ $productUrl
   // 섬유 혼용율 인라인 (상품명 아래)
   // ═══════════════════════════════════════
   Widget _buildFiberRatioInline(ProductModel product) {
+    final r = Responsive.of(context);
     final table = loc.fiberTableData;
     final name = product.localizedName(_lang).toLowerCase();
     final cat  = product.category.toLowerCase();
@@ -958,6 +967,7 @@ $productUrl
   // 기본 정보 (탑텐 스타일)
   // ═══════════════════════════════════════
   Widget _buildBasicInfo(ProductModel product) {
+    final r = Responsive.of(context);
     final discount = product.originalPrice != null && product.originalPrice! > product.price
         ? ((1 - product.price / product.originalPrice!) * 100).round() : 0;
     final isAdmin = context.read<UserProvider>().isAdmin;
@@ -1198,6 +1208,7 @@ $productUrl
 
   // ── 탑텐 스타일: PAYBACK/특별사이즈 탭 칩 ──
   Widget _toptenTabChip(String label, bool selected, {Color? activeColor}) {
+    final r = Responsive.of(context);
     final ac = activeColor ?? const Color(0xFF1A1A1A);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(5)),
@@ -1220,6 +1231,7 @@ $productUrl
 
   // ── 탑텐 스타일: 색상 원형 그리드 선택 UI ──
   Widget _buildToptenColorSection(ProductModel product) {
+    final r = Responsive.of(context);
     String _selectedColor = product.colors.isNotEmpty ? product.colors.first : '';
     // 골지 텍스처 적용 대상: 타이즈, 단체주문 하의, 5부, 2.5부
     final sub  = product.subCategory;
@@ -1294,6 +1306,7 @@ $productUrl
 
   // ── 탑텐 스타일: 해시태그 칩 ──
   Widget _hashtagChip(String label) {
+    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
       decoration: BoxDecoration(
@@ -1310,6 +1323,7 @@ $productUrl
 
   // ── 탑텐 스타일: 배송비 + 포인트 구조형 섹션 ──
   Widget _buildToptenShippingSection(ProductModel product) {
+    final r = Responsive.of(context);
     return Column(children: [
       // 배송비 행
       Padding(
@@ -1352,6 +1366,7 @@ $productUrl
 
   // ── 탑텐 스타일: 브랜드 로고 박스 섹션 ──
   Widget _buildToptenBrandSection(ProductModel product) {
+    final r = Responsive.of(context);
     return Consumer<UserProvider>(builder: (_, up, __) {
       final isWish = up.isInWishlist(product.id);
       return Padding(
@@ -1431,6 +1446,7 @@ $productUrl
   }
 
   Widget _buildToptenTabBar() {
+    final r = Responsive.of(context);
     final tabs = [
       ('상품정보', 0, _keyInfo),
       ('사이즈',   1, _keySize),
@@ -1480,6 +1496,7 @@ $productUrl
 
   // ── 탑텐 스타일: 상품 상세 정보 (INFO/PRODUCT/MATERIAL/COLOR/WASHING TIP) ──
   Widget _buildToptenInfoSection(ProductModel product) {
+    final r = Responsive.of(context);
     final productCode = product.productCode.isNotEmpty
         ? product.productCode.toUpperCase()
         : product.id.toUpperCase();
@@ -1698,6 +1715,7 @@ $productUrl
 
   // ── 색상 안내 배지 (라벨 + 설명 텍스트) ──
   Widget _infoColorBadge({
+    final r = Responsive.of(context);
     required String label,
     required Color labelColor,
     required String text,
@@ -1793,6 +1811,7 @@ $productUrl
 
   // ── 색상 칩: 원형 스와치 (useRib=true 이면 골지 텍스처, false 이면 단색)
   Widget _infoColorChipRow(List<String> codes, {bool useRib = true}) {
+    final r = Responsive.of(context);
     return Wrap(
       spacing: 10,
       runSpacing: 14,
@@ -1853,6 +1872,7 @@ $productUrl
 
   // ── 탑텐 스타일: 번호+라벨+컨텐츠 블록
   Widget _toptenInfoBlock({
+    final r = Responsive.of(context);
     required String num,
     required String label,
     required String labelSub,
@@ -1879,6 +1899,7 @@ $productUrl
 
   // ── 탑텐 스타일: 키-값 테이블
   Widget _toptenInfoTable(List<(String, String)> rows) {
+    final r = Responsive.of(context);
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: const Color(0xFFE0E0E0)),
@@ -1953,6 +1974,7 @@ $productUrl
 
   // ── 최하단 WASHING TIP 독립 섹션 (탑텐 스타일) ──
   Widget _buildWashingTipSection(ProductModel product) {
+    final r = Responsive.of(context);
     // 아이콘+설명 세탁 가이드 항목
     final washGuide = [
       (Icons.water_drop_outlined,      '찬물 세탁',    '30°C 이하 찬물 사용 권장'),
@@ -2090,6 +2112,7 @@ $productUrl
 
   // 탑텐 스타일: 섹션 내 소타이틀 (기존 _infoBlockTitle 대체)
   Widget _infoBlockTitle(String title) {
+    final r = Responsive.of(context);
     return Row(
       children: [
         Container(width: 12, height: 1.5, color: const Color(0xFF1A1A1A)),
@@ -2109,6 +2132,7 @@ $productUrl
 
   // 탑텐 스타일: 키-값 한 줄 (기존 _infoLabelRow 대체)
   Widget _infoLabelRow(String label, String value) {
+    final r = Responsive.of(context);
     return Padding(
       padding: EdgeInsets.symmetric(vertical: r.h(7)),
       child: Row(
@@ -2135,6 +2159,7 @@ $productUrl
 
   // ── 탑텐 스타일: 태그 위젯 ──
   Widget _toptenTag(IconData icon, String label, Color color) {
+    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: r.w(9), vertical: r.h(5)),
       decoration: BoxDecoration(
@@ -2158,6 +2183,7 @@ $productUrl
 
   // ── 탑텐 스타일: 배송/혜택 정보 심플 라인형 ──
   Widget _buildToptenShippingInfo(ProductModel product) {
+    final r = Responsive.of(context);
     final items = [
       {
         'icon': Icons.local_shipping_outlined,
@@ -2230,6 +2256,7 @@ $productUrl
   }
 
   Widget _infoRow(IconData icon, String label, String value) {
+    final r = Responsive.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2249,6 +2276,7 @@ $productUrl
   // 상의 색상 안내 배너용 행 위젯
   // ignore: unused_element
   Widget _colorNoticeRow(IconData icon, String label, String desc, {required bool highlight}) {
+    final r = Responsive.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2297,6 +2325,7 @@ $productUrl
 
   /// 상품명 아래 기성품 색상 안내 뱃지 (싱글렛세트 / 상의 구분)
   Widget _buildColorInfoBadge(ProductModel product) {
+    final r = Responsive.of(context);
     // 타이즈와 싱글렛세트 모두 "하의 색상 선택" 표시
     final isTaiz = product.category == '하의' ||
         product.subCategory.contains('타이즈') ||
@@ -2368,6 +2397,7 @@ $productUrl
   // ═══════════════════════════════════════
   // ignore: unused_element
   Widget _buildInlineLengthSection() {
+    final r = Responsive.of(context);
     const lengths = AppConstants.bottomLengths;
     final product = widget.product;
     final isSingletSet = (product.category == '세트' &&
@@ -2558,6 +2588,7 @@ $productUrl
 
   // 성별 선택 버튼 (모든 제품에 표시)
   Widget _inlineGenderBtn(String code, String label, String subLabel, {bool autoLength = false}) {
+    final r = Responsive.of(context);
     final isSel = _singletGender == code;
     return Expanded(
       child: GestureDetector(
@@ -2612,6 +2643,7 @@ $productUrl
 
   // 싱글렛세트 전용: 단일 하의길이 버튼 (선택된 것만 표시)
   Widget _singletLengthOnlyBtn({required String label, required String desc}) {
+    final r = Responsive.of(context);
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: r.h(14), horizontal: r.w(20)),
@@ -2649,6 +2681,7 @@ $productUrl
 
   // ── 원단 타입 선택 버튼 (일반원단 / 심리스) ──
   Widget _fabricTypeBtn(String type, String subLabel, IconData icon) {
+    final r = Responsive.of(context);
     final sel = _selectedFabricType == type;
     return Expanded(
       child: GestureDetector(
@@ -2698,6 +2731,7 @@ $productUrl
   // 구매 방식 선택 (인라인 섹션)
   // ═══════════════════════════════════════
   Widget _buildPurchaseTypeSection(ProductModel product) {
+ final r = Responsive.of(context);
 
     // ── 카테고리 판별 ──────────────────────────────────────────────
     // 싱글렛 A타입세트: 세트 카테고리 + subCategory/name에 싱글렛+A타입 포함
@@ -3200,6 +3234,7 @@ $productUrl
       'https://firebasestorage.googleapis.com/v0/b/fit-mall.firebasestorage.app/o/section_images%2Flength_female_default.jpg?alt=media';
 
   Widget _buildGenderLengthImageSection(bool isAdmin) {
+    final r = Responsive.of(context);
     // 통합 키 's2_length' 하나로 관리 (남녀 구분 없음)
     final imgs = _sectionImages['s2_length'] ?? [];
     // 기존 남자키 데이터도 폴백으로 사용
@@ -3374,6 +3409,7 @@ $productUrl
 
   // ── 정적 이미지 리스트 (fallback 포함) ──
   Widget _buildStaticImageList(List<String> imgs) {
+    final r = Responsive.of(context);
     if (imgs.isEmpty) return const SizedBox.shrink();
     return Column(
       children: imgs.map((url) => Padding(
@@ -3392,6 +3428,7 @@ $productUrl
   }
 
   Widget _buildGenderImageHeader({
+    final r = Responsive.of(context);
     required IconData icon,
     required String label,
     required Color color,
@@ -3457,6 +3494,7 @@ $productUrl
     String sectionLabel,
     bool isAdmin,
   ) {
+    final r = Responsive.of(context);
     final imgs = _sectionImages[sectionKey] ?? [];
 
     return Column(
@@ -3525,6 +3563,7 @@ $productUrl
 
   // 드래그 가능한 이미지 아이템 (관리자)
   Widget _buildReorderableImageItem({
+    final r = Responsive.of(context);
     required Key key,
     required String url,
     required int index,
@@ -3624,6 +3663,7 @@ $productUrl
 
   // 일반 이미지 아이템 (비관리자, 탭 → 라이트박스)
   Widget _buildImageItem({required String url, VoidCallback? onTap}) {
+    final r = Responsive.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Padding(
@@ -3657,6 +3697,7 @@ $productUrl
 
   Widget _buildAdminUploadButton(
       String sectionKey, String sectionLabel, List<String> existingImgs) {
+    final r = Responsive.of(context);
     return GestureDetector(
       onTap: () => _pickAndUploadImages(sectionKey, sectionLabel, existingImgs),
       child: Container(
@@ -3897,6 +3938,7 @@ $productUrl
   // 디자인 이미지 셀린 (카테고리 위 인라인, 확대 가능)
   // ═══════════════════════════════════════════════════════════
   Widget _buildDesignImageSection(ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
     final imgs = _sectionImages['design'] ?? [];
     // 이미지가 없고 관리자도 아니면 숨김
     if (!isAdmin && imgs.isEmpty) return const SizedBox.shrink();
@@ -4120,6 +4162,7 @@ $productUrl
 
   // ── 공통: 섹션 헤더 배너 (검정 배경 + 영문 대제목 + 한글 서브) ──
   Widget _sectionHeaderBanner({
+    final r = Responsive.of(context);
     required String engTitle,
     required String engSub,
     required String korSub,
@@ -4171,6 +4214,7 @@ $productUrl
   }
 
   Widget _buildSection1Banner(ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
     final features = [
       {'tag': 'ULTRA LIGHT',      'title': loc.feat1Title, 'desc': loc.feat1Desc},
       {'tag': 'SEAMLESS',         'title': loc.feat2Title, 'desc': loc.feat2Desc},
@@ -4209,6 +4253,7 @@ $productUrl
   // 섹션 2: MATERIAL — 탑텐 스타일 소재/기술
   // ═══════════════════════════════════════════════════════════
   Widget _buildSection2Material(ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
     final techRows = [
       {'label': 'SEAMLESS', 'desc': loc.feat2Title, 'sub': loc.feat2Desc},
       {'label': 'FAST DRY',  'desc': loc.techDryTitle,  'sub': loc.techDryDesc},
@@ -4339,6 +4384,7 @@ $productUrl
     List<String> seamlessImgs,
     bool isAdmin,
   ) {
+    final r = Responsive.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
       child: Column(
@@ -4372,6 +4418,7 @@ $productUrl
 
   // ── 관리자 패브릭 슬롯 (헤더 뱃지 + 업로드 버튼 + 이미지 목록) ──
   Widget _buildFabricAdminSlot({
+    final r = Responsive.of(context);
     required String key,
     required String label,
     required IconData icon,
@@ -4460,6 +4507,7 @@ $productUrl
   // 섹션 3: POCKET SYSTEM — 탑텐 스타일 기능 리스트
   // ═══════════════════════════════════════════════════════════
   Widget _buildSection3Pocket(ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
     final pockets = [
       {'tag': 'BACK POCKET',    'title': loc.pocketTile1Title, 'desc': loc.pocketTile1Desc},
       {'tag': 'PHONE FIT',      'title': loc.pocketTile3Title, 'desc': loc.pocketTile3Desc},
@@ -4558,6 +4606,7 @@ $productUrl
   // 섹션 4: SIZE CHART (성인 / 주니어 탭) — 실 표시 번호 04
   // ═══════════════════════════════════════════════════════════
   Widget _buildSection6SizeChart(ProductModel product, [bool isAdmin = false]) {
+    final r = Responsive.of(context);
     // ── 성인 차트 (투핏 사이즈 조건표 기준) ──
     const adultHeaders = ['SIZE', 'HEIGHT\n(cm)', 'WEIGHT\n(kg)', 'CHEST\n(cm)', 'WAIST\n(inch)'];
     const adultRows = [
@@ -4834,6 +4883,7 @@ $productUrl
   // 리뷰 섹션
   // ═══════════════════════════════════════════════════════════
   Widget _buildReviewSection(ProductModel product) {
+    final r = Responsive.of(context);
     return Consumer<ReviewProvider>(
       builder: (_, reviewProv, __) {
         final reviews = reviewProv.getProductReviews(product.id);
@@ -4950,6 +5000,7 @@ $productUrl
   // 하단 바 (탑텐 스타일)
   // ═══════════════════════════════════════════════════════════
   Widget _buildBottomBar(ProductModel product) {
+    final r = Responsive.of(context);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -5119,6 +5170,7 @@ $productUrl
   // ─── 포켓 인포 박스 ───────────────────────────────────────────
   // ignore: unused_element
   Widget _pocketInfoBox(String label, String value) {
+    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.all(r.w(12)),
       decoration: BoxDecoration(
@@ -5429,6 +5481,7 @@ $productUrl
   }
 
   Widget _orderTypeBtn({
+    final r = Responsive.of(context);
     required String emoji,
     required String title,
     required String description,
@@ -6271,6 +6324,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
 
   // ━━━ STEP 0 : 성별 선택 (싱글렛 A타입 세트 전용) ━━━
   Widget _buildGenderStep() {
+    final r = Responsive.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -6331,6 +6385,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
   }
 
   Widget _gBtn(String gender, String sub) {
+    final r = Responsive.of(context);
     final sel = _gender == gender;
     return Expanded(
       child: GestureDetector(
@@ -6364,6 +6419,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
 
   // ━━━ STEP 1 : 사이즈 → 색상 → 무게 → 수량 ━━━
   Widget _buildOptionStep() {
+    final r = Responsive.of(context);
     // 사이즈 목록: 상품에 사이즈가 있으면 그대로, 없으면 기본 성인 사이즈
     final rawSizes = widget.product.sizes;
     final isJunior = rawSizes.any((s) => RegExp(r'^\d{3}$').hasMatch(s));
@@ -7987,6 +8043,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   // UI 헬퍼
   // ─────────────────────────────────────────────
   Widget _sectionTitle(String title, {bool required = false}) {
+    final r = Responsive.of(context);
     return Row(
       children: [
         Text(title, style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
@@ -8000,6 +8057,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   /// 성인/주니어 그룹 구분 라벨 (아이콘 + 텍스트)
   Widget _sizeSectionLabel(String label, IconData icon, Color color) {
+    final r = Responsive.of(context);
     return Row(
       children: [
         Icon(icon, size: 13, color: color),
@@ -8026,6 +8084,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   /// 사이즈 선택 칩 (공통 스타일)
   Widget _sizeChip({
+    final r = Responsive.of(context);
     required String label,
     required bool isSelected,
     required Color activeColor,
@@ -8085,6 +8144,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   }
 
   Widget _optionChip(String label, Color color) {
+    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
       decoration: BoxDecoration(
@@ -8606,6 +8666,7 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
   }
 
   Widget _tabBtn(int idx, String label, String sublabel) {
+    final r = Responsive.of(context);
     final sel = _tab == idx;
     return GestureDetector(
       onTap: () => setState(() => _tab = idx),
@@ -8945,6 +9006,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
   }
 
   Widget _sortBtn(String label, String value) {
+    final r = Responsive.of(context);
     final sel = _sort == value;
     return GestureDetector(
       onTap: () => setState(() => _sort = value),
@@ -9728,6 +9790,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
 
   // ── 섹션 타이틀 ──────────────────────────────────────────────
   Widget _sheetSectionTitle(IconData? icon, String title, Color color, {String? emoji}) {
+    final r = Responsive.of(context);
     return Row(
       children: [
         if (emoji != null) ...[
@@ -9745,6 +9808,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
 
   // ── 정보 카드 (텍스트) ────────────────────────────────────────
   Widget _infoCard({
+    final r = Responsive.of(context);
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
@@ -9785,6 +9849,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
 
   // ── 정보 카드 (위젯) ─────────────────────────────────────────
   Widget _infoCardWidget({
+    final r = Responsive.of(context);
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
@@ -9826,6 +9891,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
   // ── 옵션 카드 ─────────────────────────────────────────────────
   // ── 사이즈 표 ─────────────────────────────────────────────────
   Widget _sizeTable({
+    final r = Responsive.of(context);
     required String title,
     required String emoji,
     required Color headerColor,
@@ -10176,6 +10242,7 @@ class _Section2FabricTabsWidgetState
     List<String> imgs,
     void Function(List<String>, int) onTap,
   ) {
+    final r = Responsive.of(context);
     if (imgs.isEmpty) {
       return Container(
         height: 120,
