@@ -586,8 +586,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                         fit: BoxFit.contain,
                         width: w,
                         height: imgH,
-                        gaplessPlayback: true,
-                        filterQuality: FilterQuality.high
                       )
                     : _imagePlaceholder(),
               );
@@ -898,11 +896,6 @@ $productUrl
                   fit: BoxFit.cover,
                   width: double.infinity,
                   height: double.infinity,
-                  cacheWidth: 150,
-                  gaplessPlayback: true
-                    color: const Color(0xFFEEEEEE),
-                    child: const Icon(Icons.image, size: 20, color: Color(0xFFCCCCCC)),
-                  ),
                 ),
               ),
             ),
@@ -3619,7 +3612,6 @@ $productUrl
                             url,
                             width: double.infinity,
                             fit: BoxFit.contain,
-                            cacheWidth: 800,
                           ),
                   ),
                 ),
@@ -3685,14 +3677,6 @@ $productUrl
                   url,
                   width: double.infinity,
                   fit: BoxFit.contain,
-                  cacheWidth: 800
-                    height: 80,
-                    color: const Color(0xFFEEEEEE),
-                    child: const Center(
-                      child: Icon(Icons.broken_image_outlined,
-                          size: 36, color: Color(0xFFCCCCCC)),
-                    ),
-                  ),
                 ),
         ),
       ),

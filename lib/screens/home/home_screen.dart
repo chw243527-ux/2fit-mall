@@ -1179,8 +1179,6 @@ class _HomeScreenState extends State<HomeScreen>
                       onTap: onTap,
                       child: NetImage(b.imageUrl,
                         fit: BoxFit.cover, width: double.infinity, height: double.infinity,
-                        cacheWidth: 1200,
-                        filterQuality: FilterQuality.medium,
                       ),
                     )
                   else
@@ -2010,7 +2008,6 @@ class _HomeScreenState extends State<HomeScreen>
                               width: double.infinity,
                               height: double.infinity,
                               fit: BoxFit.contain,
-                              filterQuality: FilterQuality.medium,
                             )
                           : Container(
                               color: const Color(0xFFF5F5F5),

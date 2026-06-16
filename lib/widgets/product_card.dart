@@ -90,9 +90,6 @@ class ProductCard extends StatelessWidget {
                       fit: BoxFit.contain,
                       width: double.infinity,
                       height: double.infinity,
-                      filterQuality: FilterQuality.medium,
-                      cacheWidth: 400,
-                      cacheHeight: 500
                     )
                   : _placeholder(),
             ),
