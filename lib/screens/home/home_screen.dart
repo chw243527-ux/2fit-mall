@@ -5593,6 +5593,28 @@ class _NoticePopupState extends State<_NoticePopup> {
   // 실제 이미지 비율 (로드 후 동적 업데이트)
   double? _imageAspectRatio;
 
+  @override
+  void initState() {
+    super.initState();
+    _loadImageSize();
+  }
+
+  void _loadImageSize() {
+    final url = widget.notices[_page].imageUrl;
+    if (url.isEmpty) return;
+    setState(() => _imageAspectRatio = null); // 페이지 전환 시 초기화
+    final provider = NetworkImage(url);
+    final stream = provider.resolve(ImageConfiguration.empty);
+    stream.addListener(ImageStreamListener((info, _) {
+      if (!mounted) return;
+      final w = info.image.width.toDouble();
+      final h = info.image.height.toDouble();
+      if (w > 0 && h > 0) {
+        setState(() => _imageAspectRatio = w / h);
+      }
+    }));
+  }
+
   // ── 테마별 그라디언트 (이미지 없을 때) ──
   static const Map<String, List<Color>> _themeGradients = {
     'general':  [Color(0xFF2C3E50), Color(0xFF4CA1AF)],
@@ -5624,10 +5646,12 @@ class _NoticePopupState extends State<_NoticePopup> {
     final gradColors = _gradientColors(notice.theme);
     final emoji      = NoticeThemeHelper.themeEmoji[notice.theme] ?? '📢';
     final sheetW = sw > 600 ? 480.0 : sw;
-    // 이미지 높이: 실제 비율 기반 or 기본값
+    // 실제 이미지 비율로 정확한 높이 계산
+    // - 비율 로드 전: 화면 높이의 25%만 (shimmer placeholder)
+    // - 비율 로드 후: 실제 비율 기반 높이 (최대 화면 높이의 55%)
     final imgH = _imageAspectRatio != null
-        ? (sheetW / _imageAspectRatio!).clamp(160.0, sh * 0.55)
-        : (sh * 0.35).clamp(180.0, 300.0);
+        ? (sheetW / _imageAspectRatio!).clamp(120.0, sh * 0.55)
+        : (sh * 0.25).clamp(120.0, 200.0);
 
     return Container(
       width: sheetW,
@@ -5667,7 +5691,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                   if (hasImage)
                     NetImage(
                       notice.imageUrl,
-                      fit: BoxFit.contain,
+                      fit: BoxFit.fill,
                       alignment: Alignment.topCenter,
                     )
                   else
@@ -5803,7 +5827,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                         Expanded(
                           child: TextButton(
                             onPressed: total > 1 && _page < total - 1
-                                ? () => setState(() => _page++)
+                                ? () => setState(() { _page++; _loadImageSize(); })
                                 : () => Navigator.of(context).pop(),
                             style: TextButton.styleFrom(
                               foregroundColor: const Color(0xFF111111),
