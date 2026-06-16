@@ -948,6 +948,8 @@ class _PcFooter extends StatelessWidget {
                           ),
                           SizedBox(height: r.h(20)),
                           _footerInfoRow('🏢 주식회사 2FIT Korea', r),
+                          _footerInfoRow('📋 사업자등록번호: 787-19-02539', r),
+                          _footerInfoRow('🛒 통신판매업신고번호: 제2025-서울-XXXXX호', r),
                           _footerInfoRow('📞 010-7227-6914', r),
                           _footerInfoRow('✉ chw243527@gmail.com', r),
                           _footerInfoRow('💬 카카오톡 @2fitkorea', r),

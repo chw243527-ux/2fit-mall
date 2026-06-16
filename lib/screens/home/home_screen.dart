@@ -5206,6 +5206,8 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                           SizedBox(height: r.h(20)),
                           _footerInfoRow('🏢 주식회사 2FIT Korea'),
+                          _footerInfoRow('📋 사업자등록번호: 787-19-02539'),
+                          _footerInfoRow('🛒 통신판매업신고번호: 제2025-서울-XXXXX호'),
                           _footerInfoRow('📞 010-7227-6914'),
                           _footerInfoRow('✉ chw243527@gmail.com'),
                           _footerInfoRow('💬 카카오톡 @2fitkorea'),
