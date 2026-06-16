@@ -949,21 +949,21 @@ class _PcFooter extends StatelessWidget {
                             style: TextStyle(color: Colors.white54, fontSize: r.sp(13), height: 1.7),
                           ),
                           SizedBox(height: r.h(20)),
-                          _footerInfoRow('🏢 주식회사 2FIT Korea'),
-                          _footerInfoRow('📞 010-7227-6914'),
-                          _footerInfoRow('✉ chw243527@gmail.com'),
-                          _footerInfoRow('💬 카카오톡 @2fitkorea'),
-                          _footerInfoRow('🕐 평일 10:00 - 18:00 (점심 12:00 - 14:00)'),
-                          _footerInfoRow('🚫 토·일·공휴일 휴무'),
+                          _footerInfoRow('🏢 주식회사 2FIT Korea', r),
+                          _footerInfoRow('📞 010-7227-6914', r),
+                          _footerInfoRow('✉ chw243527@gmail.com', r),
+                          _footerInfoRow('💬 카카오톡 @2fitkorea', r),
+                          _footerInfoRow('🕐 평일 10:00 - 18:00 (점심 12:00 - 14:00)', r),
+                          _footerInfoRow('🚫 토·일·공휴일 휴무', r),
                           SizedBox(height: r.h(16)),
                           // 소셜 링크 버튼
                           Row(
                             children: [
                               _socialBtn(loc.footerKakao, const Color(0xFFFFE000), Colors.black,
-                                  () => Navigator.pushNamed(context, '/chat')),
+                                  () => Navigator.pushNamed(context, '/chat'), r),
                               SizedBox(width: r.w(8)),
                               _socialBtn(loc.pcCustomerCenter, const Color(0xFF1A1A1A), Colors.white,
-                                  () => Navigator.pushNamed(context, '/chat')),
+                                  () => Navigator.pushNamed(context, '/chat'), r),
                             ],
                           ),
                         ],
@@ -979,6 +979,7 @@ class _PcFooter extends StatelessWidget {
                         _FooterLink(loc.footerReturnPolicy, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderGuideScreen()))),
                         _FooterLink(loc.footerSizeGuide, () => onTabChanged?.call(1)),
                       ],
+                      r,
                     ),
                     SizedBox(width: r.w(40)),
                     _footerLinkCol(
@@ -988,6 +989,7 @@ class _PcFooter extends StatelessWidget {
                         _FooterLink(loc.footerOrderStatus, () => onTabChanged?.call(3)),
                         _FooterLink(loc.navCart, () => onTabChanged?.call(2)),
                       ],
+                      r,
                     ),
                     SizedBox(width: r.w(40)),
                     _footerLinkCol(
@@ -998,6 +1000,7 @@ class _PcFooter extends StatelessWidget {
                         _FooterLink(loc.pcMyPage, () => onTabChanged?.call(3)),
                         _FooterLink(loc.footerKakaoChannel, () => Navigator.pushNamed(context, '/chat')),
                       ],
+                      r,
                     ),
                   ],
                 ),
@@ -1028,16 +1031,14 @@ class _PcFooter extends StatelessWidget {
     );
   }
 
-  Widget _footerInfoRow(String text) {
-    final r = Responsive.of(context);
+  Widget _footerInfoRow(String text, Responsive r) {
     return Padding(
       padding: EdgeInsets.only(bottom: r.h(5)),
       child: Text(text, style: TextStyle(color: Colors.white54, fontSize: r.sp(12.5))),
     );
   }
 
-  Widget _socialBtn(String label, Color bg, Color fg, VoidCallback onTap) {
-    final r = Responsive.of(context);
+  Widget _socialBtn(String label, Color bg, Color fg, VoidCallback onTap, Responsive r) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1051,8 +1052,7 @@ class _PcFooter extends StatelessWidget {
     );
   }
 
-  Widget _footerLinkCol(String title, List<_FooterLink> links) {
-    final r = Responsive.of(context);
+  Widget _footerLinkCol(String title, List<_FooterLink> links, Responsive r) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

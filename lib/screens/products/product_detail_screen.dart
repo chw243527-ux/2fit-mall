@@ -2404,12 +2404,15 @@ $productUrl
     );
   }
 
-  Widget _tag(String text, Color color) => Container(
+  Widget _tag(String text, Color color) {
+    final r = Responsive.of(context);
+    return Container(
         padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
         child: Text(text,
             style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w700)),
       );
+  }
 
   // ═══════════════════════════════════════
   // ═══════════════════════════════════════
@@ -8998,10 +9001,8 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                         itemCount: reviews.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (_, i) {
-                          final r = Responsive.of(context);
-
-                          final r = reviews[i];
-                          final isMyReview = currentUid != null && r.userId == currentUid;
+                          final rev = reviews[i];
+                          final isMyReview = currentUid != null && rev.userId == currentUid;
                           return Padding(
                             padding: EdgeInsets.symmetric(vertical: r.h(14)),
                             child: Column(
@@ -9012,7 +9013,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                     CircleAvatar(
                                       radius: 16,
                                       backgroundColor: isMyReview ? const Color(0xFF6C63FF) : const Color(0xFF1A1A1A),
-                                      child: Text(r.userName.isNotEmpty ? r.userName[0].toUpperCase() : 'U',
+                                      child: Text(rev.userName.isNotEmpty ? rev.userName[0].toUpperCase() : 'U',
                                           style: TextStyle(color: Colors.white, fontSize: r.sp(12), fontWeight: FontWeight.w700)),
                                     ),
                                     SizedBox(width: r.w(10)),
@@ -9021,7 +9022,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                       children: [
                                         Row(
                                           children: [
-                                            Text(r.userName, style: TextStyle(fontWeight: FontWeight.w700, fontSize: r.sp(13))),
+                                            Text(rev.userName, style: TextStyle(fontWeight: FontWeight.w700, fontSize: r.sp(13))),
                                             if (isMyReview) ...[
                                               SizedBox(width: r.w(6)),
                                               Container(
@@ -9037,20 +9038,20 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                         ),
                                         Row(
                                           children: List.generate(5, (j) => Icon(Icons.star_rounded,
-                                              size: 13, color: j < r.rating ? const Color(0xFFFFD600) : const Color(0xFFEEEEEE))),
+                                              size: 13, color: j < rev.rating ? const Color(0xFFFFD600) : const Color(0xFFEEEEEE))),
                                         ),
                                       ],
                                     ),
                                     const Spacer(),
-                                    Text('${r.createdAt.year}.${r.createdAt.month.toString().padLeft(2,'0')}.${r.createdAt.day.toString().padLeft(2,'0')}',
+                                    Text('${rev.createdAt.year}.${rev.createdAt.month.toString().padLeft(2,'0')}.${rev.createdAt.day.toString().padLeft(2,'0')}',
                                         style: TextStyle(fontSize: r.sp(11), color: Color(0xFF999999))),
                                     if (isMyReview) ...[
                                       SizedBox(width: r.w(4)),
                                       PopupMenuButton<String>(
                                         icon: const Icon(Icons.more_vert, size: 18, color: Color(0xFF999999)),
                                         onSelected: (v) {
-                                          if (v == 'edit') _showWriteReviewDialog(existing: r);
-                                          if (v == 'delete') _deleteReview(r);
+                                          if (v == 'edit') _showWriteReviewDialog(existing: rev);
+                                          if (v == 'delete') _deleteReview(rev);
                                         },
                                         itemBuilder: (_) => [
                                           PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: r.w(8)), Text('수정')])),
@@ -9061,26 +9062,26 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                   ],
                                 ),
                                 SizedBox(height: r.h(8)),
-                                if (r.size.isNotEmpty || r.color.isNotEmpty)
+                                if (rev.size.isNotEmpty || rev.color.isNotEmpty)
                                   Row(
                                     children: [
-                                      if (r.size.isNotEmpty) _chip('사이즈: ${r.size}'),
-                                      if (r.color.isNotEmpty) ...[SizedBox(width: r.w(6)), _chip('색상: ${r.color}')],
+                                      if (rev.size.isNotEmpty) _chip('사이즈: ${rev.size}'),
+                                      if (rev.color.isNotEmpty) ...[SizedBox(width: r.w(6)), _chip('색상: ${rev.color}')],
                                     ],
                                   ),
                                 SizedBox(height: r.h(6)),
-                                Text(r.content, style: TextStyle(fontSize: r.sp(13), height: 1.5, color: Color(0xFF333333))),
-                                if (r.images.isNotEmpty) ...[
+                                Text(rev.content, style: TextStyle(fontSize: r.sp(13), height: 1.5, color: Color(0xFF333333))),
+                                if (rev.images.isNotEmpty) ...[
                                   SizedBox(height: r.h(8)),
                                   SizedBox(
                                     height: 60,
                                     child: ListView.separated(
                                       scrollDirection: Axis.horizontal,
-                                      itemCount: r.images.length,
+                                      itemCount: rev.images.length,
                                       separatorBuilder: (_, __) => SizedBox(width: r.w(6)),
                                       itemBuilder: (_, j) => ClipRRect(
                                         borderRadius: BorderRadius.circular(6),
-                                        child: Image.network(r.images[j], width: 60, height: 60, fit: BoxFit.cover,
+                                        child: Image.network(rev.images[j], width: 60, height: 60, fit: BoxFit.cover,
                                             errorBuilder: (_, __, ___) => Container(width: 60, height: 60, color: const Color(0xFFF0F0F0))),
                                       ),
                                     ),
@@ -9116,11 +9117,14 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
     );
   }
 
-  Widget _chip(String text) => Container(
-    padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
-    decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(4)),
-    child: Text(text, style: TextStyle(fontSize: r.sp(11), color: Color(0xFF555555))),
-  );
+  Widget _chip(String text) {
+    final r = Responsive.of(context);
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
+      decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(4)),
+      child: Text(text, style: TextStyle(fontSize: r.sp(11), color: Color(0xFF555555))),
+    );
+  }
 }
 
 // ═══════════════════════════════════════════════════════════

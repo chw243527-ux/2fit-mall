@@ -3517,7 +3517,9 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _groupBadge(String text) => Container(
+  Widget _groupBadge(String text) {
+    final r = Responsive.of(context);
+    return Container(
     padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(4)),
     decoration: BoxDecoration(
       color: Colors.white.withValues(alpha: 0.1),
@@ -3533,6 +3535,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     ),
   );
+  }
 
   // ── 상단 알림 띠배너 ──
   // ignore: unused_element
@@ -3541,7 +3544,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Container(
       color: const Color(0xFFE53935),
       padding: EdgeInsets.symmetric(vertical: r.h(8)),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 14),
@@ -5308,13 +5311,17 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _footerInfoRow(String text) => Padding(
+  Widget _footerInfoRow(String text) {
+    final r = Responsive.of(context);
+    return Padding(
     padding: EdgeInsets.only(bottom: r.h(5)),
     child: Text(text, style: TextStyle(color: Colors.white54, fontSize: r.sp(12.5))),
   );
+  }
 
-  Widget _footerSocialBtn(String label, Color bg, Color fg, VoidCallback onTap) =>
-    GestureDetector(
+  Widget _footerSocialBtn(String label, Color bg, Color fg, VoidCallback onTap) {
+    final r = Responsive.of(context);
+    return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(7)),
@@ -5322,8 +5329,11 @@ class _HomeScreenState extends State<HomeScreen>
         child: Text(label, style: TextStyle(color: fg, fontSize: r.sp(12), fontWeight: FontWeight.w700)),
       ),
     );
+  }
 
-  Widget _footerLink(String label, VoidCallback? onTap) => Padding(
+  Widget _footerLink(String label, VoidCallback? onTap) {
+    final r = Responsive.of(context);
+    return Padding(
     padding: EdgeInsets.only(bottom: r.h(10)),
     child: onTap != null
         ? MouseRegion(
@@ -5335,6 +5345,7 @@ class _HomeScreenState extends State<HomeScreen>
           )
         : Text(label, style: TextStyle(color: Colors.white38, fontSize: r.sp(13))),
   );
+  }
 
   Widget _buildChatFAB(AppLocalizations loc) {
     return AnimatedBuilder(
