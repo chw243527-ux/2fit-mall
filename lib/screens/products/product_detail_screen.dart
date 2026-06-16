@@ -767,14 +767,13 @@ $productUrl
   }
 
   Widget _shareOption({
-    final r = Responsive.of(context);
-
     required IconData icon,
     required Color color,
     required String label,
     required VoidCallback onTap,
     Color? iconColor,
   }) {
+    final r = Responsive.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -1728,12 +1727,11 @@ $productUrl
 
   // ── 색상 안내 배지 (라벨 + 설명 텍스트) ──
   Widget _infoColorBadge({
-    final r = Responsive.of(context);
-
     required String label,
     required Color labelColor,
     required String text,
   }) {
+    final r = Responsive.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1888,14 +1886,13 @@ $productUrl
 
   // ── 탑텐 스타일: 번호+라벨+컨텐츠 블록
   Widget _toptenInfoBlock({
-    final r = Responsive.of(context);
-
     required String num,
     required String label,
     required String labelSub,
     required Widget content,
     bool isLast = false,
   }) {
+    final r = Responsive.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -3457,13 +3454,12 @@ $productUrl
   }
 
   Widget _buildGenderImageHeader({
-    final r = Responsive.of(context);
-
     required IconData icon,
     required String label,
     required Color color,
     required Color bgColor,
   }) {
+    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(7)),
       decoration: BoxDecoration(
@@ -3593,8 +3589,6 @@ $productUrl
 
   // 드래그 가능한 이미지 아이템 (관리자)
   Widget _buildReorderableImageItem({
-    final r = Responsive.of(context);
-
     required Key key,
     required String url,
     required int index,
@@ -3603,6 +3597,7 @@ $productUrl
     required bool isAdmin,
     VoidCallback? onTap,
   }) {
+    final r = Responsive.of(context);
     return Padding(
       key: key,
       padding: EdgeInsets.only(bottom: r.h(8)),
@@ -4199,8 +4194,6 @@ $productUrl
 
   // ── 공통: 섹션 헤더 배너 (검정 배경 + 영문 대제목 + 한글 서브) ──
   Widget _sectionHeaderBanner({
-    final r = Responsive.of(context);
-
     required String engTitle,
     required String engSub,
     required String korSub,
@@ -4208,6 +4201,7 @@ $productUrl
     Color textColor = Colors.white,
     Widget? trailingIcon,
   }) {
+    final r = Responsive.of(context);
     return Container(
       width: double.infinity,
       color: bgColor,
@@ -4458,8 +4452,6 @@ $productUrl
 
   // ── 관리자 패브릭 슬롯 (헤더 뱃지 + 업로드 버튼 + 이미지 목록) ──
   Widget _buildFabricAdminSlot({
-    final r = Responsive.of(context);
-
     required String key,
     required String label,
     required IconData icon,
@@ -4468,6 +4460,7 @@ $productUrl
     required List<String> imgs,
     required bool isAdmin,
   }) {
+    final r = Responsive.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -5536,8 +5529,6 @@ $productUrl
   }
 
   Widget _orderTypeBtn({
-    final r = Responsive.of(context);
-
     required String emoji,
     required String title,
     required String description,
@@ -5545,6 +5536,7 @@ $productUrl
     required Color color,
     required VoidCallback onTap,
   }) {
+    final r = Responsive.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -8172,14 +8164,13 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   /// 사이즈 선택 칩 (공통 스타일)
   Widget _sizeChip({
-    final r = Responsive.of(context);
-
     required String label,
     required bool isSelected,
     required Color activeColor,
     required VoidCallback onTap,
     bool isSoldOut = false,
   }) {
+    final r = Responsive.of(context);
     return GestureDetector(
       onTap: isSoldOut ? null : onTap,
       child: AnimatedContainer(
@@ -9915,14 +9906,13 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
 
   // ── 정보 카드 (텍스트) ────────────────────────────────────────
   Widget _infoCard({
-    final r = Responsive.of(context);
-
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
     required String title,
     required String content,
   }) {
+    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.all(r.w(12)),
       decoration: BoxDecoration(
@@ -9957,14 +9947,13 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
 
   // ── 정보 카드 (위젯) ─────────────────────────────────────────
   Widget _infoCardWidget({
-    final r = Responsive.of(context);
-
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
     required String title,
     required Widget contentWidget,
   }) {
+    final r = Responsive.of(context);
     return Container(
       padding: EdgeInsets.all(r.w(12)),
       decoration: BoxDecoration(
@@ -10000,14 +9989,13 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
   // ── 옵션 카드 ─────────────────────────────────────────────────
   // ── 사이즈 표 ─────────────────────────────────────────────────
   Widget _sizeTable({
-    final r = Responsive.of(context);
-
     required String title,
     required String emoji,
     required Color headerColor,
     required Color headerBg,
     required List<List<String>> rows,
   }) {
+    final r = Responsive.of(context);
     final headers = [loc.sheetSizeTableSize, loc.sheetSizeTableChest, loc.sheetSizeTableWaist, loc.sheetSizeTableHip, loc.sheetSizeTableHeight];
     return Container(
       decoration: BoxDecoration(

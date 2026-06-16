@@ -748,14 +748,13 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 메인 영역 상품 그리드 (4컬럼, 사이드바와 함께) ──
   // ignore: unused_element
   Widget _buildPcMainProductSection({
-    final r = Responsive.of(context);
-
     required String title,
     required String englishTitle,
     required Color accentColor,
     required bool isNew,
     required AppLocalizations loc,
   }) {
+    final r = Responsive.of(context);
     final provider = context.watch<ProductProvider>();
     List<ProductModel> allProds = provider.products;
     if (allProds.isEmpty) allProds = ProductService.getAllProductsSync();
@@ -1825,14 +1824,13 @@ class _HomeScreenState extends State<HomeScreen>
   // ── PC 상품 그리드 섹션 (신상품/베스트 — 모바일 가로 스크롤 대신 5컬럼 그리드) ──
   // ignore: unused_element
   Widget _buildPcProductGridSection({
-    final r = Responsive.of(context);
-
     required String title,
     required String englishTitle,
     required Color accentColor,
     required bool isNew,
     required AppLocalizations loc,
   }) {
+    final r = Responsive.of(context);
     final provider = context.watch<ProductProvider>();
     // 로딩 중이더라도 더미 데이터(sync)로 즉시 표시
     List<ProductModel> allProds = provider.products;
@@ -4423,8 +4421,6 @@ class _HomeScreenState extends State<HomeScreen>
 
   // ── 배너 하단 텍스트/CTA 오버레이 (공통) ──
   Widget _buildBannerOverlay({
-    final r = Responsive.of(context);
-
     required BannerModel banner,
     required String title,
     required String cta,
@@ -4432,6 +4428,7 @@ class _HomeScreenState extends State<HomeScreen>
     required Color accent,
     required VoidCallback onTap,
   }) {
+    final r = Responsive.of(context);
     final w = MediaQuery.of(context).size.width;
     final isTablet = w >= 600 && w < 1024;
     final isPc = w >= 1024;
@@ -4981,8 +4978,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildProductSection({
-    final r = Responsive.of(context);
-
     required String title,
     required String englishTitle,
     required Color accentColor,
@@ -4991,6 +4986,7 @@ class _HomeScreenState extends State<HomeScreen>
     required String viewAllLabel,
     bool isHorizontal = true,
   }) {
+    final r = Responsive.of(context);
     if (products.isEmpty) return const SizedBox.shrink();
 
     final screenW = MediaQuery.of(context).size.width;
