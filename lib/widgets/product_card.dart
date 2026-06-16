@@ -469,14 +469,16 @@ class _SmartProductImageState extends State<_SmartProductImage> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 200),
-      child: NetImage(
-        widget.url,
-        key: ValueKey('${widget.url}_$_fit'),
-        fit: _fit,
-        width: double.infinity,
-        height: double.infinity,
+    return SizedBox.expand(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: NetImage(
+          widget.url,
+          key: ValueKey('${widget.url}_$_fit'),
+          fit: _fit,
+          width: double.infinity,
+          height: double.infinity,
+        ),
       ),
     );
   }

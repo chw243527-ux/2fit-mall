@@ -185,6 +185,7 @@ class _WebImageState extends State<_WebImage> {
     }
 
     return Stack(
+      fit: StackFit.expand,
       children: [
         // shimmer - 로딩 중에만 표시
         if (!_loaded)
