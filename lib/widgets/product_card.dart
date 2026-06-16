@@ -80,6 +80,7 @@ class ProductCard extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: 4 / 5,
         child: Stack(
+          fit: StackFit.expand,
           children: [
             // ── 상품 이미지 (비율 자동 감지 → fit 자동 결정) ──
             Positioned.fill(
@@ -476,8 +477,8 @@ class _SmartProductImageState extends State<_SmartProductImage> {
           widget.url,
           key: ValueKey('${widget.url}_$_fit'),
           fit: _fit,
-          width: double.infinity,
-          height: double.infinity,
+          // width/height 미전달 → 부모(StackFit.expand + SizedBox.expand)가 크기 결정
+          // double.infinity를 넘기면 ResizeImage가 1200×1200 강제 리사이즈 → 비율 왜곡
         ),
       ),
     );
