@@ -187,8 +187,11 @@ class _WebImageState extends State<_WebImage> {
       );
     }
 
+    // clipBehavior: Clip.antiAlias — 부모 ClipRRect(borderRadius)와 함께
+    // 이미지가 모서리 밖으로 삐져나오지 않도록 Stack 자체도 클리핑
     return Stack(
       fit: StackFit.expand,
+      clipBehavior: Clip.antiAlias,
       children: [
         // shimmer - 로딩 중에만 표시
         if (!_loaded)
@@ -200,7 +203,6 @@ class _WebImageState extends State<_WebImage> {
             ),
           ),
         // 실제 이미지 - 로드 완료 후 페이드인
-        // SizedBox.expand: width/height가 null이어도 부모 Stack 전체를 채움
         AnimatedOpacity(
           opacity: _loaded ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 200),
