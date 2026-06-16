@@ -1099,7 +1099,6 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                               width: 110, height: 110,
                               fit: BoxFit.cover,
                             ),
-                            ),
                           ),
                           Positioned(
                             right: 5, bottom: 5,
