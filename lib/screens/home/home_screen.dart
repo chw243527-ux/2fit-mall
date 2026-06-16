@@ -25,6 +25,7 @@ import '../notifications/notification_center_screen.dart';
 import '../../services/fcm_service.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
+import '../../utils/responsive.dart';
 
 class HomeScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -110,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
     final w = MediaQuery.of(context).size.width;
     // PC(≥900px): PC NavBar + 풀스크린 배너 레이아웃
@@ -180,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
 
           // 하단 여백
-          const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          SliverToBoxAdapter(child: SizedBox(height: r.h(80))),
         ],
       ),
     );
@@ -199,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+            padding: EdgeInsets.symmetric(horizontal: r.w(32), vertical: r.h(40)),
             child: child,
           ),
         ),
@@ -256,13 +258,13 @@ class _HomeScreenState extends State<HomeScreen>
                 Row(
                   children: [
                     const Icon(Icons.grid_view_rounded, color: Colors.white, size: 18),
-                    const SizedBox(width: 10),
+                    SizedBox(width: r.w(10)),
                     Expanded(
                       child: Text(
                         loc.homeCategory,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 15,
+                          fontSize: r.sp(15),
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.5,
                         ),
@@ -274,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: r.h(16)),
                 // ─── 마이페이지 버튼 ───
                 GestureDetector(
                   onTap: () {
@@ -282,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen>
                     widget.onNavigate?.call(3);
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(11)),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
@@ -291,13 +293,13 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Row(
                       children: [
                         const Icon(Icons.person_outline_rounded, color: Colors.white, size: 18),
-                        const SizedBox(width: 10),
+                        SizedBox(width: r.w(10)),
                         Expanded(
                           child: Text(
                             loc.navMyPage,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 14,
+                              fontSize: r.sp(14),
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -308,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: r.h(10)),
               ],
             ),
           ),
@@ -319,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen>
               widget.onNavigate?.call(1);
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(14)),
               decoration: const BoxDecoration(
                 border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
               ),
@@ -333,11 +335,11 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     child: const Icon(Icons.grid_view_rounded, color: Color(0xFF111111), size: 16),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: r.w(12)),
                   Expanded(
                     child: Text(
                       loc.homeAllProducts,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF111111)),
+                      style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700, color: Color(0xFF111111)),
                     ),
                   ),
                   const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFFBBBBBB)),
@@ -360,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen>
                           _expandedCatName = isExpanded ? null : cat.name;
                         }),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+                          padding: EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(13)),
                           child: Row(
                             children: [
                               Container(
@@ -371,12 +373,12 @@ class _HomeScreenState extends State<HomeScreen>
                                 ),
                                 child: Icon(cat.icon, color: cat.color, size: 16),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: r.w(12)),
                               Expanded(
                                 child: Text(
                                   cat.name,
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: r.sp(14),
                                     fontWeight: isExpanded ? FontWeight.w800 : FontWeight.w600,
                                     color: isExpanded ? cat.color : const Color(0xFF1A1A1A),
                                   ),
@@ -395,15 +397,15 @@ class _HomeScreenState extends State<HomeScreen>
                                   ));
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
                                   decoration: BoxDecoration(
                                     color: cat.color.withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  child: Text(loc.homeCategoryAll, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: cat.color)),
+                                  child: Text(loc.homeCategoryAll, style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w700, color: cat.color)),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: r.w(8)),
                               AnimatedRotation(
                                 turns: isExpanded ? 0.5 : 0,
                                 duration: const Duration(milliseconds: 200),
@@ -430,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            padding: EdgeInsets.symmetric(vertical: r.h(6)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: subs.map((sub) {
@@ -444,7 +446,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     ));
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.fromLTRB(52, 10, 20, 10),
+                                    padding: EdgeInsets.fromLTRB(r.w(52), r.h(10), r.w(20), r.h(10)),
                                     color: isSubSel ? cat.color.withValues(alpha: 0.07) : Colors.transparent,
                                     child: Row(
                                       children: [
@@ -455,12 +457,12 @@ class _HomeScreenState extends State<HomeScreen>
                                             color: isSubSel ? cat.color : const Color(0xFFCCCCCC),
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
+                                        SizedBox(width: r.w(8)),
                                         Expanded(
                                           child: Text(
                                             sub.name,
                                             style: TextStyle(
-                                              fontSize: 13,
+                                              fontSize: r.sp(13),
                                               fontWeight: isSubSel ? FontWeight.w700 : FontWeight.w500,
                                               color: isSubSel ? cat.color : const Color(0xFF555555),
                                             ),
@@ -468,7 +470,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         ),
                                         if (sub.tag != null)
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                            padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(1)),
                                             decoration: BoxDecoration(
                                               color: sub.tag == 'BEST'
                                                   ? const Color(0xFFFF6B35)
@@ -479,7 +481,7 @@ class _HomeScreenState extends State<HomeScreen>
                                             ),
                                             child: Text(
                                               sub.tag!,
-                                              style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w800),
+                                              style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w800),
                                             ),
                                           ),
                                       ],
@@ -523,19 +525,19 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // ── 헤더 ──
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(16), r.w(16), r.h(12)),
             decoration: const BoxDecoration(
               border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0))),
             ),
             child: Row(
               children: [
                 const Icon(Icons.menu_rounded, size: 16, color: Color(0xFF111111)),
-                const SizedBox(width: 8),
+                SizedBox(width: r.w(8)),
                 Expanded(
                   child: Text(
                     loc.homeCategory,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: r.sp(13),
                       fontWeight: FontWeight.w900,
                       color: Color(0xFF111111),
                       letterSpacing: 0.5,
@@ -546,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen>
                   onTap: () => widget.onNavigate?.call(1),
                   child: const Text(
                     '전체',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -568,7 +570,7 @@ class _HomeScreenState extends State<HomeScreen>
                     });
                   },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
                     child: Row(
                       children: [
                         Container(
@@ -579,12 +581,12 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                           child: Icon(cat.icon, color: cat.color, size: 14),
                         ),
-                        const SizedBox(width: 10),
+                        SizedBox(width: r.w(10)),
                         Expanded(
                           child: Text(
                             cat.name,
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: r.sp(13),
                               fontWeight: isExpanded ? FontWeight.w800 : FontWeight.w500,
                               color: isExpanded ? cat.color : const Color(0xFF333333),
                             ),
@@ -632,7 +634,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(40, 8, 14, 4),
+                            padding: EdgeInsets.fromLTRB(r.w(40), r.h(8), r.w(14), r.h(4)),
                             child: Row(
                               children: [
                                 Container(
@@ -642,11 +644,11 @@ class _HomeScreenState extends State<HomeScreen>
                                     color: cat.color,
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                SizedBox(width: r.w(8)),
                                 Text(
                                   loc.homeViewAll,
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: r.sp(12),
                                     fontWeight: FontWeight.w700,
                                     color: cat.color,
                                   ),
@@ -669,7 +671,7 @@ class _HomeScreenState extends State<HomeScreen>
                               );
                             },
                             child: Container(
-                              padding: const EdgeInsets.fromLTRB(40, 7, 14, 7),
+                              padding: EdgeInsets.fromLTRB(r.w(40), r.h(7), r.w(14), r.h(7)),
                               color: isSubSel ? cat.color.withValues(alpha: 0.06) : Colors.transparent,
                               child: Row(
                                 children: [
@@ -680,12 +682,12 @@ class _HomeScreenState extends State<HomeScreen>
                                       color: isSubSel ? cat.color : const Color(0xFFCCCCCC),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: r.w(8)),
                                   Expanded(
                                     child: Text(
                                       sub.name,
                                       style: TextStyle(
-                                        fontSize: 12,
+                                        fontSize: r.sp(12),
                                         fontWeight: isSubSel ? FontWeight.w700 : FontWeight.w400,
                                         color: isSubSel ? cat.color : const Color(0xFF555555),
                                       ),
@@ -693,7 +695,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                   if (sub.tag != null)
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                      padding: EdgeInsets.symmetric(horizontal: r.w(4), vertical: r.h(1)),
                                       decoration: BoxDecoration(
                                         color: sub.tag == 'BEST'
                                             ? const Color(0xFFFF6B35)
@@ -706,7 +708,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         sub.tag!,
                                         style: const TextStyle(
                                           color: Colors.white,
-                                          fontSize: 8,
+                                          fontSize: r.sp(8),
                                           fontWeight: FontWeight.w800,
                                         ),
                                       ),
@@ -716,7 +718,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                           );
                         }),
-                        const SizedBox(height: 4),
+                        SizedBox(height: r.h(4)),
                       ],
                     ),
                   ),
@@ -725,7 +727,7 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             );
           }),
-          const SizedBox(height: 8),
+          SizedBox(height: r.h(8)),
         ],
       ),
     );
@@ -755,7 +757,7 @@ class _HomeScreenState extends State<HomeScreen>
     if (products.isEmpty) {
       return Container(
         color: Colors.white,
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(r.w(20)),
         child: Row(
           children: [
             Column(
@@ -764,18 +766,18 @@ class _HomeScreenState extends State<HomeScreen>
                 Text(
                   englishTitle.toUpperCase(),
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: r.sp(9),
                     fontWeight: FontWeight.w800,
                     color: accentColor == const Color(0xFF1A1A1A) ? const Color(0xFFAAAAAA) : accentColor,
                     letterSpacing: 2.5,
                   ),
                 ),
-                const SizedBox(height: 3),
-                Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF111111))),
+                SizedBox(height: r.h(3)),
+                Text(title, style: TextStyle(fontSize: r.sp(20), fontWeight: FontWeight.w900, color: Color(0xFF111111))),
               ],
             ),
             const Spacer(),
-            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+            SizedBox(width: r.w(20), height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
           ],
         ),
       );
@@ -796,7 +798,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // 헤더
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(16), r.w(16), r.h(0)),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -806,17 +808,17 @@ class _HomeScreenState extends State<HomeScreen>
                     Text(
                       englishTitle.toUpperCase(),
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: r.sp(9),
                         fontWeight: FontWeight.w800,
                         color: accentColor == const Color(0xFF1A1A1A) ? const Color(0xFFAAAAAA) : accentColor,
                         letterSpacing: 2.5,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: r.h(2)),
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: r.sp(20),
                         fontWeight: FontWeight.w900,
                         color: Color(0xFF111111),
                         letterSpacing: -0.5,
@@ -835,24 +837,24 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(6)),
                     decoration: BoxDecoration(
                       color: const Color(0xFF111111),
                       borderRadius: BorderRadius.circular(2),
                     ),
                     child: const Text(
                       'VIEW ALL',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5),
+                      style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: r.h(14)),
           // 4컬럼 그리드 — Wrap으로 카드 실제 높이 유지
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+            padding: EdgeInsets.fromLTRB(r.w(12), r.h(0), r.w(12), r.h(16)),
             child: LayoutBuilder(
               builder: (ctx, constraints) {
                 const cols = 4;
@@ -885,13 +887,13 @@ class _HomeScreenState extends State<HomeScreen>
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: r.w(24)),
             child: Row(
               children: [
                 GestureDetector(
                   onTap: () => widget.onNavigate?.call(0),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: r.h(12)),
                     child: SizedBox(
                       height: 28,
                       child: Image.asset(
@@ -899,7 +901,7 @@ class _HomeScreenState extends State<HomeScreen>
                         fit: BoxFit.contain,
                         errorBuilder: (_, __, ___) => const Text(
                           '2FIT',
-                          style: TextStyle(color: Color(0xFF111111), fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 3),
+                          style: TextStyle(color: Color(0xFF111111), fontSize: r.sp(18), fontWeight: FontWeight.w900, letterSpacing: 3),
                         ),
                       ),
                     ),
@@ -926,7 +928,7 @@ class _HomeScreenState extends State<HomeScreen>
                           child: Container(
                             width: 14, height: 14,
                             decoration: const BoxDecoration(color: Color(0xFFE53935), shape: BoxShape.circle),
-                            child: Center(child: Text(cart.itemCount > 9 ? '9+' : '${cart.itemCount}', style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900))),
+                            child: Center(child: Text(cart.itemCount > 9 ? '9+' : '${cart.itemCount}', style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900))),
                           ),
                         ),
                     ],
@@ -944,7 +946,7 @@ class _HomeScreenState extends State<HomeScreen>
                         final unread = snap.data ?? 0;
                         return Stack(clipBehavior: Clip.none, children: [
                           IconButton(icon: const Icon(Icons.notifications_outlined, color: Color(0xFF333333), size: 22), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationCenterScreen()))),
-                          if (unread > 0) Positioned(top: 6, right: 6, child: Container(width: 14, height: 14, decoration: const BoxDecoration(color: Color(0xFFFF0000), shape: BoxShape.circle), child: Center(child: Text(unread > 9 ? '9+' : '$unread', style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900))))),
+                          if (unread > 0) Positioned(top: 6, right: 6, child: Container(width: 14, height: 14, decoration: BoxDecoration(color: Color(0xFFFF0000), shape: BoxShape.circle), child: Center(child: Text(unread > 9 ? '9+' : '$unread', style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900))))),
                         ]);
                       },
                     );
@@ -954,8 +956,8 @@ class _HomeScreenState extends State<HomeScreen>
                 GestureDetector(
                   onTap: () => widget.onNavigate?.call(3),
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    margin: EdgeInsets.symmetric(horizontal: r.w(4)),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(7)),
                     decoration: BoxDecoration(
                       color: const Color(0xFF111111),
                       borderRadius: BorderRadius.circular(6),
@@ -965,11 +967,11 @@ class _HomeScreenState extends State<HomeScreen>
                       children: [
                         const Icon(Icons.person_outline_rounded,
                             color: Colors.white, size: 16),
-                        const SizedBox(width: 6),
+                        SizedBox(width: r.w(6)),
                         Text(loc.navMyPage,
                             style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: r.sp(12),
                                 fontWeight: FontWeight.w700)),
                       ],
                     ),
@@ -1104,23 +1106,23 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     if (b.tag.isNotEmpty)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(5)),
                         decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(3)),
                         child: Text(b.tag,
-                          style: const TextStyle(color: Colors.white, fontSize: 11,
+                          style: TextStyle(color: Colors.white, fontSize: r.sp(11),
                               fontWeight: FontWeight.w800, letterSpacing: 2.2)),
                       ),
-                    if (b.tag.isNotEmpty) const SizedBox(height: 16),
+                    if (b.tag.isNotEmpty) SizedBox(height: r.h(16)),
                     if (title.isNotEmpty)
                       Text(title,
-                        style: const TextStyle(color: Colors.white, fontSize: 46,
+                        style: TextStyle(color: Colors.white, fontSize: r.sp(46),
                             fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.5)),
-                    if (title.isNotEmpty) const SizedBox(height: 24),
+                    if (title.isNotEmpty) SizedBox(height: r.h(24)),
                     if (cta.isNotEmpty)
                       GestureDetector(
                         onTap: onTap,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+                          padding: EdgeInsets.symmetric(horizontal: r.w(22), vertical: r.h(15)),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(6),
@@ -1129,10 +1131,10 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                           child: Row(mainAxisSize: MainAxisSize.min, children: [
                             Icon(ctaIcon, size: 17, color: accent),
-                            const SizedBox(width: 10),
+                            SizedBox(width: r.w(10)),
                             Text(cta,
                               style: const TextStyle(color: Color(0xFF111111),
-                                  fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
+                                  fontSize: r.sp(14), fontWeight: FontWeight.w800, letterSpacing: 0.3)),
                           ]),
                         ),
                       ),
@@ -1205,7 +1207,7 @@ class _HomeScreenState extends State<HomeScreen>
                     duration: const Duration(milliseconds: 280),
                     width: 4,
                     height: active ? 26 : 6,
-                    margin: const EdgeInsets.symmetric(vertical: 3),
+                    margin: EdgeInsets.symmetric(vertical: r.h(3)),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(2),
                       color: active ? Colors.white : Colors.white.withValues(alpha: 0.35),
@@ -1238,7 +1240,7 @@ class _HomeScreenState extends State<HomeScreen>
         Positioned(
           left: 0, right: 0, bottom: 0,
           child: Container(
-            padding: const EdgeInsets.fromLTRB(60, 0, 60, 48),
+            padding: EdgeInsets.fromLTRB(r.w(60), r.h(0), r.w(60), r.h(48)),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -1255,19 +1257,19 @@ class _HomeScreenState extends State<HomeScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 16),
+                SizedBox(height: r.h(16)),
                 Text(
                   loc.language == AppLanguage.korean
                       ? '함께 달리는\n2FIT'
                       : 'Run Together\nwith 2FIT',
-                  style: const TextStyle(color: Colors.white, fontSize: 48,
+                  style: TextStyle(color: Colors.white, fontSize: r.sp(48),
                       fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.5),
                 ),
-                const SizedBox(height: 28),
+                SizedBox(height: r.h(28)),
                 GestureDetector(
                   onTap: goShop,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(26), vertical: r.h(14)),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(6),
@@ -1279,11 +1281,11 @@ class _HomeScreenState extends State<HomeScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.arrow_forward_rounded, size: 18, color: Color(0xFFE53935)),
-                        const SizedBox(width: 10),
+                        SizedBox(width: r.w(10)),
                         Text(
                           loc.language == AppLanguage.korean ? '쇼핑하러 가기' : 'Shop Now',
                           style: const TextStyle(color: Color(0xFF111111),
-                              fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                              fontSize: r.sp(15), fontWeight: FontWeight.w800, letterSpacing: 0.3),
                         ),
                       ],
                     ),
@@ -1342,7 +1344,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1280),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(24)),
                   child: Row(
                     children: [
                       // ── 햄버거 버튼 (카테고리 드로어 열기) ──
@@ -1351,12 +1353,12 @@ class _HomeScreenState extends State<HomeScreen>
                         tooltip: loc.homeCategory,
                         onPressed: () => _pcScaffoldKey.currentState?.openDrawer(),
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: r.w(4)),
                       // 로고
                       GestureDetector(
                         onTap: () => widget.onNavigate?.call(0),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.symmetric(vertical: r.h(12)),
                           child: SizedBox(
                             height: 28,
                             child: Image.asset(
@@ -1366,7 +1368,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 '2FIT',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 18,
+                                  fontSize: r.sp(18),
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 3,
                                 ),
@@ -1401,7 +1403,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   child: Center(
                                     child: Text(
                                       cart.itemCount > 9 ? '9+' : '${cart.itemCount}',
-                                      style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900),
+                                      style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900),
                                     ),
                                   ),
                                 ),
@@ -1442,7 +1444,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         child: Center(
                                           child: Text(
                                             unread > 9 ? '9+' : '$unread',
-                                            style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900),
+                                            style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900),
                                           ),
                                         ),
                                       ),
@@ -1576,17 +1578,17 @@ class _HomeScreenState extends State<HomeScreen>
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 1280),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 60),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(60)),
                         child: Align(
                           alignment: Alignment.bottomLeft,
                           child: Padding(
-                            padding: const EdgeInsets.only(bottom: 60),
+                            padding: EdgeInsets.only(bottom: r.h(60)),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(4)),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(2),
@@ -1595,38 +1597,38 @@ class _HomeScreenState extends State<HomeScreen>
                                     b['tag'] as String,
                                     style: const TextStyle(
                                       color: Color(0xFF111111),
-                                      fontSize: 10,
+                                      fontSize: r.sp(10),
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 2.5,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 14),
+                                SizedBox(height: r.h(14)),
                                 Text(
                                   b['title'] as String,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 56,
+                                    fontSize: r.sp(56),
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: -1,
                                     height: 1.0,
                                   ),
                                 ),
-                                const SizedBox(height: 12),
+                                SizedBox(height: r.h(12)),
                                 Text(
                                   b['sub'] as String,
                                   style: TextStyle(
                                     color: Colors.white.withValues(alpha: 0.75),
-                                    fontSize: 15,
+                                    fontSize: r.sp(15),
                                     fontWeight: FontWeight.w500,
                                     letterSpacing: 0.5,
                                   ),
                                 ),
-                                const SizedBox(height: 24),
+                                SizedBox(height: r.h(24)),
                                 GestureDetector(
                                   onTap: onShop,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 13),
+                                    padding: EdgeInsets.symmetric(horizontal: r.w(28), vertical: r.h(13)),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(2),
@@ -1635,7 +1637,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       'SHOP NOW',
                                       style: TextStyle(
                                         color: Color(0xFF111111),
-                                        fontSize: 12,
+                                        fontSize: r.sp(12),
                                         fontWeight: FontWeight.w900,
                                         letterSpacing: 2,
                                       ),
@@ -1652,14 +1654,14 @@ class _HomeScreenState extends State<HomeScreen>
                   Positioned(
                     top: 20, right: 24,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.35),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         '${_bannerIndex + 1} / 2',
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                        style: TextStyle(color: Colors.white, fontSize: r.sp(11), fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
@@ -1669,7 +1671,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           // 모바일과 동일한 점 인디케이터
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14),
+            padding: EdgeInsets.symmetric(vertical: r.h(14)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: banners.asMap().entries.map((e) {
@@ -1678,7 +1680,7 @@ class _HomeScreenState extends State<HomeScreen>
                   duration: const Duration(milliseconds: 250),
                   width: active ? 24 : 5,
                   height: 5,
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  margin: EdgeInsets.symmetric(horizontal: r.w(2)),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(2.5),
                     color: active ? Colors.white : Colors.white.withValues(alpha: 0.3),
@@ -1706,7 +1708,7 @@ class _HomeScreenState extends State<HomeScreen>
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1280),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: r.w(20)),
                 child: SizedBox(
                   height: 52,
                   child: ListView.builder(
@@ -1759,8 +1761,8 @@ class _HomeScreenState extends State<HomeScreen>
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+        margin: EdgeInsets.symmetric(horizontal: r.w(3), vertical: r.h(10)),
+        padding: EdgeInsets.symmetric(horizontal: r.w(18), vertical: r.h(6)),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF111111) : Colors.transparent,
           borderRadius: BorderRadius.circular(2),
@@ -1772,7 +1774,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: r.sp(12),
             fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
             color: isSelected ? Colors.white : const Color(0xFF444444),
             letterSpacing: 0.8,
@@ -1816,7 +1818,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1280),
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                  padding: EdgeInsets.fromLTRB(r.w(20), r.h(24), r.w(20), r.h(24)),
                   child: Row(
                     children: [
                       Column(
@@ -1824,19 +1826,19 @@ class _HomeScreenState extends State<HomeScreen>
                         children: [
                           Text(englishTitle.toUpperCase(),
                               style: TextStyle(
-                                fontSize: 10, fontWeight: FontWeight.w800,
+                                fontSize: r.sp(10), fontWeight: FontWeight.w800,
                                 color: accentColor == const Color(0xFF1A1A1A)
                                     ? const Color(0xFFAAAAAA) : accentColor,
                                 letterSpacing: 2.5)),
-                          const SizedBox(height: 3),
+                          SizedBox(height: r.h(3)),
                           Text(title,
                               style: const TextStyle(
-                                fontSize: 26, fontWeight: FontWeight.w900,
+                                fontSize: r.sp(26), fontWeight: FontWeight.w900,
                                 color: Color(0xFF111111), letterSpacing: -0.5, height: 1.1)),
                         ],
                       ),
                       const Spacer(),
-                      const SizedBox(width: 24, height: 24,
+                      SizedBox(width: r.w(24), height: 24,
                           child: CircularProgressIndicator(strokeWidth: 2)),
                     ],
                   ),
@@ -1860,7 +1862,7 @@ class _HomeScreenState extends State<HomeScreen>
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1280),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                padding: EdgeInsets.fromLTRB(r.w(20), r.h(24), r.w(20), r.h(0)),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -1870,7 +1872,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Text(
                           englishTitle.toUpperCase(),
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: r.sp(10),
                             fontWeight: FontWeight.w800,
                             color: accentColor == const Color(0xFF1A1A1A)
                                 ? const Color(0xFFAAAAAA)
@@ -1878,11 +1880,11 @@ class _HomeScreenState extends State<HomeScreen>
                             letterSpacing: 2.5,
                           ),
                         ),
-                        const SizedBox(height: 3),
+                        SizedBox(height: r.h(3)),
                         Text(
                           title,
                           style: const TextStyle(
-                            fontSize: 26,
+                            fontSize: r.sp(26),
                             fontWeight: FontWeight.w900,
                             color: Color(0xFF111111),
                             letterSpacing: -0.5,
@@ -1902,7 +1904,7 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                       ),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(8)),
                         decoration: BoxDecoration(
                           color: const Color(0xFF111111),
                           borderRadius: BorderRadius.circular(2),
@@ -1910,7 +1912,7 @@ class _HomeScreenState extends State<HomeScreen>
                         child: const Text(
                           'VIEW ALL',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: r.sp(11),
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
                             letterSpacing: 1.5,
@@ -1923,13 +1925,13 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: r.h(20)),
           // 5컬럼 그리드 — Wrap으로 카드 실제 높이 유지
           Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1280),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.symmetric(horizontal: r.w(20)),
                 child: LayoutBuilder(
                   builder: (ctx, constraints) {
                     const cols = 5;
@@ -1947,7 +1949,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: r.h(32)),
         ],
       ),
     );
@@ -2002,24 +2004,24 @@ class _HomeScreenState extends State<HomeScreen>
                     Positioned(
                       top: 8, left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
                         decoration: BoxDecoration(
                           color: const Color(0xFF111111),
                           borderRadius: BorderRadius.circular(2),
                         ),
-                        child: const Text('NEW', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                        child: Text('NEW', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 0.5)),
                       ),
                     ),
                   if (product.isSale)
                     Positioned(
                       top: product.isNewActive ? 32 : 8, left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE53935),
                           borderRadius: BorderRadius.circular(2),
                         ),
-                        child: const Text('BEST', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                        child: Text('BEST', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 0.5)),
                       ),
                     ),
                 ],
@@ -2027,35 +2029,35 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             // 정보
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
+              padding: EdgeInsets.fromLTRB(r.w(8), r.h(7), r.w(8), r.h(8)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('2FIT KOREA',
-                      style: TextStyle(fontSize: 9, color: Color(0xFF888888), letterSpacing: 0.5)),
-                  const SizedBox(height: 2),
+                      style: TextStyle(fontSize: r.sp(9), color: Color(0xFF888888), letterSpacing: 0.5)),
+                  SizedBox(height: r.h(2)),
                   Text(
                     product.localizedName(_lang),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3),
+                    style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: r.h(4)),
                   Text(
                     '${_fmtPrice(product.price)}${loc.wonUnit2}',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFF111111)),
+                    style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFF111111)),
                   ),
                   if (product.rating > 0 && product.reviewCount > 0) ...[
-                  const SizedBox(height: 2),
+                  SizedBox(height: r.h(2)),
                   Row(
                     children: [
                       const Icon(Icons.star_rounded, size: 11, color: Color(0xFFFFB300)),
-                      const SizedBox(width: 2),
+                      SizedBox(width: r.w(2)),
                       Text('${product.rating}',
-                          style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
-                      const SizedBox(width: 3),
+                          style: TextStyle(fontSize: r.sp(10), color: Color(0xFF888888))),
+                      SizedBox(width: r.w(3)),
                       Text('(${product.reviewCount})',
-                          style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA))),
+                          style: TextStyle(fontSize: r.sp(10), color: Color(0xFFAAAAAA))),
                     ],
                   ),
                   ],
@@ -2093,30 +2095,30 @@ class _HomeScreenState extends State<HomeScreen>
         color: const Color(0xFF1A1A2E),
         borderRadius: BorderRadius.circular(12),
       ),
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(r.w(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFF6B35),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: const Text('GROUP ONLY',
-                    style: TextStyle(color: Colors.white, fontSize: 9,
+                    style: TextStyle(color: Colors.white, fontSize: r.sp(9),
                         fontWeight: FontWeight.w800, letterSpacing: 1.5)),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: r.w(12)),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('TEAM ORDER', style: TextStyle(color: Color(0xFFFF6B35),
-                      fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 2.0)),
+                      fontSize: r.sp(9), fontWeight: FontWeight.w800, letterSpacing: 2.0)),
                   Text(loc.homeGroupOnly, style: const TextStyle(color: Colors.white,
-                      fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+                      fontSize: r.sp(20), fontWeight: FontWeight.w900, letterSpacing: -0.5)),
                 ],
               ),
               const Spacer(),
@@ -2124,18 +2126,18 @@ class _HomeScreenState extends State<HomeScreen>
                 onTap: () => Navigator.push(context, MaterialPageRoute(
                     builder: (_) => const ProductListScreen(initialCategory: '단체주문'))),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(8)),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFF6B35),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(loc.homeViewAll, style: const TextStyle(color: Colors.white,
-                      fontSize: 12, fontWeight: FontWeight.w700)),
+                      fontSize: r.sp(12), fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: r.h(8)),
           Wrap(
             spacing: 8,
             children: [
@@ -2144,7 +2146,7 @@ class _HomeScreenState extends State<HomeScreen>
               _groupBadge('🚀 빠른 제작'),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: r.h(16)),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -2157,10 +2159,10 @@ class _HomeScreenState extends State<HomeScreen>
             itemCount: groupProducts.length,
             itemBuilder: (ctx, i) => ProductCard(product: groupProducts[i]),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: r.h(20)),
           // 안내 메시지
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+            padding: EdgeInsets.symmetric(vertical: r.h(10), horizontal: r.w(14)),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
@@ -2169,11 +2171,11 @@ class _HomeScreenState extends State<HomeScreen>
             child: Row(
               children: [
                 const Icon(Icons.touch_app_rounded, color: Color(0xFFFF6B35), size: 16),
-                const SizedBox(width: 8),
+                SizedBox(width: r.w(8)),
                 Expanded(
                   child: Text(
                     loc.homeGroupOrderNote,
-                    style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: Colors.white70, fontSize: r.sp(12), fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -2192,7 +2194,7 @@ class _HomeScreenState extends State<HomeScreen>
         color: const Color(0xFF111111),
         borderRadius: BorderRadius.circular(12),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 32),
+      padding: EdgeInsets.symmetric(vertical: r.h(36), horizontal: r.w(32)),
       child: Row(
         children: [
           Expanded(
@@ -2200,29 +2202,29 @@ class _HomeScreenState extends State<HomeScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(4)),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.white30),
                     borderRadius: BorderRadius.circular(2),
                   ),
                   child: const Text('2025 S/S COLLECTION',
-                      style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2)),
+                      style: TextStyle(color: Colors.white54, fontSize: r.sp(10), fontWeight: FontWeight.w900, letterSpacing: 2)),
                 ),
-                const SizedBox(height: 14),
+                SizedBox(height: r.h(14)),
                 Text(
                   loc.homeNewSeason,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 36,
+                    fontSize: r.sp(36),
                     fontWeight: FontWeight.w900,
                     height: 1.1,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: r.h(12)),
                 Text(
                   loc.homeNewSeasonSub,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.65), fontSize: 14),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.65), fontSize: r.sp(14)),
                 ),
               ],
             ),
@@ -2240,9 +2242,9 @@ class _HomeScreenState extends State<HomeScreen>
                   elevation: 0,
                 ),
                 child: Text(loc.homeNewArrivalsBtn,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                    style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w900, letterSpacing: 0.5)),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: r.h(10)),
               OutlinedButton(
                 onPressed: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '이벤트'))),
@@ -2253,7 +2255,7 @@ class _HomeScreenState extends State<HomeScreen>
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
                 ),
                 child: Text(loc.homeEventBtn,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                    style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700)),
               ),
             ],
           ),
@@ -2376,7 +2378,7 @@ class _HomeScreenState extends State<HomeScreen>
             height: imgH + 58, // 이미지 + 텍스트 영역
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: EdgeInsets.symmetric(horizontal: r.w(12)),
               itemCount: previewProds.length,
               itemBuilder: (_, i) {
                 final p = previewProds[i];
@@ -2388,7 +2390,7 @@ class _HomeScreenState extends State<HomeScreen>
                     MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
                   child: Container(
                     width: cardW,
-                    margin: const EdgeInsets.only(right: 8),
+                    margin: EdgeInsets.only(right: r.w(8)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -2413,31 +2415,31 @@ class _HomeScreenState extends State<HomeScreen>
                                 Positioned(
                                   top: 5, left: 5,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                    padding: EdgeInsets.symmetric(horizontal: r.w(4), vertical: r.h(2)),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFE53935),
                                       borderRadius: BorderRadius.circular(3),
                                     ),
                                     child: Text('$discount%',
                                       style: const TextStyle(color: Colors.white,
-                                          fontSize: 9, fontWeight: FontWeight.w800)),
+                                          fontSize: r.sp(9), fontWeight: FontWeight.w800)),
                                   ),
                                 ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        SizedBox(height: r.h(6)),
                         // 상품명
                         Text(p.name,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600,
+                          style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w600,
                               color: Color(0xFF222222), height: 1.3)),
-                        const SizedBox(height: 2),
+                        SizedBox(height: r.h(2)),
                         // 가격
                         Text(
                           '${p.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')}원',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800,
+                          style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800,
                               color: Color(0xFF111111)),
                         ),
                       ],
@@ -2451,12 +2453,12 @@ class _HomeScreenState extends State<HomeScreen>
           // 전체보기 버튼 (상품이 5개 초과일 때만)
           if (hasMore)
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
+              padding: EdgeInsets.fromLTRB(r.w(12), r.h(12), r.w(12), r.h(20)),
               child: GestureDetector(
                 onTap: goAll,
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  padding: EdgeInsets.symmetric(vertical: r.h(13)),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(8),
@@ -2467,10 +2469,10 @@ class _HomeScreenState extends State<HomeScreen>
                     children: [
                       Text(
                         '전체 상품 보기 (${allGroupProds.length}개)',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                        style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700,
                             color: Color(0xFF333333), letterSpacing: 0.2),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: r.w(6)),
                       const Icon(Icons.arrow_forward_rounded, size: 15, color: Color(0xFF555555)),
                     ],
                   ),
@@ -2478,7 +2480,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             )
           else
-            const SizedBox(height: 20),
+            SizedBox(height: r.h(20)),
         ],
       ),
     );
@@ -2498,7 +2500,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: r.h(8)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2506,7 +2508,7 @@ class _HomeScreenState extends State<HomeScreen>
             height: imgH + 82,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: EdgeInsets.symmetric(horizontal: r.w(12)),
               itemCount: preview.length + 1, // +1 = 전체보기 카드
               itemBuilder: (_, i) {
                 // 마지막 아이템: 전체보기 카드
@@ -2516,7 +2518,7 @@ class _HomeScreenState extends State<HomeScreen>
                       MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen())),
                     child: Container(
                       width: cardW * 0.75,
-                      margin: const EdgeInsets.only(right: 8),
+                      margin: EdgeInsets.only(right: r.w(8)),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF3E5F5),
                         borderRadius: BorderRadius.circular(10),
@@ -2533,12 +2535,12 @@ class _HomeScreenState extends State<HomeScreen>
                             ),
                             child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 22),
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: r.h(10)),
                           Text(
                             '전체보기\n${allGroupProds.length}개',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w800,
+                              fontSize: r.sp(12), fontWeight: FontWeight.w800,
                               color: Color(0xFF6A1B9A), height: 1.4,
                             ),
                           ),
@@ -2555,7 +2557,7 @@ class _HomeScreenState extends State<HomeScreen>
                     MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
                   child: Container(
                     width: cardW,
-                    margin: const EdgeInsets.only(right: 10),
+                    margin: EdgeInsets.only(right: r.w(10)),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
@@ -2586,26 +2588,26 @@ class _HomeScreenState extends State<HomeScreen>
                               Positioned(
                                 top: 6, left: 6,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(2)),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF6A1B9A),
                                     borderRadius: BorderRadius.circular(3),
                                   ),
                                   child: const Text('GROUP',
-                                    style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900)),
+                                    style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900)),
                                 ),
                               ),
                               if (discount > 0)
                                 Positioned(
                                   top: 6, right: 6,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                    padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(2)),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFE53935),
                                       borderRadius: BorderRadius.circular(3),
                                     ),
                                     child: Text('$discount%',
-                                      style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)),
+                                      style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900)),
                                   ),
                                 ),
                             ],
@@ -2613,18 +2615,18 @@ class _HomeScreenState extends State<HomeScreen>
                         ),
                         // 상품 정보
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
+                          padding: EdgeInsets.fromLTRB(r.w(8), r.h(7), r.w(8), r.h(8)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(p.name,
                                 maxLines: 2, overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                                style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700,
                                   color: Color(0xFF111111), height: 1.3)),
-                              const SizedBox(height: 3),
+                              SizedBox(height: r.h(3)),
                               Text(
                                 '${_fmtGroupPrice(p.price)}원',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900,
+                                style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w900,
                                   color: Color(0xFF111111)),
                               ),
                             ],
@@ -2675,7 +2677,7 @@ class _HomeScreenState extends State<HomeScreen>
                       '2FIT KOREA',
                       style: TextStyle(
                         color: Color(0xFF111111),
-                        fontSize: 16,
+                        fontSize: r.sp(16),
                         fontWeight: FontWeight.w900,
                         letterSpacing: 2,
                       ),
@@ -2706,7 +2708,7 @@ class _HomeScreenState extends State<HomeScreen>
                       child: Center(
                         child: Text(
                           cart.itemCount > 9 ? '9+' : '${cart.itemCount}',
-                          style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900),
+                          style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900),
                         ),
                       ),
                     ),
@@ -2718,8 +2720,8 @@ class _HomeScreenState extends State<HomeScreen>
             builder: (_, langProv, __) => GestureDetector(
               onTap: () => _showLanguageSheet(context, loc),
               child: Container(
-                margin: const EdgeInsets.only(right: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                margin: EdgeInsets.only(right: r.w(10)),
+                padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF5F5F5),
                   borderRadius: BorderRadius.circular(5),
@@ -2728,10 +2730,10 @@ class _HomeScreenState extends State<HomeScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(langProv.language.flagEmoji, style: const TextStyle(fontSize: 13)),
-                    const SizedBox(width: 3),
+                    Text(langProv.language.flagEmoji, style: TextStyle(fontSize: r.sp(13))),
+                    SizedBox(width: r.w(3)),
                     Text(langProv.language.code,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF333333), letterSpacing: 0.5)),
+                        style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w900, color: Color(0xFF333333), letterSpacing: 0.5)),
                     const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF555555), size: 13),
                   ],
                 ),
@@ -2754,7 +2756,7 @@ class _HomeScreenState extends State<HomeScreen>
           Expanded(
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: EdgeInsets.symmetric(horizontal: r.w(12)),
               itemCount: cats.length,
               itemBuilder: (_, i) {
                 final cat = cats[i];
@@ -2772,7 +2774,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ));
                   },
                   child: Container(
-                    margin: const EdgeInsets.only(right: 4, top: 6, bottom: 6),
+                    margin: EdgeInsets.only(right: r.w(4), top: r.h(6), bottom: r.h(6)),
                     padding: EdgeInsets.symmetric(horizontal: isGroup ? 10 : 14, vertical: 2),
                     decoration: BoxDecoration(
                       color: isGroup ? const Color(0xFF6A1B9A) : Colors.transparent,
@@ -2786,11 +2788,11 @@ class _HomeScreenState extends State<HomeScreen>
                       children: [
                         if (isGroup) ...[
                           const Icon(Icons.groups_rounded, size: 12, color: Colors.white),
-                          const SizedBox(width: 4),
+                          SizedBox(width: r.w(4)),
                         ],
                         Text(cat,
                           style: TextStyle(
-                            fontSize: 12.5,
+                            fontSize: r.sp(12.5),
                             fontWeight: isGroup ? FontWeight.w800 : FontWeight.w500,
                             color: isGroup ? Colors.white : const Color(0xFF444444),
                           )),
@@ -2844,7 +2846,7 @@ class _HomeScreenState extends State<HomeScreen>
             Positioned(
               left: 0, right: 0, bottom: 0,
               child: Container(
-                padding: EdgeInsets.fromLTRB(hPad, 0, hPad, bottomPad),
+                padding: EdgeInsets.fromLTRB(hPad, r.h(0), hPad, bottomPad),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -2889,7 +2891,7 @@ class _HomeScreenState extends State<HomeScreen>
                           children: [
                             Icon(Icons.arrow_forward_rounded,
                               size: ctaSize + 2, color: const Color(0xFFE53935)),
-                            const SizedBox(width: 8),
+                            SizedBox(width: r.w(8)),
                             Text(
                               loc.language == AppLanguage.korean ? '쇼핑하러 가기' : 'Shop Now',
                               style: TextStyle(color: const Color(0xFF111111),
@@ -2933,7 +2935,7 @@ class _HomeScreenState extends State<HomeScreen>
                     duration: const Duration(milliseconds: 280),
                     width: 4,
                     height: active ? 20 : 4,
-                    margin: const EdgeInsets.symmetric(vertical: 2),
+                    margin: EdgeInsets.symmetric(vertical: r.h(2)),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(2),
                       color: active ? Colors.white : Colors.white.withValues(alpha: 0.35),
@@ -2952,7 +2954,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildGroupSectionHeader(AppLocalizations loc, int count) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 12),
+      padding: EdgeInsets.fromLTRB(r.w(16), r.h(18), r.w(16), r.h(12)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -2962,22 +2964,22 @@ class _HomeScreenState extends State<HomeScreen>
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
                     decoration: BoxDecoration(
                       color: const Color(0xFF6A1B9A),
                       borderRadius: BorderRadius.circular(3),
                     ),
                     child: const Text('GROUP ORDER ONLY',
-                      style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+                      style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w800, letterSpacing: 1.5)),
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: r.h(6)),
               const Text('단체주문 전용 상품',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF111111), letterSpacing: -0.3)),
-              const SizedBox(height: 2),
+                style: TextStyle(fontSize: r.sp(20), fontWeight: FontWeight.w900, color: Color(0xFF111111), letterSpacing: -0.3)),
+              SizedBox(height: r.h(2)),
               const Text('5명 이상 · 팀 맞춤 제작 · 무료배송',
-                style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888))),
             ],
           ),
           const Spacer(),
@@ -2986,7 +2988,7 @@ class _HomeScreenState extends State<HomeScreen>
               builder: (_) => const GroupOrderOnlyScreen(),
             )),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(7)),
               decoration: BoxDecoration(
                 color: const Color(0xFF6A1B9A),
                 borderRadius: BorderRadius.circular(6),
@@ -2995,8 +2997,8 @@ class _HomeScreenState extends State<HomeScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text('전체보기 $count',
-                    style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
-                  const SizedBox(width: 3),
+                    style: TextStyle(color: Colors.white, fontSize: r.sp(11), fontWeight: FontWeight.w800)),
+                  SizedBox(width: r.w(3)),
                   const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 11),
                 ],
               ),
@@ -3057,21 +3059,21 @@ class _HomeScreenState extends State<HomeScreen>
                   Positioned(
                     top: 8, left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
                       decoration: BoxDecoration(
                         color: const Color(0xFF6A1B9A),
                         borderRadius: BorderRadius.circular(3),
                       ),
-                      child: const Text('GROUP', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+                      child: Text('GROUP', style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900, letterSpacing: 1.0)),
                     ),
                   ),
                   if (discount > 0)
                     Positioned(
                       top: 8, right: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
                         decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(3)),
-                        child: Text('$discount%', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
+                        child: Text('$discount%', style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w900)),
                       ),
                     ),
                 ],
@@ -3079,29 +3081,29 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             // 정보
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+              padding: EdgeInsets.fromLTRB(r.w(10), r.h(8), r.w(10), r.h(10)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (p.subCategory.isNotEmpty)
                     Text(p.subCategory,
-                      style: const TextStyle(fontSize: 10, color: Color(0xFF888888), fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: r.sp(10), color: Color(0xFF888888), fontWeight: FontWeight.w500),
                       maxLines: 1, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 2),
+                  SizedBox(height: r.h(2)),
                   Text(p.name,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF111111)),
+                    style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF111111)),
                     maxLines: 2, overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 4),
+                  SizedBox(height: r.h(4)),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text('${_fmtGroupPrice(p.price)}원',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF111111))),
+                        style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w900, color: Color(0xFF111111))),
                       if (p.originalPrice != null && p.originalPrice! > p.price) ...[
-                        const SizedBox(width: 5),
+                        SizedBox(width: r.w(5)),
                         Text('${_fmtGroupPrice(p.originalPrice!)}원',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
+                          style: TextStyle(fontSize: r.sp(11), color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
                       ],
                     ],
                   ),
@@ -3119,7 +3121,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildGroupEmptyState(AppLocalizations loc) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+      padding: EdgeInsets.symmetric(vertical: r.h(48), horizontal: r.w(24)),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -3131,14 +3133,14 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             child: const Icon(Icons.groups_rounded, size: 38, color: Color(0xFF6A1B9A)),
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: r.h(14)),
           const Text('단체주문 상품 준비 중',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF333333))),
-          const SizedBox(height: 6),
+            style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800, color: Color(0xFF333333))),
+          SizedBox(height: r.h(6)),
           const Text('새로운 단체주문 전용 상품이 곧 업데이트됩니다.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: Color(0xFF888888), height: 1.5)),
-          const SizedBox(height: 18),
+            style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888), height: 1.5)),
+          SizedBox(height: r.h(18)),
           OutlinedButton.icon(
             onPressed: () => Navigator.push(context, MaterialPageRoute(
               builder: (_) => const GroupOrderOnlyScreen(),
@@ -3208,7 +3210,7 @@ class _HomeScreenState extends State<HomeScreen>
                           '2FIT KOREA',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
+                            fontSize: r.sp(18),
                             fontWeight: FontWeight.w900,
                             letterSpacing: 2,
                           ),
@@ -3245,7 +3247,7 @@ class _HomeScreenState extends State<HomeScreen>
                               cart.itemCount > 9 ? '9+' : '${cart.itemCount}',
                               style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 8,
+                                  fontSize: r.sp(8),
                                   fontWeight: FontWeight.w900),
                             ),
                           ),
@@ -3259,8 +3261,8 @@ class _HomeScreenState extends State<HomeScreen>
                 builder: (_, langProv, __) => GestureDetector(
                   onTap: () => _showLanguageSheet(context, loc),
                   child: Container(
-                    margin: const EdgeInsets.only(right: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    margin: EdgeInsets.only(right: r.w(10)),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(5),
@@ -3273,12 +3275,12 @@ class _HomeScreenState extends State<HomeScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(langProv.language.flagEmoji,
-                            style: const TextStyle(fontSize: 13)),
-                        const SizedBox(width: 3),
+                            style: TextStyle(fontSize: r.sp(13))),
+                        SizedBox(width: r.w(3)),
                         Text(
                           langProv.language.code,
                           style: const TextStyle(
-                            fontSize: 10,
+                            fontSize: r.sp(10),
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
                             letterSpacing: 0.5,
@@ -3315,11 +3317,11 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // 헤더
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(20), r.w(16), r.h(0)),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFF6B35),
                     borderRadius: BorderRadius.circular(4),
@@ -3328,13 +3330,13 @@ class _HomeScreenState extends State<HomeScreen>
                     'GROUP ONLY',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 9,
+                      fontSize: r.sp(9),
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.5,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: r.w(8)),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -3342,7 +3344,7 @@ class _HomeScreenState extends State<HomeScreen>
                       'TEAM ORDER',
                       style: TextStyle(
                         color: Color(0xFFFF6B35),
-                        fontSize: 9,
+                        fontSize: r.sp(9),
                         fontWeight: FontWeight.w800,
                         letterSpacing: 2.0,
                       ),
@@ -3351,7 +3353,7 @@ class _HomeScreenState extends State<HomeScreen>
                       loc.homeGroupOnly,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
+                        fontSize: r.sp(20),
                         fontWeight: FontWeight.w900,
                         letterSpacing: -0.5,
                         height: 1.1,
@@ -3368,7 +3370,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(7)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFF6B35),
                       borderRadius: BorderRadius.circular(2),
@@ -3376,7 +3378,7 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Text(
                       loc.homeViewAll,
                       style: const TextStyle(
-                        fontSize: 11,
+                        fontSize: r.sp(11),
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
                         letterSpacing: 0.5,
@@ -3387,10 +3389,10 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: r.h(8)),
           // 5명 이상 안내 배지
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: r.w(16)),
             child: Wrap(
               spacing: 8,
               children: [
@@ -3400,10 +3402,10 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: r.h(12)),
           // 2컬럼 — Wrap으로 카드 실제 높이 유지
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.symmetric(horizontal: r.w(12)),
             child: LayoutBuilder(
               builder: (ctx, constraints) {
                 const cols = 2;
@@ -3419,12 +3421,12 @@ class _HomeScreenState extends State<HomeScreen>
               },
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: r.h(16)),
           // 단체 커스텀 오더 신청 → 상품 상세에서만 가능 안내
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: r.w(16)),
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+              padding: EdgeInsets.symmetric(vertical: r.h(10), horizontal: r.w(14)),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
@@ -3433,25 +3435,25 @@ class _HomeScreenState extends State<HomeScreen>
               child: Row(
                 children: [
                   const Icon(Icons.touch_app_rounded, color: Color(0xFFFF6B35), size: 16),
-                  const SizedBox(width: 8),
+                  SizedBox(width: r.w(8)),
                   Expanded(
                     child: Text(
                       loc.homeGroupOrderNote2,
-                      style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w500),
+                      style: TextStyle(color: Colors.white70, fontSize: r.sp(12), fontWeight: FontWeight.w500),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: r.h(20)),
         ],
       ),
     );
   }
 
   Widget _groupBadge(String text) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(4)),
     decoration: BoxDecoration(
       color: Colors.white.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(20),
@@ -3461,7 +3463,7 @@ class _HomeScreenState extends State<HomeScreen>
       text,
       style: const TextStyle(
         color: Colors.white70,
-        fontSize: 11,
+        fontSize: r.sp(11),
         fontWeight: FontWeight.w600,
       ),
     ),
@@ -3472,17 +3474,17 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildNoticeBanner() {
     return Container(
       color: const Color(0xFFE53935),
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: r.h(8)),
       child: const Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 14),
-          SizedBox(width: 6),
+          SizedBox(width: r.w(6)),
           Text(
             '🎉 봄 시즌 SALE 최대 40% 할인 · 3만원 이상 무료배송',
-            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+            style: TextStyle(color: Colors.white, fontSize: r.sp(12), fontWeight: FontWeight.w700, letterSpacing: 0.3),
           ),
-          SizedBox(width: 6),
+          SizedBox(width: r.w(6)),
           Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 14),
         ],
       ),
@@ -3498,7 +3500,7 @@ class _HomeScreenState extends State<HomeScreen>
     ];
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: EdgeInsets.symmetric(vertical: r.h(16)),
       child: Row(
         children: menus.asMap().entries.map((e) {
           final m = e.value;
@@ -3524,9 +3526,9 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     child: Icon(m['icon'] as IconData, color: m['color'] as Color, size: 26),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: r.h(6)),
                   Text(m['label'] as String,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
+                      style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF333333))),
                 ],
               ),
             ),
@@ -3546,29 +3548,29 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Container(
       color: Colors.white,
-      margin: const EdgeInsets.only(top: 8),
+      margin: EdgeInsets.only(top: r.h(8)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 헤더
           Container(
             color: const Color(0xFFE53935),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
             child: Row(
               children: [
                 const Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                const Text('FLASH SALE', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-                const SizedBox(width: 8),
+                SizedBox(width: r.w(8)),
+                Text('FLASH SALE', style: TextStyle(color: Colors.white, fontSize: r.sp(16), fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+                SizedBox(width: r.w(8)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(2)),
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-                  child: Text(loc.homeMaxDiscount, style: const TextStyle(color: Color(0xFFE53935), fontSize: 11, fontWeight: FontWeight.w900)),
+                  child: Text(loc.homeMaxDiscount, style: TextStyle(color: Color(0xFFE53935), fontSize: r.sp(11), fontWeight: FontWeight.w900)),
                 ),
                 const Spacer(),
                 GestureDetector(
                   onTap: () => widget.onNavigate?.call(1),
-                  child: Text(loc.homeViewAllArrow, style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                  child: Text(loc.homeViewAllArrow, style: TextStyle(color: Colors.white70, fontSize: r.sp(12), fontWeight: FontWeight.w600)),
                 ),
               ],
             ),
@@ -3578,7 +3580,7 @@ class _HomeScreenState extends State<HomeScreen>
             height: 220,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(12)),
               itemCount: saleProducts.length,
               itemBuilder: (_, i) {
                 final p = saleProducts[i];
@@ -3589,7 +3591,7 @@ class _HomeScreenState extends State<HomeScreen>
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
                   child: Container(
                     width: 130,
-                    margin: const EdgeInsets.only(right: 8),
+                    margin: EdgeInsets.only(right: r.w(8)),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
@@ -3612,26 +3614,26 @@ class _HomeScreenState extends State<HomeScreen>
                             if (discount > 0)
                               Positioned(top: 6, left: 6,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(2)),
                                   decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(3)),
-                                  child: Text('-$discount%', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
+                                  child: Text('-$discount%', style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w900)),
                                 ),
                               ),
                           ],
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
+                          padding: EdgeInsets.fromLTRB(r.w(8), r.h(6), r.w(8), r.h(4)),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF222222))),
-                              const SizedBox(height: 2),
+                                  style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w600, color: Color(0xFF222222))),
+                              SizedBox(height: r.h(2)),
                               if (p.originalPrice != null)
                                 Text('${_fmtPrice(p.originalPrice!)}${loc.wonUnit2}',
-                                    style: const TextStyle(fontSize: 10, color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
+                                    style: TextStyle(fontSize: r.sp(10), color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
                               Text('${_fmtPrice(p.price)}${loc.wonUnit2}',
-                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
+                                  style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
                             ],
                           ),
                         ),
@@ -3651,7 +3653,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ignore: unused_element
   Widget _buildPromoBanner() {
     return Container(
-      margin: const EdgeInsets.only(top: 8),
+      margin: EdgeInsets.only(top: r.h(8)),
       child: Column(
         children: [
           // ── 배너 1: 신상품 안내 ──
@@ -3659,7 +3661,7 @@ class _HomeScreenState extends State<HomeScreen>
             onTap: () => widget.onNavigate?.call(1),
             child: Container(
               color: const Color(0xFF0D1B2A),
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(r.w(20)),
               child: Row(
                 children: [
                   Expanded(
@@ -3667,36 +3669,36 @@ class _HomeScreenState extends State<HomeScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
                           decoration: BoxDecoration(color: const Color(0xFF1565C0), borderRadius: BorderRadius.circular(3)),
-                          child: const Text('NEW ARRIVAL', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                          child: Text('NEW ARRIVAL', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 1)),
                         ),
-                        const SizedBox(height: 10),
-                        Text('2025 S/S\n${loc.homeNewArrival}', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, height: 1.3)),
-                        const SizedBox(height: 6),
-                        Text(loc.homeLatestCollection, style: const TextStyle(color: Color(0xFF8899AA), fontSize: 13)),
-                        const SizedBox(height: 14),
+                        SizedBox(height: r.h(10)),
+                        Text('2025 S/S\n${loc.homeNewArrival}', style: TextStyle(color: Colors.white, fontSize: r.sp(20), fontWeight: FontWeight.w900, height: 1.3)),
+                        SizedBox(height: r.h(6)),
+                        Text(loc.homeLatestCollection, style: TextStyle(color: Color(0xFF8899AA), fontSize: r.sp(13))),
+                        SizedBox(height: r.h(14)),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                          padding: EdgeInsets.symmetric(horizontal: r.w(18), vertical: r.h(9)),
                           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                          child: Text(loc.homeNewArrivalsArrow, style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 12, fontWeight: FontWeight.w900)),
+                          child: Text(loc.homeNewArrivalsArrow, style: TextStyle(color: Color(0xFF1A1A1A), fontSize: r.sp(12), fontWeight: FontWeight.w900)),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: r.w(10)),
                   const Icon(Icons.fiber_new_rounded, color: Color(0xFF1E3A5F), size: 90),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: r.h(2)),
           // ── 배너 2: 이벤트 특가 ──
           GestureDetector(
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '이벤트'))),
             child: Container(
               color: const Color(0xFF1A0A0A),
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(r.w(20)),
               child: Row(
                 children: [
                   Expanded(
@@ -3704,28 +3706,28 @@ class _HomeScreenState extends State<HomeScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
                           decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(3)),
-                          child: const Text('EVENT SALE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                          child: Text('EVENT SALE', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 1)),
                         ),
-                        const SizedBox(height: 10),
-                        Text(loc.homeSeasonDiscount, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900, height: 1.3)),
-                        const SizedBox(height: 6),
-                        Text(loc.homeSeasonDiscountSub, style: const TextStyle(color: Color(0xFF9988AA), fontSize: 13)),
-                        const SizedBox(height: 14),
+                        SizedBox(height: r.h(10)),
+                        Text(loc.homeSeasonDiscount, style: TextStyle(color: Colors.white, fontSize: r.sp(20), fontWeight: FontWeight.w900, height: 1.3)),
+                        SizedBox(height: r.h(6)),
+                        Text(loc.homeSeasonDiscountSub, style: TextStyle(color: Color(0xFF9988AA), fontSize: r.sp(13))),
+                        SizedBox(height: r.h(14)),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
+                          padding: EdgeInsets.symmetric(horizontal: r.w(18), vertical: r.h(9)),
                           decoration: BoxDecoration(
                             color: Colors.transparent,
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
                           ),
-                          child: Text(loc.homeEventArrow, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w900)),
+                          child: Text(loc.homeEventArrow, style: TextStyle(color: Colors.white, fontSize: r.sp(12), fontWeight: FontWeight.w900)),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: r.w(10)),
                   const Icon(Icons.local_offer_rounded, color: Color(0xFF5F1E1E), size: 90),
                 ],
               ),
@@ -3747,16 +3749,16 @@ class _HomeScreenState extends State<HomeScreen>
     ];
     return Container(
       color: Colors.white,
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.symmetric(vertical: 20),
+      margin: EdgeInsets.only(top: r.h(8)),
+      padding: EdgeInsets.symmetric(vertical: r.h(20)),
       child: Row(
         children: features.map((f) => Expanded(
           child: Column(
             children: [
               Icon(f['icon'] as IconData, size: 28, color: const Color(0xFF333333)),
-              const SizedBox(height: 6),
-              Text(f['title'] as String, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
-              Text(f['sub'] as String, style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
+              SizedBox(height: r.h(6)),
+              Text(f['title'] as String, style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+              Text(f['sub'] as String, style: TextStyle(fontSize: r.sp(10), color: Color(0xFF888888))),
             ],
           ),
         )).toList(),
@@ -3798,8 +3800,8 @@ class _HomeScreenState extends State<HomeScreen>
     return GestureDetector(
       onTap: () => _showLanguageSheet(context, loc),
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        margin: EdgeInsets.symmetric(vertical: r.h(10), horizontal: r.w(4)),
+        padding: EdgeInsets.symmetric(horizontal: r.w(9), vertical: r.h(5)),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.18),
           borderRadius: BorderRadius.circular(6),
@@ -3808,13 +3810,13 @@ class _HomeScreenState extends State<HomeScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(langProv.language.flagEmoji, style: const TextStyle(fontSize: 14)),
-            const SizedBox(width: 4),
+            Text(langProv.language.flagEmoji, style: TextStyle(fontSize: r.sp(14))),
+            SizedBox(width: r.w(4)),
             Text(
               langProv.language.code,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 0.8),
+              style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 0.8),
             ),
-            const SizedBox(width: 2),
+            SizedBox(width: r.w(2)),
             const Icon(Icons.arrow_drop_down_rounded, color: Colors.white, size: 14),
           ],
         ),
@@ -3834,7 +3836,7 @@ class _HomeScreenState extends State<HomeScreen>
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(ctx).viewInsets.bottom + 32),
+        padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), MediaQuery.of(ctx).viewInsets.bottom + 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -3846,16 +3848,16 @@ class _HomeScreenState extends State<HomeScreen>
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: r.h(16)),
             Text(
               loc.selectLanguage,
               style: const TextStyle(
-                fontSize: 17,
+                fontSize: r.sp(17),
                 fontWeight: FontWeight.w800,
                 color: Color(0xFF1A1A1A),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: r.h(16)),
             // 스크롤 가능한 언어 목록 (모든 언어 표시)
             ConstrainedBox(
               constraints: BoxConstraints(
@@ -3872,8 +3874,8 @@ class _HomeScreenState extends State<HomeScreen>
                         Navigator.pop(ctx);
                       },
                       child: Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        margin: EdgeInsets.only(bottom: r.h(10)),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(14)),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? const Color(0xFF1A1A1A)
@@ -3888,12 +3890,12 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Row(
                           children: [
                             Text(lang.flagEmoji,
-                                style: const TextStyle(fontSize: 22)),
-                            const SizedBox(width: 14),
+                                style: TextStyle(fontSize: r.sp(22))),
+                            SizedBox(width: r.w(14)),
                             Text(
                               lang.nativeName,
                               style: TextStyle(
-                                fontSize: 15,
+                                fontSize: r.sp(15),
                                 fontWeight: FontWeight.w700,
                                 color: isSelected ? Colors.white : const Color(0xFF1A1A1A),
                               ),
@@ -3934,7 +3936,7 @@ class _HomeScreenState extends State<HomeScreen>
             children: [
               // 핸들
               Container(
-                margin: const EdgeInsets.only(top: 12),
+                margin: EdgeInsets.only(top: r.h(12)),
                 width: 40, height: 4,
                 decoration: BoxDecoration(
                   color: const Color(0xFFE0E0E0),
@@ -3942,13 +3944,13 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
+                padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(12), r.h(8)),
                 child: Row(
                   children: [
                     Text(
                       loc.notifications,
                       style: const TextStyle(
-                        fontSize: 17,
+                        fontSize: r.sp(17),
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF1A1A1A),
                       ),
@@ -3960,7 +3962,7 @@ class _HomeScreenState extends State<HomeScreen>
                         setModalState(() {});
                       },
                       child: Text(loc.homeMarkReadAll,
-                          style: const TextStyle(fontSize: 13, color: Color(0xFF888888))),
+                          style: TextStyle(fontSize: r.sp(13), color: Color(0xFF888888))),
                     ),
                   ],
                 ),
@@ -3976,15 +3978,15 @@ class _HomeScreenState extends State<HomeScreen>
                         children: [
                           Icon(Icons.notifications_none_rounded,
                               size: 56, color: Colors.grey.shade300),
-                          const SizedBox(height: 12),
+                          SizedBox(height: r.h(12)),
                           Text(loc.noNotifications,
                               style: const TextStyle(
-                                  fontSize: 14, color: Color(0xFFAAAAAA))),
+                                  fontSize: r.sp(14), color: Color(0xFFAAAAAA))),
                         ],
                       );
                     }
                     return ListView.separated(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: EdgeInsets.symmetric(vertical: r.h(8)),
                       itemCount: list.length,
                       separatorBuilder: (_, __) => const Divider(
                           height: 1, indent: 60),
@@ -4009,8 +4011,7 @@ class _HomeScreenState extends State<HomeScreen>
                             color: n.isRead
                                 ? Colors.white
                                 : const Color(0xFFFFF8E1),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
+                            padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -4024,7 +4025,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   child: Icon(iconData,
                                       size: 18, color: iconColor),
                                 ),
-                                const SizedBox(width: 12),
+                                SizedBox(width: r.w(12)),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -4035,7 +4036,7 @@ class _HomeScreenState extends State<HomeScreen>
                                           Expanded(
                                             child: Text(n.title,
                                                 style: TextStyle(
-                                                  fontSize: 13,
+                                                  fontSize: r.sp(13),
                                                   fontWeight: n.isRead
                                                       ? FontWeight.w500
                                                       : FontWeight.w700,
@@ -4053,17 +4054,17 @@ class _HomeScreenState extends State<HomeScreen>
                                             ),
                                         ],
                                       ),
-                                      const SizedBox(height: 3),
+                                      SizedBox(height: r.h(3)),
                                       Text(n.body,
                                           style: const TextStyle(
-                                            fontSize: 12,
+                                            fontSize: r.sp(12),
                                             color: Color(0xFF888888),
                                           )),
-                                      const SizedBox(height: 3),
+                                      SizedBox(height: r.h(3)),
                                       Text(
                                         _timeAgo(n.createdAt),
                                         style: const TextStyle(
-                                          fontSize: 11,
+                                          fontSize: r.sp(11),
                                           color: Color(0xFFBBBBBB),
                                         ),
                                       ),
@@ -4131,7 +4132,7 @@ class _HomeScreenState extends State<HomeScreen>
             Positioned(
               left: 0, right: 0, bottom: 0,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                padding: EdgeInsets.fromLTRB(r.w(16), r.h(0), r.w(16), r.h(24)),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -4152,14 +4153,14 @@ class _HomeScreenState extends State<HomeScreen>
                       loc.language == AppLanguage.korean
                           ? '함께 달리는\n2FIT'
                           : 'Run Together\nwith 2FIT',
-                      style: const TextStyle(color: Colors.white, fontSize: 20,
+                      style: TextStyle(color: Colors.white, fontSize: r.sp(20),
                           fontWeight: FontWeight.w900, height: 1.15, letterSpacing: -0.3),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: r.h(14)),
                     GestureDetector(
                       onTap: goShop,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(8)),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(6),
@@ -4171,11 +4172,11 @@ class _HomeScreenState extends State<HomeScreen>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(Icons.arrow_forward_rounded, size: 12, color: Color(0xFFE53935)),
-                            const SizedBox(width: 8),
+                            SizedBox(width: r.w(8)),
                             Text(
                               loc.language == AppLanguage.korean ? '쇼핑하러 가기' : 'Shop Now',
                               style: const TextStyle(color: Color(0xFF111111),
-                                  fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                                  fontSize: r.sp(10), fontWeight: FontWeight.w800, letterSpacing: 0.3),
                             ),
                           ],
                         ),
@@ -4215,7 +4216,7 @@ class _HomeScreenState extends State<HomeScreen>
                     duration: const Duration(milliseconds: 280),
                     width: 4,
                     height: active ? 22 : 5,
-                    margin: const EdgeInsets.symmetric(vertical: 2.5),
+                    margin: EdgeInsets.symmetric(vertical: r.h(2.5)),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(2),
                       color: active
@@ -4352,7 +4353,7 @@ class _HomeScreenState extends State<HomeScreen>
     final bottomPad = isPc ? 48.0 : isTablet ? 32.0 : 18.0;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(hPad, 0, hPad, bottomPad),
+      padding: EdgeInsets.fromLTRB(hPad, r.h(0), hPad, bottomPad),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -4399,7 +4400,7 @@ class _HomeScreenState extends State<HomeScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(ctaIcon, size: ctaSize + 3, color: accent),
-                    const SizedBox(width: 10),
+                    SizedBox(width: r.w(10)),
                     Text(cta,
                       style: TextStyle(color: const Color(0xFF111111),
                           fontSize: ctaSize, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
@@ -4443,25 +4444,25 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildCategoryBar(AppLocalizations loc) {
     return Container(
       color: Colors.white,
-      margin: const EdgeInsets.only(top: 8),
+      margin: EdgeInsets.only(top: r.h(8)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ── 헤더 ──
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(16), r.w(16), r.h(0)),
             child: Row(
               children: [
-                Text(loc.homeCategory, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF111111))),
+                Text(loc.homeCategory, style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w900, color: Color(0xFF111111))),
                 const Spacer(),
                 GestureDetector(
                   onTap: () => widget.onNavigate?.call(1),
-                  child: Text(loc.homeViewAllArrow, style: const TextStyle(fontSize: 12, color: Color(0xFF888888), fontWeight: FontWeight.w600)),
+                  child: Text(loc.homeViewAllArrow, style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888), fontWeight: FontWeight.w600)),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: r.h(12)),
           // ── 카테고리 아코디언 목록 ──
           ...getCategories(loc).map((cat) {
             final isExpanded = _expandedCatName == cat.name;
@@ -4478,7 +4479,7 @@ class _HomeScreenState extends State<HomeScreen>
                     });
                   },
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(13)),
                     child: Row(
                       children: [
                         Container(
@@ -4489,12 +4490,12 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                           child: Icon(cat.icon, color: cat.color, size: 16),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: r.w(12)),
                         Expanded(
                           child: Text(
                             cat.name,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: r.sp(14),
                               fontWeight: isExpanded ? FontWeight.w800 : FontWeight.w600,
                               color: isExpanded ? cat.color : const Color(0xFF1A1A1A),
                             ),
@@ -4513,15 +4514,15 @@ class _HomeScreenState extends State<HomeScreen>
                             ));
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
                             decoration: BoxDecoration(
                               color: cat.color.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: Text(loc.homeCategoryAll, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: cat.color)),
+                            child: Text(loc.homeCategoryAll, style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w700, color: cat.color)),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: r.w(8)),
                         AnimatedRotation(
                           turns: isExpanded ? 0.5 : 0,
                           duration: const Duration(milliseconds: 200),
@@ -4548,16 +4549,16 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      padding: EdgeInsets.symmetric(vertical: r.h(6)),
                       child: Wrap(
                         spacing: 8,
                         runSpacing: 6,
                         children: [
-                          const SizedBox(width: 0), // 좌측 패딩용
+                          SizedBox(width: r.w(0)), // 좌측 패딩용
                           ...subs.map((sub) {
                             final isSubSel = _selectedCategoryKey == '${cat.name}/${sub.name}';
                             return Padding(
-                              padding: const EdgeInsets.only(left: 52),
+                              padding: EdgeInsets.only(left: r.w(52)),
                               child: GestureDetector(
                                 onTap: () {
                                   setState(() => _selectedCategoryKey = '${cat.name}/${sub.name}');
@@ -4566,7 +4567,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ));
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                                  padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(7)),
                                   decoration: BoxDecoration(
                                     color: isSubSel ? cat.color.withValues(alpha: 0.12) : Colors.transparent,
                                     borderRadius: BorderRadius.circular(6),
@@ -4581,19 +4582,19 @@ class _HomeScreenState extends State<HomeScreen>
                                           color: isSubSel ? cat.color : const Color(0xFFCCCCCC),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      SizedBox(width: r.w(8)),
                                       Text(
                                         sub.name,
                                         style: TextStyle(
-                                          fontSize: 13,
+                                          fontSize: r.sp(13),
                                           fontWeight: isSubSel ? FontWeight.w700 : FontWeight.w500,
                                           color: isSubSel ? cat.color : const Color(0xFF555555),
                                         ),
                                       ),
                                       if (sub.tag != null) ...[
-                                        const SizedBox(width: 6),
+                                        SizedBox(width: r.w(6)),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                          padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(1)),
                                           decoration: BoxDecoration(
                                             color: sub.tag == 'BEST'
                                                 ? const Color(0xFFFF6B35)
@@ -4604,7 +4605,7 @@ class _HomeScreenState extends State<HomeScreen>
                                           ),
                                           child: Text(
                                             sub.tag!,
-                                            style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w800),
+                                            style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w800),
                                           ),
                                         ),
                                       ],
@@ -4623,7 +4624,7 @@ class _HomeScreenState extends State<HomeScreen>
               ],
             );
           }),
-          const SizedBox(height: 4),
+          SizedBox(height: r.h(4)),
         ],
       ),
     );
@@ -4673,10 +4674,10 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             child: Icon(icon, color: color, size: 26),
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: r.h(6)),
           Text(
             label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF333333)),
+            style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF333333)),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -4723,8 +4724,8 @@ class _HomeScreenState extends State<HomeScreen>
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+        margin: EdgeInsets.symmetric(horizontal: r.w(2), vertical: r.h(10)),
+        padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(5)),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF111111) : Colors.transparent,
           borderRadius: BorderRadius.circular(2),
@@ -4736,7 +4737,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: r.sp(11),
             fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
             color: isSelected ? Colors.white : const Color(0xFF444444),
             letterSpacing: 0.8,
@@ -4822,12 +4823,12 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildSectionSkeleton(String title) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      padding: EdgeInsets.symmetric(vertical: r.h(24), horizontal: r.w(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(height: 1, color: const Color(0xFFF0F0F0)),
-          const SizedBox(height: 20),
+          SizedBox(height: r.h(20)),
           Container(
             width: 120,
             height: 22,
@@ -4836,7 +4837,7 @@ class _HomeScreenState extends State<HomeScreen>
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: r.h(16)),
           Row(
             children: List.generate(
               2,
@@ -4855,11 +4856,11 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: r.h(8)),
                       Container(
                           height: 14,
                           color: const Color(0xFFEEEEEE)),
-                      const SizedBox(height: 4),
+                      SizedBox(height: r.h(4)),
                       Container(
                           width: 60,
                           height: 14,
@@ -4896,7 +4897,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: r.h(8)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4904,7 +4905,7 @@ class _HomeScreenState extends State<HomeScreen>
 
           // ── 섹션 헤더 ──────────────────────────────
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(16), r.w(16), r.h(0)),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -4914,7 +4915,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Text(
                       englishTitle.toUpperCase(),
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: r.sp(9),
                         fontWeight: FontWeight.w800,
                         color: accentColor == const Color(0xFF1A1A1A)
                             ? const Color(0xFFAAAAAA)
@@ -4922,11 +4923,11 @@ class _HomeScreenState extends State<HomeScreen>
                         letterSpacing: 2.5,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: r.h(2)),
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: r.sp(20),
                         fontWeight: FontWeight.w900,
                         color: Color(0xFF111111),
                         letterSpacing: -0.5,
@@ -4944,7 +4945,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(6)),
                     decoration: BoxDecoration(
                       color: const Color(0xFF111111),
                       borderRadius: BorderRadius.circular(20),
@@ -4952,7 +4953,7 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Text(
                       viewAllLabel,
                       style: const TextStyle(
-                        fontSize: 11,
+                        fontSize: r.sp(11),
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                         letterSpacing: 0.3,
@@ -4964,12 +4965,12 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
-          const SizedBox(height: 12),
+          SizedBox(height: r.h(12)),
 
           // ── PC 그리드 (isHorizontal=false) ─────────
           if (!isHorizontal)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: EdgeInsets.symmetric(horizontal: r.w(12)),
               child: LayoutBuilder(
                 builder: (ctx, constraints) {
                   final cols = screenW >= 1200 ? 5 : (screenW >= 900 ? 4 : 3);
@@ -4993,7 +4994,7 @@ class _HomeScreenState extends State<HomeScreen>
               height: imgH + 82,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: EdgeInsets.symmetric(horizontal: r.w(12)),
                 itemCount: products.length.clamp(0, 10) + 1, // 최대 10개 + 전체보기 카드
                 itemBuilder: (_, i) {
                   final display = products.take(10).toList();
@@ -5008,7 +5009,7 @@ class _HomeScreenState extends State<HomeScreen>
                       ),
                       child: Container(
                         width: cardW * 0.75,
-                        margin: const EdgeInsets.only(right: 8),
+                        margin: EdgeInsets.only(right: r.w(8)),
                         decoration: BoxDecoration(
                           color: accentColor == const Color(0xFFE53935)
                               ? const Color(0xFFFFEBEE)
@@ -5032,12 +5033,12 @@ class _HomeScreenState extends State<HomeScreen>
                                 color: Colors.white, size: 22,
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: r.h(10)),
                             Text(
                               '전체보기\n${products.length}개',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 12,
+                                fontSize: r.sp(12),
                                 fontWeight: FontWeight.w800,
                                 color: accentColor,
                                 height: 1.4,
@@ -5053,7 +5054,7 @@ class _HomeScreenState extends State<HomeScreen>
                   final p = display[i];
                   return Container(
                     width: cardW,
-                    margin: const EdgeInsets.only(right: 10),
+                    margin: EdgeInsets.only(right: r.w(10)),
                     child: ProductCard(product: p),
                   );
                 },
@@ -5072,12 +5073,12 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildPcFooter(AppLocalizations loc) {
     return Container(
       color: const Color(0xFF1A1A1A),
-      padding: const EdgeInsets.symmetric(vertical: 40),
+      padding: EdgeInsets.symmetric(vertical: r.h(40)),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: r.w(24)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -5097,29 +5098,29 @@ class _HomeScreenState extends State<HomeScreen>
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w900,
-                                fontSize: 22,
+                                fontSize: r.sp(22),
                                 letterSpacing: 2,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: r.h(10)),
                           Text(
                             loc.homeBrandSlogan,
-                            style: const TextStyle(color: Colors.white54, fontSize: 13, height: 1.7),
+                            style: TextStyle(color: Colors.white54, fontSize: r.sp(13), height: 1.7),
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: r.h(20)),
                           _footerInfoRow('🏢 주식회사 2FIT Korea'),
                           _footerInfoRow('📞 010-7227-6914'),
                           _footerInfoRow('✉ chw243527@gmail.com'),
                           _footerInfoRow('💬 카카오톡 @2fitkorea'),
                           _footerInfoRow('🕐 평일 10:00 - 18:00 (점심 12:00 - 14:00)'),
                           _footerInfoRow('🚫 토·일·공휴일 휴무'),
-                          const SizedBox(height: 16),
+                          SizedBox(height: r.h(16)),
                           Row(
                             children: [
                               _footerSocialBtn(loc.homeKakao, const Color(0xFFFFE000), Colors.black,
                                   () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
-                              const SizedBox(width: 8),
+                              SizedBox(width: r.w(8)),
                               _footerSocialBtn('고객센터', const Color(0xFF333333), Colors.white,
                                   () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
                             ],
@@ -5127,14 +5128,14 @@ class _HomeScreenState extends State<HomeScreen>
                         ],
                       ),
                     ),
-                    const SizedBox(width: 40),
+                    SizedBox(width: r.w(40)),
                     // 쇼핑 안내
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(loc.homeShopInfo, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
-                          const SizedBox(height: 14),
+                          Text(loc.homeShopInfo, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: r.sp(14))),
+                          SizedBox(height: r.h(14)),
                           _footerLink('상품 목록', () => widget.onNavigate?.call(1)),
                           _footerLink('배송 안내', null),
                           _footerLink(loc.footerReturnPolicy, null),
@@ -5142,28 +5143,28 @@ class _HomeScreenState extends State<HomeScreen>
                         ],
                       ),
                     ),
-                    const SizedBox(width: 40),
+                    SizedBox(width: r.w(40)),
                     // 주문 서비스
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(loc.homeOrderService, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
-                          const SizedBox(height: 14),
+                          Text(loc.homeOrderService, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: r.sp(14))),
+                          SizedBox(height: r.h(14)),
                           _footerLink(loc.footerGroupOrder, () => Navigator.pushNamed(context, '/group-guide')),
                           _footerLink('주문 현황 조회', () => widget.onNavigate?.call(3)),
                           _footerLink('장바구니', () => widget.onNavigate?.call(2)),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 40),
+                    SizedBox(width: r.w(40)),
                     // 고객 지원
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(loc.homeCustomerSupport, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
-                          const SizedBox(height: 14),
+                          Text(loc.homeCustomerSupport, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: r.sp(14))),
+                          SizedBox(height: r.h(14)),
                           _footerLink('1:1 문의', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
                           _footerLink('자주 묻는 질문', null),
                           _footerLink(loc.myPageLabel, () => widget.onNavigate?.call(3)),
@@ -5173,21 +5174,21 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 28),
+                SizedBox(height: r.h(28)),
                 const Divider(color: Colors.white12),
-                const SizedBox(height: 16),
+                SizedBox(height: r.h(16)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       '© 2025 2FIT Korea Co., Ltd. All rights reserved.',
-                      style: TextStyle(color: Colors.white30, fontSize: 12),
+                      style: TextStyle(color: Colors.white30, fontSize: r.sp(12)),
                     ),
                     Row(
                       children: [
-                        Text(loc.homeTermsOfUse, style: const TextStyle(color: Colors.white38, fontSize: 12)),
-                        const SizedBox(width: 16),
-                        Text(loc.homePrivacyPolicy, style: const TextStyle(color: Colors.white38, fontSize: 12, fontWeight: FontWeight.w600)),
+                        Text(loc.homeTermsOfUse, style: TextStyle(color: Colors.white38, fontSize: r.sp(12))),
+                        SizedBox(width: r.w(16)),
+                        Text(loc.homePrivacyPolicy, style: TextStyle(color: Colors.white38, fontSize: r.sp(12), fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
@@ -5201,31 +5202,31 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _footerInfoRow(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 5),
-    child: Text(text, style: const TextStyle(color: Colors.white54, fontSize: 12.5)),
+    padding: EdgeInsets.only(bottom: r.h(5)),
+    child: Text(text, style: TextStyle(color: Colors.white54, fontSize: r.sp(12.5))),
   );
 
   Widget _footerSocialBtn(String label, Color bg, Color fg, VoidCallback onTap) =>
     GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(7)),
         decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
-        child: Text(label, style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w700)),
+        child: Text(label, style: TextStyle(color: fg, fontSize: r.sp(12), fontWeight: FontWeight.w700)),
       ),
     );
 
   Widget _footerLink(String label, VoidCallback? onTap) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
+    padding: EdgeInsets.only(bottom: r.h(10)),
     child: onTap != null
         ? MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
               onTap: onTap,
-              child: Text(label, style: const TextStyle(color: Color(0xFFBBBBBB), fontSize: 13)),
+              child: Text(label, style: TextStyle(color: Color(0xFFBBBBBB), fontSize: r.sp(13))),
             ),
           )
-        : Text(label, style: const TextStyle(color: Colors.white38, fontSize: 13)),
+        : Text(label, style: TextStyle(color: Colors.white38, fontSize: r.sp(13))),
   );
 
   Widget _buildChatFAB(AppLocalizations loc) {
@@ -5294,7 +5295,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           child: Column(
             children: [
-              const SizedBox(height: 12),
+              SizedBox(height: r.h(12)),
               Container(
                 width: 40, height: 4,
                 decoration: BoxDecoration(
@@ -5302,21 +5303,21 @@ class _HomeScreenState extends State<HomeScreen>
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: r.h(16)),
               Text(
                 loc.search,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: r.sp(16),
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1A1A1A),
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
                 child: TextField(
                   controller: ctrl,
                   autofocus: true,
-                  style: const TextStyle(fontSize: 15),
+                  style: TextStyle(fontSize: r.sp(15)),
                   decoration: InputDecoration(
                     hintText: loc.searchHint,
                     hintStyle: const TextStyle(color: Color(0xFFAAAAAA)),
@@ -5333,8 +5334,7 @@ class _HomeScreenState extends State<HomeScreen>
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
+                    contentPadding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(14)),
                   ),
                   onSubmitted: (v) {
                     if (v.trim().isNotEmpty) {
@@ -5402,6 +5402,7 @@ class _NoticePopupState extends State<_NoticePopup> {
   @override
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final notice     = widget.notices[_page];
     final title      = notice.localizedTitle(widget.language);
     final content    = notice.localizedContent(widget.language);
@@ -5431,7 +5432,7 @@ class _NoticePopupState extends State<_NoticePopup> {
 
             // ── 드래그 핸들 ──
             Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 6),
+              margin: EdgeInsets.only(top: r.h(10), bottom: r.h(6)),
               width: 40, height: 4,
               decoration: BoxDecoration(
                 color: const Color(0xFFDDDDDD),
@@ -5483,7 +5484,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                       left: 0, right: 0, bottom: 0,
                       child: Container(
                         color: Colors.white,
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+                        padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(18)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
@@ -5492,19 +5493,19 @@ class _NoticePopupState extends State<_NoticePopup> {
                               title,
                               style: const TextStyle(
                                 color: Color(0xFF111111),
-                                fontSize: 17,
+                                fontSize: r.sp(17),
                                 fontWeight: FontWeight.w800,
                                 height: 1.4,
                                 letterSpacing: -0.3,
                               ),
                             ),
                             if (content.isNotEmpty) ...[
-                              const SizedBox(height: 6),
+                              SizedBox(height: r.h(6)),
                               Text(
                                 content,
                                 style: const TextStyle(
                                   color: Color(0xFF666666),
-                                  fontSize: 13,
+                                  fontSize: r.sp(13),
                                   height: 1.55,
                                 ),
                               ),
@@ -5535,7 +5536,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                     left: 16,
                     bottom: hasImage ? _textBoxHeight(content) + 12 : 14,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(11), vertical: r.h(5)),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.50),
                         borderRadius: BorderRadius.circular(20),
@@ -5544,7 +5545,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                         '${(_page + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}',
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 11,
+                          fontSize: r.sp(11),
                           fontWeight: FontWeight.w600,
                           letterSpacing: 1.2,
                         ),
@@ -5562,11 +5563,11 @@ class _NoticePopupState extends State<_NoticePopup> {
               Container(
                 color: Colors.white,
                 width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                padding: EdgeInsets.fromLTRB(r.w(20), r.h(14), r.w(20), r.h(14)),
                 child: Text(
                   content,
                   style: const TextStyle(
-                    fontSize: 13,
+                    fontSize: r.sp(13),
                     color: Color(0xFF555555),
                     height: 1.7,
                   ),
@@ -5600,7 +5601,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                             ),
                             child: Text(
                               loc.homePopupDismiss,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
+                              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w400),
                             ),
                           ),
                         ),
@@ -5619,7 +5620,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                               total > 1 && _page < total - 1
                                   ? loc.nextNoticeBtn
                                   : loc.confirm,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600),
                             ),
                           ),
                         ),
@@ -5682,13 +5683,13 @@ class _NoticePopupState extends State<_NoticePopup> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 52)),
-              const SizedBox(height: 12),
+              Text(emoji, style: TextStyle(fontSize: r.sp(52))),
+              SizedBox(height: r.h(12)),
               Text(
                 title,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: r.sp(20),
                   fontWeight: FontWeight.w800,
                   height: 1.35,
                   letterSpacing: -0.3,
@@ -5782,7 +5783,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                             '2FIT',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 22,
+                              fontSize: r.sp(22),
                               fontWeight: FontWeight.w900,
                               letterSpacing: 3,
                             ),
@@ -5797,8 +5798,8 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                   builder: (_, langProv, __) => GestureDetector(
                     onTap: onLanguageTap,
                     child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      margin: EdgeInsets.symmetric(vertical: r.h(10), horizontal: r.w(8)),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
@@ -5811,18 +5812,18 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(langProv.language.flagEmoji,
-                              style: const TextStyle(fontSize: 14)),
-                          const SizedBox(width: 4),
+                              style: TextStyle(fontSize: r.sp(14))),
+                          SizedBox(width: r.w(4)),
                           Text(
                             langProv.language.code,
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: r.sp(11),
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
                               letterSpacing: 0.8,
                             ),
                           ),
-                          const SizedBox(width: 2),
+                          SizedBox(width: r.w(2)),
                           const Icon(Icons.arrow_drop_down_rounded,
                               color: Colors.white, size: 15),
                         ],
@@ -5896,7 +5897,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                                         unread > 9 ? '9+' : '$unread',
                                         style: const TextStyle(
                                             color: Colors.white,
-                                            fontSize: 8,
+                                            fontSize: r.sp(8),
                                             fontWeight: FontWeight.w900),
                                       ),
                                     ),
@@ -5945,7 +5946,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                                   cart.itemCount > 9 ? '9+' : '${cart.itemCount}',
                                   style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 8,
+                                      fontSize: r.sp(8),
                                       fontWeight: FontWeight.w900),
                                 ),
                               ),

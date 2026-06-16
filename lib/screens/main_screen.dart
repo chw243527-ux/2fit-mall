@@ -11,6 +11,7 @@ import '../widgets/app_drawer.dart';
 import 'orders/order_guide_screen.dart';
 import 'chat/chat_screen.dart';
 import 'auth/login_screen.dart';
+import '../utils/responsive.dart';
 
 // PC 기준 breakpoint
 const double kPcBreakpoint = 900;
@@ -73,7 +74,7 @@ class MainScreenState extends State<MainScreen> {
         barrierDismissible: true,
         builder: (_) => Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
+          insetPadding: EdgeInsets.symmetric(horizontal: r.w(40), vertical: r.h(60)),
           child: popupWidget,
         ),
       );
@@ -93,6 +94,7 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final width = MediaQuery.of(context).size.width;
@@ -202,6 +204,7 @@ class _PcLayoutState extends State<_PcLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     final tabs = [loc.navHome, loc.navProducts, loc.navCart, loc.pcMyPage];
@@ -279,9 +282,9 @@ class _PcLayoutState extends State<_PcLayout> {
                 Row(
                   children: [
                     const Icon(Icons.category_rounded, color: Color(0xFF888888), size: 18),
-                    const SizedBox(width: 8),
+                    SizedBox(width: r.w(8)),
                     Text(loc.categoryLabel,
-                        style: const TextStyle(color: Color(0xFF111111), fontSize: 16, fontWeight: FontWeight.w800)),
+                        style: TextStyle(color: Color(0xFF111111), fontSize: r.sp(16), fontWeight: FontWeight.w800)),
                     const Spacer(),
                     IconButton(
                       icon: const Icon(Icons.close_rounded, color: Color(0xFF555555), size: 20),
@@ -289,7 +292,7 @@ class _PcLayoutState extends State<_PcLayout> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: r.h(12)),
                 // 마이페이지 버튼
                 GestureDetector(
                   onTap: () {
@@ -297,7 +300,7 @@ class _PcLayoutState extends State<_PcLayout> {
                     widget.onTabChanged(3);
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF5F5F5),
                       borderRadius: BorderRadius.circular(8),
@@ -306,9 +309,9 @@ class _PcLayoutState extends State<_PcLayout> {
                     child: Row(
                       children: [
                         const Icon(Icons.person_outline_rounded, color: Color(0xFF555555), size: 16),
-                        const SizedBox(width: 8),
+                        SizedBox(width: r.w(8)),
                         Text(loc.myPageLabel,
-                            style: const TextStyle(color: Color(0xFF1A1A1A), fontSize: 13, fontWeight: FontWeight.w700)),
+                            style: TextStyle(color: Color(0xFF1A1A1A), fontSize: r.sp(13), fontWeight: FontWeight.w700)),
                         const Spacer(),
                         const Icon(Icons.chevron_right_rounded, color: Color(0xFFBBBBBB), size: 16),
                       ],
@@ -323,7 +326,7 @@ class _PcLayoutState extends State<_PcLayout> {
           ListTile(
             leading: const Icon(Icons.grid_view_rounded, size: 20, color: Color(0xFF1A1A1A)),
             title: Text(loc.allProducts,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context,
@@ -389,13 +392,14 @@ class _PcLanguageBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return Consumer<LanguageProvider>(
       builder: (_, lp, __) => MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
           onTap: () => _showSheet(context),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(7)),
             decoration: BoxDecoration(
               color: const Color(0xFFF7F8FA),
               borderRadius: BorderRadius.circular(8),
@@ -405,14 +409,14 @@ class _PcLanguageBtn extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(lp.language.flagEmoji,
-                    style: const TextStyle(fontSize: 16)),
-                const SizedBox(width: 6),
+                    style: TextStyle(fontSize: r.sp(16))),
+                SizedBox(width: r.w(6)),
                 Text(lp.language.code,
-                    style: const TextStyle(
-                        fontSize: 12,
+                    style: TextStyle(
+                        fontSize: r.sp(12),
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A1A))),
-                const SizedBox(width: 4),
+                SizedBox(width: r.w(4)),
                 const Icon(Icons.keyboard_arrow_down_rounded,
                     size: 15, color: Color(0xFF777777)),
               ],
@@ -430,6 +434,7 @@ class _LangDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final langProv = context.watch<LanguageProvider>();
     final loc = langProv.loc;
     return Dialog(
@@ -447,7 +452,7 @@ class _LangDialog extends StatelessWidget {
                   offset: Offset(0, 8))
             ],
           ),
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(r.w(20)),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -456,11 +461,11 @@ class _LangDialog extends StatelessWidget {
                 children: [
                   const Icon(Icons.language_rounded,
                       size: 18, color: Color(0xFF1A1A1A)),
-                  const SizedBox(width: 8),
+                  SizedBox(width: r.w(8)),
                   Expanded(
                     child: Text(loc.mainLanguageSelect,
-                        style: const TextStyle(
-                            fontSize: 15,
+                        style: TextStyle(
+                            fontSize: r.sp(15),
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF1A1A1A))),
                   ),
@@ -471,12 +476,12 @@ class _LangDialog extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: r.h(16)),
               // ── 언어 목록 ──
               ...AppLanguage.values.map((lang) {
                 final isSel = langProv.language == lang;
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: EdgeInsets.only(bottom: r.h(8)),
                   child: MouseRegion(
                     cursor: SystemMouseCursors.click,
                     child: GestureDetector(
@@ -486,8 +491,7 @@ class _LangDialog extends StatelessWidget {
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
                         decoration: BoxDecoration(
                           color: isSel
                               ? const Color(0xFF1A1A1A)
@@ -502,12 +506,12 @@ class _LangDialog extends StatelessWidget {
                         child: Row(
                           children: [
                             Text(lang.flagEmoji,
-                                style: const TextStyle(fontSize: 20)),
-                            const SizedBox(width: 12),
+                                style: TextStyle(fontSize: r.sp(20))),
+                            SizedBox(width: r.w(12)),
                             Expanded(
                               child: Text(lang.nativeName,
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: r.sp(14),
                                     fontWeight: FontWeight.w700,
                                     color: isSel
                                         ? Colors.white
@@ -516,14 +520,14 @@ class _LangDialog extends StatelessWidget {
                             ),
                             Text(lang.code,
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: r.sp(11),
                                   fontWeight: FontWeight.w600,
                                   color: isSel
                                       ? Colors.white70
                                       : const Color(0xFFAAAAAA),
                                 )),
                             if (isSel) ...[
-                              const SizedBox(width: 6),
+                              SizedBox(width: r.w(6)),
                               const Icon(Icons.check_rounded,
                                   color: Colors.white, size: 16),
                             ],
@@ -547,6 +551,7 @@ class _PcTopBarState extends State<_PcTopBar> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     return Container(
@@ -567,22 +572,22 @@ class _PcTopBarState extends State<_PcTopBar> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1280),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(24)),
                   child: Row(
                     children: [
                       const Icon(Icons.local_shipping_outlined, color: Colors.white38, size: 13),
-                      const SizedBox(width: 6),
+                      SizedBox(width: r.w(6)),
                       Text(loc.pcFreeShipping,
-                          style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                          style: TextStyle(color: Colors.white60, fontSize: r.sp(12))),
                       const Spacer(),
                       _utilBtn(loc.pcCustomerCenter, Icons.headset_mic_outlined,
                           onTap: () => Navigator.push(context,
                               MaterialPageRoute(builder: (_) => const ChatScreen()))),
-                      const SizedBox(width: 24),
+                      SizedBox(width: r.w(24)),
                       _utilBtn(loc.pcOrderLookup, Icons.receipt_long_outlined,
                           onTap: () => Navigator.push(context,
                               MaterialPageRoute(builder: (_) => const OrderGuideScreen()))),
-                      const SizedBox(width: 24),
+                      SizedBox(width: r.w(24)),
                       _utilBtn(loc.pcKakaoChannel, Icons.chat_bubble_outline_rounded,
                           onTap: () => Navigator.push(context,
                               MaterialPageRoute(builder: (_) => const ChatScreen()))),
@@ -603,7 +608,7 @@ class _PcTopBarState extends State<_PcTopBar> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1280),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(24)),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -623,7 +628,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: r.w(16)),
 
                       // ── 로고 ──
                       MouseRegion(
@@ -638,7 +643,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                               errorBuilder: (_, __, ___) => const Text(
                                 '2FIT\nKOREA',
                                 style: TextStyle(
-                                    fontSize: 18,
+                                    fontSize: r.sp(18),
                                     fontWeight: FontWeight.w900,
                                     letterSpacing: 2,
                                     height: 1.1),
@@ -647,13 +652,13 @@ class _PcTopBarState extends State<_PcTopBar> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 32),
+                      SizedBox(width: r.w(32)),
 
                       // ── 검색창 (중앙 확장) ──
                       Expanded(
                         child: _SearchBar(loc: loc),
                       ),
-                      const SizedBox(width: 20),
+                      SizedBox(width: r.w(20)),
 
                       // ── 마이페이지 아이콘 ──
                       _topIcon(
@@ -661,7 +666,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                         label: loc.pcMyPage,
                         onTap: () => widget.onTabChanged(3),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: r.w(8)),
 
                       // ── 장바구니 (뱃지) ──
                       Consumer<CartProvider>(
@@ -672,7 +677,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                           onTap: () => widget.onTabChanged(2),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: r.w(16)),
 
                       // ── 구분선 ──
                       Container(
@@ -680,7 +685,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                         height: 28,
                         color: const Color(0xFFE0E0E0),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: r.w(16)),
 
                       // ── 언어 선택 버튼 ──
                       const _PcLanguageBtn(),
@@ -706,8 +711,8 @@ class _PcTopBarState extends State<_PcTopBar> {
         child: Row(
           children: [
             Icon(icon, color: Colors.white38, size: 12),
-            const SizedBox(width: 4),
-            Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11.5)),
+            SizedBox(width: r.w(4)),
+            Text(label, style: TextStyle(color: Colors.white60, fontSize: r.sp(11.5))),
           ],
         ),
       ),
@@ -728,10 +733,10 @@ class _PcTopBarState extends State<_PcTopBar> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 24, color: const Color(0xFF1A1A1A)),
-            const SizedBox(height: 2),
+            SizedBox(height: r.h(2)),
             Text(label,
-                style: const TextStyle(
-                    fontSize: 10,
+                style: TextStyle(
+                    fontSize: r.sp(10),
                     color: Color(0xFF555555),
                     fontWeight: FontWeight.w500)),
           ],
@@ -763,15 +768,15 @@ class _PcTopBarState extends State<_PcTopBar> {
                     top: -6, right: -8,
                     child: Container(
                       constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                      padding: const EdgeInsets.all(2),
+                      padding: EdgeInsets.all(r.w(2)),
                       decoration: const BoxDecoration(
                           color: Color(0xFFE53935), shape: BoxShape.circle),
                       child: Center(
                         child: Text(
                           badge > 9 ? '9+' : '$badge',
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: Colors.white,
-                              fontSize: 9,
+                              fontSize: r.sp(9),
                               fontWeight: FontWeight.w800),
                         ),
                       ),
@@ -779,10 +784,10 @@ class _PcTopBarState extends State<_PcTopBar> {
                   ),
               ],
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: r.h(2)),
             Text(label,
-                style: const TextStyle(
-                    fontSize: 10,
+                style: TextStyle(
+                    fontSize: r.sp(10),
                     color: Color(0xFF555555),
                     fontWeight: FontWeight.w500)),
           ],
@@ -827,6 +832,7 @@ class _SearchBarState extends State<_SearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     return Container(
@@ -838,21 +844,21 @@ class _SearchBarState extends State<_SearchBar> {
       ),
       child: Row(
         children: [
-          const SizedBox(width: 14),
+          SizedBox(width: r.w(14)),
           const Icon(Icons.search_rounded, size: 18, color: Color(0xFF999999)),
-          const SizedBox(width: 8),
+          SizedBox(width: r.w(8)),
           Expanded(
             child: TextField(
               controller: _ctrl,
               onSubmitted: (_) => _search(),
               decoration: InputDecoration(
                 hintText: widget.loc.pcSearchHint,
-                hintStyle: const TextStyle(color: Color(0xFFAAAAAA), fontSize: 13),
+                hintStyle: TextStyle(color: Color(0xFFAAAAAA), fontSize: r.sp(13)),
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
               ),
-              style: const TextStyle(fontSize: 13, color: Color(0xFF1A1A1A)),
+              style: TextStyle(fontSize: r.sp(13), color: Color(0xFF1A1A1A)),
             ),
           ),
           MouseRegion(
@@ -860,17 +866,17 @@ class _SearchBarState extends State<_SearchBar> {
             child: GestureDetector(
               onTap: _search,
               child: Container(
-                margin: const EdgeInsets.all(4),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                margin: EdgeInsets.all(r.w(4)),
+                padding: EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(8)),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A1A1A),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   widget.loc.pcSearchBtn,
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: r.sp(12),
                       fontWeight: FontWeight.w700),
                 ),
               ),
@@ -893,16 +899,17 @@ class _PcFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     return Container(
       color: const Color(0xFF1A1A1A),
-      padding: const EdgeInsets.symmetric(vertical: 40),
+      padding: EdgeInsets.symmetric(vertical: r.h(40)),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: r.w(24)),
             child: Column(
               children: [
                 Row(
@@ -921,30 +928,30 @@ class _PcFooter extends StatelessWidget {
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w900,
-                                fontSize: 22,
+                                fontSize: r.sp(22),
                                 letterSpacing: 2,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: r.h(10)),
                           Text(
                             loc.footerBrandDesc,
-                            style: const TextStyle(color: Colors.white54, fontSize: 13, height: 1.7),
+                            style: TextStyle(color: Colors.white54, fontSize: r.sp(13), height: 1.7),
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: r.h(20)),
                           _footerInfoRow('🏢 주식회사 2FIT Korea'),
                           _footerInfoRow('📞 010-7227-6914'),
                           _footerInfoRow('✉ chw243527@gmail.com'),
                           _footerInfoRow('💬 카카오톡 @2fitkorea'),
                           _footerInfoRow('🕐 평일 10:00 - 18:00 (점심 12:00 - 14:00)'),
                           _footerInfoRow('🚫 토·일·공휴일 휴무'),
-                          const SizedBox(height: 16),
+                          SizedBox(height: r.h(16)),
                           // 소셜 링크 버튼
                           Row(
                             children: [
                               _socialBtn(loc.footerKakao, const Color(0xFFFFE000), Colors.black,
                                   () => Navigator.pushNamed(context, '/chat')),
-                              const SizedBox(width: 8),
+                              SizedBox(width: r.w(8)),
                               _socialBtn(loc.pcCustomerCenter, const Color(0xFF1A1A1A), Colors.white,
                                   () => Navigator.pushNamed(context, '/chat')),
                             ],
@@ -952,7 +959,7 @@ class _PcFooter extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 40),
+                    SizedBox(width: r.w(40)),
                     // 링크 그룹들
                     _footerLinkCol(
                       loc.footerShopGuide,
@@ -963,7 +970,7 @@ class _PcFooter extends StatelessWidget {
                         _FooterLink(loc.footerSizeGuide, () => onTabChanged?.call(1)),
                       ],
                     ),
-                    const SizedBox(width: 40),
+                    SizedBox(width: r.w(40)),
                     _footerLinkCol(
                       loc.footerOrderService,
                       [
@@ -972,7 +979,7 @@ class _PcFooter extends StatelessWidget {
                         _FooterLink(loc.navCart, () => onTabChanged?.call(2)),
                       ],
                     ),
-                    const SizedBox(width: 40),
+                    SizedBox(width: r.w(40)),
                     _footerLinkCol(
                       loc.footerSupport,
                       [
@@ -984,21 +991,21 @@ class _PcFooter extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 28),
+                SizedBox(height: r.h(28)),
                 const Divider(color: Colors.white12),
-                const SizedBox(height: 16),
+                SizedBox(height: r.h(16)),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       '© 2025 2FIT Korea Co., Ltd. All rights reserved.',
-                      style: TextStyle(color: Colors.white30, fontSize: 12),
+                      style: TextStyle(color: Colors.white30, fontSize: r.sp(12)),
                     ),
                     Row(
                       children: [
-                        Text(loc.footerTerms, style: const TextStyle(color: Colors.white38, fontSize: 12)),
-                        const SizedBox(width: 16),
-                        Text(loc.footerPrivacy, style: const TextStyle(color: Colors.white38, fontSize: 12, fontWeight: FontWeight.w600)),
+                        Text(loc.footerTerms, style: TextStyle(color: Colors.white38, fontSize: r.sp(12))),
+                        SizedBox(width: r.w(16)),
+                        Text(loc.footerPrivacy, style: TextStyle(color: Colors.white38, fontSize: r.sp(12), fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
@@ -1013,8 +1020,8 @@ class _PcFooter extends StatelessWidget {
 
   Widget _footerInfoRow(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 5),
-      child: Text(text, style: const TextStyle(color: Colors.white54, fontSize: 12.5)),
+      padding: EdgeInsets.only(bottom: r.h(5)),
+      child: Text(text, style: TextStyle(color: Colors.white54, fontSize: r.sp(12.5))),
     );
   }
 
@@ -1022,12 +1029,12 @@ class _PcFooter extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(7)),
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: Text(label, style: TextStyle(color: fg, fontSize: 12, fontWeight: FontWeight.w700)),
+        child: Text(label, style: TextStyle(color: fg, fontSize: r.sp(12), fontWeight: FontWeight.w700)),
       ),
     );
   }
@@ -1038,11 +1045,11 @@ class _PcFooter extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
-          const SizedBox(height: 14),
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.w700, fontSize: r.sp(14))),
+          SizedBox(height: r.h(14)),
           ...links.map((link) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: EdgeInsets.only(bottom: r.h(10)),
                 child: link.onTap != null
                     ? MouseRegion(
                         cursor: SystemMouseCursors.click,
@@ -1052,13 +1059,13 @@ class _PcFooter extends StatelessWidget {
                             link.label,
                             style: const TextStyle(
                               color: Color(0xFFBBBBBB),
-                              fontSize: 13,
+                              fontSize: r.sp(13),
                             ),
                           ),
                         ),
                       )
                     : Text(link.label,
-                        style: const TextStyle(color: Colors.white38, fontSize: 13)),
+                        style: TextStyle(color: Colors.white38, fontSize: r.sp(13))),
               )),
         ],
       ),
@@ -1121,6 +1128,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final notice     = widget.notices[_page];
     final title      = notice.localizedTitle(widget.language);
     final content    = notice.localizedContent(widget.language);
@@ -1158,7 +1166,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
             // ── 드래그 핸들: 모바일만 표시 ──
             if (!widget.isPc)
             Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 6),
+              margin: EdgeInsets.only(top: r.h(10), bottom: r.h(6)),
               width: 40, height: 4,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.6),
@@ -1211,7 +1219,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                       left: 0, right: 0, bottom: 0,
                       child: Container(
                         color: Colors.white,
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+                        padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(18)),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
@@ -1220,19 +1228,19 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                               title,
                               style: const TextStyle(
                                 color: Color(0xFF111111),
-                                fontSize: 17,
+                                fontSize: r.sp(17),
                                 fontWeight: FontWeight.w800,
                                 height: 1.4,
                                 letterSpacing: -0.3,
                               ),
                             ),
                             if (content.isNotEmpty) ...[
-                              const SizedBox(height: 6),
+                              SizedBox(height: r.h(6)),
                               Text(
                                 content,
                                 style: const TextStyle(
                                   color: Color(0xFF666666),
-                                  fontSize: 13,
+                                  fontSize: r.sp(13),
                                   height: 1.55,
                                 ),
                               ),
@@ -1267,16 +1275,16 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                     left: 16,
                     bottom: hasImage ? _bottomTextHeight(content) + 12 : 14,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(11), vertical: r.h(5)),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.50),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         '${(_page + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 11,
+                          fontSize: r.sp(11),
                           fontWeight: FontWeight.w600,
                           letterSpacing: 1.2,
                         ),
@@ -1294,11 +1302,11 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
               Container(
                 color: Colors.white,
                 width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                padding: EdgeInsets.fromLTRB(r.w(20), r.h(14), r.w(20), r.h(14)),
                 child: Text(
                   content,
-                  style: const TextStyle(
-                    fontSize: 13,
+                  style: TextStyle(
+                    fontSize: r.sp(13),
                     color: const Color(0xFF555555),
                     height: 1.7,
                   ),
@@ -1332,7 +1340,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                             ),
                             child: Text(
                               widget.loc.noticeDontShowToday,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
+                              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w400),
                             ),
                           ),
                         ),
@@ -1351,7 +1359,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                               total > 1 && _page < total - 1
                                   ? widget.loc.noticeNext
                                   : widget.loc.noticeConfirm,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600),
                             ),
                           ),
                         ),
@@ -1420,13 +1428,13 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 52)),
-              const SizedBox(height: 12),
+              Text(emoji, style: TextStyle(fontSize: r.sp(52))),
+              SizedBox(height: r.h(12)),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: r.sp(20),
                   fontWeight: FontWeight.w800,
                   height: 1.35,
                   letterSpacing: -0.3,
@@ -1459,6 +1467,7 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     // ignore: unused_local_variable
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
@@ -1468,7 +1477,7 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
         ListTile(
           leading: Icon(cat.icon, size: 20, color: cat.color),
           title: Text(cat.name,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A))),
+              style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A))),
           trailing: cat.subCategories.isNotEmpty
               ? Icon(_expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
                   size: 18, color: const Color(0xFF999999))
@@ -1494,9 +1503,9 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
         ),
         if (_expanded && cat.subCategories.isNotEmpty)
           ...cat.subCategories.map((sub) => ListTile(
-                contentPadding: const EdgeInsets.only(left: 56, right: 16),
+                contentPadding: EdgeInsets.only(left: r.w(56), right: r.w(16)),
                 title: Text(sub.name,
-                    style: const TextStyle(fontSize: 13, color: Color(0xFF555555))),
+                    style: TextStyle(fontSize: r.sp(13), color: Color(0xFF555555))),
                 trailing: const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFFCCCCCC)),
                 dense: true,
                 onTap: () {

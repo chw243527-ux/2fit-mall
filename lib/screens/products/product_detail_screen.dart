@@ -21,6 +21,7 @@ import '../../services/product_service.dart';
 import '../../services/storage_service.dart';
 import '../../utils/navigation_helper.dart';
 import '../main_screen.dart';
+import '../../utils/responsive.dart';
 
 /// 주니어 사이즈 판별 (J- 접두어 또는 2~3자리 숫자)
 /// 예: J-S, J-M, J-L, J-XL, J-2XL, 060, 065, 070 등
@@ -207,6 +208,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // ═══════════════════════════════════════
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final isAdmin = context.watch<UserProvider>().isAdmin;
     final productProvider = context.watch<ProductProvider>();
     final liveProduct = productProvider.products
@@ -260,7 +262,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               SliverToBoxAdapter(child: RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin))),
               SliverToBoxAdapter(child: KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product))),
               SliverToBoxAdapter(child: RepaintBoundary(key: _keyReview, child: _buildReviewSection(product))),
-              const SliverToBoxAdapter(child: SizedBox(height: 120)),
+              SliverToBoxAdapter(child: SizedBox(height: r.h(120))),
             ],
           ),
           Align(
@@ -309,7 +311,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
                           KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product)),
                           RepaintBoundary(key: _keyReview, child: _buildReviewSection(product)),
-                          const SizedBox(height: 120),
+                          SizedBox(height: r.h(120)),
                         ],
                       ),
                     ),
@@ -450,7 +452,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                     RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
                                     KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product)),
                                     RepaintBoundary(key: _keyReview, child: _buildReviewSection(product)),
-                                    const SizedBox(height: 120),
+                                    SizedBox(height: r.h(120)),
                                   ],
                                 ),
                               )),
@@ -486,7 +488,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       scrolledUnderElevation: 0.5,
       shadowColor: Colors.black.withValues(alpha: 0.1),
       leading: Container(
-        margin: const EdgeInsets.all(8),
+        margin: EdgeInsets.all(r.w(8)),
         decoration: BoxDecoration(
           color: const Color(0xFFF5F5F5),
           shape: BoxShape.circle,
@@ -524,7 +526,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             MaterialPageRoute(builder: (_) => const MainScreen(initialIndex: 2)),
             (route) => false,
           ),
-          margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+          margin: EdgeInsets.only(right: r.w(8), top: r.h(8), bottom: r.h(8)),
         ),
       ],
     );
@@ -533,7 +535,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   // 앱바 원형 아이콘 버튼 헬퍼
   Widget _appBarIconBtn({required IconData icon, required VoidCallback onTap, EdgeInsetsGeometry? margin}) {
     return Container(
-      margin: margin ?? const EdgeInsets.only(right: 2, top: 8, bottom: 8),
+      margin: margin ?? EdgeInsets.only(right: r.w(2), top: r.h(8), bottom: r.h(8)),
       decoration: const BoxDecoration(color: Color(0xFFF5F5F5), shape: BoxShape.circle),
       child: IconButton(
         icon: Icon(icon, color: const Color(0xFF1A1A1A), size: 20),
@@ -609,14 +611,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           Positioned(
             bottom: 12, right: 14,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(4)),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 '${_mainImageIndex + 1} / $imgCount',
-                style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                style: TextStyle(color: Colors.white, fontSize: r.sp(11), fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -625,7 +627,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
           Positioned(
             top: 12, left: 14,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+              padding: EdgeInsets.symmetric(horizontal: r.w(9), vertical: r.h(6)),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(6),
@@ -637,17 +639,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     '※ 모든 착상 이미지는 AI 생성 이미지입니다',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 10,
+                      fontSize: r.sp(10),
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.1,
                     ),
                   ),
-                  SizedBox(height: 3),
+                  SizedBox(height: r.h(3)),
                   Text(
                     '▶ 디자인 이미지를 반드시 확인해주세요 [확인 필수]',
                     style: TextStyle(
                       color: Color(0xFFFFD966),
-                      fontSize: 10,
+                      fontSize: r.sp(10),
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.1,
                     ),
@@ -691,14 +693,14 @@ $productUrl
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(32)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFDDDDDD), borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 16),
-            const Text('공유하기', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 20),
+            SizedBox(height: r.h(16)),
+            Text('공유하기', style: TextStyle(fontSize: r.sp(17), fontWeight: FontWeight.w800)),
+            SizedBox(height: r.h(20)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -771,8 +773,8 @@ $productUrl
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             child: Icon(icon, color: iconColor ?? Colors.white, size: 24),
           ),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+          SizedBox(height: r.h(8)),
+          Text(label, style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -850,11 +852,11 @@ $productUrl
     return Container(
       height: 78,
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(8)),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: imgs.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 6),
+        separatorBuilder: (_, __) => SizedBox(width: r.w(6)),
         itemBuilder: (_, i) {
           final selected = _mainImageIndex == i;
           return GestureDetector(
@@ -924,7 +926,7 @@ $productUrl
       runSpacing: 4,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
           decoration: BoxDecoration(
             color: const Color(0xFFF3F8FF),
             borderRadius: BorderRadius.circular(4),
@@ -932,12 +934,12 @@ $productUrl
           ),
           child: Text(
             matched[1],
-            style: const TextStyle(fontSize: 11, color: Color(0xFF1565C0), fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: r.sp(11), color: Color(0xFF1565C0), fontWeight: FontWeight.w600),
           ),
         ),
         if (matched.length > 2)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
             decoration: BoxDecoration(
               color: const Color(0xFFF3F8FF),
               borderRadius: BorderRadius.circular(4),
@@ -945,7 +947,7 @@ $productUrl
             ),
             child: Text(
               matched[2],
-              style: const TextStyle(fontSize: 11, color: Color(0xFF1565C0), fontWeight: FontWeight.w600),
+              style: TextStyle(fontSize: r.sp(11), color: Color(0xFF1565C0), fontWeight: FontWeight.w600),
             ),
           ),
       ],
@@ -967,7 +969,7 @@ $productUrl
         children: [
           // ── 디자인 이미지 섹션 ──
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(16), r.w(16), r.h(0)),
             child: _buildDesignImageSection(product, isAdmin),
           ),
 
@@ -976,18 +978,18 @@ $productUrl
           // ═══════════════════════════════════════════════
           if (!product.isGroupOnly && product.isReadyMade)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
               child: Row(children: [
                 _toptenTabChip('기성품', true, activeColor: Colors.teal),
               ]),
             ),
           if (product.isGroupOnly)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
               child: Row(children: [
                 _toptenTabChip('단체전용', true, activeColor: const Color(0xFF6A1B9A)),
                 if (product.isReadyMade) ...[
-                  const SizedBox(width: 8),
+                  SizedBox(width: r.w(8)),
                   _toptenTabChip('기성품', true, activeColor: Colors.teal),
                 ],
               ]),
@@ -997,7 +999,7 @@ $productUrl
           // 탑텐 스타일: 브랜드명 > + 공유 버튼
           // ═══════════════════════════════════════════════
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(16), r.w(16), r.h(0)),
             child: Row(
               children: [
                 GestureDetector(
@@ -1007,13 +1009,13 @@ $productUrl
                       Text(
                         '2FIT KOREA',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: r.sp(13),
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF1A1A1A),
                           letterSpacing: 0.3,
                         ),
                       ),
-                      SizedBox(width: 2),
+                      SizedBox(width: r.w(2)),
                       Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF888888)),
                     ],
                   ),
@@ -1031,7 +1033,7 @@ $productUrl
           // 탑텐 스타일: 상품명 (영문 소제목 + 한국어 대제목)
           // ═══════════════════════════════════════════════
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(6), r.w(16), r.h(0)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1039,19 +1041,19 @@ $productUrl
                 Text(
                   product.category,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: r.sp(12),
                     color: Color(0xFF888888),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: r.h(4)),
                 // 상품명 대제목
                 Text(
                   product.localizedName(_lang),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 20,
+                    fontSize: r.sp(20),
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF1A1A1A),
                     height: 1.35,
@@ -1066,20 +1068,20 @@ $productUrl
           // 탑텐 스타일: 별점 + 리뷰건수 >
           // ═══════════════════════════════════════════════
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(8), r.w(16), r.h(0)),
             child: GestureDetector(
               onTap: () {},
               child: Row(children: [
                 const Icon(Icons.star_rounded, size: 15, color: Color(0xFF1A1A1A)),
-                const SizedBox(width: 3),
+                SizedBox(width: r.w(3)),
                 Text(
                   product.rating > 0 ? product.rating.toStringAsFixed(1) : '4.8',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A)),
+                  style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A)),
                 ),
-                const SizedBox(width: 4),
+                SizedBox(width: r.w(4)),
                 Text(
                   '리뷰 ${product.reviewCount > 0 ? product.reviewCount : 0}건',
-                  style: const TextStyle(fontSize: 13, color: Color(0xFF888888), fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: r.sp(13), color: Color(0xFF888888), fontWeight: FontWeight.w500),
                 ),
                 const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF888888)),
               ]),
@@ -1090,7 +1092,7 @@ $productUrl
           // 탑텐 스타일: 가격 영역 (파란 할인율 + 현재가 + 취소선)
           // ═══════════════════════════════════════════════
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1103,29 +1105,29 @@ $productUrl
                       Text(
                         '$discount%',
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: r.sp(22),
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF1976D2),
                           letterSpacing: -0.3,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: r.w(8)),
                       // 현재가
                       Text(
                         '${_fmt(product.price)}${loc.wonUnit}',
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: r.sp(22),
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF1A1A1A),
                           letterSpacing: -0.5,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: r.w(8)),
                       // 취소선 원가
                       Text(
                         '${_fmt(product.originalPrice!)}',
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: r.sp(14),
                           color: Color(0xFFBBBBBB),
                           decoration: TextDecoration.lineThrough,
                           decorationColor: Color(0xFFBBBBBB),
@@ -1138,7 +1140,7 @@ $productUrl
                   Text(
                     '${_fmt(product.price)}${loc.wonUnit}',
                     style: const TextStyle(
-                      fontSize: 22,
+                      fontSize: r.sp(22),
                       fontWeight: FontWeight.w900,
                       color: Color(0xFF1A1A1A),
                       letterSpacing: -0.5,
@@ -1153,7 +1155,7 @@ $productUrl
           // 탑텐 스타일: 색상 선택 원형 그리드 (단체주문 상품은 색상 선택 UI 없음)
           // ═══════════════════════════════════════════════
           if (product.colors.isNotEmpty && !product.isGroupOnly) ...[
-            const SizedBox(height: 18),
+            SizedBox(height: r.h(18)),
             const Divider(height: 1, color: Color(0xFFF5F5F5)),
             _buildToptenColorSection(product),
           ],
@@ -1162,10 +1164,10 @@ $productUrl
           // 탑텐 스타일: 시즌 | 상품번호
           // ═══════════════════════════════════════════════
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(10)),
             child: Text(
               '시즌 : SS26  |  상품번호 : ${product.productCode.isNotEmpty ? product.productCode.toUpperCase() : product.id.toUpperCase()}',
-              style: const TextStyle(fontSize: 11, color: Color(0xFFAAAAAA), fontWeight: FontWeight.w400),
+              style: TextStyle(fontSize: r.sp(11), color: Color(0xFFAAAAAA), fontWeight: FontWeight.w400),
             ),
           ),
 
@@ -1173,7 +1175,7 @@ $productUrl
           // 탑텐 스타일: 해시태그 칩
           // ═══════════════════════════════════════════════
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(0), r.w(16), r.h(14)),
             child: Wrap(spacing: 6, runSpacing: 6, children: [
               _hashtagChip('#2fit'),
               _hashtagChip('#스포츠웨어'),
@@ -1198,7 +1200,7 @@ $productUrl
   Widget _toptenTabChip(String label, bool selected, {Color? activeColor}) {
     final ac = activeColor ?? const Color(0xFF1A1A1A);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(5)),
       decoration: BoxDecoration(
         color: selected ? ac : Colors.white,
         border: Border.all(color: selected ? ac : const Color(0xFFDDDDDD)),
@@ -1207,7 +1209,7 @@ $productUrl
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: r.sp(12),
           fontWeight: FontWeight.w700,
           color: selected ? Colors.white : const Color(0xFF888888),
           letterSpacing: 0.2,
@@ -1229,20 +1231,20 @@ $productUrl
 
     return StatefulBuilder(builder: (ctx, setSt) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+        padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 색상 라벨 + 선택된 색상명
             Row(children: [
-              const Text('색상', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
-              const SizedBox(width: 10),
+              Text('색상', style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+              SizedBox(width: r.w(10)),
               Text(
                 _selectedColor,
-                style: const TextStyle(fontSize: 13, color: Color(0xFF888888), fontWeight: FontWeight.w400),
+                style: TextStyle(fontSize: r.sp(13), color: Color(0xFF888888), fontWeight: FontWeight.w400),
               ),
             ]),
-            const SizedBox(height: 12),
+            SizedBox(height: r.h(12)),
             // 원형 색상 버튼 그리드
             Wrap(
               spacing: 10,
@@ -1269,17 +1271,17 @@ $productUrl
                 );
               }).toList(),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: r.h(8)),
             // 색상 안내 disclaimer
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
                 Icon(Icons.info_outline_rounded, size: 11, color: Color(0xFFBBBBBB)),
-                SizedBox(width: 4),
+                SizedBox(width: r.w(4)),
                 Expanded(
                   child: Text(
                     '화면에 표시된 색상은 모니터 환경에 따라 실제 제품과 약간의 차이가 있을 수 있습니다.',
-                    style: TextStyle(fontSize: 10, color: Color(0xFFBBBBBB), height: 1.45),
+                    style: TextStyle(fontSize: r.sp(10), color: Color(0xFFBBBBBB), height: 1.45),
                   ),
                 ),
               ],
@@ -1293,7 +1295,7 @@ $productUrl
   // ── 탑텐 스타일: 해시태그 칩 ──
   Widget _hashtagChip(String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(color: const Color(0xFFDDDDDD)),
@@ -1301,7 +1303,7 @@ $productUrl
       ),
       child: Text(
         label,
-        style: const TextStyle(fontSize: 12, color: Color(0xFF555555), fontWeight: FontWeight.w400),
+        style: TextStyle(fontSize: r.sp(12), color: Color(0xFF555555), fontWeight: FontWeight.w400),
       ),
     );
   }
@@ -1311,13 +1313,13 @@ $productUrl
     return Column(children: [
       // 배송비 행
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+        padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(13)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(
               width: 44,
-              child: Text('배송비', style: TextStyle(fontSize: 13, color: Color(0xFF888888), fontWeight: FontWeight.w500)),
+              child: Text('배송비', style: TextStyle(fontSize: r.sp(13), color: Color(0xFF888888), fontWeight: FontWeight.w500)),
             ),
             Expanded(
               child: Column(
@@ -1328,7 +1330,7 @@ $productUrl
                         ? '무료배송'
                         : '4,000원 (300,000원 이상 구매시 무료)',
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: r.sp(13),
                       color: product.isFreeShipping ? const Color(0xFF2E7D32) : const Color(0xFF1A1A1A),
                       fontWeight: product.isFreeShipping ? FontWeight.w700 : FontWeight.w400,
                     ),
@@ -1336,7 +1338,7 @@ $productUrl
                   if (!product.isFreeShipping)
                     const Text(
                       '(도서산간 배송시 3,000원 추가)',
-                      style: TextStyle(fontSize: 11, color: Color(0xFFAAAAAA)),
+                      style: TextStyle(fontSize: r.sp(11), color: Color(0xFFAAAAAA)),
                     ),
                   // 포인트 섹션 제거됨 (요청 반영)
                 ],
@@ -1353,7 +1355,7 @@ $productUrl
     return Consumer<UserProvider>(builder: (_, up, __) {
       final isWish = up.isInWishlist(product.id);
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(14)),
         child: Row(children: [
           // 브랜드 로고 — logo_2fit_text.png 이미지
           SizedBox(
@@ -1367,22 +1369,22 @@ $productUrl
                 '2FIT',
                 style: TextStyle(
                   color: Color(0xFF1A1A1A),
-                  fontSize: 18,
+                  fontSize: r.sp(18),
                   fontWeight: FontWeight.w900,
                   letterSpacing: -0.5,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: r.w(10)),
           // 브랜드명 텍스트
           GestureDetector(
             onTap: () {},
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('2FIT', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A), letterSpacing: -0.3)),
-                Text('2FIT KOREA', style: TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w400, letterSpacing: 0.5)),
+                Text('2FIT', style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A), letterSpacing: -0.3)),
+                Text('2FIT KOREA', style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), fontWeight: FontWeight.w400, letterSpacing: 0.5)),
               ],
             ),
           ),
@@ -1406,7 +1408,7 @@ $productUrl
               ),
               Text(
                 (up.user?.wishlist.length ?? 0).toString(),
-                style: const TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), fontWeight: FontWeight.w500),
               ),
             ]),
           ),
@@ -1454,18 +1456,18 @@ $productUrl
               },
               behavior: HitTestBehavior.opaque,
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 13),
+                padding: EdgeInsets.symmetric(vertical: r.h(13)),
                 child: Column(children: [
                   Text(
                     label,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: r.sp(13),
                       fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
                       color: sel ? const Color(0xFF1A1A1A) : const Color(0xFF999999),
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: r.h(10)),
                   Container(height: 2, color: sel ? const Color(0xFF1A1A1A) : Colors.transparent),
                 ]),
               ),
@@ -1537,12 +1539,12 @@ $productUrl
             labelColor: const Color(0xFF4A148C),
             text: '골지원단 19가지 기본 색상 중 원하는 색상으로 자유롭게 제작 가능',
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: r.h(10)),
           _infoColorChipRow(['K','N','W','G','DG','SB','B','DB','SP','LP','IO','LG','R','PP','ND','BB','FP','FO','FG'], useRib: true),
-          const SizedBox(height: 12),
+          SizedBox(height: r.h(12)),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+            padding: EdgeInsets.symmetric(horizontal: r.w(13), vertical: r.h(10)),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFFEDE7F6), Color(0xFFF3E5F5)],
@@ -1563,19 +1565,19 @@ $productUrl
                   ),
                   child: const Icon(Icons.auto_awesome_rounded, size: 15, color: Color(0xFF6A1B9A)),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: r.w(10)),
                 const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '19가지 기본 색상 외에도 제작 가능',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF4A148C), height: 1.3),
+                        style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w700, color: Color(0xFF4A148C), height: 1.3),
                       ),
-                      SizedBox(height: 2),
+                      SizedBox(height: r.h(2)),
                       Text(
                         '원하시는 색상이 있다면 주문 시 별도로 알려주세요.',
-                        style: TextStyle(fontSize: 10.5, color: Color(0xFF6A1B9A), height: 1.45),
+                        style: TextStyle(fontSize: r.sp(10.5), color: Color(0xFF6A1B9A), height: 1.45),
                       ),
                     ],
                   ),
@@ -1595,7 +1597,7 @@ $productUrl
       colorContent = product.colors.isNotEmpty
           ? _infoColorChipRow(product.colors, useRib: useRib)
           : const Text('등록된 색상 정보가 없습니다.',
-              style: TextStyle(fontSize: 12, color: Color(0xFF888888)));
+              style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888)));
     }
 
     // ── 3) PRODUCT 테이블 행: 하의길이 행 추가 ──────────────────
@@ -1631,7 +1633,7 @@ $productUrl
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(height: 1, color: const Color(0xFFE8E8E8)),
-          const SizedBox(height: 8),
+          SizedBox(height: r.h(8)),
 
           // ── 01 INFO: 제품 설명
           _toptenInfoBlock(
@@ -1641,7 +1643,7 @@ $productUrl
             content: Text(
               product.localizedDescription(_lang),
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: r.sp(13),
                 color: Color(0xFF444444),
                 height: 1.85,
                 fontWeight: FontWeight.w400,
@@ -1673,7 +1675,7 @@ $productUrl
             content: Text(
               materialText,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: r.sp(13),
                 color: Color(0xFF444444),
                 height: 1.85,
                 fontWeight: FontWeight.w400,
@@ -1704,18 +1706,18 @@ $productUrl
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
           decoration: BoxDecoration(
             color: labelColor,
             borderRadius: BorderRadius.circular(3),
           ),
           child: Text(label,
-              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+              style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w800)),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: r.w(8)),
         Expanded(
           child: Text(text,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF444444), height: 1.5)),
+              style: TextStyle(fontSize: r.sp(12), color: Color(0xFF444444), height: 1.5)),
         ),
       ],
     );
@@ -1832,12 +1834,12 @@ $productUrl
                       ],
                     ),
                   ),
-            const SizedBox(height: 5),
+            SizedBox(height: r.h(5)),
             // 코드명
             Text(
               c.toUpperCase(),
               style: const TextStyle(
-                fontSize: 9,
+                fontSize: r.sp(9),
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF555555),
                 letterSpacing: 0.3,
@@ -1862,15 +1864,15 @@ $productUrl
       children: [
         // 상단 분리선
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
+          margin: EdgeInsets.symmetric(horizontal: r.w(20)),
           height: 1,
           color: const Color(0xFFE0E0E0),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(16)),
           child: content,
         ),
-        if (isLast) const SizedBox(height: 8),
+        if (isLast) SizedBox(height: r.h(8)),
       ],
     );
   }
@@ -1900,7 +1902,7 @@ $productUrl
                 // 라벨 셀
                 Container(
                   width: 80,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(11)),
                   decoration: const BoxDecoration(
                     border: Border(right: BorderSide(color: Color(0xFFE0E0E0))),
                     color: Color(0xFFF5F5F5),
@@ -1908,7 +1910,7 @@ $productUrl
                   child: Text(
                     row.$1,
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: r.sp(11),
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF666666),
                       letterSpacing: 0.2,
@@ -1918,11 +1920,11 @@ $productUrl
                 // 값 셀
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(11)),
                     child: Text(
                       row.$2,
                       style: const TextStyle(
-                        fontSize: 11,
+                        fontSize: r.sp(11),
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF222222),
                         letterSpacing: 0.1,
@@ -1969,11 +1971,11 @@ $productUrl
           // ── 상단 굵은 구분선
           Container(height: 2, color: const Color(0xFF1A1A1A)),
 
-          const SizedBox(height: 8),
+          SizedBox(height: r.h(8)),
 
           // ── 세탁 가이드 아이콘 그리드
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: r.w(20)),
             child: GridView.count(
               crossAxisCount: 3,
               shrinkWrap: true,
@@ -1983,28 +1985,28 @@ $productUrl
               childAspectRatio: 1.15,
               children: washGuide.map((g) => Container(
                 color: const Color(0xFFF2F2F2),
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(r.w(14)),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(g.$1, size: 22, color: const Color(0xFF333333)),
-                    const SizedBox(height: 8),
+                    SizedBox(height: r.h(8)),
                     Text(
                       g.$2,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontSize: 10,
+                        fontSize: r.sp(10),
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF1A1A1A),
                         letterSpacing: 0.2,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    SizedBox(height: r.h(3)),
                     Text(
                       g.$3,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontSize: 9,
+                        fontSize: r.sp(9),
                         color: Color(0xFF888888),
                         height: 1.4,
                       ),
@@ -2015,11 +2017,11 @@ $productUrl
             ),
           ),
 
-          const SizedBox(height: 24),
+          SizedBox(height: r.h(24)),
 
           // ── WASHING TIP 상세 리스트
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: r.w(20)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2030,21 +2032,21 @@ $productUrl
                   return Column(
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: EdgeInsets.symmetric(vertical: r.h(12)),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text('·', style: TextStyle(
-                              fontSize: 14,
+                              fontSize: r.sp(14),
                               color: Color(0xFFBBBBBB),
                               height: 1.2,
                             )),
-                            const SizedBox(width: 10),
+                            SizedBox(width: r.w(10)),
                             Expanded(
                               child: Text(
                                 tip,
                                 style: const TextStyle(
-                                  fontSize: 12,
+                                  fontSize: r.sp(12),
                                   color: Color(0xFF555555),
                                   height: 1.65,
                                   fontWeight: FontWeight.w400,
@@ -2060,11 +2062,11 @@ $productUrl
                   );
                 }),
 
-                const SizedBox(height: 20),
+                SizedBox(height: r.h(20)),
 
                 // ── 하단 주의사항 박스 (탑텐 스타일: 검정 좌측 라인)
                 Container(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                  padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(14)),
                   decoration: const BoxDecoration(
                     color: Color(0xFFF5F5F5),
                     border: Border(
@@ -2073,11 +2075,11 @@ $productUrl
                   ),
                   child: const Text(
                     '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF666666), height: 1.65),
+                    style: TextStyle(fontSize: r.sp(11), color: Color(0xFF666666), height: 1.65),
                   ),
                 ),
 
-                const SizedBox(height: 40),
+                SizedBox(height: r.h(40)),
               ],
             ),
           ),
@@ -2091,11 +2093,11 @@ $productUrl
     return Row(
       children: [
         Container(width: 12, height: 1.5, color: const Color(0xFF1A1A1A)),
-        const SizedBox(width: 7),
+        SizedBox(width: r.w(7)),
         Text(
           title,
           style: const TextStyle(
-            fontSize: 11,
+            fontSize: r.sp(11),
             fontWeight: FontWeight.w800,
             color: Color(0xFF1A1A1A),
             letterSpacing: 1.2,
@@ -2108,7 +2110,7 @@ $productUrl
   // 탑텐 스타일: 키-값 한 줄 (기존 _infoLabelRow 대체)
   Widget _infoLabelRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
+      padding: EdgeInsets.symmetric(vertical: r.h(7)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2116,14 +2118,14 @@ $productUrl
             width: 72,
             child: Text(
               label,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF999999), fontWeight: FontWeight.w500, letterSpacing: 0.1),
+              style: TextStyle(fontSize: r.sp(12), color: Color(0xFF999999), fontWeight: FontWeight.w500, letterSpacing: 0.1),
             ),
           ),
-          Container(width: 1, height: 14, color: const Color(0xFFDDDDDD), margin: const EdgeInsets.only(top: 1, right: 12)),
+          Container(width: 1, height: 14, color: Color(0xFFDDDDDD), margin: EdgeInsets.only(top: r.h(1), right: r.w(12))),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF222222), fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: r.sp(12), color: Color(0xFF222222), fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -2134,7 +2136,7 @@ $productUrl
   // ── 탑텐 스타일: 태그 위젯 ──
   Widget _toptenTag(IconData icon, String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: r.w(9), vertical: r.h(5)),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(20),
@@ -2144,10 +2146,10 @@ $productUrl
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
+          SizedBox(width: r.w(4)),
           Text(
             label,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+            style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: color),
           ),
         ],
       ),
@@ -2188,7 +2190,7 @@ $productUrl
         final isHighlight = r['highlight'] as bool;
         final isLast = entry.key == items.length - 1;
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+          padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(13)),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -2201,19 +2203,19 @@ $productUrl
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(r['icon'] as IconData, size: 15, color: isHighlight ? const Color(0xFF2E7D32) : const Color(0xFF999999)),
-              const SizedBox(width: 10),
+              SizedBox(width: r.w(10)),
               SizedBox(
                 width: 52,
                 child: Text(
                   r['label'] as String,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF999999), fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: r.sp(12), color: Color(0xFF999999), fontWeight: FontWeight.w500),
                 ),
               ),
               Expanded(
                 child: Text(
                   r['value'] as String,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: r.sp(12),
                     color: isHighlight ? const Color(0xFF2E7D32) : const Color(0xFF333333),
                     fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
                     height: 1.4,
@@ -2232,13 +2234,13 @@ $productUrl
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 15, color: const Color(0xFF888888)),
-        const SizedBox(width: 8),
+        SizedBox(width: r.w(8)),
         SizedBox(
           width: 48,
-          child: Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF888888), fontWeight: FontWeight.w600)),
+          child: Text(label, style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888), fontWeight: FontWeight.w600)),
         ),
         Expanded(
-          child: Text(value, style: const TextStyle(fontSize: 12, color: Color(0xFF333333), fontWeight: FontWeight.w500)),
+          child: Text(value, style: TextStyle(fontSize: r.sp(12), color: Color(0xFF333333), fontWeight: FontWeight.w500)),
         ),
       ],
     );
@@ -2255,13 +2257,13 @@ $productUrl
           size: 14,
           color: highlight ? const Color(0xFFFFD54F) : Colors.white70,
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: r.w(8)),
         SizedBox(
           width: 56,
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: r.sp(12),
               fontWeight: FontWeight.w800,
               color: highlight ? const Color(0xFFFFD54F) : Colors.white70,
             ),
@@ -2271,7 +2273,7 @@ $productUrl
           child: Text(
             desc,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: r.sp(12),
               fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
               color: highlight ? Colors.white : Colors.white70,
               height: 1.3,
@@ -2305,7 +2307,7 @@ $productUrl
         : '상의는 디자인 색상 그대로 제작, 하의 색상은 선택 가능합니다.';
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(12)),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F8FF),
         borderRadius: BorderRadius.circular(10),
@@ -2314,14 +2316,14 @@ $productUrl
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(7),
+            padding: EdgeInsets.all(r.w(7)),
             decoration: BoxDecoration(
               color: const Color(0xFF1565C0).withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.palette_rounded, size: 16, color: Color(0xFF1565C0)),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: r.w(10)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2329,22 +2331,22 @@ $productUrl
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(2)),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1565C0),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(label,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+                        style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w800, color: Colors.white)),
                     ),
-                    const SizedBox(width: 6),
+                    SizedBox(width: r.w(6)),
                     const Text('하의 색상 선택',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                      style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
                   ],
                 ),
-                const SizedBox(height: 3),
+                SizedBox(height: r.h(3)),
                 Text(subtitle,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF555555), height: 1.4)),
+                  style: TextStyle(fontSize: r.sp(11), color: Color(0xFF555555), height: 1.4)),
               ],
             ),
           ),
@@ -2354,10 +2356,10 @@ $productUrl
   }
 
   Widget _tag(String text, Color color) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
         decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
         child: Text(text,
-            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+            style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w700)),
       );
 
   // ═══════════════════════════════════════
@@ -2388,46 +2390,46 @@ $productUrl
       }
 
       return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+        padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(0)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Divider(height: 1),
-            const SizedBox(height: 10),
+            SizedBox(height: r.h(10)),
             // 제목 + 안내
             Row(
               children: [
                 Text(loc.bottomLengthTitle,
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                const SizedBox(width: 6),
+                    style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+                SizedBox(width: r.w(6)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(2)),
                   decoration: BoxDecoration(
                     color: const Color(0xFF4A148C).withValues(alpha: 0.09),
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.3)),
                   ),
                   child: Text(loc.genderAutoFix,
-                      style: const TextStyle(fontSize: 10, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700)),
+                      style: TextStyle(fontSize: r.sp(10), color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700)),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: r.h(8)),
 
             // 남/여 선택 버튼
             Row(
               children: [
                 _inlineGenderBtn('남', loc.male, loc.maleBottomSub),
-                const SizedBox(width: 8),
+                SizedBox(width: r.w(8)),
                 _inlineGenderBtn('여', loc.female, loc.femaleBottomSub),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: r.h(8)),
 
             // 확정된 길이 표시
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(9)),
               decoration: BoxDecoration(
                 color: const Color(0xFFF3E5F5),
                 borderRadius: BorderRadius.circular(8),
@@ -2436,11 +2438,11 @@ $productUrl
               child: Row(
                 children: [
                   const Icon(Icons.straighten_rounded, size: 14, color: Color(0xFF6A1B9A)),
-                  const SizedBox(width: 6),
+                  SizedBox(width: r.w(6)),
                   Text(
                     '하의 기장 ${_singletGender == "남" ? "5부 (~55cm)" : "2.5부 (~30cm)"} 확정',
                     style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: r.sp(12),
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF4A148C)),
                   ),
@@ -2462,32 +2464,32 @@ $productUrl
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(0)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(height: 1),
-          const SizedBox(height: 10),
+          SizedBox(height: r.h(10)),
           Row(
             children: [
               Text(loc.bottomLengthSelectTitle,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
               if (allowedLengths != null) ...[
-                const SizedBox(width: 6),
+                SizedBox(width: r.w(6)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(2)),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1565C0).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
                   ),
                   child: Text(loc.restrictedLabel,
-                      style: const TextStyle(fontSize: 10, color: Color(0xFF1565C0), fontWeight: FontWeight.w700)),
+                      style: TextStyle(fontSize: r.sp(10), color: Color(0xFF1565C0), fontWeight: FontWeight.w700)),
                 ),
               ],
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: r.h(8)),
           Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -2509,7 +2511,7 @@ $productUrl
                       },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(6)),
                   decoration: BoxDecoration(
                     color: !isAllowed
                         ? const Color(0xFFF0F0F0)
@@ -2531,7 +2533,7 @@ $productUrl
                     children: [
                       Text(label,
                           style: TextStyle(
-                              fontSize: 12,
+                              fontSize: r.sp(12),
                               fontWeight: FontWeight.w800,
                               color: !isAllowed
                                   ? const Color(0xFFBBBBBB)
@@ -2545,9 +2547,9 @@ $productUrl
             }).toList(),
           ),
           if (allowedLengths != null) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: r.h(6)),
             Text('* ${loc.productAllowedLengthNote}: ${allowedLengths.join("·")}',
-                style: const TextStyle(fontSize: 10, color: Color(0xFF1565C0))),
+                style: TextStyle(fontSize: r.sp(10), color: Color(0xFF1565C0))),
           ],
         ],
       ),
@@ -2583,17 +2585,17 @@ $productUrl
                 size: 20,
                 color: isSel ? Colors.white : const Color(0xFF888888),
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: r.h(4)),
               Text(label,
                   style: TextStyle(
-                      fontSize: 13,
+                      fontSize: r.sp(13),
                       fontWeight: FontWeight.w800,
                       color: isSel ? Colors.white : const Color(0xFF333333))),
               if (subLabel.isNotEmpty) ...[
-                const SizedBox(height: 2),
+                SizedBox(height: r.h(2)),
                 Text(subLabel,
                     style: TextStyle(
-                        fontSize: 11,
+                        fontSize: r.sp(11),
                         color: isSel
                             ? Colors.white.withValues(alpha: 0.8)
                             : const Color(0xFF888888))),
@@ -2612,7 +2614,7 @@ $productUrl
   Widget _singletLengthOnlyBtn({required String label, required String desc}) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+      padding: EdgeInsets.symmetric(vertical: r.h(14), horizontal: r.w(20)),
       decoration: BoxDecoration(
         color: const Color(0xFF111111),
         borderRadius: BorderRadius.circular(8),
@@ -2622,23 +2624,23 @@ $productUrl
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.straighten_rounded, color: Colors.white, size: 16),
-          const SizedBox(width: 8),
+          SizedBox(width: r.w(8)),
           Text(label,
               style: const TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
-          const SizedBox(width: 6),
+                  fontSize: r.sp(15), fontWeight: FontWeight.w800, color: Colors.white)),
+          SizedBox(width: r.w(6)),
           Text(desc,
               style: TextStyle(
-                  fontSize: 12, color: Colors.white.withValues(alpha: 0.75))),
+                  fontSize: r.sp(12), color: Colors.white.withValues(alpha: 0.75))),
           const Spacer(),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(loc.confirmLabel,
-                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -2653,7 +2655,7 @@ $productUrl
         onTap: () => setState(() => _selectedFabricType = type),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+          padding: EdgeInsets.symmetric(vertical: r.h(12), horizontal: r.w(10)),
           decoration: BoxDecoration(
             color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFF8F8F8),
             borderRadius: BorderRadius.circular(8),
@@ -2666,21 +2668,21 @@ $productUrl
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 20, color: sel ? Colors.white : const Color(0xFF555555)),
-              const SizedBox(height: 6),
+              SizedBox(height: r.h(6)),
               Text(
                 type,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: r.sp(13),
                   fontWeight: FontWeight.w800,
                   color: sel ? Colors.white : const Color(0xFF1A1A1A),
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: r.h(2)),
               Text(
                 subLabel,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: r.sp(10),
                   color: sel ? Colors.white.withValues(alpha: 0.7) : const Color(0xFF999999),
                   height: 1.3,
                 ),
@@ -2740,12 +2742,12 @@ $productUrl
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+      padding: EdgeInsets.fromLTRB(r.w(16), r.h(8), r.w(16), r.h(6)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(height: 1),
-          const SizedBox(height: 10),
+          SizedBox(height: r.h(10)),
 
           // ── 기성품 싱글렛(상의): 상의 색상 고정 안내 배너 (강조형) ──
           if (isSingletTop) ...[
@@ -2767,7 +2769,7 @@ $productUrl
                   children: [
                     // 헤더
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(11)),
                       decoration: const BoxDecoration(
                         gradient: LinearGradient(
                           colors: [Color(0xFF0D47A1), Color(0xFF1A6ED4)],
@@ -2778,12 +2780,12 @@ $productUrl
                       child: Row(
                         children: [
                           const Icon(Icons.info_rounded, size: 18, color: Colors.white),
-                          const SizedBox(width: 8),
+                          SizedBox(width: r.w(8)),
                           Expanded(
                             child: Text(
                               isSingletSet ? '하의 색상 선택 안내' : '기성품 색상 안내',
                               style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: r.sp(14),
                                 fontWeight: FontWeight.w900,
                                 color: Colors.white,
                                 letterSpacing: 0.2,
@@ -2791,52 +2793,52 @@ $productUrl
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.25),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Text('기성품',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white)),
+                              style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Colors.white)),
                           ),
                         ],
                       ),
                     ),
                     // 상의 색상 고정 행
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
                       color: const Color(0xFFFFF3E0),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(6),
+                            padding: EdgeInsets.all(r.w(6)),
                             decoration: BoxDecoration(
                               color: const Color(0xFFE65100).withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.lock_rounded, size: 16, color: Color(0xFFE65100)),
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: r.w(10)),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text('상의 색상 — 변경 불가',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFFBF360C))),
-                                const SizedBox(height: 2),
+                                  style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFFBF360C))),
+                                SizedBox(height: r.h(2)),
                                 Text('디자인 색상 그대로 제작됩니다',
-                                  style: TextStyle(fontSize: 11, color: const Color(0xFFBF360C).withValues(alpha: 0.8), height: 1.3)),
+                                  style: TextStyle(fontSize: r.sp(11), color: Color(0xFFBF360C).withValues(alpha: 0.8), height: 1.3)),
                               ],
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                            padding: EdgeInsets.symmetric(horizontal: r.w(9), vertical: r.h(4)),
                             decoration: BoxDecoration(
                               color: const Color(0xFFE65100),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text('고정',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white)),
+                              style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w900, color: Colors.white)),
                           ),
                         ],
                       ),
@@ -2845,58 +2847,58 @@ $productUrl
                     const Divider(height: 1, color: Color(0xFFE0E0E0)),
                     // 하의 색상 선택 가능 행
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
                       color: const Color(0xFFE8F5E9),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(6),
+                            padding: EdgeInsets.all(r.w(6)),
                             decoration: BoxDecoration(
                               color: const Color(0xFF2E7D32).withValues(alpha: 0.12),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF2E7D32)),
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: r.w(10)),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text('하의 색상 — 선택 가능',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFF1B5E20))),
-                                const SizedBox(height: 2),
+                                  style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFF1B5E20))),
+                                SizedBox(height: r.h(2)),
                                 Text(
                                   isSingletSet
                                       ? '19가지 색상 중 하의 색상을 선택하세요'
                                       : '19가지 색상 중 자유롭게 선택하세요',
-                                  style: TextStyle(fontSize: 11, color: const Color(0xFF1B5E20).withValues(alpha: 0.8), height: 1.3)),
+                                  style: TextStyle(fontSize: r.sp(11), color: Color(0xFF1B5E20).withValues(alpha: 0.8), height: 1.3)),
                               ],
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                            padding: EdgeInsets.symmetric(horizontal: r.w(9), vertical: r.h(4)),
                             decoration: BoxDecoration(
                               color: const Color(0xFF2E7D32),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text('선택',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.white)),
+                              style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w900, color: Colors.white)),
                           ),
                         ],
                       ),
                     ),
                     // 하단 안내
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(9)),
                       color: const Color(0xFFF5F5F5),
                       child: Row(
                         children: [
                           const Icon(Icons.touch_app_rounded, size: 13, color: Color(0xFF888888)),
-                          const SizedBox(width: 6),
+                          SizedBox(width: r.w(6)),
                           const Expanded(
                             child: Text(
                               '하의 색상 선택은 장바구니 / 바로구매 버튼을 눌러 진행하세요',
-                              style: TextStyle(fontSize: 10.5, color: Color(0xFF666666), height: 1.4),
+                              style: TextStyle(fontSize: r.sp(10.5), color: Color(0xFF666666), height: 1.4),
                             ),
                           ),
                         ],
@@ -2906,13 +2908,13 @@ $productUrl
                 ),
               ),
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: r.h(14)),
           ],
 
           // ── 싱글렛 A타입세트: 하의 기장 자동적용 안내 배너 ──
           if (isSingletATypeSet) ...[
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -2928,36 +2930,36 @@ $productUrl
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: EdgeInsets.all(r.w(6)),
                     decoration: BoxDecoration(
                       color: const Color(0xFF6A1B9A).withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.auto_fix_high_rounded, size: 14, color: Color(0xFF6A1B9A)),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: r.w(10)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(loc.bottomAutoApplyTitle,
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF4A148C))),
-                        const SizedBox(height: 2),
+                            style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w800, color: Color(0xFF4A148C))),
+                        SizedBox(height: r.h(2)),
                         Text(loc.bottomAutoApplyDesc,
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w600)),
+                            style: TextStyle(fontSize: r.sp(11), color: Color(0xFF6A1B9A), fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: r.h(10)),
           ],
 
           // ── 트레이닝세트: 9부 고정 안내 배너 ──
           if (showFixedLength9) ...[
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
               decoration: BoxDecoration(
                 color: const Color(0xFFF3E5F5),
                 borderRadius: BorderRadius.circular(10),
@@ -2966,52 +2968,52 @@ $productUrl
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    padding: EdgeInsets.all(r.w(6)),
                     decoration: BoxDecoration(
                       color: const Color(0xFF6A1B9A).withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.straighten_rounded, size: 14, color: Color(0xFF6A1B9A)),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: r.w(10)),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(loc.bottomFixedTitle,
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF4A148C))),
-                        const SizedBox(height: 2),
+                            style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w800, color: Color(0xFF4A148C))),
+                        SizedBox(height: r.h(2)),
                         Text(loc.bottomFixedDesc,
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w600)),
+                            style: TextStyle(fontSize: r.sp(11), color: Color(0xFF6A1B9A), fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: r.h(10)),
           ],
 
           if (!product.isGroupOnly) ...[
             Text(loc.purchaseType,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
-            const SizedBox(height: 8),
+                style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+            SizedBox(height: r.h(8)),
           ],
 
           // ── 기성품 원단 선택 버튼 (일반원단 / 심리스) ──
           if (!product.isGroupOnly) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: r.h(4)),
             const Divider(height: 1, color: Color(0xFFF0F0F0)),
-            const SizedBox(height: 10),
+            SizedBox(height: r.h(10)),
             Text('원단 선택',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
-            const SizedBox(height: 8),
+                style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+            SizedBox(height: r.h(8)),
             Row(children: [
               _fabricTypeBtn('일반원단', '기본 기능성 원단', Icons.layers_outlined),
-              const SizedBox(width: 8),
+              SizedBox(width: r.w(8)),
               _fabricTypeBtn('심리스', '봉제선 없는 심리스', Icons.auto_awesome_outlined),
             ]),
-            const SizedBox(height: 10),
+            SizedBox(height: r.h(10)),
           ],
 
           // ── 구매방식 버튼: 단체주문 전용 → 단체주문 1개, 기성품 → 기성품 1개 ──
@@ -3020,7 +3022,7 @@ $productUrl
               onTap: () => _showGroupOrderGuide(product),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: EdgeInsets.symmetric(vertical: r.h(12)),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF4A148C), Color(0xFF6A1B9A)],
@@ -3033,11 +3035,11 @@ $productUrl
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.groups_rounded, color: Colors.white, size: 18),
-                    const SizedBox(height: 4),
+                    SizedBox(height: r.h(4)),
                     Text(loc.groupOrderLabel,
-                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+                        style: TextStyle(color: Colors.white, fontSize: r.sp(13), fontWeight: FontWeight.w800)),
                     Text(loc.groupOrderSubLabel,
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 10)),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: r.sp(10))),
                   ],
                 ),
               ),
@@ -3047,7 +3049,7 @@ $productUrl
               onTap: () => _showBuyNowSheet(product),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: EdgeInsets.symmetric(vertical: r.h(12)),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1A1A1A),
                   borderRadius: BorderRadius.circular(10),
@@ -3056,17 +3058,17 @@ $productUrl
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 18),
-                    const SizedBox(height: 4),
+                    SizedBox(height: r.h(4)),
                     Text(loc.readyMadeLabel,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 13,
+                          fontSize: r.sp(13),
                           fontWeight: FontWeight.w800,
                         )),
                     Text(loc.buyNow,
                         style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 10)),
+                            fontSize: r.sp(10))),
                   ],
                 ),
               ),
@@ -3075,26 +3077,26 @@ $productUrl
 
           // ── 성별 선택 (단체주문 전용 상품 제외) ──
           if (!product.isGroupOnly) ...[
-          const SizedBox(height: 12),
+          SizedBox(height: r.h(12)),
           const Divider(height: 1, color: Color(0xFFF0F0F0)),
-          const SizedBox(height: 10),
+          SizedBox(height: r.h(10)),
           Text(loc.gender,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
-          const SizedBox(height: 8),
+              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+          SizedBox(height: r.h(8)),
           Row(children: [
             _inlineGenderBtn('남', loc.male, isSingletATypeSet ? loc.maleBottomSub : '', autoLength: isSingletATypeSet),
-            const SizedBox(width: 8),
+            SizedBox(width: r.w(8)),
             _inlineGenderBtn('여', loc.female, isSingletATypeSet ? loc.femaleBottomSub : '', autoLength: isSingletATypeSet),
           ]),
 
           // ── 싱글렛 A타입세트: 성별에 따라 하의 길이 1개만 표시 ──
           if (isSingletATypeSet) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: r.h(12)),
             const Divider(height: 1, color: Color(0xFFF0F0F0)),
-            const SizedBox(height: 10),
+            SizedBox(height: r.h(10)),
             Text(loc.bottomLengthTitle,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
-            const SizedBox(height: 8),
+                style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+            SizedBox(height: r.h(8)),
             if (_singletGender == '남') ...[
               _singletLengthOnlyBtn(label: '5부', desc: '~55 cm'),
             ] else ...[
@@ -3104,12 +3106,12 @@ $productUrl
 
           // ── 타이즈: 하의 길이 선택 (전체 옵션) ──
           if (isTaiz) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: r.h(12)),
             const Divider(height: 1, color: Color(0xFFF0F0F0)),
-            const SizedBox(height: 10),
+            SizedBox(height: r.h(10)),
             Text(loc.bottomLengthTitle,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
-            const SizedBox(height: 8),
+                style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+            SizedBox(height: r.h(8)),
             Wrap(
               spacing: 7,
               runSpacing: 7,
@@ -3121,7 +3123,7 @@ $productUrl
                   onTap: () => setState(() => _selectedBottomLength = label),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
                     decoration: BoxDecoration(
                       color: sel ? const Color(0xFF111111) : const Color(0xFFF8F8F8),
                       borderRadius: BorderRadius.circular(8),
@@ -3135,13 +3137,13 @@ $productUrl
                       children: [
                         Text(label,
                             style: TextStyle(
-                                fontSize: 13,
+                                fontSize: r.sp(13),
                                 fontWeight: FontWeight.w800,
                                 color: sel ? Colors.white : const Color(0xFF1A1A1A))),
-                        const SizedBox(height: 2),
+                        SizedBox(height: r.h(2)),
                         Text(desc,
                             style: TextStyle(
-                                fontSize: 10,
+                                fontSize: r.sp(10),
                                 color: sel
                                     ? Colors.white.withValues(alpha: 0.75)
                                     : const Color(0xFF999999))),
@@ -3155,14 +3157,14 @@ $productUrl
 
           // ── 트레이닝세트: 9부 고정 표시 칩 ──
           if (showFixedLength9) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: r.h(12)),
             const Divider(height: 1, color: Color(0xFFF0F0F0)),
-            const SizedBox(height: 10),
+            SizedBox(height: r.h(10)),
             Text(loc.bottomLengthTitle,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
-            const SizedBox(height: 8),
+                style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+            SizedBox(height: r.h(8)),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: r.w(18), vertical: r.h(10)),
               decoration: BoxDecoration(
                 color: const Color(0xFF111111),
                 borderRadius: BorderRadius.circular(8),
@@ -3172,10 +3174,10 @@ $productUrl
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(loc.productShorter9,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
-                  const SizedBox(height: 2),
+                      style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800, color: Colors.white)),
+                  SizedBox(height: r.h(2)),
                   Text(loc.fixedLabel,
-                      style: const TextStyle(fontSize: 10, color: Colors.white70)),
+                      style: TextStyle(fontSize: r.sp(10), color: Colors.white70)),
                 ],
               ),
             ),
@@ -3219,7 +3221,7 @@ $productUrl
         if (isAdmin) ...[
           // 관리자: 단일 업로드 섹션
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(8)),
             decoration: BoxDecoration(
               color: const Color(0xFFF3E5F5),
               borderRadius: BorderRadius.circular(8),
@@ -3228,13 +3230,13 @@ $productUrl
             child: Row(
               children: [
                 const Icon(Icons.photo_library_rounded, size: 14, color: Color(0xFF7B1FA2)),
-                const SizedBox(width: 6),
+                SizedBox(width: r.w(6)),
                 Text(loc.productLengthRefImg,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF7B1FA2))),
+                    style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w800, color: Color(0xFF7B1FA2))),
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: r.h(10)),
           _buildAdminImageSection('s2_length', '하의길이 참조 이미지', isAdmin),
         ] else ...[
           // 일반 유저: 업로드된 이미지 표시
@@ -3242,8 +3244,8 @@ $productUrl
         ],
         // ── 하의길이 순서 및 성별 적용 범위 안내 (업로드된 이미지가 있을 때만)
         if (hasUploadedImgs) Container(
-          margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          margin: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
+          padding: EdgeInsets.fromLTRB(r.w(14), r.h(12), r.w(14), r.h(12)),
           decoration: BoxDecoration(
             color: const Color(0xFFF8F8F8),
             borderRadius: BorderRadius.circular(8),
@@ -3257,12 +3259,12 @@ $productUrl
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(Icons.straighten_rounded, size: 14, color: Color(0xFF555555)),
-                  const SizedBox(width: 6),
+                  SizedBox(width: r.w(6)),
                   const Text(
                     '왼쪽부터',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF555555)),
+                    style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF555555)),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: r.w(8)),
                   Expanded(
                     child: Wrap(
                       spacing: 4,
@@ -3270,7 +3272,7 @@ $productUrl
                       children: [
                         for (final label in ['9부', '5부', '4부', '3부', '2.5부', '숏사각'])
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(2)),
                             decoration: BoxDecoration(
                               color: label == '숏사각' ? const Color(0xFFFFF3E0) : Colors.white,
                               borderRadius: BorderRadius.circular(4),
@@ -3281,7 +3283,7 @@ $productUrl
                             child: Text(
                               label,
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: r.sp(11),
                                 fontWeight: FontWeight.w600,
                                 color: label == '숏사각' ? const Color(0xFFE65100) : const Color(0xFF333333),
                               ),
@@ -3292,73 +3294,73 @@ $productUrl
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: r.h(10)),
               const Divider(height: 1, color: Color(0xFFE8E8E8)),
-              const SizedBox(height: 10),
+              SizedBox(height: r.h(10)),
               // 숏사각 주머니 불가 안내
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFF3E0),
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(color: const Color(0xFFFF8F00).withValues(alpha: 0.5)),
                     ),
-                    child: const Text('숏사각', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFE65100))),
+                    child: Text('숏사각', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Color(0xFFE65100))),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: r.w(8)),
                   const Expanded(
                     child: Text(
                       '주머니 추가 불가',
-                      style: TextStyle(fontSize: 12, color: Color(0xFFE65100), height: 1.5, fontWeight: FontWeight.w600),
+                      style: TextStyle(fontSize: r.sp(12), color: Color(0xFFE65100), height: 1.5, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: r.h(10)),
               const Divider(height: 1, color: Color(0xFFE8E8E8)),
-              const SizedBox(height: 10),
+              SizedBox(height: r.h(10)),
               // 남성 적용 범위
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE3F2FD),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text('남성', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                    child: Text('남성', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: r.w(8)),
                   const Expanded(
                     child: Text(
                       '9부 · 5부 · 4부 · 3부까지 적용 가능',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF444444), height: 1.5),
+                      style: TextStyle(fontSize: r.sp(12), color: Color(0xFF444444), height: 1.5),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: r.h(8)),
               // 여성 적용 범위
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFCE4EC),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text('여성', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFFC62828))),
+                    child: Text('여성', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Color(0xFFC62828))),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: r.w(8)),
                   const Expanded(
                     child: Text(
                       '9부 · 5부 · 4부 · 3부 · 2.5부 · 숏사각까지 적용 가능',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF444444), height: 1.5),
+                      style: TextStyle(fontSize: r.sp(12), color: Color(0xFF444444), height: 1.5),
                     ),
                   ),
                 ],
@@ -3375,7 +3377,7 @@ $productUrl
     if (imgs.isEmpty) return const SizedBox.shrink();
     return Column(
       children: imgs.map((url) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
+        padding: EdgeInsets.only(bottom: r.h(6)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
@@ -3396,7 +3398,7 @@ $productUrl
     required Color bgColor,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(7)),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(8),
@@ -3405,9 +3407,9 @@ $productUrl
       child: Row(
         children: [
           Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
+          SizedBox(width: r.w(6)),
           Text(label,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
+              style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w800, color: color)),
         ],
       ),
     );
@@ -3469,12 +3471,12 @@ $productUrl
           if (isAdmin) ...[
             // 관리자용 안내 텍스트
             Padding(
-              padding: const EdgeInsets.only(top: 6, bottom: 4),
+              padding: EdgeInsets.only(top: r.h(6), bottom: r.h(4)),
               child: Row(children: [
                 const Icon(Icons.drag_indicator_rounded, size: 14, color: Color(0xFF999999)),
-                const SizedBox(width: 4),
+                SizedBox(width: r.w(4)),
                 Text(loc.dragToReorder,
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF999999))),
+                    style: TextStyle(fontSize: r.sp(11), color: Color(0xFF999999))),
               ]),
             ),
             // ReorderableListView — 드래그 순서 변경
@@ -3533,7 +3535,7 @@ $productUrl
   }) {
     return Padding(
       key: key,
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: r.h(8)),
       child: Stack(
         children: [
           // 이미지
@@ -3542,7 +3544,7 @@ $productUrl
             children: [
               // 드래그 핸들
               Padding(
-                padding: const EdgeInsets.only(top: 4, right: 6),
+                padding: EdgeInsets.only(top: r.h(4), right: r.w(6)),
                 child: ReorderableDragStartListener(
                   index: index,
                   child: const Icon(Icons.drag_indicator_rounded,
@@ -3625,7 +3627,7 @@ $productUrl
     return GestureDetector(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 8),
+        padding: EdgeInsets.only(bottom: r.h(8)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: url.startsWith('data:image')
@@ -3659,8 +3661,8 @@ $productUrl
       onTap: () => _pickAndUploadImages(sectionKey, sectionLabel, existingImgs),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        margin: const EdgeInsets.only(top: 8),
+        padding: EdgeInsets.symmetric(vertical: r.h(14)),
+        margin: EdgeInsets.only(top: r.h(8)),
         decoration: BoxDecoration(
           color: const Color(0xFF1A1A2E).withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(10),
@@ -3674,13 +3676,13 @@ $productUrl
           children: [
             const Icon(Icons.add_photo_alternate_outlined,
                 size: 20, color: Color(0xFF1A1A2E)),
-            const SizedBox(width: 8),
+            SizedBox(width: r.w(8)),
             Text(
               existingImgs.isEmpty
                   ? '[관리자] $sectionLabel 이미지 업로드'
                   : '[관리자] $sectionLabel 이미지 추가 (현재 ${existingImgs.length}장)',
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: r.sp(13),
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1A1A2E),
               ),
@@ -3701,9 +3703,9 @@ $productUrl
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(children: [
-          const SizedBox(width: 20, height: 20,
+          SizedBox(width: r.w(20), height: 20,
               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-          const SizedBox(width: 12),
+          SizedBox(width: r.w(12)),
           Text(loc.fileSelecting),
         ]),
         duration: const Duration(seconds: 60),
@@ -3728,9 +3730,9 @@ $productUrl
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(children: [
-          const SizedBox(width: 20, height: 20,
+          SizedBox(width: r.w(20), height: 20,
               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-          const SizedBox(width: 12),
+          SizedBox(width: r.w(12)),
           Text('${pickedFiles.length}장 업로드 중... (잠시 기다려 주세요)'),
         ]),
         duration: const Duration(seconds: 120),
@@ -3782,9 +3784,9 @@ $productUrl
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(children: [
-            const SizedBox(width: 20, height: 20,
+            SizedBox(width: r.w(20), height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
-            const SizedBox(width: 12),
+            SizedBox(width: r.w(12)),
             Text('$sectionLabel Firestore 저장 중...'),
           ]),
           duration: const Duration(seconds: 30),
@@ -3817,7 +3819,7 @@ $productUrl
         SnackBar(
           content: Row(children: [
             const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-            const SizedBox(width: 10),
+            SizedBox(width: r.w(10)),
             Text('$sectionLabel 이미지 ${newUrls.length}장 저장 완료'),
           ]),
           duration: const Duration(seconds: 2),
@@ -3912,28 +3914,28 @@ $productUrl
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: r.w(8)),
             const Text(
               '디자인 이미지',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
+              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800,
                   color: Color(0xFF1A1A1A), letterSpacing: -0.2),
             ),
             if (isAdmin) ...[
-              const SizedBox(width: 8),
+              SizedBox(width: r.w(8)),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(2)),
                 decoration: BoxDecoration(
                   color: const Color(0xFF4A148C).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('관리자', style: TextStyle(fontSize: 9, color: Color(0xFF4A148C), fontWeight: FontWeight.w700)),
+                child: Text('관리자', style: TextStyle(fontSize: r.sp(9), color: Color(0xFF4A148C), fontWeight: FontWeight.w700)),
               ),
               const Spacer(),
               // 업로드 버튼
               GestureDetector(
                 onTap: () => _pickAndUploadImages('design', '디자인 이미지', imgs),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
                   decoration: BoxDecoration(
                     color: const Color(0xFF4A148C),
                     borderRadius: BorderRadius.circular(6),
@@ -3942,10 +3944,10 @@ $productUrl
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.add_photo_alternate_outlined, color: Colors.white, size: 14),
-                      const SizedBox(width: 4),
+                      SizedBox(width: r.w(4)),
                       Text(
                         imgs.isEmpty ? '이미지 업로드' : '이미지 추가 (${imgs.length}장)',
-                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                        style: TextStyle(color: Colors.white, fontSize: r.sp(11), fontWeight: FontWeight.w700),
                       ),
                     ],
                   ),
@@ -3954,7 +3956,7 @@ $productUrl
             ],
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: r.h(10)),
 
         // ── 이미지가 있을 때: 가로 스크롤 썸네일 ──
         if (imgs.isNotEmpty)
@@ -3963,7 +3965,7 @@ $productUrl
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: imgs.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, __) => SizedBox(width: r.w(8)),
               itemBuilder: (_, i) {
                 return GestureDetector(
                   onTap: () => _showDesignLightbox(imgs, i),
@@ -3997,7 +3999,7 @@ $productUrl
                       Positioned(
                         right: 4, bottom: 4,
                         child: Container(
-                          padding: const EdgeInsets.all(3),
+                          padding: EdgeInsets.all(r.w(3)),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.55),
                             borderRadius: BorderRadius.circular(4),
@@ -4030,7 +4032,7 @@ $productUrl
                               }
                             },
                             child: Container(
-                              padding: const EdgeInsets.all(3),
+                              padding: EdgeInsets.all(r.w(3)),
                               decoration: BoxDecoration(
                                 color: Colors.red.withValues(alpha: 0.85),
                                 borderRadius: BorderRadius.circular(4),
@@ -4050,7 +4052,7 @@ $productUrl
         if (imgs.isEmpty && isAdmin)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: EdgeInsets.symmetric(vertical: r.h(16)),
             decoration: BoxDecoration(
               color: const Color(0xFF4A148C).withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(8),
@@ -4061,16 +4063,16 @@ $productUrl
             child: const Column(
               children: [
                 Icon(Icons.image_outlined, size: 28, color: Color(0xFF9E9E9E)),
-                SizedBox(height: 6),
+                SizedBox(height: r.h(6)),
                 Text('디자인 이미지를 업로드하세요',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF9E9E9E))),
+                    style: TextStyle(fontSize: r.sp(12), color: Color(0xFF9E9E9E))),
               ],
             ),
           ),
 
-        const SizedBox(height: 14),
+        SizedBox(height: r.h(14)),
         const Divider(height: 1, color: Color(0xFFF0F0F0)),
-        const SizedBox(height: 14),
+        SizedBox(height: r.h(14)),
       ],
     );
   }
@@ -4128,7 +4130,7 @@ $productUrl
     return Container(
       width: double.infinity,
       color: bgColor,
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(22), r.w(20), r.h(20)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -4140,19 +4142,19 @@ $productUrl
                 Text(
                   engTitle,
                   style: TextStyle(
-                    fontSize: 26,
+                    fontSize: r.sp(26),
                     fontWeight: FontWeight.w900,
                     color: textColor,
                     letterSpacing: -0.5,
                     height: 1.1,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: r.h(6)),
                 // 한글 설명
                 Text(
                   korSub,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: r.sp(11),
                     color: textColor.withValues(alpha: 0.55),
                     fontWeight: FontWeight.w400,
                     letterSpacing: 0.2,
@@ -4190,10 +4192,10 @@ $productUrl
         if (isAdmin || (_sectionImages['s1'] ?? []).isNotEmpty)
           Container(
             color: Colors.white,
-            padding: EdgeInsets.fromLTRB(0, isAdmin ? 12 : 0, 0, 0),
+            padding: EdgeInsets.fromLTRB(r.w(0), isAdmin ? 12 : 0, r.w(0), r.h(0)),
             child: isAdmin
                 ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(16)),
                     child: _buildAdminImageSection('s1', '섹션1 메인 배너', isAdmin),
                   )
                 : _buildSectionImageSlider('s1'),
@@ -4243,10 +4245,10 @@ $productUrl
           if (isAdmin || (_sectionImages['s2_fabric_extra'] ?? []).isNotEmpty)
             Container(
               color: Colors.white,
-              padding: EdgeInsets.fromLTRB(0, isAdmin ? 12 : 0, 0, 0),
+              padding: EdgeInsets.fromLTRB(r.w(0), isAdmin ? 12 : 0, r.w(0), r.h(0)),
               child: isAdmin
                   ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(16)),
                       child: _buildAdminImageSection('s2_fabric_extra', '원단 추가 이미지', isAdmin),
                     )
                   : _buildSectionImageSlider('s2_fabric_extra'),
@@ -4257,7 +4259,7 @@ $productUrl
         // 하의 카테고리: SEAMLESS 숨김, FAST DRY / MOISTURE 표시
         Container(
           color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          padding: EdgeInsets.fromLTRB(r.w(20), r.h(8), r.w(20), r.h(0)),
           child: Column(
             children: techRows
                 .where((t) => product.category != '하의' || t['label'] != 'SEAMLESS')
@@ -4270,35 +4272,35 @@ $productUrl
                   children: [
                     if (i > 0) const Divider(height: 1, color: Color(0xFFE8E8E8)),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      padding: EdgeInsets.symmetric(vertical: r.h(18)),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(
                             width: 28,
                             child: Text('0${i + 1}',
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900,
+                              style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w900,
                                   color: Color(0xFFCCCCCC), letterSpacing: 1)),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: r.w(12)),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                  padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
                                   decoration: BoxDecoration(border: Border.all(color: const Color(0xFF555555))),
                                   child: Text(t['label']!,
-                                    style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
+                                    style: TextStyle(fontSize: r.sp(9), fontWeight: FontWeight.w800,
                                         color: Color(0xFF555555), letterSpacing: 1.2)),
                                 ),
-                                const SizedBox(height: 8),
+                                SizedBox(height: r.h(8)),
                                 Text(t['desc']!,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800,
+                                  style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w800,
                                       color: Color(0xFF1A1A1A), height: 1.3)),
-                                const SizedBox(height: 5),
+                                SizedBox(height: r.h(5)),
                                 Text(t['sub']!,
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF777777),
+                                  style: TextStyle(fontSize: r.sp(12), color: Color(0xFF777777),
                                       height: 1.6, fontWeight: FontWeight.w400)),
                               ],
                             ),
@@ -4321,7 +4323,7 @@ $productUrl
         if (isAdmin || (_sectionImages['s2_fiber'] ?? []).isNotEmpty)
           isAdmin
               ? Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  padding: EdgeInsets.fromLTRB(r.w(16), r.h(0), r.w(16), r.h(0)),
                   child: _buildAdminImageSection('s2_fiber', '소재혼용율 이미지', isAdmin),
                 )
               : _buildSectionImageSlider('s2_fiber'),
@@ -4338,7 +4340,7 @@ $productUrl
     bool isAdmin,
   ) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -4352,7 +4354,7 @@ $productUrl
             imgs: generalImgs,
             isAdmin: isAdmin,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: r.h(16)),
           // 심리스 슬롯
           _buildFabricAdminSlot(
             key: 's2_seamless',
@@ -4383,7 +4385,7 @@ $productUrl
       children: [
         // 슬롯 헤더 뱃지
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(7)),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(8),
@@ -4393,20 +4395,20 @@ $productUrl
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 15, color: color),
-              const SizedBox(width: 6),
+              SizedBox(width: r.w(6)),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: r.sp(12),
                   fontWeight: FontWeight.w800,
                   color: color,
                 ),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: r.w(6)),
               Text(
                 '이미지 ${imgs.length}장',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: r.sp(11),
                   fontWeight: FontWeight.w500,
                   color: color.withValues(alpha: 0.7),
                 ),
@@ -4414,7 +4416,7 @@ $productUrl
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: r.h(8)),
         // 업로드 버튼 + 이미지 목록
         _buildAdminImageSection(key, '$label 이미지', isAdmin),
       ],
@@ -4480,7 +4482,7 @@ $productUrl
         if (isAdmin || (_sectionImages['s3'] ?? []).isNotEmpty)
           isAdmin
               ? Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  padding: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
                   child: _buildAdminImageSection('s3', '섹션3 포켓 특성', isAdmin),
                 )
               : _buildSectionImageSlider('s3'),
@@ -4489,7 +4491,7 @@ $productUrl
         // ── 포켓 기능 리스트
         Container(
           color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          padding: EdgeInsets.fromLTRB(r.w(20), r.h(8), r.w(20), r.h(32)),
           child: Column(
             children: pockets.asMap().entries.map((entry) {
               final i = entry.key;
@@ -4499,35 +4501,35 @@ $productUrl
                 children: [
                   if (i > 0) const Divider(height: 1, color: Color(0xFFF0F0F0)),
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    padding: EdgeInsets.symmetric(vertical: r.h(18)),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(
                           width: 28,
                           child: Text('0${i + 1}',
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900,
+                            style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w900,
                                 color: Color(0xFFCCCCCC), letterSpacing: 1)),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: r.w(12)),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
                                 decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1A1A1A))),
                                 child: Text(p['tag']!,
-                                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800,
+                                  style: TextStyle(fontSize: r.sp(9), fontWeight: FontWeight.w800,
                                       color: Color(0xFF1A1A1A), letterSpacing: 1.2)),
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: r.h(8)),
                               Text(p['title']!,
-                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800,
+                                style: TextStyle(fontSize: r.sp(15), fontWeight: FontWeight.w800,
                                     color: Color(0xFF1A1A1A), height: 1.3)),
-                              const SizedBox(height: 5),
+                              SizedBox(height: r.h(5)),
                               Text(p['desc']!,
-                                style: const TextStyle(fontSize: 12, color: Color(0xFF777777),
+                                style: TextStyle(fontSize: r.sp(12), color: Color(0xFF777777),
                                     height: 1.6, fontWeight: FontWeight.w400)),
                             ],
                           ),
@@ -4583,14 +4585,14 @@ $productUrl
         if (isAdmin || (_sectionImages['s6'] ?? []).isNotEmpty)
           Container(
             color: const Color(0xFFF5F5F5),
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
             child: _buildAdminImageSection('s6', '섹션6 사이즈 차트', isAdmin),
           ),
 
         // ── 메인 사이즈 차트 컨테이너 ──
         Container(
           color: const Color(0xFFF5F5F5),
-          padding: const EdgeInsets.fromLTRB(20, 28, 20, 32),
+          padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(32)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -4605,7 +4607,7 @@ $productUrl
                       const Text(
                         'SIZE\nCHART',
                         style: TextStyle(
-                          fontSize: 32,
+                          fontSize: r.sp(32),
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF111111),
                           height: 1.0,
@@ -4620,7 +4622,7 @@ $productUrl
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.black.withValues(alpha: 0.25)),
                           borderRadius: BorderRadius.circular(4),
@@ -4628,7 +4630,7 @@ $productUrl
                         child: const Text(
                           '2FiT KOREA',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: r.sp(10),
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF111111),
                             letterSpacing: 2,
@@ -4636,11 +4638,11 @@ $productUrl
                           ),
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      SizedBox(height: r.h(6)),
                       Text(
                         '투핏 사이즈 조건표 기준',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: r.sp(10),
                           color: Colors.black.withValues(alpha: 0.45),
                           letterSpacing: 0.3,
                         ),
@@ -4652,7 +4654,7 @@ $productUrl
 
               // 구분선
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
+                padding: EdgeInsets.symmetric(vertical: r.h(20)),
                 child: Container(height: 1, color: Colors.black.withValues(alpha: 0.1)),
               ),
 
@@ -4665,11 +4667,11 @@ $productUrl
                 loc: loc,
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: r.h(24)),
 
               // ── 안내 문구 ──
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(r.w(16)),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.7),
                   borderRadius: BorderRadius.circular(8),
@@ -4680,12 +4682,12 @@ $productUrl
                     Row(
                       children: [
                         Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
-                        const SizedBox(width: 6),
+                        SizedBox(width: r.w(6)),
                         Expanded(
                           child: Text(
                             loc.sizeChartDesc1,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: r.sp(11),
                               color: Colors.black.withValues(alpha: 0.55),
                               height: 1.5,
                             ),
@@ -4693,16 +4695,16 @@ $productUrl
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: r.h(6)),
                     Row(
                       children: [
                         Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
-                        const SizedBox(width: 6),
+                        SizedBox(width: r.w(6)),
                         Expanded(
                           child: Text(
                             loc.sizeChartDesc2,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: r.sp(11),
                               color: Colors.black.withValues(alpha: 0.55),
                               height: 1.5,
                             ),
@@ -4710,44 +4712,44 @@ $productUrl
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: r.h(6)),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
-                        const SizedBox(width: 6),
+                        SizedBox(width: r.w(6)),
                         const Expanded(
                           child: Text(
                             '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.',
-                            style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.5),
+                            style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: r.h(6)),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
-                        const SizedBox(width: 6),
+                        SizedBox(width: r.w(6)),
                         const Expanded(
                           child: Text(
                             '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.',
-                            style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.5),
+                            style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: r.h(6)),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(Icons.info_outline_rounded, size: 14, color: Colors.black.withValues(alpha: 0.4)),
-                        const SizedBox(width: 6),
+                        SizedBox(width: r.w(6)),
                         const Expanded(
                           child: Text(
                             '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.',
-                            style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.5),
+                            style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
                           ),
                         ),
                       ],
@@ -4762,7 +4764,7 @@ $productUrl
         if (isAdmin || (_sectionImages['s6'] ?? []).isNotEmpty)
           Container(
             color: const Color(0xFFF5F5F5),
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            padding: EdgeInsets.fromLTRB(r.w(20), r.h(0), r.w(20), r.h(20)),
             child: _buildAdminImageSection('s6', '섹션6 사이즈 차트', isAdmin),
           ),
 
@@ -4770,25 +4772,25 @@ $productUrl
         Container(
           width: double.infinity,
           color: const Color(0xFF1A1A1A),
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+          padding: EdgeInsets.fromLTRB(r.w(20), r.h(22), r.w(20), r.h(20)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'WASH TIP',
                 style: TextStyle(
-                  fontSize: 26,
+                  fontSize: r.sp(26),
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
                   letterSpacing: -0.5,
                   height: 1.1,
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: r.h(6)),
               Text(
                 '올바른 세탁으로 제품을 오래, 깨끗하게',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: r.sp(11),
                   color: Colors.white.withValues(alpha: 0.55),
                   fontWeight: FontWeight.w400,
                   letterSpacing: 0.2,
@@ -4839,19 +4841,19 @@ $productUrl
 
         return Container(
           color: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          padding: EdgeInsets.symmetric(vertical: r.h(20), horizontal: r.w(16)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Divider(height: 1, color: Color(0xFFEEEEEE)),
-              const SizedBox(height: 28),
+              SizedBox(height: r.h(28)),
               Row(
                 children: [
                   Text(loc.productReviewLabel,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                  const SizedBox(width: 8),
+                      style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w800)),
+                  SizedBox(width: r.w(8)),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A1A),
                       borderRadius: BorderRadius.circular(10),
@@ -4860,23 +4862,23 @@ $productUrl
                         '${reviews.length}',
                         style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: r.sp(12),
                             fontWeight: FontWeight.w700)),
                   ),
                 ],
               ),
               if (avg > 0) ...[
-                const SizedBox(height: 14),
+                SizedBox(height: r.h(14)),
                 Row(
                   children: [
                     Text(
                       avg.toStringAsFixed(1),
                       style: const TextStyle(
-                          fontSize: 40,
+                          fontSize: r.sp(40),
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF1A1A1A)),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: r.w(12)),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -4889,18 +4891,18 @@ $productUrl
                                       ? const Color(0xFFFFD600)
                                       : const Color(0xFFE0E0E0))),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: r.h(4)),
                         Text(
                             '${reviews.length}개 리뷰',
                             style: const TextStyle(
-                                fontSize: 12, color: Color(0xFF888888))),
+                                fontSize: r.sp(12), color: Color(0xFF888888))),
                       ],
                     ),
                   ],
                 ),
               ],
-              const SizedBox(height: 20),
-              const SizedBox(height: 4),
+              SizedBox(height: r.h(20)),
+              SizedBox(height: r.h(4)),
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
@@ -4915,7 +4917,7 @@ $productUrl
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFFDDDDDD)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: EdgeInsets.symmetric(vertical: r.h(14)),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
@@ -4934,14 +4936,14 @@ $productUrl
   // 예시 리뷰 제거됨 - 실제 회원 리뷰만 표시
 
   Widget _reviewChip(String text) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(4),
           border: Border.all(color: const Color(0xFFDDDDDD)),
         ),
         child: Text(text,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
+            style: TextStyle(fontSize: r.sp(10), color: Color(0xFF888888))),
       );
 
   // ═══════════════════════════════════════════════════════════
@@ -4960,7 +4962,7 @@ $productUrl
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(10)),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -4972,7 +4974,7 @@ $productUrl
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.groups_rounded, color: Colors.white, size: 20),
                     label: Text(loc.groupOrderBtn,
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white)),
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(16), color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF4A148C),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -4990,7 +4992,7 @@ $productUrl
                       children: [
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 9),
+                          padding: EdgeInsets.symmetric(vertical: r.h(9)),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF5F5F5),
                             borderRadius: BorderRadius.circular(8),
@@ -4999,18 +5001,18 @@ $productUrl
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.remove_shopping_cart_outlined, size: 15, color: Color(0xFFAAAAAA)),
-                              SizedBox(width: 6),
-                              Text('현재 품절된 상품입니다', style: TextStyle(fontSize: 13, color: Color(0xFFAAAAAA), fontWeight: FontWeight.w600)),
+                              SizedBox(width: r.w(6)),
+                              Text('현재 품절된 상품입니다', style: TextStyle(fontSize: r.sp(13), color: Color(0xFFAAAAAA), fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: r.h(8)),
                         SizedBox(
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton.icon(
                             icon: const Icon(Icons.notifications_active_rounded, size: 17, color: Colors.white),
-                            label: const Text('재입고 알림 신청', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Colors.white)),
+                            label: Text('재입고 알림 신청', style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(14), color: Colors.white)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF1A1A1A),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -5052,10 +5054,10 @@ $productUrl
                                   color: isWish ? Colors.redAccent : const Color(0xFF888888),
                                   size: 26,
                                 ),
-                                const SizedBox(height: 1),
+                                SizedBox(height: r.h(1)),
                                 Text(
                                   wishCount.toString(),
-                                  style: const TextStyle(fontSize: 11, color: Color(0xFF888888), fontWeight: FontWeight.w500),
+                                  style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
@@ -5063,7 +5065,7 @@ $productUrl
                         );
                       },
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: r.w(8)),
                     // 장바구니 버튼
                     Expanded(
                       flex: 1,
@@ -5077,13 +5079,13 @@ $productUrl
                           icon: const Icon(Icons.shopping_bag_outlined, size: 18, color: Color(0xFF1A1A1A)),
                           label: const Text(
                             '장바구니',
-                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: Color(0xFF1A1A1A)),
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(14), color: Color(0xFF1A1A1A)),
                           ),
                           onPressed: () => _addToCart(product),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: r.w(8)),
                     // 바로구매 버튼
                     Expanded(
                       flex: 1,
@@ -5099,7 +5101,7 @@ $productUrl
                           onPressed: () => _showBuyNowSheet(product),
                           child: const Text(
                             '바로구매',
-                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white),
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(16), color: Colors.white),
                           ),
                         ),
                       ),
@@ -5118,7 +5120,7 @@ $productUrl
   // ignore: unused_element
   Widget _pocketInfoBox(String label, String value) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(r.w(12)),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(10),
@@ -5130,16 +5132,16 @@ $productUrl
             label,
             style: const TextStyle(
               color: Colors.white70,
-              fontSize: 10,
+              fontSize: r.sp(10),
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 5),
+          SizedBox(height: r.h(5)),
           Text(
             value,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 12,
+              fontSize: r.sp(12),
               fontWeight: FontWeight.w800,
               height: 1.4,
             ),
@@ -5217,7 +5219,7 @@ $productUrl
       backgroundColor: Colors.transparent,
       builder: (_) => StatefulBuilder(
         builder: (ctx, setSheetState) => Container(
-        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).padding.bottom + 24),
+        padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20), MediaQuery.of(context).padding.bottom + 24),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -5233,16 +5235,16 @@ $productUrl
                 decoration: BoxDecoration(color: const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2)),
               ),
             ),
-            const SizedBox(height: 20),
-            Text(loc.purchaseTypeTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
-            const SizedBox(height: 6),
-            Text(loc.purchaseTypeSubtitle, style: const TextStyle(fontSize: 13, color: Color(0xFF888888))),
+            SizedBox(height: r.h(20)),
+            Text(loc.purchaseTypeTitle, style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+            SizedBox(height: r.h(6)),
+            Text(loc.purchaseTypeSubtitle, style: TextStyle(fontSize: r.sp(13), color: Color(0xFF888888))),
 
             // ── 싱글렛 전용: 성별·타입 선택 ──
             if (isSingletProduct) ...[
-              const SizedBox(height: 20),
+              SizedBox(height: r.h(20)),
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(r.w(16)),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF3E5F5),
                   borderRadius: BorderRadius.circular(14),
@@ -5254,14 +5256,14 @@ $productUrl
                     Row(
                       children: [
                         const Icon(Icons.accessibility_new_rounded, size: 16, color: Color(0xFF6A1B9A)),
-                        const SizedBox(width: 6),
-                        Text(loc.singletOptionLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
+                        SizedBox(width: r.w(6)),
+                        Text(loc.singletOptionLabel, style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
                       ],
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: r.h(14)),
                     // 성별 선택
-                    Text(context.watch<LanguageProvider>().loc.gender, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
-                    const SizedBox(height: 8),
+                    Text(context.watch<LanguageProvider>().loc.gender, style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+                    SizedBox(height: r.h(8)),
                     Row(
                       children: ['남성', '여성'].map((g) {
                         final isSelected = _singletGender == (g == '남성' ? '남' : '여');
@@ -5272,8 +5274,8 @@ $productUrl
                             }),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 150),
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              margin: EdgeInsets.only(right: r.w(8)),
+                              padding: EdgeInsets.symmetric(vertical: r.h(10)),
                               decoration: BoxDecoration(
                                 color: isSelected ? const Color(0xFF6A1B9A) : Colors.white,
                                 borderRadius: BorderRadius.circular(10),
@@ -5290,11 +5292,11 @@ $productUrl
                                     size: 16,
                                     color: isSelected ? Colors.white : const Color(0xFF888888),
                                   ),
-                                  const SizedBox(width: 6),
+                                  SizedBox(width: r.w(6)),
                                   Text(
                                     g,
                                     style: TextStyle(
-                                      fontSize: 13, fontWeight: FontWeight.w700,
+                                      fontSize: r.sp(13), fontWeight: FontWeight.w700,
                                       color: isSelected ? Colors.white : const Color(0xFF555555),
                                     ),
                                   ),
@@ -5305,10 +5307,10 @@ $productUrl
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 14),
+                    SizedBox(height: r.h(14)),
                     // 타입 선택
-                    Text(loc.styleTypeLabel, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
-                    const SizedBox(height: 8),
+                    Text(loc.styleTypeLabel, style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+                    SizedBox(height: r.h(8)),
                     // A타입(레이서백) 카드 제거 → B타입(스쿱넥)만 표시
                     Row(
                       children: [
@@ -5322,8 +5324,8 @@ $productUrl
                             }),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 150),
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                              margin: EdgeInsets.only(right: r.w(8)),
+                              padding: EdgeInsets.symmetric(vertical: r.h(10), horizontal: r.w(12)),
                               decoration: BoxDecoration(
                                 color: isSelected ? const Color(0xFF1A1A2E) : Colors.white,
                                 borderRadius: BorderRadius.circular(10),
@@ -5337,14 +5339,14 @@ $productUrl
                                   Text(
                                     t['label']!,
                                     style: TextStyle(
-                                      fontSize: 13, fontWeight: FontWeight.w800,
+                                      fontSize: r.sp(13), fontWeight: FontWeight.w800,
                                       color: isSelected ? Colors.white : const Color(0xFF333333),
                                     ),
                                   ),
                                   Text(
                                     t['desc']!,
                                     style: TextStyle(
-                                      fontSize: 11, fontWeight: FontWeight.w500,
+                                      fontSize: r.sp(11), fontWeight: FontWeight.w500,
                                       color: isSelected ? Colors.white70 : const Color(0xFF888888),
                                     ),
                                   ),
@@ -5360,7 +5362,7 @@ $productUrl
               ),
             ],
 
-            const SizedBox(height: 20),
+            SizedBox(height: r.h(20)),
             _orderTypeBtn(
               emoji: '🛍️',
               title: loc.orderTypeReadyMadeTitle,
@@ -5374,7 +5376,7 @@ $productUrl
             ),
             // 단체주문 버튼: 라운드티, 싱글렛세트, 싱글렛, 타이즈 카테고리만 표시
             if (_showGroupOrderBtn(product)) ...[
-              const SizedBox(height: 12),
+              SizedBox(height: r.h(12)),
               // 기성품 + 단체전용 모두 선택된 경우 → 두 버튼 따로 표시
               if (product.isReadyMade && product.isGroupOnly) ...[
                 _orderTypeBtn(
@@ -5388,7 +5390,7 @@ $productUrl
                     _showGroupOrderGuide(product);
                   },
                 ),
-                const SizedBox(height: 10),
+                SizedBox(height: r.h(10)),
                 _orderTypeBtn(
                   emoji: '👥',
                   title: loc.orderTypeGroupCustomTitle,
@@ -5417,7 +5419,7 @@ $productUrl
                   },
                 ),
             ],
-            const SizedBox(height: 8),
+            SizedBox(height: r.h(8)),
           ],
         ),
         ),
@@ -5437,7 +5439,7 @@ $productUrl
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(r.w(16)),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(14),
@@ -5445,22 +5447,22 @@ $productUrl
         ),
         child: Row(
           children: [
-            Text(emoji, style: const TextStyle(fontSize: 28)),
-            const SizedBox(width: 14),
+            Text(emoji, style: TextStyle(fontSize: r.sp(28))),
+            SizedBox(width: r.w(14)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: color)),
-                  const SizedBox(height: 3),
-                  Text(description, style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
-                  const SizedBox(height: 6),
+                  Text(title, style: TextStyle(fontSize: r.sp(15), fontWeight: FontWeight.w800, color: color)),
+                  SizedBox(height: r.h(3)),
+                  Text(description, style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888))),
+                  SizedBox(height: r.h(6)),
                   Wrap(
                     spacing: 6,
                     children: tags.map((t) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(2)),
                       decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
-                      child: Text(t, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+                      child: Text(t, style: TextStyle(fontSize: r.sp(11), color: color, fontWeight: FontWeight.w600)),
                     )).toList(),
                   ),
                 ],
@@ -5536,17 +5538,17 @@ $productUrl
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(children: [
             Icon(Icons.notifications_active_rounded, color: Color(0xFF1565C0), size: 22),
-            SizedBox(width: 8),
-            Text('재입고 알림 신청 완료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+            SizedBox(width: r.w(8)),
+            Text('재입고 알림 신청 완료', style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800)),
           ]),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('${product.name}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
-              const SizedBox(height: 8),
+              Text('${product.name}', style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+              SizedBox(height: r.h(8)),
               Text('재입고 시 ${email.isNotEmpty ? email : '등록된 연락처'}로 알림을 보내드립니다.',
-                style: const TextStyle(fontSize: 13, color: Color(0xFF555555), height: 1.5)),
+                style: TextStyle(fontSize: r.sp(13), color: Color(0xFF555555), height: 1.5)),
             ],
           ),
           actions: [
@@ -5640,11 +5642,11 @@ $productUrl
         content: Row(
           children: [
             const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
+            SizedBox(width: r.w(8)),
             Expanded(
               child: Text(
                 loc.addedToCartMsg(bottomLength),
-                style: const TextStyle(fontSize: 13),
+                style: TextStyle(fontSize: r.sp(13)),
               ),
             ),
           ],
@@ -5676,7 +5678,7 @@ $productUrl
       backgroundColor: Colors.transparent,
       builder: (_) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(r.w(20)),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -5689,10 +5691,10 @@ $productUrl
                   color: const Color(0xFFE0E0E0),
                   borderRadius: BorderRadius.circular(2)),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: r.h(16)),
             Text(context.watch<LanguageProvider>().loc.sizeGuideTitle,
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 16),
+                style: TextStyle(fontSize: r.sp(17), fontWeight: FontWeight.w800)),
+            SizedBox(height: r.h(16)),
             const Divider(),
             Expanded(child: SingleChildScrollView(
               child: _buildSection6SizeChart(widget.product),
@@ -5739,8 +5741,9 @@ class _MeasureRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: EdgeInsets.only(bottom: r.h(8)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -5748,13 +5751,13 @@ class _MeasureRow extends StatelessWidget {
             width: 50,
             child: Text(label,
                 style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: r.sp(12),
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF555555))),
           ),
           Expanded(
             child: Text(desc,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888))),
           ),
         ],
       ),
@@ -5916,6 +5919,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
@@ -5926,7 +5930,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
         children: [
           // ── 헤더 ──
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(0)),
             child: Column(
               children: [
                 Center(
@@ -5938,11 +5942,11 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: r.h(16)),
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(r.w(8)),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1A1A2E).withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(8),
@@ -5950,24 +5954,23 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                       child: const Icon(Icons.admin_panel_settings_rounded,
                           size: 18, color: Color(0xFF1A1A2E)),
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: r.w(10)),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(loc.imageUploadLabel,
                               style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w800)),
+                                  fontSize: r.sp(16), fontWeight: FontWeight.w800)),
                           Text(widget.sectionLabel,
                               style: const TextStyle(
-                                  fontSize: 12, color: Color(0xFF888888))),
+                                  fontSize: r.sp(12), color: Color(0xFF888888))),
                         ],
                       ),
                     ),
                     // 이미지 수 배지
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(4)),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1A1A2E),
                         borderRadius: BorderRadius.circular(12),
@@ -5976,7 +5979,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                         '${_allImages.length}장',
                         style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
+                            fontSize: r.sp(12),
                             fontWeight: FontWeight.w700),
                       ),
                     ),
@@ -5986,12 +5989,12 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
             ),
           ),
 
-          const SizedBox(height: 12),
+          SizedBox(height: r.h(12)),
 
           // ── 변환 중 진행 표시 ──
           if (_isConverting)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(8)),
               child: Row(
                 children: [
                   const SizedBox(
@@ -5999,11 +6002,11 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                     child: CircularProgressIndicator(
                         strokeWidth: 2, color: Color(0xFF1A1A2E)),
                   ),
-                  const SizedBox(width: 10),
+                  SizedBox(width: r.w(10)),
                   Text(
                     '이미지 변환 중... (${_convertedBase64.length}/${_pendingFiles.length + _convertedBase64.length})',
                     style: const TextStyle(
-                        fontSize: 12, color: Color(0xFF888888)),
+                        fontSize: r.sp(12), color: Color(0xFF888888)),
                   ),
                 ],
               ),
@@ -6019,15 +6022,15 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                         Icon(Icons.image_not_supported_outlined,
                             size: 48,
                             color: Colors.grey.withValues(alpha: 0.4)),
-                        const SizedBox(height: 12),
+                        SizedBox(height: r.h(12)),
                         Text(context.watch<LanguageProvider>().loc.noImageSelected,
                             style: const TextStyle(
-                                color: Color(0xFF888888), fontSize: 14)),
+                                color: Color(0xFF888888), fontSize: r.sp(14))),
                       ],
                     ),
                   )
                 : Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(12)),
                     child: GridView.builder(
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
@@ -6076,7 +6079,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                                   child: Text('${i + 1}',
                                       style: const TextStyle(
                                           color: Colors.white,
-                                          fontSize: 11,
+                                          fontSize: r.sp(11),
                                           fontWeight: FontWeight.w800)),
                                 ),
                               ),
@@ -6108,8 +6111,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
 
           // ── 하단 버튼 영역 ──
           Padding(
-            padding: EdgeInsets.fromLTRB(
-                16, 8, 16, MediaQuery.of(context).padding.bottom + 12),
+            padding: EdgeInsets.fromLTRB(r.w(16), r.h(8), r.w(16), MediaQuery.of(context).padding.bottom + 12),
             child: Column(
               children: [
                 // 이미지 추가 버튼
@@ -6123,14 +6125,14 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                       foregroundColor: const Color(0xFF1A1A2E),
                       side: const BorderSide(
                           color: Color(0xFF1A1A2E), width: 1.5),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: EdgeInsets.symmetric(vertical: r.h(12)),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
                     onPressed: _isConverting ? null : _addMoreImages,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: r.h(8)),
                 Row(
                   children: [
                     // 전체 삭제
@@ -6143,7 +6145,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                             foregroundColor: Colors.red,
                             side: const BorderSide(color: Colors.red),
                             padding:
-                                const EdgeInsets.symmetric(vertical: 12),
+                                EdgeInsets.symmetric(vertical: r.h(12)),
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10)),
                           ),
@@ -6154,13 +6156,13 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                         ),
                       ),
                     if (widget.existingImgs.isNotEmpty)
-                      const SizedBox(width: 8),
+                      SizedBox(width: r.w(8)),
                     // 저장
                     Expanded(
                       flex: 2,
                       child: ElevatedButton.icon(
                         icon: _isUploadingSave
-                            ? const SizedBox(width: 16, height: 16,
+                            ? SizedBox(width: r.w(16), height: 16,
                                 child: CircularProgressIndicator(
                                     strokeWidth: 2, color: Colors.white))
                             : const Icon(Icons.check_rounded, size: 18),
@@ -6177,7 +6179,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                               : const Color(0xFF1A1A2E),
                           foregroundColor: Colors.white,
                           padding:
-                              const EdgeInsets.symmetric(vertical: 12),
+                              EdgeInsets.symmetric(vertical: r.h(12)),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
@@ -6256,8 +6258,9 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).padding.bottom + 24),
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20), MediaQuery.of(context).padding.bottom + 24),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -6274,12 +6277,12 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
       children: [
         Center(child: Container(width:40, height:4,
             decoration: BoxDecoration(color:const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2)))),
-        const SizedBox(height: 20),
+        SizedBox(height: r.h(20)),
         const Text('성별 선택',
-            style: TextStyle(fontSize:16, fontWeight:FontWeight.w900, color:Color(0xFF1A1A1A))),
-        const SizedBox(height: 10),
+            style: TextStyle(fontSize: r.sp(16), fontWeight:FontWeight.w900, color:Color(0xFF1A1A1A))),
+        SizedBox(height: r.h(10)),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal:14, vertical:10),
+          padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
           decoration: BoxDecoration(
             color: const Color(0xFFFFF8E1),
             borderRadius: BorderRadius.circular(8),
@@ -6287,20 +6290,20 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
           ),
           child: const Row(children: [
             Icon(Icons.info_outline_rounded, size:14, color:Color(0xFF7A5000)),
-            SizedBox(width:6),
+            SizedBox(width: r.w(6)),
             Expanded(child: Text(
               '남성 → 하의 5부 자동 적용\n여성 → 하의 2.5부 자동 적용',
-              style: TextStyle(fontSize:12, color:Color(0xFF7A5000), height:1.5),
+              style: TextStyle(fontSize: r.sp(12), color:Color(0xFF7A5000), height:1.5),
             )),
           ]),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: r.h(16)),
         Row(children: [
           _gBtn('남', '하의 5부'),
-          const SizedBox(width: 12),
+          SizedBox(width: r.w(12)),
           _gBtn('여', '하의 2.5부'),
         ]),
-        const SizedBox(height: 20),
+        SizedBox(height: r.h(20)),
         SizedBox(
           width: double.infinity, height: 52,
           child: ElevatedButton(
@@ -6319,7 +6322,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             child: Text(
               _gender == null ? '성별을 선택해주세요'
                   : '다음  ·  하의 ${_lengthForGender(_gender!)} 확정',
-              style: const TextStyle(fontSize:15, fontWeight:FontWeight.w800, color:Colors.white),
+              style: TextStyle(fontSize: r.sp(15), fontWeight:FontWeight.w800, color:Colors.white),
             ),
           ),
         ),
@@ -6334,7 +6337,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
         onTap: () => setState(() => _gender = gender),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          padding: EdgeInsets.symmetric(vertical: r.h(18)),
           decoration: BoxDecoration(
             color: sel ? const Color(0xFF1A1A2E) : const Color(0xFFF8F8F8),
             borderRadius: BorderRadius.circular(14),
@@ -6346,12 +6349,12 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
           child: Column(children: [
             Icon(gender == '남' ? Icons.male_rounded : Icons.female_rounded,
                 size: 32, color: sel ? Colors.white : const Color(0xFF888888)),
-            const SizedBox(height: 6),
+            SizedBox(height: r.h(6)),
             Text(gender == '남' ? '남성' : '여성',
-                style: TextStyle(fontSize:16, fontWeight:FontWeight.w800,
+                style: TextStyle(fontSize: r.sp(16), fontWeight:FontWeight.w800,
                     color: sel ? Colors.white : const Color(0xFF1A1A1A))),
-            const SizedBox(height: 4),
-            Text(sub, style: TextStyle(fontSize:11,
+            SizedBox(height: r.h(4)),
+            Text(sub, style: TextStyle(fontSize: r.sp(11),
                 color: sel ? Colors.white70 : const Color(0xFF888888))),
           ]),
         ),
@@ -6385,14 +6388,14 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
           // 드래그 핸들 + 헤더
           Center(child: Container(width:40, height:4,
               decoration: BoxDecoration(color:const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2)))),
-          const SizedBox(height: 14),
+          SizedBox(height: r.h(14)),
           Row(children: [
             if (_isSingletASet) ...[
               GestureDetector(
                 onTap: () => setState(() => _step = 0),
                 child: const Icon(Icons.chevron_left_rounded, size: 24),
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: r.w(4)),
             ],
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -6401,16 +6404,16 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                   _isSingletASet
                       ? '사이즈 · 색상 선택  (${_gender == "남" ? "남성" : "여성"} · 하의 ${_autoLength ?? ""})'
                       : '사이즈 · 색상 · 수량 선택',
-                  style: const TextStyle(fontSize:15, fontWeight:FontWeight.w900, color:Color(0xFF1A1A1A)),
+                  style: TextStyle(fontSize: r.sp(15), fontWeight:FontWeight.w900, color:Color(0xFF1A1A1A)),
                 ),
               ],
             )),
           ]),
-          const SizedBox(height: 12),
+          SizedBox(height: r.h(12)),
 
           // 안내 배지
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(r.w(10)),
             decoration: BoxDecoration(
               color: const Color(0xFFE8F5E9),
               borderRadius: BorderRadius.circular(8),
@@ -6418,26 +6421,26 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             ),
             child: const Row(children: [
               Icon(Icons.check_circle_rounded, size:14, color:Color(0xFF2E7D32)),
-              SizedBox(width:5),
+              SizedBox(width: r.w(5)),
               Expanded(child: Text('기성품 · 2~3일 이내 배송',
-                  style: TextStyle(fontSize:12, fontWeight:FontWeight.w700, color:Color(0xFF2E7D32)))),
+                  style: TextStyle(fontSize: r.sp(12), fontWeight:FontWeight.w700, color:Color(0xFF2E7D32)))),
             ]),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: r.h(16)),
 
           // ── 사이즈 ──
-          const Text('사이즈', style: TextStyle(fontSize:13, fontWeight:FontWeight.w700)),
-          const SizedBox(height: 8),
+          Text('사이즈', style: TextStyle(fontSize: r.sp(13), fontWeight:FontWeight.w700)),
+          SizedBox(height: r.h(8)),
           if (hasBoth) ...[
             // 성인 그룹
             Row(children: [
               const Icon(Icons.person_outline_rounded, size: 13, color: Color(0xFF1A1A2E)),
-              const SizedBox(width: 4),
-              const Text('성인', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
-              const SizedBox(width: 6),
+              SizedBox(width: r.w(4)),
+              Text('성인', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
+              SizedBox(width: r.w(6)),
               Expanded(child: Container(height: 1, color: const Color(0x331A1A2E))),
             ]),
-            const SizedBox(height: 6),
+            SizedBox(height: r.h(6)),
             Wrap(
               spacing: 8, runSpacing: 8,
               children: adultSizes.map((s) {
@@ -6446,7 +6449,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                   onTap: () => setState(() => _selectedSize = s),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
-                    padding: const EdgeInsets.symmetric(horizontal:16, vertical:8),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(8)),
                     decoration: BoxDecoration(
                       color: sel ? const Color(0xFF1A1A1A) : Colors.white,
                       borderRadius: BorderRadius.circular(8),
@@ -6459,16 +6462,16 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: r.h(10)),
             // 주니어 그룹
             Row(children: [
               const Icon(Icons.child_care_rounded, size: 13, color: Color(0xFF1565C0)),
-              const SizedBox(width: 4),
-              const Text('주니어', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-              const SizedBox(width: 6),
+              SizedBox(width: r.w(4)),
+              Text('주니어', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+              SizedBox(width: r.w(6)),
               Expanded(child: Container(height: 1, color: const Color(0x331565C0))),
             ]),
-            const SizedBox(height: 6),
+            SizedBox(height: r.h(6)),
             Wrap(
               spacing: 8, runSpacing: 8,
               children: juniorSizes.map((s) {
@@ -6477,7 +6480,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                   onTap: () => setState(() => _selectedSize = s),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
-                    padding: const EdgeInsets.symmetric(horizontal:16, vertical:8),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(8)),
                     decoration: BoxDecoration(
                       color: sel ? const Color(0xFF1565C0) : Colors.white,
                       borderRadius: BorderRadius.circular(8),
@@ -6499,7 +6502,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                   onTap: () => setState(() => _selectedSize = s),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
-                    padding: const EdgeInsets.symmetric(horizontal:16, vertical:8),
+                    padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(8)),
                     decoration: BoxDecoration(
                       color: sel ? const Color(0xFF1A1A1A) : Colors.white,
                       borderRadius: BorderRadius.circular(8),
@@ -6513,7 +6516,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
               }).toList(),
             ),
           ],
-          const SizedBox(height: 16),
+          SizedBox(height: r.h(16)),
 
           // ── 색상 ──
           _ColorSelectionWidget(
@@ -6521,11 +6524,11 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             selectedColor: _selectedColor,
             onColorChanged: (c) => setState(() => _selectedColor = c),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: r.h(16)),
 
           // ── 무게 ──
-          const Text('원단 무게', style: TextStyle(fontSize:13, fontWeight:FontWeight.w700)),
-          const SizedBox(height: 8),
+          Text('원단 무게', style: TextStyle(fontSize: r.sp(13), fontWeight:FontWeight.w700)),
+          SizedBox(height: r.h(8)),
           Row(
             children: AppConstants.fabricWeights.map((w) {
               final sel = _selectedWeight == w;
@@ -6535,18 +6538,18 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 130),
                     margin: EdgeInsets.only(right: w == AppConstants.fabricWeights.first ? 8 : 0),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: r.h(12)),
                     decoration: BoxDecoration(
                       color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFF8F8F8),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFE0E0E0)),
                     ),
                     child: Column(children: [
-                      Text(w, style: TextStyle(fontSize:16, fontWeight:FontWeight.w800,
+                      Text(w, style: TextStyle(fontSize: r.sp(16), fontWeight:FontWeight.w800,
                           color: sel ? Colors.white : const Color(0xFF1A1A1A))),
-                      const SizedBox(height: 2),
+                      SizedBox(height: r.h(2)),
                       Text(w == '80g' ? '가볍고 시원함' : '두툼하고 탄탄함',
-                          style: TextStyle(fontSize:10,
+                          style: TextStyle(fontSize: r.sp(10),
                               color: sel ? Colors.white70 : const Color(0xFF888888))),
                     ]),
                   ),
@@ -6554,23 +6557,23 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: r.h(16)),
 
           // ── 수량 ──
           Row(children: [
-            const Text('수량', style: TextStyle(fontSize:13, fontWeight:FontWeight.w700)),
+            Text('수량', style: TextStyle(fontSize: r.sp(13), fontWeight:FontWeight.w700)),
             const Spacer(),
             IconButton(
               icon: const Icon(Icons.remove_circle_outline),
               onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
             ),
-            Text('$_quantity', style: const TextStyle(fontSize:16, fontWeight:FontWeight.w800)),
+            Text('$_quantity', style: TextStyle(fontSize: r.sp(16), fontWeight:FontWeight.w800)),
             IconButton(
               icon: const Icon(Icons.add_circle_outline),
               onPressed: () => setState(() => _quantity++),
             ),
           ]),
-          const SizedBox(height: 16),
+          SizedBox(height: r.h(16)),
 
           // ── 확인 버튼 ──
           SizedBox(
@@ -6590,7 +6593,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
               ),
               child: Text(
                 _canConfirm ? '확인' : '사이즈와 색상을 선택해주세요',
-                style: const TextStyle(fontSize:15, fontWeight:FontWeight.w800, color:Colors.white),
+                style: TextStyle(fontSize: r.sp(15), fontWeight:FontWeight.w800, color:Colors.white),
               ),
             ),
           ),
@@ -6638,11 +6641,12 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final bottom = MediaQuery.of(context).padding.bottom;
     final sizes = widget.product.sizes;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, bottom + 24),
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20), bottom + 24),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -6655,7 +6659,7 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
           Center(
             child: Container(
               width: 40, height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
+              margin: EdgeInsets.only(bottom: r.h(20)),
               decoration: BoxDecoration(
                 color: const Color(0xFFDDDDDD),
                 borderRadius: BorderRadius.circular(2),
@@ -6667,27 +6671,27 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
           Row(
             children: [
               Text(loc.sizeSelectTitle,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                  style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w900)),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(4)),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF3F4F6),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(widget.product.localizedName(_lang),
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF666666))),
+                    style: TextStyle(fontSize: r.sp(11), color: Color(0xFF666666))),
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: r.h(6)),
           Text(
             widget.isBuyNow
                 ? '사이즈를 선택하고 바로 결제로 이동합니다'
                 : '사이즈를 선택하고 장바구니에 담습니다',
-            style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+            style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888)),
           ),
-          const SizedBox(height: 18),
+          SizedBox(height: r.h(18)),
 
           // 사이즈 선택 그리드 (성인/주니어 구분)
           Builder(builder: (context) {
@@ -6715,7 +6719,7 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                     child: Center(
                       child: Text(s,
                           style: TextStyle(
-                              fontSize: 14,
+                              fontSize: r.sp(14),
                               fontWeight: FontWeight.w700,
                               color: sel ? Colors.white : const Color(0xFF1A1A1A))),
                     ),
@@ -6730,36 +6734,36 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                 children: [
                   Row(children: [
                     const Icon(Icons.person_outline_rounded, size: 13, color: Color(0xFF1A1A2E)),
-                    const SizedBox(width: 4),
-                    const Text('성인', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
-                    const SizedBox(width: 6),
+                    SizedBox(width: r.w(4)),
+                    Text('성인', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
+                    SizedBox(width: r.w(6)),
                     Expanded(child: Container(height: 1, color: const Color(0x221A1A2E))),
                   ]),
-                  const SizedBox(height: 6),
+                  SizedBox(height: r.h(6)),
                   chipWrap(adultSizes, const Color(0xFF1A1A1A)),
-                  const SizedBox(height: 12),
+                  SizedBox(height: r.h(12)),
                   Row(children: [
                     const Icon(Icons.child_care_rounded, size: 13, color: Color(0xFF1565C0)),
-                    const SizedBox(width: 4),
-                    const Text('주니어', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-                    const SizedBox(width: 6),
+                    SizedBox(width: r.w(4)),
+                    Text('주니어', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                    SizedBox(width: r.w(6)),
                     Expanded(child: Container(height: 1, color: const Color(0x221565C0))),
                   ]),
-                  const SizedBox(height: 6),
+                  SizedBox(height: r.h(6)),
                   chipWrap(juniorSizes, const Color(0xFF1565C0)),
                 ],
               );
             }
             return chipWrap(sizes, const Color(0xFF1A1A1A));
           }),
-          const SizedBox(height: 20),
+          SizedBox(height: r.h(20)),
 
           // 수량 선택
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(loc.quantitySelectTitle,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
               Row(
                 children: [
                   GestureDetector(
@@ -6777,7 +6781,7 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                     width: 44,
                     alignment: Alignment.center,
                     child: Text('$_quantity',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                        style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800)),
                   ),
                   GestureDetector(
                     onTap: () => setState(() => _quantity++),
@@ -6794,13 +6798,13 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: r.h(16)),
 
           // 금액 요약
           if (_selectedSize != null)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              margin: const EdgeInsets.only(bottom: 14),
+              padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
+              margin: EdgeInsets.only(bottom: r.h(14)),
               decoration: BoxDecoration(
                 color: const Color(0xFFF7F8FA),
                 borderRadius: BorderRadius.circular(10),
@@ -6809,11 +6813,11 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('${widget.product.localizedName(_lang)} · $_selectedSize',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF666666))),
+                      style: TextStyle(fontSize: r.sp(12), color: Color(0xFF666666))),
                   Text(
                     '${_fmt((widget.product.price * _quantity).toInt())}원',
                     style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A)),
+                        fontSize: r.sp(16), fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A)),
                   ),
                 ],
               ),
@@ -6828,7 +6832,7 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                     ? const Color(0xFF1A1A1A)
                     : const Color(0xFFCCCCCC),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: r.h(16)),
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -6842,12 +6846,12 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                       ? Icons.payment_rounded
                       : Icons.shopping_bag_outlined,
                       size: 18),
-                  const SizedBox(width: 8),
+                  SizedBox(width: r.w(8)),
                   Text(
                     _selectedSize == null
                         ? '사이즈를 선택해주세요'
                         : (widget.isBuyNow ? '바로 결제하기' : '장바구니에 담기'),
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                    style: TextStyle(fontSize: r.sp(15), fontWeight: FontWeight.w800),
                   ),
                 ],
               ),
@@ -7088,7 +7092,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
       SnackBar(
         content: Row(children: [
           const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
+          SizedBox(width: r.w(8)),
           Text('${_items.length}가지 옵션 · 총 ${_totalQty()}개 장바구니에 담겼습니다'),
         ]),
         backgroundColor: const Color(0xFF1A1A1A),
@@ -7124,6 +7128,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   // ─────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final lengths = AppConstants.bottomLengths
         .map((m) => m['label'] as String)
         .where((s) => s.isNotEmpty)
@@ -7143,7 +7148,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
           children: [
             // ── 핸들 + 헤더 ──
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              padding: EdgeInsets.fromLTRB(r.w(20), r.h(12), r.w(20), r.h(0)),
               child: Column(
                 children: [
                   Center(
@@ -7155,7 +7160,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  SizedBox(height: r.h(14)),
                   Row(
                     children: [
                       Expanded(
@@ -7165,15 +7170,15 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             Text(
                               widget.isBuyNow ? '바로구매 옵션 선택' : '장바구니 옵션 선택',
                               style: const TextStyle(
-                                fontSize: 17,
+                                fontSize: r.sp(17),
                                 fontWeight: FontWeight.w900,
                                 color: Color(0xFF1A1A1A),
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: r.h(2)),
                             Text(
                               '옵션을 선택하고 추가하면 한 번에 담을 수 있어요',
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+                              style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888)),
                             ),
                           ],
                         ),
@@ -7194,7 +7199,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
             Expanded(
               child: ListView(
                 controller: scrollCtrl,
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                padding: EdgeInsets.fromLTRB(r.w(20), r.h(0), r.w(20), r.h(100)),
                 children: [
 
                   // ══════════════════════════════
@@ -7202,21 +7207,21 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   if (_needsGender) ...[
                     _sectionTitle('성별 선택', required: true),
-                    const SizedBox(height: 8),
+                    SizedBox(height: r.h(8)),
                     // 안내 배지
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(7)),
+                      margin: EdgeInsets.only(bottom: r.h(10)),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF8E1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(children: [
                         const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF7A5000)),
-                        const SizedBox(width: 5),
+                        SizedBox(width: r.w(5)),
                         const Text(
                           '남성 → 5부 자동선택  •  여성 → 2.5부 자동선택',
-                          style: TextStyle(fontSize: 11, color: Color(0xFF7A5000), fontWeight: FontWeight.w600),
+                          style: TextStyle(fontSize: r.sp(11), color: Color(0xFF7A5000), fontWeight: FontWeight.w600),
                         ),
                       ]),
                     ),
@@ -7232,7 +7237,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 130),
                               margin: EdgeInsets.only(right: g == '남' ? 8 : 0),
-                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              padding: EdgeInsets.symmetric(vertical: r.h(14)),
                               decoration: BoxDecoration(
                                 color: isSel ? const Color(0xFF1A1A2E) : const Color(0xFFF8F8F8),
                                 borderRadius: BorderRadius.circular(12),
@@ -7248,18 +7253,18 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                     size: 26,
                                     color: isSel ? Colors.white : const Color(0xFF888888),
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: r.h(4)),
                                   Text(
                                     g == '남' ? '남성' : '여성',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: r.sp(14),
                                       fontWeight: FontWeight.w700,
                                       color: isSel ? Colors.white : const Color(0xFF1A1A1A),
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: r.h(4)),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(2)),
                                     decoration: BoxDecoration(
                                       color: isSel
                                           ? Colors.white.withValues(alpha: 0.2)
@@ -7269,7 +7274,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                     child: Text(
                                       '${_autoLength(g)} 자동선택',
                                       style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: r.sp(10),
                                         color: isSel ? Colors.white : const Color(0xFF1A1A2E),
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -7282,12 +7287,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: r.h(12)),
                     // 기장 고정 표시 (변경 불가)
                     if (_gender != null) ...[
                       Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE8F5E9),
                           borderRadius: BorderRadius.circular(10),
@@ -7295,18 +7300,18 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         ),
                         child: Row(children: [
                           const Icon(Icons.lock_outline_rounded, size: 15, color: Color(0xFF2E7D32)),
-                          const SizedBox(width: 6),
+                          SizedBox(width: r.w(6)),
                           Text(
                             '하의 기장: ${_length!} (고정 · 변경 불가)',
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: r.sp(13),
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF2E7D32),
                             ),
                           ),
                         ]),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: r.h(16)),
                     ],
                   ],
 
@@ -7315,7 +7320,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   if (_isTaiz && !_needsGender) ...[
                     _sectionTitle('하의 기장 선택', required: true),
-                    const SizedBox(height: 8),
+                    SizedBox(height: r.h(8)),
                     Wrap(
                       spacing: 8, runSpacing: 8,
                       children: lengths.map((len) {
@@ -7323,7 +7328,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         return GestureDetector(
                           onTap: () => setState(() => _length = len),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(10)),
                             decoration: BoxDecoration(
                               color: isSel ? const Color(0xFF1A1A2E) : Colors.white,
                               borderRadius: BorderRadius.circular(8),
@@ -7342,7 +7347,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: r.h(16)),
                   ],
 
                   // ══════════════════════════════
@@ -7353,10 +7358,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   if (_isSetProduct) ...[
                     // 상의 사이즈
                     _sectionTitle('상의 사이즈', required: true),
-                    const SizedBox(height: 8),
+                    SizedBox(height: r.h(8)),
                     if (_hasBothGroups) ...[
                       _sizeSectionLabel('성인', Icons.person_outline_rounded, const Color(0xFF1A1A2E)),
-                      const SizedBox(height: 6),
+                      SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
                         children: _adultSizes.map((s) {
@@ -7367,9 +7372,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             onTap: () => setState(() => _topSize = s));
                         }).toList(),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: r.h(10)),
                       _sizeSectionLabel('주니어', Icons.child_care_rounded, const Color(0xFF1565C0)),
-                      const SizedBox(height: 6),
+                      SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
                         children: _juniorSizes.map((s) {
@@ -7392,13 +7397,13 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         }).toList(),
                       ),
                     ],
-                    const SizedBox(height: 16),
+                    SizedBox(height: r.h(16)),
                     // 하의 사이즈
                     _sectionTitle('하의 사이즈', required: true),
-                    const SizedBox(height: 8),
+                    SizedBox(height: r.h(8)),
                     if (_hasBothGroups) ...[
                       _sizeSectionLabel('성인', Icons.person_outline_rounded, const Color(0xFF5C6BC0)),
-                      const SizedBox(height: 6),
+                      SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
                         children: _adultSizes.map((s) {
@@ -7409,9 +7414,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             onTap: () => setState(() => _bottomSize = s));
                         }).toList(),
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: r.h(10)),
                       _sizeSectionLabel('주니어', Icons.child_care_rounded, const Color(0xFF1565C0)),
-                      const SizedBox(height: 6),
+                      SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
                         children: _juniorSizes.map((s) {
@@ -7434,17 +7439,17 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         }).toList(),
                       ),
                     ],
-                    const SizedBox(height: 16),
+                    SizedBox(height: r.h(16)),
                   ] else ...[
                     // 단품 사이즈 — 성인/주니어 구분 표시
                     _sectionTitle('사이즈', required: true),
-                    const SizedBox(height: 8),
+                    SizedBox(height: r.h(8)),
 
                     // ── 성인/주니어 혼합 상품: 그룹 구분 표시 ──
                     if (_hasBothGroups) ...[
                       // 성인 그룹 라벨
                       _sizeSectionLabel('성인', Icons.person_outline_rounded, const Color(0xFF1A1A2E)),
-                      const SizedBox(height: 6),
+                      SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
                         children: _adultSizes.map((s) {
@@ -7458,10 +7463,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           );
                         }).toList(),
                       ),
-                      const SizedBox(height: 14),
+                      SizedBox(height: r.h(14)),
                       // 주니어 그룹 라벨
                       _sizeSectionLabel('주니어', Icons.child_care_rounded, const Color(0xFF1565C0)),
-                      const SizedBox(height: 6),
+                      SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
                         children: _juniorSizes.map((s) {
@@ -7491,7 +7496,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         }).toList(),
                       ),
                     ],
-                    const SizedBox(height: 16),
+                    SizedBox(height: r.h(16)),
                   ],
 
                   // ══════════════════════════════
@@ -7499,8 +7504,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   if (widget.product.isReadyMade) ...[
                     Container(
-                      margin: const EdgeInsets.only(bottom: 14),
-                      padding: const EdgeInsets.all(12),
+                      margin: EdgeInsets.only(bottom: r.h(14)),
+                      padding: EdgeInsets.all(r.w(12)),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFF8E1),
                         borderRadius: BorderRadius.circular(10),
@@ -7511,19 +7516,19 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         children: [
                           Row(children: [
                             const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Color(0xFF7A5000)),
-                            const SizedBox(width: 5),
+                            SizedBox(width: r.w(5)),
                             const Text('원하는 사이즈가 없으신가요?',
-                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF7A5000))),
+                              style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w800, color: Color(0xFF7A5000))),
                           ]),
-                          const SizedBox(height: 5),
+                          SizedBox(height: r.h(5)),
                           const Text(
                             '목록에 없는 사이즈는 채팅 문의를 통해 별도 주문 가능합니다.',
-                            style: TextStyle(fontSize: 11, color: Color(0xFF7A5000), height: 1.4),
+                            style: TextStyle(fontSize: r.sp(11), color: Color(0xFF7A5000), height: 1.4),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: r.h(4)),
                           const Text(
                             '⚠️ 단, 별도 주문 시 제작 소요 기간이 최소 1주일 이상 걸리며,\n    경우에 따라 더 길어질 수 있습니다.',
-                            style: TextStyle(fontSize: 11, color: Color(0xFFD84315),
+                            style: TextStyle(fontSize: r.sp(11), color: Color(0xFFD84315),
                               fontWeight: FontWeight.w700, height: 1.5),
                           ),
                         ],
@@ -7536,9 +7541,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   if (_isReadyMadeBottom) ...[
                     _sectionTitle('주머니 옵션', required: false),
-                    const SizedBox(height: 8),
+                    SizedBox(height: r.h(8)),
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: EdgeInsets.all(r.w(12)),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF3E5F5),
                         borderRadius: BorderRadius.circular(10),
@@ -7547,25 +7552,25 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       child: Row(
                         children: [
                           const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF6A1B9A)),
-                          const SizedBox(width: 6),
+                          SizedBox(width: r.w(6)),
                           const Expanded(
                             child: Text(
                               '기본 옵션: 주머니 포함\n주머니 제거 선택 시 10,000원 할인됩니다.',
-                              style: TextStyle(fontSize: 11, color: Color(0xFF6A1B9A),
+                              style: TextStyle(fontSize: r.sp(11), color: Color(0xFF6A1B9A),
                                 fontWeight: FontWeight.w600, height: 1.5),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: r.h(10)),
                     Row(children: [
                       Expanded(
                         child: GestureDetector(
                           onTap: () => setState(() => _removePocket = false),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 130),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: EdgeInsets.symmetric(vertical: r.h(12)),
                             decoration: BoxDecoration(
                               color: !_removePocket ? const Color(0xFF1A1A2E) : const Color(0xFFF8F8F8),
                               borderRadius: BorderRadius.circular(10),
@@ -7578,24 +7583,24 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               children: [
                                 Icon(Icons.shopping_bag_outlined, size: 20,
                                   color: !_removePocket ? Colors.white : const Color(0xFF888888)),
-                                const SizedBox(height: 4),
-                                Text('주머니 포함', style: TextStyle(fontSize: 12,
+                                SizedBox(height: r.h(4)),
+                                Text('주머니 포함', style: TextStyle(fontSize: r.sp(12),
                                   fontWeight: FontWeight.w700,
                                   color: !_removePocket ? Colors.white : const Color(0xFF1A1A1A))),
-                                Text('기본 옵션', style: TextStyle(fontSize: 10,
+                                Text('기본 옵션', style: TextStyle(fontSize: r.sp(10),
                                   color: !_removePocket ? Colors.white70 : const Color(0xFF888888))),
                               ],
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: r.w(10)),
                       Expanded(
                         child: GestureDetector(
                           onTap: () => setState(() => _removePocket = true),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 130),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            padding: EdgeInsets.symmetric(vertical: r.h(12)),
                             decoration: BoxDecoration(
                               color: _removePocket ? const Color(0xFF6A1B9A) : const Color(0xFFF8F8F8),
                               borderRadius: BorderRadius.circular(10),
@@ -7608,11 +7613,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               children: [
                                 Icon(Icons.remove_shopping_cart_outlined, size: 20,
                                   color: _removePocket ? Colors.white : const Color(0xFF888888)),
-                                const SizedBox(height: 4),
-                                Text('주머니 제거', style: TextStyle(fontSize: 12,
+                                SizedBox(height: r.h(4)),
+                                Text('주머니 제거', style: TextStyle(fontSize: r.sp(12),
                                   fontWeight: FontWeight.w700,
                                   color: _removePocket ? Colors.white : const Color(0xFF1A1A1A))),
-                                Text('-₩10,000', style: TextStyle(fontSize: 10,
+                                Text('-₩10,000', style: TextStyle(fontSize: r.sp(10),
                                   fontWeight: FontWeight.w800,
                                   color: _removePocket ? const Color(0xFFFFD600) : const Color(0xFF888888))),
                               ],
@@ -7621,7 +7626,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         ),
                       ),
                     ]),
-                    const SizedBox(height: 16),
+                    SizedBox(height: r.h(16)),
                   ],
 
                   // ══════════════════════════════
@@ -7631,13 +7636,13 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   if (_isSingletATypeSet || _isTaiz) ...[
                     _sectionTitle('하의 색상', required: true),
-                    const SizedBox(height: 6),
+                    SizedBox(height: r.h(6)),
                     _ColorSelectionWidget(
                       isBottomCategory: true,
                       selectedColor: _color,
                       onColorChanged: (c) => setState(() => _color = c),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: r.h(16)),
                   ],
 
                   // ══════════════════════════════
@@ -7672,7 +7677,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               alignment: Alignment.center,
                               child: Text(
                                 '$_qty',
-                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                                style: TextStyle(fontSize: r.sp(15), fontWeight: FontWeight.w800),
                               ),
                             ),
                             InkWell(
@@ -7689,7 +7694,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: r.h(16)),
 
                   // ══════════════════════════════
                   // [6] 옵션 추가 버튼
@@ -7721,15 +7726,15 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // [7] 선택된 옵션 목록
                   // ══════════════════════════════
                   if (_items.isNotEmpty) ...[
-                    const SizedBox(height: 20),
+                    SizedBox(height: r.h(20)),
                     Row(
                       children: [
                         const Icon(Icons.shopping_bag_outlined, size: 16, color: Color(0xFF1A1A2E)),
-                        const SizedBox(width: 6),
+                        SizedBox(width: r.w(6)),
                         Text(
                           '선택된 옵션 ${_items.length}가지',
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: r.sp(13),
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF1A1A2E),
                           ),
@@ -7737,11 +7742,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         const Spacer(),
                         Text(
                           '총 ${_totalQty()}개 · ${_fmt(_totalPrice())}원',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555)),
+                          style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w700, color: Color(0xFF555555)),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    SizedBox(height: r.h(10)),
                     ..._items.asMap().entries.map((e) {
                       final idx = e.key;
                       final item = e.value;
@@ -7749,8 +7754,8 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       final extra = (item['extra'] as num).toInt();
                       final itemTotal = (base + extra) * (item['qty'] as int);
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
+                        margin: EdgeInsets.only(bottom: r.h(8)),
+                        padding: EdgeInsets.all(r.w(12)),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF8F9FB),
                           borderRadius: BorderRadius.circular(10),
@@ -7774,7 +7779,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                         _optionChip('주머니 제거', const Color(0xFF6A1B9A)),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: r.h(8)),
                                   Row(
                                     children: [
                                       // ── 수량 +/- 인라인 컨트롤 ──
@@ -7809,7 +7814,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                               child: Text(
                                                 '${item['qty']}',
                                                 style: const TextStyle(
-                                                  fontSize: 13,
+                                                  fontSize: r.sp(13),
                                                   fontWeight: FontWeight.w800,
                                                   color: Color(0xFF1A1A1A),
                                                 ),
@@ -7828,9 +7833,9 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                         ),
                                       ),
                                       if (item['removePocket'] == true) ...[
-                                        const SizedBox(width: 8),
+                                        SizedBox(width: r.w(8)),
                                         const Text('주머니 제거 -10,000원',
-                                          style: TextStyle(fontSize: 11, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700)),
+                                          style: TextStyle(fontSize: r.sp(11), color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700)),
                                       ],
                                     ],
                                   ),
@@ -7843,12 +7848,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                 Text(
                                   '${_fmt(itemTotal)}원',
                                   style: const TextStyle(
-                                    fontSize: 13,
+                                    fontSize: r.sp(13),
                                     fontWeight: FontWeight.w800,
                                     color: Color(0xFF1A1A1A),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                SizedBox(height: r.h(4)),
                                 GestureDetector(
                                   onTap: () => _removeItem(idx),
                                   child: const Icon(Icons.close, size: 16, color: Color(0xFFAAAAAA)),
@@ -7866,7 +7871,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
             // ── 하단 버튼 ──
             Container(
-              padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 16),
+              padding: EdgeInsets.fromLTRB(r.w(20), r.h(12), r.w(20), MediaQuery.of(context).padding.bottom + 16),
               decoration: const BoxDecoration(
                 color: Colors.white,
                 border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
@@ -7906,14 +7911,14 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF1A1A2E),
-                                    fontSize: 13,
+                                    fontSize: r.sp(13),
                                     height: 1.3,
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: r.w(10)),
                         ],
                         Expanded(
                           flex: widget.isBuyNow ? 1 : 2,
@@ -7932,7 +7937,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                     : '바로구매',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 14,
+                                  fontSize: r.sp(14),
                                   color: Colors.white,
                                 ),
                               ),
@@ -7984,10 +7989,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   Widget _sectionTitle(String title, {bool required = false}) {
     return Row(
       children: [
-        Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+        Text(title, style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
         if (required) ...[
-          const SizedBox(width: 4),
-          const Text('*', style: TextStyle(color: Color(0xFFE53935), fontSize: 13, fontWeight: FontWeight.w900)),
+          SizedBox(width: r.w(4)),
+          Text('*', style: TextStyle(color: Color(0xFFE53935), fontSize: r.sp(13), fontWeight: FontWeight.w900)),
         ],
       ],
     );
@@ -7998,17 +8003,17 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
     return Row(
       children: [
         Icon(icon, size: 13, color: color),
-        const SizedBox(width: 4),
+        SizedBox(width: r.w(4)),
         Text(
           label,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: r.sp(11),
             fontWeight: FontWeight.w700,
             color: color,
             letterSpacing: 0.3,
           ),
         ),
-        const SizedBox(width: 6),
+        SizedBox(width: r.w(6)),
         Expanded(
           child: Container(
             height: 1,
@@ -8062,11 +8067,11 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
               ),
             ),
             if (isSoldOut) ...[
-              const SizedBox(height: 2),
+              SizedBox(height: r.h(2)),
               const Text(
                 '품절',
                 style: TextStyle(
-                  fontSize: 8,
+                  fontSize: r.sp(8),
                   fontWeight: FontWeight.w700,
                   color: Color(0xFFE53935),
                   height: 1,
@@ -8081,14 +8086,14 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   Widget _optionChip(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+        style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: color),
       ),
     );
   }
@@ -8153,6 +8158,7 @@ class _QuickSizeColorSelectSheetState
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final loc = context.watch<LanguageProvider>().loc;
     final bottom = MediaQuery.of(context).padding.bottom;
     final sizes = widget.product.sizes;
@@ -8170,7 +8176,7 @@ class _QuickSizeColorSelectSheetState
         p.name.contains('타이즈');
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, bottom + 24),
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20), bottom + 24),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -8184,7 +8190,7 @@ class _QuickSizeColorSelectSheetState
               child: Container(
                 width: 40,
                 height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
+                margin: EdgeInsets.only(bottom: r.h(20)),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDDDDDD),
                   borderRadius: BorderRadius.circular(2),
@@ -8194,26 +8200,26 @@ class _QuickSizeColorSelectSheetState
             Row(
               children: [
                 Text(loc.optionSelectTitle,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                    style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w900)),
                 const Spacer(),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(4)),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3F4F6),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(widget.product.localizedName(_lang),
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF666666))),
+                      style: TextStyle(fontSize: r.sp(11), color: Color(0xFF666666))),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: r.h(6)),
             Text(loc.buyNowCheckoutDesc,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
-            const SizedBox(height: 20),
+                style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888))),
+            SizedBox(height: r.h(20)),
             Text(loc.sizeLabel,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 10),
+                style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+            SizedBox(height: r.h(10)),
             Builder(builder: (context) {
               final adultSizes  = sizes.where((s) => !_isJuniorSizeLabel(s)).toList();
               final juniorSizes = sizes.where((s) =>  _isJuniorSizeLabel(s)).toList();
@@ -8239,7 +8245,7 @@ class _QuickSizeColorSelectSheetState
                       child: Center(
                         child: Text(s,
                             style: TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.w700,
+                                fontSize: r.sp(14), fontWeight: FontWeight.w700,
                                 color: sel ? Colors.white : const Color(0xFF1A1A1A))),
                       ),
                     ),
@@ -8253,40 +8259,40 @@ class _QuickSizeColorSelectSheetState
                   children: [
                     Row(children: [
                       const Icon(Icons.person_outline_rounded, size: 13, color: Color(0xFF1A1A2E)),
-                      const SizedBox(width: 4),
-                      const Text('성인', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
-                      const SizedBox(width: 6),
+                      SizedBox(width: r.w(4)),
+                      Text('성인', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
+                      SizedBox(width: r.w(6)),
                       Expanded(child: Container(height: 1, color: const Color(0x221A1A2E))),
                     ]),
-                    const SizedBox(height: 6),
+                    SizedBox(height: r.h(6)),
                     chipWrap(adultSizes, const Color(0xFF1A1A1A)),
-                    const SizedBox(height: 12),
+                    SizedBox(height: r.h(12)),
                     Row(children: [
                       const Icon(Icons.child_care_rounded, size: 13, color: Color(0xFF1565C0)),
-                      const SizedBox(width: 4),
-                      const Text('주니어', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-                      const SizedBox(width: 6),
+                      SizedBox(width: r.w(4)),
+                      Text('주니어', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                      SizedBox(width: r.w(6)),
                       Expanded(child: Container(height: 1, color: const Color(0x221565C0))),
                     ]),
-                    const SizedBox(height: 6),
+                    SizedBox(height: r.h(6)),
                     chipWrap(juniorSizes, const Color(0xFF1565C0)),
                   ],
                 );
               }
               return chipWrap(sizes, const Color(0xFF1A1A1A));
             }),
-            const SizedBox(height: 20),
+            SizedBox(height: r.h(20)),
             // 컬러 섹션 (하의: 19가지 + 팔레트, 기타: 검정/남색)
             _ColorSelectionWidget(
               isBottomCategory: isBottom,
               selectedColor: _selectedColor,
               onColorChanged: (c) => setState(() => _selectedColor = c),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: r.h(20)),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(loc.quantityLabel, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                Text(loc.quantityLabel, style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
                 Row(
                   children: [
                     GestureDetector(
@@ -8304,7 +8310,7 @@ class _QuickSizeColorSelectSheetState
                       width: 44,
                       alignment: Alignment.center,
                       child: Text('$_quantity',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                          style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800)),
                     ),
                     GestureDetector(
                       onTap: () => setState(() => _quantity++),
@@ -8321,11 +8327,11 @@ class _QuickSizeColorSelectSheetState
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: r.h(16)),
             if (_canConfirm)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                margin: const EdgeInsets.only(bottom: 14),
+                padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
+                margin: EdgeInsets.only(bottom: r.h(14)),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF7F8FA),
                   borderRadius: BorderRadius.circular(10),
@@ -8336,13 +8342,13 @@ class _QuickSizeColorSelectSheetState
                     Expanded(
                       child: Text(
                           '${widget.product.localizedName(_lang)} · $_selectedSize · $_selectedColor',
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF666666)),
+                          style: TextStyle(fontSize: r.sp(12), color: Color(0xFF666666)),
                           softWrap: true),
                     ),
                     Text(
                       '${_fmt(((widget.product.price + _extraPrice) * _quantity).toInt())}원',
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A)),
+                          fontSize: r.sp(16), fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A)),
                     ),
                   ],
                 ),
@@ -8353,7 +8359,7 @@ class _QuickSizeColorSelectSheetState
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _canConfirm ? const Color(0xFF1A1A1A) : const Color(0xFFCCCCCC),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: r.h(16)),
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -8364,10 +8370,10 @@ class _QuickSizeColorSelectSheetState
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(Icons.payment_rounded, size: 18),
-                    const SizedBox(width: 8),
+                    SizedBox(width: r.w(8)),
                     Text(
                       _canConfirm ? '바로 결제하기' : '사이즈와 컬러를 선택해주세요',
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                      style: TextStyle(fontSize: r.sp(15), fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),
@@ -8407,6 +8413,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     // 상세 페이지 _buildColorSection과 완전히 동일한 팔레트 사용
     const palette = AppColorPalette.registeredColors;
     final freeColors = AppConstants.freeColors;
@@ -8418,10 +8425,10 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
         Row(
           children: [
             Text(loc.colorLabel2,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-            const SizedBox(width: 8),
+                style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+            SizedBox(width: r.w(8)),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFF3E0),
                 borderRadius: BorderRadius.circular(4),
@@ -8429,13 +8436,13 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
               ),
               child: Text(loc.productColorExtraNote,
                   style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: r.sp(10),
                       color: Color(0xFFE65100),
                       fontWeight: FontWeight.w700)),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        SizedBox(height: r.h(10)),
 
         // ── 선택된 색상 표시 ──
         if (widget.selectedColor != null) ...[
@@ -8450,12 +8457,12 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
             final selHex = found['hex'] as int;
             final selColor = Color(selHex);
             return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: EdgeInsets.only(bottom: r.h(8)),
               child: Row(children: [
                 Text(loc.selectedLabel,
                     style: const TextStyle(
-                        fontSize: 12, color: Color(0xFF888888))),
-                const SizedBox(width: 6),
+                        fontSize: r.sp(12), color: Color(0xFF888888))),
+                SizedBox(width: r.w(6)),
                 RibColorSwatch(
                   color: selColor,
                   size: 20,
@@ -8465,15 +8472,15 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                   borderRadius: 4,
                   showRib: true,
                 ),
-                const SizedBox(width: 6),
+                SizedBox(width: r.w(6)),
                 Text(col,
                     style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700)),
-                const SizedBox(width: 6),
+                        fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+                SizedBox(width: r.w(6)),
                 Text(
                   isFree ? '기본색상' : '+20,000원',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: r.sp(11),
                     fontWeight: FontWeight.w700,
                     color: isFree
                         ? const Color(0xFF2E7D32)
@@ -8515,11 +8522,11 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                                 : Colors.white)
                         : null,
                   ),
-                  const SizedBox(height: 3),
+                  SizedBox(height: r.h(3)),
                   Text(
                     code,
                     style: TextStyle(
-                      fontSize: 9,
+                      fontSize: r.sp(9),
                       fontWeight: sel ? FontWeight.w800 : FontWeight.w400,
                       color: sel
                           ? const Color(0xFF1A1A1A)
@@ -8529,16 +8536,16 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                   if (!isFree)
                     const Text('+₩',
                         style: TextStyle(
-                            fontSize: 8, color: Color(0xFFCC0000))),
+                            fontSize: r.sp(8), color: Color(0xFFCC0000))),
                 ],
               ),
             );
           }).toList(),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: r.h(4)),
         Text(loc.productColorExtraFull,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF999999))),
-        const SizedBox(height: 12),
+            style: TextStyle(fontSize: r.sp(10), color: Color(0xFF999999))),
+        SizedBox(height: r.h(12)),
       ],
     );
   }
@@ -8574,6 +8581,7 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -8581,11 +8589,11 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
         Row(
           children: [
             _tabBtn(0, 'ADULT', '성인'),
-            const SizedBox(width: 8),
+            SizedBox(width: r.w(8)),
             _tabBtn(1, 'JUNIOR', '주니어'),
           ],
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: r.h(16)),
         // ── 테이블 ──
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
@@ -8603,7 +8611,7 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
       onTap: () => setState(() => _tab = idx),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        padding: EdgeInsets.symmetric(horizontal: r.w(18), vertical: r.h(10)),
         decoration: BoxDecoration(
           color: sel ? const Color(0xFF222222) : Colors.white,
           borderRadius: BorderRadius.circular(6),
@@ -8618,17 +8626,17 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: r.sp(12),
                 fontWeight: FontWeight.w900,
                 color: sel ? Colors.white : Colors.black.withValues(alpha: 0.4),
                 letterSpacing: 1.5,
               ),
             ),
-            const SizedBox(width: 5),
+            SizedBox(width: r.w(5)),
             Text(
               sublabel,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: r.sp(10),
                 fontWeight: FontWeight.w500,
                 color: sel ? Colors.white.withValues(alpha: 0.7) : Colors.black.withValues(alpha: 0.3),
               ),
@@ -8726,6 +8734,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final currentUid = context.watch<UserProvider>().user?.id;
     return Consumer<ReviewProvider>(
       builder: (_, reviewProv, __) {
@@ -8747,19 +8756,19 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
             children: [
               // 헤더
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(0)),
                 child: Row(
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('리뷰 ${reviews.length}개', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                        Text('리뷰 ${reviews.length}개', style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w800)),
                         Row(
                           children: [
                             ...List.generate(5, (i) => Icon(Icons.star_rounded,
                                 size: 16, color: i < avg.round() ? const Color(0xFFFFD600) : const Color(0xFFEEEEEE))),
-                            const SizedBox(width: 6),
-                            Text(avg.toStringAsFixed(1), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                            SizedBox(width: r.w(6)),
+                            Text(avg.toStringAsFixed(1), style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700)),
                           ],
                         ),
                       ],
@@ -8772,20 +8781,20 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
               const Divider(),
               // 정렬 버튼 + 리뷰 작성 버튼
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(8)),
                 child: Row(
                   children: [
                     _sortBtn('최신순', 'latest'),
-                    const SizedBox(width: 8),
+                    SizedBox(width: r.w(8)),
                     _sortBtn('평점 높은순', 'highest'),
-                    const SizedBox(width: 8),
+                    SizedBox(width: r.w(8)),
                     _sortBtn('평점 낮은순', 'lowest'),
                     const Spacer(),
                     if (currentUid != null)
                       GestureDetector(
                         onTap: () => _showWriteReviewDialog(existing: myReview),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(6)),
                           decoration: BoxDecoration(
                             color: const Color(0xFF6C63FF),
                             borderRadius: BorderRadius.circular(20),
@@ -8794,9 +8803,9 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                             children: [
                               Icon(myReview != null ? Icons.edit : Icons.rate_review,
                                   size: 14, color: Colors.white),
-                              const SizedBox(width: 4),
+                              SizedBox(width: r.w(4)),
                               Text(myReview != null ? '내 리뷰 수정' : '리뷰 작성',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+                                  style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w600, color: Colors.white)),
                             ],
                           ),
                         ),
@@ -8812,10 +8821,10 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Icon(Icons.rate_review_outlined, size: 48, color: Color(0xFFCCCCCC)),
-                            const SizedBox(height: 12),
+                            SizedBox(height: r.h(12)),
                             Text(loc.noReviewYet, style: const TextStyle(color: Color(0xFF999999))),
                             if (currentUid != null) ...[
-                              const SizedBox(height: 16),
+                              SizedBox(height: r.h(16)),
                               ElevatedButton.icon(
                                 onPressed: () => _showWriteReviewDialog(),
                                 icon: const Icon(Icons.rate_review, size: 16),
@@ -8823,7 +8832,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF6C63FF),
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                  padding: EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(10)),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                 ),
                               ),
@@ -8832,14 +8841,14 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                         ),
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: EdgeInsets.symmetric(horizontal: r.w(16)),
                         itemCount: reviews.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (_, i) {
                           final r = reviews[i];
                           final isMyReview = currentUid != null && r.userId == currentUid;
                           return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            padding: EdgeInsets.symmetric(vertical: r.h(14)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -8849,24 +8858,24 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                       radius: 16,
                                       backgroundColor: isMyReview ? const Color(0xFF6C63FF) : const Color(0xFF1A1A1A),
                                       child: Text(r.userName.isNotEmpty ? r.userName[0].toUpperCase() : 'U',
-                                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                                          style: TextStyle(color: Colors.white, fontSize: r.sp(12), fontWeight: FontWeight.w700)),
                                     ),
-                                    const SizedBox(width: 10),
+                                    SizedBox(width: r.w(10)),
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
-                                            Text(r.userName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                                            Text(r.userName, style: TextStyle(fontWeight: FontWeight.w700, fontSize: r.sp(13))),
                                             if (isMyReview) ...[
-                                              const SizedBox(width: 6),
+                                              SizedBox(width: r.w(6)),
                                               Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(2)),
                                                 decoration: BoxDecoration(
                                                   color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
-                                                child: const Text('내 리뷰', style: TextStyle(fontSize: 10, color: Color(0xFF6C63FF), fontWeight: FontWeight.w700)),
+                                                child: Text('내 리뷰', style: TextStyle(fontSize: r.sp(10), color: Color(0xFF6C63FF), fontWeight: FontWeight.w700)),
                                               ),
                                             ],
                                           ],
@@ -8879,9 +8888,9 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                     ),
                                     const Spacer(),
                                     Text('${r.createdAt.year}.${r.createdAt.month.toString().padLeft(2,'0')}.${r.createdAt.day.toString().padLeft(2,'0')}',
-                                        style: const TextStyle(fontSize: 11, color: Color(0xFF999999))),
+                                        style: TextStyle(fontSize: r.sp(11), color: Color(0xFF999999))),
                                     if (isMyReview) ...[
-                                      const SizedBox(width: 4),
+                                      SizedBox(width: r.w(4)),
                                       PopupMenuButton<String>(
                                         icon: const Icon(Icons.more_vert, size: 18, color: Color(0xFF999999)),
                                         onSelected: (v) {
@@ -8889,31 +8898,31 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                           if (v == 'delete') _deleteReview(r);
                                         },
                                         itemBuilder: (_) => [
-                                          const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text('수정')])),
-                                          const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 16, color: Colors.red), SizedBox(width: 8), Text('삭제', style: TextStyle(color: Colors.red))])),
+                                          PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: r.w(8)), Text('수정')])),
+                                          PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, size: 16, color: Colors.red), SizedBox(width: r.w(8)), Text('삭제', style: TextStyle(color: Colors.red))])),
                                         ],
                                       ),
                                     ],
                                   ],
                                 ),
-                                const SizedBox(height: 8),
+                                SizedBox(height: r.h(8)),
                                 if (r.size.isNotEmpty || r.color.isNotEmpty)
                                   Row(
                                     children: [
                                       if (r.size.isNotEmpty) _chip('사이즈: ${r.size}'),
-                                      if (r.color.isNotEmpty) ...[const SizedBox(width: 6), _chip('색상: ${r.color}')],
+                                      if (r.color.isNotEmpty) ...[SizedBox(width: r.w(6)), _chip('색상: ${r.color}')],
                                     ],
                                   ),
-                                const SizedBox(height: 6),
-                                Text(r.content, style: const TextStyle(fontSize: 13, height: 1.5, color: Color(0xFF333333))),
+                                SizedBox(height: r.h(6)),
+                                Text(r.content, style: TextStyle(fontSize: r.sp(13), height: 1.5, color: Color(0xFF333333))),
                                 if (r.images.isNotEmpty) ...[
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: r.h(8)),
                                   SizedBox(
                                     height: 60,
                                     child: ListView.separated(
                                       scrollDirection: Axis.horizontal,
                                       itemCount: r.images.length,
-                                      separatorBuilder: (_, __) => const SizedBox(width: 6),
+                                      separatorBuilder: (_, __) => SizedBox(width: r.w(6)),
                                       itemBuilder: (_, j) => ClipRRect(
                                         borderRadius: BorderRadius.circular(6),
                                         child: Image.network(r.images[j], width: 60, height: 60, fit: BoxFit.cover,
@@ -8940,21 +8949,21 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
     return GestureDetector(
       onTap: () => setState(() => _sort = value),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(6)),
         decoration: BoxDecoration(
           color: sel ? const Color(0xFF1A1A1A) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: sel ? const Color(0xFF1A1A1A) : const Color(0xFFDDDDDD)),
         ),
-        child: Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: sel ? Colors.white : const Color(0xFF555555))),
+        child: Text(label, style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w600, color: sel ? Colors.white : Color(0xFF555555))),
       ),
     );
   }
 
   Widget _chip(String text) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+    padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
     decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(4)),
-    child: Text(text, style: const TextStyle(fontSize: 11, color: Color(0xFF555555))),
+    child: Text(text, style: TextStyle(fontSize: r.sp(11), color: Color(0xFF555555))),
   );
 }
 
@@ -9070,6 +9079,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
@@ -9083,15 +9093,15 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
           children: [
             // 핸들 + 헤더
             Container(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              padding: EdgeInsets.fromLTRB(r.w(20), r.h(16), r.w(20), r.h(0)),
               child: Column(
                 children: [
                   Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFDDDDDD), borderRadius: BorderRadius.circular(2))),
-                  const SizedBox(height: 12),
+                  SizedBox(height: r.h(12)),
                   Row(
                     children: [
                       Text(widget.existing != null ? '리뷰 수정' : '리뷰 작성',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                          style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w800)),
                       const Spacer(),
                       IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
                     ],
@@ -9103,36 +9113,36 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
             // 내용
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(r.w(20)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 상품명
                     Text(widget.product.name,
-                        style: const TextStyle(fontSize: 14, color: Color(0xFF666666)),
+                        style: TextStyle(fontSize: r.sp(14), color: Color(0xFF666666)),
                         maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 20),
+                    SizedBox(height: r.h(20)),
                     // 별점
-                    const Text('별점', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 8),
+                    Text('별점', style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700)),
+                    SizedBox(height: r.h(8)),
                     Row(
                       children: [
                         ...List.generate(5, (i) => GestureDetector(
                           onTap: () => setState(() => _rating = (i + 1).toDouble()),
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 4),
+                            padding: EdgeInsets.only(right: r.w(4)),
                             child: Icon(Icons.star_rounded, size: 36,
                                 color: i < _rating ? const Color(0xFFFFD600) : const Color(0xFFDDDDDD)),
                           ),
                         )),
-                        const SizedBox(width: 8),
-                        Text('${_rating.toInt()}점', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                        SizedBox(width: r.w(8)),
+                        Text('${_rating.toInt()}점', style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w700)),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: r.h(20)),
                     // 리뷰 내용
-                    const Text('리뷰 내용', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 8),
+                    Text('리뷰 내용', style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700)),
+                    SizedBox(height: r.h(8)),
                     TextField(
                       controller: _contentCtrl,
                       maxLines: 5,
@@ -9145,7 +9155,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: r.h(16)),
                     // 사이즈 / 색상 (선택)
                     Row(
                       children: [
@@ -9153,8 +9163,8 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('구매 사이즈 (선택)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 6),
+                              Text('구매 사이즈 (선택)', style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600)),
+                              SizedBox(height: r.h(6)),
                               TextField(
                                 controller: _sizeCtrl,
                                 decoration: InputDecoration(
@@ -9170,13 +9180,13 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: r.w(12)),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('구매 색상 (선택)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 6),
+                              Text('구매 색상 (선택)', style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600)),
+                              SizedBox(height: r.h(6)),
                               TextField(
                                 controller: _colorCtrl,
                                 decoration: InputDecoration(
@@ -9194,7 +9204,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: r.h(24)),
                     // 제출 버튼
                     SizedBox(
                       width: double.infinity,
@@ -9208,9 +9218,9 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                           elevation: 0,
                         ),
                         child: _isSubmitting
-                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            ? SizedBox(width: r.w(20), height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                             : Text(widget.existing != null ? '리뷰 수정 완료' : '리뷰 등록',
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                                style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w700)),
                       ),
                     ),
                   ],
@@ -9264,6 +9274,7 @@ class _RibTableHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return Stack(
       children: [
         // 기본 배경 (라이트 테마)
@@ -9277,7 +9288,7 @@ class _RibTableHeader extends StatelessWidget {
               return Expanded(
                 flex: isFirst ? 3 : 3,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 4),
+                  padding: EdgeInsets.symmetric(vertical: r.h(13), horizontal: r.w(4)),
                   decoration: BoxDecoration(
                     border: Border(
                       right: e.key < headers.length - 1
@@ -9289,7 +9300,7 @@ class _RibTableHeader extends StatelessWidget {
                     e.value,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 9.5,
+                      fontSize: r.sp(9.5),
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                       letterSpacing: 0.8,
@@ -9331,6 +9342,7 @@ class _RibTableRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     // 짝수 행: 흰색, 홀수 행: 아주 연한 회색
     final bg = isEven
         ? const Color(0xFFFFFFFF)
@@ -9357,7 +9369,7 @@ class _RibTableRow extends StatelessWidget {
               return Expanded(
                 flex: isFirst ? 3 : 3,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                  padding: EdgeInsets.symmetric(vertical: r.h(12), horizontal: r.w(4)),
                   decoration: BoxDecoration(
                     color: isSize
                         ? const Color(0xFFEEEEEE)
@@ -9418,6 +9430,7 @@ class _GoljiSwatch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return RibColorSwatch(
       color: color,
       size: size,
@@ -9448,10 +9461,11 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final bottom = MediaQuery.of(context).padding.bottom;
     return Container(
       height: MediaQuery.of(context).size.height * 0.92,
-      padding: EdgeInsets.fromLTRB(0, 0, 0, bottom),
+      padding: EdgeInsets.fromLTRB(r.w(0), r.h(0), r.w(0), bottom),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -9461,7 +9475,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
           // 핸들
           Container(
             width: 40, height: 4,
-            margin: const EdgeInsets.symmetric(vertical: 12),
+            margin: EdgeInsets.symmetric(vertical: r.h(12)),
             decoration: BoxDecoration(
               color: const Color(0xFFDDDDDD),
               borderRadius: BorderRadius.circular(2),
@@ -9469,25 +9483,25 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
           ),
           // 헤더
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            padding: EdgeInsets.fromLTRB(r.w(20), r.h(0), r.w(20), r.h(12)),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(9),
+                  padding: EdgeInsets.all(r.w(9)),
                   decoration: BoxDecoration(
                     color: _purple.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.groups_rounded, color: _purple, size: 22),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: r.w(12)),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(loc.groupOrderGuideAppBar,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+                        style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
                     Text(loc.groupOrderGuideHeroTitle,
-                        style: const TextStyle(fontSize: 11, color: Color(0xFF888888), letterSpacing: 0.5)),
+                        style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), letterSpacing: 0.5)),
                   ],
                 ),
               ],
@@ -9497,14 +9511,14 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
           // 스크롤 가능 내용
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              padding: EdgeInsets.fromLTRB(r.w(20), r.h(20), r.w(20), r.h(0)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
                   // ─── 1. 기본 안내 ───────────────────────────────
                   _sheetSectionTitle(Icons.info_outline_rounded, loc.groupOrderGuideAppBar, const Color(0xFF1565C0)),
-                  const SizedBox(height: 10),
+                  SizedBox(height: r.h(10)),
                   _infoCard(
                     icon: Icons.people_outline_rounded,
                     iconBg: const Color(0xFFE8EAF6),
@@ -9512,7 +9526,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     title: loc.groupOrderMinQty,
                     content: loc.groupOrderMinQtyDesc,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: r.h(8)),
                   _infoCard(
                     icon: Icons.schedule_outlined,
                     iconBg: const Color(0xFFF3E5F5),
@@ -9520,7 +9534,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     title: loc.groupOrderProductionPeriod,
                     content: loc.groupOrderProductionPeriodDesc,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: r.h(8)),
                   _infoCardWidget(
                     icon: Icons.local_shipping_outlined,
                     iconBg: const Color(0xFFE3F2FD),
@@ -9529,18 +9543,18 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     contentWidget: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(loc.groupOrderGuideShipping1, style: const TextStyle(fontSize: 13, height: 1.6)),
-                        Text(loc.groupOrderGuideShipping2, style: const TextStyle(fontSize: 13, height: 1.6)),
-                        Text(loc.groupOrderGuideShipping3, style: const TextStyle(fontSize: 13, height: 1.6)),
-                        Text(loc.groupOrderGuideShipping4, style: const TextStyle(fontSize: 13, height: 1.6)),
+                        Text(loc.groupOrderGuideShipping1, style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(loc.groupOrderGuideShipping2, style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(loc.groupOrderGuideShipping3, style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(loc.groupOrderGuideShipping4, style: TextStyle(fontSize: r.sp(13), height: 1.6)),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: r.h(20)),
 
                   // ─── 3. 사이즈 안내 ──────────────────────────────
                   _sheetSectionTitle(null, loc.groupOrderGuideSizeTitle, const Color(0xFF1A1A1A), emoji: '📏'),
-                  const SizedBox(height: 10),
+                  SizedBox(height: r.h(10)),
                   _sizeTable(
                     title: '${loc.groupOrderGuideSizeAdult} (XS~XXXL)',
                     emoji: '🧑',
@@ -9556,7 +9570,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                       ['XXXL', '104~108', '84~88',   '108~112', '185+'],
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: r.h(12)),
                   _sizeTable(
                     title: '${loc.groupOrderGuideSizeJunior} (XXS~L)',
                     emoji: '🧒',
@@ -9570,9 +9584,9 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                       ['L',   '84~88', '68~72', '88~92', '155~165'],
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: r.h(12)),
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: EdgeInsets.all(r.w(14)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE3F2FD),
                       borderRadius: BorderRadius.circular(10),
@@ -9580,18 +9594,18 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('↕', style: TextStyle(fontSize: 20)),
-                        const SizedBox(width: 12),
+                        Text('↕', style: TextStyle(fontSize: r.sp(20))),
+                        SizedBox(width: r.w(12)),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(loc.groupOrderGuideNoSizeHint,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                              const SizedBox(height: 4),
+                                  style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700)),
+                              SizedBox(height: r.h(4)),
                               Text(
                                 loc.groupOrderGuideNoSizeDesc,
-                                style: const TextStyle(fontSize: 13, height: 1.5),
+                                style: TextStyle(fontSize: r.sp(13), height: 1.5),
                               ),
                             ],
                           ),
@@ -9599,13 +9613,13 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: r.h(20)),
 
                   // ─── 4. 교환·환불 정책 ───────────────────────────
                   _sheetSectionTitle(null, loc.groupOrderGuideExchangeTitle, const Color(0xFFE65100), emoji: '⚠️'),
-                  const SizedBox(height: 10),
+                  SizedBox(height: r.h(10)),
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: EdgeInsets.all(r.w(14)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFFDE7),
                       borderRadius: BorderRadius.circular(10),
@@ -9615,23 +9629,23 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(loc.groupOrderGuideExchange1,
-                            style: const TextStyle(fontSize: 13, height: 1.7)),
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
                         Text(loc.groupOrderGuideExchange2,
-                            style: const TextStyle(fontSize: 13, height: 1.7)),
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
                         Text(loc.groupOrderSheetCancelNote,
-                            style: const TextStyle(fontSize: 13, height: 1.7)),
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
                         Text(loc.groupOrderSheetColorNote,
-                            style: const TextStyle(fontSize: 13, height: 1.7)),
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: r.h(24)),
 
                   // ─── 동의 체크박스 ────────────────────────────────
                   GestureDetector(
                     onTap: () => setState(() => _checked = !_checked),
                     child: Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: EdgeInsets.all(r.w(14)),
                       decoration: BoxDecoration(
                         color: _checked ? _purple.withValues(alpha: 0.05) : const Color(0xFFF5F5F5),
                         borderRadius: BorderRadius.circular(10),
@@ -9656,18 +9670,18 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                 ? const Icon(Icons.check_rounded, color: Colors.white, size: 14)
                                 : null,
                           ),
-                          const SizedBox(width: 10),
+                          SizedBox(width: r.w(10)),
                           Expanded(
                             child: Text(
                               loc.groupOrderSheetAgreeBtn,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
+                              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: r.h(16)),
 
                   // ─── 서식 작성 버튼 ───────────────────────────────
                   SizedBox(
@@ -9676,7 +9690,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 20),
                       label: Text(loc.groupOrderSheetFillForm,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
+                          style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800, color: Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _checked ? _purple : const Color(0xFFBBBBBB),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -9702,7 +9716,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                           : null,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: r.h(24)),
                 ],
               ),
             ),
@@ -9717,14 +9731,14 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
     return Row(
       children: [
         if (emoji != null) ...[
-          Text(emoji, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 6),
+          Text(emoji, style: TextStyle(fontSize: r.sp(16))),
+          SizedBox(width: r.w(6)),
         ] else if (icon != null) ...[
           Icon(icon, size: 16, color: color),
-          const SizedBox(width: 6),
+          SizedBox(width: r.w(6)),
         ],
         Text(title,
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: color)),
+            style: TextStyle(fontSize: r.sp(15), fontWeight: FontWeight.w800, color: color)),
       ],
     );
   }
@@ -9738,7 +9752,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
     required String content,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(r.w(12)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -9749,18 +9763,18 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(r.w(8)),
             decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
             child: Icon(icon, size: 16, color: iconColor),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: r.w(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 3),
-                Text(content, style: const TextStyle(fontSize: 13, color: Color(0xFF555555), height: 1.5)),
+                Text(title, style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800)),
+                SizedBox(height: r.h(3)),
+                Text(content, style: TextStyle(fontSize: r.sp(13), color: Color(0xFF555555), height: 1.5)),
               ],
             ),
           ),
@@ -9778,7 +9792,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
     required Widget contentWidget,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(r.w(12)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -9789,17 +9803,17 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(r.w(8)),
             decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
             child: Icon(icon, size: 16, color: iconColor),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: r.w(12)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 3),
+                Text(title, style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800)),
+                SizedBox(height: r.h(3)),
                 contentWidget,
               ],
             ),
@@ -9829,17 +9843,17 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
         children: [
           // 테이블 제목
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(8)),
             decoration: BoxDecoration(
               color: headerBg,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(9)),
             ),
             child: Row(
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 14)),
-                const SizedBox(width: 6),
+                Text(emoji, style: TextStyle(fontSize: r.sp(14))),
+                SizedBox(width: r.w(6)),
                 Text(title,
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: headerColor)),
+                    style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: headerColor)),
               ],
             ),
           ),
@@ -9851,12 +9865,12 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                 return Expanded(
                   flex: e.key == 0 ? 3 : 3,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                    padding: EdgeInsets.symmetric(vertical: r.h(6), horizontal: r.w(4)),
                     child: Text(
                       e.value,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                          fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
+                          fontSize: r.sp(10), fontWeight: FontWeight.w700, color: Colors.white),
                     ),
                   ),
                 );
@@ -9873,7 +9887,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   return Expanded(
                     flex: cell.key == 0 ? 3 : 3,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
+                      padding: EdgeInsets.symmetric(vertical: r.h(5), horizontal: r.w(4)),
                       child: Text(
                         cell.value,
                         textAlign: TextAlign.center,
@@ -9891,7 +9905,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
               ),
             );
           }),
-          const SizedBox(height: 2),
+          SizedBox(height: r.h(2)),
         ],
       ),
     );
@@ -9972,6 +9986,7 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final imgs = widget.imgs;
     return LayoutBuilder(
       builder: (_, constraints) {
@@ -10013,7 +10028,7 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
             // ── 하단 pill-dot 인디케이터 + 페이지 카운터
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(0, 10, 0, 12),
+              padding: EdgeInsets.fromLTRB(r.w(0), r.h(10), r.w(0), r.h(12)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -10028,7 +10043,7 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
                       ),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 220),
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        margin: EdgeInsets.symmetric(horizontal: r.w(3)),
                         width: active ? 20 : 6,
                         height: 6,
                         decoration: BoxDecoration(
@@ -10040,12 +10055,12 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
                       ),
                     );
                   }),
-                  const SizedBox(width: 10),
+                  SizedBox(width: r.w(10)),
                   // 페이지 카운터 텍스트
                   Text(
                     '${_idx + 1} / ${imgs.length}',
                     style: const TextStyle(
-                      fontSize: 11,
+                      fontSize: r.sp(11),
                       color: Color(0xFFAAAAAA),
                       fontWeight: FontWeight.w500,
                     ),
@@ -10097,6 +10112,7 @@ class _Section2FabricTabsWidgetState
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     final hasGeneral  = widget.generalImgs.isNotEmpty;
     final hasSeamless = widget.seamlessImgs.isNotEmpty;
 
@@ -10167,7 +10183,7 @@ class _Section2FabricTabsWidgetState
         child: const Center(
           child: Text(
             '등록된 이미지가 없습니다.',
-            style: TextStyle(fontSize: 13, color: Color(0xFFAAAAAA)),
+            style: TextStyle(fontSize: r.sp(13), color: Color(0xFFAAAAAA)),
           ),
         ),
       );
@@ -10210,13 +10226,14 @@ class _FabricTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final r = Responsive.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         behavior: HitTestBehavior.opaque,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 13),
+          padding: EdgeInsets.symmetric(vertical: r.h(13)),
           decoration: BoxDecoration(
             color: isSelected ? activeColor.withValues(alpha: 0.06) : Colors.white,
             border: Border(
@@ -10234,11 +10251,11 @@ class _FabricTab extends StatelessWidget {
                 size: 15,
                 color: isSelected ? activeColor : const Color(0xFFAAAAAA),
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: r.w(6)),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: r.sp(13),
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                   color: isSelected ? activeColor : const Color(0xFF999999),
                   letterSpacing: 0.3,
