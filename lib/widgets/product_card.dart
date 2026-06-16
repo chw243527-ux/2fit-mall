@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'net_image.dart';
 import 'package:provider/provider.dart';
@@ -82,10 +81,14 @@ class ProductCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // ── 상품 이미지 (비율 자동 감지 → fit 자동 결정) ──
+            // ── 상품 이미지: 4:5 비율 고정, 상단 기준 cover ──
             Positioned.fill(
               child: product.images.isNotEmpty
-                  ? _SmartProductImage(url: product.images.first)
+                  ? NetImage(
+                      product.images.first,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                    )
                   : _placeholder(),
             ),
 
@@ -390,102 +393,4 @@ class ProductCard extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-/// 이미지 비율을 실시간 감지해 BoxFit을 자동 결정하는 위젯
-///
-/// 카드 비율 = 4:5 = 0.8
-/// • 이미지 비율이 카드 비율과 ±30% 이내  → BoxFit.cover  (꽉 채움)
-/// • 이미지가 카드보다 훨씬 가로형(>1.1)   → BoxFit.cover  (가로 꽉 채움)
-/// • 이미지가 카드보다 훨씬 세로형(<0.55)  → BoxFit.contain (여백 유지)
-///
-/// 로딩 중에는 shimmer placeholder, 감지 완료 후 애니메이션 전환
-// ─────────────────────────────────────────────────────────────
-class _SmartProductImage extends StatefulWidget {
-  final String url;
-  const _SmartProductImage({required this.url});
 
-  @override
-  State<_SmartProductImage> createState() => _SmartProductImageState();
-}
-
-class _SmartProductImageState extends State<_SmartProductImage> {
-  // 카드 비율 (4:5)
-  static const double _cardRatio = 4 / 5;
-
-  BoxFit _fit = BoxFit.cover; // 항상 cover
-  bool _resolved = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _detectFit(widget.url);
-  }
-
-  @override
-  void didUpdateWidget(_SmartProductImage old) {
-    super.didUpdateWidget(old);
-    if (old.url != widget.url) {
-      setState(() { _resolved = false; _fit = BoxFit.cover; });
-      _detectFit(widget.url);
-    }
-  }
-
-  /// 이미지를 한 번만 로드해 실제 픽셀 크기를 읽고 fit을 결정
-  void _detectFit(String url) {
-    if (url.isEmpty) return;
-
-    ImageProvider provider;
-    if (kIsWeb) {
-      // 웹: ResizeImage 없이 원본 비율 그대로 읽음
-      provider = NetworkImage(url);
-    } else {
-      provider = NetworkImage(url);
-    }
-
-    final stream = provider.resolve(ImageConfiguration.empty);
-    final listener = ImageStreamListener(
-      (ImageInfo info, bool _) {
-        if (!mounted) return;
-        final w = info.image.width.toDouble();
-        final h = info.image.height.toDouble();
-        if (w <= 0 || h <= 0) return;
-
-        final imgRatio = w / h;
-        BoxFit decided;
-
-        // 카드 비율(4:5=0.8)보다 세로형 이미지 → fitWidth (가로 꽉 채움, 세로 클리핑)
-        // 카드 비율 이상(정사각·가로형) → cover
-        if (imgRatio < _cardRatio) {
-          decided = BoxFit.fitWidth;
-        } else {
-          decided = BoxFit.cover;
-        }
-
-        setState(() {
-          _fit = decided;
-          _resolved = true;
-        });
-      },
-      onError: (_, __) {
-        if (mounted) setState(() => _resolved = true);
-      },
-    );
-    stream.addListener(listener);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        child: NetImage(
-          widget.url,
-          key: ValueKey('${widget.url}_$_fit'),
-          fit: _fit,
-          // width/height 미전달 → 부모(StackFit.expand + SizedBox.expand)가 크기 결정
-          // double.infinity를 넘기면 ResizeImage가 1200×1200 강제 리사이즈 → 비율 왜곡
-        ),
-      ),
-    );
-  }
-}
