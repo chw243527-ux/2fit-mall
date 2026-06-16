@@ -2416,9 +2416,7 @@ class _HomeScreenState extends State<HomeScreen>
                 return GestureDetector(
                   onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
+                  child: Container(
                     width: cardW,
                     margin: EdgeInsets.only(right: r.w(8)),
                     decoration: BoxDecoration(
@@ -2430,10 +2428,12 @@ class _HomeScreenState extends State<HomeScreen>
                           blurRadius: 6, offset: const Offset(0, 2)),
                       ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 이미지 — 패딩+라운드
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 이미지 — 패딩+라운드
                         Padding(
                           padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
                           child: ClipRRect(
@@ -2605,9 +2605,7 @@ class _HomeScreenState extends State<HomeScreen>
                 return GestureDetector(
                   onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
+                  child: Container(
                     width: cardW,
                     margin: EdgeInsets.only(right: r.w(10)),
                     decoration: BoxDecoration(
@@ -2619,10 +2617,12 @@ class _HomeScreenState extends State<HomeScreen>
                           blurRadius: 6, offset: const Offset(0, 2)),
                       ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 이미지 — 패딩+라운드
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 이미지 — 패딩+라운드
                         Padding(
                           padding: const EdgeInsets.fromLTRB(6, 6, 6, 0),
                           child: ClipRRect(
