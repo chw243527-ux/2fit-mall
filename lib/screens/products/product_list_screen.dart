@@ -815,81 +815,78 @@ class _ProductListScreenState extends State<ProductListScreen> {
         ? ((1 - p.price / p.originalPrice!) * 100).round() : 0;
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
           children: [
-            // 이미지 영역 — 4:5 고정 비율, contain으로 전신 표시
-            AspectRatio(
-              aspectRatio: 4 / 5,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                      child: p.images.isNotEmpty
-                          ? NetImage(
-                              p.images.first,
-                              fit: BoxFit.cover,
-                            )
-                          : Container(
-                              color: const Color(0xFFF0F0F0),
-                              child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)),
-                    ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 이미지 영역 — 4:5 고정 비율
+                AspectRatio(
+                  aspectRatio: 4 / 5,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: p.images.isNotEmpty
+                            ? NetImage(
+                                p.images.first,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                color: const Color(0xFFF0F0F0),
+                                child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 48)),
+                      ),
+                      // 배지들
+                      if (p.isGroupOnly) Positioned(top: 8, left: 8,
+                        child: _badge('단체전용', const Color(0xFF555555))),
+                      if (p.isNewActive) Positioned(top: p.isGroupOnly ? 32 : 8, left: 8,
+                        child: _badge('NEW', const Color(0xFF1A1A2E))),
+                      if (discount > 0) Positioned(
+                        top: p.isGroupOnly ? (p.isNewActive ? 56 : 32) : (p.isNewActive ? 32 : 8), left: 8,
+                        child: _badge('-$discount%', const Color(0xFFE53935))),
+                      if (p.isFreeShipping) Positioned(bottom: 8, left: 8,
+                        child: _badge(loc.filterFreeShip, const Color(0xFF43A047))),
+                      // 찜 버튼
+                      Positioned(top: 8, right: 8,
+                        child: Container(
+                          width: 32, height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
+                          ),
+                          child: const Icon(Icons.favorite_border_rounded, size: 16, color: Color(0xFF888888)),
+                        )),
+                    ],
                   ),
-                  // 배지들
-                  if (p.isGroupOnly) Positioned(top: 8, left: 8,
-                    child: _badge('단체전용', const Color(0xFF555555))),
-                  if (p.isNewActive) Positioned(top: p.isGroupOnly ? 32 : 8, left: 8,
-                    child: _badge('NEW', const Color(0xFF1A1A2E))),
-                  if (discount > 0) Positioned(
-                    top: p.isGroupOnly ? (p.isNewActive ? 56 : 32) : (p.isNewActive ? 32 : 8), left: 8,
-                    child: _badge('-$discount%', const Color(0xFFE53935))),
-                  if (p.isFreeShipping) Positioned(bottom: 8, left: 8,
-                    child: _badge(loc.filterFreeShip, const Color(0xFF43A047))),
-                  // 찜 버튼
-                  Positioned(top: 8, right: 8,
-                    child: Container(
-                      width: 32, height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
-                      ),
-                      child: const Icon(Icons.favorite_border_rounded, size: 16, color: Color(0xFF888888)),
-                    )),
-                ],
-              ),
-            ),
-            // 정보 영역
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('2FIT KOREA', style: TextStyle(fontSize: 10, color: Color(0xFF999999), letterSpacing: 0.5)),
-                  const SizedBox(height: 2),
-                  if (p.isGroupOnly) ...[  
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 4),
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1A1A2E).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: const Text('단체주문 전용',
-                        style: TextStyle(color: Color(0xFF1A1A2E), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
-                    ),
-                  ],
-                  Text(p.localizedName(_lang), maxLines: 2, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3)),
-                  const SizedBox(height: 6),
-                  Row(
+                ),
+                // 정보 영역
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('2FIT KOREA', style: TextStyle(fontSize: 10, color: Color(0xFF999999), letterSpacing: 0.5)),
+                      const SizedBox(height: 2),
+                      if (p.isGroupOnly) ...[  
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1A1A2E).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: const Text('단체주문 전용',
+                            style: TextStyle(color: Color(0xFF1A1A2E), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
+                        ),
+                      ],
+                      Text(p.localizedName(_lang), maxLines: 2, overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A), height: 1.3)),
+                      const SizedBox(height: 6),
+                      Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Column(
@@ -920,6 +917,19 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     ],
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+            // border overlay
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFEEEEEE)),
+                  ),
+                ),
               ),
             ),
           ],

@@ -148,6 +148,7 @@ class _HomeScreenState extends State<HomeScreen>
       onRefresh: () async {
         restartAllVideoBanners(); // 배너 영상 첫 프레임부터 재시작
         await context.read<ProductProvider>().refresh();
+        if (mounted) setState(() {});
       },
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -2312,6 +2313,7 @@ class _HomeScreenState extends State<HomeScreen>
                 onRefresh: () async {
                   restartAllVideoBanners(); // 배너 영상 첫 프레임부터 재시작
                   await context.read<ProductProvider>().refresh();
+                  if (mounted) setState(() {});
                 },
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
