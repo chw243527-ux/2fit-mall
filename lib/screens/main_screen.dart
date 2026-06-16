@@ -44,9 +44,10 @@ class MainScreenState extends State<MainScreen> {
       final userProv    = context.read<UserProvider>();
       final uid         = userProv.user?.id;
       _lastUid = uid;
-      // UID 기반으로 dismiss 상태 복원
-      await noticeProv.onUserChanged(uid);
-      // Firestore 로드 완료 후 팝업 표시 (홈탭에서만)
+      // MainScreen 진입 시 항상 dismiss 상태를 새로 로드
+      // (onUserChanged의 _currentUid 중복 가드를 우회)
+      await noticeProv.forceLoadDismissState(uid);
+      // Firestore 공지 로드 완료 후 팝업 표시 (홈탭에서만)
       await noticeProv.loadFromFirestore();
       if (mounted && _currentIndex == 0) {
         Future.delayed(const Duration(milliseconds: 300), _showNoticePopup);

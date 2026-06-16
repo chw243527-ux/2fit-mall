@@ -901,6 +901,15 @@ class NoticeProvider extends ChangeNotifier {
     await loadDismissState(uid: uid);
   }
 
+  /// MainScreen 진입 시 항상 호출 — _currentUid 중복 가드 없이 dismiss 상태 강제 재로드
+  /// 웹에서 기존 로그인 세션으로 진입 시 팝업이 안 뜨는 문제 방지
+  Future<void> forceLoadDismissState(String? uid) async {
+    _currentUid = uid;
+    _dismissedToday = false;
+    _dismissedDate = null;
+    await loadDismissState(uid: uid);
+  }
+
   /// 앱 시작 또는 유저 변경 시 SharedPreferences에서 닫기 날짜 복원
   Future<void> loadDismissState({String? uid}) async {
     final key = _dismissKey(uid ?? _currentUid);
