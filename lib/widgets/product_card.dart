@@ -33,21 +33,25 @@ class ProductCard extends StatelessWidget {
           MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
         ),
         child: Container(
+          // border 전용 — clipBehavior 없음 (border + clip 동시 사용 시 clip이 border 바깥 기준)
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: const Color(0xFF2A2A2A)),
           ),
-          clipBehavior: Clip.antiAlias, // 외곽 borderRadius 실제 클리핑 적용
           child: ClipRRect(
+            // 실제 클리핑 담당
             borderRadius: BorderRadius.circular(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildImage(context),
-                _buildInfo(context),
-              ],
+            clipBehavior: Clip.antiAlias,
+            child: Container(
+              color: const Color(0xFF1A1A1A),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildImage(context),
+                  _buildInfo(context),
+                ],
+              ),
             ),
           ),
         ),
@@ -78,11 +82,9 @@ class ProductCard extends StatelessWidget {
       badgeText = '';
     }
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-      child: AspectRatio(
-          aspectRatio: 4 / 5,
-          child: Stack(
+    return AspectRatio(
+        aspectRatio: 4 / 5,
+        child: Stack(
             fit: StackFit.expand,
             children: [
               // ── 상품 이미지 (카드 완전히 채움) ──
@@ -193,7 +195,6 @@ class ProductCard extends StatelessWidget {
                 ),
             ],
           ),
-      ),
     );
   }
 

@@ -2428,10 +2428,8 @@ class _HomeScreenState extends State<HomeScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 이미지 — 카드 완전히 채움
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                          child: AspectRatio(
+                          // 이미지
+                          AspectRatio(
                               aspectRatio: 4 / 5,
                               child: Stack(
                                 fit: StackFit.expand,
@@ -2465,7 +2463,6 @@ class _HomeScreenState extends State<HomeScreen>
                             ],
                           ),
                           ),
-                        ),
                         SizedBox(height: r.h(6)),
                         // 상품명
                         Text(p.name,
@@ -2614,10 +2611,8 @@ class _HomeScreenState extends State<HomeScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 이미지 — 카드 완전히 채움
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-                          child: AspectRatio(
+                          // 이미지
+                          AspectRatio(
                               aspectRatio: 4 / 5,
                               child: Stack(
                                 fit: StackFit.expand,
@@ -2659,7 +2654,6 @@ class _HomeScreenState extends State<HomeScreen>
                             ],
                           ),
                           ),
-                        ),
                         // 상품 정보
                         Padding(
                           padding: EdgeInsets.fromLTRB(r.w(8), r.h(7), r.w(8), r.h(8)),
