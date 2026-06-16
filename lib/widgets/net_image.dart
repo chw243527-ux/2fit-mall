@@ -1,14 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
-/// 전역 이미지 헬퍼 — CachedNetworkImage 기반
-/// • 메모리 + 디스크 캐시로 재로딩 없음
-/// • 로딩 중: 회색 shimmer placeholder
+/// 전역 이미지 헬퍼
+/// • 웹: Image.network + cacheWidth/cacheHeight + shimmer placeholder
+///   (Flutter Web은 flutter_cache_manager 파일 캐시 미지원)
+/// • 네이티브: CachedNetworkImage (메모리+디스크 캐시)
+/// • 로딩 중: shimmer 애니메이션
 /// • 에러: 회색 아이콘
-///
-/// 사용법:
-///   NetImage('https://...', fit: BoxFit.cover, width: 120, height: 120)
-///   NetImage.square('https://...', size: 60, fit: BoxFit.cover)
 class NetImage extends StatelessWidget {
   final String url;
   final double? width;
@@ -48,18 +48,27 @@ class NetImage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (url.isEmpty) return _placeholder();
 
+    if (kIsWeb) {
+      return _WebImage(
+        url: url,
+        width: width,
+        height: height,
+        fit: fit,
+        alignment: alignment,
+        backgroundColor: backgroundColor,
+      );
+    }
+
+    // 네이티브: CachedNetworkImage (메모리+디스크 캐시)
     return CachedNetworkImage(
       imageUrl: url,
       width: width,
       height: height,
       fit: fit,
       alignment: alignment,
-      // 로딩 중 - 밝은 회색 플레이스홀더
       placeholder: (_, __) => _placeholder(),
-      // 에러 - 아이콘
       errorWidget: (_, __, ___) => _errorWidget(),
-      // 성능 옵션
-      fadeInDuration: const Duration(milliseconds: 150),
+      fadeInDuration: const Duration(milliseconds: 200),
       fadeOutDuration: const Duration(milliseconds: 100),
       memCacheWidth: _memWidth(),
       memCacheHeight: _memHeight(),
@@ -67,10 +76,10 @@ class NetImage extends StatelessWidget {
   }
 
   Widget _placeholder() {
-    return Container(
+    return _ShimmerBox(
       width: width,
       height: height,
-      color: backgroundColor ?? const Color(0xFFF5F5F5),
+      backgroundColor: backgroundColor,
     );
   }
 
@@ -85,15 +94,141 @@ class NetImage extends StatelessWidget {
     );
   }
 
-  // 메모리 캐시 해상도 제한 (디코딩 비용 절감)
   int? _memWidth() {
     if (width == null || width! <= 0) return null;
-    // 3배 픽셀 밀도까지 고려, 최대 1200px
     return (width! * 3).clamp(1, 1200).toInt();
   }
 
   int? _memHeight() {
     if (height == null || height! <= 0) return null;
     return (height! * 3).clamp(1, 1200).toInt();
+  }
+}
+
+/// 웹 전용 이미지 위젯
+/// Image.network의 cacheWidth/cacheHeight로 Flutter 엔진 메모리 캐시 활용
+class _WebImage extends StatefulWidget {
+  final String url;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+  final Alignment alignment;
+  final Color? backgroundColor;
+
+  const _WebImage({
+    required this.url,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.alignment = Alignment.center,
+    this.backgroundColor,
+  });
+
+  @override
+  State<_WebImage> createState() => _WebImageState();
+}
+
+class _WebImageState extends State<_WebImage> {
+  late ImageProvider _provider;
+  bool _loaded = false;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  @override
+  void didUpdateWidget(_WebImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.url != widget.url) {
+      _loaded = false;
+      _error = false;
+      _loadImage();
+    }
+  }
+
+  void _loadImage() {
+    final w = widget.width != null ? (widget.width! * 3).clamp(1, 1200).toInt() : null;
+    final h = widget.height != null ? (widget.height! * 3).clamp(1, 1200).toInt() : null;
+
+    _provider = ResizeImage.resizeIfNeeded(
+      w,
+      h,
+      NetworkImage(widget.url),
+    );
+
+    final stream = _provider.resolve(ImageConfiguration.empty);
+    final listener = ImageStreamListener(
+      (_, __) {
+        if (mounted) setState(() => _loaded = true);
+      },
+      onError: (_, __) {
+        if (mounted) setState(() => _error = true);
+      },
+    );
+    stream.addListener(listener);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error) {
+      return Container(
+        width: widget.width,
+        height: widget.height,
+        color: widget.backgroundColor ?? const Color(0xFFF0F0F0),
+        child: const Center(
+          child: Icon(Icons.broken_image_outlined, color: Color(0xFFCCCCCC), size: 28),
+        ),
+      );
+    }
+
+    return Stack(
+      children: [
+        // shimmer - 로딩 중에만 표시
+        if (!_loaded)
+          _ShimmerBox(
+            width: widget.width,
+            height: widget.height,
+            backgroundColor: widget.backgroundColor,
+          ),
+        // 실제 이미지 - 로드 완료 후 페이드인
+        AnimatedOpacity(
+          opacity: _loaded ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: Image(
+            image: _provider,
+            width: widget.width,
+            height: widget.height,
+            fit: widget.fit,
+            alignment: widget.alignment,
+            gaplessPlayback: true,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// shimmer 플레이스홀더
+class _ShimmerBox extends StatelessWidget {
+  final double? width;
+  final double? height;
+  final Color? backgroundColor;
+
+  const _ShimmerBox({this.width, this.height, this.backgroundColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: backgroundColor ?? const Color(0xFFEEEEEE),
+      highlightColor: const Color(0xFFF8F8F8),
+      child: Container(
+        width: width,
+        height: height,
+        color: Colors.white,
+      ),
+    );
   }
 }
