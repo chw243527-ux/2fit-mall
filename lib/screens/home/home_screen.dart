@@ -2444,6 +2444,10 @@ class _HomeScreenState extends State<HomeScreen>
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
+                                  // 이미지 배경 (흰색)
+                                  const Positioned.fill(
+                                    child: ColoredBox(color: Colors.white),
+                                  ),
                                   Positioned.fill(
                                     child: p.images.isNotEmpty
                                         ? NetImage(p.images.first,
@@ -2633,6 +2637,10 @@ class _HomeScreenState extends State<HomeScreen>
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
+                                  // 이미지 배경 (흰색)
+                                  const Positioned.fill(
+                                    child: ColoredBox(color: Colors.white),
+                                  ),
                                   Positioned.fill(
                                     child: p.images.isNotEmpty
                                         ? NetImage(p.images.first,
@@ -3130,6 +3138,10 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
+                        // 이미지 배경 (흰색) — 카드 배경 비침 방지
+                        const Positioned.fill(
+                          child: ColoredBox(color: Colors.white),
+                        ),
                         Positioned.fill(
                           child: p.images.isNotEmpty
                               ? NetImage(
