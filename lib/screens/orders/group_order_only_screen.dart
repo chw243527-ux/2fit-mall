@@ -711,7 +711,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
             // 이미지 영역
             Expanded(
               child: Stack(
+                fit: StackFit.expand,
                 children: [
+                  // 이미지 — Stack 전체를 꽉 채움
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(12)),
