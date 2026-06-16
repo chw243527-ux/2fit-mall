@@ -453,8 +453,13 @@ class _SmartProductImageState extends State<_SmartProductImage> {
         final imgRatio = w / h;
         BoxFit decided;
 
-        // 모든 비율 → cover (카드에 꽉 채움)
-        decided = BoxFit.cover;
+        // 카드 비율(4:5=0.8)보다 세로형 이미지 → fitWidth (가로 꽉 채움, 세로 클리핑)
+        // 카드 비율 이상(정사각·가로형) → cover
+        if (imgRatio < _cardRatio) {
+          decided = BoxFit.fitWidth;
+        } else {
+          decided = BoxFit.cover;
+        }
 
         setState(() {
           _fit = decided;
