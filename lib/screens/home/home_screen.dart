@@ -1997,7 +1997,9 @@ class _HomeScreenState extends State<HomeScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               // 이미지 — 카드 완전히 채움
-              AspectRatio(
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                child: AspectRatio(
                     aspectRatio: 4 / 5,
                     child: Stack(
                       fit: StackFit.expand,
@@ -2037,6 +2039,7 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                       ],
                     ),
+                ),
               ),
               // 정보
               Padding(
@@ -2426,7 +2429,9 @@ class _HomeScreenState extends State<HomeScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // 이미지 — 카드 완전히 채움
-                        AspectRatio(
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                          child: AspectRatio(
                               aspectRatio: 4 / 5,
                               child: Stack(
                                 fit: StackFit.expand,
@@ -2458,6 +2463,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                 ),
                             ],
+                          ),
                           ),
                         ),
                         SizedBox(height: r.h(6)),
@@ -2609,7 +2615,9 @@ class _HomeScreenState extends State<HomeScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // 이미지 — 카드 완전히 채움
-                        AspectRatio(
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                          child: AspectRatio(
                               aspectRatio: 4 / 5,
                               child: Stack(
                                 fit: StackFit.expand,
@@ -2649,6 +2657,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                 ),
                             ],
+                          ),
                           ),
                         ),
                         // 상품 정보
@@ -3100,44 +3109,47 @@ class _HomeScreenState extends State<HomeScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 이미지 — 패딩+라운드
-              AspectRatio(
-                aspectRatio: 4 / 5,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Positioned.fill(
-                      child: p.images.isNotEmpty
-                          ? NetImage(
-                              p.images.first,
-                              fit: BoxFit.cover,
-                              alignment: Alignment.topCenter,
-                            )
-                          : const Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Color(0xFFBBBBBB), size: 36),
-                    ),
-                        // GROUP ONLY 배지
-                        Positioned(
-                          top: 8, left: 8,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF6A1B9A),
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                            child: Text('GROUP', style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900, letterSpacing: 1.0)),
-                          ),
-                        ),
-                        if (discount > 0)
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                child: AspectRatio(
+                  aspectRatio: 4 / 5,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Positioned.fill(
+                        child: p.images.isNotEmpty
+                            ? NetImage(
+                                p.images.first,
+                                fit: BoxFit.cover,
+                                alignment: Alignment.topCenter,
+                              )
+                            : const Icon(
+                                Icons.image_not_supported_outlined,
+                                color: Color(0xFFBBBBBB), size: 36),
+                      ),
+                          // GROUP ONLY 배지
                           Positioned(
-                            top: 8, right: 8,
+                            top: 8, left: 8,
                             child: Container(
                               padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
-                              decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(3)),
-                              child: Text('$discount%', style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w900)),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6A1B9A),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Text('GROUP', style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900, letterSpacing: 1.0)),
                             ),
                           ),
-                  ],
+                          if (discount > 0)
+                            Positioned(
+                              top: 8, right: 8,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
+                                decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(3)),
+                                child: Text('$discount%', style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w900)),
+                              ),
+                            ),
+                    ],
+                  ),
                 ),
               ),
               // 정보
