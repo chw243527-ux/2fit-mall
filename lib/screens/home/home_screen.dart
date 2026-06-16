@@ -262,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Expanded(
                       child: Text(
                         loc.homeCategory,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: r.sp(15),
                           fontWeight: FontWeight.w900,
@@ -297,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Expanded(
                           child: Text(
                             loc.navMyPage,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
                               fontSize: r.sp(14),
                               fontWeight: FontWeight.w700,
@@ -536,7 +536,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Expanded(
                   child: Text(
                     loc.homeCategory,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: r.sp(13),
                       fontWeight: FontWeight.w900,
                       color: Color(0xFF111111),
@@ -546,7 +546,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 GestureDetector(
                   onTap: () => widget.onNavigate?.call(1),
-                  child: const Text(
+                  child: Text(
                     '전체',
                     style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), fontWeight: FontWeight.w600),
                   ),
@@ -706,7 +706,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       ),
                                       child: Text(
                                         sub.tag!,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: Colors.white,
                                           fontSize: r.sp(8),
                                           fontWeight: FontWeight.w800,
@@ -817,7 +817,7 @@ class _HomeScreenState extends State<HomeScreen>
                     SizedBox(height: r.h(2)),
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: r.sp(20),
                         fontWeight: FontWeight.w900,
                         color: Color(0xFF111111),
@@ -842,7 +842,7 @@ class _HomeScreenState extends State<HomeScreen>
                       color: const Color(0xFF111111),
                       borderRadius: BorderRadius.circular(2),
                     ),
-                    child: const Text(
+                    child: Text(
                       'VIEW ALL',
                       style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.5),
                     ),
@@ -899,7 +899,7 @@ class _HomeScreenState extends State<HomeScreen>
                       child: Image.asset(
                         'assets/images/2fit_logo.png',
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Text(
+                        errorBuilder: (_, __, ___) => Text(
                           '2FIT',
                           style: TextStyle(color: Color(0xFF111111), fontSize: r.sp(18), fontWeight: FontWeight.w900, letterSpacing: 3),
                         ),
@@ -969,7 +969,7 @@ class _HomeScreenState extends State<HomeScreen>
                             color: Colors.white, size: 16),
                         SizedBox(width: r.w(6)),
                         Text(loc.navMyPage,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: Colors.white,
                                 fontSize: r.sp(12),
                                 fontWeight: FontWeight.w700)),
@@ -1133,7 +1133,7 @@ class _HomeScreenState extends State<HomeScreen>
                             Icon(ctaIcon, size: 17, color: accent),
                             SizedBox(width: r.w(10)),
                             Text(cta,
-                              style: const TextStyle(color: Color(0xFF111111),
+                              style: TextStyle(color: Color(0xFF111111),
                                   fontSize: r.sp(14), fontWeight: FontWeight.w800, letterSpacing: 0.3)),
                           ]),
                         ),
@@ -1284,7 +1284,7 @@ class _HomeScreenState extends State<HomeScreen>
                         SizedBox(width: r.w(10)),
                         Text(
                           loc.language == AppLanguage.korean ? '쇼핑하러 가기' : 'Shop Now',
-                          style: const TextStyle(color: Color(0xFF111111),
+                          style: TextStyle(color: Color(0xFF111111),
                               fontSize: r.sp(15), fontWeight: FontWeight.w800, letterSpacing: 0.3),
                         ),
                       ],
@@ -1364,7 +1364,7 @@ class _HomeScreenState extends State<HomeScreen>
                             child: Image.asset(
                               'assets/images/logo_2fit_white.png',
                               fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const Text(
+                              errorBuilder: (_, __, ___) => Text(
                                 '2FIT',
                                 style: TextStyle(
                                   color: Colors.white,
@@ -1595,7 +1595,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                   child: Text(
                                     b['tag'] as String,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Color(0xFF111111),
                                       fontSize: r.sp(10),
                                       fontWeight: FontWeight.w900,
@@ -1606,7 +1606,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 SizedBox(height: r.h(14)),
                                 Text(
                                   b['title'] as String,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: r.sp(56),
                                     fontWeight: FontWeight.w900,
@@ -1633,7 +1633,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       color: Colors.white,
                                       borderRadius: BorderRadius.circular(2),
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'SHOP NOW',
                                       style: TextStyle(
                                         color: Color(0xFF111111),
@@ -1832,7 +1832,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 letterSpacing: 2.5)),
                           SizedBox(height: r.h(3)),
                           Text(title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: r.sp(26), fontWeight: FontWeight.w900,
                                 color: Color(0xFF111111), letterSpacing: -0.5, height: 1.1)),
                         ],
@@ -1883,7 +1883,7 @@ class _HomeScreenState extends State<HomeScreen>
                         SizedBox(height: r.h(3)),
                         Text(
                           title,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: r.sp(26),
                             fontWeight: FontWeight.w900,
                             color: Color(0xFF111111),
@@ -1909,7 +1909,7 @@ class _HomeScreenState extends State<HomeScreen>
                           color: const Color(0xFF111111),
                           borderRadius: BorderRadius.circular(2),
                         ),
-                        child: const Text(
+                        child: Text(
                           'VIEW ALL',
                           style: TextStyle(
                             fontSize: r.sp(11),
@@ -2033,7 +2033,7 @@ class _HomeScreenState extends State<HomeScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('2FIT KOREA',
+                  Text('2FIT KOREA',
                       style: TextStyle(fontSize: r.sp(9), color: Color(0xFF888888), letterSpacing: 0.5)),
                   SizedBox(height: r.h(2)),
                   Text(
@@ -2107,7 +2107,7 @@ class _HomeScreenState extends State<HomeScreen>
                   color: const Color(0xFFFF6B35),
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text('GROUP ONLY',
+                child: Text('GROUP ONLY',
                     style: TextStyle(color: Colors.white, fontSize: r.sp(9),
                         fontWeight: FontWeight.w800, letterSpacing: 1.5)),
               ),
@@ -2115,9 +2115,9 @@ class _HomeScreenState extends State<HomeScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('TEAM ORDER', style: TextStyle(color: Color(0xFFFF6B35),
+                  Text('TEAM ORDER', style: TextStyle(color: Color(0xFFFF6B35),
                       fontSize: r.sp(9), fontWeight: FontWeight.w800, letterSpacing: 2.0)),
-                  Text(loc.homeGroupOnly, style: const TextStyle(color: Colors.white,
+                  Text(loc.homeGroupOnly, style: TextStyle(color: Colors.white,
                       fontSize: r.sp(20), fontWeight: FontWeight.w900, letterSpacing: -0.5)),
                 ],
               ),
@@ -2131,7 +2131,7 @@ class _HomeScreenState extends State<HomeScreen>
                     color: const Color(0xFFFF6B35),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(loc.homeViewAll, style: const TextStyle(color: Colors.white,
+                  child: Text(loc.homeViewAll, style: TextStyle(color: Colors.white,
                       fontSize: r.sp(12), fontWeight: FontWeight.w700)),
                 ),
               ),
@@ -2207,13 +2207,13 @@ class _HomeScreenState extends State<HomeScreen>
                     border: Border.all(color: Colors.white30),
                     borderRadius: BorderRadius.circular(2),
                   ),
-                  child: const Text('2025 S/S COLLECTION',
+                  child: Text('2025 S/S COLLECTION',
                       style: TextStyle(color: Colors.white54, fontSize: r.sp(10), fontWeight: FontWeight.w900, letterSpacing: 2)),
                 ),
                 SizedBox(height: r.h(14)),
                 Text(
                   loc.homeNewSeason,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: r.sp(36),
                     fontWeight: FontWeight.w900,
@@ -2421,7 +2421,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       borderRadius: BorderRadius.circular(3),
                                     ),
                                     child: Text('$discount%',
-                                      style: const TextStyle(color: Colors.white,
+                                      style: TextStyle(color: Colors.white,
                                           fontSize: r.sp(9), fontWeight: FontWeight.w800)),
                                   ),
                                 ),
@@ -2539,7 +2539,7 @@ class _HomeScreenState extends State<HomeScreen>
                           Text(
                             '전체보기\n${allGroupProds.length}개',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: r.sp(12), fontWeight: FontWeight.w800,
                               color: Color(0xFF6A1B9A), height: 1.4,
                             ),
@@ -2593,7 +2593,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     color: const Color(0xFF6A1B9A),
                                     borderRadius: BorderRadius.circular(3),
                                   ),
-                                  child: const Text('GROUP',
+                                  child: Text('GROUP',
                                     style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900)),
                                 ),
                               ),
@@ -2673,7 +2673,7 @@ class _HomeScreenState extends State<HomeScreen>
                     'assets/images/2fit_logo.png',
                     height: 26,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Text(
+                    errorBuilder: (_, __, ___) => Text(
                       '2FIT KOREA',
                       style: TextStyle(
                         color: Color(0xFF111111),
@@ -2969,16 +2969,16 @@ class _HomeScreenState extends State<HomeScreen>
                       color: const Color(0xFF6A1B9A),
                       borderRadius: BorderRadius.circular(3),
                     ),
-                    child: const Text('GROUP ORDER ONLY',
+                    child: Text('GROUP ORDER ONLY',
                       style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w800, letterSpacing: 1.5)),
                   ),
                 ],
               ),
               SizedBox(height: r.h(6)),
-              const Text('단체주문 전용 상품',
+              Text('단체주문 전용 상품',
                 style: TextStyle(fontSize: r.sp(20), fontWeight: FontWeight.w900, color: Color(0xFF111111), letterSpacing: -0.3)),
               SizedBox(height: r.h(2)),
-              const Text('5명 이상 · 팀 맞춤 제작 · 무료배송',
+              Text('5명 이상 · 팀 맞춤 제작 · 무료배송',
                 style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888))),
             ],
           ),
@@ -3134,10 +3134,10 @@ class _HomeScreenState extends State<HomeScreen>
             child: const Icon(Icons.groups_rounded, size: 38, color: Color(0xFF6A1B9A)),
           ),
           SizedBox(height: r.h(14)),
-          const Text('단체주문 상품 준비 중',
+          Text('단체주문 상품 준비 중',
             style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800, color: Color(0xFF333333))),
           SizedBox(height: r.h(6)),
-          const Text('새로운 단체주문 전용 상품이 곧 업데이트됩니다.',
+          Text('새로운 단체주문 전용 상품이 곧 업데이트됩니다.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888), height: 1.5)),
           SizedBox(height: r.h(18)),
@@ -3206,7 +3206,7 @@ class _HomeScreenState extends State<HomeScreen>
                         fit: BoxFit.contain,
                         color: Colors.white,
                         colorBlendMode: BlendMode.srcIn,
-                        errorBuilder: (_, __, ___) => const Text(
+                        errorBuilder: (_, __, ___) => Text(
                           '2FIT KOREA',
                           style: TextStyle(
                             color: Colors.white,
@@ -3245,7 +3245,7 @@ class _HomeScreenState extends State<HomeScreen>
                           child: Center(
                             child: Text(
                               cart.itemCount > 9 ? '9+' : '${cart.itemCount}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                   color: Colors.white,
                                   fontSize: r.sp(8),
                                   fontWeight: FontWeight.w900),
@@ -3279,7 +3279,7 @@ class _HomeScreenState extends State<HomeScreen>
                         SizedBox(width: r.w(3)),
                         Text(
                           langProv.language.code,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: r.sp(10),
                             fontWeight: FontWeight.w900,
                             color: Colors.white,
@@ -3326,7 +3326,7 @@ class _HomeScreenState extends State<HomeScreen>
                     color: const Color(0xFFFF6B35),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text(
+                  child: Text(
                     'GROUP ONLY',
                     style: TextStyle(
                       color: Colors.white,
@@ -3340,7 +3340,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'TEAM ORDER',
                       style: TextStyle(
                         color: Color(0xFFFF6B35),
@@ -3351,7 +3351,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     Text(
                       loc.homeGroupOnly,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: r.sp(20),
                         fontWeight: FontWeight.w900,
@@ -3377,7 +3377,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     child: Text(
                       loc.homeViewAll,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: r.sp(11),
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
@@ -3461,7 +3461,7 @@ class _HomeScreenState extends State<HomeScreen>
     ),
     child: Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         color: Colors.white70,
         fontSize: r.sp(11),
         fontWeight: FontWeight.w600,
@@ -3851,7 +3851,7 @@ class _HomeScreenState extends State<HomeScreen>
             SizedBox(height: r.h(16)),
             Text(
               loc.selectLanguage,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: r.sp(17),
                 fontWeight: FontWeight.w800,
                 color: Color(0xFF1A1A1A),
@@ -3949,7 +3949,7 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     Text(
                       loc.notifications,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: r.sp(17),
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF1A1A1A),
@@ -3980,7 +3980,7 @@ class _HomeScreenState extends State<HomeScreen>
                               size: 56, color: Colors.grey.shade300),
                           SizedBox(height: r.h(12)),
                           Text(loc.noNotifications,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: r.sp(14), color: Color(0xFFAAAAAA))),
                         ],
                       );
@@ -4056,14 +4056,14 @@ class _HomeScreenState extends State<HomeScreen>
                                       ),
                                       SizedBox(height: r.h(3)),
                                       Text(n.body,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: r.sp(12),
                                             color: Color(0xFF888888),
                                           )),
                                       SizedBox(height: r.h(3)),
                                       Text(
                                         _timeAgo(n.createdAt),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: r.sp(11),
                                           color: Color(0xFFBBBBBB),
                                         ),
@@ -4175,7 +4175,7 @@ class _HomeScreenState extends State<HomeScreen>
                             SizedBox(width: r.w(8)),
                             Text(
                               loc.language == AppLanguage.korean ? '쇼핑하러 가기' : 'Shop Now',
-                              style: const TextStyle(color: Color(0xFF111111),
+                              style: TextStyle(color: Color(0xFF111111),
                                   fontSize: r.sp(10), fontWeight: FontWeight.w800, letterSpacing: 0.3),
                             ),
                           ],
@@ -4926,7 +4926,7 @@ class _HomeScreenState extends State<HomeScreen>
                     SizedBox(height: r.h(2)),
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: r.sp(20),
                         fontWeight: FontWeight.w900,
                         color: Color(0xFF111111),
@@ -4952,7 +4952,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     child: Text(
                       viewAllLabel,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: r.sp(11),
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -5093,7 +5093,7 @@ class _HomeScreenState extends State<HomeScreen>
                         children: [
                           GestureDetector(
                             onTap: () => widget.onNavigate?.call(0),
-                            child: const Text(
+                            child: Text(
                               '2FIT MALL',
                               style: TextStyle(
                                 color: Colors.white,
@@ -5180,7 +5180,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       '© 2025 2FIT Korea Co., Ltd. All rights reserved.',
                       style: TextStyle(color: Colors.white30, fontSize: r.sp(12)),
                     ),
@@ -5306,7 +5306,7 @@ class _HomeScreenState extends State<HomeScreen>
               SizedBox(height: r.h(16)),
               Text(
                 loc.search,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: r.sp(16),
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1A1A1A),
@@ -5491,7 +5491,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                           children: [
                             Text(
                               title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Color(0xFF111111),
                                 fontSize: r.sp(17),
                                 fontWeight: FontWeight.w800,
@@ -5503,7 +5503,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                               SizedBox(height: r.h(6)),
                               Text(
                                 content,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Color(0xFF666666),
                                   fontSize: r.sp(13),
                                   height: 1.55,
@@ -5543,7 +5543,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                       ),
                       child: Text(
                         '${(_page + 1).toString().padLeft(2, '0')} / ${total.toString().padLeft(2, '0')}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: r.sp(11),
                           fontWeight: FontWeight.w600,
@@ -5566,7 +5566,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                 padding: EdgeInsets.fromLTRB(r.w(20), r.h(14), r.w(20), r.h(14)),
                 child: Text(
                   content,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: r.sp(13),
                     color: Color(0xFF555555),
                     height: 1.7,
@@ -5687,7 +5687,7 @@ class _NoticePopupState extends State<_NoticePopup> {
               SizedBox(height: r.h(12)),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: r.sp(20),
                   fontWeight: FontWeight.w800,
@@ -5743,8 +5743,8 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(covariant _MobileHeaderDelegate old) => true;
 
   @override
-  @override
   Widget build(BuildContext ctx, double shrinkOffset, bool overlapsContent) {
+    final r = Responsive.of(ctx);
     final topPad = MediaQuery.of(ctx).padding.top;
     return Material(
       color: const Color(0xFF111111),
@@ -5779,7 +5779,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                           fit: BoxFit.contain,
                           color: Colors.white,
                           colorBlendMode: BlendMode.srcIn,
-                          errorBuilder: (_, __, ___) => const Text(
+                          errorBuilder: (_, __, ___) => Text(
                             '2FIT',
                             style: TextStyle(
                               color: Colors.white,
@@ -5816,7 +5816,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                           SizedBox(width: r.w(4)),
                           Text(
                             langProv.language.code,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: r.sp(11),
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
@@ -5895,7 +5895,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                                     child: Center(
                                       child: Text(
                                         unread > 9 ? '9+' : '$unread',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                             color: Colors.white,
                                             fontSize: r.sp(8),
                                             fontWeight: FontWeight.w900),
@@ -5944,7 +5944,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                               child: Center(
                                 child: Text(
                                   cart.itemCount > 9 ? '9+' : '${cart.itemCount}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                       color: Colors.white,
                                       fontSize: r.sp(8),
                                       fontWeight: FontWeight.w900),

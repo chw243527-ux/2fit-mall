@@ -640,7 +640,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                             child: Image.asset(
                               'assets/images/logo_2fit.png',
                               fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => const Text(
+                              errorBuilder: (_, __, ___) => Text(
                                 '2FIT\nKOREA',
                                 style: TextStyle(
                                     fontSize: r.sp(18),
@@ -923,7 +923,7 @@ class _PcFooter extends StatelessWidget {
                         children: [
                           GestureDetector(
                             onTap: () => onTabChanged?.call(0),
-                            child: const Text(
+                            child: Text(
                               '2FIT MALL',
                               style: TextStyle(
                                 color: Colors.white,
@@ -997,7 +997,7 @@ class _PcFooter extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       '© 2025 2FIT Korea Co., Ltd. All rights reserved.',
                       style: TextStyle(color: Colors.white30, fontSize: r.sp(12)),
                     ),
@@ -1057,7 +1057,7 @@ class _PcFooter extends StatelessWidget {
                           onTap: link.onTap,
                           child: Text(
                             link.label,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Color(0xFFBBBBBB),
                               fontSize: r.sp(13),
                             ),
@@ -1226,7 +1226,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                           children: [
                             Text(
                               title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Color(0xFF111111),
                                 fontSize: r.sp(17),
                                 fontWeight: FontWeight.w800,
@@ -1238,7 +1238,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                               SizedBox(height: r.h(6)),
                               Text(
                                 content,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Color(0xFF666666),
                                   fontSize: r.sp(13),
                                   height: 1.55,

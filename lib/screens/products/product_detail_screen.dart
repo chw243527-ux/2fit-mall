@@ -1040,7 +1040,7 @@ $productUrl
                 // 카테고리 소제목
                 Text(
                   product.category,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: r.sp(12),
                     color: Color(0xFF888888),
                     fontWeight: FontWeight.w500,
@@ -1052,7 +1052,7 @@ $productUrl
                   product.localizedName(_lang),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: r.sp(20),
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF1A1A1A),
@@ -1104,7 +1104,7 @@ $productUrl
                       // 파란색 할인율 (탑텐 시그니처: 배경 없는 텍스트)
                       Text(
                         '$discount%',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: r.sp(22),
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF1976D2),
@@ -1115,7 +1115,7 @@ $productUrl
                       // 현재가
                       Text(
                         '${_fmt(product.price)}${loc.wonUnit}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: r.sp(22),
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF1A1A1A),
@@ -1126,7 +1126,7 @@ $productUrl
                       // 취소선 원가
                       Text(
                         '${_fmt(product.originalPrice!)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: r.sp(14),
                           color: Color(0xFFBBBBBB),
                           decoration: TextDecoration.lineThrough,
@@ -1139,7 +1139,7 @@ $productUrl
                 ] else ...[
                   Text(
                     '${_fmt(product.price)}${loc.wonUnit}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: r.sp(22),
                       fontWeight: FontWeight.w900,
                       color: Color(0xFF1A1A1A),
@@ -1317,7 +1317,7 @@ $productUrl
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(
+            SizedBox(
               width: 44,
               child: Text('배송비', style: TextStyle(fontSize: r.sp(13), color: Color(0xFF888888), fontWeight: FontWeight.w500)),
             ),
@@ -1336,7 +1336,7 @@ $productUrl
                     ),
                   ),
                   if (!product.isFreeShipping)
-                    const Text(
+                    Text(
                       '(도서산간 배송시 3,000원 추가)',
                       style: TextStyle(fontSize: r.sp(11), color: Color(0xFFAAAAAA)),
                     ),
@@ -1365,7 +1365,7 @@ $productUrl
               'assets/images/logo_2fit_text.png',
               fit: BoxFit.contain,
               alignment: Alignment.centerLeft,
-              errorBuilder: (_, __, ___) => const Text(
+              errorBuilder: (_, __, ___) => Text(
                 '2FIT',
                 style: TextStyle(
                   color: Color(0xFF1A1A1A),
@@ -1596,7 +1596,7 @@ $productUrl
       final useRib = isRibBottom;
       colorContent = product.colors.isNotEmpty
           ? _infoColorChipRow(product.colors, useRib: useRib)
-          : const Text('등록된 색상 정보가 없습니다.',
+          : Text('등록된 색상 정보가 없습니다.',
               style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888)));
     }
 
@@ -1642,7 +1642,7 @@ $productUrl
             labelSub: '제품 설명',
             content: Text(
               product.localizedDescription(_lang),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: r.sp(13),
                 color: Color(0xFF444444),
                 height: 1.85,
@@ -1674,7 +1674,7 @@ $productUrl
             labelSub: '소재 정보',
             content: Text(
               materialText,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: r.sp(13),
                 color: Color(0xFF444444),
                 height: 1.85,
@@ -1838,7 +1838,7 @@ $productUrl
             // 코드명
             Text(
               c.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: r.sp(9),
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF555555),
@@ -1909,7 +1909,7 @@ $productUrl
                   ),
                   child: Text(
                     row.$1,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: r.sp(11),
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF666666),
@@ -1923,7 +1923,7 @@ $productUrl
                     padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(11)),
                     child: Text(
                       row.$2,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: r.sp(11),
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF222222),
@@ -1994,7 +1994,7 @@ $productUrl
                     Text(
                       g.$2,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: r.sp(10),
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF1A1A1A),
@@ -2005,7 +2005,7 @@ $productUrl
                     Text(
                       g.$3,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: r.sp(9),
                         color: Color(0xFF888888),
                         height: 1.4,
@@ -2036,7 +2036,7 @@ $productUrl
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('·', style: TextStyle(
+                            Text('·', style: TextStyle(
                               fontSize: r.sp(14),
                               color: Color(0xFFBBBBBB),
                               height: 1.2,
@@ -2045,7 +2045,7 @@ $productUrl
                             Expanded(
                               child: Text(
                                 tip,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: r.sp(12),
                                   color: Color(0xFF555555),
                                   height: 1.65,
@@ -2073,7 +2073,7 @@ $productUrl
                       left: BorderSide(color: Color(0xFF1A1A1A), width: 2),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.',
                     style: TextStyle(fontSize: r.sp(11), color: Color(0xFF666666), height: 1.65),
                   ),
@@ -2096,7 +2096,7 @@ $productUrl
         SizedBox(width: r.w(7)),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: r.sp(11),
             fontWeight: FontWeight.w800,
             color: Color(0xFF1A1A1A),
@@ -2340,7 +2340,7 @@ $productUrl
                         style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w800, color: Colors.white)),
                     ),
                     SizedBox(width: r.w(6)),
-                    const Text('하의 색상 선택',
+                    Text('하의 색상 선택',
                       style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
                   ],
                 ),
@@ -2441,7 +2441,7 @@ $productUrl
                   SizedBox(width: r.w(6)),
                   Text(
                     '하의 기장 ${_singletGender == "남" ? "5부 (~55cm)" : "2.5부 (~30cm)"} 확정',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: r.sp(12),
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF4A148C)),
@@ -2626,7 +2626,7 @@ $productUrl
           const Icon(Icons.straighten_rounded, color: Colors.white, size: 16),
           SizedBox(width: r.w(8)),
           Text(label,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: r.sp(15), fontWeight: FontWeight.w800, color: Colors.white)),
           SizedBox(width: r.w(6)),
           Text(desc,
@@ -2784,7 +2784,7 @@ $productUrl
                           Expanded(
                             child: Text(
                               isSingletSet ? '하의 색상 선택 안내' : '기성품 색상 안내',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: r.sp(14),
                                 fontWeight: FontWeight.w900,
                                 color: Colors.white,
@@ -2798,7 +2798,7 @@ $productUrl
                               color: Colors.white.withValues(alpha: 0.25),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: const Text('기성품',
+                            child: Text('기성품',
                               style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Colors.white)),
                           ),
                         ],
@@ -2823,7 +2823,7 @@ $productUrl
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('상의 색상 — 변경 불가',
+                                Text('상의 색상 — 변경 불가',
                                   style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFFBF360C))),
                                 SizedBox(height: r.h(2)),
                                 Text('디자인 색상 그대로 제작됩니다',
@@ -2837,7 +2837,7 @@ $productUrl
                               color: const Color(0xFFE65100),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text('고정',
+                            child: Text('고정',
                               style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w900, color: Colors.white)),
                           ),
                         ],
@@ -2864,7 +2864,7 @@ $productUrl
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('하의 색상 — 선택 가능',
+                                Text('하의 색상 — 선택 가능',
                                   style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFF1B5E20))),
                                 SizedBox(height: r.h(2)),
                                 Text(
@@ -2881,7 +2881,7 @@ $productUrl
                               color: const Color(0xFF2E7D32),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Text('선택',
+                            child: Text('선택',
                               style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w900, color: Colors.white)),
                           ),
                         ],
@@ -3060,7 +3060,7 @@ $productUrl
                     const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 18),
                     SizedBox(height: r.h(4)),
                     Text(loc.readyMadeLabel,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: r.sp(13),
                           fontWeight: FontWeight.w800,
@@ -3260,7 +3260,7 @@ $productUrl
                 children: [
                   const Icon(Icons.straighten_rounded, size: 14, color: Color(0xFF555555)),
                   SizedBox(width: r.w(6)),
-                  const Text(
+                  Text(
                     '왼쪽부터',
                     style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF555555)),
                   ),
@@ -3681,7 +3681,7 @@ $productUrl
               existingImgs.isEmpty
                   ? '[관리자] $sectionLabel 이미지 업로드'
                   : '[관리자] $sectionLabel 이미지 추가 (현재 ${existingImgs.length}장)',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: r.sp(13),
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF1A1A2E),
@@ -3915,7 +3915,7 @@ $productUrl
               ),
             ),
             SizedBox(width: r.w(8)),
-            const Text(
+            Text(
               '디자인 이미지',
               style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800,
                   color: Color(0xFF1A1A1A), letterSpacing: -0.2),
@@ -4604,7 +4604,7 @@ $productUrl
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 메인 타이틀
-                      const Text(
+                      Text(
                         'SIZE\nCHART',
                         style: TextStyle(
                           fontSize: r.sp(32),
@@ -4627,7 +4627,7 @@ $productUrl
                           border: Border.all(color: Colors.black.withValues(alpha: 0.25)),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
+                        child: Text(
                           '2FiT KOREA',
                           style: TextStyle(
                             fontSize: r.sp(10),
@@ -4776,7 +4776,7 @@ $productUrl
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'WASH TIP',
                 style: TextStyle(
                   fontSize: r.sp(26),
@@ -4860,7 +4860,7 @@ $productUrl
                     ),
                     child: Text(
                         '${reviews.length}',
-                        style: const TextStyle(
+                        style: TextStyle(
                             color: Colors.white,
                             fontSize: r.sp(12),
                             fontWeight: FontWeight.w700)),
@@ -4873,7 +4873,7 @@ $productUrl
                   children: [
                     Text(
                       avg.toStringAsFixed(1),
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: r.sp(40),
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF1A1A1A)),
@@ -4894,7 +4894,7 @@ $productUrl
                         SizedBox(height: r.h(4)),
                         Text(
                             '${reviews.length}개 리뷰',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: r.sp(12), color: Color(0xFF888888))),
                       ],
                     ),
@@ -5077,7 +5077,7 @@ $productUrl
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                           ),
                           icon: const Icon(Icons.shopping_bag_outlined, size: 18, color: Color(0xFF1A1A1A)),
-                          label: const Text(
+                          label: Text(
                             '장바구니',
                             style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(14), color: Color(0xFF1A1A1A)),
                           ),
@@ -5099,7 +5099,7 @@ $productUrl
                             elevation: 0,
                           ),
                           onPressed: () => _showBuyNowSheet(product),
-                          child: const Text(
+                          child: Text(
                             '바로구매',
                             style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(16), color: Colors.white),
                           ),
@@ -5130,7 +5130,7 @@ $productUrl
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white70,
               fontSize: r.sp(10),
               fontWeight: FontWeight.w600,
@@ -5139,7 +5139,7 @@ $productUrl
           SizedBox(height: r.h(5)),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
               fontSize: r.sp(12),
               fontWeight: FontWeight.w800,
@@ -5750,7 +5750,7 @@ class _MeasureRow extends StatelessWidget {
           SizedBox(
             width: 50,
             child: Text(label,
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: r.sp(12),
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF555555))),
@@ -5960,10 +5960,10 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(loc.imageUploadLabel,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: r.sp(16), fontWeight: FontWeight.w800)),
                           Text(widget.sectionLabel,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   fontSize: r.sp(12), color: Color(0xFF888888))),
                         ],
                       ),
@@ -5977,7 +5977,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                       ),
                       child: Text(
                         '${_allImages.length}장',
-                        style: const TextStyle(
+                        style: TextStyle(
                             color: Colors.white,
                             fontSize: r.sp(12),
                             fontWeight: FontWeight.w700),
@@ -6005,7 +6005,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                   SizedBox(width: r.w(10)),
                   Text(
                     '이미지 변환 중... (${_convertedBase64.length}/${_pendingFiles.length + _convertedBase64.length})',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: r.sp(12), color: Color(0xFF888888)),
                   ),
                 ],
@@ -6024,7 +6024,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                             color: Colors.grey.withValues(alpha: 0.4)),
                         SizedBox(height: r.h(12)),
                         Text(context.watch<LanguageProvider>().loc.noImageSelected,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: Color(0xFF888888), fontSize: r.sp(14))),
                       ],
                     ),
@@ -6077,7 +6077,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                                 ),
                                 child: Center(
                                   child: Text('${i + 1}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           color: Colors.white,
                                           fontSize: r.sp(11),
                                           fontWeight: FontWeight.w800)),
@@ -6278,7 +6278,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
         Center(child: Container(width:40, height:4,
             decoration: BoxDecoration(color:const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2)))),
         SizedBox(height: r.h(20)),
-        const Text('성별 선택',
+        Text('성별 선택',
             style: TextStyle(fontSize: r.sp(16), fontWeight:FontWeight.w900, color:Color(0xFF1A1A1A))),
         SizedBox(height: r.h(10)),
         Container(
@@ -6816,7 +6816,7 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
                       style: TextStyle(fontSize: r.sp(12), color: Color(0xFF666666))),
                   Text(
                     '${_fmt((widget.product.price * _quantity).toInt())}원',
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: r.sp(16), fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A)),
                   ),
                 ],
@@ -7169,7 +7169,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           children: [
                             Text(
                               widget.isBuyNow ? '바로구매 옵션 선택' : '장바구니 옵션 선택',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: r.sp(17),
                                 fontWeight: FontWeight.w900,
                                 color: Color(0xFF1A1A1A),
@@ -7219,7 +7219,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       child: Row(children: [
                         const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF7A5000)),
                         SizedBox(width: r.w(5)),
-                        const Text(
+                        Text(
                           '남성 → 5부 자동선택  •  여성 → 2.5부 자동선택',
                           style: TextStyle(fontSize: r.sp(11), color: Color(0xFF7A5000), fontWeight: FontWeight.w600),
                         ),
@@ -7303,7 +7303,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           SizedBox(width: r.w(6)),
                           Text(
                             '하의 기장: ${_length!} (고정 · 변경 불가)',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: r.sp(13),
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF2E7D32),
@@ -7517,16 +7517,16 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           Row(children: [
                             const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Color(0xFF7A5000)),
                             SizedBox(width: r.w(5)),
-                            const Text('원하는 사이즈가 없으신가요?',
+                            Text('원하는 사이즈가 없으신가요?',
                               style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w800, color: Color(0xFF7A5000))),
                           ]),
                           SizedBox(height: r.h(5)),
-                          const Text(
+                          Text(
                             '목록에 없는 사이즈는 채팅 문의를 통해 별도 주문 가능합니다.',
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF7A5000), height: 1.4),
                           ),
                           SizedBox(height: r.h(4)),
-                          const Text(
+                          Text(
                             '⚠️ 단, 별도 주문 시 제작 소요 기간이 최소 1주일 이상 걸리며,\n    경우에 따라 더 길어질 수 있습니다.',
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFFD84315),
                               fontWeight: FontWeight.w700, height: 1.5),
@@ -7733,7 +7733,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         SizedBox(width: r.w(6)),
                         Text(
                           '선택된 옵션 ${_items.length}가지',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: r.sp(13),
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF1A1A2E),
@@ -7813,7 +7813,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                               alignment: Alignment.center,
                                               child: Text(
                                                 '${item['qty']}',
-                                                style: const TextStyle(
+                                                style: TextStyle(
                                                   fontSize: r.sp(13),
                                                   fontWeight: FontWeight.w800,
                                                   color: Color(0xFF1A1A1A),
@@ -7834,7 +7834,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                       ),
                                       if (item['removePocket'] == true) ...[
                                         SizedBox(width: r.w(8)),
-                                        const Text('주머니 제거 -10,000원',
+                                        Text('주머니 제거 -10,000원',
                                           style: TextStyle(fontSize: r.sp(11), color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700)),
                                       ],
                                     ],
@@ -7847,7 +7847,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               children: [
                                 Text(
                                   '${_fmt(itemTotal)}원',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: r.sp(13),
                                     fontWeight: FontWeight.w800,
                                     color: Color(0xFF1A1A1A),
@@ -7908,7 +7908,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                 child: Text(
                                   '장바구니 담기\n(${_totalQty()}개)',
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFF1A1A2E),
                                     fontSize: r.sp(13),
@@ -7935,7 +7935,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                 widget.isBuyNow
                                     ? '바로구매 (${_fmt(_totalPrice())}원)'
                                     : '바로구매',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.w800,
                                   fontSize: r.sp(14),
                                   color: Colors.white,
@@ -8068,7 +8068,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
             ),
             if (isSoldOut) ...[
               SizedBox(height: r.h(2)),
-              const Text(
+              Text(
                 '품절',
                 style: TextStyle(
                   fontSize: r.sp(8),
@@ -8347,7 +8347,7 @@ class _QuickSizeColorSelectSheetState
                     ),
                     Text(
                       '${_fmt(((widget.product.price + _extraPrice) * _quantity).toInt())}원',
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: r.sp(16), fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A)),
                     ),
                   ],
@@ -8435,7 +8435,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                 border: Border.all(color: const Color(0xFFFFB74D), width: 0.8),
               ),
               child: Text(loc.productColorExtraNote,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: r.sp(10),
                       color: Color(0xFFE65100),
                       fontWeight: FontWeight.w700)),
@@ -8460,7 +8460,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
               padding: EdgeInsets.only(bottom: r.h(8)),
               child: Row(children: [
                 Text(loc.selectedLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: r.sp(12), color: Color(0xFF888888))),
                 SizedBox(width: r.w(6)),
                 RibColorSwatch(
@@ -8474,7 +8474,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                 ),
                 SizedBox(width: r.w(6)),
                 Text(col,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: r.sp(13), fontWeight: FontWeight.w700)),
                 SizedBox(width: r.w(6)),
                 Text(
@@ -8534,7 +8534,7 @@ class _ColorSelectionWidgetState extends State<_ColorSelectionWidget> {
                     ),
                   ),
                   if (!isFree)
-                    const Text('+₩',
+                    Text('+₩',
                         style: TextStyle(
                             fontSize: r.sp(8), color: Color(0xFFCC0000))),
                 ],
@@ -9299,7 +9299,7 @@ class _RibTableHeader extends StatelessWidget {
                   child: Text(
                     e.value,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: r.sp(9.5),
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -9869,7 +9869,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     child: Text(
                       e.value,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: r.sp(10), fontWeight: FontWeight.w700, color: Colors.white),
                     ),
                   ),
@@ -10059,7 +10059,7 @@ class _SectionImageSliderWidgetState extends State<_SectionImageSliderWidget> {
                   // 페이지 카운터 텍스트
                   Text(
                     '${_idx + 1} / ${imgs.length}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: r.sp(11),
                       color: Color(0xFFAAAAAA),
                       fontWeight: FontWeight.w500,
