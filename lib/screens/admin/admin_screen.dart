@@ -4305,13 +4305,6 @@ class _AdminScreenState extends State<AdminScreen>
                     width: 54,
                     height: 54,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 54,
-                      height: 54,
-                      color: const Color(0xFFF0F0F0),
-                      child: const Icon(Icons.checkroom_rounded,
-                          color: Color(0xFFCCCCCC)),
-                    ),
                   )
                 : Container(
                     width: 54,
@@ -4537,8 +4530,7 @@ class _AdminScreenState extends State<AdminScreen>
                                       if (b.imageUrl.isNotEmpty)
                                         NetImage(b.imageUrl,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) =>
-                                                Container(color: const Color(0xFF2A2A2A)))
+                                          )
                                       else
                                         Container(color: const Color(0xFF2A2A2A)),
                                       // 어둡게 오버레이
@@ -5682,7 +5674,7 @@ class _AdminScreenState extends State<AdminScreen>
             if (banner.imageUrl.isNotEmpty) {
               return Stack(children: [
                 NetImage(banner.imageUrl, width: double.infinity, height: 130, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 40, color: Color(0xFFCCCCCC))),
+                    ),
                 Positioned(
                   bottom: 0, left: 0, right: 0,
                   child: Container(
@@ -7697,10 +7689,6 @@ class _AdminScreenState extends State<AdminScreen>
                             child: NetImage(
                               p.images.isNotEmpty ? p.images.first : '',
                               width: 32, height: 32, fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                width: 32, height: 32, color: const Color(0xFFEEEEEE),
-                                child: const Icon(Icons.checkroom_rounded, size: 16, color: Color(0xFFCCCCCC)),
-                              ),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -8193,10 +8181,6 @@ class _AdminScreenState extends State<AdminScreen>
                                                   height: 90,
                                                   width: double.infinity,
                                                   fit: BoxFit.cover,
-                                                  errorBuilder: (_, __, ___) => Container(
-                                                    height: 90, width: double.infinity,
-                                                    color: hexColor,
-                                                  ),
                                                 )
                                               : Container(
                                                   height: 90,
@@ -9557,12 +9541,6 @@ class _AdminSectionCardState extends State<_AdminSectionCard> {
                                       url,
                                       width: 70, height: 70,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        width: 70, height: 70,
-                                        color: const Color(0xFFEEEEEE),
-                                        child: const Icon(Icons.broken_image_outlined,
-                                            size: 28, color: Color(0xFFCCCCCC)),
-                                      ),
                                     ),
                             ),
                             // 이미지 정보
@@ -10512,7 +10490,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                       ? Image.memory(base64Decode(img.split(',').last), fit: BoxFit.cover,
                                           errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 32, color: Colors.grey))
                                       : NetImage(img, fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 32, color: Colors.grey)),
+                                          ),
                                 ),
                               ),
                             ),
@@ -11911,9 +11889,6 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                                     child: NetImage(
                                       imageCtrl.text,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Center(
-                                        child: Icon(Icons.broken_image_rounded, size: 40, color: Color(0xFFBBBBBB)),
-                                      ),
                                     ),
                                   )
                                 : const Column(
