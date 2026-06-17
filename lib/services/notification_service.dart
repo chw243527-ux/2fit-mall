@@ -4,6 +4,7 @@
 // ══════════════════════════════════════════════════════════════
 import 'dart:async';
 import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/models.dart';
@@ -11,36 +12,40 @@ import 'supabase_service.dart';
 import 'notification_web_stub.dart'
     if (dart.library.html) 'notification_web_impl.dart' as web_notif;
 
-// ─── 🔑 카카오 알림톡 설정 ────────────────────────────────────
+// ─── 🔑 SOLAPI 카카오 알림톡 설정 ───────────────────────────────
+// 발송 방식: SOLAPI (console.solapi.com) 경유
+// 참고: https://docs.solapi.com/references/messages/send-many-detail
 class KakaoConfig {
-  // ══ 발급 방법 ══════════════════════════════════════════════════
-  // 1. https://business.kakao.com 로그인
-  // 2. 비즈도구 → 서비스신청 → 알림톡 신청
-  // 3. 발신프로필 등록 (카카오톡 채널 연결) → senderKey 발급
-  // 4. https://developers.kakao.com → 내 애플리케이션 → REST API 키 복사 → apiKey
+  // ══ API 키 발급 위치 ═══════════════════════════════════════════
+  // console.solapi.com → 개발(</>) → API 키 관리
+  // → API Key + API Secret 복사
   // ═════════════════════════════════════════════════════════════
 
-  // TODO: 카카오 REST API 키 (developers.kakao.com → 앱 키 → REST API 키)
+  // TODO: SOLAPI API Key (console.solapi.com → 개발 → API 키 관리)
   static const apiKey = '';
 
-  // TODO: 발신 프로필 키 (business.kakao.com → 알림톡 → 발신프로필 관리 → senderKey)
-  static const senderKey = '';
+  // TODO: SOLAPI API Secret (console.solapi.com → 개발 → API 키 관리)
+  static const apiSecret = '';
 
-  // ── 알림톡 템플릿 코드 (카카오 심사 후 발급) ──────────────────
-  // 카카오 비즈니스에서 템플릿 작성·심사 완료 후 발급된 코드 입력
+  // ✅ 발신프로필 키 — SOLAPI 채널 연동 완료 (2026-06-17)
+  static const senderKey = 'KA01PF2606170642574857w8Hjn9Czz4';
+
+  // 발신 번호 (사업자 등록 번호 연계 전화번호)
+  // ⚠️ SOLAPI → 발송준비 → 발신번호 에서 사전 등록 필요
+  static const senderPhone = '01072276914';
+
+  // ── 알림톡 템플릿 코드 (SOLAPI에서 템플릿 등록·심사 후 발급) ────
+  // console.solapi.com → 카카오/네이버/RCS → 알림톡 템플릿 → 템플릿 추가
   static const templateOrderConfirm = 'ORDER_CONFIRM'; // 주문 확인
   static const templateShipped      = 'ORDER_SHIPPED'; // 배송 시작
   static const templateDelivered    = 'ORDER_DELIVERED'; // 배송 완료
   static const templateCancelled    = 'ORDER_CANCELLED'; // 주문 취소
 
-  static bool get isConfigured => apiKey.isNotEmpty && senderKey.isNotEmpty;
+  static bool get isConfigured =>
+      apiKey.isNotEmpty && apiSecret.isNotEmpty && senderKey.isNotEmpty;
 
-  // 카카오 알림톡 API 엔드포인트 (카카오 비즈메시지 직접 API)
-  // 참고: https://developers.kakao.com/docs/latest/ko/message/rest-api
-  static const apiUrl = 'https://kapi.kakao.com/v1/api/talk/friends/message/send';
-
-  // 발신 번호 (사업자 등록 번호 연계 전화번호)
-  static const senderPhone = '010-7227-6914';
+  // SOLAPI 알림톡 발송 엔드포인트
+  static const apiUrl = 'https://api.solapi.com/messages/v4/send';
 }
 
 // ─── 관리자 이메일 ────────────────────────────────────────────
@@ -132,7 +137,8 @@ class NotificationService {
   }
 
   // ══════════════════════════════════════════════════════════════
-  // 카카오 알림톡 발송 (내부)
+  // 카카오 알림톡 발송 (내부) — SOLAPI 경유
+  // 참고: https://docs.solapi.com/references/messages/send-many-detail
   // ══════════════════════════════════════════════════════════════
   static Future<void> _sendKakaoAlimtalk({
     required String phone,
@@ -140,7 +146,7 @@ class NotificationService {
     required Map<String, String> params,
   }) async {
     if (!KakaoConfig.isConfigured) {
-      // 설정 미완료 시 콘솔 로그만 출력
+      // API 키 미설정 시 시뮬레이션 로그만 출력
       if (kDebugMode) {
         debugPrint('📱 [알림톡 시뮬레이션] → $phone');
         debugPrint('   템플릿: $templateCode');
@@ -156,30 +162,52 @@ class NotificationService {
         message = message.replaceAll(key, value);
       });
 
-      // 카카오 알림톡 비즈메시지 API 직접 호출
-      // 참고: https://developers.kakao.com/docs/latest/ko/kakaotalk-channel/rest-api
+      // HMAC-SHA256 인증 헤더 생성
+      final date = DateTime.now().toUtc().toIso8601String();
+      final salt = DateTime.now().millisecondsSinceEpoch.toString();
+      final hmacData = '$date$salt';
+      final hmacBytes = _hmacSha256(KakaoConfig.apiSecret, hmacData);
+      final signature = hmacBytes;
+
+      // SOLAPI 알림톡 발송 요청
       final response = await http.post(
         Uri.parse(KakaoConfig.apiUrl),
         headers: {
-          'Authorization': 'KakaoAK ${KakaoConfig.apiKey}',
-          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+          'Content-Type': 'application/json; charset=utf-8',
+          'Authorization':
+              'HMAC-SHA256 apiKey=${KakaoConfig.apiKey}, date=$date, salt=$salt, signature=$signature',
         },
-        body: {
-          'sender_key': KakaoConfig.senderKey,
-          'template_code': templateCode,
-          'receiver_1': phone,
-          'recvname_1': params['#{고객명}'] ?? '',
-          'msg_1': message,
-          'sender': KakaoConfig.senderPhone,
-        },
+        body: jsonEncode({
+          'message': {
+            'to': phone.replaceAll('-', ''),
+            'from': KakaoConfig.senderPhone,
+            'type': 'ATA', // 알림톡
+            'kakaoOptions': {
+              'pfId': KakaoConfig.senderKey,
+              'templateId': templateCode,
+              'variables': params,
+            },
+          },
+        }),
       ).timeout(const Duration(seconds: 10));
 
       final data = jsonDecode(response.body);
-      if (kDebugMode) debugPrint('📱 알림톡 발송: ${data['message'] ?? data}');
+      if (kDebugMode) {
+        debugPrint('📱 알림톡 발송 결과: ${response.statusCode}');
+        debugPrint('   응답: $data');
+      }
     } catch (e) {
       // 알림톡 실패는 결제 흐름을 막지 않음
       if (kDebugMode) debugPrint('⚠️ 알림톡 발송 실패: $e');
     }
+  }
+
+  // ── HMAC-SHA256 서명 생성 (SOLAPI 인증용) ────────────────────
+  static String _hmacSha256(String secret, String data) {
+    final key = utf8.encode(secret);
+    final bytes = utf8.encode(data);
+    final hmac = Hmac(sha256, key);
+    return hmac.convert(bytes).toString();
   }
 
   // ── 관리자 이메일 알림 ──────────────────────────────────────
