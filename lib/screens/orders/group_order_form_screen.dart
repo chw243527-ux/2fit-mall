@@ -1370,36 +1370,40 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         ),
                       )
                   : null,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: heroImg != null
-                        ? NetImage(
-                            heroImg,
-                            width: 72, height: 72, fit: BoxFit.cover,
-                          )
-                        : _productImgPlaceholder(),
-                  ),
-                  // 디자인 이미지임을 표시하는 배지
-                  if (hasDesign)
-                    Positioned(
-                      left: 0, bottom: 0,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _purple,
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(10),
-                            topRight: Radius.circular(6),
-                          ),
-                        ),
-                        child: const Text('디자인',
-                            style: TextStyle(fontSize: 8, color: Colors.white,
-                                fontWeight: FontWeight.w800)),
-                      ),
+              child: SizedBox(
+                width: 72,
+                height: 72,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: heroImg != null
+                          ? NetImage(
+                              heroImg,
+                              width: 72, height: 72, fit: BoxFit.cover,
+                            )
+                          : _productImgPlaceholder(),
                     ),
-                ],
+                    // 디자인 이미지임을 표시하는 배지
+                    if (hasDesign)
+                      Positioned(
+                        left: 0, bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _purple,
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(10),
+                              topRight: Radius.circular(6),
+                            ),
+                          ),
+                          child: const Text('디자인',
+                              style: TextStyle(fontSize: 8, color: Colors.white,
+                                  fontWeight: FontWeight.w800)),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 14),
@@ -1483,7 +1487,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       ),
                     ),
                   ),
-                  child: Stack(
+                  child: SizedBox(
+                    width: 120,
+                    height: 120,
+                    child: Stack(
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
