@@ -1531,6 +1531,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 ),
               ),
             ),
+          ),
           ],
 
           // ── 디자인 이미지 없을 때 안내 ──
