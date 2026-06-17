@@ -5654,8 +5654,8 @@ class _NoticePopupState extends State<_NoticePopup> {
     // - 비율 로드 전: 화면 높이의 25%만 (shimmer placeholder)
     // - 비율 로드 후: 실제 비율 기반 높이 (최대 화면 높이의 55%)
     final imgH = _imageAspectRatio != null
-        ? (sheetW / _imageAspectRatio!).clamp(120.0, sh * 0.72)
-        : (sh * 0.35).clamp(150.0, 260.0);
+        ? (sheetW / _imageAspectRatio!).clamp(120.0, sh * 0.50)
+        : (sh * 0.25).clamp(120.0, 180.0);
 
     return Container(
       width: sheetW,
