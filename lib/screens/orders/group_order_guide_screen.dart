@@ -4,10 +4,12 @@ import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../widgets/net_image.dart';
-import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
 import 'group_order_form_screen.dart';
 
+// ═══════════════════════════════════════════════════════════════
+// GroupOrderGuideScreen — 단체주문 안내 화면
+// ═══════════════════════════════════════════════════════════════
 class GroupOrderGuideScreen extends StatefulWidget {
   final ProductModel? product;
   const GroupOrderGuideScreen({super.key, this.product});
@@ -19,64 +21,51 @@ class GroupOrderGuideScreen extends StatefulWidget {
 class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   bool _agreed = false;
 
-  static const _black = Color(0xFF1A1A1A);
-  static const _bg    = Color(0xFFF8F8F8);
-  static const _div   = Color(0xFFE8E8E8);
-  static const _grey4 = Color(0xFF444444);
+  static const _kBlack = Color(0xFF1A1A1A);
+  static const _kBg    = Color(0xFFF8F8F8);
 
   @override
   Widget build(BuildContext context) {
-    // Consumer로 loc을 위에서 한 번만 받음
-    return Consumer<LanguageProvider>(
-      builder: (ctx, lp, _) {
-        final loc  = lp.loc;
-        final lang = lp.language;
-        return _buildScaffold(ctx, loc, lang);
-      },
-    );
-  }
+    final lp   = context.watch<LanguageProvider>();
+    final loc  = lp.loc;
+    final lang = lp.language;
 
-  Widget _buildScaffold(BuildContext ctx, AppLocalizations loc, AppLanguage lang) {
-    final appBar = AppBar(
-      backgroundColor: _black,
-      foregroundColor: Colors.white,
-      elevation: 0,
-      toolbarHeight: 48,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
-        onPressed: () => goBackOrHome(ctx),
+    return Scaffold(
+      backgroundColor: _kBg,
+      appBar: AppBar(
+        backgroundColor: _kBlack,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 48,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+          onPressed: () => goBackOrHome(context),
+        ),
+        title: Text(
+          loc.groupOrderGuideAppBar,
+          style: const TextStyle(
+              fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
+        ),
       ),
-      title: Text(loc.groupOrderGuideAppBar,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white)),
-    );
-
-    final body = _GuideBody(
-      product: widget.product,
-      loc: loc,
-      lang: lang,
-      agreed: _agreed,
-      onAgreedChanged: (v) => setState(() => _agreed = v),
-      onSubmit: _agreed
-          ? () => Navigator.push(ctx,
-              MaterialPageRoute(builder: (_) => GroupOrderFormScreen(product: widget.product)))
-          : null,
-    );
-
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) goBackOrHome(ctx);
-      },
-      child: Scaffold(
-        backgroundColor: _bg,
-        appBar: appBar,
-        body: body,
+      body: _GuideBody(
+        product: widget.product,
+        loc: loc,
+        lang: lang,
+        agreed: _agreed,
+        onAgreedChanged: (v) => setState(() => _agreed = v),
+        onSubmit: _agreed
+            ? () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) =>
+                        GroupOrderFormScreen(product: widget.product)))
+            : null,
       ),
     );
   }
 }
 
-// ─── body를 완전히 분리된 StatelessWidget으로 ──────────────────────────────
+// ─── _GuideBody ───────────────────────────────────────────────
 class _GuideBody extends StatelessWidget {
   final ProductModel? product;
   final AppLocalizations loc;
@@ -94,20 +83,21 @@ class _GuideBody extends StatelessWidget {
     required this.onSubmit,
   });
 
-  static const _black = Color(0xFF1A1A1A);
-  static const _div   = Color(0xFFE8E8E8);
-  static const _grey4 = Color(0xFF444444);
-  static const _grey8 = Color(0xFF888888);
+  static const _kBlack = Color(0xFF1A1A1A);
+  static const _kBorder = Color(0xFFE8E8E8);
+  static const _kGrey4  = Color(0xFF444444);
+  static const _kGrey8  = Color(0xFF888888);
+  static const _kBg     = Color(0xFFF8F8F8);
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-      children: _buildItems(context),
+      children: _buildItems(),
     );
   }
 
-  List<Widget> _buildItems(BuildContext context) {
+  List<Widget> _buildItems() {
     return [
       // ── 상품 카드 ─────────────────────────────────────────
       if (product != null) ...[
@@ -194,16 +184,18 @@ class _GuideBody extends StatelessWidget {
       ),
       if (!agreed) ...[
         const SizedBox(height: 8),
-        Text(loc.groupOrderGuideCheckFirst,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, color: _grey8)),
+        Text(
+          loc.groupOrderGuideCheckFirst,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12, color: _kGrey8),
+        ),
       ],
       const SizedBox(height: 24),
     ];
   }
 }
 
-// ─── 개별 UI 컴포넌트 (모두 StatelessWidget) ──────────────────────────────
+// ─── 개별 UI 컴포넌트 ──────────────────────────────────────────
 
 class _SectionRow extends StatelessWidget {
   final IconData icon;
@@ -220,8 +212,13 @@ class _SectionRow extends StatelessWidget {
       ),
       const SizedBox(width: 10),
       Expanded(
-        child: Text(title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+        child: Text(
+          title,
+          style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1A1A1A)),
+        ),
       ),
     ]);
   }
@@ -240,7 +237,9 @@ class _InfoBox extends StatelessWidget {
         color: Colors.white,
         border: Border.all(color: const Color(0xFFE8E8E8)),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF444444))),
+      child: Text(text,
+          style: const TextStyle(
+              fontSize: 13, height: 1.6, color: Color(0xFF444444))),
     );
   }
 }
@@ -264,7 +263,8 @@ class _InfoLines extends StatelessWidget {
             .map((l) => Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Text(l,
-                      style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF444444))),
+                      style: const TextStyle(
+                          fontSize: 13, height: 1.6, color: Color(0xFF444444))),
                 ))
             .toList(),
       ),
@@ -291,31 +291,43 @@ class _ExclusiveBox extends StatelessWidget {
           Row(children: [
             Expanded(
               child: Text(loc.groupOrderGuideExclusiveTitle,
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A))),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               color: const Color(0xFF1A1A1A),
               child: const Text('FREE',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white)),
             ),
           ]),
           const SizedBox(height: 10),
           Text(loc.groupOrderGuideExclusive1,
-              style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
+              style: const TextStyle(
+                  fontSize: 12, height: 1.7, color: Color(0xFF444444))),
           const SizedBox(height: 4),
           Text(loc.groupOrderGuideExclusive2,
-              style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
+              style: const TextStyle(
+                  fontSize: 12, height: 1.7, color: Color(0xFF444444))),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
               color: Color(0xFFF8F8F8),
-              border: Border(left: BorderSide(color: Color(0xFF1A1A1A), width: 3)),
+              border: Border(
+                  left: BorderSide(color: Color(0xFF1A1A1A), width: 3)),
             ),
             child: Text(loc.groupOrderGuideExclusive3,
                 style: const TextStyle(
-                    fontSize: 12, height: 1.6, color: Color(0xFF333333), fontWeight: FontWeight.w600)),
+                    fontSize: 12,
+                    height: 1.6,
+                    color: Color(0xFF333333),
+                    fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -327,7 +339,8 @@ class _AgreementRow extends StatelessWidget {
   final bool agreed;
   final String label;
   final ValueChanged<bool> onChanged;
-  const _AgreementRow({required this.agreed, required this.label, required this.onChanged});
+  const _AgreementRow(
+      {required this.agreed, required this.label, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -348,7 +361,9 @@ class _AgreementRow extends StatelessWidget {
             onChanged: (v) => onChanged(v ?? false),
             checkColor: Colors.white,
             fillColor: WidgetStateProperty.resolveWith<Color>((s) =>
-                s.contains(WidgetState.selected) ? const Color(0xFF1A1A1A) : Colors.transparent),
+                s.contains(WidgetState.selected)
+                    ? const Color(0xFF1A1A1A)
+                    : Colors.transparent),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             visualDensity: VisualDensity.compact,
             side: const BorderSide(color: Color(0xFF888888)),
@@ -359,7 +374,9 @@ class _AgreementRow extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: agreed ? const Color(0xFF1A1A1A) : const Color(0xFF444444))),
+                    color: agreed
+                        ? const Color(0xFF1A1A1A)
+                        : const Color(0xFF444444))),
           ),
         ]),
       ),
@@ -371,7 +388,8 @@ class _SubmitButton extends StatelessWidget {
   final bool agreed;
   final String label;
   final VoidCallback? onPressed;
-  const _SubmitButton({required this.agreed, required this.label, this.onPressed});
+  const _SubmitButton(
+      {required this.agreed, required this.label, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -381,9 +399,11 @@ class _SubmitButton extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: onPressed,
         icon: const Icon(Icons.edit_outlined, size: 18),
-        label: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+        label: Text(label,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
         style: ElevatedButton.styleFrom(
-          backgroundColor: agreed ? const Color(0xFF1A1A1A) : const Color(0xFFCCCCCC),
+          backgroundColor:
+              agreed ? const Color(0xFF1A1A1A) : const Color(0xFFCCCCCC),
           foregroundColor: Colors.white,
           shape: const RoundedRectangleBorder(),
           elevation: 0,
@@ -399,7 +419,8 @@ class _ProductCard extends StatelessWidget {
   final ProductModel product;
   final AppLanguage lang;
   final AppLocalizations loc;
-  const _ProductCard({required this.product, required this.lang, required this.loc});
+  const _ProductCard(
+      {required this.product, required this.lang, required this.loc});
 
   @override
   Widget build(BuildContext context) {
@@ -434,14 +455,17 @@ class _ProductCard extends StatelessWidget {
             children: [
               Text(
                 product.localizedName(lang),
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w700),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 6),
               Text('₩$priceStr / 1개',
                   style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A))),
               const SizedBox(height: 8),
               Wrap(spacing: 6, children: [
                 _tag(loc.setProduct),
@@ -462,7 +486,10 @@ class _ProductCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(text,
-          style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A), fontWeight: FontWeight.w600)),
+          style: const TextStyle(
+              fontSize: 11,
+              color: Color(0xFF1A1A1A),
+              fontWeight: FontWeight.w600)),
     );
   }
 }
