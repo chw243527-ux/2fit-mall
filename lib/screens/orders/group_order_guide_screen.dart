@@ -16,15 +16,29 @@ class GroupOrderGuideScreen extends StatefulWidget {
   State<GroupOrderGuideScreen> createState() => _GroupOrderGuideScreenState();
 }
 
-class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
+class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
+    with SingleTickerProviderStateMixin {
   AppLocalizations get loc => Provider.of<LanguageProvider>(context, listen: false).loc;
   AppLanguage get _lang => Provider.of<LanguageProvider>(context, listen: false).language;
   bool _agreed = false;
+  late TabController _tabCtrl;
 
   // ── 탑텐 스타일 상수 ──
   static const _black = Color(0xFF000000);
   static const _bg = Color(0xFFF8F8F8);
   static const _dividerColor = Color(0xFFE8E8E8);
+
+  @override
+  void initState() {
+    super.initState();
+    _tabCtrl = TabController(length: 1, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,8 +74,10 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             onPressed: () => goBackOrHome(context),
           ),
         ),
-        body: SizedBox.expand(
-          child: _buildGuideTab(context),
+        body: TabBarView(
+          controller: _tabCtrl,
+          physics: const NeverScrollableScrollPhysics(),
+          children: [_buildGuideTab(context)],
         ),
       ),
     );
