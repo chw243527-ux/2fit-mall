@@ -28,8 +28,39 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (isPcWeb(context)) return _buildPcLayout(context);
-    return _buildMobileLayout(context);
+    try {
+      if (isPcWeb(context)) return _buildPcLayout(context);
+      return _buildMobileLayout(context);
+    } catch (e, st) {
+      // 런타임 에러를 흰 화면 대신 화면에 표시
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('단체 주문 안내', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              const Text('화면 오류가 발생했습니다', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                color: const Color(0xFFF5F5F5),
+                child: Text('에러: $e\n\n$st', style: const TextStyle(fontSize: 11, color: Colors.red, fontFamily: 'monospace')),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
 
   // ── 모바일 레이아웃 ──
