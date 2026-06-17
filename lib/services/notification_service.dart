@@ -34,12 +34,11 @@ class KakaoConfig {
   // ⚠️ SOLAPI → 발송준비 → 발신번호 에서 사전 등록 필요
   static const senderPhone = '01072276914';
 
-  // ── 알림톡 템플릿 코드 (SOLAPI에서 템플릿 등록·심사 후 발급) ────
-  // console.solapi.com → 카카오/네이버/RCS → 알림톡 템플릿 → 템플릿 추가
-  static const templateOrderConfirm = 'ORDER_CONFIRM'; // 주문 확인
-  static const templateShipped      = 'ORDER_SHIPPED'; // 배송 시작
-  static const templateDelivered    = 'ORDER_DELIVERED'; // 배송 완료
-  static const templateCancelled    = 'ORDER_CANCELLED'; // 주문 취소
+  // ── 알림톡 템플릿 코드 (SOLAPI 검수 완료 — 2026-06-17) ────────
+  static const templateOrderConfirm = 'T6E6wLoEmf'; // 주문 확인
+  static const templateShipped      = '1o2lfrsB54'; // 배송 시작
+  static const templateDelivered    = 'GmR1Ij666P'; // 배송 완료
+  static const templateCancelled    = 'EOMxrky4zz'; // 주문 취소
 
   static bool get isConfigured =>
       apiKey.isNotEmpty && apiSecret.isNotEmpty && senderKey.isNotEmpty;
@@ -170,6 +169,7 @@ class NotificationService {
       final signature = hmacBytes;
 
       // SOLAPI 알림톡 발송 요청
+      // variables 키: SOLAPI는 #{변수명} 형식 그대로 사용
       final response = await http.post(
         Uri.parse(KakaoConfig.apiUrl),
         headers: {
@@ -184,8 +184,8 @@ class NotificationService {
             'type': 'ATA', // 알림톡
             'kakaoOptions': {
               'pfId': KakaoConfig.senderKey,
-              'templateId': templateCode,
-              'variables': params,
+              'templateCode': templateCode,
+              'variables': params, // ex) {'#{고객명}': '홍길동', ...}
             },
           },
         }),
