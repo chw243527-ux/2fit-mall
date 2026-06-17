@@ -284,7 +284,14 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
 
   Widget _buildGuideTabContent(BuildContext context) {
     final loc = Provider.of<LanguageProvider>(context, listen: false).loc;
-    final items = <Widget>[
+    final screenH = MediaQuery.of(context).size.height;
+    return SizedBox(
+      height: screenH,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // 선택된 상품 카드
           if (widget.product != null) ...[
             _buildProductCard(context, widget.product!),
@@ -552,12 +559,9 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                 : null,
           ),
           const SizedBox(height: 20),
-    ];
-    return ListView.builder(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      itemCount: items.length,
-      itemBuilder: (_, i) => items[i],
+          ],
+        ),
+      ),
     );
   }
 
