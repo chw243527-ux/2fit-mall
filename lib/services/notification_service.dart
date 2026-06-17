@@ -21,17 +21,16 @@ class KakaoConfig {
   // → API Key + API Secret 복사
   // ═════════════════════════════════════════════════════════════
 
-  // TODO: SOLAPI API Key (console.solapi.com → 개발 → API 키 관리)
+  // ✅ SOLAPI API Key — 설정 완료 (2026-06-17)
   static const apiKey = 'NCSZ6J3N1XWLA5WJ';
 
-  // TODO: SOLAPI API Secret (console.solapi.com → 개발 → API 키 관리)
+  // ✅ SOLAPI API Secret — 설정 완료 (2026-06-17)
   static const apiSecret = 'BH8J2NRD1NQ04UVHG6CNRFKYZFEZWTXS';
 
   // ✅ 발신프로필 키 — SOLAPI 채널 연동 완료 (2026-06-17)
   static const senderKey = 'KA01PF2606170642574857w8Hjn9Czz4';
 
-  // 발신 번호 (사업자 등록 번호 연계 전화번호)
-  // ⚠️ SOLAPI → 발송준비 → 발신번호 에서 사전 등록 필요
+  // ✅ 발신번호 — SOLAPI 등록 완료 (2026-06-17)
   static const senderPhone = '01072276914';
 
   // ── 알림톡 템플릿 코드 (SOLAPI 검수 완료 — 2026-06-17) ────────

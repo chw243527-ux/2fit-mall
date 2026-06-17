@@ -7,6 +7,7 @@ import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../services/fcm_service.dart';
+import '../../services/notification_service.dart';
 import '../../services/auth_service.dart';
 import '../main_screen.dart';
 import '../../widgets/address_search_widget.dart';
@@ -1834,9 +1835,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       memo: _memoController.text,
     );
     orderProvider.addOrder(order);
-    // 신규 주문 FCM 알림 (관리자에게)
+    // ── 1. 신규 주문 FCM 알림 (관리자에게) ───────────────────
     FcmService.sendNewOrderNotification(order).catchError(
       (e) { /* 알림 실패해도 주문은 진행 */ },
+    );
+    // ── 2. 카카오 알림톡 (고객에게 주문 확인 발송) ────────────
+    NotificationService.sendOrderConfirmed(order).catchError(
+      (e) { /* 알림톡 실패해도 주문은 진행 */ },
     );
 
     // 쿠폰 사용 처리
