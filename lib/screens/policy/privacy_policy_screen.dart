@@ -39,7 +39,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         fontSize: 18,
                         fontWeight: FontWeight.w800)),
                 SizedBox(height: 8),
-                Text('시행일: 2025년 3월 21일',
+                Text('시행일: 2025년 3월 21일  |  최종수정: 2026년 6월 17일',
                     style: TextStyle(color: Colors.white70, fontSize: 13)),
               ],
             ),
@@ -58,6 +58,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             '• 회원가입 및 본인 확인\n'
                 '• 서비스 제공 및 계약 이행\n'
                 '• 주문/배송/결제 처리\n'
+                '• 주문 확인·배송 안내 카카오 알림톡 발송\n'
                 '• 고객 문의 및 불만 처리\n'
                 '• 마케팅 및 광고 활용 (동의 시)',
           ),
@@ -71,12 +72,18 @@ class PrivacyPolicyScreen extends StatelessWidget {
           _buildSection(
             '제4조 (개인정보 제3자 제공)',
             '2FIT MALL은 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. '
-                '단, 배송 처리를 위해 택배사에 최소한의 정보(수령인, 주소, 연락처)를 제공합니다.',
+                '단, 아래의 경우 최소한의 정보를 제공합니다.\n\n'
+                '• 배송 처리: 택배사에 수령인·주소·연락처 제공\n'
+                '• 결제 처리: 토스페이먼츠에 결제 정보 제공\n'
+                '• 알림톡 발송: SOLAPI를 통해 주문·배송 정보 발송',
           ),
           _buildSection(
             '제5조 (개인정보처리 위탁)',
             '• Firebase (Google): 회원 인증 및 데이터 저장\n'
+                '• 토스페이먼츠: 결제 처리\n'
+                '• SOLAPI: 카카오 알림톡 발송 (주문확인·배송안내)\n'
                 '• EmailJS: 이메일 발송 서비스\n'
+                '• Cloudflare: 웹 서비스 호스팅\n'
                 '• 택배사: 배송 처리',
           ),
           _buildSection(
@@ -90,9 +97,18 @@ class PrivacyPolicyScreen extends StatelessWidget {
           ),
           _buildSection(
             '제7조 (개인정보 보호책임자)',
-            '• 책임자: 2FIT MALL 운영팀\n'
-                '• 이메일: chw243527@gmail.com\n\n'
+            '• 회사명: 주식회사 2FIT Korea\n'
+                '• 대표자: 최혜원\n'
+                '• 사업장 주소: 전북 남원시 오들1길 97, 205-303\n'
+                '• 책임자 이메일: chw243527@gmail.com\n'
+                '• 고객센터: 010-7227-6914\n\n'
                 '본 방침은 2025년 3월 21일부터 적용됩니다.',
+          ),
+          _buildSection(
+            '제8조 (쿠키 및 자동수집 장치)',
+            '서비스 이용 편의를 위해 쿠키를 사용할 수 있으며, '
+                '브라우저 설정을 통해 거부할 수 있습니다. '
+                '쿠키 거부 시 일부 서비스 이용이 제한될 수 있습니다.',
           ),
 
           const SizedBox(height: 24),

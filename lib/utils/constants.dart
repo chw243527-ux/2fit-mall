@@ -2,8 +2,16 @@ class AppConstants {
   // App Info
   static const String appName = '2FIT MALL';
   static const String appVersion = '1.0.2';
-  static const String companyName = '2FIT Korea Co., Ltd.'; // ✏️ 사업자 등록 후 실제 상호로 교체
+  static const String companyName = '주식회사 2FIT Korea';
+  static const String companyNameEn = '2FIT Korea Co., Ltd.';
   static const String copyright = '© 2024 2FIT Korea. All rights reserved.';
+
+  // ── 사업자 정보 ─────────────────────────────────────────────
+  static const String ceoName = '최혜원';
+  static const String businessRegNumber = '787-19-02539';
+  static const String ecommerceRegNumber = ''; // 발급 후 입력 (심사 중)
+  static const String companyAddress = '전라북도 남원시 오들1길 97, 205-303';
+  static const String companyPostalCode = '55705';
   
   // Contact
   static const String customerServicePhone = '010-7227-6914';

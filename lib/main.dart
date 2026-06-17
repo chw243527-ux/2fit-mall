@@ -28,6 +28,7 @@ import 'screens/chat/chat_screen.dart';
 import 'screens/policy/privacy_policy_screen.dart';
 import 'screens/admin/admin_screen.dart';
 import 'screens/policy/terms_of_service_screen.dart';
+import 'screens/not_found_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -217,7 +218,10 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 settings: settings,
               );
             default:
-              return null;
+              return MaterialPageRoute(
+                builder: (_) => const NotFoundScreen(),
+                settings: settings,
+              );
           }
         },
       ),

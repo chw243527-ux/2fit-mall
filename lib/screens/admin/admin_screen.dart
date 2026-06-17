@@ -2894,20 +2894,33 @@ class _AdminScreenState extends State<AdminScreen>
                               await _showShippingDialog(order.id, newStatus);
                             } else {
                               await OrderService.updateOrderStatus(order.id, newStatus);
-                              // FCM 푸시 알림 전송
+                              // ── 1. FCM 푸시 알림 전송 ─────────────────────
                               FcmService.sendOrderStatusNotification(
                                 order: order,
                                 newStatus: newStatus,
                               ).catchError((e) {
                                 if (kDebugMode) debugPrint('⚠️ FCM 알림 실패: $e');
                               });
+                              // ── 2. 카카오 알림톡 (배송완료 / 취소) ───────
+                              if (newStatus == OrderStatus.delivered) {
+                                NotificationService.sendDelivered(order).catchError((e) {
+                                  if (kDebugMode) debugPrint('⚠️ 알림톡(배송완료) 실패: $e');
+                                });
+                              } else if (newStatus == OrderStatus.cancelled) {
+                                NotificationService.sendCancelled(
+                                  order: order,
+                                  reason: '관리자 처리',
+                                ).catchError((e) {
+                                  if (kDebugMode) debugPrint('⚠️ 알림톡(취소) 실패: $e');
+                                });
+                              }
                               if (mounted) {
                                 context.read<OrderProvider>().updateOrderStatus(order.id, newStatus);
                                 // 주문 상태 변경 시 베스트 상품 판매 수 재집계
                                 context.read<ProductProvider>().refreshSalesCounts();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('주문 ${order.id} 상태: ${newStatus.label} 🔔알림 전송'),
+                                    content: Text('주문 ${order.id} 상태: ${newStatus.label} 🔔FCM+알림톡 전송'),
                                     backgroundColor: const Color(0xFF1A1A2E),
                                     duration: const Duration(seconds: 2),
                                   ),
@@ -6495,15 +6508,21 @@ class _AdminScreenState extends State<AdminScreen>
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             onPressed: () async {
+              final trackingNum = trackingCtrl.text.trim();
+              final courierName = companyCtrl.text.trim().isEmpty
+                  ? '택배사 미지정'
+                  : companyCtrl.text.trim();
+
               await OrderService.updateOrderStatusWithTracking(
                 orderId: orderId,
                 status: newStatus,
-                trackingNumber: trackingCtrl.text.trim().isEmpty ? null : trackingCtrl.text.trim(),
+                trackingNumber: trackingNum.isEmpty ? null : trackingNum,
                 shippingCompany: companyCtrl.text.trim().isEmpty ? null : companyCtrl.text.trim(),
                 adminMemo: memoCtrl.text.trim().isEmpty ? null : memoCtrl.text.trim(),
               );
               if (!context.mounted) return;
-              // FCM 푸시 알림 (배송 시작)
+
+              // ── 1. FCM 푸시 알림 (배송 시작) ─────────────────
               final allOrders = context.read<OrderProvider>().orders;
               final targetOrder = allOrders.firstWhere(
                 (o) => o.id == orderId,
@@ -6516,13 +6535,29 @@ class _AdminScreenState extends State<AdminScreen>
                 ).catchError((e) {
                   if (kDebugMode) debugPrint('⚠️ FCM 알림 실패: $e');
                 });
+
+                // ── 2. 카카오 알림톡 발송 (배송 시작) ────────────
+                if (trackingNum.isNotEmpty && targetOrder.userPhone.isNotEmpty) {
+                  NotificationService.sendShipped(
+                    order: targetOrder,
+                    trackingNumber: trackingNum,
+                    courierName: courierName,
+                  ).catchError((e) {
+                    if (kDebugMode) debugPrint('⚠️ 알림톡 발송 실패: $e');
+                  });
+                }
               }
+
               if (mounted) {
                 context.read<OrderProvider>().updateOrderStatus(orderId, newStatus);
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('배송 정보 저장 완료 🔔알림 전송 (운송장: ${trackingCtrl.text.isEmpty ? "미입력" : trackingCtrl.text})'),
+                    content: Text(
+                      trackingNum.isEmpty
+                          ? '배송 정보 저장 완료 (운송장 미입력 — 알림톡 미전송)'
+                          : '배송 정보 저장 완료 🔔FCM+알림톡 전송 (운송장: $trackingNum)',
+                    ),
                     backgroundColor: const Color(0xFF1A1A2E),
                   ),
                 );
