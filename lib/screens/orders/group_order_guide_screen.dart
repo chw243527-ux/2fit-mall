@@ -60,9 +60,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             onPressed: () => goBackOrHome(context),
           ),
         ),
-        body: LayoutBuilder(
-          builder: (context, constraints) => _buildGuideTab(context),
-        ),
+        body: _buildGuideTab(context),
       ),
     );
   }
@@ -281,30 +279,12 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // 탭1: 주문 안내
   // ═══════════════════════════════════════════════════
   Widget _buildGuideTab(BuildContext context) {
-    return Column(
-      children: [
-        // ── 디버그 배너 (확인 후 제거) ──
-        Container(
-          width: double.infinity,
-          color: Colors.red,
-          padding: const EdgeInsets.all(8),
-          child: const Text(
-            '▶ GroupOrderGuideScreen 렌더링 확인 중',
-            style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        Expanded(child: _buildGuideTabContent(context)),
-      ],
-    );
+    return _buildGuideTabContent(context);
   }
 
   Widget _buildGuideTabContent(BuildContext context) {
     final loc = Provider.of<LanguageProvider>(context, listen: false).loc;
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      children: [
+    final items = <Widget>[
           // 선택된 상품 카드
           if (widget.product != null) ...[
             _buildProductCard(context, widget.product!),
@@ -572,7 +552,12 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                 : null,
           ),
           const SizedBox(height: 20),
-      ],
+    ];
+    return ListView.builder(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      itemCount: items.length,
+      itemBuilder: (_, i) => items[i],
     );
   }
 
