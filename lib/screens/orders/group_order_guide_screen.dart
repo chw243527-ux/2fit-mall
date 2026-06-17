@@ -279,7 +279,35 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // 탭1: 주문 안내
   // ═══════════════════════════════════════════════════
   Widget _buildGuideTab(BuildContext context) {
-    return _buildGuideTabContent(context);
+    try {
+      return _buildGuideTabContent(context);
+    } catch (e, st) {
+      // 디버그용 에러 표시 (흰 화면 대신 에러 메시지)
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 40),
+            const SizedBox(height: 12),
+            const Text('단체주문 안내 로드 오류', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            Text(e.toString(), style: const TextStyle(fontSize: 12, color: Colors.red)),
+            const SizedBox(height: 8),
+            Text(st.toString().substring(0, st.toString().length.clamp(0, 500)),
+                style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => GroupOrderFormScreen(product: widget.product),
+              )),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), foregroundColor: Colors.white),
+              child: const Text('주문서 바로 작성하기'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _buildGuideTabContent(BuildContext context) {
