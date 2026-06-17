@@ -286,6 +286,9 @@
       window.addEventListener('load', function() {
         navigator.serviceWorker.register('flutter_service_worker.js', {scope: '/'})
           .then(function(reg) {
+            // ── 페이지 로드 시 즉시 업데이트 체크 (캐시 우회) ──
+            reg.update();
+
             // 새 SW가 설치(대기) 상태가 되면 즉시 활성화
             reg.addEventListener('updatefound', function() {
               var newWorker = reg.installing;
