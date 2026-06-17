@@ -26,7 +26,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   bool _agreed = false;
 
   // ── 탑텐 블랙 스타일 상수 ──────────────────────────────────
-  static const _kBlack    = Color(0xFF000000);
+  static const _kBlack    = Color(0xFFCC0000); // DEBUG: 빨간색 — 새 코드 확인용
   static const _kBg       = Color(0xFFF8F8F8);
   static const _kDivider  = Color(0xFFE8E8E8);
   static const _kGrey1    = Color(0xFF1A1A1A);
@@ -106,7 +106,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // ── AppBar ────────────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar({required double fontSize}) {
     return AppBar(
-      backgroundColor: _kBlack,
+      backgroundColor: Colors.red, // DEBUG
       foregroundColor: Colors.white,
       elevation: 0,
       toolbarHeight: 48,
