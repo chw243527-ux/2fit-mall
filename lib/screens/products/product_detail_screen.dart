@@ -9553,9 +9553,6 @@ class _GroupOrderGuideSheet extends StatefulWidget {
 
 class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
   bool _checked = false;
-  AppLocalizations get loc => context.watch<LanguageProvider>().loc;
-  // ignore: unused_element
-  AppLanguage get _lang => context.watch<LanguageProvider>().language;
 
   static const Color _purple = Color(0xFF4A148C);
 
@@ -9598,9 +9595,9 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(loc.groupOrderGuideAppBar,
+                    Text('단체 주문 안내',
                         style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
-                    Text(loc.groupOrderGuideHeroTitle,
+                    Text('단체 맞춤 제작',
                         style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), letterSpacing: 0.5)),
                   ],
                 ),
@@ -9617,46 +9614,46 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                 children: [
 
                   // ─── 1. 기본 안내 ───────────────────────────────
-                  _sheetSectionTitle(Icons.info_outline_rounded, loc.groupOrderGuideAppBar, const Color(0xFF1565C0)),
+                  _sheetSectionTitle(Icons.info_outline_rounded, '단체 주문 안내', const Color(0xFF1565C0)),
                   SizedBox(height: r.h(10)),
                   _infoCard(
                     icon: Icons.people_outline_rounded,
                     iconBg: const Color(0xFFE8EAF6),
                     iconColor: _purple,
-                    title: loc.groupOrderMinQty,
-                    content: loc.groupOrderMinQtyDesc,
+                    title: '최소 수량',
+                    content: '단체 커스텀 제작은 최소 5명부터 가능합니다.',
                   ),
                   SizedBox(height: r.h(8)),
                   _infoCard(
                     icon: Icons.schedule_outlined,
                     iconBg: const Color(0xFFF3E5F5),
                     iconColor: const Color(0xFF6A1B9A),
-                    title: loc.groupOrderProductionPeriod,
-                    content: loc.groupOrderProductionPeriodDesc,
+                    title: '제작 기간',
+                    content: '주문 확정 후 14~21일 소요됩니다.\n• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작\n(시즌/물량에 따라 변동될 수 있습니다)',
                   ),
                   SizedBox(height: r.h(8)),
                   _infoCardWidget(
                     icon: Icons.local_shipping_outlined,
                     iconBg: const Color(0xFFE3F2FD),
                     iconColor: const Color(0xFF1565C0),
-                    title: loc.groupOrderGuideShippingTitle,
+                    title: '배송 안내',
                     contentWidget: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(loc.groupOrderGuideShipping1, style: TextStyle(fontSize: r.sp(13), height: 1.6)),
-                        Text(loc.groupOrderGuideShipping2, style: TextStyle(fontSize: r.sp(13), height: 1.6)),
-                        Text(loc.groupOrderGuideShipping3, style: TextStyle(fontSize: r.sp(13), height: 1.6)),
-                        Text(loc.groupOrderGuideShipping4, style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text('• 30만원 이상 구매 시: 무료배송', style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text('• 30만원 미만: 배송비 별도', style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text('• 추가 제작 (5장 미만): 배송비 4,000원 추가', style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text('• 단체 주문은 일괄 배송이 원칙입니다.', style: TextStyle(fontSize: r.sp(13), height: 1.6)),
                       ],
                     ),
                   ),
                   SizedBox(height: r.h(20)),
 
                   // ─── 3. 사이즈 안내 ──────────────────────────────
-                  _sheetSectionTitle(null, loc.groupOrderGuideSizeTitle, const Color(0xFF1A1A1A), emoji: '📏'),
+                  _sheetSectionTitle(null, '사이즈 안내', const Color(0xFF1A1A1A), emoji: '📏'),
                   SizedBox(height: r.h(10)),
                   _sizeTable(
-                    title: '${loc.groupOrderGuideSizeAdult} (XS~XXXL)',
+                    title: '성인 사이즈 (XS~XXXL)',
                     emoji: '🧑',
                     headerColor: const Color(0xFF1565C0),
                     headerBg: const Color(0xFFE3F2FD),
@@ -9672,7 +9669,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   ),
                   SizedBox(height: r.h(12)),
                   _sizeTable(
-                    title: '${loc.groupOrderGuideSizeJunior} (XXS~L)',
+                    title: '주니어 사이즈 (XXS~L)',
                     emoji: '🧒',
                     headerColor: const Color(0xFF6A1B9A),
                     headerBg: const Color(0xFFF3E5F5),
@@ -9700,11 +9697,11 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(loc.groupOrderGuideNoSizeHint,
+                              Text('원하는 사이즈가 없을 경우',
                                   style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700)),
                               SizedBox(height: r.h(4)),
                               Text(
-                                loc.groupOrderGuideNoSizeDesc,
+                                '주문 양식에 키와 체중을 입력해주세요',
                                 style: TextStyle(fontSize: r.sp(13), height: 1.5),
                               ),
                             ],
@@ -9716,7 +9713,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   SizedBox(height: r.h(20)),
 
                   // ─── 4. 교환·환불 정책 ───────────────────────────
-                  _sheetSectionTitle(null, loc.groupOrderGuideExchangeTitle, const Color(0xFFE65100), emoji: '⚠️'),
+                  _sheetSectionTitle(null, '교환·환불 정책', const Color(0xFFE65100), emoji: '⚠️'),
                   SizedBox(height: r.h(10)),
                   Container(
                     padding: EdgeInsets.all(r.w(14)),
@@ -9728,13 +9725,13 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(loc.groupOrderGuideExchange1,
+                        Text('• 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불은 불가합니다.',
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text(loc.groupOrderGuideExchange2,
+                        Text('• 기성품: 제품 수령 후 3일 이내 교환·환불 가능합니다.',
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text(loc.groupOrderSheetCancelNote,
+                        Text('• 주문 확정 후 제작 착수 전까지만 취소 가능합니다.',
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text(loc.groupOrderSheetColorNote,
+                        Text('• 색상은 모니터 환경에 따라 실제와 다소 다를 수 있습니다.',
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
                       ],
                     ),
@@ -9773,7 +9770,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                           SizedBox(width: r.w(10)),
                           Expanded(
                             child: Text(
-                              loc.groupOrderSheetAgreeBtn,
+                              '주문 안내 내용을 모두 확인하였습니다',
                               style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
                             ),
                           ),
@@ -9789,7 +9786,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     height: 54,
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 20),
-                      label: Text(loc.groupOrderSheetFillForm,
+                      label: Text('단체 서식 작성하기',
                           style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800, color: Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _checked ? _purple : const Color(0xFFBBBBBB),
@@ -9937,7 +9934,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
     required List<List<String>> rows,
   }) {
     final r = Responsive.of(context);
-    final headers = [loc.sheetSizeTableSize, loc.sheetSizeTableChest, loc.sheetSizeTableWaist, loc.sheetSizeTableHip, loc.sheetSizeTableHeight];
+    final headers = ['사이즈', '가슴(cm)', '허리(cm)', '엉덩이(cm)', '키(cm)'];
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
