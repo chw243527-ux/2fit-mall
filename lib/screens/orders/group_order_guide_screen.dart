@@ -116,9 +116,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                     flex: 7,
                     child: Container(
                       color: Colors.white,
-                      child: SingleChildScrollView(
-                        child: _buildGuideContent(context),
-                      ),
+                      child: _buildGuideContentPc(context),
                     ),
                   ),
                   const SizedBox(width: 24),
@@ -223,16 +221,28 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // ════════════════════════════════════════════════════════════
   // 안내 콘텐츠 (공통)
   // ════════════════════════════════════════════════════════════
-  Widget _buildGuideContent(BuildContext context) {
-    // PC 레이아웃: Row>Expanded 안에서 ListView 높이 무한 충돌 방지
-    // → shrinkWrap + NeverScrollableScrollPhysics 로 Column처럼 동작
-    // 모바일: Scaffold body 직접 배치이므로 일반 스크롤 유지
-    final isPc = isPcWeb(context);
-    return ListView(
-      shrinkWrap: isPc,
-      physics: isPc ? const NeverScrollableScrollPhysics() : null,
+  // PC용: SingleChildScrollView > Column (Row 안에서 높이 무한대 없음)
+  Widget _buildGuideContentPc(BuildContext context) {
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-      children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: _guideItems(context),
+      ),
+    );
+  }
+
+  // 모바일용: ListView (Scaffold body 직접 배치 — 정상 스크롤)
+  Widget _buildGuideContent(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+      children: _guideItems(context),
+    );
+  }
+
+  // 공통 안내 아이템 목록
+  List<Widget> _guideItems(BuildContext context) {
+    return [
 
         // ── 선택된 상품 카드 ──────────────────────────────────
         if (widget.product != null) ...[
@@ -410,8 +420,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           ),
         ],
         const SizedBox(height: 24),
-      ],
-    );
+      ];
   }
 
   // ════════════════════════════════════════════════════════════
