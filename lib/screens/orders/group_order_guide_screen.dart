@@ -91,16 +91,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             onPressed: () => goBackOrHome(context),
           ),
         ),
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            return SizedBox(
-              height: constraints.maxHeight.isFinite
-                  ? constraints.maxHeight
-                  : MediaQuery.of(context).size.height - 48,
-              child: _buildGuideTab(context),
-            );
-          },
-        ),
+        body: _buildGuideTab(context),
       ),
     );
   }
@@ -368,11 +359,11 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   }
 
   Widget _buildGuideTabContent(BuildContext context) {
-    return SingleChildScrollView(
+    // Scaffold body는 ListView에 bounded height를 자동 제공
+    // SingleChildScrollView + Column은 Flutter Web에서 height=0 버그 발생
+    return ListView(
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      children: [
           // 선택된 상품 카드
           if (widget.product != null) ...[
             _buildProductCard(widget.product!),
@@ -651,7 +642,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           ),
           const SizedBox(height: 20),
         ],
-      ),
     );
   }
 
