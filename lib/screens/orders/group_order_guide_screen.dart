@@ -118,45 +118,57 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
           ),
         ),
-        // ── body: 최상위가 SingleChildScrollView ──────────────
-        // Row 가 SingleChildScrollView 의 직접 자식이므로
-        // 좌측 Column 의 높이를 Row 가 자연스럽게 감쌈 → 공백 없음
-        body: SingleChildScrollView(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1280),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── 좌측: 안내 콘텐츠 ────────────────────────
-                    // Flexible(fit: FlexFit.loose) 사용
-                    // → Expanded(flex:7)와 달리 자식이 높이를 자연히 결정
-                    Flexible(
-                      flex: 7,
-                      fit: FlexFit.loose,
-                      child: Container(
-                        color: Colors.white,
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: _guideItems(context),
+        // ── PC body: Stack 구조
+        // [뒤] SingleChildScrollView → 좌측 콘텐츠 (스크롤)
+        // [앞] Positioned → 우측 패널 (viewport 고정 — sticky sidebar)
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            // 화면 너비에 따라 패널 우측 여백 계산
+            final screenW = constraints.maxWidth;
+            const maxW = 1280.0;
+            const panelW = 300.0;
+            const hPad = 24.0;
+            // 중앙 정렬 시 우측 여백 (maxWidth 초과 시 중앙 정렬 반영)
+            final panelRight = screenW > maxW ? (screenW - maxW) / 2 + hPad : hPad;
+
+            return Stack(
+              children: [
+                // ── 좌측 콘텐츠 (스크롤) ──────────────────────
+                SingleChildScrollView(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: maxW),
+                      child: Padding(
+                        // 우측에 패널(300) + 간격(24) + 여백(24) 확보
+                        padding: const EdgeInsets.only(
+                          left: hPad,
+                          right: hPad + panelW + hPad,
+                          top: hPad,
+                          bottom: hPad,
+                        ),
+                        child: Container(
+                          color: Colors.white,
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: _guideItemsPcOnly(context),
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 24),
-                    // ── 우측: 주문 패널 ───────────────────────────
-                    SizedBox(
-                      width: 300,
-                      child: _buildPcOrderPanel(context),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
+                // ── 우측 패널 (sticky — viewport 고정) ──────────
+                Positioned(
+                  top: hPad,
+                  right: panelRight,
+                  width: panelW,
+                  child: _buildPcOrderPanel(context),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -425,6 +437,148 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           style: TextStyle(fontSize: 12, color: _kGrey8),
         ),
       ],
+      const SizedBox(height: 24),
+    ];
+  }
+
+  // PC 전용 콘텐츠 목록 — 체크박스/버튼 제외 (우측 패널에만 있음)
+  List<Widget> _guideItemsPcOnly(BuildContext context) {
+    return [
+      if (widget.product != null) ...[
+        _buildProductCard(widget.product!),
+        const SizedBox(height: 20),
+      ],
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        color: _kBlack,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              color: Colors.white,
+              child: const Text(
+                'GROUP ORDER',
+                style: TextStyle(
+                  color: _kBlack, fontSize: 10,
+                  fontWeight: FontWeight.w900, letterSpacing: 2.0,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '단체주문 안내',
+              style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              '5명 이상 단체 맞춤 제작 전문\n최고의 품질로 특별한 유니폼을 만들어드립니다.',
+              style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.6),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 20),
+      _buildSectionRow(Icons.group_outlined, '최소 수량'),
+      const SizedBox(height: 8),
+      _buildInfoBox('단체 커스텀 제작은 최소 5명부터 가능합니다.'),
+      const SizedBox(height: 20),
+      _buildSectionRow(Icons.schedule_outlined, '제작 기간'),
+      const SizedBox(height: 8),
+      _buildInfoLines(const [
+        '• 주문 확정 후 14~21일 소요됩니다.',
+        '• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작',
+        '• 시즌/물량에 따라 변동될 수 있습니다.',
+      ]),
+      const SizedBox(height: 20),
+      _buildSectionRow(Icons.local_shipping_outlined, '배송 안내'),
+      const SizedBox(height: 8),
+      _buildInfoLines(const [
+        '• 30만원 이상 구매 시: 무료배송',
+        '• 30만원 미만: 배송비 별도',
+        '• 추가 제작 (5장 미만): 배송비 4,000원 추가',
+        '• 단체 주문은 일괄 배송이 원칙입니다.',
+      ]),
+      const SizedBox(height: 20),
+      _buildSectionRow(Icons.palette_outlined, '커스텀 옵션'),
+      const SizedBox(height: 8),
+      _buildInfoLines(const [
+        '• 허리밴드 디자인 색상 변경 전부 무료',
+        '• 로고는 AI 원본 파일 첨부 필수 (AI, EPS, SVG 형식)',
+        '• 원하는 옷 디자인의 앞·뒤 사진을 첨부하면 원하는 디자인으로 제작 가능',
+      ]),
+      const SizedBox(height: 20),
+      _buildSectionRow(Icons.lock_outline_rounded, '디자인 독점 사용 옵션 (선택)'),
+      const SizedBox(height: 8),
+      _buildExclusiveBox(),
+      const SizedBox(height: 20),
+      _buildSectionRow(Icons.add_circle_outline, '추가 주문 안내'),
+      const SizedBox(height: 8),
+      _buildInfoLines(const [
+        '• 추가 주문 시 기존 주문번호 필수 입력',
+        '• 1장부터 추가 가능',
+        '• 5장 이하 추가 주문: 배송비 4,000원 별도',
+      ]),
+      const SizedBox(height: 20),
+      _buildSectionRow(Icons.assignment_outlined, '주문 절차'),
+      const SizedBox(height: 8),
+      _buildOrderSteps(),
+      const SizedBox(height: 20),
+      _buildSectionRow(Icons.straighten_outlined, '사이즈 안내'),
+      const SizedBox(height: 8),
+      _buildSizeTable(
+        title: '성인 사이즈 (XS~XXXL)',
+        emoji: '🧑',
+        headerColor: const Color(0xFF1565C0),
+        headerBg: const Color(0xFFE3F2FD),
+        headers: const ['사이즈', '키(cm)', '체중(kg)', '가슴', '허리'],
+        rows: const [
+          ['XS',   '154~159', '44~51',  '85', '68'],
+          ['S',    '160~165', '52~60',  '90', '72'],
+          ['M',    '166~172', '61~71',  '95', '76'],
+          ['L',    '172~177', '72~78',  '100', '80'],
+          ['XL',   '177~182', '79~85',  '105', '84'],
+          ['2XL',  '182~187', '86~91',  '110', '88'],
+          ['3XL',  '187~191', '91~96',  '115', '92'],
+        ],
+      ),
+      const SizedBox(height: 10),
+      _buildSizeTable(
+        title: '주니어 사이즈 (XXS~XL)',
+        emoji: '🧒',
+        headerColor: const Color(0xFF6A1B9A),
+        headerBg: const Color(0xFFF3E5F5),
+        headers: const ['사이즈', '신장(cm)', '체중(kg)', '가슴', '허리'],
+        rows: const [
+          ['XXS(80)', '104~116', '16~20', '58', '55'],
+          ['XS(90)',  '116~128', '20~25', '63', '58'],
+          ['S(100)',  '128~140', '25~32', '68', '62'],
+          ['M(110)',  '140~152', '32~40', '73', '65'],
+          ['L(120)',  '152~158', '40~48', '78', '68'],
+          ['XL(130)', '158~165', '48~55', '83', '72'],
+        ],
+      ),
+      const SizedBox(height: 8),
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: const BoxDecoration(
+          color: Color(0xFFE3F2FD),
+          border: Border(left: BorderSide(color: Color(0xFF1565C0), width: 3)),
+        ),
+        child: const Text(
+          '원하는 사이즈가 없을 경우 주문 양식에 키와 체중을 입력해주세요.',
+          style: TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF333333)),
+        ),
+      ),
+      const SizedBox(height: 20),
+      _buildSectionRow(Icons.swap_horiz_outlined, '교환·환불 정책'),
+      const SizedBox(height: 8),
+      _buildExchangeBox(),
+      const SizedBox(height: 20),
+      _buildSectionRow(Icons.attach_file_outlined, '주문서 첨부파일 안내'),
+      const SizedBox(height: 8),
+      _buildAttachGuide(),
       const SizedBox(height: 24),
     ];
   }
