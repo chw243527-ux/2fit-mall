@@ -281,7 +281,22 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // 탭1: 주문 안내
   // ═══════════════════════════════════════════════════
   Widget _buildGuideTab(BuildContext context) {
-    return _buildGuideTabContent(context);
+    return Column(
+      children: [
+        // ── 디버그 배너 (확인 후 제거) ──
+        Container(
+          width: double.infinity,
+          color: Colors.red,
+          padding: const EdgeInsets.all(8),
+          child: const Text(
+            '▶ GroupOrderGuideScreen 렌더링 확인 중',
+            style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        Expanded(child: _buildGuideTabContent(context)),
+      ],
+    );
   }
 
   Widget _buildGuideTabContent(BuildContext context) {
