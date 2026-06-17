@@ -20,8 +20,6 @@ class GroupOrderLandingScreen extends StatefulWidget {
 class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
-  AppLocalizations get loc => context.watch<LanguageProvider>().loc;
-
   @override
   void initState() {
     super.initState();
@@ -72,7 +70,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       body: TabBarView(
         controller: _tabCtrl,
         children: [
-          _buildGuideTab(),
+          _buildGuideTab(context),
           _buildOrderFormTab(),
         ],
       ),
@@ -115,7 +113,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                         borderRadius: BorderRadius.circular(12),
                       ),
                       padding: const EdgeInsets.all(24),
-                      child: _buildGuideTab(),
+                      child: _buildGuideTab(context),
                     ),
                   ),
                 ),
@@ -146,9 +144,9 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   // ══════════════════════════════════════════════════════════
   // 단체주문 안내 탭
   // ══════════════════════════════════════════════════════════
-  Widget _buildGuideTab() {
+  Widget _buildGuideTab(BuildContext context) {
     try {
-      return _buildGuideTabContent();
+      return _buildGuideTabContent(context);
     } catch (e) {
       return Center(
         child: Padding(
@@ -179,7 +177,8 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     }
   }
 
-  Widget _buildGuideTabContent() {
+  Widget _buildGuideTabContent(BuildContext context) {
+    final loc = Provider.of<LanguageProvider>(context, listen: false).loc;
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(20),

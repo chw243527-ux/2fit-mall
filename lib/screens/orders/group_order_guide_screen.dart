@@ -322,6 +322,8 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   }
 
   Widget _buildGuideTabContent(BuildContext context) {
+    // listen: false 로 고정 — build() 스택 외부(try-catch 등)에서도 안전하게 호출 가능
+    final loc = Provider.of<LanguageProvider>(context, listen: false).loc;
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
@@ -330,7 +332,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
         children: [
           // 선택된 상품 카드
           if (widget.product != null) ...[
-            _buildProductCard(widget.product!),
+            _buildProductCard(context, widget.product!),
             const SizedBox(height: 24),
           ],
 
@@ -349,8 +351,8 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           // 제작 기간
           _InfoCard(
             iconData: Icons.schedule_outlined,
-            title: context.watch<LanguageProvider>().loc.groupOrderProductionPeriod,
-            content: context.watch<LanguageProvider>().loc.groupOrderProductionPeriodDesc,
+            title: loc.groupOrderProductionPeriod,
+            content: loc.groupOrderProductionPeriodDesc,
           ),
           const SizedBox(height: 8),
 
@@ -361,13 +363,13 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             contentWidget: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping1,
+                Text(loc.groupOrderGuideShipping1,
                     style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping2,
+                Text(loc.groupOrderGuideShipping2,
                     style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping3,
+                Text(loc.groupOrderGuideShipping3,
                     style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
-                Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping4,
+                Text(loc.groupOrderGuideShipping4,
                     style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
               ],
             ),
@@ -511,7 +513,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           // 교환·환불 정책
           _SectionHeader2(
             label: 'EXCHANGE & REFUND',
-            title: context.watch<LanguageProvider>().loc.groupOrderGuideExchangeTitle,
+            title: loc.groupOrderGuideExchangeTitle,
           ),
           const SizedBox(height: 14),
           Container(
@@ -630,7 +632,9 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   }
 
   // ── 선택 상품 카드 ──
-  Widget _buildProductCard(ProductModel product) {
+  Widget _buildProductCard(BuildContext context, ProductModel product) {
+    final lang = Provider.of<LanguageProvider>(context, listen: false).language;
+    final loc = Provider.of<LanguageProvider>(context, listen: false).loc;
     final imageUrl = product.images.isNotEmpty ? product.images.first : '';
     return Container(
       padding: const EdgeInsets.all(14),
@@ -652,7 +656,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product.localizedName(_lang),
+                  product.localizedName(lang),
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -666,8 +670,8 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                 Wrap(
                   spacing: 6,
                   children: [
-                    _buildTag(context.watch<LanguageProvider>().loc.setProduct),
-                    _buildTag(context.watch<LanguageProvider>().loc.groupOrderOnlyLabel),
+                    _buildTag(loc.setProduct),
+                    _buildTag(loc.groupOrderOnlyLabel),
                   ],
                 ),
               ],
