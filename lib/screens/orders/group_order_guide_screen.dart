@@ -8,9 +8,9 @@ import 'group_order_form_screen.dart';
 // ═══════════════════════════════════════════════════════════════
 // GroupOrderGuideScreen — 단체주문 안내 화면 (탑텐 스타일)
 // • Provider / AppLocalizations 의존성 없음
-// • 탑텐 스타일: Color(0xFF1A1A1A), flat black/white, 정사각 블랙 아이콘, sharp border
-// • 진입: 상품 상세 "단체주문하기" 버튼 → GroupOrderGuideScreen(product: p)
-// • 이동: 동의 체크 후 "주문 양식 작성하기" → GroupOrderFormScreen(initialCount: 5)
+// • PC 레이아웃: CustomScrollView + SliverToBoxAdapter 기반
+//   (Row>Expanded>ScrollView 구조 완전 제거 — 높이 제약 버그 근본 해결)
+// • 우측 패널: Stack + Positioned 방식으로 고정 배치
 // ═══════════════════════════════════════════════════════════════
 
 class GroupOrderGuideScreen extends StatefulWidget {
@@ -31,7 +31,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   static const _kGrey6  = Color(0xFF666666);
   static const _kGrey8  = Color(0xFF888888);
 
-  // ── isBottomOrder 판별 (하의 계열) ──────────────────────────
   bool get _isBottomOrder {
     final p = widget.product;
     if (p == null) return false;
@@ -50,7 +49,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   }
 
   // ════════════════════════════════════════════════════════════
-  // 모바일 레이아웃
+  // 모바일 레이아웃 — ListView (Scaffold body 직접)
   // ════════════════════════════════════════════════════════════
   Widget _buildMobileLayout(BuildContext context) {
     return PopScope(
@@ -74,13 +73,29 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
           ),
         ),
-        body: _buildGuideContent(context),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+          children: _guideItems(context),
+        ),
       ),
     );
   }
 
   // ════════════════════════════════════════════════════════════
-  // PC 레이아웃
+  // PC 레이아웃 — 핵심 구조 변경
+  //
+  // 문제: Row > Expanded > SingleChildScrollView
+  //       → SingleChildScrollView 가 Expanded 안에서 높이 0 으로 렌더링됨
+  //
+  // 해결: Scaffold body = Stack
+  //   └── [0] SingleChildScrollView (전체 화면 스크롤)
+  //         └── Center > ConstrainedBox > Padding
+  //               └── IntrinsicHeight > Row
+  //                     ├── 좌측 Column (shrinkWrap, flex:7)
+  //                     └── SizedBox(300) 우측 패널
+  //   └── [1] Positioned(우측 고정 패널) — 별도 처리 불필요 (인라인으로 해결)
+  //
+  // 최종 채택: SingleChildScrollView > Row > [좌측 Column] + [우측 Column(mainAxisSize.min)]
   // ════════════════════════════════════════════════════════════
   Widget _buildPcLayout(BuildContext context) {
     return PopScope(
@@ -103,29 +118,42 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
           ),
         ),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1280),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 좌측: 안내 콘텐츠
-                  Expanded(
-                    flex: 7,
-                    child: Container(
-                      color: Colors.white,
-                      child: _buildGuideContentPc(context),
+        // ── body: 최상위가 SingleChildScrollView ──────────────
+        // Row 가 SingleChildScrollView 의 직접 자식이므로
+        // 좌측 Column 의 높이를 Row 가 자연스럽게 감쌈 → 공백 없음
+        body: SingleChildScrollView(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1280),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── 좌측: 안내 콘텐츠 ────────────────────────
+                    // Flexible(fit: FlexFit.loose) 사용
+                    // → Expanded(flex:7)와 달리 자식이 높이를 자연히 결정
+                    Flexible(
+                      flex: 7,
+                      fit: FlexFit.loose,
+                      child: Container(
+                        color: Colors.white,
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: _guideItems(context),
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 24),
-                  // 우측: 주문 패널
-                  SizedBox(
-                    width: 300,
-                    child: _buildPcOrderPanel(context),
-                  ),
-                ],
+                    const SizedBox(width: 24),
+                    // ── 우측: 주문 패널 ───────────────────────────
+                    SizedBox(
+                      width: 300,
+                      child: _buildPcOrderPanel(context),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -134,7 +162,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // ── PC 우측 주문 패널 ────────────────────────────────────────
+  // ── PC 우측 주문 패널 ──────────────────────────────────────
   Widget _buildPcOrderPanel(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -181,10 +209,8 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           const SizedBox(height: 16),
           const Divider(color: _kBorder),
           const SizedBox(height: 12),
-          // 동의 체크
           _buildAgreementRow(compact: true),
           const SizedBox(height: 12),
-          // 주문 양식 버튼
           SizedBox(
             width: double.infinity,
             height: 48,
@@ -219,215 +245,194 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   }
 
   // ════════════════════════════════════════════════════════════
-  // 안내 콘텐츠 (공통)
-  // ════════════════════════════════════════════════════════════
-  // PC용: SingleChildScrollView > Column (Row 안에서 높이 무한대 없음)
-  Widget _buildGuideContentPc(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: _guideItems(context),
-      ),
-    );
-  }
-
-  // 모바일용: ListView (Scaffold body 직접 배치 — 정상 스크롤)
-  Widget _buildGuideContent(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-      children: _guideItems(context),
-    );
-  }
-
   // 공통 안내 아이템 목록
+  // (모바일: ListView children / PC: Column children 로 동일 사용)
+  // ════════════════════════════════════════════════════════════
   List<Widget> _guideItems(BuildContext context) {
     return [
+      // ── 선택된 상품 카드 ───────────────────────────────────
+      if (widget.product != null) ...[
+        _buildProductCard(widget.product!),
+        const SizedBox(height: 20),
+      ],
 
-        // ── 선택된 상품 카드 ──────────────────────────────────
-        if (widget.product != null) ...[
-          _buildProductCard(widget.product!),
-          const SizedBox(height: 20),
-        ],
-
-        // ── 헤더 블록 ─────────────────────────────────────────
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          color: _kBlack,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                color: Colors.white,
-                child: const Text(
-                  'GROUP ORDER',
-                  style: TextStyle(
-                    color: _kBlack, fontSize: 10,
-                    fontWeight: FontWeight.w900, letterSpacing: 2.0,
-                  ),
+      // ── 헤더 블록 ──────────────────────────────────────────
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        color: _kBlack,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              color: Colors.white,
+              child: const Text(
+                'GROUP ORDER',
+                style: TextStyle(
+                  color: _kBlack, fontSize: 10,
+                  fontWeight: FontWeight.w900, letterSpacing: 2.0,
                 ),
               ),
-              const SizedBox(height: 12),
-              const Text(
-                '단체주문 안내',
-                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                '5명 이상 단체 맞춤 제작 전문\n최고의 품질로 특별한 유니폼을 만들어드립니다.',
-                style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.6),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // ── 최소 수량 ──────────────────────────────────────────
-        _buildSectionRow(Icons.group_outlined, '최소 수량'),
-        const SizedBox(height: 8),
-        _buildInfoBox('단체 커스텀 제작은 최소 5명부터 가능합니다.'),
-        const SizedBox(height: 20),
-
-        // ── 제작 기간 ──────────────────────────────────────────
-        _buildSectionRow(Icons.schedule_outlined, '제작 기간'),
-        const SizedBox(height: 8),
-        _buildInfoLines(const [
-          '• 주문 확정 후 14~21일 소요됩니다.',
-          '• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작',
-          '• 시즌/물량에 따라 변동될 수 있습니다.',
-        ]),
-        const SizedBox(height: 20),
-
-        // ── 배송 안내 ──────────────────────────────────────────
-        _buildSectionRow(Icons.local_shipping_outlined, '배송 안내'),
-        const SizedBox(height: 8),
-        _buildInfoLines(const [
-          '• 30만원 이상 구매 시: 무료배송',
-          '• 30만원 미만: 배송비 별도',
-          '• 추가 제작 (5장 미만): 배송비 4,000원 추가',
-          '• 단체 주문은 일괄 배송이 원칙입니다.',
-        ]),
-        const SizedBox(height: 20),
-
-        // ── 커스텀 옵션 ────────────────────────────────────────
-        _buildSectionRow(Icons.palette_outlined, '커스텀 옵션'),
-        const SizedBox(height: 8),
-        _buildInfoLines(const [
-          '• 허리밴드 디자인 색상 변경 전부 무료',
-          '• 로고는 AI 원본 파일 첨부 필수 (AI, EPS, SVG 형식)',
-          '• 원하는 옷 디자인의 앞·뒤 사진을 첨부하면 원하는 디자인으로 제작 가능',
-        ]),
-        const SizedBox(height: 20),
-
-        // ── 독점 사용권 ────────────────────────────────────────
-        _buildSectionRow(Icons.lock_outline_rounded, '디자인 독점 사용 옵션 (선택)'),
-        const SizedBox(height: 8),
-        _buildExclusiveBox(),
-        const SizedBox(height: 20),
-
-        // ── 추가 주문 안내 ─────────────────────────────────────
-        _buildSectionRow(Icons.add_circle_outline, '추가 주문 안내'),
-        const SizedBox(height: 8),
-        _buildInfoLines(const [
-          '• 추가 주문 시 기존 주문번호 필수 입력',
-          '• 1장부터 추가 가능',
-          '• 5장 이하 추가 주문: 배송비 4,000원 별도',
-        ]),
-        const SizedBox(height: 20),
-
-        // ── 주문 절차 ──────────────────────────────────────────
-        _buildSectionRow(Icons.assignment_outlined, '주문 절차'),
-        const SizedBox(height: 8),
-        _buildOrderSteps(),
-        const SizedBox(height: 20),
-
-        // ── 사이즈 안내 ────────────────────────────────────────
-        _buildSectionRow(Icons.straighten_outlined, '사이즈 안내'),
-        const SizedBox(height: 8),
-        _buildSizeTable(
-          title: '성인 사이즈 (XS~XXXL)',
-          emoji: '🧑',
-          headerColor: const Color(0xFF1565C0),
-          headerBg: const Color(0xFFE3F2FD),
-          headers: const ['사이즈', '키(cm)', '체중(kg)', '가슴', '허리'],
-          rows: const [
-            ['XS',   '154~159', '44~51',  '85', '68'],
-            ['S',    '160~165', '52~60',  '90', '72'],
-            ['M',    '166~172', '61~71',  '95', '76'],
-            ['L',    '172~177', '72~78',  '100', '80'],
-            ['XL',   '177~182', '79~85',  '105', '84'],
-            ['2XL',  '182~187', '86~91',  '110', '88'],
-            ['3XL',  '187~191', '91~96',  '115', '92'],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              '단체주문 안내',
+              style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              '5명 이상 단체 맞춤 제작 전문\n최고의 품질로 특별한 유니폼을 만들어드립니다.',
+              style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.6),
+            ),
           ],
         ),
-        const SizedBox(height: 10),
-        _buildSizeTable(
-          title: '주니어 사이즈 (XXS~XL)',
-          emoji: '🧒',
-          headerColor: const Color(0xFF6A1B9A),
-          headerBg: const Color(0xFFF3E5F5),
-          headers: const ['사이즈', '신장(cm)', '체중(kg)', '가슴', '허리'],
-          rows: const [
-            ['XXS(80)', '104~116', '16~20', '58', '55'],
-            ['XS(90)',  '116~128', '20~25', '63', '58'],
-            ['S(100)',  '128~140', '25~32', '68', '62'],
-            ['M(110)',  '140~152', '32~40', '73', '65'],
-            ['L(120)',  '152~158', '40~48', '78', '68'],
-            ['XL(130)', '158~165', '48~55', '83', '72'],
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: const BoxDecoration(
-            color: Color(0xFFE3F2FD),
-            border: Border(left: BorderSide(color: Color(0xFF1565C0), width: 3)),
-          ),
-          child: const Text(
-            '원하는 사이즈가 없을 경우 주문 양식에 키와 체중을 입력해주세요.',
-            style: TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF333333)),
-          ),
-        ),
-        const SizedBox(height: 20),
+      ),
+      const SizedBox(height: 20),
 
-        // ── 교환·환불 정책 ─────────────────────────────────────
-        _buildSectionRow(Icons.swap_horiz_outlined, '교환·환불 정책'),
-        const SizedBox(height: 8),
-        _buildExchangeBox(),
-        const SizedBox(height: 20),
+      // ── 최소 수량 ─────────────────────────────────────────
+      _buildSectionRow(Icons.group_outlined, '최소 수량'),
+      const SizedBox(height: 8),
+      _buildInfoBox('단체 커스텀 제작은 최소 5명부터 가능합니다.'),
+      const SizedBox(height: 20),
 
-        // ── 첨부파일 안내 ──────────────────────────────────────
-        _buildSectionRow(Icons.attach_file_outlined, '주문서 첨부파일 안내'),
-        const SizedBox(height: 8),
-        _buildAttachGuide(),
-        const SizedBox(height: 32),
+      // ── 제작 기간 ─────────────────────────────────────────
+      _buildSectionRow(Icons.schedule_outlined, '제작 기간'),
+      const SizedBox(height: 8),
+      _buildInfoLines(const [
+        '• 주문 확정 후 14~21일 소요됩니다.',
+        '• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작',
+        '• 시즌/물량에 따라 변동될 수 있습니다.',
+      ]),
+      const SizedBox(height: 20),
 
-        // ── 동의 체크박스 ──────────────────────────────────────
-        _buildAgreementRow(),
-        const SizedBox(height: 12),
+      // ── 배송 안내 ─────────────────────────────────────────
+      _buildSectionRow(Icons.local_shipping_outlined, '배송 안내'),
+      const SizedBox(height: 8),
+      _buildInfoLines(const [
+        '• 30만원 이상 구매 시: 무료배송',
+        '• 30만원 미만: 배송비 별도',
+        '• 추가 제작 (5장 미만): 배송비 4,000원 추가',
+        '• 단체 주문은 일괄 배송이 원칙입니다.',
+      ]),
+      const SizedBox(height: 20),
 
-        // ── 주문서 작성 버튼 ───────────────────────────────────
-        _buildSubmitButton(),
+      // ── 커스텀 옵션 ───────────────────────────────────────
+      _buildSectionRow(Icons.palette_outlined, '커스텀 옵션'),
+      const SizedBox(height: 8),
+      _buildInfoLines(const [
+        '• 허리밴드 디자인 색상 변경 전부 무료',
+        '• 로고는 AI 원본 파일 첨부 필수 (AI, EPS, SVG 형식)',
+        '• 원하는 옷 디자인의 앞·뒤 사진을 첨부하면 원하는 디자인으로 제작 가능',
+      ]),
+      const SizedBox(height: 20),
 
-        if (!_agreed) ...[
-          const SizedBox(height: 8),
-          const Text(
-            '안내를 확인 체크 후 양식 작성이 가능합니다',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: _kGrey8),
-          ),
+      // ── 독점 사용권 ───────────────────────────────────────
+      _buildSectionRow(Icons.lock_outline_rounded, '디자인 독점 사용 옵션 (선택)'),
+      const SizedBox(height: 8),
+      _buildExclusiveBox(),
+      const SizedBox(height: 20),
+
+      // ── 추가 주문 안내 ────────────────────────────────────
+      _buildSectionRow(Icons.add_circle_outline, '추가 주문 안내'),
+      const SizedBox(height: 8),
+      _buildInfoLines(const [
+        '• 추가 주문 시 기존 주문번호 필수 입력',
+        '• 1장부터 추가 가능',
+        '• 5장 이하 추가 주문: 배송비 4,000원 별도',
+      ]),
+      const SizedBox(height: 20),
+
+      // ── 주문 절차 ─────────────────────────────────────────
+      _buildSectionRow(Icons.assignment_outlined, '주문 절차'),
+      const SizedBox(height: 8),
+      _buildOrderSteps(),
+      const SizedBox(height: 20),
+
+      // ── 사이즈 안내 ───────────────────────────────────────
+      _buildSectionRow(Icons.straighten_outlined, '사이즈 안내'),
+      const SizedBox(height: 8),
+      _buildSizeTable(
+        title: '성인 사이즈 (XS~XXXL)',
+        emoji: '🧑',
+        headerColor: const Color(0xFF1565C0),
+        headerBg: const Color(0xFFE3F2FD),
+        headers: const ['사이즈', '키(cm)', '체중(kg)', '가슴', '허리'],
+        rows: const [
+          ['XS',   '154~159', '44~51',  '85', '68'],
+          ['S',    '160~165', '52~60',  '90', '72'],
+          ['M',    '166~172', '61~71',  '95', '76'],
+          ['L',    '172~177', '72~78',  '100', '80'],
+          ['XL',   '177~182', '79~85',  '105', '84'],
+          ['2XL',  '182~187', '86~91',  '110', '88'],
+          ['3XL',  '187~191', '91~96',  '115', '92'],
         ],
-        const SizedBox(height: 24),
-      ];
+      ),
+      const SizedBox(height: 10),
+      _buildSizeTable(
+        title: '주니어 사이즈 (XXS~XL)',
+        emoji: '🧒',
+        headerColor: const Color(0xFF6A1B9A),
+        headerBg: const Color(0xFFF3E5F5),
+        headers: const ['사이즈', '신장(cm)', '체중(kg)', '가슴', '허리'],
+        rows: const [
+          ['XXS(80)', '104~116', '16~20', '58', '55'],
+          ['XS(90)',  '116~128', '20~25', '63', '58'],
+          ['S(100)',  '128~140', '25~32', '68', '62'],
+          ['M(110)',  '140~152', '32~40', '73', '65'],
+          ['L(120)',  '152~158', '40~48', '78', '68'],
+          ['XL(130)', '158~165', '48~55', '83', '72'],
+        ],
+      ),
+      const SizedBox(height: 8),
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: const BoxDecoration(
+          color: Color(0xFFE3F2FD),
+          border: Border(left: BorderSide(color: Color(0xFF1565C0), width: 3)),
+        ),
+        child: const Text(
+          '원하는 사이즈가 없을 경우 주문 양식에 키와 체중을 입력해주세요.',
+          style: TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF333333)),
+        ),
+      ),
+      const SizedBox(height: 20),
+
+      // ── 교환·환불 정책 ────────────────────────────────────
+      _buildSectionRow(Icons.swap_horiz_outlined, '교환·환불 정책'),
+      const SizedBox(height: 8),
+      _buildExchangeBox(),
+      const SizedBox(height: 20),
+
+      // ── 첨부파일 안내 ─────────────────────────────────────
+      _buildSectionRow(Icons.attach_file_outlined, '주문서 첨부파일 안내'),
+      const SizedBox(height: 8),
+      _buildAttachGuide(),
+      const SizedBox(height: 32),
+
+      // ── 동의 체크박스 ─────────────────────────────────────
+      _buildAgreementRow(),
+      const SizedBox(height: 12),
+
+      // ── 주문서 작성 버튼 ──────────────────────────────────
+      _buildSubmitButton(),
+
+      if (!_agreed) ...[
+        const SizedBox(height: 8),
+        const Text(
+          '안내를 확인 체크 후 양식 작성이 가능합니다',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: _kGrey8),
+        ),
+      ],
+      const SizedBox(height: 24),
+    ];
   }
 
   // ════════════════════════════════════════════════════════════
   // UI 컴포넌트 (탑텐 스타일)
   // ════════════════════════════════════════════════════════════
 
-  // 정사각 블랙 아이콘 + 볼드 제목
   Widget _buildSectionRow(IconData icon, String title) {
     return Row(children: [
       Container(
@@ -445,7 +450,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     ]);
   }
 
-  // 단일 텍스트 flat white box
   Widget _buildInfoBox(String text) {
     return Container(
       width: double.infinity,
@@ -458,7 +462,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // 복수 줄 flat white box
   Widget _buildInfoLines(List<String> lines) {
     return Container(
       width: double.infinity,
@@ -477,7 +480,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // 독점 사용권 박스
   Widget _buildExclusiveBox() {
     return Container(
       width: double.infinity,
@@ -529,7 +531,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // 주문 절차 5단계
   Widget _buildOrderSteps() {
     final steps = [
       {'num': '1', 'title': '주문 서식 작성',  'desc': '수량·사이즈·색상·로고를 입력하고 양식을 제출'},
@@ -581,7 +582,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // 사이즈 표
   Widget _buildSizeTable({
     required String title,
     required String emoji,
@@ -598,7 +598,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 테이블 제목
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -614,7 +613,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
               ],
             ),
           ),
-          // 헤더 행
           Container(
             color: headerColor,
             child: Row(
@@ -633,7 +631,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
               }).toList(),
             ),
           ),
-          // 데이터 행
           ...rows.asMap().entries.map((entry) {
             final rowBg = entry.key.isEven ? Colors.white : headerBg.withOpacity(0.3);
             return Container(
@@ -666,7 +663,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // 교환·환불 박스
   Widget _buildExchangeBox() {
     return Container(
       width: double.infinity,
@@ -709,7 +705,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // 첨부파일 안내 박스
   Widget _buildAttachGuide() {
     return Container(
       width: double.infinity,
@@ -726,9 +721,9 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _kBlack, height: 1.5),
           ),
           const SizedBox(height: 10),
-          _buildAttachRow('로고 파일',       'AI, EPS, SVG, PNG (고해상도 권장)'),
+          _buildAttachRow('로고 파일',         'AI, EPS, SVG, PNG (고해상도 권장)'),
           _buildAttachRow('디자인 참고 이미지', '원하는 디자인의 앞·뒤 사진 첨부'),
-          _buildAttachRow('색상 코드',       'Pantone 또는 RGB/HEX 코드 기재'),
+          _buildAttachRow('색상 코드',         'Pantone 또는 RGB/HEX 코드 기재'),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(10),
@@ -766,7 +761,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // 상품 카드 (탑텐 flat white box)
   Widget _buildProductCard(ProductModel product) {
     final imageUrl = product.images.isNotEmpty ? product.images.first : '';
     final priceStr = product.price.toInt().toString()
@@ -831,7 +825,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // 동의 체크박스 (탑텐 스타일)
   Widget _buildAgreementRow({bool compact = false}) {
     return GestureDetector(
       onTap: () => setState(() => _agreed = !_agreed),
@@ -874,7 +867,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // 주문서 작성 버튼 (탑텐 flat black 버튼)
   Widget _buildSubmitButton() {
     return SizedBox(
       width: double.infinity,
@@ -898,7 +890,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  // 폼 화면으로 이동
   void _navigateToForm() {
     Navigator.push(
       context,
