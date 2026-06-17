@@ -22,6 +22,8 @@ import '../orders/group_order_form_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/pc_layout.dart';
 import '../../services/order_service.dart';
+import '../../services/notification_service.dart';
+import '../../services/fcm_service.dart';
 import '../../widgets/address_search_widget.dart';
 import 'size_profile_screen.dart';
 import '../../utils/navigation_helper.dart';
@@ -4387,20 +4389,86 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                 ),
               ),
             ),
-            // 닫기 버튼
+            // ── 버튼 영역
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1A1A2E),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Column(
+                children: [
+                  // 1시간 이내 취소 버튼 (pending 상태만)
+                  if (order.status == OrderStatus.pending) ...[ 
+                    Builder(builder: (btnCtx) {
+                      final canCancel = DateTime.now().difference(order.createdAt).inMinutes < 60;
+                      return SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: canCancel
+                              ? () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: btnCtx,
+                                    builder: (_) => AlertDialog(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                      title: const Text('주문 취소', style: TextStyle(fontWeight: FontWeight.w800)),
+                                      content: const Text('정말 주문을 취소하시겠습니까?\n결제 취소는 1~3 영업일 내 처리됩니다.'),
+                                      actions: [
+                                        TextButton(onPressed: () => Navigator.pop(btnCtx, false), child: const Text('아니오')),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                          onPressed: () => Navigator.pop(btnCtx, true),
+                                          child: const Text('취소하기', style: TextStyle(color: Colors.white)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true && btnCtx.mounted) {
+                                    await OrderService.updateOrderStatus(order.id, OrderStatus.cancelled);
+                                    // 알림톡 + FCM 발송
+                                    NotificationService.sendCancelled(
+                                      order: order,
+                                      reason: '고객 직접 취소',
+                                    ).catchError((_) {});
+                                    FcmService.sendOrderStatusNotification(
+                                      order: order,
+                                      newStatus: OrderStatus.cancelled,
+                                    ).catchError((_) {});
+                                    if (btnCtx.mounted) {
+                                      Navigator.pop(btnCtx);
+                                      ScaffoldMessenger.of(btnCtx).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('주문이 취소되었습니다. 알림톡이 발송됩니다.'),
+                                          backgroundColor: Color(0xFF1A1A2E),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                }
+                              : null,
+                          icon: const Icon(Icons.cancel_outlined, size: 16),
+                          label: Text(canCancel ? '주문 취소 (1시간 이내)' : '취소 불가 (1시간 경과)'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: canCancel ? Colors.red : Colors.grey,
+                            side: BorderSide(color: canCancel ? Colors.red : Colors.grey[300]!),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 8),
+                  ],
+                  // 닫기 버튼
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1A1A2E),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('닫기', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+                    ),
                   ),
-                  child: const Text('닫기', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
-                ),
+                ],
               ),
             ),
           ],

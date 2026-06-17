@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/models.dart';
+import '../utils/constants.dart';
 
 class EmailService {
   // ── EmailJS 설정 ─────────────────────────────────────
@@ -179,7 +180,7 @@ class EmailService {
     required String message,
     required String userId,
   }) async {
-    const adminEmail = 'chw243527@gmail.com'; // 관리자 이메일
+    final adminEmail = AppConstants.customerServiceEmail;
     const templateId = 'template_chat_alert';  // EmailJS 템플릿 ID
 
     final now = DateTime.now();
@@ -209,8 +210,7 @@ class EmailService {
     required String subject,
     required String body,
   }) async {
-    const adminEmail = 'chw243527@gmail.com';
-    return _sendEmail(
+    final adminEmail = AppConstants.customerServiceEmail;return _sendEmail(
       templateId: _templateStatusId,
       templateParams: {
         'to_email': adminEmail,
@@ -230,7 +230,7 @@ class EmailService {
 
   static Future<bool> sendBankTransferAdminAlert(OrderModel order) async {
     // 관리자 수신 이메일 (constants.dart의 CS 이메일로 발송)
-    const adminEmail = 'chw243527@gmail.com'; // ✏️ 실제 관리자 이메일로 교체
+    final adminEmail = AppConstants.customerServiceEmail;
 
     final itemList = order.items
         .map((i) => '${i.productName} (${i.size}/${i.color}) × ${i.quantity}개')

@@ -23,7 +23,7 @@
   <!-- ① 메인(홈) 페이지 - 가장 중요 -->
   <url>
     <loc>https://2fit-mall.co.kr/</loc>
-    <lastmod>2025-07-04</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="ko" href="https://2fit-mall.co.kr/"/>
@@ -36,7 +36,7 @@
   <!-- ② 상품 목록 페이지 -->
   <url>
     <loc>https://2fit-mall.co.kr/#/products</loc>
-    <lastmod>2025-07-04</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
@@ -44,7 +44,7 @@
   <!-- ③ 카테고리: 상의 -->
   <url>
     <loc>https://2fit-mall.co.kr/#/category/top</loc>
-    <lastmod>2025-07-04</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -52,7 +52,7 @@
   <!-- ④ 카테고리: 하의 -->
   <url>
     <loc>https://2fit-mall.co.kr/#/category/bottom</loc>
-    <lastmod>2025-07-04</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -60,7 +60,7 @@
   <!-- ⑤ 카테고리: 세트 -->
   <url>
     <loc>https://2fit-mall.co.kr/#/category/set</loc>
-    <lastmod>2025-07-04</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -68,7 +68,7 @@
   <!-- ⑥ 단체 주문 안내 -->
   <url>
     <loc>https://2fit-mall.co.kr/#/group-order</loc>
-    <lastmod>2025-07-04</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -76,7 +76,7 @@
   <!-- ⑦ 장바구니 -->
   <url>
     <loc>https://2fit-mall.co.kr/#/cart</loc>
-    <lastmod>2025-07-04</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>never</changefreq>
     <priority>0.4</priority>
   </url>
@@ -84,9 +84,33 @@
   <!-- ⑧ 로그인 -->
   <url>
     <loc>https://2fit-mall.co.kr/#/login</loc>
-    <lastmod>2025-07-04</lastmod>
+    <lastmod>2026-06-17</lastmod>
     <changefreq>never</changefreq>
     <priority>0.3</priority>
+  </url>
+
+  <!-- ⑨ 개인정보처리방침 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/#/privacy-policy</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- ⑩ 이용약관 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/#/terms-of-service</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- ⑪ 단체 맞춤 주문 -->
+  <url>
+    <loc>https://2fit-mall.co.kr/#/group-custom-order</loc>
+    <lastmod>2026-06-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 
 </urlset>
