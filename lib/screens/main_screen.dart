@@ -1176,8 +1176,26 @@ class _NoticePopupDialog extends StatefulWidget {
 class _NoticePopupDialogState extends State<_NoticePopupDialog> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   int _page = 0;
-  // 실제 이미지 비율 (로드 후 동적 업데이트)
-  // 더 이상 사용 안 함 (이미지 비율 자동 계산으로 대체됨)
+  double? _imageAspectRatio; // 실제 이미지 가로/세로 비율 (동적 로드)
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImageSize();
+  }
+
+  void _loadImageSize() {
+    final url = widget.notices[_page].imageUrl;
+    if (url.isEmpty) return;
+    setState(() => _imageAspectRatio = null);
+    final stream = NetworkImage(url).resolve(ImageConfiguration.empty);
+    stream.addListener(ImageStreamListener((info, _) {
+      if (!mounted) return;
+      final w = info.image.width.toDouble();
+      final h = info.image.height.toDouble();
+      if (w > 0 && h > 0) setState(() => _imageAspectRatio = w / h);
+    }));
+  }
 
   // ── 테마별 그라디언트 (이미지 없을 때 배너 배경) ──
   static const Map<String, List<Color>> _themeGradients = {
@@ -1211,8 +1229,14 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
     // 하단 시트 최대 너비 (PC 대응)
     final sheetW = sw > 600 ? 480.0 : sw;
-    // 최대 이미지 높이 제한 (화면의 80% 이하 — 이미지 비율 우선, 극단적 세로 이미지 방어)
-    final imgMaxH = sh * 0.80;
+    // 실제 이미지 비율로 정확한 높이 계산 (위아래 여백 없음)
+    // - 비율 로드 전: 화면 높이 30% shimmer placeholder
+    // - 비율 로드 후: sheetW / ratio (최대 sh*0.80)
+    final imgH = hasImage
+        ? (_imageAspectRatio != null
+            ? (sheetW / _imageAspectRatio!).clamp(80.0, sh * 0.80)
+            : (sh * 0.30).clamp(120.0, 200.0))
+        : (sh * 0.35).clamp(180.0, 300.0);
 
     // PC: 전체 둥근 모서리 / 모바일: 상단만 둥근 모서리
     final borderRadius = widget.isPc
@@ -1237,26 +1261,20 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
             Stack(
               children: [
                 // 배경: 이미지 or 그라디언트
-                if (hasImage)
-                  // 이미지를 팝업 너비에 꽉 맞춰 비율 유지, 최대 높이 제한
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: sheetW,
-                      maxHeight: imgMaxH,
-                    ),
-                    child: NetImage(
-                      notice.imageUrl,
-                      width: sheetW,
-                      fit: BoxFit.fitWidth,
-                      alignment: Alignment.topCenter,
-                    ),
-                  )
-                else
-                  SizedBox(
-                    width: double.infinity,
-                    height: (sh * 0.35).clamp(180.0, 300.0),
-                    child: _buildGradientBg(gradColors, emoji, title),
-                  ),
+                // 이미지: 정확한 비율 높이로 컨테이너 고정 → 위아래 여백 없음
+                SizedBox(
+                  width: sheetW,
+                  height: imgH,
+                  child: hasImage
+                      ? NetImage(
+                          notice.imageUrl,
+                          width: sheetW,
+                          height: imgH,
+                          fit: BoxFit.fill, // 컨테이너=이미지 비율 → fill로 딱 맞춤
+                          alignment: Alignment.topCenter,
+                        )
+                      : _buildGradientBg(gradColors, emoji, title),
+                ),
 
                 // ── 드래그 핸들: 모바일 + 이미지 위에 오버레이 ──
                 if (!widget.isPc)
@@ -1386,7 +1404,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                         Expanded(
                           child: TextButton(
                             onPressed: total > 1 && _page < total - 1
-                                ? () => setState(() => _page++)
+                                ? () { setState(() => _page++); _loadImageSize(); }
                                 : () => Navigator.of(context).pop(),
                             style: TextButton.styleFrom(
                               foregroundColor: const Color(0xFF111111),
