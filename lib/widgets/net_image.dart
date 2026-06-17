@@ -64,11 +64,11 @@ class NetImage extends StatelessWidget {
       width: width,
       height: height,
       child: FittedBox(
-        fit: BoxFit.cover,
+        fit: fit,
         clipBehavior: Clip.hardEdge,
         child: CachedNetworkImage(
           imageUrl: url,
-          fit: BoxFit.cover,
+          fit: fit,
           alignment: alignment,
           placeholder: (_, __) => _placeholder(),
           errorWidget: (_, __, ___) => _errorWidget(),
@@ -213,13 +213,13 @@ class _WebImageState extends State<_WebImage> {
           opacity: _loaded ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 200),
           child: SizedBox.expand(
-            // FittedBox: 어떤 비율 이미지도 영역을 완전히 채움
+            // FittedBox: 외부 fit 파라미터 사용 (cover=채움/fill=비율고정)
             child: FittedBox(
-              fit: BoxFit.cover,
+              fit: widget.fit,
               clipBehavior: Clip.hardEdge,
               child: Image(
                 image: _provider,
-                fit: BoxFit.cover,
+                fit: widget.fit,
                 alignment: widget.alignment,
                 gaplessPlayback: true,
               ),

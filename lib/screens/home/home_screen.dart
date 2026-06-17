@@ -5695,7 +5695,7 @@ class _NoticePopupState extends State<_NoticePopup> {
                   if (hasImage)
                     NetImage(
                       notice.imageUrl,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.fill,  // imgH가 이미지 비율로 정확히 계산됨 → fill로 딱 맞춤
                       alignment: Alignment.topCenter,
                     )
                   else
