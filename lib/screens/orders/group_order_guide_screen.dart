@@ -964,6 +964,7 @@ class _AgreementSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = Provider.of<LanguageProvider>(context, listen: false).loc;
     return Column(
       children: [
         GestureDetector(
