@@ -280,6 +280,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // ═══════════════════════════════════════════════════
   Widget _buildGuideTab(BuildContext context) {
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

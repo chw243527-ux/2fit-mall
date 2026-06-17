@@ -107,26 +107,32 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                 // 좌측: 안내
                 Expanded(
                   flex: 6,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height - 48 - 48,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(24),
+                      child: _buildGuideTab(),
                     ),
-                    padding: const EdgeInsets.all(24),
-                    child: _buildGuideTab(),
                   ),
                 ),
                 const SizedBox(width: 20),
                 // 우측: 주문서 바로가기
                 Expanded(
                   flex: 4,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height - 48 - 48,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.all(24),
+                      child: _buildOrderFormTab(),
                     ),
-                    padding: const EdgeInsets.all(24),
-                    child: _buildOrderFormTab(),
                   ),
                 ),
               ],
@@ -142,6 +148,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   // ══════════════════════════════════════════════════════════
   Widget _buildGuideTab() {
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
