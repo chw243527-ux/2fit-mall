@@ -824,6 +824,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.2"
+  kakao_flutter_sdk_auth:
+    dependency: transitive
+    description:
+      name: kakao_flutter_sdk_auth
+      sha256: ba20254962b0cc1c1d99abe670440a60f5f755b3f6e72e5a4af7b32adb75e34f
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.9.1"
+  kakao_flutter_sdk_common:
+    dependency: transitive
+    description:
+      name: kakao_flutter_sdk_common
+      sha256: 4e742029f26d9dba0e37c3e3b3405951acc8896976affe60983f213ac532088d
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.9.1"
+  kakao_flutter_sdk_user:
+    dependency: "direct main"
+    description:
+      name: kakao_flutter_sdk_user
+      sha256: "14b4b99c8973d2246d5909cec00899ba9e081ed2a731024bf96930b54d119cd1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.9.1"
   json_annotation:
     dependency: transitive
     description:
