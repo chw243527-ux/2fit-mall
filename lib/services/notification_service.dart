@@ -22,10 +22,10 @@ class KakaoConfig {
   // ═════════════════════════════════════════════════════════════
 
   // TODO: SOLAPI API Key (console.solapi.com → 개발 → API 키 관리)
-  static const apiKey = '';
+  static const apiKey = 'NCSZ6J3N1XWLA5WJ';
 
   // TODO: SOLAPI API Secret (console.solapi.com → 개발 → API 키 관리)
-  static const apiSecret = '';
+  static const apiSecret = 'BH8J2NRD1NQ04UVHG6CNRFKYZFEZWTXS';
 
   // ✅ 발신프로필 키 — SOLAPI 채널 연동 완료 (2026-06-17)
   static const senderKey = 'KA01PF2606170642574857w8Hjn9Czz4';
