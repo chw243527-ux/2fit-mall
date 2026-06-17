@@ -3,7 +3,7 @@ import '../../utils/app_localizations.dart';
 import 'package:flutter/material.dart';
 import '../../utils/theme.dart';
 import '../../providers/providers.dart';
-import 'group_order_guide_screen.dart';
+import 'group_order_landing_screen.dart';
 import 'group_order_form_screen.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
@@ -137,7 +137,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const GroupOrderGuideScreen())),
+                          MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen())),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
                         side: const BorderSide(color: Colors.white60),
@@ -292,7 +292,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
             color: AppColors.accent,
             badges: [loc.orderGuideGroupBadge1, loc.orderGuideGroupBadge2, loc.orderGuideGroupBadge3],
             onGuide: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const GroupOrderGuideScreen())),
+                MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen())),
             onForm: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const GroupOrderFormScreen())),
           ),
@@ -700,7 +700,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 const Spacer(),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const GroupOrderGuideScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen()));
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.white.withValues(alpha: 0.2),
