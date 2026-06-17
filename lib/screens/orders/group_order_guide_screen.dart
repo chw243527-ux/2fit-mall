@@ -60,7 +60,42 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             onPressed: () => goBackOrHome(context),
           ),
         ),
-        body: _buildGuideTab(context),
+        body: Builder(
+          builder: (ctx) {
+            try {
+              return _buildGuideTab(ctx);
+            } catch (e) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.groups_rounded, size: 48, color: Color(0xFF1A1A1A)),
+                      const SizedBox(height: 16),
+                      const Text('단체 주문 안내',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 8),
+                      const Text('5명 이상 단체 맞춤 제작',
+                          style: TextStyle(fontSize: 14, color: Color(0xFF666666))),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () => Navigator.pushNamed(ctx, '/group-form'),
+                        icon: const Icon(Icons.edit_outlined),
+                        label: const Text('주문서 작성하기'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1A1A1A),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+          },
+        ),
       ),
     );
   }
@@ -279,6 +314,14 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // 탭1: 주문 안내
   // ═══════════════════════════════════════════════════
   Widget _buildGuideTab(BuildContext context) {
+    try {
+      return _buildGuideTabContent(context);
+    } catch (e) {
+      return const Center(child: Text('단체주문 안내를 불러오는 중입니다...'));
+    }
+  }
+
+  Widget _buildGuideTabContent(BuildContext context) {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
