@@ -121,6 +121,12 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
               '• 맞춤 제작 특성상 교환/환불 불가',
               '• 불량품은 전액 교환 처리',
             ]),
+            const SizedBox(height: 20),
+
+            // ── 주문서 첨부파일 안내 ────────────────────────────
+            _buildSectionRow(Icons.attach_file_outlined, '주문서 첨부파일 안내'),
+            const SizedBox(height: 8),
+            _buildAttachGuide(),
             const SizedBox(height: 32),
 
             // ── 동의 체크박스 ──────────────────────────────────
@@ -344,7 +350,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             ? () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => GroupOrderFormScreen(product: widget.product),
+                    builder: (_) => GroupOrderFormScreen(product: widget.product, initialCount: 5),
                   ),
                 )
             : null,

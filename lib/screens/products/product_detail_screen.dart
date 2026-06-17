@@ -9804,6 +9804,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                 MaterialPageRoute(
                                     builder: (_) => GroupOrderFormScreen(
                                       product: widget.product,
+                                      initialCount: 5,
                                       isBottomOrder: widget.product?.category == '하의' ||
                                           (widget.product?.subCategory.contains('타이즈') ?? false) ||
                                           (widget.product?.subCategory.contains('남성 5부') ?? false) ||

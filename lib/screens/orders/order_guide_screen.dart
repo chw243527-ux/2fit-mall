@@ -151,7 +151,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const GroupOrderFormScreen())),
+                          MaterialPageRoute(builder: (_) => const GroupOrderFormScreen(initialCount: 5))),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF6A1B9A),
@@ -294,7 +294,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
             onGuide: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen())),
             onForm: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const GroupOrderFormScreen())),
+                MaterialPageRoute(builder: (_) => const GroupOrderFormScreen(initialCount: 5))),
           ),
 
           const SizedBox(height: 12),

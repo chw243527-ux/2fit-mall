@@ -3142,6 +3142,7 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
                         product: null,
                         isAdditionalOrder: true,
                         originalOrder: widget.order,
+                        initialCount: 5,
                       ),
                     ));
                   },

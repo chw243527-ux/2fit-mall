@@ -290,7 +290,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                   ? () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => GroupOrderFormScreen(product: widget.product),
+                          builder: (_) => GroupOrderFormScreen(product: widget.product, initialCount: 5),
                         ),
                       )
                   : null,
@@ -426,7 +426,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => GroupOrderFormScreen(product: product),
+                  builder: (_) => GroupOrderFormScreen(product: product, initialCount: 5),
                 ),
               ),
               icon: const Icon(Icons.edit_note_outlined, size: 18),
