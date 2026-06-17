@@ -105,6 +105,9 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                     flex: 7,
                     child: Container(
                       decoration: const BoxDecoration(color: Colors.white),
+                      // PC 레이아웃에서 Row 안의 SingleChildScrollView는
+                      // 명시적 높이가 필요 → SizedBox로 감싸서 화면 전체 높이 사용
+                      height: MediaQuery.of(context).size.height - 48 - 48,
                       child: _buildGuideTab(context),
                     ),
                   ),
