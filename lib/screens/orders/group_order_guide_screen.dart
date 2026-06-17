@@ -299,12 +299,19 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           ],
 
           // 단체 주문 안내 헤더
-          _SectionHeader(title: loc.groupOrderGuideAppBar),
+          _SectionHeader(
+            icon: Icons.info_outline,
+            iconColor: const Color(0xFF1565C0),
+            iconBg: const Color(0xFFE3F2FD),
+            title: loc.groupOrderGuideAppBar,
+          ),
           const SizedBox(height: 14),
 
           // 최소 수량
           _InfoCard(
             iconData: Icons.group_outlined,
+            iconBg: const Color(0xFFEDE7F6),
+            iconColor: const Color(0xFF6A1B9A),
             title: loc.groupOrderMinQtyTitle,
             content: loc.groupOrderMinQtyDesc,
           ),
@@ -313,6 +320,8 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           // 제작 기간
           _InfoCard(
             iconData: Icons.schedule_outlined,
+            iconBg: const Color(0xFFF3E5F5),
+            iconColor: const Color(0xFF7B1FA2),
             title: context.watch<LanguageProvider>().loc.groupOrderProductionPeriod,
             content: context.watch<LanguageProvider>().loc.groupOrderProductionPeriodDesc,
           ),
@@ -321,6 +330,8 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           // 배송 안내
           _InfoCard(
             iconData: Icons.local_shipping_outlined,
+            iconBg: const Color(0xFFE3F2FD),
+            iconColor: const Color(0xFF1565C0),
             title: loc.groupOrderShippingTitle,
             contentWidget: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -338,26 +349,32 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           ),
           const SizedBox(height: 28),
 
-          // ── 커스텀 옵션 ──
+          // ── 커스텀 옵션 (허리밴드·로고·디자인 제작) ──
           _SectionHeader2(label: 'CUSTOM OPTION', title: '커스텀 옵션'),
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(16),
-            color: const Color(0xFFF0F0F0),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F0F0),
+              border: Border.all(color: _dividerColor),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 허리밴드 무료
                 _customOptionRow(
                   icon: Icons.palette_outlined,
                   text: loc.groupOrderGuideWaistband1,
                   highlight: true,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
+                // 로고 AI 원본파일 필수
                 _customOptionRow(
                   icon: Icons.attach_file_outlined,
                   text: loc.groupOrderGuideWaistband2,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
+                // 앞뒤 사진 첨부 제작
                 _customOptionRow(
                   icon: Icons.checkroom_outlined,
                   text: loc.groupOrderGuideWaistband3,
@@ -370,65 +387,64 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           // 디자인 독점 사용 옵션
           _SectionHeader2(label: 'EXCLUSIVE DESIGN', title: loc.groupOrderExclusiveTitle),
           const SizedBox(height: 14),
-          Builder(builder: (context) {
-            return Container(
-              padding: const EdgeInsets.all(16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
               color: const Color(0xFFF0F0F0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 타이틀 행
-                  Row(
-                    children: [
-                      const Icon(Icons.lock_outline_rounded, size: 16, color: Color(0xFF1A1A1A)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          loc.groupOrderGuideExclusiveTitle,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1A1A1A),
-                          ),
+              border: Border.all(color: _dividerColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.lock_outline_rounded, size: 16, color: Color(0xFF1A1A1A)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        loc.groupOrderGuideExclusiveTitle,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1A1A1A),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        color: _black,
-                        child: const Text(
-                          'FREE',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(loc.groupOrderGuideExclusive1,
-                      style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
-                  const SizedBox(height: 4),
-                  Text(loc.groupOrderGuideExclusive2,
-                      style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border(left: BorderSide(color: _black, width: 3)),
                     ),
-                    child: Text(
-                      loc.groupOrderGuideExclusive3,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        height: 1.6,
-                        color: Color(0xFF333333),
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      color: _black,
+                      child: const Text('FREE',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(loc.groupOrderGuideExclusive1,
+                    style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
+                const SizedBox(height: 4),
+                Text(loc.groupOrderGuideExclusive2,
+                    style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
+                const SizedBox(height: 10),
+                // 강조 박스 (백업: 주황 배경 → 탑텐: 흰 배경 + 좌측 보더)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(left: BorderSide(color: _black, width: 3)),
+                  ),
+                  child: Text(
+                    loc.groupOrderGuideExclusive3,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      height: 1.6,
+                      color: Color(0xFF333333),
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ],
-              ),
-            );
-          }),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 28),
 
           // 추가 주문 안내
@@ -436,7 +452,10 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(16),
-            color: const Color(0xFFF0F0F0),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F0F0),
+              border: Border.all(color: _dividerColor),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -444,23 +463,9 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                     style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF333333))),
                 Text(loc.groupOrderGuideAdditional2,
                     style: const TextStyle(fontSize: 13, height: 1.7, color: Color(0xFF333333))),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border(left: BorderSide(color: const Color(0xFFC62828), width: 3)),
-                  ),
-                  child: Text(
-                    loc.groupOrderGuideAdditional3,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      height: 1.6,
-                      color: Color(0xFFC62828),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 8),
+                Text(loc.groupOrderGuideAdditional3,
+                    style: const TextStyle(fontSize: 13, height: 1.7, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
               ],
             ),
           ),
@@ -480,72 +485,73 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(16),
-            color: const Color(0xFFF0F0F0),
-            child: Builder(builder: (context) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 기성품 교환환불
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      border: Border(left: BorderSide(color: Color(0xFF1A1A1A), width: 3)),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          color: const Color(0xFF1A1A1A),
-                          child: const Text('기성품',
-                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            loc.groupOrderGuideExchange2,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              height: 1.6,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A1A),
-                            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F0F0),
+              border: Border.all(color: _dividerColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 기성품 교환환불 가능 (초록 강조 → 탑텐: 좌측 보더 + 흰 배경)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(left: BorderSide(color: Color(0xFF1A1A1A), width: 3)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        color: const Color(0xFF1A1A1A),
+                        child: const Text('기성품',
+                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          loc.groupOrderGuideExchange2,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            height: 1.6,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1A1A1A),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  // 커스텀 주문 불가
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      border: Border(left: BorderSide(color: Color(0xFFC62828), width: 3)),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          color: const Color(0xFFC62828),
-                          child: const Text('커스텀',
-                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            loc.groupOrderGuideExchange1,
-                            style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF444444)),
-                          ),
-                        ),
-                      ],
-                    ),
+                ),
+                const SizedBox(height: 8),
+                // 커스텀 주문 교환·환불 불가
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(left: BorderSide(color: Color(0xFFC62828), width: 3)),
                   ),
-                ],
-              );
-            }),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        color: const Color(0xFFC62828),
+                        child: const Text('커스텀',
+                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w900, color: Colors.white)),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          loc.groupOrderGuideExchange1,
+                          style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF444444)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 28),
 
@@ -605,7 +611,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.zero,
+            borderRadius: BorderRadius.circular(8),
             child: imageUrl.isNotEmpty
                 ? NetImage(imageUrl, width: 72, height: 72, fit: BoxFit.cover)
                 : _productPlaceholder(),
@@ -630,8 +636,8 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                 Wrap(
                   spacing: 6,
                   children: [
-                    _buildTag(context.watch<LanguageProvider>().loc.setProduct),
-                    _buildTag(context.watch<LanguageProvider>().loc.groupOrderOnlyLabel),
+                    _buildTag(context.watch<LanguageProvider>().loc.setProduct, const Color(0xFF1565C0)),
+                    _buildTag(context.watch<LanguageProvider>().loc.groupOrderOnlyLabel, const Color(0xFF4A148C)),
                   ],
                 ),
               ],
@@ -650,13 +656,15 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
     );
   }
 
-  Widget _buildTag(String text) {
+  Widget _buildTag(String text, [Color? color]) {
+    final c = color ?? _black;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        border: Border.all(color: _black),
+        border: Border.all(color: c),
+        borderRadius: BorderRadius.circular(4),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A), fontWeight: FontWeight.w600)),
+      child: Text(text, style: TextStyle(fontSize: 11, color: c, fontWeight: FontWeight.w600)),
     );
   }
 
@@ -832,13 +840,45 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
 // Helper Widgets — 탑텐 스타일
 // ══════════════════════════════════════════════════════════════
 
-/// 섹션 헤더: 좌측 4px 블랙 보더 + 타이틀
+/// 섹션 헤더: 좌측 아이콘 뱃지 + 타이틀 (기본) 또는 좌측 4px 블랙 보더 + 타이틀 (icon 없을 때)
 class _SectionHeader extends StatelessWidget {
   final String title;
-  const _SectionHeader({required this.title});
+  final IconData? icon;
+  final Color? iconColor;
+  final Color? iconBg;
+  const _SectionHeader({
+    required this.title,
+    this.icon,
+    this.iconColor,
+    this.iconBg,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (icon != null) {
+      return Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconBg ?? const Color(0xFFF0F0F0),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 18, color: iconColor ?? const Color(0xFF1A1A1A)),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1A1A1A),
+              letterSpacing: -0.3,
+            ),
+          ),
+        ],
+      );
+    }
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 4, 0, 4),
       decoration: const BoxDecoration(
@@ -898,14 +938,18 @@ class _SectionHeader2 extends StatelessWidget {
   }
 }
 
-/// 정보 카드: 블랙 아이콘박스 + 내용
+/// 정보 카드: 컬러 아이콘박스 + 내용
 class _InfoCard extends StatelessWidget {
   final IconData iconData;
+  final Color? iconBg;
+  final Color? iconColor;
   final String title;
   final String? content;
   final Widget? contentWidget;
   const _InfoCard({
     required this.iconData,
+    this.iconBg,
+    this.iconColor,
     required this.title,
     this.content,
     this.contentWidget,
@@ -924,8 +968,11 @@ class _InfoCard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            color: const Color(0xFF1A1A1A),
-            child: Icon(iconData, size: 18, color: Colors.white),
+            decoration: BoxDecoration(
+              color: iconBg ?? const Color(0xFF1A1A1A),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(iconData, size: 18, color: iconColor ?? Colors.white),
           ),
           const SizedBox(width: 12),
           Expanded(
