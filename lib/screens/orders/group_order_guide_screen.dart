@@ -16,29 +16,15 @@ class GroupOrderGuideScreen extends StatefulWidget {
   State<GroupOrderGuideScreen> createState() => _GroupOrderGuideScreenState();
 }
 
-class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
-    with SingleTickerProviderStateMixin {
-  AppLocalizations get loc => Provider.of<LanguageProvider>(context, listen: false).loc;
-  AppLanguage get _lang => Provider.of<LanguageProvider>(context, listen: false).language;
+class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
+  AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+  AppLanguage get _lang => context.watch<LanguageProvider>().language;
   bool _agreed = false;
-  late TabController _tabCtrl;
 
   // ── 탑텐 스타일 상수 ──
   static const _black = Color(0xFF000000);
   static const _bg = Color(0xFFF8F8F8);
   static const _dividerColor = Color(0xFFE8E8E8);
-
-  @override
-  void initState() {
-    super.initState();
-    _tabCtrl = TabController(length: 1, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabCtrl.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +43,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
         backgroundColor: _bg,
         appBar: AppBar(
           title: Text(
-            loc.groupOrderGuideAppBar,
+            context.watch<LanguageProvider>().loc.groupOrderGuideAppBar,
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w800,
@@ -74,11 +60,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
             onPressed: () => goBackOrHome(context),
           ),
         ),
-        body: TabBarView(
-          controller: _tabCtrl,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [_buildGuideTab(context)],
-        ),
+        body: _buildGuideTab(context),
       ),
     );
   }
@@ -94,7 +76,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
         backgroundColor: _bg,
         appBar: AppBar(
           title: Text(
-            loc.groupOrderGuideAppBar,
+            context.watch<LanguageProvider>().loc.groupOrderGuideAppBar,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
@@ -123,9 +105,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
                     flex: 7,
                     child: Container(
                       decoration: const BoxDecoration(color: Colors.white),
-                      // PC 레이아웃에서 Row 안의 SingleChildScrollView는
-                      // 명시적 높이가 필요 → SizedBox로 감싸서 화면 전체 높이 사용
-                      height: MediaQuery.of(context).size.height - 48 - 48,
                       child: _buildGuideTab(context),
                     ),
                   ),
@@ -167,7 +146,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
                 const Icon(Icons.groups_rounded, color: Colors.white, size: 28),
                 const SizedBox(height: 8),
                 Text(
-                  loc.groupOrderGuideHeroTitle,
+                  context.watch<LanguageProvider>().loc.groupOrderGuideHeroTitle,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -177,7 +156,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  loc.groupOrderGuideHeroSub,
+                  context.watch<LanguageProvider>().loc.groupOrderGuideHeroSub,
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
                 ),
               ],
@@ -216,7 +195,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      loc.groupOrderAgreementCheck,
+                      context.watch<LanguageProvider>().loc.groupOrderAgreementCheck,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -243,7 +222,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
                   : null,
               icon: const Icon(Icons.edit_outlined, size: 16),
               label: Text(
-                loc.groupOrderGuideWriteBtn,
+                context.watch<LanguageProvider>().loc.groupOrderGuideWriteBtn,
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
               ),
               style: ElevatedButton.styleFrom(
@@ -259,7 +238,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           if (!_agreed) ...[
             const SizedBox(height: 8),
             Text(
-              loc.groupOrderGuideCheckFirst,
+              context.watch<LanguageProvider>().loc.groupOrderGuideCheckFirst,
               style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
               textAlign: TextAlign.center,
             ),
@@ -297,11 +276,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
   // 탭1: 주문 안내
   // ═══════════════════════════════════════════════════
   Widget _buildGuideTab(BuildContext context) {
-    return _buildGuideTabContent(context);
-  }
-
-  Widget _buildGuideTabContent(BuildContext context) {
-    final loc = Provider.of<LanguageProvider>(context, listen: false).loc;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -309,7 +283,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
         children: [
           // 선택된 상품 카드
           if (widget.product != null) ...[
-            _buildProductCard(context, widget.product!),
+            _buildProductCard(widget.product!),
             const SizedBox(height: 24),
           ],
 
@@ -328,8 +302,8 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           // 제작 기간
           _InfoCard(
             iconData: Icons.schedule_outlined,
-            title: loc.groupOrderProductionPeriod,
-            content: loc.groupOrderProductionPeriodDesc,
+            title: context.watch<LanguageProvider>().loc.groupOrderProductionPeriod,
+            content: context.watch<LanguageProvider>().loc.groupOrderProductionPeriodDesc,
           ),
           const SizedBox(height: 8),
 
@@ -340,13 +314,13 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
             contentWidget: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(loc.groupOrderGuideShipping1,
+                Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping1,
                     style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
-                Text(loc.groupOrderGuideShipping2,
+                Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping2,
                     style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
-                Text(loc.groupOrderGuideShipping3,
+                Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping3,
                     style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
-                Text(loc.groupOrderGuideShipping4,
+                Text(context.watch<LanguageProvider>().loc.groupOrderGuideShipping4,
                     style: const TextStyle(fontSize: 13, height: 1.6, color: Color(0xFF333333))),
               ],
             ),
@@ -385,63 +359,65 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           // 디자인 독점 사용 옵션
           _SectionHeader2(label: 'EXCLUSIVE DESIGN', title: loc.groupOrderExclusiveTitle),
           const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: const Color(0xFFF0F0F0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 타이틀 행
-                Row(
-                  children: [
-                    const Icon(Icons.lock_outline_rounded, size: 16, color: Color(0xFF1A1A1A)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        loc.groupOrderGuideExclusiveTitle,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF1A1A1A),
+          Builder(builder: (context) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              color: const Color(0xFFF0F0F0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 타이틀 행
+                  Row(
+                    children: [
+                      const Icon(Icons.lock_outline_rounded, size: 16, color: Color(0xFF1A1A1A)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          loc.groupOrderGuideExclusiveTitle,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1A1A1A),
+                          ),
                         ),
                       ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        color: _black,
+                        child: const Text(
+                          'FREE',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(loc.groupOrderGuideExclusive1,
+                      style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
+                  const SizedBox(height: 4),
+                  Text(loc.groupOrderGuideExclusive2,
+                      style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border(left: BorderSide(color: _black, width: 3)),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      color: _black,
-                      child: const Text(
-                        'FREE',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white),
+                    child: Text(
+                      loc.groupOrderGuideExclusive3,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        height: 1.6,
+                        color: Color(0xFF333333),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(loc.groupOrderGuideExclusive1,
-                    style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
-                const SizedBox(height: 4),
-                Text(loc.groupOrderGuideExclusive2,
-                    style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border(left: BorderSide(color: _black, width: 3)),
                   ),
-                  child: Text(
-                    loc.groupOrderGuideExclusive3,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      height: 1.6,
-                      color: Color(0xFF333333),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+                ],
+              ),
+            );
+          }),
           const SizedBox(height: 28),
 
           // 추가 주문 안내
@@ -488,16 +464,17 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
           // 교환·환불 정책
           _SectionHeader2(
             label: 'EXCHANGE & REFUND',
-            title: loc.groupOrderGuideExchangeTitle,
+            title: context.watch<LanguageProvider>().loc.groupOrderGuideExchangeTitle,
           ),
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(16),
             color: const Color(0xFFF0F0F0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 기성품 교환환불
+            child: Builder(builder: (context) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 기성품 교환환불
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     decoration: const BoxDecoration(
@@ -555,8 +532,9 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
                       ],
                     ),
                   ),
-              ],
-            ),
+                ],
+              );
+            }),
           ),
           const SizedBox(height: 28),
 
@@ -605,9 +583,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
   }
 
   // ── 선택 상품 카드 ──
-  Widget _buildProductCard(BuildContext context, ProductModel product) {
-    final lang = Provider.of<LanguageProvider>(context, listen: false).language;
-    final loc = Provider.of<LanguageProvider>(context, listen: false).loc;
+  Widget _buildProductCard(ProductModel product) {
     final imageUrl = product.images.isNotEmpty ? product.images.first : '';
     return Container(
       padding: const EdgeInsets.all(14),
@@ -629,7 +605,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  product.localizedName(lang),
+                  product.localizedName(_lang),
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -643,8 +619,8 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen>
                 Wrap(
                   spacing: 6,
                   children: [
-                    _buildTag(loc.setProduct),
-                    _buildTag(loc.groupOrderOnlyLabel),
+                    _buildTag(context.watch<LanguageProvider>().loc.setProduct),
+                    _buildTag(context.watch<LanguageProvider>().loc.groupOrderOnlyLabel),
                   ],
                 ),
               ],
@@ -976,7 +952,6 @@ class _AgreementSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final loc = Provider.of<LanguageProvider>(context, listen: false).loc;
     return Column(
       children: [
         GestureDetector(
@@ -1007,7 +982,7 @@ class _AgreementSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    loc.groupOrderGuideAgreeAll,
+                    context.watch<LanguageProvider>().loc.groupOrderGuideAgreeAll,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -1026,7 +1001,7 @@ class _AgreementSection extends StatelessWidget {
             onPressed: onNext,
             icon: const Icon(Icons.edit_outlined, size: 18),
             label: Text(
-              loc.groupOrderGuideWriteBtn,
+              context.watch<LanguageProvider>().loc.groupOrderGuideWriteBtn,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
             ),
             style: ElevatedButton.styleFrom(
@@ -1043,7 +1018,7 @@ class _AgreementSection extends StatelessWidget {
         if (!agreed) ...[
           const SizedBox(height: 8),
           Text(
-            loc.groupOrderGuideCheckFirst,
+            context.watch<LanguageProvider>().loc.groupOrderGuideCheckFirst,
             style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
             textAlign: TextAlign.center,
           ),
@@ -1066,7 +1041,7 @@ class _SizeTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = loc ?? Provider.of<LanguageProvider>(context, listen: false).loc;
+    final l = loc ?? context.watch<LanguageProvider>().loc;
     final headers = [l.sizeLabel, l.chestLabel, l.waistLabel, l.hipLabel, l.heightLabel];
     const colFlex = [1, 2, 2, 2, 2];
 
