@@ -60,7 +60,9 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             onPressed: () => goBackOrHome(context),
           ),
         ),
-        body: _buildGuideTab(context),
+        body: LayoutBuilder(
+          builder: (context, constraints) => _buildGuideTab(context),
+        ),
       ),
     );
   }
@@ -279,46 +281,15 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // 탭1: 주문 안내
   // ═══════════════════════════════════════════════════
   Widget _buildGuideTab(BuildContext context) {
-    try {
-      return _buildGuideTabContent(context);
-    } catch (e, st) {
-      // 디버그용 에러 표시 (흰 화면 대신 에러 메시지)
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 40),
-            const SizedBox(height: 12),
-            const Text('단체주문 안내 로드 오류', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            Text(e.toString(), style: const TextStyle(fontSize: 12, color: Colors.red)),
-            const SizedBox(height: 8),
-            Text(st.toString().substring(0, st.toString().length.clamp(0, 500)),
-                style: const TextStyle(fontSize: 10, color: Colors.grey)),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => GroupOrderFormScreen(product: widget.product),
-              )),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1A1A1A), foregroundColor: Colors.white),
-              child: const Text('주문서 바로 작성하기'),
-            ),
-          ],
-        ),
-      );
-    }
+    return _buildGuideTabContent(context);
   }
 
   Widget _buildGuideTabContent(BuildContext context) {
-    // listen: false 로 고정 — build() 스택 외부(try-catch 등)에서도 안전하게 호출 가능
     final loc = Provider.of<LanguageProvider>(context, listen: false).loc;
-    return SingleChildScrollView(
+    return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      children: [
           // 선택된 상품 카드
           if (widget.product != null) ...[
             _buildProductCard(context, widget.product!),
@@ -397,65 +368,63 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           // 디자인 독점 사용 옵션
           _SectionHeader2(label: 'EXCLUSIVE DESIGN', title: loc.groupOrderExclusiveTitle),
           const SizedBox(height: 14),
-          Builder(builder: (context) {
-            return Container(
-              padding: const EdgeInsets.all(16),
-              color: const Color(0xFFF0F0F0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 타이틀 행
-                  Row(
-                    children: [
-                      const Icon(Icons.lock_outline_rounded, size: 16, color: Color(0xFF1A1A1A)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          loc.groupOrderGuideExclusiveTitle,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF1A1A1A),
-                          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: const Color(0xFFF0F0F0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 타이틀 행
+                Row(
+                  children: [
+                    const Icon(Icons.lock_outline_rounded, size: 16, color: Color(0xFF1A1A1A)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        loc.groupOrderGuideExclusiveTitle,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1A1A1A),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        color: _black,
-                        child: const Text(
-                          'FREE',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Text(loc.groupOrderGuideExclusive1,
-                      style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
-                  const SizedBox(height: 4),
-                  Text(loc.groupOrderGuideExclusive2,
-                      style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border(left: BorderSide(color: _black, width: 3)),
                     ),
-                    child: Text(
-                      loc.groupOrderGuideExclusive3,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        height: 1.6,
-                        color: Color(0xFF333333),
-                        fontWeight: FontWeight.w600,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      color: _black,
+                      child: const Text(
+                        'FREE',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.white),
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(loc.groupOrderGuideExclusive1,
+                    style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
+                const SizedBox(height: 4),
+                Text(loc.groupOrderGuideExclusive2,
+                    style: const TextStyle(fontSize: 12, height: 1.7, color: Color(0xFF444444))),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(left: BorderSide(color: _black, width: 3)),
                   ),
-                ],
-              ),
-            );
-          }),
+                  child: Text(
+                    loc.groupOrderGuideExclusive3,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      height: 1.6,
+                      color: Color(0xFF333333),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 28),
 
           // 추가 주문 안내
@@ -508,11 +477,10 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             color: const Color(0xFFF0F0F0),
-            child: Builder(builder: (context) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 기성품 교환환불
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 기성품 교환환불
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     decoration: const BoxDecoration(
@@ -570,9 +538,8 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                       ],
                     ),
                   ),
-                ],
-              );
-            }),
+              ],
+            ),
           ),
           const SizedBox(height: 28),
 
@@ -590,8 +557,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                 : null,
           ),
           const SizedBox(height: 20),
-        ],
-      ),
+      ],
     );
   }
 
@@ -1082,7 +1048,7 @@ class _SizeTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = loc ?? context.watch<LanguageProvider>().loc;
+    final l = loc ?? Provider.of<LanguageProvider>(context, listen: false).loc;
     final headers = [l.sizeLabel, l.chestLabel, l.waistLabel, l.hipLabel, l.heightLabel];
     const colFlex = [1, 2, 2, 2, 2];
 
