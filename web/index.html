@@ -210,7 +210,7 @@
        JS 키 등록 완료: 09aadca2435b22f8b07bcda2d469a36f
   ═══════════════════════════════════════════════ -->
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
-          integrity="sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4"
+          integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nka"
           crossorigin="anonymous"></script>
   <script>
     // 카카오 JavaScript 키 등록 완료 (2026-06-17)
@@ -331,8 +331,9 @@
     }
     window.addEventListener('flutter-first-frame', removeLoadingScreen);
 
-    // 안전장치: 10초 후에도 flutter-first-frame 없으면 강제 제거
-    setTimeout(removeLoadingScreen, 10000);
+    // 안전장치: 30초 후에도 flutter-first-frame 없으면 강제 제거
+    // (CanvasKit WASM 초기 로드 시간 확보 — 느린 네트워크 대응)
+    setTimeout(removeLoadingScreen, 30000);
   </script>
 
   <script src="flutter_bootstrap.js" async></script>
