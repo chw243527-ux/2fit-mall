@@ -17,8 +17,8 @@ class GroupOrderGuideScreen extends StatefulWidget {
 }
 
 class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
-  AppLocalizations get loc => context.watch<LanguageProvider>().loc;
-  AppLanguage get _lang => context.watch<LanguageProvider>().language;
+  AppLocalizations get loc => Provider.of<LanguageProvider>(context, listen: false).loc;
+  AppLanguage get _lang => Provider.of<LanguageProvider>(context, listen: false).language;
   bool _agreed = false;
 
   // ── 탑텐 스타일 상수 ──
@@ -43,7 +43,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
         backgroundColor: _bg,
         appBar: AppBar(
           title: Text(
-            context.watch<LanguageProvider>().loc.groupOrderGuideAppBar,
+            loc.groupOrderGuideAppBar,
             style: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w800,
@@ -60,42 +60,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             onPressed: () => goBackOrHome(context),
           ),
         ),
-        body: Builder(
-          builder: (ctx) {
-            try {
-              return _buildGuideTab(ctx);
-            } catch (e) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.groups_rounded, size: 48, color: Color(0xFF1A1A1A)),
-                      const SizedBox(height: 16),
-                      const Text('단체 주문 안내',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                      const SizedBox(height: 8),
-                      const Text('5명 이상 단체 맞춤 제작',
-                          style: TextStyle(fontSize: 14, color: Color(0xFF666666))),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: () => Navigator.pushNamed(ctx, '/group-form'),
-                        icon: const Icon(Icons.edit_outlined),
-                        label: const Text('주문서 작성하기'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1A1A1A),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
-          },
-        ),
+        body: _buildGuideTab(context),
       ),
     );
   }
@@ -111,7 +76,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
         backgroundColor: _bg,
         appBar: AppBar(
           title: Text(
-            context.watch<LanguageProvider>().loc.groupOrderGuideAppBar,
+            loc.groupOrderGuideAppBar,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
@@ -184,7 +149,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                 const Icon(Icons.groups_rounded, color: Colors.white, size: 28),
                 const SizedBox(height: 8),
                 Text(
-                  context.watch<LanguageProvider>().loc.groupOrderGuideHeroTitle,
+                  loc.groupOrderGuideHeroTitle,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -194,7 +159,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  context.watch<LanguageProvider>().loc.groupOrderGuideHeroSub,
+                  loc.groupOrderGuideHeroSub,
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
                 ),
               ],
@@ -233,7 +198,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      context.watch<LanguageProvider>().loc.groupOrderAgreementCheck,
+                      loc.groupOrderAgreementCheck,
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -260,7 +225,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
                   : null,
               icon: const Icon(Icons.edit_outlined, size: 16),
               label: Text(
-                context.watch<LanguageProvider>().loc.groupOrderGuideWriteBtn,
+                loc.groupOrderGuideWriteBtn,
                 style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
               ),
               style: ElevatedButton.styleFrom(
@@ -276,7 +241,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
           if (!_agreed) ...[
             const SizedBox(height: 8),
             Text(
-              context.watch<LanguageProvider>().loc.groupOrderGuideCheckFirst,
+              loc.groupOrderGuideCheckFirst,
               style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
               textAlign: TextAlign.center,
             ),
@@ -314,11 +279,7 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // 탭1: 주문 안내
   // ═══════════════════════════════════════════════════
   Widget _buildGuideTab(BuildContext context) {
-    try {
-      return _buildGuideTabContent(context);
-    } catch (e) {
-      return const Center(child: Text('단체주문 안내를 불러오는 중입니다...'));
-    }
+    return _buildGuideTabContent(context);
   }
 
   Widget _buildGuideTabContent(BuildContext context) {
@@ -1033,7 +994,7 @@ class _AgreementSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    context.watch<LanguageProvider>().loc.groupOrderGuideAgreeAll,
+                    loc.groupOrderGuideAgreeAll,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -1052,7 +1013,7 @@ class _AgreementSection extends StatelessWidget {
             onPressed: onNext,
             icon: const Icon(Icons.edit_outlined, size: 18),
             label: Text(
-              context.watch<LanguageProvider>().loc.groupOrderGuideWriteBtn,
+              loc.groupOrderGuideWriteBtn,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
             ),
             style: ElevatedButton.styleFrom(
@@ -1069,7 +1030,7 @@ class _AgreementSection extends StatelessWidget {
         if (!agreed) ...[
           const SizedBox(height: 8),
           Text(
-            context.watch<LanguageProvider>().loc.groupOrderGuideCheckFirst,
+            loc.groupOrderGuideCheckFirst,
             style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
             textAlign: TextAlign.center,
           ),
