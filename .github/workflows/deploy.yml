@@ -96,6 +96,13 @@ jobs:
             sed -i \
               "s|main\.dart\.js|main.dart.js?v=${BUILD_VER}|g" \
               ${{ env.BUILD_DIR }}/flutter_service_worker.js
+            # CACHE_NAME을 빌드 번호로 교체 → 새 빌드마다 SW가 기존 캐시 무효화
+            sed -i \
+              "s|'flutter-app-cache'|'flutter-app-cache-${BUILD_VER}'|g" \
+              ${{ env.BUILD_DIR }}/flutter_service_worker.js
+            sed -i \
+              "s|'flutter-temp-cache'|'flutter-temp-cache-${BUILD_VER}'|g" \
+              ${{ env.BUILD_DIR }}/flutter_service_worker.js
             echo "// build: ${BUILD_VER} (${SHORT_SHA})" \
               >> ${{ env.BUILD_DIR }}/flutter_service_worker.js
           else
