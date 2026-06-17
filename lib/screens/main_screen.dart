@@ -1211,8 +1211,8 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
     // 하단 시트 최대 너비 (PC 대응)
     final sheetW = sw > 600 ? 480.0 : sw;
-    // 최대 이미지 높이 제한 (화면의 55% 이하)
-    final imgMaxH = sh * 0.55;
+    // 최대 이미지 높이 제한 (화면의 80% 이하 — 이미지 비율 우선, 극단적 세로 이미지 방어)
+    final imgMaxH = sh * 0.80;
 
     // PC: 전체 둥근 모서리 / 모바일: 상단만 둥근 모서리
     final borderRadius = widget.isPc
