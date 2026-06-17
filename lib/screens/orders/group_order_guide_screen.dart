@@ -52,31 +52,25 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // 모바일 레이아웃 — ListView (Scaffold body 직접)
   // ════════════════════════════════════════════════════════════
   Widget _buildMobileLayout(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) goBackOrHome(context);
-      },
-      child: Scaffold(
-        backgroundColor: _kBg,
-        appBar: AppBar(
-          backgroundColor: _kBlack,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          toolbarHeight: 48,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
-            onPressed: () => goBackOrHome(context),
-          ),
-          title: const Text(
-            '단체주문 안내',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
-          ),
+    return Scaffold(
+      backgroundColor: _kBg,
+      appBar: AppBar(
+        backgroundColor: _kBlack,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 48,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+          onPressed: () => goBackOrHome(context),
         ),
-        body: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
-          children: _guideItems(context),
+        title: const Text(
+          '단체주문 안내',
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white),
         ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+        children: _guideItems(context),
       ),
     );
   }
@@ -98,30 +92,25 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // 최종 채택: SingleChildScrollView > Row > [좌측 Column] + [우측 Column(mainAxisSize.min)]
   // ════════════════════════════════════════════════════════════
   Widget _buildPcLayout(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) goBackOrHome(context);
-      },
-      child: Scaffold(
-        backgroundColor: _kBg,
-        appBar: AppBar(
-          backgroundColor: _kBlack,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
-            onPressed: () => goBackOrHome(context),
-          ),
-          title: const Text(
-            '단체주문 안내',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
-          ),
+    return Scaffold(
+      backgroundColor: _kBg,
+      appBar: AppBar(
+        backgroundColor: _kBlack,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
+          onPressed: () => goBackOrHome(context),
         ),
-        // ── PC body: Stack 구조
-        // [뒤] SingleChildScrollView → 좌측 콘텐츠 (스크롤)
-        // [앞] Positioned → 우측 패널 (viewport 고정 — sticky sidebar)
-        body: LayoutBuilder(
+        title: const Text(
+          '단체주문 안내',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+        ),
+      ),
+      // ── PC body: Stack 구조
+      // [뒤] SingleChildScrollView → 좌측 콘텐츠 (스크롤)
+      // [앞] Positioned → 우측 패널 (viewport 고정 — sticky sidebar)
+      body: LayoutBuilder(
           builder: (context, constraints) {
             // 화면 너비에 따라 패널 우측 여백 계산
             final screenW = constraints.maxWidth;
@@ -170,7 +159,6 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
             );
           },
         ),
-      ),
     );
   }
 
