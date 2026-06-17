@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 import 'firebase_options.dart';
 import 'services/fcm_service.dart';
 import 'utils/theme.dart';
@@ -32,6 +33,18 @@ import 'screens/not_found_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 카카오 SDK 초기화 (앱 키는 발급 후 입력)
+  // console.kakao.com → 내 애플리케이션 → 앱 키 → JavaScript 키 (웹용)
+  try {
+    kakao.KakaoSdk.init(
+      nativeAppKey: 'YOUR_KAKAO_NATIVE_APP_KEY',   // TODO: 발급 후 교체
+      javaScriptAppKey: 'YOUR_KAKAO_JS_KEY',        // TODO: 발급 후 교체
+    );
+    if (kDebugMode) debugPrint('✅ KakaoSdk 초기화 성공');
+  } catch (e) {
+    if (kDebugMode) debugPrint('⚠️ KakaoSdk 초기화 오류: $e');
+  }
 
   // Firebase 초기화 (오류 시에도 앱 실행 유지)
   try {

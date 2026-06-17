@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 import '../models/models.dart';
 
 class AuthService {
@@ -425,8 +426,9 @@ class AuthService {
     required String name,
     required String email,
   }) async {
-    // TODO: 카카오/구글 OAuth 연동 시 구현
-    return const AuthResult(success: false, error: '소셜 로그인은 현재 준비 중입니다.');
+    if (provider == 'google') return signInWithGoogle();
+    if (provider == 'kakao')  return signInWithKakao();
+    return const AuthResult(success: false, error: '지원하지 않는 로그인 방식입니다.');
   }
 
   // ────────────────────────────────────────────
@@ -734,6 +736,137 @@ class AuthService {
       await _googleSignIn.signOut();
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 구글 로그아웃 실패: $e');
+    }
+  }
+
+
+  // ── 카카오 소셜 로그인 ──────────────────────────────────
+  // 카카오 앱 키는 main.dart KakaoSdk.init()에서 초기화
+  // Flutter Web: 카카오 JS SDK → OAuthToken 발급
+  // Android/iOS: 카카오톡 앱 또는 카카오계정 웹뷰 로그인
+  static Future<AuthResult> signInWithKakao() async {
+    try {
+      kakao.OAuthToken token;
+
+      if (kIsWeb) {
+        // 웹: 카카오 JS SDK 팝업 로그인
+        token = await kakao.UserApi.instance.loginWithKakaoAccount();
+      } else {
+        // 앱: 카카오톡 설치 여부에 따라 분기
+        final isInstalled = await kakao.isKakaoTalkInstalled();
+        token = isInstalled
+            ? await kakao.UserApi.instance.loginWithKakaoTalk()
+            : await kakao.UserApi.instance.loginWithKakaoAccount();
+      }
+
+      if (kDebugMode) debugPrint('✅ 카카오 토큰 발급: ${token.accessToken.substring(0, 10)}...');
+
+      // 카카오 사용자 정보 조회
+      final kakaoUser = await kakao.UserApi.instance.me();
+      final kakaoAccount = kakaoUser.kakaoAccount;
+      final profile = kakaoAccount?.profile;
+
+      final kakaoId   = kakaoUser.id.toString();
+      final email     = kakaoAccount?.email ?? '$kakaoId@kakao.com';
+      final name      = profile?.nickname ?? '카카오 사용자';
+      final photoUrl  = profile?.profileImageUrl ?? '';
+
+      // Firebase Custom Token 없이 → 이메일/비밀번호로 Firebase 계정 연동
+      // 카카오 고유 이메일을 Firebase auth에 등록 (없으면 자동 생성)
+      final fakePassword = 'kakao_${kakaoId}_2fit';
+      UserCredential userCred;
+      try {
+        userCred = await _auth.createUserWithEmailAndPassword(
+          email: email,
+          password: fakePassword,
+        );
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use') {
+          userCred = await _auth.signInWithEmailAndPassword(
+            email: email,
+            password: fakePassword,
+          );
+        } else {
+          rethrow;
+        }
+      }
+
+      final user = userCred.user;
+      if (user == null) return const AuthResult(success: false, error: '카카오 로그인 실패');
+
+      // 사용자 이름 업데이트
+      if (user.displayName == null || user.displayName!.isEmpty) {
+        await user.updateDisplayName(name);
+      }
+
+      final emailKey = email.toLowerCase();
+      final isAdmin  = _adminEmails.contains(emailKey);
+
+      // Firestore 사용자 문서 생성/업데이트
+      final docRef = _db.collection('users').doc(user.uid);
+      final doc    = await docRef.get();
+      if (!doc.exists) {
+        await docRef.set({
+          'id'              : user.uid,
+          'name'            : name,
+          'email'           : email,
+          'phone'           : '',
+          'profileImageUrl' : photoUrl,
+          'grade'           : 'bronze',
+          'isAdmin'         : isAdmin,
+          'points'          : 0,
+          'coupons'         : [],
+          'wishlist'        : [],
+          'createdAt'       : FieldValue.serverTimestamp(),
+          'loginProvider'   : 'kakao',
+          'kakaoId'         : kakaoId,
+        });
+      } else {
+        await docRef.update({
+          'lastLoginAt'   : FieldValue.serverTimestamp(),
+          'loginProvider' : 'kakao',
+          'kakaoId'       : kakaoId,
+          if (photoUrl.isNotEmpty) 'profileImageUrl': photoUrl,
+        });
+      }
+
+      final data = (await docRef.get()).data()!;
+      final tier = data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
+      final userModel = UserModel(
+        id              : user.uid,
+        name            : data['name']            as String? ?? name,
+        email           : data['email']           as String? ?? email,
+        phone           : data['phone']           as String? ?? '',
+        profileImageUrl : data['profileImageUrl'] as String? ?? photoUrl,
+        memberTier      : tier,
+        grade           : tier,
+        isAdmin         : (data['isAdmin'] as bool?) ?? isAdmin,
+        points          : (data['points']  as int?)  ?? 0,
+        coupons         : const [],
+        wishlist        : List<String>.from(data['wishlist'] as List? ?? []),
+        createdAt       : DateTime.now(),
+      );
+
+      // 세션 저장
+      final box = await _getSessionBox();
+      await box.put('user', {
+        'id': userModel.id, 'name': userModel.name, 'email': userModel.email,
+        'phone': userModel.phone, 'profileImageUrl': userModel.profileImageUrl,
+        'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
+        'points': userModel.points, 'wishlist': userModel.wishlist,
+      });
+      return AuthResult(success: true, user: userModel);
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 카카오 로그인 실패: $e');
+      return AuthResult(success: false, error: '카카오 로그인 실패: $e');
+    }
+  }
+
+  static Future<void> signOutKakao() async {
+    try {
+      await kakao.UserApi.instance.logout();
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 카카오 로그아웃 실패: $e');
     }
   }
 }

@@ -258,3 +258,48 @@ class AppConstants {
   // ── 단체 커스텀 주문 자동 확정 기한 ──
   static const int customOrderAutoConfirmDays = 14; // 주문 후 14일 자동 확정
 }
+
+// ══════════════════════════════════════════════════════════════
+// 개인정보 마스킹 유틸 — 화면 표시용 (저장은 원본 유지)
+// ══════════════════════════════════════════════════════════════
+class PrivacyMask {
+  /// 전화번호 마스킹: 010-1234-5678 → 010-****-5678
+  static String phone(String phone) {
+    final clean = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.length == 11) {
+      return '${clean.substring(0, 3)}-****-${clean.substring(7)}';
+    }
+    if (clean.length == 10) {
+      return '${clean.substring(0, 3)}-***-${clean.substring(7)}';
+    }
+    if (phone.isEmpty) return '-';
+    return '${phone.substring(0, (phone.length * 0.4).round())}****';
+  }
+
+  /// 이메일 마스킹: user@example.com → us**@example.com
+  static String email(String email) {
+    final parts = email.split('@');
+    if (parts.length != 2) return email;
+    final local = parts[0];
+    final domain = parts[1];
+    if (local.length <= 2) return '$local**@$domain';
+    final visible = local.substring(0, 2);
+    final masked = '*' * (local.length - 2);
+    return '$visible$masked@$domain';
+  }
+
+  /// 이름 마스킹: 홍길동 → 홍*동 / 김철수 → 김*수
+  static String name(String name) {
+    if (name.length <= 1) return name;
+    if (name.length == 2) return '${name[0]}*';
+    final mid = '*' * (name.length - 2);
+    return '${name[0]}$mid${name[name.length - 1]}';
+  }
+
+  /// 주소 마스킹: 전라북도 남원시 오들1길 97 → 전라북도 남원시 ***
+  static String address(String address) {
+    final parts = address.split(' ');
+    if (parts.length <= 2) return address;
+    return '${parts.take(2).join(' ')} ***';
+  }
+}

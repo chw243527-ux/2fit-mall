@@ -2,92 +2,251 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ─── 헬퍼 함수 ───────────────────────────────────────────
+    // ════════════════════════════════════════════════════════
+    // 헬퍼 함수
+    // ════════════════════════════════════════════════════════
+
+    // 로그인 여부
     function isSignedIn() {
       return request.auth != null;
     }
+
+    // 본인 문서 여부
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
+
+    // 관리자 여부 (Firestore users 문서의 isAdmin 필드 확인)
     function isAdmin() {
       return isSignedIn() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // ─── users 컬렉션 ─────────────────────────────────────────
+    // 이메일 인증 완료 여부
+    function isEmailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    // 요청 데이터 크기 제한 (4KB 이하)
+    function isReasonableSize() {
+      return request.resource.data.size() < 50;
+    }
+
+    // 문자열 길이 검증
+    function validStr(field, maxLen) {
+      return field is string && field.size() <= maxLen;
+    }
+
+    // 양수 숫자 검증
+    function isPositiveNumber(val) {
+      return val is number && val > 0;
+    }
+
+    // 주문 금액 합리성 검증 (1원 이상 ~ 50,000,000원 이하)
+    function isValidOrderAmount(amount) {
+      return isPositiveNumber(amount) && amount <= 50000000;
+    }
+
+    // 사용자 필드 검증
+    function isValidUserData(data) {
+      return validStr(data.name, 50)
+          && validStr(data.email, 100)
+          && (!('phone' in data) || validStr(data.phone, 20))
+          && (!('grade' in data) || data.grade in ['bronze','silver','gold','vip'])
+          && (!('isAdmin' in data) || data.isAdmin == false); // 본인이 isAdmin 설정 불가
+    }
+
+    // 리뷰 필드 검증
+    function isValidReview(data) {
+      return validStr(data.content, 1000)
+          && data.rating is number
+          && data.rating >= 1
+          && data.rating <= 5;
+    }
+
+    // 채팅 메시지 필드 검증
+    function isValidMessage(data) {
+      return validStr(data.text, 2000);
+    }
+
+
+    // ════════════════════════════════════════════════════════
+    // users 컬렉션
+    // ════════════════════════════════════════════════════════
     match /users/{userId} {
+      // 읽기: 본인 또는 관리자
       allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
+
+      // 생성: 본인 계정만, isAdmin=false 강제, 필드 검증
+      allow create: if isSignedIn()
+          && isOwner(userId)
+          && isValidUserData(request.resource.data)
+          && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false)
+          && (!('points' in request.resource.data) || request.resource.data.points == 0); // 포인트 임의 설정 금지
+
+      // 수정: 본인(제한 필드만) 또는 관리자
+      allow update: if isSignedIn() && (
+        (isOwner(userId)
+          && !('isAdmin' in request.resource.data.diff(resource.data).affectedKeys()) // isAdmin 변경 금지
+          && !('points' in request.resource.data.diff(resource.data).affectedKeys())  // 포인트 직접 변경 금지
+        ) || isAdmin()
+      );
+
+      // 삭제: 관리자만
       allow delete: if isAdmin();
     }
 
-    // ─── products 컬렉션 ──────────────────────────────────────
+
+    // ════════════════════════════════════════════════════════
+    // products 컬렉션
+    // ════════════════════════════════════════════════════════
     match /products/{productId} {
       allow read: if true;          // 누구나 상품 조회
-      allow write: if isAdmin();    // 관리자만 수정
+      allow write: if isAdmin();    // 관리자만 수정/삭제
     }
 
-    // ─── orders 컬렉션 ───────────────────────────────────────
+
+    // ════════════════════════════════════════════════════════
+    // orders 컬렉션
+    // ════════════════════════════════════════════════════════
     match /orders/{orderId} {
+      // 읽기: 본인 주문 또는 관리자
       allow read: if isSignedIn() && (
         resource.data.userId == request.auth.uid || isAdmin()
       );
-      allow create: if isSignedIn();
+
+      // 생성: 로그인 + userId 본인 일치 + 금액 검증
+      allow create: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid
+          && isValidOrderAmount(request.resource.data.totalAmount);
+
+      // 수정: 본인(상태 변경 제한) 또는 관리자
       allow update: if isSignedIn() && (
-        resource.data.userId == request.auth.uid || isAdmin()
+        (
+          resource.data.userId == request.auth.uid
+          // 고객은 status를 'cancelled'로만 변경 가능 (pending 상태에서만)
+          && (
+            !('status' in request.resource.data.diff(resource.data).affectedKeys())
+            || (request.resource.data.status == 'cancelled' && resource.data.status == 'pending')
+          )
+          // 고객은 totalAmount 변경 불가
+          && !('totalAmount' in request.resource.data.diff(resource.data).affectedKeys())
+        ) || isAdmin()
       );
+
+      // 삭제: 관리자만
       allow delete: if isAdmin();
     }
 
-    // ─── reviews 컬렉션 ──────────────────────────────────────
+
+    // ════════════════════════════════════════════════════════
+    // reviews 컬렉션
+    // ════════════════════════════════════════════════════════
     match /reviews/{reviewId} {
-      allow read: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && (
+      allow read: if true;  // 누구나 리뷰 조회
+
+      // 생성: 로그인 + 본인 userId + 내용 검증
+      allow create: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid
+          && isValidReview(request.resource.data);
+
+      // 수정/삭제: 본인 또는 관리자
+      allow update: if isSignedIn() && (
+        resource.data.userId == request.auth.uid
+        && isValidReview(request.resource.data)
+      ) || isAdmin();
+
+      allow delete: if isSignedIn() && (
         resource.data.userId == request.auth.uid || isAdmin()
       );
     }
 
-    // ─── coupons 컬렉션 ──────────────────────────────────────
+
+    // ════════════════════════════════════════════════════════
+    // coupons 컬렉션
+    // ════════════════════════════════════════════════════════
     match /coupons/{couponId} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow read: if isSignedIn();   // 로그인 사용자만 쿠폰 조회
+      allow write: if isAdmin();     // 발급/수정/삭제는 관리자만
     }
 
-    // ─── notifications 컬렉션 ────────────────────────────────
+
+    // ════════════════════════════════════════════════════════
+    // notifications 컬렉션
+    // ════════════════════════════════════════════════════════
     match /notifications/{notifId} {
       allow read: if isSignedIn() && (
         resource.data.userId == request.auth.uid || isAdmin()
       );
       allow create: if isAdmin();
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // 읽음 처리(isRead 필드만 수정 허용)
+      allow update: if isSignedIn()
+          && resource.data.userId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead', 'readAt']);
       allow delete: if isAdmin();
     }
 
-    // ─── notices 컬렉션 (공지사항 팝업) ──────────────────────
+
+    // ════════════════════════════════════════════════════════
+    // notices 컬렉션 (공지사항/팝업)
+    // ════════════════════════════════════════════════════════
     match /notices/{noticeId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read: if true;           // 누구나 공지 조회
+      allow write: if isAdmin();     // 관리자만 작성/수정/삭제
     }
 
-    // ─── chats 컬렉션 ────────────────────────────────────────
+
+    // ════════════════════════════════════════════════════════
+    // chats 컬렉션
+    // ════════════════════════════════════════════════════════
     match /chats/{chatId} {
-      allow read, write: if isSignedIn() && (
+      // 본인 채팅방만 읽기/쓰기 (또는 관리자)
+      allow read: if isSignedIn() && (
         request.auth.uid == chatId || isAdmin()
       );
+      // 채팅방 문서 생성/수정: 본인만
+      allow create, update: if isSignedIn() && (
+        request.auth.uid == chatId || isAdmin()
+      );
+      allow delete: if isAdmin();
+
       match /messages/{msgId} {
         allow read: if isSignedIn() && (
           request.auth.uid == chatId || isAdmin()
         );
-        allow create: if isSignedIn();
+        // 메시지 생성: 로그인 + 내용 길이 검증
+        allow create: if isSignedIn()
+            && ('text' in request.resource.data
+                ? isValidMessage(request.resource.data)
+                : true);
         allow update, delete: if isAdmin();
       }
     }
 
-    // ─── fcmTokens 컬렉션 ────────────────────────────────────
+
+    // ════════════════════════════════════════════════════════
+    // fcmTokens 컬렉션
+    // ════════════════════════════════════════════════════════
     match /fcmTokens/{tokenId} {
+      // 본인 토큰만 읽기/쓰기
       allow read, write: if isSignedIn() && isOwner(tokenId);
+    }
+
+
+    // ════════════════════════════════════════════════════════
+    // categories 컬렉션 (카테고리 캐시)
+    // ════════════════════════════════════════════════════════
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+
+    // ════════════════════════════════════════════════════════
+    // 그 외 모든 컬렉션: 기본 차단
+    // ════════════════════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
