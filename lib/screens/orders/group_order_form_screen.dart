@@ -1491,7 +1491,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     width: 120,
                     height: 120,
                     child: Stack(
-                    children: [
+                      children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: NetImage(
