@@ -287,6 +287,56 @@ class _GroupOrderGuideScreenState extends State<GroupOrderGuideScreen> {
   // 탭1: 주문 안내
   // ═══════════════════════════════════════════════════
   Widget _buildGuideTab(BuildContext context) {
+    try {
+      return _buildGuideTabContent(context);
+    } catch (e, st) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.groups_rounded, size: 48, color: Color(0xFF1A1A1A)),
+              const SizedBox(height: 16),
+              const Text('단체주문 안내', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+              const SizedBox(height: 8),
+              const Text('5명 이상 단체 맞춤 제작', style: TextStyle(fontSize: 14, color: Color(0xFF666666))),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                color: const Color(0xFFF5F5F5),
+                child: Text(
+                  'DEBUG: $e',
+                  style: const TextStyle(fontSize: 10, color: Colors.red),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => GroupOrderFormScreen(product: widget.product)),
+                  ),
+                  icon: const Icon(Icons.edit_outlined),
+                  label: const Text('주문서 작성하기'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A1A1A),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 52),
+                    shape: const RoundedRectangleBorder(),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildGuideTabContent(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
