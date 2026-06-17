@@ -2,14 +2,17 @@ import 'package:flutter/material.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
 import 'group_order_guide_screen.dart';
+import 'group_order_form_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // GroupOrderLandingScreen — 사이드바 "단체주문하기" 전용 랜딩 페이지
-// 탭1: 단체주문 안내 + 주문서 작성 바로가기
-// 탭2: 카테고리별 주문서 바로가기 (GroupOrderGuideScreen으로 이동)
-// Provider / AppLocalizations 의존성 없음 — 모든 텍스트 하드코딩
-// 탑텐 스타일: 블랙/화이트, sharp border, 정사각 블랙 아이콘
+// • product 파라미터 없음 (사이드바 진입 전용)
+// • 탭1: 단체주문 안내
+// • 탭2: 주문서 바로가기 (카테고리 선택 → GroupOrderGuideScreen)
+// • Provider / AppLocalizations 의존성 없음
+// • 탑텐 스타일: Color(0xFF1A1A1A), flat black/white, 정사각 블랙 아이콘, sharp border
 // ═══════════════════════════════════════════════════════════════
+
 class GroupOrderLandingScreen extends StatefulWidget {
   const GroupOrderLandingScreen({super.key});
 
@@ -21,8 +24,11 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
 
-  static const _kBlack = Color(0xFF1A1A1A);
-  static const _kBg    = Color(0xFFF8F8F8);
+  static const _kBlack  = Color(0xFF1A1A1A);
+  static const _kBg     = Color(0xFFF8F8F8);
+  static const _kBorder = Color(0xFFE8E8E8);
+  static const _kGrey4  = Color(0xFF444444);
+  static const _kGrey6  = Color(0xFF666666);
 
   @override
   void initState() {
@@ -42,19 +48,15 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     return _buildMobileLayout();
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
   // 모바일 레이아웃
-  // ══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
   Widget _buildMobileLayout() {
     return wrapWithPopScope(
       context,
       Scaffold(
         backgroundColor: _kBg,
         appBar: AppBar(
-          title: const Text(
-            '단체주문하기',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-          ),
           backgroundColor: _kBlack,
           foregroundColor: Colors.white,
           elevation: 0,
@@ -62,6 +64,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             onPressed: () => goBackOrHome(context),
+          ),
+          title: const Text(
+            '단체주문하기',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
           bottom: TabBar(
             controller: _tabCtrl,
@@ -88,25 +94,25 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     );
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
   // PC 레이아웃
-  // ══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
   Widget _buildPcLayout() {
     return wrapWithPopScope(
       context,
       Scaffold(
         backgroundColor: _kBg,
         appBar: AppBar(
-          title: const Text(
-            '단체주문하기',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-          ),
           backgroundColor: _kBlack,
           foregroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             onPressed: () => goBackOrHome(context),
+          ),
+          title: const Text(
+            '단체주문하기',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
           ),
         ),
         body: Center(
@@ -117,7 +123,6 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 좌측: 안내
                   Expanded(
                     flex: 6,
                     child: Container(
@@ -126,7 +131,6 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                     ),
                   ),
                   const SizedBox(width: 20),
-                  // 우측: 주문서 바로가기
                   Expanded(
                     flex: 4,
                     child: Container(
@@ -143,16 +147,16 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     );
   }
 
-  // ══════════════════════════════════════════════════════════
-  // 단체주문 안내 탭
-  // ══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
+  // 탭1: 단체주문 안내
+  // ════════════════════════════════════════════════════════════
   Widget _buildGuideTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 헤더 (flat black — 탑텐 스타일)
+          // 헤더 (flat black)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -189,16 +193,16 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           // 주문 절차
           _buildSectionTitle(Icons.assignment_outlined, '주문 절차'),
           const SizedBox(height: 12),
-          _buildStepCard('1', '상품 선택',  '원하는 상품을 선택하고 단체주문서를 작성합니다.'),
+          _buildStepCard('1', '상품 선택 & 주문서 작성', '원하는 상품을 선택하고 단체주문서를 작성합니다.'),
           _buildStepCard('2', '디자인 협의', '컬러, 로고, 마킹 등 맞춤 디자인을 협의합니다.'),
-          _buildStepCard('3', '견적 확인',  '수량별 최종 견적을 확인하고 주문을 확정합니다.'),
+          _buildStepCard('3', '견적 확인 & 결제', '수량별 최종 견적을 확인하고 주문을 확정합니다.'),
           _buildStepCard('4', '제작 & 배송', '제작 후 일괄 배송 또는 분배 배송을 선택합니다.', isLast: true),
           const SizedBox(height: 20),
 
           // 주문 조건
           _buildSectionTitle(Icons.check_circle_outline, '주문 조건'),
           const SizedBox(height: 12),
-          _buildConditionBox(),
+          _buildConditionTable(),
           const SizedBox(height: 20),
 
           // 커스텀 옵션
@@ -233,6 +237,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           // CTA 버튼
           SizedBox(
             width: double.infinity,
+            height: 52,
             child: ElevatedButton.icon(
               onPressed: () {
                 if (_tabCtrl.index != 1) {
@@ -252,20 +257,20 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kBlack,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: const RoundedRectangleBorder(),
                 elevation: 0,
               ),
             ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  // ══════════════════════════════════════════════════════════
-  // 주문서 바로가기 탭
-  // ══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
+  // 탭2: 주문서 바로가기
+  // ════════════════════════════════════════════════════════════
   Widget _buildOrderFormTab() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -275,8 +280,9 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           _buildSectionTitle(Icons.edit_note_outlined, '단체주문서 작성'),
           const SizedBox(height: 12),
           const Text(
-            '상품을 선택하지 않고 바로 단체주문서를 작성할 수 있습니다.\n아래 카테고리에서 원하는 상품 유형을 선택해주세요.',
-            style: TextStyle(fontSize: 12, color: Color(0xFF666666), height: 1.6),
+            '상품을 선택하지 않고 바로 단체주문서를 작성할 수 있습니다.\n'
+            '아래 카테고리에서 원하는 상품 유형을 선택해주세요.',
+            style: TextStyle(fontSize: 12, color: _kGrey6, height: 1.6),
           ),
           const SizedBox(height: 20),
 
@@ -286,25 +292,25 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             title: '싱글렛 A타입 세트',
             subtitle: '싱글렛 + 타이즈 세트 / 육상·인라인·마라톤',
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.fitness_center_rounded,
             title: '싱글렛 B타입',
             subtitle: '싱글렛 단품 / 헬스·크로스핏·복싱',
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.directions_run_rounded,
             title: '스킨슈트',
             subtitle: '원피스 전신 경기복 / 사이클·트라이애슬론',
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.dry_cleaning_rounded,
             title: '트레이닝복 세트',
             subtitle: '상의 + 하의 트레이닝 세트 / 팀복·동호회복',
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.list_alt_rounded,
             title: '기타 / 직접 작성',
@@ -322,17 +328,18 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             child: const Text(
               '상품 상세 페이지에서 단체주문서 작성 시 상품 정보가 자동으로 입력됩니다.\n'
               '더 빠른 주문을 원하시면 상품을 먼저 선택해주세요.',
-              style: TextStyle(fontSize: 11, color: Color(0xFF444444), height: 1.5),
+              style: TextStyle(fontSize: 11, color: _kGrey4, height: 1.5),
             ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  // ══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
   // 공통 UI 컴포넌트 (탑텐 스타일)
-  // ══════════════════════════════════════════════════════════
+  // ════════════════════════════════════════════════════════════
 
   // 정사각 블랙 아이콘 + 볼드 제목
   Widget _buildSectionTitle(IconData icon, String title) {
@@ -352,14 +359,14 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     ]);
   }
 
-  // flat numbered step row (탑텐 스타일 — 정사각 번호)
+  // 번호가 있는 단계 카드
   Widget _buildStepCard(String step, String title, String desc, {bool isLast = false}) {
     return Container(
       margin: EdgeInsets.only(bottom: isLast ? 0 : 1),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFE8E8E8)),
+        border: Border.all(color: _kBorder),
       ),
       child: Row(children: [
         Container(
@@ -381,7 +388,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                   style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: _kBlack)),
               const SizedBox(height: 2),
               Text(desc,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF666666), height: 1.5)),
+                  style: const TextStyle(fontSize: 11, color: _kGrey6, height: 1.5)),
             ],
           ),
         ),
@@ -389,18 +396,18 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     );
   }
 
-  // flat white box — 주문 조건 테이블
-  Widget _buildConditionBox() {
+  // 주문 조건 테이블
+  Widget _buildConditionTable() {
     final items = [
-      {'icon': Icons.group_outlined,           'title': '최소 주문 수량', 'desc': '10벌 이상'},
-      {'icon': Icons.local_shipping_outlined,   'title': '배송',          'desc': '무료 배송 (단체주문 전용)'},
+      {'icon': Icons.group_outlined,           'title': '최소 주문 수량', 'desc': '5벌 이상'},
+      {'icon': Icons.local_shipping_outlined,   'title': '배송',          'desc': '30만원 이상 무료 (미만 별도)'},
       {'icon': Icons.schedule_outlined,         'title': '제작 기간',     'desc': '주문 확정 후 14~21일'},
-      {'icon': Icons.local_offer_outlined,      'title': '단체 할인',     'desc': '30인 이상 5% / 50인 이상 10%'},
+      {'icon': Icons.local_offer_outlined,      'title': '단체 할인',     'desc': '수량에 따른 단가 조정 가능'},
     ];
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFE8E8E8)),
+        border: Border.all(color: _kBorder),
       ),
       child: Column(
         children: items.asMap().entries.map((e) {
@@ -419,37 +426,37 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                 const Spacer(),
                 Text(
                   item['desc'] as String,
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF444444)),
+                  style: const TextStyle(fontSize: 12, color: _kGrey4),
                 ),
               ]),
             ),
-            if (!isLast) const Divider(height: 1, color: Color(0xFFE8E8E8)),
+            if (!isLast) const Divider(height: 1, color: _kBorder),
           ]);
         }).toList(),
       ),
     );
   }
 
-  // flat white box — 복수 줄
+  // 복수 줄 flat white box
   Widget _buildInfoLines(List<String> lines) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFE8E8E8)),
+        border: Border.all(color: _kBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: lines.map((l) => Padding(
           padding: const EdgeInsets.only(bottom: 4),
-          child: Text(l, style: const TextStyle(fontSize: 12, height: 1.6, color: Color(0xFF444444))),
+          child: Text(l, style: const TextStyle(fontSize: 12, height: 1.6, color: _kGrey4)),
         )).toList(),
       ),
     );
   }
 
-  // flat notice box (left black border)
+  // 주의사항 박스 (left black border)
   Widget _buildNoticeBox(List<String> notices) {
     return Container(
       width: double.infinity,
@@ -467,7 +474,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             children: [
               const Text('• ', style: TextStyle(color: _kBlack, fontWeight: FontWeight.w900, fontSize: 13)),
               Expanded(
-                child: Text(n, style: const TextStyle(fontSize: 11, color: Color(0xFF444444), height: 1.6)),
+                child: Text(n, style: const TextStyle(fontSize: 11, color: _kGrey4, height: 1.6)),
               ),
             ],
           ),
@@ -476,7 +483,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     );
   }
 
-  // flat contact card (탑텐 스타일)
+  // 연락처 카드 (flat black)
   Widget _buildContactCard() {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -514,7 +521,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     );
   }
 
-  // flat type card (탑텐 스타일 — 정사각 블랙 아이콘)
+  // 상품 유형 선택 카드 (탑텐 flat + 정사각 블랙 아이콘)
   Widget _buildOrderTypeCard({
     required IconData icon,
     required String title,
@@ -524,14 +531,16 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const GroupOrderGuideScreen()),
+          MaterialPageRoute(
+            builder: (_) => GroupOrderFormScreen(initialCount: 5),
+          ),
         );
       },
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: const Color(0xFFE8E8E8)),
+          border: Border.all(color: _kBorder),
         ),
         child: Row(children: [
           Container(
@@ -548,7 +557,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                     style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: _kBlack)),
                 const SizedBox(height: 2),
                 Text(subtitle,
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF666666))),
+                    style: const TextStyle(fontSize: 11, color: _kGrey6)),
               ],
             ),
           ),
