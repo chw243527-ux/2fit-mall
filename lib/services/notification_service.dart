@@ -13,15 +13,21 @@ import 'notification_web_stub.dart'
 
 // ─── 🔑 카카오 알림톡 설정 ────────────────────────────────────
 class KakaoConfig {
-  // TODO: 카카오 비즈니스 API 키
-  // 발급: https://business.kakao.com → 개발자 → API 키
+  // ══ 발급 방법 ══════════════════════════════════════════════════
+  // 1. https://business.kakao.com 로그인
+  // 2. 비즈도구 → 서비스신청 → 알림톡 신청
+  // 3. 발신프로필 등록 (카카오톡 채널 연결) → senderKey 발급
+  // 4. https://developers.kakao.com → 내 애플리케이션 → REST API 키 복사 → apiKey
+  // ═════════════════════════════════════════════════════════════
+
+  // TODO: 카카오 REST API 키 (developers.kakao.com → 앱 키 → REST API 키)
   static const apiKey = '';
 
-  // TODO: 발신 프로필 키 (plusFriendUserKey)
+  // TODO: 발신 프로필 키 (business.kakao.com → 알림톡 → 발신프로필 관리 → senderKey)
   static const senderKey = '';
 
   // ── 알림톡 템플릿 코드 (카카오 심사 후 발급) ──────────────────
-  // 각 항목은 카카오 비즈니스에서 템플릿 작성·심사 후 코드 입력
+  // 카카오 비즈니스에서 템플릿 작성·심사 완료 후 발급된 코드 입력
   static const templateOrderConfirm = 'ORDER_CONFIRM'; // 주문 확인
   static const templateShipped      = 'ORDER_SHIPPED'; // 배송 시작
   static const templateDelivered    = 'ORDER_DELIVERED'; // 배송 완료
@@ -29,8 +35,12 @@ class KakaoConfig {
 
   static bool get isConfigured => apiKey.isNotEmpty && senderKey.isNotEmpty;
 
-  // 카카오 알림톡 API 엔드포인트 (bizmessage)
-  static const apiUrl = 'https://apis.aligo.in/send/';
+  // 카카오 알림톡 API 엔드포인트 (카카오 비즈메시지 직접 API)
+  // 참고: https://developers.kakao.com/docs/latest/ko/message/rest-api
+  static const apiUrl = 'https://kapi.kakao.com/v1/api/talk/friends/message/send';
+
+  // 발신 번호 (사업자 등록 번호 연계 전화번호)
+  static const senderPhone = '010-7227-6914';
 }
 
 // ─── 관리자 이메일 ────────────────────────────────────────────
@@ -146,21 +156,26 @@ class NotificationService {
         message = message.replaceAll(key, value);
       });
 
+      // 카카오 알림톡 비즈메시지 API 직접 호출
+      // 참고: https://developers.kakao.com/docs/latest/ko/kakaotalk-channel/rest-api
       final response = await http.post(
         Uri.parse(KakaoConfig.apiUrl),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: {
+          'Authorization': 'KakaoAK ${KakaoConfig.apiKey}',
+          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+        },
         body: {
-          'key': KakaoConfig.apiKey,
-          'tpl_code': templateCode,
-          'sender': '15881234', // TODO: 발신 번호 (사업자 번호)
+          'sender_key': KakaoConfig.senderKey,
+          'template_code': templateCode,
           'receiver_1': phone,
           'recvname_1': params['#{고객명}'] ?? '',
           'msg_1': message,
+          'sender': KakaoConfig.senderPhone,
         },
       ).timeout(const Duration(seconds: 10));
 
       final data = jsonDecode(response.body);
-      if (kDebugMode) debugPrint('📱 알림톡 발송: ${data['message']}');
+      if (kDebugMode) debugPrint('📱 알림톡 발송: ${data['message'] ?? data}');
     } catch (e) {
       // 알림톡 실패는 결제 흐름을 막지 않음
       if (kDebugMode) debugPrint('⚠️ 알림톡 발송 실패: $e');

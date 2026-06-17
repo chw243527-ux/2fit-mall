@@ -2,10 +2,14 @@
 // ══════════════════════════════════════════════════════════════
 // 토스페이먼츠 결제 서비스 (테스트 → 실결제 전환 가이드 포함)
 //
-// 🔑 실결제 전환 3단계:
-//   1. TOSS_CLIENT_KEY / TOSS_SECRET_KEY 를 실제 키로 교체
-//   2. _confirmViaServer() 에서 Supabase Edge Function URL 입력
-//   3. Edge Function 배포 (아래 주석 참고)
+// 🔑 실결제 전환 4단계:
+//   1. clientKey  → 'live_ck_...' 로 교체  (TossConfig.clientKey)
+//   2. secretKey  → 'live_sk_...' 로 교체  (TossConfig.secretKey)
+//      ⚠️  secretKey 는 절대 Git·앱 배포본에 포함하지 마세요.
+//          실 운영 시 반드시 Supabase Edge Function 또는 별도 서버에서만 사용
+//   3. confirmEdgeFunctionUrl → Supabase Edge Function URL 입력
+//   4. 토스페이먼츠 대시보드에서 실결제 채널 활성화 확인
+//      https://developers.tosspayments.com → 결제 → API 키
 // ══════════════════════════════════════════════════════════════
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -14,17 +18,20 @@ import 'supabase_service.dart';
 
 // ─── 🔑 키 설정 ────────────────────────────────────────────────
 class TossConfig {
-  // 테스트 키 (기본값 — 실결제 시 아래 값으로 교체)
+  // ── 현재: 테스트 키 ─────────────────────────────────────────
+  // 심사 통과 후 아래 값을 live_ck_ / live_sk_ 키로 교체하세요.
   // 발급: https://developers.tosspayments.com → 개발 → API 키
   static const clientKey = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+  // TODO (심사 통과 후): static const clientKey = 'live_ck_여기에입력';
 
   // ⚠️ secretKey 는 절대 앱 배포본에 포함하지 마세요.
   // 아래 값은 개발/테스트 전용입니다.
   // 실 운영 시 반드시 Supabase Edge Function 또는 별도 서버에서만 사용하세요.
   static const secretKey = 'test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R';
+  // TODO (심사 통과 후): static const secretKey = 'live_sk_여기에입력';
 
-  // Supabase Edge Function URL (결제 승인용)
-  // 배포 후 아래 주석 해제 및 URL 입력:
+  // ── Supabase Edge Function URL (결제 승인용) ────────────────
+  // Supabase 프로젝트 배포 후 아래 주석 해제 및 URL 입력:
   // static const confirmEdgeFunctionUrl =
   //     'https://YOUR_PROJECT.supabase.co/functions/v1/confirm-payment';
   static const confirmEdgeFunctionUrl = '';
