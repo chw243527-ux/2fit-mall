@@ -18,6 +18,7 @@ import 'screens/orders/checkout_screen.dart';
 import 'screens/orders/group_order_form_screen.dart';
 import 'screens/orders/group_order_only_screen.dart';
 import 'screens/orders/group_order_landing_screen.dart';
+import 'screens/orders/group_order_guide_screen.dart';
 
 import 'screens/orders/order_guide_screen.dart';
 import 'screens/orders/group_custom_order_screen.dart';
@@ -164,17 +165,20 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 settings: settings,
               );
             case '/group-order':
-              // product 인자가 있으면 전달 (상품 상세에서 진입 시)
+              // product 인자가 있으면 GroupOrderGuideScreen으로 이동, 없으면 GroupOrderLandingScreen
               final groupOrderProduct = settings.arguments;
-              return MaterialPageRoute(
-                builder: (_) => GroupOrderLandingScreen(
-                  product: groupOrderProduct is ProductModel ? groupOrderProduct : null,
-                ),
-              );
-            case '/group-guide':
-              // GroupOrderGuideScreen 제거됨 → GroupOrderLandingScreen으로 리디렉션
+              if (groupOrderProduct is ProductModel) {
+                return MaterialPageRoute(
+                  builder: (_) => GroupOrderGuideScreen(product: groupOrderProduct),
+                );
+              }
               return MaterialPageRoute(
                 builder: (_) => const GroupOrderLandingScreen(),
+              );
+            case '/group-guide':
+              // GroupOrderGuideScreen으로 이동
+              return MaterialPageRoute(
+                builder: (_) => const GroupOrderGuideScreen(),
                 settings: settings,
               );
             case '/group-form':
