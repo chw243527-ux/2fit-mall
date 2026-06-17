@@ -38,8 +38,8 @@ void main() async {
   // console.kakao.com → 내 애플리케이션 → 앱 키 → JavaScript 키 (웹용)
   try {
     kakao.KakaoSdk.init(
-      nativeAppKey: 'e40e809e041559930c7bc85aadd3ee75',   // 네이티브 앱 키
-      javaScriptAppKey: '09aadca2435b22f8b07bcda2d469a36f',  // JavaScript 키
+      nativeAppKey: '590de0b0412c1c14f49369bf99268914',   // 네이티브 앱 키
+      javaScriptAppKey: 'cc9800839ee51bb010cd0d7046f4b565',  // JavaScript 키
     );
     if (kDebugMode) debugPrint('✅ KakaoSdk 초기화 성공');
   } catch (e) {
