@@ -348,18 +348,19 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const SizedBox(height: 18),
 
-                    // ── 카카오 로그인 (앱 전용) ──
-                    if (!kIsWeb) ...[  
-                      _buildSocialBtn(
-                        label: loc.kakaoLogin,
-                        bgColor: const Color(0xFFFFE500),
-                        textColor: const Color(0xFF3C1E1E),
-                        icon: Icons.chat_bubble_rounded,
-                        iconColor: const Color(0xFF3C1E1E),
-                        onTap: () => _loginWithKakao(),
-                      ),
-                      const SizedBox(height: 10),
-                      // ── 네이버 로그인 (앱 전용) ──
+                    // ── 카카오 로그인 ──
+                    _buildSocialBtn(
+                      label: loc.kakaoLogin,
+                      bgColor: const Color(0xFFFFE500),
+                      textColor: const Color(0xFF3C1E1E),
+                      icon: Icons.chat_bubble_rounded,
+                      iconColor: const Color(0xFF3C1E1E),
+                      onTap: () => _loginWithKakao(),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // ── 네이버 로그인 (앱 전용) ──
+                    if (!kIsWeb) ...[
                       _buildSocialBtn(
                         label: '네이버로 로그인',
                         bgColor: const Color(0xFF03C75A),
@@ -613,9 +614,11 @@ class _LoginScreenState extends State<LoginScreen>
                                 ],
                               ),
                               const SizedBox(height: 18),
-                              if (!kIsWeb) ...[  
-                                _buildSocialBtn(label: loc.kakaoLogin, bgColor: const Color(0xFFFFE500), textColor: const Color(0xFF3C1E1E), icon: Icons.chat_bubble_rounded, iconColor: const Color(0xFF3C1E1E), onTap: () => _loginWithKakao()),
-                                const SizedBox(height: 10),
+                              // ── 카카오 로그인 ──
+                              _buildSocialBtn(label: loc.kakaoLogin, bgColor: const Color(0xFFFFE500), textColor: const Color(0xFF3C1E1E), icon: Icons.chat_bubble_rounded, iconColor: const Color(0xFF3C1E1E), onTap: () => _loginWithKakao()),
+                              const SizedBox(height: 10),
+                              // ── 네이버 로그인 (앱 전용) ──
+                              if (!kIsWeb) ...[
                                 _buildSocialBtn(label: '네이버로 로그인', bgColor: const Color(0xFF03C75A), textColor: Colors.white, icon: Icons.account_circle_rounded, iconColor: Colors.white, onTap: () => _loginWithNaver()),
                                 const SizedBox(height: 10),
                               ],
