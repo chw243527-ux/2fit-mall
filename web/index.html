@@ -315,6 +315,17 @@
       });
     }
 
+    // ── 강제 캐시 삭제 (구버전 SW 캐시 완전 제거) ───────────────────
+    if ('caches' in window) {
+      caches.keys().then(function(names) {
+        names.forEach(function(name) {
+          if (name !== 'flutter-app-cache-604') {
+            caches.delete(name);
+          }
+        });
+      });
+    }
+
     // bfcache(앞뒤로 캐시) 복원 시 새로고침 - Flutter 재초기화
     window.addEventListener('pageshow', function(e) {
       if (e.persisted) { window.location.reload(); }
