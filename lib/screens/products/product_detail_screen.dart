@@ -93,6 +93,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     _selectedBottomLength = '5부';
     // 패럴랙스 비활성화: 이미지 잘림 방지를 위해 오프셋 항상 0 유지
     _imageOffsetNotifier.value = 0;
+    // 스크롤 위치에 따라 탭 자동 추적
+    _scrollCtrl.addListener(_updateTabByScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // GA4: 상품 조회 이벤트
       AnalyticsService.logViewItem(
@@ -104,6 +106,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       // Firestore 최신 sectionImages 강제 로드
       _refreshSectionImagesFromFirestore();
     });
+  }
+
+  /// 스크롤 위치를 감지해 탭 하이라이트 자동 추적
+  void _updateTabByScroll() {
+    // 각 섹션의 RenderObject 위치로 현재 뷰포트에 보이는 섹션을 판별
+    int newTab = 0;
+    final keys = [_keyInfo, _keySize, _keyWashing, _keyReview];
+    final idxMap = [0, 1, 2, 3];
+    for (int i = keys.length - 1; i >= 0; i--) {
+      final ctx = keys[i].currentContext;
+      if (ctx == null) continue;
+      final ro = ctx.findRenderObject();
+      if (ro == null || !ro.attached) continue;
+      final rv = RenderAbstractViewport.of(ro);
+      final offset = rv.getOffsetToReveal(ro, 0.0).offset;
+      if (_scrollCtrl.hasClients &&
+          _scrollCtrl.offset >= offset - 80) {
+        newTab = idxMap[i];
+        break;
+      }
+    }
+    if (newTab != _selectedTabIndex) {
+      setState(() => _selectedTabIndex = newTab);
+    }
   }
 
   @override
@@ -194,6 +220,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   @override
   void dispose() {
     _pageCtrl.dispose();
+    _scrollCtrl.removeListener(_updateTabByScroll);
     _scrollCtrl.dispose();
     _tabCtrl.dispose();
     _imageOffsetNotifier.dispose();
@@ -1427,13 +1454,27 @@ $productUrl
   // 탭 클릭 → 해당 섹션으로 즉시 스크롤
   void _scrollToSection(GlobalKey key) {
     final ctx = key.currentContext;
-    if (ctx == null) return;
-    Scrollable.ensureVisible(
-      ctx,
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeOut,
-      alignment: 0.0,
-    );
+    if (ctx != null) {
+      Scrollable.ensureVisible(
+        ctx,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOut,
+        alignment: 0.0,
+      );
+    } else {
+      // context가 아직 null이면 다음 프레임에 재시도
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final retryCtx = key.currentContext;
+        if (retryCtx != null && mounted) {
+          Scrollable.ensureVisible(
+            retryCtx,
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOut,
+            alignment: 0.0,
+          );
+        }
+      });
+    }
   }
 
   Widget _buildToptenTabBar() {
