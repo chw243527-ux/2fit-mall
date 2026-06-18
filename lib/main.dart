@@ -164,31 +164,17 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 settings: settings,
               );
             case '/group-order':
-              // product 인자가 있으면 GroupOrderFormScreen으로 이동, 없으면 GroupOrderLandingScreen
+              // product 인자가 있으면 GroupOrderLandingScreen(안내→주문서), 없으면 LandingScreen
               final groupOrderProduct = settings.arguments;
-              if (groupOrderProduct is ProductModel) {
-                final p = groupOrderProduct;
-                final isBottomOrder = p.category == '하의' ||
-                    p.subCategory.contains('타이즈') ||
-                    p.subCategory.contains('남성 5부') ||
-                    p.subCategory.contains('여성 2.5부') ||
-                    p.name.contains('타이즈') ||
-                    p.name.contains('하의');
-                return MaterialPageRoute(
-                  builder: (_) => GroupOrderFormScreen(
-                    product: p,
-                    initialCount: 5,
-                    isBottomOrder: isBottomOrder,
-                  ),
-                );
-              }
               return MaterialPageRoute(
-                builder: (_) => const GroupOrderLandingScreen(),
+                builder: (_) => GroupOrderLandingScreen(
+                  product: groupOrderProduct is ProductModel ? groupOrderProduct : null,
+                ),
               );
             case '/group-guide':
-              // /group-guide → /group-form으로 리다이렉트 (guide 화면 삭제됨)
+              // /group-guide → LandingScreen으로 리다이렉트
               return MaterialPageRoute(
-                builder: (_) => const GroupOrderFormScreen(initialCount: 5),
+                builder: (_) => const GroupOrderLandingScreen(),
                 settings: settings,
               );
             case '/group-form':

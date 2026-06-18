@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
+import '../../models/models.dart';
 import 'group_order_form_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════
@@ -13,7 +14,8 @@ import 'group_order_form_screen.dart';
 // ═══════════════════════════════════════════════════════════════
 
 class GroupOrderLandingScreen extends StatefulWidget {
-  const GroupOrderLandingScreen({super.key});
+  final ProductModel? product; // 상품 상세에서 진입 시 전달
+  const GroupOrderLandingScreen({super.key, this.product});
 
   @override
   State<GroupOrderLandingScreen> createState() => _GroupOrderLandingScreenState();
@@ -146,6 +148,31 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     );
   }
 
+  // product의 하의 여부 판별
+  bool get _isBottomOrder {
+    final p = widget.product;
+    if (p == null) return false;
+    return p.category == '하의' ||
+        p.subCategory.contains('타이즈') ||
+        p.subCategory.contains('남성 5부') ||
+        p.subCategory.contains('여성 2.5부') ||
+        p.name.contains('타이즈') ||
+        p.name.contains('하의');
+  }
+
+  void _goToForm() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GroupOrderFormScreen(
+          product: widget.product,
+          initialCount: 5,
+          isBottomOrder: _isBottomOrder,
+        ),
+      ),
+    );
+  }
+
   // ════════════════════════════════════════════════════════════
   // 탭1: 단체주문 안내
   // ════════════════════════════════════════════════════════════
@@ -238,20 +265,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             width: double.infinity,
             height: 52,
             child: ElevatedButton.icon(
-              onPressed: () {
-                if (_tabCtrl.index != 1) {
-                  _tabCtrl.animateTo(1);
-                } else {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const GroupOrderFormScreen(
-                        initialCount: 5,
-                      ),
-                    ),
-                  );
-                }
-              },
+              onPressed: _goToForm,
               icon: const Icon(Icons.edit_note_rounded, size: 20),
               label: const Text(
                 '단체주문서 바로 작성하기',
@@ -531,14 +545,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     required String subtitle,
   }) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => GroupOrderFormScreen(initialCount: 5),
-          ),
-        );
-      },
+      onTap: _goToForm,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(

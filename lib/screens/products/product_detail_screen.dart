@@ -13,6 +13,7 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../widgets/pc_layout.dart';
 import '../orders/group_order_form_screen.dart';
+import '../orders/group_order_landing_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/image_lightbox.dart';
 import '../../utils/app_localizations.dart';
@@ -5534,22 +5535,12 @@ $productUrl
     _showBuyNowSheet(product);
   }
 
-  // ─── 단체주문 버튼 → 주문서로 직행 ───
+  // ─── 단체주문 버튼 → 안내 화면 후 주문서 진입 ───
   void _showGroupOrderGuide(ProductModel product) {
-    final isBottomOrder = product.category == '하의' ||
-        product.subCategory.contains('타이즈') ||
-        product.subCategory.contains('남성 5부') ||
-        product.subCategory.contains('여성 2.5부') ||
-        product.name.contains('타이즈') ||
-        product.name.contains('하의');
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => GroupOrderFormScreen(
-          product: product,
-          initialCount: 5,
-          isBottomOrder: isBottomOrder,
-        ),
+        builder: (_) => GroupOrderLandingScreen(product: product),
       ),
     );
   }
