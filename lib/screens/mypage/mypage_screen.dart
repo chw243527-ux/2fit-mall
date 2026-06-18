@@ -4393,74 +4393,239 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
             // ── 버튼 영역
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                children: [
-                  // 1시간 이내 취소 버튼 (pending 상태만)
-                  if (order.status == OrderStatus.pending) ...[ 
-                    Builder(builder: (btnCtx) {
-                      final canCancel = DateTime.now().difference(order.createdAt).inMinutes < 60;
-                      return SizedBox(
-                        width: double.infinity,
+              child: Builder(builder: (btnCtx) {
+                // ── 취소 가능 조건 ──
+                // 기성품: 발송 전(pending·confirmed) 상태이면 취소 가능
+                // 단체주문: 제작/준비 중(processing) 이상이면 디자인 수정 시작 → 취소 불가
+                final isGroupOrder = isGroup;
+                final canCancelReadyMade = !isGroupOrder &&
+                    (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
+                final canCancelGroup = isGroupOrder &&
+                    (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
+                final canCancel = canCancelReadyMade || canCancelGroup;
+                final cancelBlockedByDesign = isGroupOrder && order.status == OrderStatus.processing;
+
+                // 교환·반품: 배송완료 상태 + 기성품
+                final canExchangeReturn = !isGroupOrder && order.status == OrderStatus.delivered;
+
+                // 디자인 이미지 확인
+                final opts = order.customOptions ?? {};
+                final designImages = <String>[];
+                for (final key in ['refImageBase64', 'designLogoBase64', 'waistbandLogoBase64']) {
+                  final v = opts[key]?.toString() ?? '';
+                  if (v.isNotEmpty) designImages.add(v);
+                }
+                final waistbandRefs = (opts['waistbandRefImages'] as List?)?.cast<String>() ?? [];
+                final allDesignImages = [...designImages, ...waistbandRefs];
+
+                Future<void> doCancel(String reason) async {
+                  final confirm = await showDialog<bool>(
+                    context: btnCtx,
+                    builder: (_) => AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      title: const Text('주문 취소', style: TextStyle(fontWeight: FontWeight.w800)),
+                      content: Text(isGroupOrder
+                          ? '단체주문을 취소하시겠습니까?\n제작 시작 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'
+                          : '주문을 취소하시겠습니까?\n발송 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(btnCtx, false), child: const Text('아니오')),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                          onPressed: () => Navigator.pop(btnCtx, true),
+                          child: const Text('취소하기', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true && btnCtx.mounted) {
+                    await OrderService.updateOrderStatus(order.id, OrderStatus.cancelled);
+                    NotificationService.sendCancelled(order: order, reason: reason).catchError((_) {});
+                    FcmService.sendOrderStatusNotification(order: order, newStatus: OrderStatus.cancelled).catchError((_) {});
+                    if (btnCtx.mounted) {
+                      Navigator.pop(btnCtx);
+                      ScaffoldMessenger.of(btnCtx).showSnackBar(
+                        const SnackBar(content: Text('주문이 취소되었습니다.'), backgroundColor: Color(0xFF1A1A2E)),
+                      );
+                    }
+                  }
+                }
+
+                void showContactSheet(String subject) {
+                  Navigator.pop(btnCtx);
+                  showModalBottomSheet(
+                    context: btnCtx,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                    builder: (_) => Container(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(subject, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 8),
+                        Text('주문번호: ${order.id}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F8FF),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
+                          ),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            const Text('고객센터 문의', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                            const SizedBox(height: 6),
+                            const Text('• 카카오톡: @2fitkorea', style: TextStyle(fontSize: 13)),
+                            const Text('• 전화: 010-7227-6914', style: TextStyle(fontSize: 13)),
+                            const Text('• 이메일: chw243527@gmail.com', style: TextStyle(fontSize: 13)),
+                            const SizedBox(height: 6),
+                            const Text('배송 완료 후 7일 이내 접수해 주세요.\n(상품 하자의 경우 3개월 이내)',
+                                style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5)),
+                          ]),
+                        ),
+                        const SizedBox(height: 16),
+                      ]),
+                    ),
+                  );
+                }
+
+                return Column(children: [
+                  // ── 취소 버튼 (기성품: 발송 전 / 단체주문: 제작 시작 전)
+                  if (canCancel) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => doCancel('고객 직접 취소'),
+                        icon: const Icon(Icons.cancel_outlined, size: 16),
+                        label: Text(isGroupOrder ? '주문 취소 (제작 시작 전)' : '주문 취소 (발송 전)'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  // ── 취소 불가 안내 (단체주문 + 제작중 이상)
+                  if (cancelBlockedByDesign) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.red.shade200),
+                      ),
+                      child: Row(children: [
+                        Icon(Icons.lock_outline_rounded, size: 15, color: Colors.red.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text('디자인 수정이 시작되어 취소가 불가합니다.\n문의는 고객센터로 연락해 주세요.',
+                            style: TextStyle(fontSize: 12, color: Colors.red.shade700, height: 1.4))),
+                      ]),
+                    ),
+                  ],
+                  // ── 교환 / 반품 버튼 (기성품 배송완료)
+                  if (canExchangeReturn) ...[
+                    Row(children: [
+                      Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: canCancel
-                              ? () async {
-                                  final confirm = await showDialog<bool>(
-                                    context: btnCtx,
-                                    builder: (_) => AlertDialog(
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                      title: const Text('주문 취소', style: TextStyle(fontWeight: FontWeight.w800)),
-                                      content: const Text('정말 주문을 취소하시겠습니까?\n결제 취소는 1~3 영업일 내 처리됩니다.'),
-                                      actions: [
-                                        TextButton(onPressed: () => Navigator.pop(btnCtx, false), child: const Text('아니오')),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                          onPressed: () => Navigator.pop(btnCtx, true),
-                                          child: const Text('취소하기', style: TextStyle(color: Colors.white)),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                  if (confirm == true && btnCtx.mounted) {
-                                    await OrderService.updateOrderStatus(order.id, OrderStatus.cancelled);
-                                    // 알림톡 + FCM 발송
-                                    NotificationService.sendCancelled(
-                                      order: order,
-                                      reason: '고객 직접 취소',
-                                    ).catchError((_) {});
-                                    FcmService.sendOrderStatusNotification(
-                                      order: order,
-                                      newStatus: OrderStatus.cancelled,
-                                    ).catchError((_) {});
-                                    if (btnCtx.mounted) {
-                                      Navigator.pop(btnCtx);
-                                      ScaffoldMessenger.of(btnCtx).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('주문이 취소되었습니다. 알림톡이 발송됩니다.'),
-                                          backgroundColor: Color(0xFF1A1A2E),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                }
-                              : null,
-                          icon: const Icon(Icons.cancel_outlined, size: 16),
-                          label: Text(canCancel ? '주문 취소 (1시간 이내)' : '취소 불가 (1시간 경과)'),
+                          onPressed: () => showContactSheet('교환 신청'),
+                          icon: const Icon(Icons.swap_horiz_rounded, size: 16),
+                          label: const Text('교환 신청'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: canCancel ? Colors.red : Colors.grey,
-                            side: BorderSide(color: canCancel ? Colors.red : Colors.grey[300]!),
+                            foregroundColor: const Color(0xFF1565C0),
+                            side: const BorderSide(color: Color(0xFF1565C0)),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
                         ),
-                      );
-                    }),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => showContactSheet('반품 신청'),
+                          icon: const Icon(Icons.assignment_return_outlined, size: 16),
+                          label: const Text('반품 신청'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.orange,
+                            side: const BorderSide(color: Colors.orange),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                    ]),
                     const SizedBox(height: 8),
                   ],
-                  // 닫기 버튼
+                  // ── 디자인 이미지 확인 버튼 (단체주문 + 이미지 있을 때)
+                  if (isGroupOrder && allDesignImages.isNotEmpty) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          showDialog(
+                            context: btnCtx,
+                            builder: (_) => Dialog(
+                              backgroundColor: Colors.black87,
+                              insetPadding: const EdgeInsets.all(12),
+                              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Row(children: [
+                                    const Icon(Icons.design_services_outlined, color: Colors.white70, size: 16),
+                                    const SizedBox(width: 8),
+                                    const Expanded(child: Text('디자인 참고 이미지', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
+                                    GestureDetector(
+                                      onTap: () => Navigator.pop(btnCtx),
+                                      child: const Icon(Icons.close, color: Colors.white70, size: 20),
+                                    ),
+                                  ]),
+                                ),
+                                SizedBox(
+                                  height: 300,
+                                  child: PageView.builder(
+                                    itemCount: allDesignImages.length,
+                                    itemBuilder: (_, i) {
+                                      final img = allDesignImages[i];
+                                      try {
+                                        final bytes = base64Decode(img.contains(',') ? img.split(',').last : img);
+                                        return InteractiveViewer(
+                                          child: Center(
+                                            child: Image.memory(bytes, fit: BoxFit.contain),
+                                          ),
+                                        );
+                                      } catch (_) {
+                                        return const Center(child: Icon(Icons.broken_image, color: Colors.white54, size: 48));
+                                      }
+                                    },
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Text('총 ${allDesignImages.length}장 · 좌우로 스와이프',
+                                      style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                                ),
+                              ]),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.image_search_rounded, size: 16),
+                        label: Text('디자인 이미지 확인 (${allDesignImages.length}장)'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF7B1FA2),
+                          side: const BorderSide(color: Color(0xFF7B1FA2)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  // ── 닫기 버튼
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(btnCtx),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF1A1A2E),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -4469,8 +4634,8 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                       child: const Text('닫기', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
                     ),
                   ),
-                ],
-              ),
+                ]);
+              }),
             ),
           ],
         ),

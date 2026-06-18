@@ -132,6 +132,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   int  _count        = 5;
   bool _countFixed   = false;
 
+  // ── 주문 확정 동의 ──
+  bool _orderConfirmed = false;
+
   // ── 인원 목록 ──
   final List<_PersonEntry> _persons = [];
 
@@ -842,8 +845,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 _buildWaistbandSection(),
                 _buildColorSection(),
                 if (!_isBottomOnly) _buildRefImageSection(),
-                _buildWaistbandLogoSection(),
-                _buildWaistbandRefImageSection(),
+                _buildWaistbandDesignSection(), // 허리밴드 참고이미지 + 로고파일 통합 섹션
                 _buildMemoSection(),
                 _buildPersonListSection(),
                 _buildBasicInfoSection(),
@@ -1916,7 +1918,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   Future<void> _pickWaistbandLogoFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
+        type: FileType.custom,
+        allowedExtensions: ['ai', 'svg', 'pdf', 'eps'],
         allowMultiple: false,
         withData: true,
       );
@@ -1928,7 +1931,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _waistbandLogoBytes    = file.bytes != null ? List<int>.from(file.bytes!) : null;
       });
     } catch (e) {
-      _showSnack('파일 선택 오류: $e');
+      _showSnack('파일 선택 오류: $e\nAI·SVG·PDF·EPS 파일만 첨부 가능합니다.');
     }
   }
 
@@ -3028,7 +3031,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               Text('로고 파일 선택',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.orange.shade700)),
               const SizedBox(height: 2),
-              Text('AI · EPS · SVG · PDF · PNG · JPG',
+              Text('AI · EPS · SVG · PDF (벡터 파일만 허용)',
                   style: TextStyle(fontSize: 10, color: Colors.orange.shade400)),
             ]),
           ),
@@ -3115,40 +3118,56 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     return GestureDetector(
       onTap: () => _pickRefImage(),
       child: Container(
-        height: 130,
+        height: 180,
         decoration: BoxDecoration(
-          color: b64 != null ? null : Colors.purple.shade50,
+          color: b64 != null ? Colors.grey.shade900 : Colors.purple.shade50,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: _purple.withValues(alpha: 0.4), width: 1.5),
-          image: b64 != null
-              ? DecorationImage(
-                  image: MemoryImage(base64Decode(b64)),
-                  fit: BoxFit.cover)
-              : null,
         ),
         child: b64 != null
-            ? Align(
-                alignment: Alignment.topRight,
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() => _refBase64 = null);
-                    _saveImage(base64: null);
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.all(6),
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                        color: Colors.black54, shape: BoxShape.circle),
-                    child: const Icon(Icons.close, color: Colors.white, size: 16),
+            ? Stack(children: [
+                // 이미지 — contain으로 잘리지 않게
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(9),
+                  child: Center(
+                    child: Image.memory(
+                      base64Decode(b64),
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
-              )
+                // 삭제 버튼
+                Positioned(
+                  top: 6, right: 6,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _refBase64 = null);
+                      _saveImage(base64: null);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                      child: const Icon(Icons.close, color: Colors.white, size: 16),
+                    ),
+                  ),
+                ),
+                // 재선택 안내
+                Positioned(
+                  bottom: 6, right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(4)),
+                    child: const Text('탭하여 재선택', style: TextStyle(color: Colors.white, fontSize: 10)),
+                  ),
+                ),
+              ])
             : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.add_photo_alternate_outlined, color: _purple, size: 36),
                 const SizedBox(height: 6),
                 Text('디자인 참고 이미지 선택',
-                    style: TextStyle(color: _purple,
-                        fontSize: 13, fontWeight: FontWeight.w600)),
+                    style: TextStyle(color: _purple, fontSize: 13, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
                 Text('탭하여 갤러리에서 선택',
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
@@ -3172,11 +3191,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     }
   }
 
-  // 상의 디자인 로고 파일 선택 (AI·PDF·PNG·SVG 등 모든 형식)
+  // 상의 디자인 로고 파일 선택 (AI·SVG·PDF만 허용)
   Future<void> _pickDesignLogoFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
+        type: FileType.custom,
+        allowedExtensions: ['ai', 'svg', 'pdf', 'eps'],
         allowMultiple: false,
         withData: true,
       );
@@ -3188,12 +3208,226 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _designLogoBytes    = file.bytes != null ? List<int>.from(file.bytes!) : null;
       });
     } catch (e) {
-      _showSnack('파일 선택 오류: $e');
+      _showSnack('파일 선택 오류: $e\nAI·SVG·PDF·EPS 파일만 첨부 가능합니다.');
     }
   }
 
   // ══════════════════════════════════════════════
-  // 허리밴드 로고 파일 업로드 섹션
+  // 허리밴드 디자인 참고이미지 + 로고파일 통합 섹션
+  // ══════════════════════════════════════════════
+  Widget _buildWaistbandDesignSection() {
+    final hasFile = _waistbandLogoFileName != null;
+
+    return _card(
+      title: '허리밴드 디자인 참고 이미지 & 로고 파일',
+      icon: Icons.style_outlined,
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+
+        // ── 1) 참고 이미지 소제목
+        Row(children: [
+          Icon(Icons.photo_library_outlined, size: 14, color: _purple),
+          const SizedBox(width: 6),
+          Text('디자인 참고 이미지 (최대 3장)',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _purple)),
+        ]),
+        const SizedBox(height: 8),
+
+        // 안내 박스
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0F0F0),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFCCCCCC)),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF1A1A1A)),
+              const SizedBox(width: 5),
+              const Text('업로드 안내',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+            ]),
+            const SizedBox(height: 5),
+            const Text('• 원하는 문구(텍스트) 또는 무늬(패턴)가 담긴 이미지를 업로드해 주세요.',
+                style: TextStyle(fontSize: 11, color: Color(0xFF444444), height: 1.5)),
+            const Text('• 로고, 팀명, 숫자, 그래픽 무늬 등 허리밴드에 넣고 싶은 디자인 참고 이미지도 가능합니다.',
+                style: TextStyle(fontSize: 11, color: Color(0xFF444444), height: 1.5)),
+            const Text('• 선택사항이며 최대 3장까지 업로드할 수 있습니다.',
+                style: TextStyle(fontSize: 11, color: Color(0xFF444444), height: 1.5)),
+          ]),
+        ),
+
+        // 이미지 썸네일 + 추가 버튼
+        SizedBox(
+          height: 90,
+          child: Row(children: [
+            ..._waistbandRefImages.asMap().entries.map((e) {
+              final idx = e.key;
+              final b64 = e.value;
+              return Container(
+                width: 90, height: 90,
+                margin: const EdgeInsets.only(right: 8),
+                child: Stack(children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.memory(
+                      base64Decode(b64),
+                      width: 90, height: 90,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  Positioned(
+                    top: 4, right: 4,
+                    child: GestureDetector(
+                      onTap: () => setState(() => _waistbandRefImages.removeAt(idx)),
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                            color: Colors.black54, shape: BoxShape.circle),
+                        child: const Icon(Icons.close, color: Colors.white, size: 14),
+                      ),
+                    ),
+                  ),
+                ]),
+              );
+            }),
+            if (_waistbandRefImages.length < 3)
+              GestureDetector(
+                onTap: _pickWaistbandRefImage,
+                child: Container(
+                  width: 90, height: 90,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F8F8),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: _purple.withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.add_photo_alternate_outlined, color: _purple, size: 26),
+                    const SizedBox(height: 4),
+                    Text('이미지 추가',
+                        style: TextStyle(fontSize: 10, color: _purple, fontWeight: FontWeight.w600)),
+                  ]),
+                ),
+              ),
+          ]),
+        ),
+
+        const SizedBox(height: 20),
+        const Divider(color: Color(0xFFEEEEEE)),
+        const SizedBox(height: 12),
+
+        // ── 2) 로고 파일 소제목
+        Row(children: [
+          Icon(Icons.attach_file_rounded, size: 14, color: Colors.orange.shade700),
+          const SizedBox(width: 6),
+          Text('로고 파일 첨부 (선택사항 · AI/SVG/PDF/EPS만)',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.orange.shade700)),
+        ]),
+        const SizedBox(height: 8),
+
+        // 안내 박스
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.orange.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.orange.shade200),
+          ),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(Icons.warning_amber_rounded, size: 13, color: Colors.orange.shade700),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · SVG · PDF · EPS 파일만 첨부 가능합니다.',
+                style: TextStyle(
+                  fontSize: 11, color: Colors.orange.shade700,
+                  height: 1.5, fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ]),
+        ),
+
+        // 파일 선택 카드
+        GestureDetector(
+          onTap: _pickWaistbandLogoFile,
+          child: Container(
+            height: 110,
+            decoration: BoxDecoration(
+              color: hasFile ? Colors.green.shade50 : Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: hasFile ? Colors.green.shade300 : Colors.orange.shade300,
+                width: 1.5,
+              ),
+            ),
+            child: hasFile
+                ? Stack(children: [
+                    Center(
+                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Container(
+                          width: 44, height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.insert_drive_file_rounded,
+                              color: Colors.orange.shade600, size: 26),
+                        ),
+                        const SizedBox(height: 6),
+                        SizedBox(
+                          width: 200,
+                          child: Text(
+                            _waistbandLogoFileName!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        Text('업로드 완료 · 탭하여 재선택',
+                            style: TextStyle(fontSize: 10, color: Colors.green.shade600, fontWeight: FontWeight.w600)),
+                      ]),
+                    ),
+                    Positioned(
+                      top: 6, right: 6,
+                      child: GestureDetector(
+                        onTap: () => setState(() {
+                          _waistbandLogoFileName = null;
+                          _waistbandLogoBytes    = null;
+                        }),
+                        child: Container(
+                          padding: const EdgeInsets.all(3),
+                          decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                          child: const Icon(Icons.close, color: Colors.white, size: 16),
+                        ),
+                      ),
+                    ),
+                  ])
+                : Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.upload_file_rounded, color: Colors.orange.shade500, size: 32),
+                    const SizedBox(height: 6),
+                    Text('로고 파일 선택',
+                        style: TextStyle(color: Colors.orange.shade700, fontSize: 13, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Text('AI · SVG · PDF · EPS (벡터 파일만 허용)',
+                        style: TextStyle(color: Colors.orange.shade400, fontSize: 11)),
+                  ]),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  // ══════════════════════════════════════════════
+  // 허리밴드 로고 파일 업로드 섹션 (개별 — 내부에서만 사용)
   // ══════════════════════════════════════════════
   Widget _buildWaistbandLogoSection() {
     final hasFile = _waistbandLogoFileName != null;
@@ -3311,7 +3545,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           fontSize: 13, fontWeight: FontWeight.w600,
                         )),
                     const SizedBox(height: 2),
-                    Text('AI · EPS · SVG · PDF · PNG · JPG',
+                    Text('AI · EPS · SVG · PDF (벡터 파일만 허용)',
                         style: TextStyle(color: Colors.orange.shade400, fontSize: 11)),
                   ]),
           ),
@@ -4807,38 +5041,104 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   Widget _buildBottomBar() {
     final safeBottom = MediaQuery.of(context).padding.bottom;
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + safeBottom),
+      padding: EdgeInsets.fromLTRB(16, 10, 16, 10 + safeBottom),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: Colors.grey.shade200)),
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -2))],
       ),
-      child: Row(children: [
-        OutlinedButton(
-          onPressed: () => _submitOrder(isBuyNow: false),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF1A1A1A),
-            side: const BorderSide(color: Color(0xFF1A1A1A)),
-            shape: const RoundedRectangleBorder(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── 주문 확정 동의 체크박스 ──
+          GestureDetector(
+            onTap: () => setState(() => _orderConfirmed = !_orderConfirmed),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: _orderConfirmed
+                    ? const Color(0xFF1A1A1A).withValues(alpha: 0.04)
+                    : const Color(0xFFFFF8E1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _orderConfirmed
+                      ? const Color(0xFF1A1A1A).withValues(alpha: 0.25)
+                      : const Color(0xFFFFC107).withValues(alpha: 0.6),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _orderConfirmed
+                        ? Icons.check_box_rounded
+                        : Icons.check_box_outline_blank_rounded,
+                    size: 20,
+                    color: _orderConfirmed
+                        ? const Color(0xFF1A1A1A)
+                        : const Color(0xFFFFA000),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      '주문 내용을 모두 확인하였으며 구매에 동의합니다.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1A1A1A),
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          child: const Text('장바구니',
-              style: TextStyle(fontWeight: FontWeight.w700)),
-        ),
-        const SizedBox(width: 8),
-        ElevatedButton(
-          onPressed: () => _submitOrder(isBuyNow: true),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF1A1A1A),
-            foregroundColor: Colors.white,
-            shape: const RoundedRectangleBorder(),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            elevation: 0,
-          ),
-          child: const Text('바로 구매',
-              style: TextStyle(fontWeight: FontWeight.w800)),
-        ),
-      ]),
+          const SizedBox(height: 8),
+          // ── 장바구니 / 바로 구매 버튼 ──
+          Row(children: [
+            OutlinedButton(
+              onPressed: _orderConfirmed
+                  ? () => _submitOrder(isBuyNow: false)
+                  : null,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _orderConfirmed
+                    ? const Color(0xFF1A1A1A)
+                    : Colors.grey.shade400,
+                side: BorderSide(
+                  color: _orderConfirmed
+                      ? const Color(0xFF1A1A1A)
+                      : Colors.grey.shade300,
+                ),
+                shape: const RoundedRectangleBorder(),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+              child: const Text('장바구니',
+                  style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _orderConfirmed
+                    ? () => _submitOrder(isBuyNow: true)
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _orderConfirmed
+                      ? const Color(0xFF1A1A1A)
+                      : Colors.grey.shade300,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
+                  disabledForegroundColor: Colors.grey.shade500,
+                  shape: const RoundedRectangleBorder(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  elevation: 0,
+                ),
+                child: const Text('바로 구매',
+                    style: TextStyle(fontWeight: FontWeight.w800)),
+              ),
+            ),
+          ]),
+        ],
+      ),
     );
   }
 

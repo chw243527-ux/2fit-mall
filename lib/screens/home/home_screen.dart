@@ -4898,6 +4898,7 @@ class _HomeScreenState extends State<HomeScreen>
       category: '이벤트',
       viewAllLabel: loc.viewAll,
       isHorizontal: true, // PC/모바일 모두 가로 스크롤
+      isNewCategory: true, // 신상품 섹션 → CategoryDetailScreen(신상품) 이동
     );
   }
 
@@ -4994,6 +4995,7 @@ class _HomeScreenState extends State<HomeScreen>
     required String category,
     required String viewAllLabel,
     bool isHorizontal = true,
+    bool isNewCategory = false, // 신상품 섹션이면 true → CategoryDetailScreen(신상품 필터)로 이동
   }) {
     final r = Responsive.of(context);
     if (products.isEmpty) return const SizedBox.shrink();
@@ -5049,12 +5051,24 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 const Spacer(),
                 GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProductListScreen(initialCategory: category),
-                    ),
-                  ),
+                  onTap: () {
+                    if (isNewCategory) {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => CategoryDetailScreen(
+                          categoryName: '신상품',
+                          categoryColor: const Color(0xFF1A1A1A),
+                          categoryIcon: Icons.new_releases_outlined,
+                          subCategories: const [
+                            SubCategory(name: '신상품', filter: '신상품'),
+                          ],
+                        ),
+                      ));
+                    } else {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => ProductListScreen(initialCategory: category),
+                      ));
+                    }
+                  },
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(6)),
                     decoration: BoxDecoration(
@@ -5114,12 +5128,24 @@ class _HomeScreenState extends State<HomeScreen>
                     final r = Responsive.of(context);
 
                     return GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProductListScreen(initialCategory: category),
-                        ),
-                      ),
+                      onTap: () {
+                        if (isNewCategory) {
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (_) => CategoryDetailScreen(
+                              categoryName: '신상품',
+                              categoryColor: const Color(0xFF1A1A1A),
+                              categoryIcon: Icons.new_releases_outlined,
+                              subCategories: const [
+                                SubCategory(name: '신상품', filter: '신상품'),
+                              ],
+                            ),
+                          ));
+                        } else {
+                          Navigator.push(context, MaterialPageRoute(
+                            builder: (_) => ProductListScreen(initialCategory: category),
+                          ));
+                        }
+                      },
                       child: Container(
                         width: cardW * 0.75,
                         margin: EdgeInsets.only(right: r.w(8)),

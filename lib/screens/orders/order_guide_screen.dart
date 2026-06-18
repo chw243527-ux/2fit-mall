@@ -17,6 +17,9 @@ class OrderGuideScreen extends StatefulWidget {
 
 class _OrderGuideScreenState extends State<OrderGuideScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+
+  // PC 주문안내 확인 체크박스
+  bool _guideChecked = false;
   @override
   Widget build(BuildContext context) {
     if (isPcWeb(context)) return _buildPcLayout(context);
@@ -132,37 +135,58 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               Text(loc.orderGuideDiscount,
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11)),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen())),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white60),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        minimumSize: const Size(0, 40),
-                      ),
-                      child: Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.viewGuide, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
+              // ── 주문안내 확인 체크박스 ──
+              GestureDetector(
+                onTap: () => setState(() => _guideChecked = !_guideChecked),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: _guideChecked
+                        ? Colors.white.withValues(alpha: 0.2)
+                        : Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _guideChecked ? Colors.white : Colors.white38,
+                      width: _guideChecked ? 1.5 : 1,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const GroupOrderFormScreen(initialCount: 5))),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF6A1B9A),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        minimumSize: const Size(0, 40),
-                        elevation: 0,
-                      ),
-                      child: Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.fillOrderForm, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800))),
+                  child: Row(children: [
+                    Icon(
+                      _guideChecked ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                      color: _guideChecked ? Colors.white : Colors.white54,
+                      size: 20,
                     ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        '주문 안내 내용을 모두 확인했습니다.',
+                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // ── 단체주문서 바로가기 (체크 후 활성화) ──
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _guideChecked
+                      ? () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const GroupOrderFormScreen(initialCount: 5)))
+                      : null,
+                  icon: const Icon(Icons.assignment_outlined, size: 18),
+                  label: const Text('단체주문서 바로가기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _guideChecked ? Colors.white : Colors.white38,
+                    foregroundColor: const Color(0xFF6A1B9A),
+                    disabledBackgroundColor: Colors.white24,
+                    disabledForegroundColor: Colors.white54,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    minimumSize: const Size(0, 46),
+                    elevation: 0,
                   ),
-                ],
+                ),
               ),
             ],
           ),
