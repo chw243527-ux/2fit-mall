@@ -110,20 +110,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
 
   /// 스크롤 위치를 감지해 탭 하이라이트 자동 추적
   void _updateTabByScroll() {
-    // 각 섹션의 RenderObject 위치로 현재 뷰포트에 보이는 섹션을 판별
+    if (!_scrollCtrl.hasClients) return;
+    // 각 섹션의 화면상 Y 위치로 현재 뷰포트에 보이는 섹션을 판별
+    // 화면 상단에서 80px 아래를 기준선으로 사용
+    const threshold = 80.0;
+    final keys   = [_keyInfo, _keySize, _keyWashing, _keyReview];
     int newTab = 0;
-    final keys = [_keyInfo, _keySize, _keyWashing, _keyReview];
-    final idxMap = [0, 1, 2, 3];
     for (int i = keys.length - 1; i >= 0; i--) {
       final ctx = keys[i].currentContext;
       if (ctx == null) continue;
       final ro = ctx.findRenderObject();
-      if (ro == null || !ro.attached) continue;
-      final rv = RenderAbstractViewport.of(ro);
-      final offset = rv.getOffsetToReveal(ro, 0.0).offset;
-      if (_scrollCtrl.hasClients &&
-          _scrollCtrl.offset >= offset - 80) {
-        newTab = idxMap[i];
+      if (ro is! RenderBox || !ro.attached) continue;
+      // 위젯의 화면상 절대 Y 좌표
+      final posY = ro.localToGlobal(Offset.zero).dy;
+      if (posY <= threshold) {
+        newTab = i;
         break;
       }
     }
