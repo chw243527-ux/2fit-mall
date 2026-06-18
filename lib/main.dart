@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
+import 'package:flutter_naver_login/flutter_naver_login.dart' as naver;
 import 'firebase_options.dart';
 import 'services/fcm_service.dart';
 import 'utils/theme.dart';
@@ -33,16 +34,30 @@ import 'screens/not_found_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 카카오 SDK 초기화 (앱 키는 발급 후 입력)
-  // console.kakao.com → 내 애플리케이션 → 앱 키 → JavaScript 키 (웹용)
+  // 카카오 SDK 초기화
   try {
     kakao.KakaoSdk.init(
-      nativeAppKey: '590de0b0412c1c14f49369bf99268914',   // 네이티브 앱 키
-      javaScriptAppKey: 'cc9800839ee51bb010cd0d7046f4b565',  // JavaScript 키
+      nativeAppKey: '590de0b0412c1c14f49369bf99268914',
+      javaScriptAppKey: 'cc9800839ee51bb010cd0d7046f4b565',
     );
     if (kDebugMode) debugPrint('✅ KakaoSdk 초기화 성공');
   } catch (e) {
     if (kDebugMode) debugPrint('⚠️ KakaoSdk 초기화 오류: $e');
+  }
+
+  // 네이버 SDK 초기화 (앱 전용)
+  if (!kIsWeb) {
+    try {
+      await naver.FlutterNaverLogin.initSdk(
+        clientId: 'RTeQb5TSs920qoowhcra',
+        clientSecret: 'l5P3RChcnd',
+        clientName: '2FIT mall',
+        enableNaverAppAuthIOS: true,
+      );
+      if (kDebugMode) debugPrint('✅ NaverSdk 초기화 성공');
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ NaverSdk 초기화 오류: $e');
+    }
   }
 
   // Firebase 초기화 (오류 시에도 앱 실행 유지)

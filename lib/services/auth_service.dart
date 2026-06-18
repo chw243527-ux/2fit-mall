@@ -875,6 +875,10 @@ class AuthService {
   // ────────────────────────────────────────────
   // 네이버 소셜 로그인
   // ────────────────────────────────────────────
+  static const _naverClientId     = 'RTeQb5TSs920qoowhcra';
+  static const _naverClientSecret = 'l5P3RChcnd';
+  static const _naverAppName      = '2FIT mall';
+
   static Future<AuthResult> signInWithNaver() async {
     try {
       if (kIsWeb) {

@@ -65,9 +65,9 @@
 	<key>NaverServiceAppUrlScheme</key>
 	<string>naverlogin</string>
 	<key>NaverConsumerKey</key>
-	<string>YOUR_NAVER_CLIENT_ID</string>
+	<string>RTeQb5TSs920qoowhcra</string>
 	<key>NaverConsumerSecret</key>
-	<string>YOUR_NAVER_CLIENT_SECRET</string>
+	<string>l5P3RChcnd</string>
 	<key>NaverServiceAppName</key>
 	<string>2FIT mall</string>
 </dict>
