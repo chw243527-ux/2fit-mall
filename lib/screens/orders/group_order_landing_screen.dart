@@ -237,7 +237,6 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           _buildInfoLines(const [
             '• 팀명 / 로고 / 번호 마킹 가능',
             '• 원하는 컬러로 제작 가능',
-            '• 마킹 방법: 서브리메이션 인쇄',
             '• 허리밴드 디자인·색상 변경 무료',
             '• 1년 독점 사용권 무료 제공',
           ]),
@@ -419,7 +418,6 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       {'icon': Icons.group_outlined,           'title': '최소 주문 수량', 'desc': '5벌 이상'},
       {'icon': Icons.local_shipping_outlined,   'title': '배송',          'desc': '30만원 이상 무료 (미만 별도)'},
       {'icon': Icons.schedule_outlined,         'title': '제작 기간',     'desc': '주문 확정 후 14~21일'},
-      {'icon': Icons.local_offer_outlined,      'title': '단체 할인',     'desc': '수량에 따른 단가 조정 가능'},
     ];
     return Container(
       decoration: BoxDecoration(
@@ -511,7 +509,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             Icon(Icons.chat_rounded, size: 16, color: Colors.white),
             SizedBox(width: 8),
             Text(
-              '카카오톡 채널: @2FIT KOREA',
+              '카카오톡 채널: @2fit-mall',
               style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
             ),
           ]),
@@ -520,7 +518,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             Icon(Icons.email_rounded, size: 16, color: Colors.white),
             SizedBox(width: 8),
             Text(
-              '이메일: tbrk2435@kakao.com',
+              '이메일: chw243527@gmail.com',
               style: TextStyle(color: Colors.white, fontSize: 12),
             ),
           ]),
