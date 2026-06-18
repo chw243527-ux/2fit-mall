@@ -6,7 +6,10 @@ import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
-import 'package:flutter_naver_login/flutter_naver_login.dart' as naver;
+// 네이버 로그인: Web(dart.library.html)은 stub, 앱(dart.library.io)은 실제 패키지
+import 'services/naver_login_stub.dart'
+    if (dart.library.io) 'package:flutter_naver_login/flutter_naver_login.dart'
+    as naver;
 import 'firebase_options.dart';
 import 'services/fcm_service.dart';
 import 'utils/theme.dart';
@@ -45,19 +48,17 @@ void main() async {
     if (kDebugMode) debugPrint('⚠️ KakaoSdk 초기화 오류: $e');
   }
 
-  // 네이버 SDK 초기화 (앱 전용)
-  if (!kIsWeb) {
-    try {
-      await naver.FlutterNaverLogin.initSdk(
-        clientId: 'RTeQb5TSs920qoowhcra',
-        clientSecret: 'l5P3RChcnd',
-        clientName: '2FIT mall',
-        enableNaverAppAuthIOS: true,
-      );
-      if (kDebugMode) debugPrint('✅ NaverSdk 초기화 성공');
-    } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ NaverSdk 초기화 오류: $e');
-    }
+  // 네이버 SDK 초기화 (앱 전용 — Web 빌드 시 stub 사용)
+  try {
+    await naver.FlutterNaverLogin.initSdk(
+      clientId: 'RTeQb5TSs920qoowhcra',
+      clientSecret: 'l5P3RChcnd',
+      clientName: '2FIT mall',
+      enableNaverAppAuthIOS: true,
+    );
+    if (kDebugMode) debugPrint('✅ NaverSdk 초기화 성공');
+  } catch (e) {
+    if (kDebugMode) debugPrint('⚠️ NaverSdk 초기화 오류: $e');
   }
 
   // Firebase 초기화 (오류 시에도 앱 실행 유지)

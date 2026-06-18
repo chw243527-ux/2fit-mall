@@ -6,7 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
-import 'package:flutter_naver_login/flutter_naver_login.dart' as naver;
+// 네이버 로그인: Web(dart.library.html)은 stub, 앱(dart.library.io)은 실제 패키지
+import 'naver_login_stub.dart'
+    if (dart.library.io) 'package:flutter_naver_login/flutter_naver_login.dart'
+    as naver;
 import '../models/models.dart';
 
 class AuthService {
@@ -890,11 +893,11 @@ class AuthService {
         return const AuthResult(success: false, error: '네이버 로그인이 취소되었습니다.');
       }
 
-      final account = await naver.FlutterNaverLogin.currentAccount();
-      final naverId = account.id;
-      final email   = account.email.isNotEmpty ? account.email : '$naverId@naver.com';
-      final name    = account.name.isNotEmpty  ? account.name  : '네이버 사용자';
-      final photoUrl = account.profileImage ?? '';
+      final account = await naver.FlutterNaverLogin.getCurrentAccount();
+      final naverId  = account.id;
+      final email    = account.email.isNotEmpty ? account.email : '$naverId@naver.com';
+      final name     = account.name.isNotEmpty  ? account.name  : '네이버 사용자';
+      final photoUrl = account.profileImage.isNotEmpty ? account.profileImage : '';
 
       if (kDebugMode) debugPrint('✅ 네이버 로그인: $email');
 
@@ -993,5 +996,4 @@ class AuthService {
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 네이버 로그아웃 실패: $e');
     }
-  }
-}
+  }}
