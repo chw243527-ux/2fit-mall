@@ -316,10 +316,12 @@
     }
 
     // ── 강제 캐시 삭제 (구버전 SW 캐시 완전 제거) ───────────────────
+    // CACHE_SENTINEL 값은 deploy.yml Step 6에서 빌드 번호로 자동 교체됨
+    var _keepCache = 'flutter-app-cache-BUILD_NUMBER';
     if ('caches' in window) {
       caches.keys().then(function(names) {
         names.forEach(function(name) {
-          if (name !== 'flutter-app-cache-604') {
+          if (name !== _keepCache) {
             caches.delete(name);
           }
         });

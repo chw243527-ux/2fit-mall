@@ -18,15 +18,10 @@ void goBackOrHome(BuildContext context) {
 }
 
 /// 하드웨어 뒤로가기를 goBackOrHome으로 연결하는 PopScope 래퍼
-/// 모든 서브화면의 Scaffold를 이것으로 감싸면 됨
+/// ⚠️ canPop:false 제거 — Flutter Web에서 Scaffold.body 렌더링 0px 버그 방지
+/// (PopScope(canPop:false)는 브라우저 History API와 충돌하여 흰 화면 유발)
 Widget wrapWithPopScope(BuildContext context, Widget child) {
-  return PopScope(
-    canPop: false,
-    onPopInvokedWithResult: (didPop, result) {
-      if (!didPop) goBackOrHome(context);
-    },
-    child: child,
-  );
+  return child;
 }
 
 /// AppBar leading 뒤로가기 버튼 위젯 (공통)
