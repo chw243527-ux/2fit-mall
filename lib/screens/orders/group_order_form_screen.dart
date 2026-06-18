@@ -580,6 +580,78 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         SnackBar(content: Text(msg), duration: const Duration(seconds: 2)));
   }
 
+  // ── HEX 색상 적용 ──────────────────────────────────────────
+  void _applyHexColor(String hex) {
+    final clean = hex.replaceAll('#', '');
+    if (clean.length != 6) {
+      setState(() => _hexError = '6자리 HEX 코드를 입력해 주세요');
+      return;
+    }
+    try {
+      final color = Color(int.parse('FF$clean', radix: 16));
+      setState(() {
+        _mainColor     = color;
+        _mainColorName = '#${clean.toUpperCase()}';
+        _hexError      = null;
+      });
+    } catch (_) {
+      setState(() => _hexError = '올바른 HEX 코드가 아닙니다');
+    }
+  }
+
+  // ── 색상 유틸 ─────────────────────────────────────────────
+  static bool _isLightColor(Color color) {
+    final r = color.r * 255;
+    final g = color.g * 255;
+    final b = color.b * 255;
+    return (r * 299 + g * 587 + b * 114) / 1000 >= 128;
+  }
+
+  static Color _parseHexColor(String hex) {
+    try {
+      final clean = hex.replaceAll('#', '');
+      return Color(int.parse('FF$clean', radix: 16));
+    } catch (_) {
+      return Colors.grey;
+    }
+  }
+
+  // ── 허리밴드 참고 이미지 선택 ──────────────────────────────
+  Future<void> _pickWaistbandRefImage() async {
+    if (_waistbandRefImages.length >= 3) return;
+    try {
+      final picker = ImagePicker();
+      final xfile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+      if (xfile == null) return;
+      final bytes = await xfile.readAsBytes();
+      final b64 = base64Encode(bytes);
+      if (!mounted) return;
+      setState(() => _waistbandRefImages.add(b64));
+    } catch (e) {
+      _showSnack('이미지 선택 오류: $e');
+    }
+  }
+
+  // ── 허리밴드 로고 파일 선택 ────────────────────────────────
+  Future<void> _pickWaistbandLogoFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+      final file = result.files.first;
+      if (!mounted) return;
+      setState(() {
+        _waistbandLogoFileName = file.name;
+        _waistbandLogoBytes    = file.bytes != null ? List<int>.from(file.bytes!) : null;
+      });
+    } catch (e) {
+      _showSnack('파일 선택 오류: $e');
+    }
+  }
+
   bool _validate() {
     final minQty = _isAdditional ? 1 : 5;
     if (_totalCount < minQty) {
@@ -811,7 +883,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   @override
   Widget build(BuildContext context) {
     final title = _isAdditional ? '추가 제작 주문서' : '단체 주문서';
-    return wrapWithPopScope(context, Scaffold(
+    return Scaffold(
       backgroundColor: _bg,
       appBar: AppBar(
         title: Text(title,
@@ -856,7 +928,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ),
       ),
       bottomNavigationBar: _countFixed ? _buildBottomBar() : null,
-    ));
+    );
   }
 
   // ══════════════════════════════════════════════
