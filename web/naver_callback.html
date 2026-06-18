@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>네이버 로그인 처리 중...</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #fff;
+      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    }
+    .wrap {
+      text-align: center;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #e0e0e0;
+      border-top-color: #03C75A;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    p { color: #555; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="spinner"></div>
+    <p>네이버 로그인 처리 중...</p>
+  </div>
+
+  <script>
+    (function() {
+      // URL 해시에서 access_token, state 파싱
+      var hash = window.location.hash.substring(1);
+      var params = {};
+      hash.split('&').forEach(function(part) {
+        var item = part.split('=');
+        if (item.length === 2) {
+          params[decodeURIComponent(item[0])] = decodeURIComponent(item[1]);
+        }
+      });
+
+      var token = params['access_token'];
+      var state = params['state'];
+      var error = params['error'];
+
+      if (window.opener) {
+        if (token) {
+          window.opener.postMessage({
+            type: 'NAVER_TOKEN',
+            token: token,
+            state: state
+          }, window.location.origin);
+        } else {
+          window.opener.postMessage({
+            type: 'NAVER_TOKEN',
+            error: error || '네이버 로그인에 실패했습니다.'
+          }, window.location.origin);
+        }
+        window.close();
+      } else {
+        document.querySelector('p').textContent = '창을 닫고 다시 시도해주세요.';
+      }
+    })();
+  </script>
+</body>
+</html>

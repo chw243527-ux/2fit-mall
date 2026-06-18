@@ -1,15 +1,21 @@
 // auth_service.dart — Firebase Auth 기반 (이메일/비밀번호)
 import 'dart:async';
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
+import 'package:http/http.dart' as http;
 // 네이버 로그인: Web(dart.library.html)은 stub, 앱(dart.library.io)은 실제 패키지
 import 'naver_login_stub.dart'
     if (dart.library.io) 'package:flutter_naver_login/flutter_naver_login.dart'
     as naver;
+// 웹 JS interop
+import 'naver_web_stub.dart'
+    if (dart.library.html) 'naver_web_login.dart'
+    as naverWeb;
 import '../models/models.dart';
 
 class AuthService {
@@ -885,9 +891,11 @@ class AuthService {
   static Future<AuthResult> signInWithNaver() async {
     try {
       if (kIsWeb) {
-        return const AuthResult(success: false, error: '네이버 로그인은 앱에서만 지원됩니다.');
+        // ── 웹: JS 팝업 OAuth 방식 ──
+        return await _signInWithNaverWeb();
       }
 
+      // ── 앱: flutter_naver_login 패키지 ──
       final result = await naver.FlutterNaverLogin.logIn();
       if (result.status != naver.NaverLoginStatus.loggedIn) {
         return const AuthResult(success: false, error: '네이버 로그인이 취소되었습니다.');
@@ -900,94 +908,151 @@ class AuthService {
       final photoUrl = account.profileImage.isNotEmpty ? account.profileImage : '';
 
       if (kDebugMode) debugPrint('✅ 네이버 로그인: $email');
-
-      // Firebase 계정 연동 (이메일/비밀번호 방식)
-      final fakePassword = 'naver_${naverId}_2fit';
-      UserCredential userCred;
-      try {
-        userCred = await _auth.createUserWithEmailAndPassword(
-          email: email,
-          password: fakePassword,
-        );
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'email-already-in-use') {
-          userCred = await _auth.signInWithEmailAndPassword(
-            email: email,
-            password: fakePassword,
-          );
-        } else {
-          rethrow;
-        }
-      }
-
-      final user = userCred.user;
-      if (user == null) return const AuthResult(success: false, error: '네이버 로그인 실패');
-
-      if (user.displayName == null || user.displayName!.isEmpty) {
-        await user.updateDisplayName(name);
-      }
-
-      final emailKey = email.toLowerCase();
-      final isAdmin  = _adminEmails.contains(emailKey);
-
-      // Firestore 사용자 문서 생성/업데이트
-      final docRef = _db.collection('users').doc(user.uid);
-      final doc    = await docRef.get();
-      if (!doc.exists) {
-        await docRef.set({
-          'id'              : user.uid,
-          'name'            : name,
-          'email'           : email,
-          'phone'           : '',
-          'profileImageUrl' : photoUrl,
-          'grade'           : 'bronze',
-          'isAdmin'         : isAdmin,
-          'points'          : 0,
-          'coupons'         : [],
-          'wishlist'        : [],
-          'createdAt'       : FieldValue.serverTimestamp(),
-          'loginProvider'   : 'naver',
-          'naverId'         : naverId,
-        });
-      } else {
-        await docRef.update({
-          'lastLoginAt'   : FieldValue.serverTimestamp(),
-          'loginProvider' : 'naver',
-          'naverId'       : naverId,
-          if (photoUrl.isNotEmpty) 'profileImageUrl': photoUrl,
-        });
-      }
-
-      final data = (await docRef.get()).data()!;
-      final tier = data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
-      final userModel = UserModel(
-        id              : user.uid,
-        name            : data['name']            as String? ?? name,
-        email           : data['email']           as String? ?? email,
-        phone           : data['phone']           as String? ?? '',
-        profileImageUrl : data['profileImageUrl'] as String? ?? photoUrl,
-        memberTier      : tier,
-        grade           : tier,
-        isAdmin         : (data['isAdmin'] as bool?) ?? isAdmin,
-        points          : (data['points']  as int?)  ?? 0,
-        coupons         : const [],
-        wishlist        : List<String>.from(data['wishlist'] as List? ?? []),
-        createdAt       : DateTime.now(),
+      return await _naverFirebaseLink(
+        naverId: naverId,
+        email: email,
+        name: name,
+        photoUrl: photoUrl,
       );
-
-      // 세션 저장
-      final box = await _getSessionBox();
-      await box.put('user', {
-        'id': userModel.id, 'name': userModel.name, 'email': userModel.email,
-        'phone': userModel.phone, 'profileImageUrl': userModel.profileImageUrl,
-        'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
-        'points': userModel.points, 'wishlist': userModel.wishlist,
-      });
-      return AuthResult(success: true, user: userModel);
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 네이버 로그인 실패: $e');
       return AuthResult(success: false, error: '네이버 로그인 실패: $e');
     }
+  }
+
+  /// 웹 전용 네이버 OAuth 팝업 로그인
+  static Future<AuthResult> _signInWithNaverWeb() async {
+    try {
+      // JS 팝업 호출 → access_token 획득
+      final token = await naverWeb.callNaverOAuth();
+      if (token == null || token.isEmpty) {
+        return const AuthResult(success: false, error: '네이버 로그인이 취소되었습니다.');
+      }
+
+      // 네이버 사용자 정보 API 호출
+      final resp = await http.get(
+        Uri.parse('https://openapi.naver.com/v1/nid/me'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (resp.statusCode != 200) {
+        return const AuthResult(success: false, error: '네이버 사용자 정보를 가져올 수 없습니다.');
+      }
+
+      final data = json.decode(resp.body) as Map<String, dynamic>;
+      final response = data['response'] as Map<String, dynamic>? ?? {};
+      final naverId  = response['id']            as String? ?? '';
+      final email    = (response['email']        as String?)?.isNotEmpty == true
+          ? response['email'] as String
+          : '$naverId@naver.com';
+      final name     = (response['name']         as String?)?.isNotEmpty == true
+          ? response['name'] as String
+          : '네이버 사용자';
+      final photoUrl = response['profile_image'] as String? ?? '';
+
+      if (kDebugMode) debugPrint('✅ 네이버 웹 로그인: $email');
+      return await _naverFirebaseLink(
+        naverId: naverId,
+        email: email,
+        name: name,
+        photoUrl: photoUrl,
+      );
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 네이버 웹 로그인 실패: $e');
+      return AuthResult(success: false, error: '네이버 로그인 실패: $e');
+    }
+  }
+
+  /// 네이버 계정 → Firebase 연동 공통 로직
+  static Future<AuthResult> _naverFirebaseLink({
+    required String naverId,
+    required String email,
+    required String name,
+    required String photoUrl,
+  }) async {
+    // Firebase 계정 연동 (이메일/비밀번호 방식)
+    final fakePassword = 'naver_${naverId}_2fit';
+    UserCredential userCred;
+    try {
+      userCred = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: fakePassword,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        userCred = await _auth.signInWithEmailAndPassword(
+          email: email,
+          password: fakePassword,
+        );
+      } else {
+        rethrow;
+      }
+    }
+
+    final user = userCred.user;
+    if (user == null) return const AuthResult(success: false, error: '네이버 로그인 실패');
+
+    if (user.displayName == null || user.displayName!.isEmpty) {
+      await user.updateDisplayName(name);
+    }
+
+    final emailKey = email.toLowerCase();
+    final isAdmin  = _adminEmails.contains(emailKey);
+
+    // Firestore 사용자 문서 생성/업데이트
+    final docRef = _db.collection('users').doc(user.uid);
+    final doc    = await docRef.get();
+    if (!doc.exists) {
+      await docRef.set({
+        'id'              : user.uid,
+        'name'            : name,
+        'email'           : email,
+        'phone'           : '',
+        'profileImageUrl' : photoUrl,
+        'grade'           : 'bronze',
+        'isAdmin'         : isAdmin,
+        'points'          : 0,
+        'coupons'         : [],
+        'wishlist'        : [],
+        'createdAt'       : FieldValue.serverTimestamp(),
+        'loginProvider'   : 'naver',
+        'naverId'         : naverId,
+      });
+    } else {
+      await docRef.update({
+        'lastLoginAt'   : FieldValue.serverTimestamp(),
+        'loginProvider' : 'naver',
+        'naverId'       : naverId,
+        if (photoUrl.isNotEmpty) 'profileImageUrl': photoUrl,
+      });
+    }
+
+    final data = (await docRef.get()).data()!;
+    final tier = data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
+    final userModel = UserModel(
+      id              : user.uid,
+      name            : data['name']            as String? ?? name,
+      email           : data['email']           as String? ?? email,
+      phone           : data['phone']           as String? ?? '',
+      profileImageUrl : data['profileImageUrl'] as String? ?? photoUrl,
+      memberTier      : tier,
+      grade           : tier,
+      isAdmin         : (data['isAdmin'] as bool?) ?? isAdmin,
+      points          : (data['points']  as int?)  ?? 0,
+      coupons         : const [],
+      wishlist        : List<String>.from(data['wishlist'] as List? ?? []),
+      createdAt       : DateTime.now(),
+    );
+
+    // 세션 저장
+    final box = await _getSessionBox();
+    await box.put('user', {
+      'id': userModel.id, 'name': userModel.name, 'email': userModel.email,
+      'phone': userModel.phone, 'profileImageUrl': userModel.profileImageUrl,
+      'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
+      'points': userModel.points, 'wishlist': userModel.wishlist,
+    });
+    return AuthResult(success: true, user: userModel);
   }
 
   static Future<void> signOutNaver() async {
@@ -996,4 +1061,5 @@ class AuthService {
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 네이버 로그아웃 실패: $e');
     }
-  }}
+  }
+}

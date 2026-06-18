@@ -205,6 +205,54 @@
   </style>
 
   <!-- ═══════════════════════════════════════════════
+       네이버 OAuth 2.0 팝업 로그인 헬퍼
+       팝업창에서 콜백을 받아 Flutter로 전달
+  ═══════════════════════════════════════════════ -->
+  <script>
+    // 네이버 OAuth 팝업 로그인
+    window.naverOAuthLogin = function() {
+      var clientId = 'RTeQb5TSs920qoowhcra';
+      var redirectUri = encodeURIComponent(window.location.origin + '/naver_callback.html');
+      var state = Math.random().toString(36).substring(2);
+      sessionStorage.setItem('naver_oauth_state', state);
+
+      var url = 'https://nid.naver.com/oauth2.0/authorize'
+        + '?response_type=token'
+        + '&client_id=' + clientId
+        + '&redirect_uri=' + redirectUri
+        + '&state=' + state;
+
+      var popup = window.open(url, 'naverLogin',
+        'width=500,height=600,scrollbars=yes,resizable=yes');
+
+      return new Promise(function(resolve, reject) {
+        var timer = setInterval(function() {
+          if (popup && popup.closed) {
+            clearInterval(timer);
+            reject(new Error('팝업이 닫혔습니다.'));
+          }
+        }, 500);
+
+        // 팝업에서 postMessage로 토큰 전달
+        function onMessage(e) {
+          if (e.origin !== window.location.origin) return;
+          if (e.data && e.data.type === 'NAVER_TOKEN') {
+            clearInterval(timer);
+            window.removeEventListener('message', onMessage);
+            if (popup) popup.close();
+            if (e.data.error) {
+              reject(new Error(e.data.error));
+            } else {
+              resolve(e.data.token);
+            }
+          }
+        }
+        window.addEventListener('message', onMessage);
+      });
+    };
+  </script>
+
+  <!-- ═══════════════════════════════════════════════
        카카오 JavaScript SDK
        Flutter Web에서 카카오 로그인 팝업을 띄우기 위해 필요
        JS 키 등록 완료: 09aadca2435b22f8b07bcda2d469a36f
