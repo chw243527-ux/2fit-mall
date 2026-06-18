@@ -55,7 +55,7 @@ class OrderService {
           .get();
 
       final orders = snapshot.docs
-          .map((doc) => _orderFromFirestore(doc.data()))
+          .map((doc) => _orderFromFirestore(doc.data(), docId: doc.id))
           .toList();
 
       // 메모리에서 정렬
@@ -590,13 +590,20 @@ class OrderService {
       designRevisionDeadline: data['designRevisionDeadline'] != null
           ? DateTime.tryParse(data['designRevisionDeadline'] as String)
           : null,
-      items: (data['items'] as List? ?? []).map((i) {
+      items: _parseItems(data),
+    );
+  }
+
+  /// items 파싱 — Firestore data에서 items 추출.
+  /// items 필드가 없거나 비어 있으면 customOptions/top-level 필드로 폴백 아이템 1개 생성.
+  static List<OrderItem> _parseItems(Map<String, dynamic> data) {
+    final rawList = data['items'] as List?;
+    if (rawList != null && rawList.isNotEmpty) {
+      return rawList.map((i) {
         final item = Map<String, dynamic>.from(i as Map);
         Map<String, dynamic>? itemOpts;
         final rawItemOpts = item['customOptions'];
-        if (rawItemOpts is Map) {
-          itemOpts = Map<String, dynamic>.from(rawItemOpts);
-        }
+        if (rawItemOpts is Map) itemOpts = Map<String, dynamic>.from(rawItemOpts);
         return OrderItem(
           productId: item['productId'] as String? ?? '',
           productName: item['productName'] as String? ?? '',
@@ -607,8 +614,46 @@ class OrderService {
           customOptions: itemOpts,
           imageUrl: item['imageUrl'] as String?,
         );
-      }).toList(),
-    );
+      }).toList();
+    }
+
+    // ── 폴백: items 없을 때 customOptions / top-level 필드에서 구성
+    final opts = data['customOptions'];
+    final optsMap = opts is Map ? Map<String, dynamic>.from(opts) : <String, dynamic>{};
+
+    // 상품명 후보: customOptions.productName > customOptions.teamName+'단체복' > groupName+'단체복' > '주문 상품'
+    final productName = (optsMap['productName'] as String?)?.isNotEmpty == true
+        ? optsMap['productName'] as String
+        : (data['productName'] as String?)?.isNotEmpty == true
+            ? data['productName'] as String
+            : ((optsMap['teamName'] ?? data['groupName']) as String?)?.isNotEmpty == true
+                ? '${optsMap['teamName'] ?? data['groupName']} 단체복'
+                : '주문 상품';
+
+    final totalAmount = (data['totalAmount'] as num?)?.toDouble() ?? 0;
+    final shippingFee = (data['shippingFee'] as num?)?.toDouble() ?? 0;
+    final qty = (data['groupCount'] as num?)?.toInt()
+        ?? (optsMap['totalCount'] as num?)?.toInt()
+        ?? 1;
+    final price = qty > 0 ? (totalAmount - shippingFee) / qty : (totalAmount - shippingFee);
+
+    final imageUrl = (optsMap['productImageUrl'] as String?)?.isNotEmpty == true
+        ? optsMap['productImageUrl'] as String?
+        : (optsMap['designFileUrl'] as String?)?.isNotEmpty == true
+            ? optsMap['designFileUrl'] as String?
+            : null;
+
+    return [
+      OrderItem(
+        productId: optsMap['productId'] as String? ?? '',
+        productName: productName,
+        size: '단체',
+        color: optsMap['mainColor'] as String? ?? '',
+        quantity: qty,
+        price: price,
+        imageUrl: imageUrl,
+      ),
+    ];
   }
 
   static OrderModel _orderFromMap(Map<String, dynamic> data) {

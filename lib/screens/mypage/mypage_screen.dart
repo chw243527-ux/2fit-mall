@@ -4634,7 +4634,21 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                       _npSection(
                         title: '주문상품',
                         icon: Icons.shopping_bag_outlined,
-                        child: Column(
+                        child: order.items.isEmpty
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              alignment: Alignment.center,
+                              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                Icon(Icons.inventory_2_outlined, size: 36, color: Colors.grey[300]),
+                                const SizedBox(height: 8),
+                                Text('상품 정보를 불러올 수 없습니다.',
+                                  style: TextStyle(fontSize: 13, color: Colors.grey[400])),
+                                const SizedBox(height: 4),
+                                Text('주문번호: ${order.id}',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey[300])),
+                              ]),
+                            )
+                          : Column(
                           children: [
                             ...order.items.map((item) {
                               final displaySize = (item.size == '단체' || item.size.isEmpty) ? null : item.size;
