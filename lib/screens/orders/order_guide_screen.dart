@@ -317,8 +317,12 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
             badges: [loc.orderGuideGroupBadge1, loc.orderGuideGroupBadge2, loc.orderGuideGroupBadge3],
             onGuide: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen())),
-            onForm: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const GroupOrderFormScreen(initialCount: 5))),
+            onForm: _guideChecked
+                ? () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const GroupOrderFormScreen(initialCount: 5)))
+                : null,
+            guideChecked: _guideChecked,
+            onGuideCheckChanged: (v) => setState(() => _guideChecked = v),
           ),
 
           const SizedBox(height: 12),
@@ -464,7 +468,9 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
     required Color color,
     required List<String> badges,
     required VoidCallback onGuide,
-    required VoidCallback onForm,
+    required VoidCallback? onForm,
+    bool guideChecked = false,
+    void Function(bool)? onGuideCheckChanged,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -542,6 +548,35 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 .toList(),
           ),
           const SizedBox(height: 12),
+          // ── 주문안내 확인 체크박스 (단체주문에만 표시) ──
+          if (onGuideCheckChanged != null) ...[
+            GestureDetector(
+              onTap: () => onGuideCheckChanged(!guideChecked),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: guideChecked ? color.withValues(alpha: 0.06) : const Color(0xFFFFF8E1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: guideChecked ? color.withValues(alpha: 0.4) : const Color(0xFFFFC107).withValues(alpha: 0.6),
+                  ),
+                ),
+                child: Row(children: [
+                  Icon(
+                    guideChecked ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                    size: 20,
+                    color: guideChecked ? color : const Color(0xFFFFA000),
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text('주문 안내 내용을 모두 확인했습니다.',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A))),
+                  ),
+                ]),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           // 버튼 2개
           Row(
             children: [
@@ -571,14 +606,15 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 child: ElevatedButton.icon(
                   onPressed: onForm,
                   icon: const Icon(Icons.assignment_rounded, size: 15),
-                  label: const Text(
-                    '주문서 작성',
-                    style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700),
+                  label: Text(
+                    onGuideCheckChanged != null && !guideChecked ? '확인 후 작성 가능' : '주문서 작성',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: color,
+                    backgroundColor: onForm != null ? color : Colors.grey.shade300,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    disabledForegroundColor: Colors.grey.shade500,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
