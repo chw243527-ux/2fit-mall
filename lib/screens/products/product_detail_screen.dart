@@ -3509,19 +3509,7 @@ $productUrl
     final imgs = _sectionImages[sectionKey] ?? [];
     if (imgs.isEmpty) return const SizedBox.shrink();
 
-    // 이미지 1장 → 풀너비, 탭으로 라이트박스 오픈
-    if (imgs.length == 1) {
-      return GestureDetector(
-        onTap: () => _openLightbox(imgs, 0),
-        child: NetImage(
-          imgs.first,
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
-        ),
-      );
-    }
-
-    // 이미지 2장 이상 → 가로 슬라이더 + 인디케이터
+    // 1장 이상 모두 슬라이더로 통일 (height:null NetImage 버그 방지)
     return _SectionImageSliderWidget(
       imgs: imgs,
       onTap: (index) => _openLightbox(imgs, index),
@@ -10316,17 +10304,7 @@ class _Section2FabricTabsWidgetState
       );
     }
 
-    if (imgs.length == 1) {
-      return GestureDetector(
-        onTap: () => onTap(imgs, 0),
-        child: NetImage(
-          imgs.first,
-          width: double.infinity,
-          fit: BoxFit.fitWidth,
-        ),
-      );
-    }
-
+    // 1장 이상 모두 슬라이더로 통일 (height:null NetImage 버그 방지)
     return _SectionImageSliderWidget(
       imgs: imgs,
       onTap: (i) => onTap(imgs, i),
