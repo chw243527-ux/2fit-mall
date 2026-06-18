@@ -56,12 +56,6 @@ class LanguageProvider extends ChangeNotifier {
   }
 }
 
-// ── 관리자 계정 (하드코딩) ──────────────────────────────
-const _kAdminAccounts = [
-  {'email': 'chw243527@gmail.com',   'password': 'Admin2fit2024!',  'name': '관리자'},
-  {'email': 'tbrk2435@naver.com', 'password': 'manager2fit', 'name': '매니저'},
-];
-
 class CartProvider extends ChangeNotifier {
   final List<CartItem> _items = [];
 
@@ -137,50 +131,6 @@ class UserProvider extends ChangeNotifier {
   void setLoading(bool v) {
     _isLoading = v;
     notifyListeners();
-  }
-
-  /// 이메일+비밀번호 로그인 (레거시 호환용 — AuthService로 대체됨)
-  Future<bool> loginWithEmail(String email, String password) async {
-    _isLoading = true;
-    _loginError = null;
-    notifyListeners();
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    final adminMatch = _kAdminAccounts.firstWhere(
-      (a) => a['email'] == email.trim() && a['password'] == password,
-      orElse: () => {},
-    );
-    if (adminMatch.isNotEmpty) {
-      _user = UserModel(
-        id: 'admin_${email.split('@').first}',
-        name: adminMatch['name']!,
-        email: email.trim(),
-        phone: '02-0000-0000',
-        isAdmin: true,
-        createdAt: DateTime(2024, 1, 1),
-      );
-      _isLoading = false;
-      notifyListeners();
-      // 관리자 로그인 시 FCM 토큰 Firestore 등록 → Cloud Functions가 푸시 알림 발송
-      _registerAdminFcmToken();
-      return true;
-    }
-    if (email.isNotEmpty && password.length >= 6) {
-      _user = UserModel(
-        id: 'user_${DateTime.now().millisecondsSinceEpoch}',
-        name: email.split('@').first,
-        email: email.trim(),
-        phone: '',
-        createdAt: DateTime.now(),
-      );
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    }
-    _loginError = '이메일 또는 비밀번호가 올바르지 않습니다.';
-    _isLoading = false;
-    notifyListeners();
-    return false;
   }
 
   void login(UserModel user) {
