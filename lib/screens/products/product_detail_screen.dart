@@ -1563,7 +1563,7 @@ $productUrl
                 end: Alignment.centerRight,
               ),
               borderRadius: BorderRadius.circular(9),
-              border: Border.all(color: const Color(0xFF7B1FA2).withOpacity(0.22)),
+              border: Border.all(color: const Color(0xFF7B1FA2).withValues(alpha: 0.22)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -1571,7 +1571,7 @@ $productUrl
                 Container(
                   width: 28, height: 28,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF7B1FA2).withOpacity(0.12),
+                    color: const Color(0xFF7B1FA2).withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.auto_awesome_rounded, size: 15, color: Color(0xFF6A1B9A)),

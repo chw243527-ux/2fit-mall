@@ -656,6 +656,7 @@ class UserModel {
   String grade;      // memberTier 별칭 (하위 호환)
   DateTime createdAt;
   List<AddressModel> addresses; // 배송지 목록
+  String loginProvider; // email, google, kakao, naver
 
   UserModel({
     required this.id,
@@ -672,6 +673,7 @@ class UserModel {
     String? grade,
     required this.createdAt,
     this.addresses = const [],
+    this.loginProvider = 'email',
   }) : grade = grade ?? memberTier;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -695,6 +697,7 @@ class UserModel {
           : DateTime.now(),
       addresses: (json['addresses'] as List? ?? []).map((a) =>
         AddressModel.fromJson(Map<String, dynamic>.from(a as Map))).toList(),
+      loginProvider: json['loginProvider'] as String? ?? 'email',
     );
   }
 
@@ -713,6 +716,7 @@ class UserModel {
       'grade': memberTier,
       'createdAt': createdAt.toIso8601String(),
       'addresses': addresses.map((a) => a.toJson()).toList(),
+      'loginProvider': loginProvider,
     };
   }
   

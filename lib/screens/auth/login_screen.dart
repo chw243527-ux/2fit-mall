@@ -826,28 +826,6 @@ class _LoginScreenState extends State<LoginScreen>
         ),
       );
 
-  void _showComingSoon(String provider) {
-    if (provider == 'Google') {
-      _loginWithGoogle();
-    } else {
-      // 카카오는 준비 중
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.info_outline, color: Colors.white, size: 18),
-              const SizedBox(width: 8),
-              Text('$provider 로그인은 준비 중입니다'),
-            ],
-          ),
-          backgroundColor: const Color(0xFF1A1A2E),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      );
-    }
-  }
-
   /// 실제 Google 로그인
   Future<void> _loginWithGoogle() async {
     final userProv = context.read<UserProvider>();

@@ -476,9 +476,13 @@ class AuthService {
           name: (data['name'] as String?) ?? '회원',
           email: emailKey,
           phone: (data['phone'] as String?) ?? '',
+          profileImageUrl: (data['profileImageUrl'] as String?) ?? '',
           isAdmin: isAdmin,
+          memberTier: (data['memberTier'] as String?) ?? (data['grade'] as String?) ?? 'bronze',
           wishlist: List<String>.from(data['wishlist'] ?? []),
+          points: (data['points'] as int?) ?? 0,
           createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          loginProvider: (data['loginProvider'] as String?) ?? 'email',
         );
       }
 
@@ -492,6 +496,7 @@ class AuthService {
         phone: '',
         isAdmin: isAdmin,
         createdAt: DateTime.now(),
+        loginProvider: 'email',
       );
       await _db.collection('users').doc(uid).set({
         'id': uid,
@@ -501,6 +506,7 @@ class AuthService {
         'isAdmin': isAdmin,
         'grade': 'bronze',
         'wishlist': <String>[],
+        'loginProvider': 'email',
         'createdAt': FieldValue.serverTimestamp(),
       });
       return user;
@@ -724,6 +730,7 @@ class AuthService {
         coupons: const [],
         wishlist: List<String>.from(data['wishlist'] as List? ?? []),
         createdAt: DateTime.now(),
+        loginProvider: 'google',
       );
       // 세션 저장
       final box = await _getSessionBox();
@@ -732,6 +739,7 @@ class AuthService {
         'phone': userModel.phone, 'profileImageUrl': userModel.profileImageUrl,
         'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
         'points': userModel.points, 'wishlist': userModel.wishlist,
+        'loginProvider': userModel.loginProvider,
       });
       return AuthResult(success: true, user: userModel);
     } catch (e) {
@@ -854,6 +862,7 @@ class AuthService {
         coupons         : const [],
         wishlist        : List<String>.from(data['wishlist'] as List? ?? []),
         createdAt       : DateTime.now(),
+        loginProvider   : 'kakao',
       );
 
       // 세션 저장
@@ -863,6 +872,7 @@ class AuthService {
         'phone': userModel.phone, 'profileImageUrl': userModel.profileImageUrl,
         'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
         'points': userModel.points, 'wishlist': userModel.wishlist,
+        'loginProvider': userModel.loginProvider,
       });
       return AuthResult(success: true, user: userModel);
     } catch (e) {
@@ -1036,8 +1046,8 @@ class AuthService {
       coupons         : const [],
       wishlist        : List<String>.from(data['wishlist'] as List? ?? []),
       createdAt       : DateTime.now(),
+      loginProvider   : 'naver',
     );
-
     // 세션 저장
     final box = await _getSessionBox();
     await box.put('user', {
@@ -1045,6 +1055,7 @@ class AuthService {
       'phone': userModel.phone, 'profileImageUrl': userModel.profileImageUrl,
       'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
       'points': userModel.points, 'wishlist': userModel.wishlist,
+      'loginProvider': userModel.loginProvider,
     });
     return AuthResult(success: true, user: userModel);
   }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import '../services/auth_service.dart';
 import '../models/models.dart';
 import '../utils/app_localizations.dart';
 import '../services/order_service.dart';
@@ -189,6 +190,16 @@ class UserProvider extends ChangeNotifier {
   }
 
   void logout() {
+    // 소셜 로그인 제공자에 맞게 로그아웃
+    final provider = _user?.loginProvider ?? 'email';
+    AuthService.logout(); // Firebase Auth 로그아웃
+    if (provider == 'google') {
+      AuthService.signOutGoogle().catchError((_) {});
+    } else if (provider == 'kakao') {
+      AuthService.signOutKakao().catchError((_) {});
+    } else if (provider == 'naver') {
+      AuthService.signOutNaver().catchError((_) {});
+    }
     _user = null;
     notifyListeners();
   }
