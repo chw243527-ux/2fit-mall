@@ -4468,17 +4468,15 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
   final shippingFee = order.shippingFee;
   final totalAmt    = order.totalAmount;
 
-  showDialog(
-    context: context,
-    builder: (_) => Dialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 780),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+  // 모바일/PC 분기
+  final isMobile = !isPcWeb(context);
+
+  // 공통 콘텐츠 빌더
+  Widget buildContent(BuildContext sheetCtx, {bool isSheet = false}) {
+    return Column(
+      mainAxisSize: isSheet ? MainAxisSize.min : MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
             // ══════════════════════════════════════
             // ① 헤더 — 흰 배경, 날짜+주문번호+영수증 버튼
             // ══════════════════════════════════════
@@ -4526,7 +4524,7 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                 const SizedBox(width: 6),
                 // 닫기
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () => Navigator.pop(sheetCtx),
                   child: Icon(Icons.close, size: 20, color: Colors.grey[500]),
                 ),
               ]),
@@ -4535,7 +4533,7 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
             // ══════════════════════════════════════
             // ② 스크롤 콘텐츠
             // ══════════════════════════════════════
-            Expanded(
+            Flexible(
               child: Builder(builder: (btnCtx) {
                 // ── 버튼 가능 조건
                 final canCancelReadyMade = !isGroup &&
@@ -4951,13 +4949,13 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
             // ══════════════════════════════════════
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              padding: EdgeInsets.fromLTRB(16, 8, 16, isSheet ? 16 + MediaQuery.of(sheetCtx).padding.bottom : 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 border: Border(top: BorderSide(color: Colors.grey.shade200)),
               ),
               child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(sheetCtx),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1A1A2E),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -4968,10 +4966,39 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
               ),
             ),
           ],
+        );
+  }
+
+  if (isMobile) {
+    // ── 모바일: 풀스크린 바텀시트
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => Container(
+        height: MediaQuery.of(sheetCtx).size.height * 0.92,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF4F4F4),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: buildContent(sheetCtx, isSheet: true),
+      ),
+    );
+  } else {
+    // ── PC: 다이얼로그
+    showDialog(
+      context: context,
+      builder: (sheetCtx) => Dialog(
+        backgroundColor: const Color(0xFFF4F4F4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 480, maxHeight: 820),
+          child: buildContent(sheetCtx),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 // ── 네이버 스타일 섹션 컨테이너
