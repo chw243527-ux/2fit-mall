@@ -928,27 +928,26 @@ class AuthService {
       }
 
       final token    = info['token']    ?? '';
-      final naverId  = info['naverId']  ?? '';
-      final email    = info['email']?.isNotEmpty == true
-          ? info['email']!
-          : (naverId.isNotEmpty ? '$naverId@naver.com' : '');
-      final name     = info['name']?.isNotEmpty == true
-          ? info['name']!
-          : '네이버 사용자';
+      var   naverId  = info['naverId']  ?? '';
+      var   email    = info['email']    ?? '';
+      var   name     = info['name']     ?? '';
       final photoUrl = info['photoUrl'] ?? '';
 
-      if (token.isEmpty && naverId.isEmpty) {
+      if (token.isEmpty) {
         return const AuthResult(success: false, error: '네이버 로그인 정보를 가져올 수 없습니다.');
       }
 
-      // naverId가 없으면 token 앞 8자리를 임시 ID로 사용
-      final id = naverId.isNotEmpty ? naverId : token.substring(0, 8);
-      final finalEmail = email.isNotEmpty ? email : '$id@naver.com';
+      // naverId 없으면 token 앞 16자리로 대체
+      if (naverId.isEmpty) naverId = token.length >= 16 ? token.substring(0, 16) : token;
+      // email 없으면 naverId 기반 생성
+      if (email.isEmpty) email = '$naverId@naver.com';
+      // name 없으면 기본값
+      if (name.isEmpty) name = '네이버 사용자';
 
-      if (kDebugMode) debugPrint('✅ 네이버 웹 로그인: $finalEmail');
+      if (kDebugMode) debugPrint('✅ 네이버 웹 로그인: $email');
       return await _naverFirebaseLink(
-        naverId: id,
-        email: finalEmail,
+        naverId: naverId,
+        email: email,
         name: name,
         photoUrl: photoUrl,
       );

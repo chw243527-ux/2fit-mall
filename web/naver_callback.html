@@ -33,9 +33,25 @@
     <p>네이버 로그인 처리 중...</p>
   </div>
 
+  <!-- 네이버 JS SDK (naverLogin_implicit) -->
+  <script src="https://static.nid.naver.com/js/naverLogin_implicit-1.0.3.js" charset="utf-8"></script>
+
   <script>
   (function() {
-    // ── 1) URL 해시에서 access_token 파싱 ──────────────────────
+    var CLIENT_ID   = 'RTeQb5TSs920qoowhcra';
+    var CALLBACK_URL = window.location.origin + '/naver_callback.html';
+
+    function sendToOpener(data) {
+      if (window.opener) {
+        window.opener.postMessage(data, window.location.origin);
+        setTimeout(function() { window.close(); }, 100);
+      } else {
+        document.querySelector('p').textContent =
+          data.error || '로그인 완료. 창을 닫아주세요.';
+      }
+    }
+
+    // ── 1) URL 해시에서 access_token 파싱 ──
     var hash = window.location.hash.substring(1);
     var params = {};
     hash.split('&').forEach(function(part) {
@@ -46,75 +62,54 @@
     var token = params['access_token'];
     var error = params['error'];
 
-    function sendError(msg) {
-      if (window.opener) {
-        window.opener.postMessage({ type: 'NAVER_TOKEN', error: msg }, window.location.origin);
-        window.close();
-      } else {
-        document.querySelector('p').textContent = msg;
-      }
-    }
-
     if (!token) {
-      sendError(error || '네이버 로그인에 실패했습니다.');
+      sendToOpener({ type: 'NAVER_TOKEN', error: error || '네이버 로그인에 실패했습니다.' });
       return;
     }
 
-    // ── 2) JSONP로 네이버 사용자 정보 API 호출 ─────────────────
-    // 브라우저 CORS 우회: <script> 태그 동적 삽입 (JSONP)
-    // 네이버 /v1/nid/me 는 JSONP 미지원 → proxy 없이 불가
-    // 대신: access_token 자체를 opener에 전달하고
-    //       Flutter(Dart)가 아닌 JS fetch에 no-cors 대신
-    //       네이버 JS SDK(naver.LoginWithNaverIdUsing OAuth2) 활용
+    // ── 2) 네이버 JS SDK로 프로필 조회 ──
+    try {
+      var naverLogin = new naver_id_login(CLIENT_ID, CALLBACK_URL);
+      naverLogin.setAccessToken(token);
+      naverLogin.getLoginStatus(function(status) {
+        if (status) {
+          var id       = naverLogin.getProfileData('id')            || '';
+          var name     = naverLogin.getProfileData('name')          || '네이버 사용자';
+          var email    = naverLogin.getProfileData('email')         || '';
+          var photo    = naverLogin.getProfileData('profile_image') || '';
+          if (!email && id) email = id + '@naver.com';
 
-    // ── 3) 네이버 JS SDK로 프로필 조회 ────────────────────────
-    var script = document.createElement('script');
-    script.src = 'https://static.nid.naver.com/js/naverLogin_implicit-1.0.3.js';
-    script.onload = function() {
-      try {
-        var naver_id_login = new naver_id_login(
-          'RTeQb5TSs920qoowhcra',
-          window.location.origin + '/naver_callback.html'
-        );
-        naver_id_login.setAccessToken(token);
-        naver_id_login.getLoginStatus(function(status) {
-          if (status) {
-            var name     = naver_id_login.getProfileData('name')    || '네이버 사용자';
-            var email    = naver_id_login.getProfileData('email')   || '';
-            var id       = naver_id_login.getProfileData('id')      || '';
-            var imageUrl = naver_id_login.getProfileData('profile_image') || '';
-            if (!email) email = id + '@naver.com';
-
-            if (window.opener) {
-              window.opener.postMessage({
-                type    : 'NAVER_TOKEN',
-                token   : token,
-                naverId : id,
-                email   : email,
-                name    : name,
-                photoUrl: imageUrl
-              }, window.location.origin);
-              window.close();
-            }
-          } else {
-            sendError('네이버 프로필 조회 실패');
-          }
-        });
-      } catch(e) {
-        sendError('네이버 SDK 오류: ' + e.message);
-      }
-    };
-    script.onerror = function() {
-      // SDK 로드 실패 시 token만 전달 (Flutter에서 처리)
-      if (window.opener) {
-        window.opener.postMessage({
-          type : 'NAVER_TOKEN',
-          token: token
-        }, window.location.origin);
-        window.close();
-      }
-    };
-    document.head.appendChild(script);
+          sendToOpener({
+            type    : 'NAVER_TOKEN',
+            token   : token,
+            naverId : id,
+            email   : email,
+            name    : name,
+            photoUrl: photo
+          });
+        } else {
+          // SDK 프로필 실패 → token만 전달 (naverId는 token 앞 16자리로 임시 생성)
+          sendToOpener({
+            type    : 'NAVER_TOKEN',
+            token   : token,
+            naverId : '',
+            email   : '',
+            name    : '네이버 사용자',
+            photoUrl: ''
+          });
+        }
+      });
+    } catch (e) {
+      // SDK 자체 오류 → token만 전달
+      sendToOpener({
+        type    : 'NAVER_TOKEN',
+        token   : token,
+        naverId : '',
+        email   : '',
+        name    : '네이버 사용자',
+        photoUrl: ''
+      });
+    }
   })();
   </script>
 </body>
