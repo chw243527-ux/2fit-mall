@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
-import 'group_order_guide_screen.dart';
 import 'group_order_form_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════
@@ -245,7 +244,11 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                 } else {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const GroupOrderGuideScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const GroupOrderFormScreen(
+                        initialCount: 5,
+                      ),
+                    ),
                   );
                 }
               },

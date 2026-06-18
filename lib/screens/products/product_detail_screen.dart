@@ -13,7 +13,6 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../widgets/pc_layout.dart';
 import '../orders/group_order_form_screen.dart';
-import '../orders/group_order_guide_screen.dart';
 import '../../widgets/color_picker_widget.dart';
 import '../../widgets/image_lightbox.dart';
 import '../../utils/app_localizations.dart';
@@ -5535,29 +5534,22 @@ $productUrl
     _showBuyNowSheet(product);
   }
 
-  // ─── 단체주문 안내 시트 표시 ───
+  // ─── 단체주문 버튼 → 주문서로 직행 ───
   void _showGroupOrderGuide(ProductModel product) {
-    // 단체주문 전용 상품: 단체주문 안내 페이지 (안내 → 동의 → 주문서 작성)
-    if (product.isGroupOnly) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => GroupOrderGuideScreen(product: product),
+    final isBottomOrder = product.category == '하의' ||
+        product.subCategory.contains('타이즈') ||
+        product.subCategory.contains('남성 5부') ||
+        product.subCategory.contains('여성 2.5부') ||
+        product.name.contains('타이즈') ||
+        product.name.contains('하의');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GroupOrderFormScreen(
+          product: product,
+          initialCount: 5,
+          isBottomOrder: isBottomOrder,
         ),
-      );
-      return;
-    }
-    // 일반 상품: 바텀시트로 안내
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.85,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (_, scrollController) => _GroupOrderGuideSheet(product: product),
       ),
     );
   }

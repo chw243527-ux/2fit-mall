@@ -18,7 +18,6 @@ import 'screens/orders/checkout_screen.dart';
 import 'screens/orders/group_order_form_screen.dart';
 import 'screens/orders/group_order_only_screen.dart';
 import 'screens/orders/group_order_landing_screen.dart';
-import 'screens/orders/group_order_guide_screen.dart';
 
 import 'screens/orders/order_guide_screen.dart';
 import 'screens/orders/group_custom_order_screen.dart';
@@ -165,20 +164,31 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 settings: settings,
               );
             case '/group-order':
-              // product 인자가 있으면 GroupOrderGuideScreen으로 이동, 없으면 GroupOrderLandingScreen
+              // product 인자가 있으면 GroupOrderFormScreen으로 이동, 없으면 GroupOrderLandingScreen
               final groupOrderProduct = settings.arguments;
               if (groupOrderProduct is ProductModel) {
+                final p = groupOrderProduct;
+                final isBottomOrder = p.category == '하의' ||
+                    p.subCategory.contains('타이즈') ||
+                    p.subCategory.contains('남성 5부') ||
+                    p.subCategory.contains('여성 2.5부') ||
+                    p.name.contains('타이즈') ||
+                    p.name.contains('하의');
                 return MaterialPageRoute(
-                  builder: (_) => GroupOrderGuideScreen(product: groupOrderProduct),
+                  builder: (_) => GroupOrderFormScreen(
+                    product: p,
+                    initialCount: 5,
+                    isBottomOrder: isBottomOrder,
+                  ),
                 );
               }
               return MaterialPageRoute(
                 builder: (_) => const GroupOrderLandingScreen(),
               );
             case '/group-guide':
-              // GroupOrderGuideScreen으로 이동
+              // /group-guide → /group-form으로 리다이렉트 (guide 화면 삭제됨)
               return MaterialPageRoute(
-                builder: (_) => const GroupOrderGuideScreen(),
+                builder: (_) => const GroupOrderFormScreen(initialCount: 5),
                 settings: settings,
               );
             case '/group-form':
