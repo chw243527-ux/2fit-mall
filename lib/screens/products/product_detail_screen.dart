@@ -3460,16 +3460,13 @@ $productUrl
   Widget _buildStaticImageList(List<String> imgs) {
     final r = Responsive.of(context);
     if (imgs.isEmpty) return const SizedBox.shrink();
+    // 각 이미지를 _SectionImageSliderWidget으로 렌더링 (height:null 버그 방지)
     return Column(
       children: imgs.map((url) => Padding(
         padding: EdgeInsets.only(bottom: r.h(6)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: NetImage(
-            url,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
+          child: _SectionImageSliderWidget(imgs: [url]),
         ),
       )).toList(),
     );
@@ -3632,17 +3629,8 @@ $productUrl
                   onTap: onTap,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: url.startsWith('data:image')
-                        ? Image.memory(
-                            base64Decode(url.split(',').last),
-                            width: double.infinity,
-                            fit: BoxFit.contain,
-                          )
-                        : NetImage(
-                            url,
-                            width: double.infinity,
-                            fit: BoxFit.contain,
-                          ),
+                    // _SectionImageSliderWidget으로 높이 자동 측정 (height:null 버그 방지)
+                    child: _SectionImageSliderWidget(imgs: [url]),
                   ),
                 ),
               ),
@@ -3697,17 +3685,8 @@ $productUrl
         padding: EdgeInsets.only(bottom: r.h(8)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: url.startsWith('data:image')
-              ? Image.memory(
-                  base64Decode(url.split(',').last),
-                  width: double.infinity,
-                  fit: BoxFit.contain,
-                )
-              : NetImage(
-                  url,
-                  width: double.infinity,
-                  fit: BoxFit.contain,
-                ),
+          // _SectionImageSliderWidget으로 높이 자동 측정 (height:null 버그 방지)
+          child: _SectionImageSliderWidget(imgs: [url]),
         ),
       ),
     );
