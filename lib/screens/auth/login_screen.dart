@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import '../../utils/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -347,16 +348,18 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const SizedBox(height: 18),
 
-                    // ── 카카오 로그인 ──
-                    _buildSocialBtn(
-                      label: loc.kakaoLogin,
-                      bgColor: const Color(0xFFFFE500),
-                      textColor: const Color(0xFF3C1E1E),
-                      icon: Icons.chat_bubble_rounded,
-                      iconColor: const Color(0xFF3C1E1E),
-                      onTap: () => _loginWithKakao(),
-                    ),
-                    const SizedBox(height: 10),
+                    // ── 카카오 로그인 (앱 전용) ──
+                    if (!kIsWeb) ...[  
+                      _buildSocialBtn(
+                        label: loc.kakaoLogin,
+                        bgColor: const Color(0xFFFFE500),
+                        textColor: const Color(0xFF3C1E1E),
+                        icon: Icons.chat_bubble_rounded,
+                        iconColor: const Color(0xFF3C1E1E),
+                        onTap: () => _loginWithKakao(),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
 
                     // ── 구글 로그인 ──
                     _buildSocialBtn(
@@ -600,8 +603,10 @@ class _LoginScreenState extends State<LoginScreen>
                                 ],
                               ),
                               const SizedBox(height: 18),
-                              _buildSocialBtn(label: loc.kakaoLogin, bgColor: const Color(0xFFFFE500), textColor: const Color(0xFF3C1E1E), icon: Icons.chat_bubble_rounded, iconColor: const Color(0xFF3C1E1E), onTap: () => _loginWithKakao()),
-                              const SizedBox(height: 10),
+                              if (!kIsWeb) ...[  
+                                _buildSocialBtn(label: loc.kakaoLogin, bgColor: const Color(0xFFFFE500), textColor: const Color(0xFF3C1E1E), icon: Icons.chat_bubble_rounded, iconColor: const Color(0xFF3C1E1E), onTap: () => _loginWithKakao()),
+                                const SizedBox(height: 10),
+                              ],
                               _buildSocialBtn(label: loc.googleLogin, bgColor: Colors.white, textColor: const Color(0xFF444444), icon: Icons.g_mobiledata_rounded, iconColor: const Color(0xFF4285F4), hasBorder: true, onTap: () => _loginWithGoogle()),
                               const SizedBox(height: 28),
                               Row(
