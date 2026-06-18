@@ -4814,15 +4814,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -2))],
       ),
       child: Row(children: [
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min, children: [
-            Text('$_totalCount명', style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
-            Text('${_fmt(_finalPrice)}원',
-                style: const TextStyle(fontSize: 16,
-                    fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
-          ]),
-        ),
         OutlinedButton(
           onPressed: () => _submitOrder(isBuyNow: false),
           style: OutlinedButton.styleFrom(
