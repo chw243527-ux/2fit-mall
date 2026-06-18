@@ -4435,285 +4435,134 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
 
 // ── 사용자 주문 상세 다이얼로그 ──────────────────────────────────────
 void _showUserOrderDetail(BuildContext context, OrderModel order) {
+  // ── 헬퍼
+  String _fmtAmt(double v) =>
+      '${v.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원';
+
   Color _sc(OrderStatus s) {
     switch (s) {
-      case OrderStatus.pending: return Colors.orange;
+      case OrderStatus.pending:   return Colors.orange;
       case OrderStatus.confirmed: return Colors.blue;
-      case OrderStatus.processing: return const Color(0xFF7B1FA2);
-      case OrderStatus.shipped: return const Color(0xFF00838F);
+      case OrderStatus.processing:return const Color(0xFF7B1FA2);
+      case OrderStatus.shipped:   return const Color(0xFF00838F);
       case OrderStatus.delivered: return Colors.green;
       case OrderStatus.cancelled: return Colors.red;
-      case OrderStatus.refunded: return Colors.brown;
+      case OrderStatus.refunded:  return Colors.brown;
     }
   }
 
-  final opts = order.customOptions ?? {};
-  final isGroup = order.orderType == 'group' || order.orderType == 'additional'
+  final opts      = order.customOptions ?? {};
+  final isGroup   = order.orderType == 'group' || order.orderType == 'additional'
       || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
   final statusColor = _sc(order.status);
+
+  // 날짜 포맷
+  final dt = order.createdAt;
+  final dtStr =
+      '${dt.year}.${dt.month.toString().padLeft(2,'0')}.${dt.day.toString().padLeft(2,'0')}  '
+      '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}:${dt.second.toString().padLeft(2,'0')}';
+
+  // 금액
+  final productAmt  = order.totalAmount - order.shippingFee;
+  final discountAmt = (opts['discountAmount'] as num?)?.toDouble() ?? 0.0;
+  final shippingFee = order.shippingFee;
+  final totalAmt    = order.totalAmount;
 
   showDialog(
     context: context,
     builder: (_) => Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 680),
+        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 780),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── 헤더
+            // ══════════════════════════════════════
+            // ① 헤더 — 흰 배경, 날짜+주문번호+영수증 버튼
+            // ══════════════════════════════════════
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1A1A2E), Color(0xFF2D2D5E)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                color: Colors.white,
+                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
               ),
-              child: Row(children: [
-                const Icon(Icons.receipt_long_rounded, color: Colors.white70, size: 18),
-                const SizedBox(width: 8),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(order.id,
-                        style: const TextStyle(color: Colors.white70, fontSize: 11),
-                        overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${order.createdAt.year}.${order.createdAt.month.toString().padLeft(2,'0')}.${order.createdAt.day.toString().padLeft(2,'0')}',
-                      style: const TextStyle(color: Colors.white54, fontSize: 11),
-                    ),
+                    Text(dtStr,
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                    const SizedBox(height: 3),
+                    Row(children: [
+                      const Text('주문번호  ', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                      Expanded(
+                        child: Text(order.id,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                          overflow: TextOverflow.ellipsis),
+                      ),
+                    ]),
                   ]),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: statusColor.withValues(alpha: 0.5)),
-                  ),
-                  child: Text(order.status.label,
-                      style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w700)),
-                ),
                 const SizedBox(width: 8),
+                // 영수증 버튼
+                Builder(builder: (btnCtx2) => OutlinedButton(
+                  onPressed: () => ScaffoldMessenger.of(btnCtx2).showSnackBar(
+                    SnackBar(content: Text('영수증 발급은 고객센터로 문의해 주세요.\n주문번호: ${order.id}'),
+                      action: SnackBarAction(label: '닫기', onPressed: () {})),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black87,
+                    side: BorderSide(color: Colors.grey.shade400),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  ),
+                  child: const Text('영수증', style: TextStyle(fontSize: 12)),
+                )),
+                const SizedBox(width: 6),
+                // 닫기
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: const Icon(Icons.close, color: Colors.white70, size: 20),
+                  child: Icon(Icons.close, size: 20, color: Colors.grey[500]),
                 ),
               ]),
             ),
-            // ── 내용
+
+            // ══════════════════════════════════════
+            // ② 스크롤 콘텐츠
+            // ══════════════════════════════════════
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 배송지 정보
-                    _udSection('배송 정보', [
-                      _udRow(Icons.person_outline, '수령인', order.userName),
-                      _udRow(Icons.location_on_outlined, '배송지',
-                          order.userAddress.isNotEmpty ? order.userAddress : '-'),
-                      _udRow(Icons.payment_rounded, '결제 방법', order.paymentMethod),
-                    ]),
-                    const SizedBox(height: 12),
-                    // 주문 상품
-                    const Text('주문 상품',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
-                    const SizedBox(height: 8),
-                    ...order.items.map((item) {
-                      final displaySize = (item.size == '단체' || item.size.isEmpty) ? null : item.size;
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFEEEEEE)),
-                        ),
-                        child: Row(children: [
-                          // 이미지
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(6),
-                            child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                              ? NetImage(item.imageUrl!, width: 52, height: 52, fit: BoxFit.cover)
-                              : Container(
-                                  width: 52, height: 52,
-                                  color: Colors.grey[100],
-                                  child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
-                                ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Text(item.productName,
-                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                                  maxLines: 2, overflow: TextOverflow.ellipsis),
-                              if (displaySize != null || item.color.isNotEmpty)
-                                Text(
-                                  [if (displaySize != null) displaySize, if (item.color.isNotEmpty) item.color].join(' / '),
-                                  style: TextStyle(fontSize: 11, color: Colors.grey[500]),
-                                ),
-                              Text('수량: ${item.quantity}개  |  ${item.price.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                            ]),
-                          ),
-                        ]),
-                      );
-                    }),
-                    // 단체주문 추가 정보
-                    if (isGroup && opts.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      _udSection('단체 주문 정보', [
-                        if ((opts['teamName'] ?? '').toString().isNotEmpty)
-                          _udRow(Icons.group_outlined, '단체명', opts['teamName'].toString()),
-                        if ((opts['totalCount'] ?? order.groupCount) != null)
-                          _udRow(Icons.people_outline, '총 인원', '${opts['totalCount'] ?? order.groupCount}명'),
-                        if ((opts['printTypeLabel'] ?? opts['printType'] ?? '').toString().isNotEmpty)
-                          _udRow(Icons.print_outlined, '인쇄 옵션', (opts['printTypeLabel'] ?? opts['printType']).toString()),
-                        if ((opts['mainColor'] ?? '').toString().isNotEmpty)
-                          _udRow(Icons.palette_outlined, '색상', opts['mainColor'].toString()),
-                      ]),
-                    ],
-                    const SizedBox(height: 12),
-                    // 결제 금액
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0F4FF),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(children: [
-                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                          Text('상품 금액', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-                          Text('${(order.totalAmount - order.shippingFee).toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
-                              style: const TextStyle(fontSize: 13)),
-                        ]),
-                        const SizedBox(height: 6),
-                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                          Text('배송비', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-                          Text('${order.shippingFee.toInt()}원', style: const TextStyle(fontSize: 13)),
-                        ]),
-                        const Divider(height: 16),
-                        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                          const Text('최종 결제', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
-                          Text(
-                            '${order.totalAmount.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1565C0)),
-                          ),
-                        ]),
-                      ]),
-                    ),
-                    if ((order.memo ?? '').isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      _udRow(Icons.notes_rounded, '메모', order.memo!),
-                    ],
-                    // ── 영수증 / 현금영수증 ──
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF9F9F9),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(children: [
-                            Icon(Icons.receipt_outlined, size: 14, color: Color(0xFF555555)),
-                            SizedBox(width: 6),
-                            Text('영수증 / 현금영수증', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
-                          ]),
-                          const SizedBox(height: 10),
-                          Row(children: [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('주문번호 ${order.id} 영수증 발급은 고객센터로 문의해 주세요.'),
-                                      action: SnackBarAction(label: '닫기', onPressed: () {})),
-                                  );
-                                },
-                                icon: const Icon(Icons.receipt_long_outlined, size: 15),
-                                label: const Text('영수증 조회', style: TextStyle(fontSize: 12)),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF555555),
-                                  side: const BorderSide(color: Color(0xFFCCCCCC)),
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('현금영수증 발급은 결제수단이 현금/계좌이체인 경우에만 가능합니다.\n문의: 010-7227-6914'),
-                                      action: SnackBarAction(label: '닫기', onPressed: () {})),
-                                  );
-                                },
-                                icon: const Icon(Icons.assignment_outlined, size: 15),
-                                label: const Text('현금영수증', style: TextStyle(fontSize: 12)),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF1565C0),
-                                  side: const BorderSide(color: Color(0xFF1565C0)),
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                ),
-                              ),
-                            ),
-                          ]),
-                          const SizedBox(height: 6),
-                          const Text('* 영수증·현금영수증은 결제 완료 후 고객센터로 문의 주세요.',
-                            style: TextStyle(fontSize: 10, color: Colors.black38, height: 1.4)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // ── 버튼 영역
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Builder(builder: (btnCtx) {
-                // ── 취소 가능 조건 ──
-                // 기성품: 발송 전(pending·confirmed) 상태이면 취소 가능
-                // 단체주문: 제작/준비 중(processing) 이상이면 디자인 수정 시작 → 취소 불가
-                final isGroupOrder = isGroup;
-                final canCancelReadyMade = !isGroupOrder &&
+                // ── 버튼 가능 조건
+                final canCancelReadyMade = !isGroup &&
                     (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
-                final canCancelGroup = isGroupOrder &&
+                final canCancelGroup = isGroup &&
                     (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
                 final canCancel = canCancelReadyMade || canCancelGroup;
-                final cancelBlockedByDesign = isGroupOrder && order.status == OrderStatus.processing;
+                final cancelBlockedByDesign = isGroup && order.status == OrderStatus.processing;
+                final canExchangeReturn = !isGroup && order.status == OrderStatus.delivered;
 
-                // 교환·반품: 배송완료 상태 + 기성품
-                final canExchangeReturn = !isGroupOrder && order.status == OrderStatus.delivered;
-
-                // 디자인 이미지 확인
-                final opts = order.customOptions ?? {};
+                // 디자인 이미지
                 final designImages = <String>[];
-                for (final key in ['refImageBase64', 'designLogoBase64', 'waistbandLogoBase64']) {
+                for (final key in ['refImageBase64','designLogoBase64','waistbandLogoBase64']) {
                   final v = opts[key]?.toString() ?? '';
                   if (v.isNotEmpty) designImages.add(v);
                 }
                 final waistbandRefs = (opts['waistbandRefImages'] as List?)?.cast<String>() ?? [];
                 final allDesignImages = [...designImages, ...waistbandRefs];
 
-                Future<void> doCancel(String reason) async {
+                // ── 취소 확인 다이얼로그
+                Future<void> doCancel() async {
                   final confirm = await showDialog<bool>(
                     context: btnCtx,
                     builder: (_) => AlertDialog(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       title: const Text('주문 취소', style: TextStyle(fontWeight: FontWeight.w800)),
-                      content: Text(isGroupOrder
+                      content: Text(isGroup
                           ? '단체주문을 취소하시겠습니까?\n제작 시작 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'
                           : '주문을 취소하시겠습니까?\n발송 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'),
                       actions: [
@@ -4728,7 +4577,7 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                   );
                   if (confirm == true && btnCtx.mounted) {
                     await OrderService.updateOrderStatus(order.id, OrderStatus.cancelled);
-                    NotificationService.sendCancelled(order: order, reason: reason).catchError((_) {});
+                    NotificationService.sendCancelled(order: order, reason: '고객 직접 취소').catchError((_) {});
                     FcmService.sendOrderStatusNotification(order: order, newStatus: OrderStatus.cancelled).catchError((_) {});
                     if (btnCtx.mounted) {
                       Navigator.pop(btnCtx);
@@ -4739,6 +4588,7 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                   }
                 }
 
+                // ── 교환/반품 바텀시트
                 void showContactSheet(String subject) {
                   Navigator.pop(btnCtx);
                   showModalBottomSheet(
@@ -4748,8 +4598,8 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                       padding: const EdgeInsets.all(24),
                       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(subject, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-                        const SizedBox(height: 8),
-                        Text('주문번호: ${order.id}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                        const SizedBox(height: 4),
+                        Text('주문번호: ${order.id}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
                         const SizedBox(height: 16),
                         Container(
                           padding: const EdgeInsets.all(14),
@@ -4758,14 +4608,14 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
                           ),
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            const Text('고객센터 문의', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-                            const SizedBox(height: 6),
-                            const Text('• 카카오톡: @2fitkorea', style: TextStyle(fontSize: 13)),
-                            const Text('• 전화: 010-7227-6914', style: TextStyle(fontSize: 13)),
-                            const Text('• 이메일: chw243527@gmail.com', style: TextStyle(fontSize: 13)),
-                            const SizedBox(height: 6),
-                            const Text('배송 완료 후 7일 이내 접수해 주세요.\n(상품 하자의 경우 3개월 이내)',
+                          child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text('고객센터 문의', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                            SizedBox(height: 6),
+                            Text('• 카카오톡: @2fitkorea'),
+                            Text('• 전화: 010-7227-6914'),
+                            Text('• 이메일: chw243527@gmail.com'),
+                            SizedBox(height: 6),
+                            Text('배송 완료 후 7일 이내 접수해 주세요.\n(상품 하자의 경우 3개월 이내)',
                                 style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5)),
                           ]),
                         ),
@@ -4775,156 +4625,333 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                   );
                 }
 
-                return Column(children: [
-                  // ── 취소 버튼 (기성품: 발송 전 / 단체주문: 제작 시작 전)
-                  if (canCancel) ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => doCancel('고객 직접 취소'),
-                        icon: const Icon(Icons.cancel_outlined, size: 16),
-                        label: Text(isGroupOrder ? '주문 취소 (제작 시작 전)' : '주문 취소 (발송 전)'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  // ── 취소 불가 안내 (단체주문 + 제작중 이상)
-                  if (cancelBlockedByDesign) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.red.shade200),
-                      ),
-                      child: Row(children: [
-                        Icon(Icons.lock_outline_rounded, size: 15, color: Colors.red.shade600),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text('디자인 수정이 시작되어 취소가 불가합니다.\n문의는 고객센터로 연락해 주세요.',
-                            style: TextStyle(fontSize: 12, color: Colors.red.shade700, height: 1.4))),
-                      ]),
-                    ),
-                  ],
-                  // ── 교환 / 반품 버튼 (기성품 배송완료)
-                  if (canExchangeReturn) ...[
-                    Row(children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => showContactSheet('교환 신청'),
-                          icon: const Icon(Icons.swap_horiz_rounded, size: 16),
-                          label: const Text('교환 신청'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF1565C0),
-                            side: const BorderSide(color: Color(0xFF1565C0)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => showContactSheet('반품 신청'),
-                          icon: const Icon(Icons.assignment_return_outlined, size: 16),
-                          label: const Text('반품 신청'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.orange,
-                            side: const BorderSide(color: Colors.orange),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                    ]),
-                    const SizedBox(height: 8),
-                  ],
-                  // ── 디자인 이미지 확인 버튼 (단체주문 + 이미지 있을 때)
-                  if (isGroupOrder && allDesignImages.isNotEmpty) ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          showDialog(
-                            context: btnCtx,
-                            builder: (_) => Dialog(
-                              backgroundColor: Colors.black87,
-                              insetPadding: const EdgeInsets.all(12),
-                              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Row(children: [
-                                    const Icon(Icons.design_services_outlined, color: Colors.white70, size: 16),
-                                    const SizedBox(width: 8),
-                                    const Expanded(child: Text('디자인 참고 이미지', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
-                                    GestureDetector(
-                                      onTap: () => Navigator.pop(btnCtx),
-                                      child: const Icon(Icons.close, color: Colors.white70, size: 20),
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      // ── [주문 상품] ─────────────────────────
+                      _npSection(
+                        title: '주문상품',
+                        icon: Icons.shopping_bag_outlined,
+                        child: Column(
+                          children: [
+                            ...order.items.map((item) {
+                              final displaySize = (item.size == '단체' || item.size.isEmpty) ? null : item.size;
+                              final optionStr = [
+                                if (displaySize != null) displaySize,
+                                if (item.color.isNotEmpty) item.color,
+                              ].join(' / ');
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                    // 이미지
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                                        ? NetImage(item.imageUrl!, width: 72, height: 72, fit: BoxFit.cover)
+                                        : Container(
+                                            width: 72, height: 72,
+                                            decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                                            child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                                          ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                        // 배송 상태 배지
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: statusColor.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(order.status.label,
+                                            style: TextStyle(fontSize: 10, color: statusColor, fontWeight: FontWeight.w700)),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(item.productName,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                          maxLines: 2, overflow: TextOverflow.ellipsis),
+                                        if (optionStr.isNotEmpty)
+                                          Text('옵션: $optionStr  ${item.quantity}개',
+                                            style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                                        const SizedBox(height: 4),
+                                        Text(_fmtAmt(item.price * item.quantity),
+                                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                                      ]),
                                     ),
                                   ]),
-                                ),
-                                SizedBox(
-                                  height: 300,
-                                  child: PageView.builder(
-                                    itemCount: allDesignImages.length,
-                                    itemBuilder: (_, i) {
-                                      final img = allDesignImages[i];
-                                      try {
-                                        final bytes = base64Decode(img.contains(',') ? img.split(',').last : img);
-                                        return InteractiveViewer(
-                                          child: Center(
-                                            child: Image.memory(bytes, fit: BoxFit.contain),
-                                          ),
-                                        );
-                                      } catch (_) {
-                                        return const Center(child: Icon(Icons.broken_image, color: Colors.white54, size: 48));
-                                      }
-                                    },
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Text('총 ${allDesignImages.length}장 · 좌우로 스와이프',
-                                      style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                                ),
-                              ]),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.image_search_rounded, size: 16),
-                        label: Text('디자인 이미지 확인 (${allDesignImages.length}장)'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF7B1FA2),
-                          side: const BorderSide(color: Color(0xFF7B1FA2)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                  const SizedBox(height: 10),
+                                  // ── 상품별 액션 버튼 행 (네이버 스타일)
+                                  Row(children: [
+                                    if (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered)
+                                      Expanded(child: _npActionButton(
+                                        label: '배송조회',
+                                        isPrimary: true,
+                                        onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
+                                          const SnackBar(content: Text('배송조회는 고객센터로 문의해 주세요.\n카카오톡: @2fitkorea'))),
+                                      )),
+                                    if (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered)
+                                      const SizedBox(width: 8),
+                                    if (canCancel)
+                                      Expanded(child: _npActionButton(
+                                        label: isGroup ? '취소(제작전)' : '주문취소',
+                                        onTap: doCancel,
+                                      )),
+                                    if (canCancel) const SizedBox(width: 8),
+                                    if (canExchangeReturn) ...[
+                                      Expanded(child: _npActionButton(
+                                        label: '교환신청',
+                                        onTap: () => showContactSheet('교환 신청'),
+                                      )),
+                                      const SizedBox(width: 8),
+                                      Expanded(child: _npActionButton(
+                                        label: '반품신청',
+                                        onTap: () => showContactSheet('반품 신청'),
+                                      )),
+                                    ],
+                                    if (!canCancel && !canExchangeReturn &&
+                                        order.status != OrderStatus.shipped &&
+                                        order.status != OrderStatus.delivered)
+                                      Expanded(child: _npActionButton(
+                                        label: '문의하기',
+                                        onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
+                                          const SnackBar(content: Text('카카오톡: @2fitkorea  |  전화: 010-7227-6914'))),
+                                      )),
+                                  ]),
+                                  // 취소불가 안내
+                                  if (cancelBlockedByDesign) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.shade50,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: Colors.red.shade200),
+                                      ),
+                                      child: Row(children: [
+                                        Icon(Icons.lock_outline_rounded, size: 13, color: Colors.red.shade600),
+                                        const SizedBox(width: 6),
+                                        Expanded(child: Text('디자인 수정이 시작되어 취소가 불가합니다.',
+                                          style: TextStyle(fontSize: 11, color: Colors.red.shade700))),
+                                      ]),
+                                    ),
+                                  ],
+                                  // 디자인 이미지 확인
+                                  if (isGroup && allDesignImages.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: OutlinedButton.icon(
+                                        onPressed: () {
+                                          showDialog(
+                                            context: btnCtx,
+                                            builder: (_) => Dialog(
+                                              backgroundColor: Colors.black87,
+                                              insetPadding: const EdgeInsets.all(12),
+                                              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.all(12),
+                                                  child: Row(children: [
+                                                    const Icon(Icons.design_services_outlined, color: Colors.white70, size: 16),
+                                                    const SizedBox(width: 8),
+                                                    const Expanded(child: Text('디자인 참고 이미지',
+                                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
+                                                    GestureDetector(
+                                                      onTap: () => Navigator.pop(btnCtx),
+                                                      child: const Icon(Icons.close, color: Colors.white70, size: 20),
+                                                    ),
+                                                  ]),
+                                                ),
+                                                SizedBox(
+                                                  height: 300,
+                                                  child: PageView.builder(
+                                                    itemCount: allDesignImages.length,
+                                                    itemBuilder: (_, i) {
+                                                      final img = allDesignImages[i];
+                                                      try {
+                                                        final bytes = base64Decode(img.contains(',') ? img.split(',').last : img);
+                                                        return InteractiveViewer(
+                                                          child: Center(child: Image.memory(bytes, fit: BoxFit.contain)));
+                                                      } catch (_) {
+                                                        return const Center(child: Icon(Icons.broken_image, color: Colors.white54, size: 48));
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets.all(8),
+                                                  child: Text('총 ${allDesignImages.length}장 · 좌우로 스와이프',
+                                                    style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                                                ),
+                                              ]),
+                                            ),
+                                          );
+                                        },
+                                        icon: const Icon(Icons.image_search_rounded, size: 15),
+                                        label: Text('디자인 이미지 확인 (${allDesignImages.length}장)',
+                                          style: const TextStyle(fontSize: 12)),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: const Color(0xFF7B1FA2),
+                                          side: const BorderSide(color: Color(0xFF7B1FA2)),
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ]),
+                              );
+                            }),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  // ── 닫기 버튼
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(btnCtx),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1A1A2E),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+
+                      // ── [배송지] ────────────────────────────
+                      _npSection(
+                        title: '배송지',
+                        icon: Icons.location_on_outlined,
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(order.userName,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                          if (order.userPhone.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(order.userPhone,
+                              style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                          ],
+                          if (order.userAddress.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(order.userAddress,
+                              style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                          ],
+                        ]),
                       ),
-                      child: const Text('닫기', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
-                    ),
+
+                      // ── [단체주문 정보] (isGroup) ───────────
+                      if (isGroup && opts.isNotEmpty)
+                        _npSection(
+                          title: '단체주문 정보',
+                          icon: Icons.groups_outlined,
+                          child: Column(children: [
+                            if ((opts['teamName'] ?? '').toString().isNotEmpty)
+                              _npInfoRow('단체명', opts['teamName'].toString()),
+                            if ((opts['totalCount'] ?? order.groupCount) != null)
+                              _npInfoRow('총 인원', '${opts['totalCount'] ?? order.groupCount}명'),
+                            if ((opts['printTypeLabel'] ?? opts['printType'] ?? '').toString().isNotEmpty)
+                              _npInfoRow('인쇄 옵션', (opts['printTypeLabel'] ?? opts['printType']).toString()),
+                            if ((opts['mainColor'] ?? '').toString().isNotEmpty)
+                              _npInfoRow('주요 색상', opts['mainColor'].toString()),
+                          ]),
+                        ),
+
+                      // ── [결제정보] ──────────────────────────
+                      _npSection(
+                        title: '결제정보',
+                        icon: Icons.payment_rounded,
+                        child: Column(children: [
+                          // 주문금액 강조
+                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                            const Text('주문금액', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                            Text('총 ${_fmtAmt(totalAmt)}',
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                          ]),
+                          const SizedBox(height: 12),
+                          Divider(height: 1, color: Colors.grey.shade200),
+                          const SizedBox(height: 10),
+                          // 상세 금액 줄
+                          _npAmtRow('상품금액', _fmtAmt(productAmt)),
+                          if (discountAmt > 0)
+                            _npAmtRow('할인금액', '-${_fmtAmt(discountAmt)}', valueColor: Colors.red),
+                          _npAmtRow('배송비', shippingFee == 0 ? '무료' : _fmtAmt(shippingFee)),
+                          const SizedBox(height: 10),
+                          Divider(height: 1, color: Colors.grey.shade200),
+                          const SizedBox(height: 10),
+                          // 결제 수단
+                          _npAmtRow('결제수단', order.paymentMethod,
+                            labelColor: Colors.black54),
+                          if ((order.memo ?? '').isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            _npAmtRow('메모', order.memo!, labelColor: Colors.black54),
+                          ],
+                        ]),
+                      ),
+
+                      // ── [영수증 / 현금영수증] ────────────────
+                      _npSection(
+                        title: '영수증 / 현금영수증',
+                        icon: Icons.receipt_outlined,
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Row(children: [
+                            Expanded(
+                              child: Builder(builder: (rcCtx) => OutlinedButton.icon(
+                                onPressed: () => ScaffoldMessenger.of(rcCtx).showSnackBar(
+                                  SnackBar(content: Text('영수증 발급은 고객센터로 문의해 주세요.\n주문번호: ${order.id}'),
+                                    action: SnackBarAction(label: '닫기', onPressed: () {})),
+                                ),
+                                icon: const Icon(Icons.receipt_long_outlined, size: 14),
+                                label: const Text('영수증 조회', style: TextStyle(fontSize: 12)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.black54,
+                                  side: BorderSide(color: Colors.grey.shade400),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                              )),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Builder(builder: (rcCtx) => OutlinedButton.icon(
+                                onPressed: () => ScaffoldMessenger.of(rcCtx).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('현금영수증은 현금/계좌이체 결제 시 발급 가능합니다.\n문의: 010-7227-6914'),
+                                    action: SnackBarAction(label: '닫기', onPressed: () {})),
+                                ),
+                                icon: const Icon(Icons.assignment_outlined, size: 14),
+                                label: const Text('현금영수증', style: TextStyle(fontSize: 12)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF1565C0),
+                                  side: const BorderSide(color: Color(0xFF1565C0)),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                              )),
+                            ),
+                          ]),
+                          const SizedBox(height: 6),
+                          Text('* 영수증·현금영수증은 결제 완료 후 고객센터로 문의해 주세요.',
+                            style: TextStyle(fontSize: 10, color: Colors.grey[400], height: 1.4)),
+                        ]),
+                      ),
+
+                      const SizedBox(height: 8),
+                    ],
                   ),
-                ]);
+                );
               }),
+            ),
+
+            // ══════════════════════════════════════
+            // ③ 하단 닫기 버튼
+            // ══════════════════════════════════════
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(top: BorderSide(color: Colors.grey.shade200)),
+              ),
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A1A2E),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  elevation: 0,
+                ),
+                child: const Text('닫기', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+              ),
             ),
           ],
         ),
@@ -4933,34 +4960,74 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
   );
 }
 
-Widget _udSection(String title, List<Widget> rows) {
-  return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
-    const SizedBox(height: 8),
-    Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFEEEEEE)),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows),
+// ── 네이버 스타일 섹션 컨테이너
+Widget _npSection({required String title, required IconData icon, required Widget child}) {
+  return Container(
+    width: double.infinity,
+    margin: const EdgeInsets.only(bottom: 0),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border(bottom: BorderSide(color: Colors.grey.shade100, width: 6)),
     ),
-  ]);
-}
-
-Widget _udRow(IconData icon, String label, String value) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Icon(icon, size: 14, color: const Color(0xFF6A1B9A)),
-      const SizedBox(width: 6),
-      SizedBox(width: 70, child: Text(label, style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.w600))),
-      Expanded(child: Text(value, style: const TextStyle(fontSize: 12, color: Colors.black87))),
+    padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Icon(icon, size: 15, color: Colors.black87),
+        const SizedBox(width: 6),
+        Text(title,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.black87)),
+      ]),
+      const SizedBox(height: 14),
+      child,
     ]),
   );
 }
+
+// ── 정보 행 (단체주문 정보 등)
+Widget _npInfoRow(String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(children: [
+      SizedBox(width: 72,
+        child: Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[500]))),
+      Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+    ]),
+  );
+}
+
+// ── 금액 행
+Widget _npAmtRow(String label, String value, {Color? valueColor, Color? labelColor}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 7),
+    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Text(label, style: TextStyle(fontSize: 13, color: labelColor ?? Colors.grey[600])),
+      Text(value, style: TextStyle(fontSize: 13, color: valueColor ?? Colors.black87, fontWeight: FontWeight.w600)),
+    ]),
+  );
+}
+
+// ── 액션 버튼 (배송조회, 취소 등)
+Widget _npActionButton({required String label, required VoidCallback onTap, bool isPrimary = false}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: isPrimary ? const Color(0xFF03C75A) : Colors.white,
+        border: Border.all(color: isPrimary ? const Color(0xFF03C75A) : Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(label,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: isPrimary ? Colors.white : Colors.black87,
+        )),
+    ),
+  );
+}
+
 
 // ════════════════════════════════════════════════
 // 디자인 수정 요청 바텀시트
