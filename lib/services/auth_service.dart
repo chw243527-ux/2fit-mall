@@ -1,13 +1,11 @@
 // auth_service.dart — Firebase Auth 기반 (이메일/비밀번호)
 import 'dart:async';
-import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
-import 'package:http/http.dart' as http;
 // 네이버 로그인: Web(dart.library.html)은 stub, 앱(dart.library.io)은 실제 패키지
 import 'naver_login_stub.dart'
     if (dart.library.io) 'package:flutter_naver_login/flutter_naver_login.dart'
@@ -923,37 +921,34 @@ class AuthService {
   /// 웹 전용 네이버 OAuth 팝업 로그인
   static Future<AuthResult> _signInWithNaverWeb() async {
     try {
-      // JS 팝업 호출 → access_token 획득
-      final token = await naverWeb.callNaverOAuth();
-      if (token == null || token.isEmpty) {
+      // JS 팝업 호출 → {token, naverId, email, name, photoUrl} 획득
+      final info = await naverWeb.callNaverOAuth();
+      if (info == null) {
         return const AuthResult(success: false, error: '네이버 로그인이 취소되었습니다.');
       }
 
-      // 네이버 사용자 정보 API 호출
-      final resp = await http.get(
-        Uri.parse('https://openapi.naver.com/v1/nid/me'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
+      final token    = info['token']    ?? '';
+      final naverId  = info['naverId']  ?? '';
+      final email    = info['email']?.isNotEmpty == true
+          ? info['email']!
+          : (naverId.isNotEmpty ? '$naverId@naver.com' : '');
+      final name     = info['name']?.isNotEmpty == true
+          ? info['name']!
+          : '네이버 사용자';
+      final photoUrl = info['photoUrl'] ?? '';
 
-      if (resp.statusCode != 200) {
-        return const AuthResult(success: false, error: '네이버 사용자 정보를 가져올 수 없습니다.');
+      if (token.isEmpty && naverId.isEmpty) {
+        return const AuthResult(success: false, error: '네이버 로그인 정보를 가져올 수 없습니다.');
       }
 
-      final data = json.decode(resp.body) as Map<String, dynamic>;
-      final response = data['response'] as Map<String, dynamic>? ?? {};
-      final naverId  = response['id']            as String? ?? '';
-      final email    = (response['email']        as String?)?.isNotEmpty == true
-          ? response['email'] as String
-          : '$naverId@naver.com';
-      final name     = (response['name']         as String?)?.isNotEmpty == true
-          ? response['name'] as String
-          : '네이버 사용자';
-      final photoUrl = response['profile_image'] as String? ?? '';
+      // naverId가 없으면 token 앞 8자리를 임시 ID로 사용
+      final id = naverId.isNotEmpty ? naverId : token.substring(0, 8);
+      final finalEmail = email.isNotEmpty ? email : '$id@naver.com';
 
-      if (kDebugMode) debugPrint('✅ 네이버 웹 로그인: $email');
+      if (kDebugMode) debugPrint('✅ 네이버 웹 로그인: $finalEmail');
       return await _naverFirebaseLink(
-        naverId: naverId,
-        email: email,
+        naverId: id,
+        email: finalEmail,
         name: name,
         photoUrl: photoUrl,
       );

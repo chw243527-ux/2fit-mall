@@ -233,7 +233,7 @@
           }
         }, 500);
 
-        // 팝업에서 postMessage로 토큰 전달
+        // 팝업에서 postMessage로 사용자 정보 전달
         function onMessage(e) {
           if (e.origin !== window.location.origin) return;
           if (e.data && e.data.type === 'NAVER_TOKEN') {
@@ -243,7 +243,8 @@
             if (e.data.error) {
               reject(new Error(e.data.error));
             } else {
-              resolve(e.data.token);
+              // {token, naverId, email, name, photoUrl} 객체 전체 전달
+              resolve(e.data);
             }
           }
         }

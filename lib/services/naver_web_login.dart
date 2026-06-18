@@ -9,13 +9,21 @@ import 'package:js/js.dart';
 external dynamic _naverOAuthLogin();
 
 /// index.html에 등록된 window.naverOAuthLogin() 팝업을 호출하고
-/// access_token 문자열을 반환합니다.
-Future<String?> callNaverOAuth() async {
+/// {token, naverId, email, name, photoUrl} Map을 반환합니다.
+Future<Map<String, String>?> callNaverOAuth() async {
   try {
     final promise = _naverOAuthLogin();
     if (promise == null) return null;
     final result = await js_util.promiseToFuture<dynamic>(promise);
-    return result?.toString();
+    if (result == null) return null;
+
+    return {
+      'token'   : js_util.getProperty<String>(result, 'token')    ?? '',
+      'naverId' : js_util.getProperty<String>(result, 'naverId')  ?? '',
+      'email'   : js_util.getProperty<String>(result, 'email')    ?? '',
+      'name'    : js_util.getProperty<String>(result, 'name')     ?? '',
+      'photoUrl': js_util.getProperty<String>(result, 'photoUrl') ?? '',
+    };
   } catch (e) {
     return null;
   }
