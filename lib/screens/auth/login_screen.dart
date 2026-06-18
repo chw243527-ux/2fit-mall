@@ -359,6 +359,16 @@ class _LoginScreenState extends State<LoginScreen>
                         onTap: () => _loginWithKakao(),
                       ),
                       const SizedBox(height: 10),
+                      // ── 네이버 로그인 (앱 전용) ──
+                      _buildSocialBtn(
+                        label: '네이버로 로그인',
+                        bgColor: const Color(0xFF03C75A),
+                        textColor: Colors.white,
+                        icon: Icons.account_circle_rounded,
+                        iconColor: Colors.white,
+                        onTap: () => _loginWithNaver(),
+                      ),
+                      const SizedBox(height: 10),
                     ],
 
                     // ── 구글 로그인 ──
@@ -605,6 +615,8 @@ class _LoginScreenState extends State<LoginScreen>
                               const SizedBox(height: 18),
                               if (!kIsWeb) ...[  
                                 _buildSocialBtn(label: loc.kakaoLogin, bgColor: const Color(0xFFFFE500), textColor: const Color(0xFF3C1E1E), icon: Icons.chat_bubble_rounded, iconColor: const Color(0xFF3C1E1E), onTap: () => _loginWithKakao()),
+                                const SizedBox(height: 10),
+                                _buildSocialBtn(label: '네이버로 로그인', bgColor: const Color(0xFF03C75A), textColor: Colors.white, icon: Icons.account_circle_rounded, iconColor: Colors.white, onTap: () => _loginWithNaver()),
                                 const SizedBox(height: 10),
                               ],
                               _buildSocialBtn(label: loc.googleLogin, bgColor: Colors.white, textColor: const Color(0xFF444444), icon: Icons.g_mobiledata_rounded, iconColor: const Color(0xFF4285F4), hasBorder: true, onTap: () => _loginWithGoogle()),
@@ -915,6 +927,48 @@ class _LoginScreenState extends State<LoginScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('카카오 로그인 오류: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _loginWithNaver() async {
+    final userProv = context.read<UserProvider>();
+    userProv.setLoading(true);
+    try {
+      final result = await AuthService.signInWithNaver();
+      if (!mounted) return;
+      userProv.setLoading(false);
+
+      if (result.success && result.user != null) {
+        userProv.login(result.user!);
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => const MainScreen(),
+            transitionsBuilder: (_, a, __, child) =>
+                FadeTransition(opacity: a, child: child),
+            transitionDuration: const Duration(milliseconds: 400),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error ?? '네이버 로그인에 실패했습니다'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        userProv.setLoading(false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('네이버 로그인 오류: $e'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),

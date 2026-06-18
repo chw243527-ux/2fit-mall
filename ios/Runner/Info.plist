@@ -45,5 +45,30 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- 네이버 로그인 URL Scheme -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>naverlogin</string>
+			</array>
+		</dict>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>naversearchapp</string>
+		<string>naversearchthirdlogin</string>
+	</array>
+	<!-- 네이버 로그인 앱 키 -->
+	<key>NaverServiceAppUrlScheme</key>
+	<string>naverlogin</string>
+	<key>NaverConsumerKey</key>
+	<string>YOUR_NAVER_CLIENT_ID</string>
+	<key>NaverConsumerSecret</key>
+	<string>YOUR_NAVER_CLIENT_SECRET</string>
+	<key>NaverServiceAppName</key>
+	<string>2FIT mall</string>
 </dict>
 </plist>
