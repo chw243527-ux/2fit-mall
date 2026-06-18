@@ -1213,10 +1213,10 @@ class _PcOrderCard extends StatelessWidget {
               if (canCancel) btns.add(_ActionBtn(icon: Icons.cancel_outlined, label: isGroup ? '취소(제작전)' : '주문취소', color: Colors.red, onTap: doCancel));
               if (cancelBlockedByDesign) btns.add(_ActionBtn(icon: Icons.lock_outline_rounded, label: '취소불가', color: Colors.red.shade300,
                 onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다. 고객센터로 문의해 주세요.')))));
-              if (canExchangeReturn) ...[
+              if (canExchangeReturn) {
                 btns.add(_ActionBtn(icon: Icons.swap_horiz_rounded, label: '교환신청', color: const Color(0xFF1565C0), onTap: () => showContactSheet('교환 신청')));
                 btns.add(_ActionBtn(icon: Icons.assignment_return_outlined, label: '반품신청', color: Colors.orange, onTap: () => showContactSheet('반품 신청')));
-              ]
+              }
               if (canDesignRevision) btns.add(_ActionBtn(icon: Icons.edit_note_rounded, label: '디자인수정', color: const Color(0xFF7B1FA2), badge: '${order.remainingDesignRevisions}', onTap: () => onDesignRevision?.call(order)));
               if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), badge: '무료', onTap: () => onAdditionalOrder(order)));
               if (canColorEdit) btns.add(_ActionBtn(icon: Icons.palette_outlined, label: '색상변경', color: const Color(0xFF1565C0), badge: '${order.remainingColorEdits}', onTap: () => onColorEdit(order)));
@@ -2408,7 +2408,7 @@ class _MobileOrderCard extends StatelessWidget {
               ));
 
               // 교환/반품
-              if (canExchangeReturn) ...[
+              if (canExchangeReturn) {
                 btns.add(_ActionBtn(
                   icon: Icons.swap_horiz_rounded,
                   label: '교환신청',
