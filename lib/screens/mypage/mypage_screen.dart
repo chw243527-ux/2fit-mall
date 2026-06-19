@@ -1088,7 +1088,7 @@ class _PcOrderCard extends StatelessWidget {
         children: [
           // ── 헤더 ──
           GestureDetector(
-            onTap: () => _showUserOrderDetail(context, order),
+            onTap: () { _showUserOrderDetail(context, order); },
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
               child: Row(
@@ -1118,7 +1118,7 @@ class _PcOrderCard extends StatelessWidget {
           const Divider(height: 1),
           // ── 상품 목록 ──
           GestureDetector(
-            onTap: () => _showUserOrderDetail(context, order),
+            onTap: () { _showUserOrderDetail(context, order); },
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -1160,7 +1160,7 @@ class _PcOrderCard extends StatelessWidget {
           ),
           // ── 금액 합계 ──
           GestureDetector(
-            onTap: () => _showUserOrderDetail(context, order),
+            onTap: () { _showUserOrderDetail(context, order); },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               color: Colors.grey[50],
@@ -1247,7 +1247,7 @@ class _PcOrderCard extends StatelessWidget {
               }
 
               final btns = <Widget>[];
-              btns.add(_ActionBtn(icon: Icons.receipt_long_rounded, label: '주문상세', onTap: () => _showUserOrderDetail(btnCtx, order)));
+              btns.add(_ActionBtn(icon: Icons.receipt_long_rounded, label: '주문상세', onTap: () { _showUserOrderDetail(btnCtx, order); }));
               if (canCancel) btns.add(_ActionBtn(icon: Icons.cancel_outlined, label: isGroup ? '취소(제작전)' : '주문취소', color: Colors.red, onTap: doCancel));
               if (cancelBlockedByDesign) btns.add(_ActionBtn(icon: Icons.lock_outline_rounded, label: '취소불가', color: Colors.red.shade300,
                 onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다. 고객센터로 문의해 주세요.')))));
@@ -2279,7 +2279,7 @@ class _MobileOrderCard extends StatelessWidget {
         children: [
           // ── 헤더: 주문번호 + 날짜 + 상태 ──
           GestureDetector(
-            onTap: () => _showUserOrderDetail(context, order),
+            onTap: () { _showUserOrderDetail(context, order); },
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
               child: Row(
@@ -2314,7 +2314,7 @@ class _MobileOrderCard extends StatelessWidget {
           const Divider(height: 1),
           // ── 상품 정보 ──
           GestureDetector(
-            onTap: () => _showUserOrderDetail(context, order),
+            onTap: () { _showUserOrderDetail(context, order); },
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
               child: Row(
@@ -2357,7 +2357,7 @@ class _MobileOrderCard extends StatelessWidget {
           ),
           // ── 결제 금액 요약 ──
           GestureDetector(
-            onTap: () => _showUserOrderDetail(context, order),
+            onTap: () { _showUserOrderDetail(context, order); },
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
               child: Row(
@@ -2700,7 +2700,7 @@ class _MobilePaymentHistoryTab extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
-            onTap: () => _showUserOrderDetail(context, o),
+            onTap: () { _showUserOrderDetail(context, o); },
             child: Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(14),
