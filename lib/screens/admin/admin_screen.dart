@@ -9894,7 +9894,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     _newExpiresAt = e?.newExpiresAt;
     _isSale = e?.isSale ?? false;
     _isFreeShip = e?.isFreeShipping ?? false;
-    _isGroupOnly = e?.isGroupOnly ?? false;
+    _isGroupOnly = (e?.isGroupOnly ?? false) || (e?.category == '단체주문');
     _isReadyMade  = e?.isReadyMade  ?? false;
     _isActive = e?.isActive ?? true;
 
@@ -10129,7 +10129,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           ? (_newExpiresAt ?? (widget.existing?.createdAt ?? DateTime.now()).add(const Duration(days: 60)))
           : null,
       isSale: _isSale, isFreeShipping: _isFreeShip,
-      isGroupOnly: _isGroupOnly, isReadyMade: _isReadyMade,
+      // 단체주문 카테고리는 무조건 단체전용 강제 적용
+      isGroupOnly: _isGroupOnly || _selCat == '단체주문', isReadyMade: _isReadyMade,
       sizeStocks: {
         for (final entry in _sizeStockCtrls.entries)
           entry.key: int.tryParse(entry.value.text) ?? 0,
@@ -10869,6 +10870,13 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                   _newChip(),
                   _chip('세일', _isSale, (v) { setState(() => _isSale = v); _scheduleAutoSave(); }),
                   _chip('무료배송', _isFreeShip, (v) { setState(() => _isFreeShip = v); _scheduleAutoSave(); }),
+                  // 단체주문 카테고리이면 단체전용 토글 잠금 (강제 ON)
+                  if (_selCat == '단체주문')
+                    Tooltip(
+                      message: '단체주문 카테고리 상품은 항상 단체전용입니다',
+                      child: _chip('단체전용 🔒', true, null, ac: const Color(0xFF6A1B9A)),
+                    )
+                  else
                   _chip('단체전용', _isGroupOnly, (v) => setState(() {
                     _isGroupOnly = v;
                     if (v) {
@@ -11757,13 +11765,13 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       onChanged: (_) => _scheduleAutoSave(),
     );
 
-  Widget _chip(String label, bool val, ValueChanged<bool> onChanged, {Color? ac}) =>
+  Widget _chip(String label, bool val, ValueChanged<bool>? onChanged, {Color? ac}) =>
     FilterChip(
       label: Text(label, style: TextStyle(fontSize: 12, color: val ? Colors.white : const Color(0xFF555555))),
       selected: val,
       onSelected: onChanged,
       selectedColor: ac ?? const Color(0xFF1A1A2E),
-      backgroundColor: const Color(0xFFF0F0F0),
+      backgroundColor: onChanged == null ? const Color(0xFFE8D5F5) : const Color(0xFFF0F0F0),
       checkmarkColor: Colors.white,
       side: BorderSide.none,
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
