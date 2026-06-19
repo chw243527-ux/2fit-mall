@@ -31,10 +31,21 @@ class MainScreenState extends State<MainScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   late int _currentIndex;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<dynamic> _myPageKey = GlobalKey(); // MyPageScreen 탭 리셋용
   String? _lastUid; // 유저 변경 감지용
 
-  void navigateToMyPage() => setState(() => _currentIndex = 3);
-  void navigateTo(int index) => setState(() => _currentIndex = index);
+  void navigateToMyPage() {
+    // 탭을 마이페이지(3)로 이동하면서 내부 탭을 "내 주문"(0)으로 리셋
+    _myPageKey.currentState?.resetToFirstTab();
+    setState(() => _currentIndex = 3);
+  }
+  void navigateTo(int index) {
+    // 마이페이지(3)로 이동 시 내부 탭을 "내 주문"(0)으로 리셋
+    if (index == 3) {
+      _myPageKey.currentState?.resetToFirstTab();
+    }
+    setState(() => _currentIndex = index);
+  }
 
   @override
   void initState() {
@@ -166,7 +177,7 @@ class MainScreenState extends State<MainScreen> {
       child: Scaffold(
         key: _scaffoldKey,
         drawer: AppDrawer(
-          onNavigateToMyPage: () => setState(() => _currentIndex = 3),
+          onNavigateToMyPage: () => navigateToMyPage(),
         ),
         body: IndexedStack(
           index: _currentIndex,
@@ -182,6 +193,7 @@ class MainScreenState extends State<MainScreen> {
               onBack: () => setState(() => _currentIndex = 0),
             ),
             MyPageScreen(
+              key: _myPageKey,
               onBack: () => setState(() => _currentIndex = 0),
             ),
           ],
@@ -215,6 +227,7 @@ class _PcLayout extends StatefulWidget {
 class _PcLayoutState extends State<_PcLayout> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   final GlobalKey<ScaffoldState> _pcScaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<dynamic> _pcMyPageKey = GlobalKey(); // MyPageScreen 탭 리셋용
 
   @override
   Widget build(BuildContext context) {
@@ -266,6 +279,7 @@ class _PcLayoutState extends State<_PcLayout> {
                     onBack: () => widget.onTabChanged(0),
                   ),
                   MyPageScreen(
+                    key: _pcMyPageKey,
                     onBack: () => widget.onTabChanged(0),
                   ),
                 ],

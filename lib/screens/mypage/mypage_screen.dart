@@ -44,12 +44,27 @@ class _MyPageScreenState extends State<MyPageScreen>
   // ignore: unused_element
   AppLocalizations get _loc => context.watch<LanguageProvider>().loc;
 
+  /// 마이페이지 탭을 "내 주문"(index=0)으로 리셋.
+  /// IndexedStack 구조에서 탭 전환 시 main_screen이 호출.
+  void resetToFirstTab() {
+    if (_tabController.index != 0) {
+      _tabController.animateTo(0);
+    }
+    // 이전 화면에서 남아있는 스낵바 제거
+    if (mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
-    // 앱 시작 시 실제 주문 데이터 로드
+    // 앱 시작 시 실제 주문 데이터 로드 + 이전 화면의 스낵바 큐 클리어
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // 이전 화면(결제 완료 등)에서 남아있는 스낵바 제거
+      ScaffoldMessenger.of(context).clearSnackBars();
       final user = context.read<UserProvider>().user;
       if (user != null) {
         context.read<OrderProvider>().loadUserOrders(user.id);
