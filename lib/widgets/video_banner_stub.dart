@@ -119,8 +119,7 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
         thumb,
         fit: BoxFit.cover,
         width: double.infinity,
-        height: double.infinity
-            Container(color: const Color(0xFF111111)),
+        height: double.infinity,
       );
     }
     return Container(color: const Color(0xFF111111));

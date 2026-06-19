@@ -68,10 +68,6 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      # ── 4.5. 코드 정적 분석 (에러 조기 발견)
-      - name: Analyze Dart code
-        run: flutter analyze lib/screens/mypage/mypage_screen.dart 2>&1 | tee /tmp/flutter_analyze.log || true
-
       # ── 5. Flutter 웹 릴리즈 빌드
       #   --tree-shake-icons 제거(기본 활성화)로 빌드 크기↓ 속도↑
       #   --source-maps 제거 (배포 불필요)
@@ -82,10 +78,7 @@ jobs:
             --tree-shake-icons \
             --pwa-strategy=offline-first \
             --dart-define=BUILD_NUMBER=${{ github.run_number }} \
-            --dart-define=BUILD_SHA=${{ github.sha }} \
-            2>&1 | tee /tmp/flutter_build.log
-          # tee로 로그 저장하면서 exit code 보존
-          test ${PIPESTATUS[0]} -eq 0
+            --dart-define=BUILD_SHA=${{ github.sha }}
 
       # ── 6. 빌드 후 캐시버스팅 패치
       - name: Patch build output (cache busting)
@@ -190,7 +183,5 @@ jobs:
         with:
           name: build-failure-logs-${{ github.run_number }}
           path: |
-            /tmp/flutter_build.log
-            /tmp/flutter_analyze.log
             pubspec.lock
           retention-days: 3
