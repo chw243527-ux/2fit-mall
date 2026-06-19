@@ -48,7 +48,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
 
   Widget _statsKpiCard(String title, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -57,18 +57,20 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-            ],
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey), overflow: TextOverflow.ellipsis),
+                Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800), overflow: TextOverflow.ellipsis),
+              ],
+            ),
           ),
         ],
       ),
@@ -304,14 +306,14 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
               ),
               const SizedBox(height: 20),
 
-              // KPI 카드 4개
+              // KPI 카드 4개 (2x2 그리드)
               GridView.count(
-                crossAxisCount: 4,
+                crossAxisCount: 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 2.2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 2.6,
                 children: [
                   _statsKpiCard('총 매출', '₩${_fmtMillions(totalRevenue)}', Icons.monetization_on_rounded, const Color(0xFF4CAF50)),
                   _statsKpiCard('총 주문', '${orders.length}건', Icons.receipt_long_rounded, const Color(0xFF2196F3)),
