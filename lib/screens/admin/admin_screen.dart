@@ -157,9 +157,9 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 15, vsync: this);
+    _tabCtrl = TabController(length: 16, vsync: this);
     // initialTab이 지정된 경우 해당 탭으로 이동
-    if (widget.initialTab > 0 && widget.initialTab < 14) {
+    if (widget.initialTab > 0 && widget.initialTab < 16) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _tabCtrl.animateTo(widget.initialTab);
       });
