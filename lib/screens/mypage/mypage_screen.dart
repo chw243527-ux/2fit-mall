@@ -2478,7 +2478,7 @@ class _MobileOrderCard extends StatelessWidget {
               ));
 
               // ── 운송장 등록 전: 배송조회(회색) + 주문취소 or 취소불가 ──
-              if (!hasTracking) ...[
+              if (!hasTracking) {
                 // 배송조회 (비활성 - 운송장 미등록)
                 row1.add(_ActionBtn(
                   icon: Icons.local_shipping_outlined,
@@ -2487,17 +2487,18 @@ class _MobileOrderCard extends StatelessWidget {
                   onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
                     const SnackBar(content: Text('배송 준비 중입니다. 운송장 등록 후 조회 가능합니다.')),
                   ),
-                )),
+                ));
                 // 주문취소
-                if (canCancel)
+                if (canCancel) {
                   row1.add(_ActionBtn(
                     icon: Icons.cancel_outlined,
                     label: isGroup ? '취소(제작전)' : '주문취소',
                     color: Colors.red,
                     onTap: doCancel,
-                  )),
+                  ));
+                }
                 // 취소불가 (디자인 진행중)
-                if (cancelBlockedByDesign)
+                if (cancelBlockedByDesign) {
                   row1.add(_ActionBtn(
                     icon: Icons.lock_outline_rounded,
                     label: '취소불가',
@@ -2505,11 +2506,12 @@ class _MobileOrderCard extends StatelessWidget {
                     onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
                       const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다.\n고객센터로 문의해 주세요.')),
                     ),
-                  )),
-              ],
+                  ));
+                }
+              }
 
               // ── 운송장 등록 후: 배송조회(활성) + 교환신청 + 반품신청 ──
-              if (hasTracking) ...[
+              if (hasTracking) {
                 // 배송조회 (활성)
                 row1.add(_ActionBtn(
                   icon: Icons.local_shipping_outlined,
@@ -2517,12 +2519,9 @@ class _MobileOrderCard extends StatelessWidget {
                   color: const Color(0xFF00838F),
                   onTap: () {
                     final company = (order.customOptions?['shippingCompany'] as String? ?? '').trim();
-                    final msg = trackingNumber.isNotEmpty
-                        ? '운송장번호: $trackingNumber${company.isNotEmpty ? '\n택배사: $company' : ''}'
-                        : '배송조회: 카카오톡 @2fitkorea 또는\n전화 010-7227-6914';
                     showDialog(
                       context: btnCtx,
-                      builder: (_) => AlertDialog(
+                      builder: (dlg) => AlertDialog(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         title: const Row(children: [
                           Icon(Icons.local_shipping_rounded, color: Color(0xFF00838F)),
@@ -2553,28 +2552,28 @@ class _MobileOrderCard extends StatelessWidget {
                           ]),
                         ]),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(_), child: const Text('닫기')),
+                          TextButton(onPressed: () => Navigator.pop(dlg), child: const Text('닫기')),
                         ],
                       ),
                     );
                   },
-                )),
+                ));
                 // 교환신청 + 반품신청 (운송장 등록 후)
-                if (canExchangeReturn) ...[
+                if (canExchangeReturn) {
                   row1.add(_ActionBtn(
                     icon: Icons.swap_horiz_rounded,
                     label: '교환신청',
                     color: const Color(0xFF1565C0),
                     onTap: () => showContactSheet('교환 신청'),
-                  )),
+                  ));
                   row1.add(_ActionBtn(
                     icon: Icons.assignment_return_outlined,
                     label: '반품신청',
                     color: Colors.orange,
                     onTap: () => showContactSheet('반품 신청'),
-                  )),
-                ],
-              ],
+                  ));
+                }
+              }
 
               // 행2: 단체주문 전용
               if (canDesignRevision) row2.add(_ActionBtn(
