@@ -34,7 +34,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 2, vsync: this);
+    _tabCtrl = TabController(length: 1, vsync: this);
   }
 
   @override
@@ -70,27 +70,9 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             '단체주문하기',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
-          bottom: TabBar(
-            controller: _tabCtrl,
-            indicatorColor: Colors.white,
-            indicatorWeight: 2.5,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white54,
-            labelStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-            tabs: const [
-              Tab(text: '단체주문 안내'),
-              Tab(text: '주문서 바로가기'),
-            ],
-          ),
+
         ),
-        body: TabBarView(
-          controller: _tabCtrl,
-          children: [
-            _buildGuideTab(),
-            _buildOrderFormTab(),
-          ],
-        ),
+        body: _buildGuideTab(),
       ),
     );
   }
