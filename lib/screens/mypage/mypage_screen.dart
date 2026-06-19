@@ -16,6 +16,7 @@ import '../../services/email_service.dart';
 import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
 import '../products/product_detail_screen.dart';
+import '../cart/cart_screen.dart';
 import '../admin/admin_screen.dart';
 import '../auth/login_screen.dart';
 import '../orders/group_order_form_screen.dart';
@@ -76,6 +77,23 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
   void _openDesignRevision(OrderModel o) => _openSheet(_DesignRevisionSheet(order: o));
 
   // 헤더 통계칩 → 바텀시트 열기
+  void _openOrderListFiltered(BuildContext ctx, OrderStatus status) {
+    final all = context.read<OrderProvider>().orders;
+    final filtered = all.where((o) => o.status == status).toList();
+    if (filtered.isEmpty) {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(content: Text('${status.label} 상태의 주문이 없습니다.')));
+      return;
+    }
+    Navigator.push(ctx, MaterialPageRoute(builder: (_) => _OrderListScreen(
+      orders: filtered,
+      onAdditional: _openAdditionalOrder,
+      onColorEdit: _openColorEdit,
+      onDesignRevision: _openDesignRevision,
+      onExcelDownload: _exportExcel,
+    )));
+  }
+
   void _openOrderList(BuildContext ctx) {
     final orders = context.read<OrderProvider>().orders;
     if (orders.isEmpty) {
@@ -324,6 +342,115 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
     }
   }
 
+  // 검색 바텀시트
+  void _openSearch(BuildContext ctx) {
+    final ctrl = TextEditingController();
+    showModalBottomSheet(
+      context: ctx, isScrollControlled: true, backgroundColor: Colors.transparent,
+      builder: (bsCtx) => DraggableScrollableSheet(
+        initialChildSize: 0.88,
+        builder: (_, sc) => Container(
+          decoration: const BoxDecoration(color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+          child: Column(children: [
+            const SizedBox(height: 12),
+            Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 16),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                controller: ctrl, autofocus: true,
+                decoration: InputDecoration(
+                  hintText: '상품명, 카테고리 검색',
+                  prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF1A1A1A)),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () => ctrl.clear(),
+                  ),
+                  filled: true, fillColor: const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                onSubmitted: (q) {
+                  Navigator.pop(bsCtx);
+                  if (q.trim().isNotEmpty) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(content: Text('"${q.trim()}" 검색 결과를 표시합니다.')));
+                  }
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Padding(padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Align(alignment: Alignment.centerLeft,
+                child: Text('최근 검색어', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)))),
+            const SizedBox(height: 10),
+            Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(spacing: 8, runSpacing: 8, children: [
+                '2FIT 티셔츠', '라운드넥', '단체주문', '조거팬츠', '크롭탑',
+              ].map((tag) => GestureDetector(
+                onTap: () { ctrl.text = tag; },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0F4FF),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFD0DEFF)),
+                  ),
+                  child: Text(tag, style: const TextStyle(fontSize: 13, color: Color(0xFF1C62B9))),
+                ),
+              )).toList()),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  // 설정 바텀시트
+  void _openSettings(BuildContext ctx, UserProvider up) {
+    showModalBottomSheet(
+      context: ctx, isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (bsCtx) {
+        final user = up.user;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(0, 12, 0, 32),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 16),
+            const Padding(padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Align(alignment: Alignment.centerLeft,
+                child: Text('설정', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)))),
+            const SizedBox(height: 8),
+            ListTile(
+              leading: const Icon(Icons.person_outline_rounded, color: Color(0xFF1C62B9)),
+              title: const Text('프로필 수정'),
+              onTap: () { Navigator.pop(bsCtx); if (user != null) _openProfileEdit(ctx, user); },
+            ),
+            ListTile(
+              leading: const Icon(Icons.location_on_outlined, color: Color(0xFF1C62B9)),
+              title: const Text('배송지 관리'),
+              onTap: () { Navigator.pop(bsCtx); _openAddressManager(ctx); },
+            ),
+            ListTile(
+              leading: const Icon(Icons.lock_outline_rounded, color: Color(0xFF1C62B9)),
+              title: const Text('비밀번호 변경'),
+              onTap: () { Navigator.pop(bsCtx); _openChangePassword(ctx); },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.logout_rounded, color: Colors.orange),
+              title: const Text('로그아웃', style: TextStyle(color: Colors.orange)),
+              onTap: () { Navigator.pop(bsCtx); _openLogout(ctx, up); },
+            ),
+          ]),
+        );
+      },
+    );
+  }
+
   // ── 로그인 전 화면 ─────────────────────
   Widget _buildNotLoggedIn() => Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
     const Icon(Icons.person_outline_rounded, size: 64, color: Color(0xFFCCCCCC)),
@@ -382,6 +509,7 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
             onOrderTap: () => _openOrderList(context),
             onWishlistTap: () => _openWishlist(context, user),
             onCouponTap: () => _openCouponSheet(context),
+            onStatusTap: (st) => _openOrderListFiltered(context, st),
           )),
           // 탭바 핀고정
           SliverPersistentHeader(
@@ -444,9 +572,23 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
       if (user.isAdmin)
         IconButton(icon: const Icon(Icons.admin_panel_settings_rounded, color: Colors.black54, size: 22),
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdminScreen()))),
-      IconButton(icon: const Icon(Icons.search, color: Colors.black87, size: 22), onPressed: () {}),
-      IconButton(icon: const Icon(Icons.settings_outlined, color: Colors.black87, size: 22), onPressed: () {}),
-      IconButton(icon: const Icon(Icons.shopping_cart_outlined, color: Colors.black87, size: 22), onPressed: () {}),
+      IconButton(icon: const Icon(Icons.search, color: Colors.black87, size: 22),
+          onPressed: () => _openSearch(context)),
+      IconButton(icon: const Icon(Icons.settings_outlined, color: Colors.black87, size: 22),
+          onPressed: () => _openSettings(context, up)),
+      Stack(children: [
+        IconButton(icon: const Icon(Icons.shopping_cart_outlined, color: Colors.black87, size: 22),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()))),
+        Builder(builder: (ctx) {
+          final count = ctx.watch<CartProvider>().items.length;
+          if (count == 0) return const SizedBox.shrink();
+          return Positioned(top: 6, right: 6,
+            child: Container(width: 14, height: 14,
+              decoration: const BoxDecoration(color: Color(0xFFFF6B35), shape: BoxShape.circle),
+              child: Center(child: Text('$count',
+                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)))));
+        }),
+      ]),
     ],
   );
 
@@ -498,10 +640,12 @@ class _MobileHeader extends StatelessWidget {
   final VoidCallback onOrderTap;
   final VoidCallback onWishlistTap;
   final VoidCallback onCouponTap;
+  final void Function(OrderStatus)? onStatusTap;
   const _MobileHeader({
     required this.user, required this.up,
     required this.onProfileEdit, required this.onLogout,
     required this.onOrderTap, required this.onWishlistTap, required this.onCouponTap,
+    this.onStatusTap,
   });
 
   @override
@@ -521,9 +665,7 @@ class _MobileHeader extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
           child: Row(children: [
-            CircleAvatar(radius: 28, backgroundColor: const Color(0xFFE8EEF8),
-                child: Text(user.name.isNotEmpty ? user.name[0] : 'U',
-                    style: const TextStyle(color: Color(0xFF1C62B9), fontSize: 22, fontWeight: FontWeight.w800))),
+            _ProfileAvatar(user: user, radius: 28),
             const SizedBox(width: 14),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(user.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
@@ -555,7 +697,7 @@ class _MobileHeader extends StatelessWidget {
           ]),
         ),
         // 진행중인 주문 스텝
-        _OrderProgressBar(statusCounts: statusCounts),
+        _OrderProgressBar(statusCounts: statusCounts, onStatusTap: onStatusTap),
         const Divider(height: 1, color: Color(0xFFEEEEEE)),
       ]),
     );
@@ -583,7 +725,8 @@ class _StatChip extends StatelessWidget {
 // 주문 진행 스텝 바 (오늘의집 스타일)
 class _OrderProgressBar extends StatelessWidget {
   final Map<OrderStatus, int> statusCounts;
-  const _OrderProgressBar({required this.statusCounts});
+  final void Function(OrderStatus)? onStatusTap;
+  const _OrderProgressBar({required this.statusCounts, this.onStatusTap});
 
   @override
   Widget build(BuildContext context) {
@@ -607,17 +750,31 @@ class _OrderProgressBar extends StatelessWidget {
           final st = e.value.$1;
           final label = e.value.$2;
           final count = statusCounts[st] ?? 0;
-          return Expanded(child: Column(children: [
-            Text('$count',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800,
-                    color: count > 0 ? const Color(0xFF1C62B9) : const Color(0xFFBBBBBB))),
-            const SizedBox(height: 4),
-            Text(label, textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 10, color: Color(0xFF888888), height: 1.3)),
-          ]));
+          final isActive = count > 0;
+          return Expanded(child: GestureDetector(
+            onTap: () => onStatusTap?.call(st),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              decoration: BoxDecoration(
+                color: isActive ? const Color(0xFFF0F4FF) : Colors.transparent,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(children: [
+                Text('$count',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800,
+                        color: isActive ? const Color(0xFF1C62B9) : const Color(0xFFBBBBBB))),
+                const SizedBox(height: 4),
+                Text(label, textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 10,
+                        color: isActive ? const Color(0xFF1C62B9) : const Color(0xFF888888),
+                        height: 1.3,
+                        fontWeight: isActive ? FontWeight.w600 : FontWeight.w400)),
+              ]),
+            ),
+          ));
         }).expand((w) sync* {
           yield w;
-          // 마지막 아이템이 아닌 경우 화살표
         }).toList()),
       ]),
     );
@@ -646,9 +803,7 @@ class _PcSidebar extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Column(children: [
             const SizedBox(height: 12),
-            CircleAvatar(radius: 32, backgroundColor: const Color(0xFFE8EEF8),
-                child: Text(user.name.isNotEmpty ? user.name[0] : 'U',
-                    style: const TextStyle(color: Color(0xFF1C62B9), fontSize: 26, fontWeight: FontWeight.w800))),
+            _ProfileAvatar(user: user, radius: 32),
             const SizedBox(height: 12),
             Text(user.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
             const SizedBox(height: 2),
@@ -1147,7 +1302,8 @@ class _OrderListScreen extends StatelessWidget {
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87), onPressed: () => Navigator.pop(context)),
         title: const Text('주문배송목록', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w700, fontSize: 16)),
         bottom: PreferredSize(preferredSize: const Size.fromHeight(1), child: Divider(height: 1, color: Colors.grey[200])),
-        actions: [IconButton(icon: const Icon(Icons.shopping_cart_outlined, color: Colors.black87), onPressed: () {})],
+        actions: [IconButton(icon: const Icon(Icons.shopping_cart_outlined, color: Colors.black87),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen())))],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -1262,10 +1418,7 @@ class _OrderCard extends StatelessWidget {
             // 상품 정보 행
             if (item != null) Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               ClipRRect(borderRadius: BorderRadius.circular(6),
-                child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                    ? NetImage(item.imageUrl!, width: 68, height: 68, fit: BoxFit.cover)
-                    : Container(width: 68, height: 68, color: Colors.grey[100],
-                        child: const Icon(Icons.checkroom_rounded, color: Colors.grey))),
+                child: _OrderItemImage(item: item, size: 68)),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(item.productName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
@@ -1326,8 +1479,9 @@ class _OrderCard extends StatelessWidget {
             _actionBtn(context, '주문상세', onTap: onDetail),
             if (canCancel) _actionBtn(context, '주문취소', onTap: () => _doCancel(context, isGroup)),
             if (order.status == OrderStatus.delivered) ...[ 
-              _actionBtn(context, '리뷰쓰기', isPrimary: true, onTap: () {}),
-              _actionBtn(context, '재구매', onTap: () {}),
+              _actionBtn(context, '리뷰쓰기', isPrimary: true,
+                  onTap: () => _showReviewSheet(context, order)),
+              _actionBtn(context, '재구매', onTap: () => _repurchase(context, order)),
             ],
             if (canExRet) ...[ 
               _actionBtn(context, '반품·교환', onTap: () => _showContact(context, '반품·교환 신청')),
@@ -1531,10 +1685,7 @@ void _showDetail(BuildContext context, OrderModel order) {
               return Padding(padding: const EdgeInsets.only(bottom: 16), child: Column(children: [
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   ClipRRect(borderRadius: BorderRadius.circular(4),
-                    child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                        ? NetImage(item.imageUrl!, width: 72, height: 72, fit: BoxFit.cover)
-                        : Container(width: 72, height: 72, color: Colors.grey[100],
-                            child: const Icon(Icons.checkroom_rounded, color: Colors.grey))),
+                    child: _OrderItemImage(item: item, size: 72)),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -1557,9 +1708,11 @@ void _showDetail(BuildContext context, OrderModel order) {
                   if (canCancel) Expanded(child: _detailOutlineBtn('주문취소', onTap: doCancel)),
                   if (canCancel) const SizedBox(width: 6),
                   if (order.status == OrderStatus.delivered) ...[ 
-                    Expanded(child: _detailOutlineBtn('리뷰쓰기', isPrimary: true, onTap: () {})),
+                    Expanded(child: _detailOutlineBtn('리뷰쓰기', isPrimary: true,
+                        onTap: () { Navigator.pop(sheetCtx); _showReviewSheet(sheetCtx, order); })),
                     const SizedBox(width: 6),
-                    Expanded(child: _detailOutlineBtn('재구매', onTap: () {})),
+                    Expanded(child: _detailOutlineBtn('재구매',
+                        onTap: () { Navigator.pop(sheetCtx); _repurchase(sheetCtx, order); })),
                   ],
                   if (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered)
                     if (!canCancel && order.status != OrderStatus.delivered)
@@ -3385,4 +3538,228 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
       Expanded(child: Text(text, style: const TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.4))),
     ]),
   );
+}
+
+// ════════════════════════════════════════════════════════════════
+// 프로필 아바타 위젯 (이미지 있으면 NetImage, 없으면 이니셜)
+// ════════════════════════════════════════════════════════════════
+class _ProfileAvatar extends StatelessWidget {
+  final UserModel user;
+  final double radius;
+  const _ProfileAvatar({required this.user, required this.radius});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasImage = user.profileImageUrl.isNotEmpty;
+    if (hasImage) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: const Color(0xFFE8EEF8),
+        child: ClipOval(
+          child: NetImage(
+            user.profileImageUrl,
+            width: radius * 2,
+            height: radius * 2,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+    // 이니셜 아바타
+    final initial = user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U';
+    final fontSize = radius * 0.72;
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: const Color(0xFFE8EEF8),
+      child: Text(initial,
+          style: TextStyle(
+            color: const Color(0xFF1C62B9),
+            fontSize: fontSize,
+            fontWeight: FontWeight.w800,
+          )),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// 주문 아이템 이미지 위젯
+// imageUrl 있으면 NetImage, 없으면 ProductService 캐시에서 조회
+// ════════════════════════════════════════════════════════════════
+class _OrderItemImage extends StatefulWidget {
+  final OrderItem item;
+  final double size;
+  const _OrderItemImage({required this.item, required this.size});
+
+  @override
+  State<_OrderItemImage> createState() => _OrderItemImageState();
+}
+
+class _OrderItemImageState extends State<_OrderItemImage> {
+  String? _imageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolve();
+  }
+
+  void _resolve() {
+    // 1) item에 이미지가 있으면 바로 사용
+    if (widget.item.imageUrl != null && widget.item.imageUrl!.isNotEmpty) {
+      _imageUrl = widget.item.imageUrl;
+      return;
+    }
+    // 2) ProductService 동기 캐시에서 조회
+    final cached = ProductService.getProductByIdSync(widget.item.productId);
+    if (cached != null && cached.images.isNotEmpty) {
+      _imageUrl = cached.images.first;
+      return;
+    }
+    // 3) 비동기 조회
+    ProductService.getProductById(widget.item.productId).then((p) {
+      if (p != null && p.images.isNotEmpty && mounted) {
+        setState(() => _imageUrl = p.images.first);
+      }
+    }).catchError((_) {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.size;
+    if (_imageUrl != null && _imageUrl!.isNotEmpty) {
+      return NetImage(_imageUrl!, width: s, height: s, fit: BoxFit.cover);
+    }
+    return Container(
+      width: s, height: s,
+      color: Colors.grey[100],
+      child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// 리뷰 쓰기 시트
+// ════════════════════════════════════════════════════════════════
+void _showReviewSheet(BuildContext context, OrderModel order) {
+  if (order.items.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('리뷰를 작성할 상품이 없습니다.')));
+    return;
+  }
+  final item = order.items.first;
+  double rating = 5.0;
+  final ctrl = TextEditingController();
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    builder: (bsCtx) => StatefulBuilder(builder: (ctx, setSt) {
+      return Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const Text('리뷰 작성', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+              const Spacer(),
+              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
+            ]),
+            const SizedBox(height: 4),
+            Text(item.productName,
+                style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 16),
+            // 별점
+            const Text('만족도', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            Row(children: List.generate(5, (i) => GestureDetector(
+              onTap: () => setSt(() => rating = (i + 1).toDouble()),
+              child: Icon(
+                i < rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                color: const Color(0xFFFFB300), size: 32),
+            ))),
+            const SizedBox(height: 14),
+            // 내용
+            TextField(
+              controller: ctrl,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: '상품 사용 후기를 작성해 주세요.',
+                hintStyle: const TextStyle(fontSize: 13, color: Color(0xFFAAAAAA)),
+                filled: true, fillColor: const Color(0xFFF7F8FA),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+                contentPadding: const EdgeInsets.all(12),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (ctrl.text.trim().isEmpty) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                        const SnackBar(content: Text('리뷰 내용을 입력해 주세요.')));
+                    return;
+                  }
+                  Navigator.pop(bsCtx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(
+                        '리뷰가 등록되었습니다. (★${rating.toInt()} "${ctrl.text.trim().length > 20 ? ctrl.text.trim().substring(0, 20) + "..." : ctrl.text.trim()}")')));
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1C62B9),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+                child: const Text('리뷰 등록', style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ]),
+        ),
+      );
+    }),
+  );
+}
+
+// ════════════════════════════════════════════════════════════════
+// 재구매 — 첫 번째 상품의 상세 페이지로 이동
+// ════════════════════════════════════════════════════════════════
+void _repurchase(BuildContext context, OrderModel order) {
+  if (order.items.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('상품 정보를 불러올 수 없습니다.')));
+    return;
+  }
+  final item = order.items.first;
+  // 동기 캐시 우선
+  final cached = ProductService.getProductByIdSync(item.productId);
+  if (cached != null) {
+    Navigator.push(context, MaterialPageRoute(
+        builder: (_) => ProductDetailScreen(product: cached)));
+    return;
+  }
+  // 비동기 로딩 중 스낵바
+  ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('상품 정보를 불러오는 중...')));
+  ProductService.getProductById(item.productId).then((p) {
+    if (p != null && context.mounted) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      Navigator.push(context, MaterialPageRoute(
+          builder: (_) => ProductDetailScreen(product: p)));
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('상품 정보를 불러올 수 없습니다.')));
+    }
+  }).catchError((_) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('상품 정보를 불러올 수 없습니다.')));
+    }
+  });
 }
