@@ -2668,14 +2668,17 @@ class _MobileOrderCard extends StatelessWidget {
                 onTap: () => onExcelDownload?.call(ctx2, order),
               )));
 
-              Widget buildRow(List<Widget> items) => Row(
-                children: items.asMap().entries.map((e) {
-                  final w = Expanded(child: e.value);
-                  if (e.key == 0) return w;
-                  return Row(mainAxisSize: MainAxisSize.min, children: [
-                    Container(width: 1, height: 32, color: Colors.grey[200]), w,
-                  ]);
-                }).toList(),
+              Widget buildRow(List<Widget> items) => IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: items.asMap().entries.map((e) {
+                    final w = Expanded(child: e.value);
+                    if (e.key == 0) return w;
+                    return Row(mainAxisSize: MainAxisSize.min, children: [
+                      Container(width: 1, color: Colors.grey[200]), w,
+                    ]);
+                  }).toList(),
+                ),
               );
 
               return Column(
@@ -2783,10 +2786,10 @@ class _ActionBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+      child: SizedBox(
+        height: 58,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Stack(
               clipBehavior: Clip.none,
@@ -2803,8 +2806,13 @@ class _ActionBtn extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 3),
-            Text(label, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+            const SizedBox(height: 4),
+            Text(label,
+              style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
