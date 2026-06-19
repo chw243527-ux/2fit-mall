@@ -255,10 +255,27 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   /// 상의 카테고리 단체주문: 인쇄타입·하의길이·허리밴드·주머니 숨김, 하의 사이즈 숨김
+  /// - category == '상의'
+  /// - category == '단체주문' 이면서 하의/세트가 아닌 subCategory (싱글렛B타입, 스킨슈트 등)
   bool get _isTopOnly {
     final p = widget.product;
     if (p == null) return false;
-    return p.category == '상의';
+    if (p.category == '상의') return true;
+    if (p.category == '단체주문') {
+      // 하의에 해당하는 subCategory면 상의가 아님
+      final sub = p.subCategory;
+      final isBottom = sub.contains('타이즈') ||
+          sub.contains('남성 5부') ||
+          sub.contains('여성 2.5부') ||
+          sub.contains('숏츠') ||
+          sub.contains('트레이닝');
+      // 세트(상의+하의)도 상의전용 아님
+      final isSet = sub.contains('세트') ||
+          sub.contains('싱글렛세트') ||
+          sub.contains('A타입');
+      if (!isBottom && !isSet) return true; // 싱글렛B타입, 스킨슈트, 기타 → 상의전용
+    }
+    return false;
   }
   // 숏사각(숏쇼츠) 선택 시 주머니 불가
   bool get _isFemaleShortSquare => _femaleLengthSel == '숏쇼츠';
