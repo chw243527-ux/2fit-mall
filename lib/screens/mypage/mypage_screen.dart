@@ -1287,8 +1287,8 @@ class _PcOrderCard extends StatelessWidget {
               if (cancelBlockedByDesign) btns.add(_ActionBtn(icon: Icons.lock_outline_rounded, label: '취소불가', color: Colors.red.shade300,
                 onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다. 고객센터로 문의해 주세요.')))));
               if (canExchangeReturn) {
-                btns.add(_ActionBtn(icon: Icons.swap_horiz_rounded, label: '교환신청', color: const Color(0xFF1565C0), onTap: () => showContactSheet('교환 신청')));
-                btns.add(_ActionBtn(icon: Icons.assignment_return_outlined, label: '반품신청', color: Colors.orange, onTap: () => showContactSheet('반품 신청')));
+                btns.add(_ActionBtn(icon: Icons.swap_horiz_rounded, label: '교환신청', color: const Color(0xFF1565C0), onTap: () => _showExchangeRequestDialog(btnCtx, order)));
+                btns.add(_ActionBtn(icon: Icons.assignment_return_outlined, label: '반품신청', color: Colors.orange, onTap: () => _showReturnRequestDialog(btnCtx, order)));
               }
               if (canDesignRevision) btns.add(_ActionBtn(icon: Icons.edit_note_rounded, label: '디자인수정', color: const Color(0xFF7B1FA2), badge: '${order.remainingDesignRevisions}', onTap: () => onDesignRevision?.call(order)));
               if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), badge: '무료', onTap: () => onAdditionalOrder(order)));
@@ -2628,13 +2628,13 @@ class _MobileOrderCard extends StatelessWidget {
                     icon: Icons.swap_horiz_rounded,
                     label: '교환신청',
                     color: const Color(0xFF1565C0),
-                    onTap: () => showContactSheet('교환 신청'),
+                    onTap: () => _showExchangeRequestDialog(btnCtx, order),
                   ));
                   row1.add(_ActionBtn(
                     icon: Icons.assignment_return_outlined,
                     label: '반품신청',
                     color: Colors.orange,
-                    onTap: () => showContactSheet('반품 신청'),
+                    onTap: () => _showReturnRequestDialog(btnCtx, order),
                   ));
                 }
               }
@@ -5418,4 +5418,742 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
       Expanded(child: Text(text, style: const TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.4))),
     ]),
   );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 교환요청 다이얼로그 (3단계 플로우)
+// ═══════════════════════════════════════════════════════════════
+
+/// 교환요청 다이얼로그를 실행하는 헬퍼 함수
+void _showExchangeRequestDialog(BuildContext context, OrderModel order) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => _ExchangeRequestDialog(order: order),
+  );
+}
+
+/// 반품요청 다이얼로그를 실행하는 헬퍼 함수
+void _showReturnRequestDialog(BuildContext context, OrderModel order) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => _ExchangeRequestDialog(order: order, isReturn: true),
+  );
+}
+
+class _ExchangeRequestDialog extends StatefulWidget {
+  final OrderModel order;
+  final bool isReturn;
+  const _ExchangeRequestDialog({required this.order, this.isReturn = false});
+
+  @override
+  State<_ExchangeRequestDialog> createState() => _ExchangeRequestDialogState();
+}
+
+class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
+  // ── 1단계: 수거 방법 ──
+  // 0 = 미선택, 1 = 직접수거, 2 = 이미발송
+  int _pickupMethod = 0;
+
+  // ── 2단계: 사유 ──
+  // 배송비 직접부담
+  static const _selfReasons = [
+    '색상, 사이즈를 바꾸고 싶어요',
+    '다른 이유가 있어요',
+  ];
+  // 배송비 판매자부담
+  static const _sellerReasons = [
+    '상품 정보와 실제 상품이 달라요',
+    '구성품, 부속품이 없어요',
+    '파손된 상품을 받았어요',
+    '주문한 상품과 다른 상품을 받았어요',
+    '상품에 문제가 있어요',
+  ];
+
+  String? _selectedReason;
+  final _reasonCtrl = TextEditingController();
+  int _step = 1; // 1=방법선택, 2=사유선택, 3=확인
+
+  bool get _isSelfFault =>
+      _selfReasons.contains(_selectedReason);
+  bool get _isSellerFault =>
+      _sellerReasons.contains(_selectedReason);
+
+  @override
+  void dispose() {
+    _reasonCtrl.dispose();
+    super.dispose();
+  }
+
+  String get _title => widget.isReturn ? '반품요청' : '교환요청';
+
+  // ── 사유에 따른 배송비 부담 ──
+  bool get _shippingBySelf =>
+      _selectedReason == null || _isSelfFault;
+
+  // ── step별 build ──
+  @override
+  Widget build(BuildContext context) {
+    final userProvider = context.read<UserProvider>();
+    final user = userProvider.user;
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(maxWidth: 480),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.zero,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── 헤더 ──
+            Container(
+              color: const Color(0xFF1A1A2E),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close, color: Colors.white, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── 진행 상태 표시 (step indicator) ──
+            _buildStepIndicator(),
+
+            // ── 본문 ──
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: _step == 1
+                    ? _buildStep1()
+                    : _step == 2
+                        ? _buildStep2()
+                        : _buildStep3(user),
+              ),
+            ),
+
+            // ── 하단 버튼 ──
+            _buildBottomButtons(context, user),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Step Indicator ──
+  Widget _buildStepIndicator() {
+    return Container(
+      color: const Color(0xFFF8F9FA),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(3, (i) {
+          final stepNum = i + 1;
+          final isActive = stepNum == _step;
+          final isDone = stepNum < _step;
+          final labels = ['수거 방법', '교환 사유', '신청 확인'];
+          return Row(
+            children: [
+              if (i > 0)
+                Container(
+                  width: 32,
+                  height: 1,
+                  color: isDone ? const Color(0xFF1565C0) : Colors.grey[300],
+                ),
+              Column(
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isDone
+                          ? const Color(0xFF1565C0)
+                          : isActive
+                              ? const Color(0xFF1565C0)
+                              : Colors.grey[300],
+                    ),
+                    child: Center(
+                      child: isDone
+                          ? const Icon(Icons.check, size: 14, color: Colors.white)
+                          : Text(
+                              '$stepNum',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: isActive ? Colors.white : Colors.grey[500],
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    labels[i],
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isActive ? const Color(0xFF1565C0) : Colors.grey[400],
+                      fontWeight: isActive ? FontWeight.w700 : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════
+  // STEP 1: 수거 방법 선택
+  // ══════════════════════════════════════
+  Widget _buildStep1() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.isReturn ? '반품 방법을 선택해주세요' : '교환 방법을 선택해주세요',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 20),
+
+        // 옵션 1: 직접 수거
+        _buildPickupOption(
+          value: 1,
+          label: '상품을 직접 수거해주세요',
+          subLabel: '택배사가 2~5일 이내 방문 예정',
+        ),
+        const SizedBox(height: 12),
+
+        // 옵션 2: 이미 발송
+        _buildPickupOption(
+          value: 2,
+          label: '상품을 이미 판매자에게 택배로 보냈어요',
+          subLabel: '운송장 번호를 고객센터에 전달해주세요',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPickupOption({
+    required int value,
+    required String label,
+    required String subLabel,
+  }) {
+    final isSelected = _pickupMethod == value;
+    return GestureDetector(
+      onTap: () => setState(() => _pickupMethod = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFE3F2FD) : Colors.white,
+          border: Border.all(
+            color: isSelected ? const Color(0xFF1565C0) : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? const Color(0xFF1565C0) : Colors.grey[400]!,
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? Container(
+                      margin: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF1565C0),
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? const Color(0xFF1565C0) : Colors.black87,
+                      )),
+                  const SizedBox(height: 2),
+                  Text(subLabel,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════
+  // STEP 2: 교환 사유 선택
+  // ══════════════════════════════════════
+  Widget _buildStep2() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── 배송비 직접 부담 ──
+        _sectionHeader('배송비 직접 부담'),
+        const SizedBox(height: 8),
+        ..._selfReasons.map((r) => _buildReasonTile(r)),
+        const SizedBox(height: 20),
+
+        // ── 배송비 판매자 부담 ──
+        _sectionHeader('배송비 판매자 부담'),
+        const SizedBox(height: 8),
+        ..._sellerReasons.map((r) => _buildReasonTile(r)),
+
+        // ── 선택된 사유가 직접부담인 경우 상세입력 영역 ──
+        if (_isSelfFault) ...[
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FA),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '· 이유를 자세히 알려주면 더 빠리 교환 할 수 있어요.\n· 사진은 3장까지 올릴 수 있어요. (각 10MB 이하)',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF555555), height: 1.6),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _reasonCtrl,
+                  maxLines: 4,
+                  maxLength: 100,
+                  style: const TextStyle(fontSize: 13),
+                  decoration: InputDecoration(
+                    hintText: '교환이 필요한 이유를 적어주세요. (선택사항)',
+                    hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.all(12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey[300]!),
+                    ),
+                    counterStyle: const TextStyle(fontSize: 11),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // 사진 올리기 버튼 (UI만 — 실제 업로드는 고객센터 연결로 처리)
+                GestureDetector(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('사진 첨부는 카카오톡 채널로 직접 전송해주세요.'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.photo_camera_outlined, size: 24, color: Colors.grey[500]),
+                        const SizedBox(height: 4),
+                        Text('사진 올리기',
+                            style: TextStyle(fontSize: 10, color: Colors.grey[500])),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _sectionHeader(String text) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: Colors.grey[100],
+      borderRadius: BorderRadius.circular(6),
+    ),
+    child: Text(text,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+  );
+
+  Widget _buildReasonTile(String reason) {
+    final isSelected = _selectedReason == reason;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedReason = reason),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? const Color(0xFF1565C0) : Colors.grey[400]!,
+                  width: 2,
+                ),
+              ),
+              child: isSelected
+                  ? Container(
+                      margin: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF1565C0),
+                      ),
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Text(reason,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isSelected ? const Color(0xFF1565C0) : Colors.black87,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════
+  // STEP 3: 수거 주소 확인 & 교환 비용
+  // ══════════════════════════════════════
+  Widget _buildStep3(UserModel? user) {
+    final isPickup = _pickupMethod == 1;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── 수거 방법 표시 ──
+        _buildPickupOption(
+          value: 1,
+          label: '상품을 직접 수거해주세요',
+          subLabel: '택배사가 2~5일 이내 방문 예정',
+        ),
+        const SizedBox(height: 12),
+
+        // ── 수거 주소 확인 (직접수거일 때만) ──
+        if (isPickup) ...[
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.only(left: 8),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF0F4FF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFBBD0FF)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '교환 요청이 확인되면 2~5일 이내 택배사가 방문할 예정이에요.\n아래 주소가 맞는지 확인해주세요.',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF555555), height: 1.6),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  user?.name ?? '이름 없음',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  user?.address.isNotEmpty == true
+                      ? user!.address
+                      : widget.order.userAddress.isNotEmpty
+                          ? widget.order.userAddress
+                          : '주소 정보 없음',
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF333333), height: 1.4),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Text(
+                    '주소변경 >',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF1565C0),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ── 교환 비용 ──
+          if (_shippingBySelf) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('교환비용',
+                      style: TextStyle(fontSize: 13, color: Colors.grey)),
+                  const SizedBox(height: 6),
+                  const Text('6,000원',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 4),
+                  Text('· 교환배송비 6,000원 (왕복)',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '* 배송비는 카카오톡 채널 또는 전화로 안내받으신 후 결제됩니다.',
+              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+            ),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0FFF4),
+                border: Border.all(color: const Color(0xFFBBF7D0)),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Color(0xFF16A34A), size: 18),
+                  const SizedBox(width: 8),
+                  Text('판매자 귀책 사유 — 배송비 무료',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF16A34A))),
+                ],
+              ),
+            ),
+          ],
+        ],
+
+        const SizedBox(height: 12),
+
+        // ── 이미 발송 옵션 ──
+        _buildPickupOption(
+          value: 2,
+          label: '상품을 이미 판매자에게 택배로 보냈어요',
+          subLabel: '운송장 번호를 고객센터에 전달해주세요',
+        ),
+      ],
+    );
+  }
+
+  // ══════════════════════════════════════
+  // 하단 버튼
+  // ══════════════════════════════════════
+  Widget _buildBottomButtons(BuildContext context, UserModel? user) {
+    final isLastStep = _step == 3;
+    final isFirstStep = _step == 1;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey[200]!)),
+      ),
+      child: Row(
+        children: [
+          // 이전 버튼
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                if (isFirstStep) {
+                  Navigator.pop(context);
+                } else {
+                  setState(() => _step--);
+                }
+              },
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    isFirstStep ? '닫기' : '이전',
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+
+          // 다음/요청 버튼
+          Expanded(
+            flex: 2,
+            child: GestureDetector(
+              onTap: () => _onNextTap(context),
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: _canProceed ? const Color(0xFF1565C0) : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Text(
+                    isLastStep
+                        ? (_shippingBySelf ? '교환비용결제' : '${widget.isReturn ? "반품" : "교환"}요청')
+                        : '다음',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: _canProceed ? Colors.white : Colors.grey[500],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool get _canProceed {
+    if (_step == 1) return _pickupMethod != 0;
+    if (_step == 2) return _selectedReason != null;
+    return true;
+  }
+
+  void _onNextTap(BuildContext context) {
+    if (!_canProceed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_step == 1 ? '수거 방법을 선택해주세요.' : '사유를 선택해주세요.'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    if (_step < 3) {
+      setState(() => _step++);
+      return;
+    }
+
+    // 마지막 단계 → 카카오 채널로 연결
+    _submitRequest(context);
+  }
+
+  Future<void> _submitRequest(BuildContext context) async {
+    // Firestore에 교환/반품 요청 기록
+    try {
+      final type = widget.isReturn ? 'return' : 'exchange';
+      await FirebaseFirestore.instance
+          .collection('exchange_requests')
+          .add({
+        'orderId': widget.order.id,
+        'type': type,
+        'pickupMethod': _pickupMethod == 1 ? 'pickup' : 'already_sent',
+        'reason': _selectedReason ?? '',
+        'detail': _reasonCtrl.text.trim(),
+        'shippingBySelf': _shippingBySelf,
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+    } catch (_) {
+      // 저장 실패해도 카카오 채널로는 이동
+    }
+
+    if (!context.mounted) return;
+    Navigator.pop(context);
+
+    // 성공 메시지 + 카카오 채널 이동 안내
+    final label = widget.isReturn ? '반품' : '교환';
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(children: [
+          const Text('✅ ', style: TextStyle(fontSize: 20)),
+          Text('$label 요청 완료', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        ]),
+        content: Text(
+          '$label 요청이 접수되었습니다.\n카카오톡 채널로 연결하여 상세 안내를 받으실 수 있습니다.',
+          style: const TextStyle(fontSize: 13, height: 1.6),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('닫기'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFEE500),
+              foregroundColor: const Color(0xFF3A1D1D),
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fitkorea');
+              final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+              if (await canLaunchUrl(appUrl)) {
+                await launchUrl(appUrl, mode: LaunchMode.externalApplication);
+              } else {
+                await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+              }
+            },
+            child: const Row(mainAxisSize: MainAxisSize.min, children: [
+              Text('💬 '),
+              Text('카카오톡 채널 문의'),
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
 }
