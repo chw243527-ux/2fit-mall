@@ -108,7 +108,7 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
 
   void _openWishlist(BuildContext ctx, UserModel user) {
     Navigator.push(ctx, MaterialPageRoute(
-      builder: (_) => _WishlistScreen(user: user),
+      builder: (_) => _WishlistScreen(userId: user.id),
     ));
   }
 
@@ -1020,7 +1020,7 @@ class _ShoppingTab extends StatelessWidget {
 
   void _showWishlist(BuildContext context, UserModel user) {
     Navigator.push(context, MaterialPageRoute(
-      builder: (_) => _WishlistScreen(user: user),
+      builder: (_) => _WishlistScreen(userId: user.id),
     ));
   }
 
@@ -1138,7 +1138,7 @@ class _ActivityTab extends StatelessWidget {
 
   void _showWishlistSheet(BuildContext context) {
     Navigator.push(context, MaterialPageRoute(
-      builder: (_) => _WishlistScreen(user: user),
+      builder: (_) => _WishlistScreen(userId: user.id),
     ));
   }
 }
@@ -1150,8 +1150,8 @@ class _ActivityTab extends StatelessWidget {
 // 찜 목록 전체화면
 // ════════════════════════════════════════════════════════════════
 class _WishlistScreen extends StatelessWidget {
-  final UserModel user;
-  const _WishlistScreen({required this.user});
+  final String userId;
+  const _WishlistScreen({required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -1171,7 +1171,7 @@ class _WishlistScreen extends StatelessWidget {
           child: Divider(height: 1, color: Colors.grey[200]),
         ),
       ),
-      body: _WishlistContent(user: user),
+      body: _WishlistContent(userId: userId),
     );
   }
 }
@@ -1180,8 +1180,8 @@ class _WishlistScreen extends StatelessWidget {
 // 찜 목록 콘텐츠
 // ════════════════════════════════════════════════════════════════
 class _WishlistContent extends StatefulWidget {
-  final UserModel user;
-  const _WishlistContent({required this.user});
+  final String userId;
+  const _WishlistContent({required this.userId});
   @override
   State<_WishlistContent> createState() => _WishlistContentState();
 }
@@ -1192,29 +1192,36 @@ class _WishlistContentState extends State<_WishlistContent> {
   @override
   void initState() {
     super.initState();
-    _load();
+    // addPostFrameCallback: initState 시점에 context 접근 안전하게
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
   }
 
   Future<void> _load() async {
-    final ids = widget.user.wishlist;
+    if (!mounted) return;
+    // UserProvider에서 최신 user를 읽어 stale snapshot 문제 방지
+    final user = context.read<UserProvider>().user;
+    final ids = user?.wishlist ?? [];
     if (ids.isEmpty) {
       if (mounted) setState(() => _products = []);
       return;
     }
+    // 1) 동기 캐시 우선 표시
     final synced = ids
         .map(ProductService.getProductByIdSync)
         .whereType<ProductModel>()
         .toList();
     if (synced.isNotEmpty && mounted) setState(() => _products = synced);
 
+    // 2) 비동기 완전 로드 후 순서 유지
     final all = List<ProductModel>.from(synced);
-    final cached = synced.map((p) => p.id).toSet();
-    for (final id in ids.where((id) => !cached.contains(id))) {
+    final cachedIds = synced.map((p) => p.id).toSet();
+    for (final id in ids.where((id) => !cachedIds.contains(id))) {
       try {
         final p = await ProductService.getProductById(id);
         if (p != null) all.add(p);
       } catch (_) {}
     }
+    all.sort((a, b) => ids.indexOf(a.id).compareTo(ids.indexOf(b.id)));
     if (mounted) setState(() => _products = all);
   }
 
