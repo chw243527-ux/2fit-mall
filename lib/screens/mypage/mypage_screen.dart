@@ -4701,6 +4701,7 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                             : isGroup ? const Color(0xFF6A1B9A) : const Color(0xFF1565C0);
                         final displaySize = (item.size == '단체' || item.size == 'GROUP' || item.size.isEmpty)
                             ? null : item.size;
+                        final hasImage = item.imageUrl != null && item.imageUrl!.isNotEmpty;
                         return Container(
                           margin: const EdgeInsets.only(bottom: 6),
                           padding: const EdgeInsets.all(10),
@@ -4709,24 +4710,52 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(color: const Color(0xFFEEEEEE)),
                           ),
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(item.productName,
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 4),
-                            Row(children: [
-                              miniTag(typeLabel, typeColor),
-                              if (item.color.isNotEmpty)
-                                miniTag(item.color, const Color(0xFFE65100)),
-                              if (displaySize != null) ...[
-                                const SizedBox(width: 2),
-                                miniTag(displaySize, const Color(0xFF2E7D32)),
-                              ],
-                              const Spacer(),
-                              Text('${item.quantity}개',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                              Text(' · ${fmtPrice(item.price * item.quantity)}원',
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
-                            ]),
+                          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            // 디자인 이미지 (왼쪽)
+                            if (hasImage) ...[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: Image.network(
+                                  item.imageUrl!,
+                                  width: 64,
+                                  height: 64,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: 64,
+                                    height: 64,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE0E0E0),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Icon(Icons.image_not_supported_outlined,
+                                        size: 24, color: Color(0xFFAAAAAA)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                            ],
+                            // 텍스트 정보 (오른쪽)
+                            Expanded(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text(item.productName,
+                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                                const SizedBox(height: 4),
+                                Row(children: [
+                                  miniTag(typeLabel, typeColor),
+                                  if (item.color.isNotEmpty)
+                                    miniTag(item.color, const Color(0xFFE65100)),
+                                  if (displaySize != null) ...[
+                                    const SizedBox(width: 2),
+                                    miniTag(displaySize, const Color(0xFF2E7D32)),
+                                  ],
+                                ]),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${item.quantity}개  ·  ${fmtPrice(item.price * item.quantity)}원',
+                                  style: const TextStyle(fontSize: 12, color: Color(0xFF555555), fontWeight: FontWeight.w600),
+                                ),
+                              ]),
+                            ),
                           ]),
                         );
                       }),
