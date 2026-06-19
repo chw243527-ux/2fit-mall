@@ -2668,18 +2668,16 @@ class _MobileOrderCard extends StatelessWidget {
                 onTap: () => onExcelDownload?.call(ctx2, order),
               )));
 
-              Widget buildRow(List<Widget> items) => IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: items.asMap().entries.map((e) {
-                    final w = Expanded(child: e.value);
-                    if (e.key == 0) return w;
-                    return Row(mainAxisSize: MainAxisSize.min, children: [
-                      Container(width: 1, color: Colors.grey[200]), w,
-                    ]);
-                  }).toList(),
-                ),
-              );
+              Widget buildRow(List<Widget> items) {
+                final List<Widget> cells = [];
+                for (int i = 0; i < items.length; i++) {
+                  if (i > 0) {
+                    cells.add(Container(width: 1, height: 58, color: Colors.grey[200]));
+                  }
+                  cells.add(Expanded(child: SizedBox(height: 58, child: items[i])));
+                }
+                return Row(children: cells);
+              }
 
               return Column(
                 children: [
@@ -2786,35 +2784,32 @@ class _ActionBtn extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: SizedBox(
-        height: 58,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(icon, size: 22, color: color),
-                if (badge != null)
-                  Positioned(
-                    top: -4, right: -8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
-                      child: Text(badge!, style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800)),
-                    ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Icon(icon, size: 22, color: color),
+              if (badge != null)
+                Positioned(
+                  top: -4, right: -8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
+                    child: Text(badge!, style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800)),
                   ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(label,
-              style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(label,
+            style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
