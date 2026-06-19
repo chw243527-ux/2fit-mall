@@ -4004,7 +4004,7 @@ $productUrl
         // ── 이미지가 있을 때: 가로 스크롤 썸네일 ──
         if (imgs.isNotEmpty)
           SizedBox(
-            height: 100,
+            height: 120,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: imgs.length,
@@ -4021,13 +4021,39 @@ $productUrl
                         child: imgs[i].startsWith('data:image')
                             ? Image.memory(
                                 base64Decode(imgs[i].split(',').last),
-                                width: 100, height: 100,
+                                width: 120, height: 120,
                                 fit: BoxFit.cover,
                               )
-                            : NetImage(
+                            : Image.network(
                                 imgs[i],
-                                width: 100, height: 100,
+                                width: 120, height: 120,
                                 fit: BoxFit.cover,
+                                loadingBuilder: (_, child, progress) {
+                                  if (progress == null) return child;
+                                  return Container(
+                                    width: 120, height: 120,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Center(
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF4A148C)),
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (_, error, __) => Container(
+                                  width: 120, height: 120,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[100],
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.grey[300]!),
+                                  ),
+                                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                    Icon(Icons.broken_image_outlined, color: Colors.grey[400], size: 28),
+                                    const SizedBox(height: 4),
+                                    Text('이미지 로드 실패', style: TextStyle(fontSize: 10, color: Colors.grey[400])),
+                                  ]),
+                                ),
                               ),
                       ),
                       // 확대 아이콘 오버레이
