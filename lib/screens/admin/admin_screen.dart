@@ -6985,7 +6985,7 @@ class _AdminScreenState extends State<AdminScreen>
                           Text('• 브라우저 알림 허용 시 새 문의/주문 즉시 알림', style: TextStyle(fontSize: 11, color: Color(0xFF5D4037))),
                           Text('• 채팅 문의 시 관리자 화면에 실시간 반영', style: TextStyle(fontSize: 11, color: Color(0xFF5D4037))),
                           Text('• 외부 SMS/카카오 연동은 서버 API 설정 필요', style: TextStyle(fontSize: 11, color: Color(0xFF5D4037))),
-                          Text('• 카카오채널: @2fitkorea', style: TextStyle(fontSize: 11, color: Color(0xFF5D4037))),
+                          Text('• 카카오채널: @2fit-mall', style: TextStyle(fontSize: 11, color: Color(0xFF5D4037))),
                           SizedBox(height: 4),
                           SelectableText(
                             '카카오 비즈니스: bizmessage.kakao.com',

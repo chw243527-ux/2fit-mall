@@ -1235,8 +1235,8 @@ class _PcOrderCard extends StatelessWidget {
               }
 
               Future<void> openKakaoChannel() async {
-                final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fitkorea');
-                final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+                final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
+                final webUrl = Uri.parse('https://pf.kakao.com/_xfVlxb/chat');
                 if (await canLaunchUrl(appUrl)) {
                   await launchUrl(appUrl, mode: LaunchMode.externalApplication);
                 } else {
@@ -1992,7 +1992,7 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   border: Border.all(color: const Color(0xFFEEEEEE)),
                 ),
                 child: Column(children: [
-                  row('상호', '주식회사 2FIT'),
+                  row('상호', '투핏몰(2FIT-mall)'),
                   divider(),
                   row('대표자', '대표이사'),
                   divider(),
@@ -2756,8 +2756,8 @@ class _MobileOrderCard extends StatelessWidget {
               }
 
               Future<void> openKakaoChannel() async {
-                final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fitkorea');
-                final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
+                final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
+                final webUrl = Uri.parse('https://pf.kakao.com/_xfVlxb/chat');
                 if (await canLaunchUrl(appUrl)) {
                   await launchUrl(appUrl, mode: LaunchMode.externalApplication);
                 } else {

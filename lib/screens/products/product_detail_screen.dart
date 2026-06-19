@@ -843,9 +843,9 @@ $productUrl
   }
 
   Future<void> _openKakaoChannel() async {
-    const channelId = '@2fitkorea';
+    const channelId = '@2fit-mall';
     final kakaoChannelUrl = Uri.parse('kakaoplus://plusfriend/home/$channelId');
-    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat'); // 실제 카카오 채널 URL로 변경 필요
+    final webUrl = Uri.parse('https://pf.kakao.com/_xfVlxb/chat');
     
     if (await canLaunchUrl(kakaoChannelUrl)) {
       await launchUrl(kakaoChannelUrl);
@@ -854,7 +854,7 @@ $productUrl
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('카카오 채널: @2fitkorea')),
+          const SnackBar(content: Text('카카오 채널: @2fit-mall')),
         );
       }
     }

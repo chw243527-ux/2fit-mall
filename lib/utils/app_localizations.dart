@@ -1496,11 +1496,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Захиалга хянах';
   }}
   String get pcKakaoChannel { switch (language) {
-    case AppLanguage.korean:   return '카카오 @2fitkorea';
-    case AppLanguage.english:  return 'KakaoTalk @2fitkorea';
-    case AppLanguage.japanese: return 'カカオ @2fitkorea';
-    case AppLanguage.chinese:  return 'KakaoTalk @2fitkorea';
-    case AppLanguage.mongolian:return 'KakaoTalk @2fitkorea';
+    case AppLanguage.korean:   return '카카오 @2fit-mall';
+    case AppLanguage.english:  return 'KakaoTalk @2fit-mall';
+    case AppLanguage.japanese: return 'カカオ @2fit-mall';
+    case AppLanguage.chinese:  return 'KakaoTalk @2fit-mall';
+    case AppLanguage.mongolian:return 'KakaoTalk @2fit-mall';
   }}
   String get pcSearchHint { switch (language) {
     case AppLanguage.korean:   return '상품명, 브랜드, 카테고리 검색';
@@ -8862,11 +8862,11 @@ class AppLocalizations {
   }
   String get groupKakaoId {
     switch (language) {
-      case AppLanguage.english: return 'Kakao: @2fitkorea';
-      case AppLanguage.japanese: return 'カカオトーク @2fitkorea';
-      case AppLanguage.chinese: return '韩国Kakao: @2fitkorea';
-      case AppLanguage.mongolian: return 'Какао: @2fitkorea';
-      default: return '카카오톡 @2fitkorea';
+      case AppLanguage.english: return 'Kakao: @2fit-mall';
+      case AppLanguage.japanese: return 'カカオトーク @2fit-mall';
+      case AppLanguage.chinese: return '韩国Kakao: @2fit-mall';
+      case AppLanguage.mongolian: return 'Какао: @2fit-mall';
+      default: return '카카오톡 @2fit-mall';
     }
   }
   String get groupSelectType {
@@ -9547,11 +9547,11 @@ class AppLocalizations {
   }
   String get serviceKakaoChat {
     switch (language) {
-      case AppLanguage.english: return '💬 Kakao: @2fitkorea';
-      case AppLanguage.japanese: return '💬 カカオトーク @2fitkorea';
-      case AppLanguage.chinese: return '💬 Kakao: @2fitkorea';
-      case AppLanguage.mongolian: return '💬 Какао: @2fitkorea';
-      default: return '💬 카카오톡 @2fitkorea';
+      case AppLanguage.english: return '💬 Kakao: @2fit-mall';
+      case AppLanguage.japanese: return '💬 カカオトーク @2fit-mall';
+      case AppLanguage.chinese: return '💬 Kakao: @2fit-mall';
+      case AppLanguage.mongolian: return '💬 Какао: @2fit-mall';
+      default: return '💬 카카오톡 @2fit-mall';
     }
   }
   // ─── 카테고리 서브메뉴 ───
@@ -11088,11 +11088,11 @@ class AppLocalizations {
   }}
 
   String get orderGuideKakao { switch (language) {
-    case AppLanguage.english: return 'KakaoTalk @2fitkorea';
-    case AppLanguage.japanese: return 'カカオトーク @2fitkorea';
-    case AppLanguage.chinese: return '카카오톡 @2fitkorea';
-    case AppLanguage.mongolian: return 'Kakao @2fitkorea';
-    default: return '카카오톡 @2fitkorea';
+    case AppLanguage.english: return 'KakaoTalk @2fit-mall';
+    case AppLanguage.japanese: return 'カカオトーク @2fit-mall';
+    case AppLanguage.chinese: return '카카오톡 @2fit-mall';
+    case AppLanguage.mongolian: return 'Kakao @2fit-mall';
+    default: return '카카오톡 @2fit-mall';
   }}
 
   String get orderGuideTypeTitle { switch (language) {
@@ -11680,11 +11680,11 @@ class AppLocalizations {
   }}
 
   String get personalFormKakaoNote { switch (language) {
-    case AppLanguage.english: return '* Send files via KakaoTalk(@2fitkorea) after order.';
-    case AppLanguage.japanese: return '* ファイルは注文完了後KakaoTalk(@2fitkorea)で送ってください。';
-    case AppLanguage.chinese: return '* 文件请在订单完成后通过KakaoTalk(@2fitkorea)发送。';
-    case AppLanguage.mongolian: return '* Файлыг захиалга дууссаны дараа KakaoTalk(@2fitkorea)-р илгээнэ үү.';
-    default: return '* 파일은 주문 완료 후 카카오톡(@2fitkorea)으로 전송해 주세요.';
+    case AppLanguage.english: return '* Send files via KakaoTalk(@2fit-mall) after order.';
+    case AppLanguage.japanese: return '* ファイルは注文完了後KakaoTalk(@2fit-mall)で送ってください。';
+    case AppLanguage.chinese: return '* 文件请在订单完成后通过KakaoTalk(@2fit-mall)发送。';
+    case AppLanguage.mongolian: return '* Файлыг захиалга дууссаны дараа KakaoTalk(@2fit-mall)-р илгээнэ үү.';
+    default: return '* 파일은 주문 완료 후 카카오톡(@2fit-mall)으로 전송해 주세요.';
   }}
 
   String get personalFormDesignDialogTitle { switch (language) {
