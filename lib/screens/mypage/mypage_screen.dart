@@ -176,10 +176,19 @@ class _MyPageScreenState extends State<MyPageScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () async {
               try {
-                await AuthService.deleteAccount(password: pw.text);
+                final user = up.user;
+                if (user == null) return;
+                await AuthService.deleteUserDocument(user.id);
+                await AuthService.logout();
                 up.logout();
-                if (ctx.mounted) Navigator.of(ctx).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+                if (ctx.mounted) {
+                  ctx.read<CartProvider>().clearCart();
+                  ctx.read<CouponProvider>().clear();
+                  ctx.read<SizeProfileProvider>().clear();
+                  Navigator.pop(ctx);
+                  Navigator.of(ctx).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+                }
               } catch (e) {
                 if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('오류: $e')));
               }
@@ -1065,11 +1074,10 @@ class _CouponTab extends StatelessWidget {
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(c.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
-              Text(c.discount > 0 && c.discount <= 100 ? '${c.discount.toInt()}% 할인' : '${c.discount.toInt()}원 할인',
+              Text(c.typeLabel,
                   style: const TextStyle(fontSize: 13, color: Color(0xFF1565C0), fontWeight: FontWeight.w600)),
-              if (c.expiresAt != null)
-                Text('~${c.expiresAt!.year}.${c.expiresAt!.month.toString().padLeft(2,'0')}.${c.expiresAt!.day.toString().padLeft(2,'0')}',
-                    style: TextStyle(fontSize: 11, color: Colors.grey[400])),
+              Text('~${c.expiresAt.year}.${c.expiresAt.month.toString().padLeft(2,'0')}.${c.expiresAt.day.toString().padLeft(2,'0')}',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[400])),
             ])),
           ]),
         );
@@ -1083,8 +1091,7 @@ class _CouponTab extends StatelessWidget {
 // ════════════════════════════════════════════════════════════════
 class _SettingsTab extends StatelessWidget {
   final UserModel user; final UserProvider up; final bool isMobile;
-  final VoidCallback onProfileEdit, onAddressManager, onChangePassword, onLogout;
-  final void Function(BuildContext, UserProvider) onDeleteAccount;
+  final VoidCallback onProfileEdit, onAddressManager, onChangePassword, onLogout, onDeleteAccount;
   const _SettingsTab({required this.user, required this.up, this.isMobile = false,
     required this.onProfileEdit, required this.onAddressManager,
     required this.onChangePassword, required this.onLogout,
@@ -1128,7 +1135,7 @@ class _SettingsTab extends StatelessWidget {
         _SettGroup(title: '계정 관리', items: [
           _SettItem(icon: Icons.logout_rounded, label: '로그아웃', color: Colors.orange, onTap: onLogout),
           _SettItem(icon: Icons.delete_forever_outlined, label: '회원 탈퇴', color: Colors.red,
-              onTap: () => onDeleteAccount(context, up)),
+              onTap: () => onDeleteAccount()),
         ]),
         const SizedBox(height: 24),
       ],
