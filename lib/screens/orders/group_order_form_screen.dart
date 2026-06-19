@@ -253,6 +253,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         p.subCategory.contains('여성 2.5부') ||
         p.name.contains('타이즈');
   }
+
+  /// 상의 카테고리 단체주문: 인쇄타입·하의길이·허리밴드·주머니 숨김, 하의 사이즈 숨김
+  bool get _isTopOnly {
+    final p = widget.product;
+    if (p == null) return false;
+    return p.category == '상의';
+  }
   // 숏사각(숏쇼츠) 선택 시 주머니 불가
   bool get _isFemaleShortSquare => _femaleLengthSel == '숏쇼츠';
   // 단가 = 기본가 + 심리스 + 9부 + 주머니 (모두 인원당 추가)
@@ -609,11 +616,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       _showSnack('상세주소를 입력해 주세요.');
       return false;
     }
-    if (_maleLengthSel == null) {
+    if (!_isTopOnly && _maleLengthSel == null) {
       _showSnack('남성 하의 길이를 선택해 주세요.');
       return false;
     }
-    if (_femaleLengthSel == null) {
+    if (!_isTopOnly && _femaleLengthSel == null) {
       _showSnack('여성 하의 길이를 선택해 주세요.');
       return false;
     }
@@ -628,8 +635,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _showSnack('${i + 1}번 인원의 상의 사이즈를 입력해 주세요.');
         return false;
       }
-      // 하의 사이즈 확인
-      if (p.effectiveBottomSize.isEmpty) {
+      // 하의 사이즈 확인 (상의 카테고리 단체주문 시 생략)
+      if (!_isTopOnly && p.effectiveBottomSize.isEmpty) {
         _showSnack('${i + 1}번 인원의 사이즈를 입력해 주세요.');
         return false;
       }
@@ -840,12 +847,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 if (!_isBottomOnly) _build2FitLogoBanner(),
                 if (widget.product != null) _buildProductCard(),
                 if (!_isBottomOnly) _buildFabricSection(),
-                _buildLengthSection(),
-                _buildPocketSection(),
-                _buildWaistbandSection(),
+                if (!_isTopOnly) _buildLengthSection(),
+                if (!_isTopOnly) _buildPocketSection(),
+                if (!_isTopOnly) _buildWaistbandSection(),
                 _buildColorSection(),
                 if (!_isBottomOnly) _buildRefImageSection(),
-                _buildWaistbandDesignSection(), // 허리밴드 참고이미지 + 로고파일 통합 섹션
+                if (!_isTopOnly) _buildWaistbandDesignSection(),
                 _buildMemoSection(),
                 _buildPersonListSection(),
                 _buildBasicInfoSection(),
@@ -4241,17 +4248,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               const SizedBox(height: 10),
             ],
 
-            // ④ 하의 사이즈 선택
-            _buildPersonSizeSelector(
-              label: _isBottomOnly ? '사이즈 *' : '하의 사이즈 *',
-              icon: Icons.accessibility_new_rounded,
-              selected: p.bottomSize,
-              sizeType: p.sizeType,
-              onSelect: (v) => setState(() => p.bottomSize = v),
-            ),
-            const SizedBox(height: 10),
+            // ④ 하의 사이즈 선택 (상의 카테고리일 때 숨김)
+            if (!_isTopOnly) ...[
+              _buildPersonSizeSelector(
+                label: _isBottomOnly ? '사이즈 *' : '하의 사이즈 *',
+                icon: Icons.accessibility_new_rounded,
+                selected: p.bottomSize,
+                sizeType: p.sizeType,
+                onSelect: (v) => setState(() => p.bottomSize = v),
+              ),
+              const SizedBox(height: 10),
 
-            // ⑤ 상세치수 토글 (하의 전용)
+              // ⑤ 상세치수 토글 (하의 전용)
             GestureDetector(
               onTap: () => setState(() => p.showDetail = !p.showDetail),
               child: AnimatedContainer(
@@ -4322,6 +4330,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 ]),
               );
             }),
+            ], // if (!_isTopOnly)
           ]),
         ),
       ]),
