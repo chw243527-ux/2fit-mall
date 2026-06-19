@@ -214,10 +214,15 @@ class OrderService {
 
     // 2) Firestore 업데이트
     try {
-      await _db.collection('orders').doc(orderId).update({
+      final Map<String, dynamic> updateData = {
         'status': status.name,
         'updatedAt': FieldValue.serverTimestamp(),
-      });
+      };
+      // 배송완료 시 deliveredAt 기록 (자동 구매확정 기준)
+      if (status == OrderStatus.delivered) {
+        updateData['deliveredAt'] = FieldValue.serverTimestamp();
+      }
+      await _db.collection('orders').doc(orderId).update(updateData);
       if (kDebugMode) debugPrint('✅ Firestore 주문 상태 업데이트: $orderId → ${status.name}');
 
       // 3) FCM 알림 + 이메일 발송
@@ -595,6 +600,11 @@ class OrderService {
       designRevisionDeadline: data['designRevisionDeadline'] != null
           ? DateTime.tryParse(data['designRevisionDeadline'] as String)
           : null,
+      deliveredAt: data['deliveredAt'] != null
+          ? (data['deliveredAt'] is Timestamp
+              ? (data['deliveredAt'] as Timestamp).toDate()
+              : DateTime.tryParse(data['deliveredAt'].toString()))
+          : null,
       items: _parseItems(data),
     );
   }
@@ -689,6 +699,11 @@ class OrderService {
       designRevisionCount: (data['designRevisionCount'] as num?)?.toInt() ?? 0,
       designRevisionDeadline: data['designRevisionDeadline'] != null
           ? DateTime.tryParse(data['designRevisionDeadline'] as String)
+          : null,
+      deliveredAt: data['deliveredAt'] != null
+          ? (data['deliveredAt'] is Timestamp
+              ? (data['deliveredAt'] as Timestamp).toDate()
+              : DateTime.tryParse(data['deliveredAt'].toString()))
           : null,
       items: (data['items'] as List? ?? []).map((i) {
         final item = Map<String, dynamic>.from(i as Map);

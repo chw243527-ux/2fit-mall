@@ -10377,3 +10377,17 @@ class _FabricTab extends StatelessWidget {
     );
   }
 }
+
+/// 외부에서 리뷰 작성 시트를 열기 위한 public 함수
+/// 마이페이지 주문내역 등에서 재활용
+void showWriteReviewSheet(BuildContext context, ProductModel product, {VoidCallback? onSubmitted}) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _WriteReviewSheet(
+      product: product,
+      onSubmitted: onSubmitted,
+    ),
+  );
+}

@@ -1079,9 +1079,14 @@ class _PcOrderCard extends StatelessWidget {
     final canCancelGroup = isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
     final canCancel = canCancelReadyMade || canCancelGroup;
     final cancelBlockedByDesign = isGroup && order.status == OrderStatus.processing;
-    final canExchangeReturn = !isGroup && order.status == OrderStatus.delivered;
-    final canConfirmPurchase = order.status == OrderStatus.delivered;
-    final isPurchaseConfirmed = order.status == OrderStatus.purchaseConfirmed;
+    // 구매확정 여부 (수동 or 3일 자동)
+    final isPurchaseConfirmed = order.isPurchaseConfirmed;
+    // 배송완료 후 3일 이내 → 구매확정 버튼 표시
+    final canConfirmPurchase = order.status == OrderStatus.delivered && !isPurchaseConfirmed;
+    // 교환/반품: 배송완료 상태이고 구매확정 전
+    final canExchangeReturn = !isGroup && order.status == OrderStatus.delivered && !isPurchaseConfirmed;
+    // 리뷰쓰기: 구매확정 후
+    final canWriteReview = !isGroup && isPurchaseConfirmed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1307,6 +1312,12 @@ class _PcOrderCard extends StatelessWidget {
                 btns.add(_ActionBtn(icon: Icons.swap_horiz_rounded, label: '교환신청', color: const Color(0xFF1565C0), onTap: () => _showExchangeRequestDialog(btnCtx, order)));
                 btns.add(_ActionBtn(icon: Icons.assignment_return_outlined, label: '반품신청', color: Colors.orange, onTap: () => _showReturnRequestDialog(btnCtx, order)));
               }
+              if (canWriteReview) btns.add(_ActionBtn(
+                icon: Icons.rate_review_rounded,
+                label: '리뷰쓰기',
+                color: const Color(0xFFFF8F00),
+                onTap: () => _showWriteReviewFromOrder(btnCtx, order),
+              ));
               if (canDesignRevision) btns.add(_ActionBtn(icon: Icons.edit_note_rounded, label: '디자인수정', color: const Color(0xFF7B1FA2), badge: '${order.remainingDesignRevisions}', onTap: () => onDesignRevision?.call(order)));
               if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), badge: '무료', onTap: () => onAdditionalOrder(order)));
               if (canColorEdit) btns.add(_ActionBtn(icon: Icons.palette_outlined, label: '색상변경', color: const Color(0xFF1565C0), badge: '${order.remainingColorEdits}', onTap: () => onColorEdit(order)));
@@ -2329,14 +2340,17 @@ class _MobileOrderCard extends StatelessWidget {
     final canCancelGroup = isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
     final canCancel = (canCancelReadyMade || canCancelGroup) && !hasTracking;
     final cancelBlockedByDesign = isGroup && order.status == OrderStatus.processing;
-    // 교환/반품: 운송장 등록 후 (배송중 or 배송완료)
+    // 교환/반품: 운송장 등록 후 (배송중 or 배송완료) + 구매확정 전
+    final isPurchaseConfirmed = order.isPurchaseConfirmed;
     final canExchangeReturn = hasTracking &&
-        (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered);
+        (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered) &&
+        !isPurchaseConfirmed;
     // 배송조회: 운송장 등록된 경우
     final canTrack = hasTracking;
-    // 구매확정: 배송완료 상태
-    final canConfirmPurchase = order.status == OrderStatus.delivered;
-    final isPurchaseConfirmed = order.status == OrderStatus.purchaseConfirmed;
+    // 구매확정: 배송완료 상태이고 구매확정 전
+    final canConfirmPurchase = order.status == OrderStatus.delivered && !isPurchaseConfirmed;
+    // 리뷰쓰기: 구매확정 후 (개인주문만)
+    final canWriteReview = !isGroup && isPurchaseConfirmed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -2631,7 +2645,7 @@ class _MobileOrderCard extends StatelessWidget {
                     onTap: null,
                   ));
                 }
-                // 교환신청 + 반품신청 (운송장 등록 후)
+                // 교환신청 + 반품신청 (운송장 등록 후, 구매확정 전)
                 if (canExchangeReturn) {
                   row1.add(_ActionBtn(
                     icon: Icons.swap_horiz_rounded,
@@ -2644,6 +2658,15 @@ class _MobileOrderCard extends StatelessWidget {
                     label: '반품신청',
                     color: Colors.orange,
                     onTap: () => _showReturnRequestDialog(btnCtx, order),
+                  ));
+                }
+                // 리뷰쓰기 (구매확정 후, 개인주문만)
+                if (canWriteReview) {
+                  row1.add(_ActionBtn(
+                    icon: Icons.rate_review_rounded,
+                    label: '리뷰쓰기',
+                    color: const Color(0xFFFF8F00),
+                    onTap: () => _showWriteReviewFromOrder(btnCtx, order),
                   ));
                 }
               }
@@ -5436,6 +5459,59 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
 // 교환/반품 요청 다이얼로그
 // 플로우: 1단계(사유선택) → 2단계(수거방법) → 3단계(결제/완료)
 // ═══════════════════════════════════════════════════════════════
+
+/// 주문내역에서 리뷰 작성 시트 열기
+/// 주문의 첫 번째 상품 정보를 기반으로 _WriteReviewSheet를 엽니다.
+void _showWriteReviewFromOrder(BuildContext context, OrderModel order) async {
+  if (order.items.isEmpty) return;
+  final item = order.items.first;
+
+  // Firestore에서 실제 상품 정보 조회 (없으면 주문 정보로 최소 ProductModel 생성)
+  ProductModel? product;
+  try {
+    final doc = await FirebaseFirestore.instance
+        .collection('products')
+        .doc(item.productId)
+        .get();
+    if (doc.exists && doc.data() != null) {
+      final data = doc.data()!;
+      data['id'] ??= doc.id;
+      if (data['createdAt'] is Timestamp) {
+        data['createdAt'] = (data['createdAt'] as Timestamp).toDate().toIso8601String();
+      }
+      product = ProductModel.fromJson(data);
+    }
+  } catch (_) {}
+
+  // Firestore 조회 실패 시 주문 정보로 최소 ProductModel 구성
+  product ??= ProductModel(
+    id: item.productId,
+    name: item.productName,
+    category: '',
+    price: item.price,
+    description: '',
+    images: item.imageUrl != null && item.imageUrl!.isNotEmpty
+        ? [item.imageUrl!]
+        : [],
+    sizes: [],
+    colors: [],
+    createdAt: DateTime.now(),
+    rating: 0,
+    reviewCount: 0,
+    stockCount: 0,
+    salesCount: 0,
+    isActive: true,
+    productCode: '',
+    sectionImages: {},
+    nameTranslations: {},
+    descriptionTranslations: {},
+    bottomLength: '',
+    sizeStocks: {},
+  );
+
+  if (!context.mounted) return;
+  showWriteReviewSheet(context, product);
+}
 
 void _showConfirmPurchaseDialog(BuildContext context, OrderModel order) {
   showDialog(

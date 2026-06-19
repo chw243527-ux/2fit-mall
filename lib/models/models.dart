@@ -328,6 +328,8 @@ class OrderModel {
   final int designRevisionCount;
   /// 디자인 수정 요청 마감일 (요청 후 3일, null이면 요청 없음)
   final DateTime? designRevisionDeadline;
+  /// 배송완료 날짜 (자동 구매확정 기준)
+  final DateTime? deliveredAt;
   /// 추가제작 가능 마감일 (주문완료 후 7일)
   DateTime get additionalOrderDeadline => createdAt.add(const Duration(days: 7));
   /// 추가제작 무료 가능 여부
@@ -355,7 +357,22 @@ class OrderModel {
     this.colorEditCount = 0,
     this.designRevisionCount = 0,
     this.designRevisionDeadline,
+    this.deliveredAt,
   });
+
+  /// 자동 구매확정 여부 (배송완료 후 3일 경과)
+  bool get isAutoConfirmDue {
+    if (status != OrderStatus.delivered) return false;
+    if (deliveredAt == null) {
+      // deliveredAt 없으면 updatedAt 기준으로 폴백
+      return false;
+    }
+    return DateTime.now().isAfter(deliveredAt!.add(const Duration(days: 3)));
+  }
+
+  /// 구매확정 여부 (수동 or 자동)
+  bool get isPurchaseConfirmed =>
+      status == OrderStatus.purchaseConfirmed || isAutoConfirmDue;
 
   /// 컬러+단체명 수정 가능 여부 (총 2회)
   bool get canEditColor => colorEditCount < 2;
@@ -372,6 +389,7 @@ class OrderModel {
     int? colorEditCount,
     int? designRevisionCount,
     DateTime? designRevisionDeadline,
+    DateTime? deliveredAt,
   }) {
     return OrderModel(
       id: id,
@@ -395,6 +413,7 @@ class OrderModel {
       colorEditCount: colorEditCount ?? this.colorEditCount,
       designRevisionCount: designRevisionCount ?? this.designRevisionCount,
       designRevisionDeadline: designRevisionDeadline ?? this.designRevisionDeadline,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
     );
   }
 
