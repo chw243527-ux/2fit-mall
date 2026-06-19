@@ -10129,7 +10129,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           ? (_newExpiresAt ?? (widget.existing?.createdAt ?? DateTime.now()).add(const Duration(days: 60)))
           : null,
       isSale: _isSale, isFreeShipping: _isFreeShip,
-      // 단체주문 카테고리는 무조건 단체전용 강제 적용
+      // 단체주문 카테고리이면 isGroupOnly 강제 true, 그 외는 토글 값 그대로
       isGroupOnly: _isGroupOnly || _selCat == '단체주문', isReadyMade: _isReadyMade,
       sizeStocks: {
         for (final entry in _sizeStockCtrls.entries)
@@ -10309,9 +10309,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             if (v == null) return;
                             setState(() {
                               _selCat = v;
-                              // 단체주문 카테고리 선택 ↔ 단체전용 토글 양방향 연동
-                              // 기성품(_isReadyMade)은 건드리지 않음
-                              _isGroupOnly = (v == '단체주문');
+                              // 단체주문 카테고리 선택 시 단체전용 자동 ON
+                              // 다른 카테고리로 변경해도 단체전용은 유지 (사용자가 직접 OFF 가능)
+                              if (v == '단체주문') _isGroupOnly = true;
                               final subs = CategoryService.subCatMap[v] ?? [];
                               _selSubCat = subs.isNotEmpty ? subs.first : '';
                               _selTightsSub = '';
@@ -10870,33 +10870,11 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                   _newChip(),
                   _chip('세일', _isSale, (v) { setState(() => _isSale = v); _scheduleAutoSave(); }),
                   _chip('무료배송', _isFreeShip, (v) { setState(() => _isFreeShip = v); _scheduleAutoSave(); }),
-                  // 단체주문 카테고리이면 단체전용 토글 잠금 (강제 ON)
-                  if (_selCat == '단체주문')
-                    Tooltip(
-                      message: '단체주문 카테고리 상품은 항상 단체전용입니다',
-                      child: _chip('단체전용 🔒', true, null, ac: const Color(0xFF6A1B9A)),
-                    )
-                  else
-                  _chip('단체전용', _isGroupOnly, (v) => setState(() {
-                    _isGroupOnly = v;
-                    if (v) {
-                      // 단체전용 ON → 하의 카테고리는 유지, 그 외는 '단체주문'으로 변경
-                      if (_selCat != '하의') {
-                        _selCat = '단체주문';
-                        final subs = CategoryService.subCatMap['단체주문'] ?? [];
-                        _selSubCat = subs.isNotEmpty ? subs.first : '';
-                        _selTightsSub = '';
-                      }
-                    } else if (!_isReadyMade) {
-                      // 단체전용 OFF + 기성품 아닐 때만 → 카테고리 '상의'로 초기화
-                      _selCat = '상의';
-                      final subs = CategoryService.subCatMap['상의'] ?? [];
-                      _selSubCat = subs.isNotEmpty ? subs.first : '';
-                      _selTightsSub = '';
-                    }
-                    // 단체전용 OFF + 기성품 ON → 현재 카테고리 유지
+                  // 단체전용 칩 — 카테고리 무관, 단순 ON/OFF만 (카테고리 변경 없음)
+                  _chip('단체전용', _isGroupOnly, (v) {
+                    setState(() => _isGroupOnly = v);
                     _scheduleAutoSave();
-                  }), ac: const Color(0xFF6A1B9A)),
+                  }, ac: const Color(0xFF6A1B9A)),
                   _chip('기성품', _isReadyMade, (v) { setState(() {
                     _isReadyMade = v;
                     // 기성품 ON/OFF 시 카테고리 변경 없음 — 현재 카테고리 그대로 유지
@@ -10940,21 +10918,21 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                             ]),
                             const SizedBox(height: 4),
                             const Text(
-                              '• 단체주문 카테고리에 등록됩니다\n• 상품 상세에서 📦 기성품 단체주문 + 👥 커스텀 단체주문 버튼이 모두 표시됩니다',
+                              '• 카테고리 무관 단체주문만 가능\n• 상품 상세에서 📦 기성품 단체주문 + 👥 커스텀 단체주문 버튼이 모두 표시됩니다',
                               style: TextStyle(fontSize: 11, color: Color(0xFF7B1FA2), height: 1.5),
                             ),
                           ] else if (_isGroupOnly) ...[
                             Row(children: [
                               const Icon(Icons.groups_rounded, size: 13, color: Color(0xFF6A1B9A)),
                               const SizedBox(width: 5),
-                              const Expanded(child: Text(
-                                '단체전용 상품 — 단체주문 카테고리에 등록',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A)),
+                              Expanded(child: Text(
+                                '단체전용 상품 — $_selCat 카테고리에 등록',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A)),
                               )),
                             ]),
                             const SizedBox(height: 4),
                             const Text(
-                              '• 단체주문 카테고리에 노출됩니다\n• 상품 상세에 👥 커스텀 단체주문 버튼이 표시됩니다',
+                              '• 카테고리 무관 단체주문만 가능\n• 상품 상세에 👥 단체주문 버튼만 표시됩니다\n• 장바구니/바로구매 버튼은 표시되지 않습니다',
                               style: TextStyle(fontSize: 11, color: Color(0xFF7B1FA2), height: 1.5),
                             ),
                           ] else if (_isReadyMade) ...[
