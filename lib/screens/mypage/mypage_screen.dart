@@ -1080,6 +1080,8 @@ class _PcOrderCard extends StatelessWidget {
     final canCancel = canCancelReadyMade || canCancelGroup;
     final cancelBlockedByDesign = isGroup && order.status == OrderStatus.processing;
     final canExchangeReturn = !isGroup && order.status == OrderStatus.delivered;
+    final canConfirmPurchase = order.status == OrderStatus.delivered;
+    final isPurchaseConfirmed = order.status == OrderStatus.purchaseConfirmed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1289,6 +1291,18 @@ class _PcOrderCard extends StatelessWidget {
               if (canCancel) btns.add(_ActionBtn(icon: Icons.cancel_outlined, label: isGroup ? '취소(제작전)' : '주문취소', color: Colors.red, onTap: doCancel));
               if (cancelBlockedByDesign) btns.add(_ActionBtn(icon: Icons.lock_outline_rounded, label: '취소불가', color: Colors.red.shade300,
                 onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다. 고객센터로 문의해 주세요.')))));
+              if (canConfirmPurchase) btns.add(_ActionBtn(
+                icon: Icons.check_circle_rounded,
+                label: '구매확정',
+                color: const Color(0xFF2E7D32),
+                onTap: () => _showConfirmPurchaseDialog(btnCtx, order),
+              ));
+              if (isPurchaseConfirmed) btns.add(_ActionBtn(
+                icon: Icons.verified_rounded,
+                label: '구매확정 완료',
+                color: Colors.grey,
+                onTap: null,
+              ));
               if (canExchangeReturn) {
                 btns.add(_ActionBtn(icon: Icons.swap_horiz_rounded, label: '교환신청', color: const Color(0xFF1565C0), onTap: () => _showExchangeRequestDialog(btnCtx, order)));
                 btns.add(_ActionBtn(icon: Icons.assignment_return_outlined, label: '반품신청', color: Colors.orange, onTap: () => _showReturnRequestDialog(btnCtx, order)));
@@ -1319,6 +1333,7 @@ class _PcOrderCard extends StatelessWidget {
       case OrderStatus.processing: return const Color(0xFF7B1FA2);
       case OrderStatus.shipped: return const Color(0xFF00838F);
       case OrderStatus.delivered: return Colors.green;
+      case OrderStatus.purchaseConfirmed: return const Color(0xFF1B5E20);
       case OrderStatus.cancelled: return Colors.red;
       case OrderStatus.refunded: return Colors.brown;
     }
@@ -2319,6 +2334,9 @@ class _MobileOrderCard extends StatelessWidget {
         (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered);
     // 배송조회: 운송장 등록된 경우
     final canTrack = hasTracking;
+    // 구매확정: 배송완료 상태
+    final canConfirmPurchase = order.status == OrderStatus.delivered;
+    final isPurchaseConfirmed = order.status == OrderStatus.purchaseConfirmed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -2596,6 +2614,23 @@ class _MobileOrderCard extends StatelessWidget {
                     );
                   },
                 ));
+                // 구매확정 버튼 (배송완료 상태)
+                if (canConfirmPurchase) {
+                  row1.add(_ActionBtn(
+                    icon: Icons.check_circle_rounded,
+                    label: '구매확정',
+                    color: const Color(0xFF2E7D32),
+                    onTap: () => _showConfirmPurchaseDialog(btnCtx, order),
+                  ));
+                }
+                if (isPurchaseConfirmed) {
+                  row1.add(_ActionBtn(
+                    icon: Icons.verified_rounded,
+                    label: '구매확정됨',
+                    color: Colors.grey,
+                    onTap: null,
+                  ));
+                }
                 // 교환신청 + 반품신청 (운송장 등록 후)
                 if (canExchangeReturn) {
                   row1.add(_ActionBtn(
@@ -2676,6 +2711,7 @@ class _MobileOrderCard extends StatelessWidget {
       case OrderStatus.processing: return const Color(0xFF7B1FA2);
       case OrderStatus.shipped: return const Color(0xFF00838F);
       case OrderStatus.delivered: return Colors.green;
+      case OrderStatus.purchaseConfirmed: return const Color(0xFF1B5E20);
       case OrderStatus.cancelled: return Colors.red;
       case OrderStatus.refunded: return Colors.brown;
     }
@@ -2744,14 +2780,14 @@ class _ActionBtn extends StatelessWidget {
   final String label;
   final Color color;
   final String? badge;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _ActionBtn({
     required this.icon,
     required this.label,
     this.color = const Color(0xFF555555),
     this.badge,
-    required this.onTap,
+    this.onTap,
   });
 
   @override
@@ -4757,6 +4793,7 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
       case OrderStatus.processing: return const Color(0xFF6A1B9A);
       case OrderStatus.shipped:    return const Color(0xFF00838F);
       case OrderStatus.delivered:  return const Color(0xFF2E7D32);
+      case OrderStatus.purchaseConfirmed: return const Color(0xFF1B5E20);
       case OrderStatus.cancelled:  return const Color(0xFFE53935);
       case OrderStatus.refunded:   return const Color(0xFF888888);
     }
@@ -5399,6 +5436,50 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
 // 교환/반품 요청 다이얼로그
 // 플로우: 1단계(사유선택) → 2단계(수거방법) → 3단계(결제/완료)
 // ═══════════════════════════════════════════════════════════════
+
+void _showConfirmPurchaseDialog(BuildContext context, OrderModel order) {
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: const Row(children: [
+        Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 22),
+        SizedBox(width: 8),
+        Text('구매 확정', style: TextStyle(fontWeight: FontWeight.w800)),
+      ]),
+      content: const Text(
+        '구매를 확정하시겠습니까?\n\n확정 후에는 교환/반품 신청이 어려울 수 있습니다.',
+        style: TextStyle(fontSize: 14, height: 1.6),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('취소', style: TextStyle(color: Colors.grey)),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF2E7D32),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          onPressed: () async {
+            Navigator.pop(ctx);
+            await OrderService.updateOrderStatus(order.id, OrderStatus.purchaseConfirmed);
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('구매가 확정되었습니다. 감사합니다!'),
+                  backgroundColor: Color(0xFF2E7D32),
+                ),
+              );
+            }
+          },
+          child: const Text('구매 확정'),
+        ),
+      ],
+    ),
+  );
+}
 
 void _showExchangeRequestDialog(BuildContext context, OrderModel order) {
   showDialog(

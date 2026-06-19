@@ -7049,6 +7049,8 @@ class _AdminScreenState extends State<AdminScreen>
         return const Color(0xFF00838F);
       case OrderStatus.delivered:
         return const Color(0xFF2E7D32);
+      case OrderStatus.purchaseConfirmed:
+        return const Color(0xFF1B5E20);
       case OrderStatus.cancelled:
         return const Color(0xFFE53935);
       case OrderStatus.refunded:

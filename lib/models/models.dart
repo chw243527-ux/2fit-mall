@@ -466,6 +466,7 @@ enum OrderStatus {
   processing,
   shipped,
   delivered,
+  purchaseConfirmed,
   cancelled,
   refunded,
 }
@@ -483,6 +484,8 @@ extension OrderStatusExtension on OrderStatus {
         return '배송 중';
       case OrderStatus.delivered:
         return '배송 완료';
+      case OrderStatus.purchaseConfirmed:
+        return '구매 확정';
       case OrderStatus.cancelled:
         return '주문 취소';
       case OrderStatus.refunded:
