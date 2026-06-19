@@ -59,7 +59,7 @@ class _MyPageScreenState extends State<MyPageScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     // 앱 시작 시 실제 주문 데이터 로드 + 이전 화면의 스낵바 큐 클리어
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -523,7 +523,6 @@ class _PcMyPage extends StatelessWidget {
 
     final menuItems = [
       (Icons.receipt_long_rounded,   loc.myOrders),
-      (Icons.payment_rounded,        loc.mypagePaymentHistory),
       (Icons.favorite_rounded,       loc.wishlist),
       (Icons.local_activity_rounded, loc.mypageCouponBox),
       (Icons.settings_rounded,       loc.settings),
@@ -687,10 +686,9 @@ class _PcMyPage extends StatelessWidget {
                                 onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
                                 onExcelDownload: onExcelDownload,
                                 onDesignRevision: onShowDesignRevision);
-                            case 1: return _PcPaymentHistoryTab(userProvider: userProvider, loc: loc);
-                            case 2: return _PcWishlistTab(userProvider: userProvider, loc: loc);
-                            case 3: return _PcCouponTab(userProvider: userProvider, loc: loc);
-                            case 4: return _PcSettingsTab(userProvider: userProvider, loc: loc,
+                            case 1: return _PcWishlistTab(userProvider: userProvider, loc: loc);
+                            case 2: return _PcCouponTab(userProvider: userProvider, loc: loc);
+                            case 3: return _PcSettingsTab(userProvider: userProvider, loc: loc,
                                 onShowProfileEdit: onShowProfileEdit,
                                 onShowAddressManager: onShowAddressManager,
                                 onShowLogout: onShowLogout,
@@ -859,9 +857,9 @@ class _PcQuickStats extends StatelessWidget {
         children: [
           _StatItem(label: loc.myOrders, count: orders.length, onTap: () => tabController.animateTo(0)),
           _Divider(),
-          _StatItem(label: loc.wishlist, count: wishCount, onTap: () => tabController.animateTo(2)),
+          _StatItem(label: loc.wishlist, count: wishCount, onTap: () => tabController.animateTo(1)),
           _Divider(),
-          _StatItem(label: loc.mypageCouponBox, count: couponCount, onTap: () => tabController.animateTo(3)),
+          _StatItem(label: loc.mypageCouponBox, count: couponCount, onTap: () => tabController.animateTo(2)),
         ],
       ),
     );
@@ -1924,7 +1922,6 @@ class _MobileMyPage extends StatelessWidget {
                 unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                 tabs: [
                   Tab(text: loc.myOrders),
-                  Tab(text: loc.mypagePaymentHistory),
                   Tab(text: loc.wishlist),
                   Tab(text: loc.mypageCouponBox),
                   Tab(text: loc.settings),
@@ -1940,7 +1937,6 @@ class _MobileMyPage extends StatelessWidget {
                     onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
                     onExcelDownload: onExcelDownload,
                     onDesignRevision: onShowDesignRevision),
-                  _MobilePaymentHistoryTab(userProvider: userProvider, loc: loc),
                   _MobileWishlistTab(userProvider: userProvider, loc: loc),
                   _MobileCouponTab(userProvider: userProvider, loc: loc),
                   _MobileSettingsTab(userProvider: userProvider, loc: loc,
@@ -2107,11 +2103,11 @@ class _MobileQuickStats extends StatelessWidget {
         children: [
           _MobileStatItem(label: loc.myOrders, count: orders.length, onTap: () => tabController.animateTo(0)),
           _VertDiv(),
-          _MobileStatItem(label: loc.wishlist, count: wishCount, onTap: () => tabController.animateTo(2)),
+          _MobileStatItem(label: loc.wishlist, count: wishCount, onTap: () => tabController.animateTo(1)),
           _VertDiv(),
-          _MobileStatItem(label: loc.mypageCouponBox, count: couponCount, onTap: () => tabController.animateTo(3)),
+          _MobileStatItem(label: loc.mypageCouponBox, count: couponCount, onTap: () => tabController.animateTo(2)),
           _VertDiv(),
-          _MobileStatItem(label: loc.mypagePoints, count: user?.points ?? 0, onTap: () => tabController.animateTo(4)),
+          _MobileStatItem(label: loc.mypagePoints, count: user?.points ?? 0, onTap: () => tabController.animateTo(3)),
         ],
       ),
     );
@@ -2394,26 +2390,57 @@ class _MobileOrderCard extends StatelessWidget {
                 );
               }
 
-              // 버튼 목록 구성
-              final btns = <Widget>[];
+              // ── 버튼 목록 구성 (행1: 주요, 행2: 단체전용) ──
+              final row1 = <Widget>[];
+              final row2 = <Widget>[];
 
-              // 주문 상세 (항상)
-              btns.add(_ActionBtn(
-                icon: Icons.receipt_long_rounded,
-                label: '주문상세',
-                onTap: () => _showUserOrderDetail(btnCtx, order),
+              // 행1: 영수증 (항상)
+              row1.add(_ActionBtn(
+                icon: Icons.receipt_outlined,
+                label: '영수증',
+                onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
+                  SnackBar(content: Text('영수증 발급은 고객센터로 문의해 주세요.\n주문번호: ${order.id}'),
+                    action: SnackBarAction(label: '닫기', onPressed: () {})),
+                ),
               ));
 
-              // 취소 버튼
-              if (canCancel) btns.add(_ActionBtn(
+              // 행1: 배송조회 (shipped/delivered)
+              if (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered)
+                row1.add(_ActionBtn(
+                  icon: Icons.local_shipping_outlined,
+                  label: '배송조회',
+                  color: const Color(0xFF00838F),
+                  onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
+                    const SnackBar(content: Text('배송조회: 카카오톡 @2fitkorea 또는\n전화 010-7227-6914')),
+                  ),
+                ));
+
+              // 행1: 교환신청 / 반품신청 (delivered)
+              if (canExchangeReturn) {
+                row1.add(_ActionBtn(
+                  icon: Icons.swap_horiz_rounded,
+                  label: '교환신청',
+                  color: const Color(0xFF1565C0),
+                  onTap: () => showContactSheet('교환 신청'),
+                ));
+                row1.add(_ActionBtn(
+                  icon: Icons.assignment_return_outlined,
+                  label: '반품신청',
+                  color: Colors.orange,
+                  onTap: () => showContactSheet('반품 신청'),
+                ));
+              }
+
+              // 행1: 주문취소
+              if (canCancel) row1.add(_ActionBtn(
                 icon: Icons.cancel_outlined,
                 label: isGroup ? '취소(제작전)' : '주문취소',
                 color: Colors.red,
                 onTap: doCancel,
               ));
 
-              // 취소 불가 안내
-              if (cancelBlockedByDesign) btns.add(_ActionBtn(
+              // 행1: 취소불가 안내
+              if (cancelBlockedByDesign) row1.add(_ActionBtn(
                 icon: Icons.lock_outline_rounded,
                 label: '취소불가',
                 color: Colors.red.shade300,
@@ -2422,66 +2449,53 @@ class _MobileOrderCard extends StatelessWidget {
                 ),
               ));
 
-              // 교환/반품
-              if (canExchangeReturn) {
-                btns.add(_ActionBtn(
-                  icon: Icons.swap_horiz_rounded,
-                  label: '교환신청',
-                  color: const Color(0xFF1565C0),
-                  onTap: () => showContactSheet('교환 신청'),
-                ));
-                btns.add(_ActionBtn(
-                  icon: Icons.assignment_return_outlined,
-                  label: '반품신청',
-                  color: Colors.orange,
-                  onTap: () => showContactSheet('반품 신청'),
-                ));
-              }
-
-              // 디자인 수정
-              if (canDesignRevision) btns.add(_ActionBtn(
+              // 행2: 단체주문 전용
+              if (canDesignRevision) row2.add(_ActionBtn(
                 icon: Icons.edit_note_rounded,
                 label: '디자인수정',
                 color: const Color(0xFF7B1FA2),
                 badge: '${order.remainingDesignRevisions}',
                 onTap: () => onDesignRevision?.call(order),
               ));
-
-              // 추가제작
-              if (canAdditional) btns.add(_ActionBtn(
+              if (canAdditional) row2.add(_ActionBtn(
                 icon: Icons.add_circle_outline_rounded,
                 label: '추가제작',
                 color: const Color(0xFF2E7D32),
                 badge: '무료',
                 onTap: () => onAdditionalOrder(order),
               ));
-
-              // 색상변경
-              if (canColorEdit) btns.add(_ActionBtn(
+              if (canColorEdit) row2.add(_ActionBtn(
                 icon: Icons.palette_outlined,
                 label: '색상변경',
                 color: const Color(0xFF1565C0),
                 badge: '${order.remainingColorEdits}',
                 onTap: () => onColorEdit(order),
               ));
-
-              // 엑셀 다운로드 (단체주문)
-              if (isGroup) btns.add(Builder(builder: (ctx2) => _ActionBtn(
+              if (isGroup) row2.add(Builder(builder: (ctx2) => _ActionBtn(
                 icon: Icons.file_download_outlined,
                 label: '엑셀',
                 color: const Color(0xFF00695C),
                 onTap: () => onExcelDownload?.call(ctx2, order),
               )));
 
-              return Row(
-                children: btns.asMap().entries.map((e) {
+              Widget buildRow(List<Widget> items) => Row(
+                children: items.asMap().entries.map((e) {
                   final w = Expanded(child: e.value);
                   if (e.key == 0) return w;
                   return Row(mainAxisSize: MainAxisSize.min, children: [
-                    Container(width: 1, height: 32, color: Colors.grey[200]),
-                    w,
+                    Container(width: 1, height: 32, color: Colors.grey[200]), w,
                   ]);
                 }).toList(),
+              );
+
+              return Column(
+                children: [
+                  buildRow(row1),
+                  if (row2.isNotEmpty) ...[
+                    Container(height: 1, color: Colors.grey[100]),
+                    buildRow(row2),
+                  ],
+                ],
               );
             }),
           ),
