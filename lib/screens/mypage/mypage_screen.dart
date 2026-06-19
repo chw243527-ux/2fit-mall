@@ -1147,9 +1147,18 @@ class _PcOrderCard extends StatelessWidget {
                             border: Border.all(color: const Color(0xFFEEEEEE)),
                           ),
                           clipBehavior: Clip.hardEdge,
-                          child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                            ? Image.network(item.imageUrl!, width: 56, height: 56, fit: BoxFit.contain)
-                            : const Icon(Icons.checkroom_rounded, color: Colors.grey, size: 28),
+                          child: () {
+                            final url = item.imageUrl?.isNotEmpty == true
+                                ? item.imageUrl!
+                                : (item.customOptions?['productImageUrl'] as String?)?.isNotEmpty == true
+                                    ? item.customOptions!['productImageUrl'] as String
+                                    : (item.customOptions?['designFileUrl'] as String?)?.isNotEmpty == true
+                                        ? item.customOptions!['designFileUrl'] as String
+                                        : null;
+                            return url != null
+                                ? Image.network(url, width: 56, height: 56, fit: BoxFit.contain)
+                                : const Icon(Icons.checkroom_rounded, color: Colors.grey, size: 28);
+                          }(),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -1318,7 +1327,21 @@ class _PcOrderCard extends StatelessWidget {
                 color: const Color(0xFFFF8F00),
                 onTap: () => _showWriteReviewFromOrder(btnCtx, order),
               ));
-              if (canDesignRevision) btns.add(_ActionBtn(icon: Icons.edit_note_rounded, label: '디자인수정', color: const Color(0xFF7B1FA2), badge: '${order.remainingDesignRevisions}', onTap: () => onDesignRevision?.call(order)));
+              // 단체주문 디자인수정요청 (3일 이내, 2회 미만)
+              if (isGroup && order.canRequestDesignRevision) btns.add(_ActionBtn(
+                icon: Icons.edit_note_rounded,
+                label: '디자인수정',
+                color: const Color(0xFF7B1FA2),
+                badge: '${order.remainingDesignRevisions}회',
+                onTap: () => onDesignRevision?.call(order),
+              ));
+              // 단체주문 디자인 확정 표시 (3일 경과 또는 배송 이상)
+              if (isGroup && order.isDesignConfirmed && !order.canRequestDesignRevision) btns.add(_ActionBtn(
+                icon: Icons.check_circle_outline_rounded,
+                label: '디자인확정',
+                color: Colors.grey,
+                onTap: null,
+              ));
               if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), badge: '무료', onTap: () => onAdditionalOrder(order)));
               if (canColorEdit) btns.add(_ActionBtn(icon: Icons.palette_outlined, label: '색상변경', color: const Color(0xFF1565C0), badge: '${order.remainingColorEdits}', onTap: () => onColorEdit(order)));
               if (isGroup) btns.add(Builder(builder: (ctx2) => _ActionBtn(icon: Icons.file_download_outlined, label: '엑셀', color: const Color(0xFF00695C), onTap: () => onExcelDownload?.call(ctx2, order))));
@@ -2415,9 +2438,21 @@ class _MobileOrderCard extends StatelessWidget {
                       border: Border.all(color: const Color(0xFFEEEEEE)),
                     ),
                     clipBehavior: Clip.hardEdge,
-                    child: order.items.isNotEmpty && order.items.first.imageUrl != null && order.items.first.imageUrl!.isNotEmpty
-                      ? Image.network(order.items.first.imageUrl!, width: 64, height: 64, fit: BoxFit.contain)
-                      : const Icon(Icons.checkroom_rounded, color: Colors.grey, size: 30),
+                    child: () {
+                      if (order.items.isEmpty) return const Icon(Icons.checkroom_rounded, color: Colors.grey, size: 30);
+                      final item = order.items.first;
+                      final url = item.imageUrl?.isNotEmpty == true
+                          ? item.imageUrl!
+                          : (item.customOptions?['productImageUrl'] as String?)?.isNotEmpty == true
+                              ? item.customOptions!['productImageUrl'] as String
+                              : (item.customOptions?['designFileUrl'] as String?)?.isNotEmpty == true
+                                  ? item.customOptions!['designFileUrl'] as String
+                                  : null;
+                      return url != null
+                          ? Image.network(url, width: 64, height: 64, fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.checkroom_rounded, color: Colors.grey, size: 30))
+                          : const Icon(Icons.checkroom_rounded, color: Colors.grey, size: 30);
+                    }(),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2672,12 +2707,20 @@ class _MobileOrderCard extends StatelessWidget {
               }
 
               // 행2: 단체주문 전용
-              if (canDesignRevision) row2.add(_ActionBtn(
+              // 디자인수정요청 (3일 이내, 2회 미만)
+              if (order.canRequestDesignRevision) row2.add(_ActionBtn(
                 icon: Icons.edit_note_rounded,
                 label: '디자인수정',
                 color: const Color(0xFF7B1FA2),
-                badge: '${order.remainingDesignRevisions}',
+                badge: '${order.remainingDesignRevisions}회',
                 onTap: () => onDesignRevision?.call(order),
+              ));
+              // 디자인 확정 표시 (3일 경과 or 배송 이상)
+              if (isGroup && order.isDesignConfirmed && !order.canRequestDesignRevision) row2.add(_ActionBtn(
+                icon: Icons.check_circle_outline_rounded,
+                label: '디자인확정',
+                color: Colors.grey,
+                onTap: null,
               ));
               if (canAdditional) row2.add(_ActionBtn(
                 icon: Icons.add_circle_outline_rounded,
@@ -4955,7 +4998,14 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                             : isGroup ? const Color(0xFF6A1B9A) : const Color(0xFF1565C0);
                         final displaySize = (item.size == '단체' || item.size == 'GROUP' || item.size.isEmpty)
                             ? null : item.size;
-                        final hasImage = item.imageUrl != null && item.imageUrl!.isNotEmpty;
+                        final imageUrl = item.imageUrl?.isNotEmpty == true
+                            ? item.imageUrl!
+                            : (item.customOptions?['productImageUrl'] as String?)?.isNotEmpty == true
+                                ? item.customOptions!['productImageUrl'] as String
+                                : (item.customOptions?['designFileUrl'] as String?)?.isNotEmpty == true
+                                    ? item.customOptions!['designFileUrl'] as String
+                                    : null;
+                        final hasImage = imageUrl != null;
                         return Container(
                           margin: const EdgeInsets.only(bottom: 6),
                           padding: const EdgeInsets.all(10),
@@ -4977,7 +5027,7 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                                 ),
                                 clipBehavior: Clip.hardEdge,
                                 child: Image.network(
-                                  item.imageUrl!,
+                                  imageUrl,
                                   width: 72,
                                   height: 72,
                                   fit: BoxFit.contain,

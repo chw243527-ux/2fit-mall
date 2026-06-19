@@ -30,6 +30,7 @@ import '../chat/chat_screen.dart';
 import 'admin_extra_tabs.dart';
 import 'admin_delivery_tab.dart';
 import 'admin_exchange_tab.dart';
+import 'admin_review_tab.dart';
 import 'dart:typed_data';
 import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
@@ -157,9 +158,9 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 16, vsync: this);
+    _tabCtrl = TabController(length: 17, vsync: this);
     // initialTab이 지정된 경우 해당 탭으로 이동
-    if (widget.initialTab > 0 && widget.initialTab < 16) {
+    if (widget.initialTab > 0 && widget.initialTab < 17) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _tabCtrl.animateTo(widget.initialTab);
       });
@@ -315,6 +316,7 @@ class _AdminScreenState extends State<AdminScreen>
       {'icon': Icons.local_shipping_rounded, 'label': '배송관리'},
       {'icon': Icons.folder_special_rounded, 'label': '카테고리관리'},
       {'icon': Icons.swap_horiz_rounded, 'label': '교환/반품'},
+      {'icon': Icons.rate_review_rounded, 'label': '리뷰관리'},
     ];
 
     return Scaffold(
@@ -755,6 +757,7 @@ class _AdminScreenState extends State<AdminScreen>
             const Tab(icon: Icon(Icons.local_shipping_rounded, size: 14), text: '배송관리'),
             const Tab(icon: Icon(Icons.folder_special_rounded, size: 14), text: '카테고리관리'),
             const Tab(icon: Icon(Icons.swap_horiz_rounded, size: 14), text: '교환/반품'),
+            const Tab(icon: Icon(Icons.rate_review_rounded, size: 14), text: '리뷰관리'),
           ],
         ),
       ),
@@ -790,6 +793,7 @@ class _AdminScreenState extends State<AdminScreen>
         Offstage(offstage: index != 13, child: const AdminDeliveryTab()),
         Offstage(offstage: index != 14, child: const _CategoryManagementTab()),
         Offstage(offstage: index != 15, child: const AdminExchangeTab()),
+        Offstage(offstage: index != 16, child: const AdminReviewTab()),
       ],
     );
   }

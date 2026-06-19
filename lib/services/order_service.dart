@@ -222,6 +222,11 @@ class OrderService {
       if (status == OrderStatus.delivered) {
         updateData['deliveredAt'] = FieldValue.serverTimestamp();
       }
+      // 주문확인(confirmed) 시 디자인수정요청 마감일 = 3일 후로 설정
+      if (status == OrderStatus.confirmed) {
+        updateData['designRevisionDeadline'] =
+            DateTime.now().add(const Duration(days: 3)).toIso8601String();
+      }
       await _db.collection('orders').doc(orderId).update(updateData);
       if (kDebugMode) debugPrint('✅ Firestore 주문 상태 업데이트: $orderId → ${status.name}');
 

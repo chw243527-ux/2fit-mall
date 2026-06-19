@@ -378,10 +378,29 @@ class OrderModel {
   bool get canEditColor => colorEditCount < 2;
   /// 남은 컬러+단체명 수정 횟수
   int get remainingColorEdits => 2 - colorEditCount;
-  /// 디자인 수정 가능 여부 (총 2회)
+  /// 디자인 수정 가능 여부 (총 2회, 마감일 이내)
   bool get canDesignRevision => designRevisionCount < 2;
   /// 남은 디자인 수정 횟수
   int get remainingDesignRevisions => 2 - designRevisionCount;
+
+  /// 디자인수정요청 기간 내 여부 (confirmed 후 3일 이내, designRevisionDeadline 기준)
+  /// designRevisionDeadline이 null이면 기간 미설정 → 요청 가능으로 처리
+  bool get isDesignRevisionPeriodActive {
+    if (designRevisionDeadline == null) return true;
+    return DateTime.now().isBefore(designRevisionDeadline!);
+  }
+
+  /// 단체주문 디자인수정요청 가능 여부 (제작중 상태 + 2회 미만 + 기간 이내)
+  bool get canRequestDesignRevision =>
+      (status == OrderStatus.processing || status == OrderStatus.confirmed) &&
+      canDesignRevision &&
+      isDesignRevisionPeriodActive;
+
+  /// 디자인 확정 여부 (3일 경과 후 수정 요청 없음 or 제작 완료 이상)
+  bool get isDesignConfirmed =>
+      (designRevisionDeadline != null && DateTime.now().isAfter(designRevisionDeadline!)) ||
+      (status == OrderStatus.shipped || status == OrderStatus.delivered ||
+       status == OrderStatus.purchaseConfirmed);
 
   OrderModel copyWith({
     OrderStatus? status,
