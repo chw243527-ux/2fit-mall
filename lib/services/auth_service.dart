@@ -691,38 +691,61 @@ class AuthService {
       final emailKey = (user.email ?? '').toLowerCase();
       final isAdmin = _adminEmails.contains(emailKey);
 
-      // Firestore에 사용자 문서 생성/업데이트
-      final docRef = _db.collection('users').doc(user.uid);
-      final doc = await docRef.get();
-      if (!doc.exists) {
-        await docRef.set({
-          'id': user.uid,
-          'name': user.displayName ?? googleUser.displayName ?? '회원',
-          'email': user.email ?? '',
-          'phone': '',
-          'profileImageUrl': user.photoURL ?? '',
-          'grade': 'bronze',
-          'isAdmin': isAdmin,
-          'points': 0,
-          'coupons': [],
-          'wishlist': [],
-          'createdAt': FieldValue.serverTimestamp(),
-          'loginProvider': 'google',
-        });
-      } else {
-        await docRef.update({
-          'lastLoginAt': FieldValue.serverTimestamp(),
-          'loginProvider': 'google',
-        });
+      // Firestore에 사용자 문서 생성/업데이트 (assertion 에러 시 폴백)
+      Map<String, dynamic>? firestoreData;
+      try {
+        await Future.delayed(const Duration(milliseconds: 300));
+        final docRef = _db.collection('users').doc(user.uid);
+        final doc = await docRef.get();
+        if (!doc.exists) {
+          await docRef.set({
+            'id': user.uid,
+            'name': user.displayName ?? googleUser.displayName ?? '회원',
+            'email': user.email ?? '',
+            'phone': '',
+            'profileImageUrl': user.photoURL ?? '',
+            'grade': 'bronze',
+            'isAdmin': isAdmin,
+            'points': 0,
+            'coupons': [],
+            'wishlist': [],
+            'createdAt': FieldValue.serverTimestamp(),
+            'loginProvider': 'google',
+          });
+          firestoreData = {
+            'name': user.displayName ?? '회원',
+            'email': user.email ?? '',
+            'phone': '',
+            'profileImageUrl': user.photoURL ?? '',
+            'grade': 'bronze',
+            'isAdmin': isAdmin,
+            'points': 0,
+            'wishlist': [],
+          };
+        } else {
+          docRef.update({
+            'lastLoginAt': FieldValue.serverTimestamp(),
+            'loginProvider': 'google',
+          }).catchError((_) {});
+          firestoreData = doc.data();
+        }
+        try {
+          final fresh = await _db.collection('users').doc(user.uid).get();
+          if (fresh.data() != null) firestoreData = fresh.data();
+        } catch (_) {}
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ 구글 Firestore 오류 (무시하고 계속): $e');
+        firestoreData ??= {};
       }
-      final data = (await docRef.get()).data()!;
+
+      final data = firestoreData ?? {};
       final tier = data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
       final userModel = UserModel(
         id: user.uid,
-        name: data['name'] as String? ?? '',
-        email: data['email'] as String? ?? '',
+        name: data['name'] as String? ?? user.displayName ?? '회원',
+        email: data['email'] as String? ?? user.email ?? '',
         phone: data['phone'] as String? ?? '',
-        profileImageUrl: data['profileImageUrl'] as String? ?? '',
+        profileImageUrl: data['profileImageUrl'] as String? ?? user.photoURL ?? '',
         memberTier: tier,
         grade: tier,
         isAdmin: (data['isAdmin'] as bool?) ?? isAdmin,
@@ -733,14 +756,18 @@ class AuthService {
         loginProvider: 'google',
       );
       // 세션 저장
-      final box = await _getSessionBox();
-      await box.put('user', {
-        'id': userModel.id, 'name': userModel.name, 'email': userModel.email,
-        'phone': userModel.phone, 'profileImageUrl': userModel.profileImageUrl,
-        'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
-        'points': userModel.points, 'wishlist': userModel.wishlist,
-        'loginProvider': userModel.loginProvider,
-      });
+      try {
+        final box = await _getSessionBox();
+        await box.put('user', {
+          'id': userModel.id, 'name': userModel.name, 'email': userModel.email,
+          'phone': userModel.phone, 'profileImageUrl': userModel.profileImageUrl,
+          'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
+          'points': userModel.points, 'wishlist': userModel.wishlist,
+          'loginProvider': userModel.loginProvider,
+        });
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ 구글 세션 저장 실패 (무시): $e');
+      }
       return AuthResult(success: true, user: userModel);
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 구글 로그인 실패: $e');
@@ -762,64 +789,90 @@ class AuthService {
   // Flutter Web: 카카오 JS SDK → OAuthToken 발급
   // Android/iOS: 카카오톡 앱 또는 카카오계정 웹뷰 로그인
   static Future<AuthResult> signInWithKakao() async {
+    // ── Step 1: 카카오 SDK 토큰 발급 ──────────────────────────
+    kakao.OAuthToken token;
     try {
-      kakao.OAuthToken token;
-
       if (kIsWeb) {
-        // 웹: 카카오 JS SDK 팝업 로그인
         token = await kakao.UserApi.instance.loginWithKakaoAccount();
       } else {
-        // 앱: 카카오톡 설치 여부에 따라 분기
         final isInstalled = await kakao.isKakaoTalkInstalled();
         token = isInstalled
             ? await kakao.UserApi.instance.loginWithKakaoTalk()
             : await kakao.UserApi.instance.loginWithKakaoAccount();
       }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 카카오 토큰 발급 실패: $e');
+      return AuthResult(success: false, error: '카카오 로그인에 실패했습니다. 다시 시도해주세요.');
+    }
 
-      if (kDebugMode) debugPrint('✅ 카카오 토큰 발급: ${token.accessToken.substring(0, 10)}...');
+    if (kDebugMode) debugPrint('✅ 카카오 토큰 발급 성공');
 
-      // 카카오 사용자 정보 조회
-      final kakaoUser = await kakao.UserApi.instance.me();
+    // ── Step 2: 카카오 사용자 정보 조회 ──────────────────────
+    late String kakaoId;
+    late String email;
+    late String name;
+    late String photoUrl;
+    try {
+      final kakaoUser    = await kakao.UserApi.instance.me();
       final kakaoAccount = kakaoUser.kakaoAccount;
-      final profile = kakaoAccount?.profile;
+      final profile      = kakaoAccount?.profile;
+      kakaoId   = kakaoUser.id.toString();
+      email     = kakaoAccount?.email ?? '$kakaoId@kakao.com';
+      name      = profile?.nickname ?? '카카오 사용자';
+      photoUrl  = profile?.profileImageUrl ?? '';
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 카카오 사용자 정보 조회 실패: $e');
+      return AuthResult(success: false, error: '카카오 사용자 정보를 가져올 수 없습니다.');
+    }
 
-      final kakaoId   = kakaoUser.id.toString();
-      final email     = kakaoAccount?.email ?? '$kakaoId@kakao.com';
-      final name      = profile?.nickname ?? '카카오 사용자';
-      final photoUrl  = profile?.profileImageUrl ?? '';
-
-      // Firebase Custom Token 없이 → 이메일/비밀번호로 Firebase 계정 연동
-      // 카카오 고유 이메일을 Firebase auth에 등록 (없으면 자동 생성)
-      final fakePassword = 'kakao_${kakaoId}_2fit';
-      UserCredential userCred;
-      try {
-        userCred = await _auth.createUserWithEmailAndPassword(
-          email: email,
-          password: fakePassword,
-        );
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'email-already-in-use') {
+    // ── Step 3: Firebase Auth 계정 연동 ─────────────────────
+    // Auth 상태 변경 시 열려있는 Firestore 스트림이 내부 assertion을
+    // 발생시킬 수 있으므로, Firebase Auth 로그인 결과를 먼저 확보합니다.
+    final fakePassword = 'kakao_${kakaoId}_2fit';
+    UserCredential userCred;
+    try {
+      userCred = await _auth.createUserWithEmailAndPassword(
+        email: email, password: fakePassword,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'email-already-in-use') {
+        try {
           userCred = await _auth.signInWithEmailAndPassword(
-            email: email,
-            password: fakePassword,
+            email: email, password: fakePassword,
           );
-        } else {
-          rethrow;
+        } catch (e2) {
+          if (kDebugMode) debugPrint('⚠️ Firebase Auth 로그인 실패: $e2');
+          return AuthResult(success: false, error: '카카오 계정 인증에 실패했습니다. 다시 시도해주세요.');
         }
+      } else {
+        if (kDebugMode) debugPrint('⚠️ Firebase Auth 계정 생성 실패: $e');
+        return AuthResult(success: false, error: '카카오 계정 연동에 실패했습니다. 다시 시도해주세요.');
       }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ Firebase Auth 예외: $e');
+      return AuthResult(success: false, error: '카카오 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
 
-      final user = userCred.user;
-      if (user == null) return const AuthResult(success: false, error: '카카오 로그인 실패');
+    final user = userCred.user;
+    if (user == null) {
+      return const AuthResult(success: false, error: '카카오 로그인 실패: 사용자 정보 없음');
+    }
 
-      // 사용자 이름 업데이트
-      if (user.displayName == null || user.displayName!.isEmpty) {
-        await user.updateDisplayName(name);
-      }
+    // 사용자 이름 업데이트 (비동기, 실패해도 무시)
+    if (user.displayName == null || user.displayName!.isEmpty) {
+      user.updateDisplayName(name).catchError((_) {});
+    }
 
-      final emailKey = email.toLowerCase();
-      final isAdmin  = _adminEmails.contains(emailKey);
+    final emailKey = email.toLowerCase();
+    final isAdmin  = _adminEmails.contains(emailKey);
 
-      // Firestore 사용자 문서 생성/업데이트
+    // ── Step 4: Firestore 사용자 문서 생성/업데이트 ──────────
+    // Firestore assertion 에러(Auth 토큰 갱신 경쟁 상태)가 발생해도
+    // Firebase Auth 로그인은 이미 성공했으므로 로컬 데이터로 진행합니다.
+    Map<String, dynamic>? firestoreData;
+    try {
+      // 짧은 딜레이: Auth 상태 변경 이벤트가 Firestore 스트림에 전파될 시간 확보
+      await Future.delayed(const Duration(milliseconds: 300));
       final docRef = _db.collection('users').doc(user.uid);
       final doc    = await docRef.get();
       if (!doc.exists) {
@@ -838,34 +891,52 @@ class AuthService {
           'loginProvider'   : 'kakao',
           'kakaoId'         : kakaoId,
         });
+        firestoreData = {
+          'name': name, 'email': email, 'phone': '',
+          'profileImageUrl': photoUrl, 'grade': 'bronze',
+          'isAdmin': isAdmin, 'points': 0, 'wishlist': [],
+        };
       } else {
-        await docRef.update({
+        // 업데이트 (실패해도 계속)
+        docRef.update({
           'lastLoginAt'   : FieldValue.serverTimestamp(),
           'loginProvider' : 'kakao',
           'kakaoId'       : kakaoId,
           if (photoUrl.isNotEmpty) 'profileImageUrl': photoUrl,
-        });
+        }).catchError((_) {});
+        firestoreData = doc.data();
       }
+      // 최신 데이터 다시 읽기 (실패 시 기존 데이터 사용)
+      try {
+        final fresh = await _db.collection('users').doc(user.uid).get();
+        if (fresh.data() != null) firestoreData = fresh.data();
+      } catch (_) {}
+    } catch (e) {
+      // Firestore assertion / 네트워크 오류 → 로컬 데이터로 폴백
+      if (kDebugMode) debugPrint('⚠️ Firestore 쓰기 오류 (무시하고 계속): $e');
+      firestoreData ??= {};
+    }
 
-      final data = (await docRef.get()).data()!;
-      final tier = data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
-      final userModel = UserModel(
-        id              : user.uid,
-        name            : data['name']            as String? ?? name,
-        email           : data['email']           as String? ?? email,
-        phone           : data['phone']           as String? ?? '',
-        profileImageUrl : data['profileImageUrl'] as String? ?? photoUrl,
-        memberTier      : tier,
-        grade           : tier,
-        isAdmin         : (data['isAdmin'] as bool?) ?? isAdmin,
-        points          : (data['points']  as int?)  ?? 0,
-        coupons         : const [],
-        wishlist        : List<String>.from(data['wishlist'] as List? ?? []),
-        createdAt       : DateTime.now(),
-        loginProvider   : 'kakao',
-      );
+    final data   = firestoreData ?? {};
+    final tier   = data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
+    final userModel = UserModel(
+      id              : user.uid,
+      name            : data['name']            as String? ?? name,
+      email           : data['email']           as String? ?? email,
+      phone           : data['phone']           as String? ?? '',
+      profileImageUrl : data['profileImageUrl'] as String? ?? photoUrl,
+      memberTier      : tier,
+      grade           : tier,
+      isAdmin         : (data['isAdmin'] as bool?) ?? isAdmin,
+      points          : (data['points']  as int?)  ?? 0,
+      coupons         : const [],
+      wishlist        : List<String>.from(data['wishlist'] as List? ?? []),
+      createdAt       : DateTime.now(),
+      loginProvider   : 'kakao',
+    );
 
-      // 세션 저장
+    // ── Step 5: 세션 저장 ────────────────────────────────────
+    try {
       final box = await _getSessionBox();
       await box.put('user', {
         'id': userModel.id, 'name': userModel.name, 'email': userModel.email,
@@ -874,11 +945,12 @@ class AuthService {
         'points': userModel.points, 'wishlist': userModel.wishlist,
         'loginProvider': userModel.loginProvider,
       });
-      return AuthResult(success: true, user: userModel);
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 카카오 로그인 실패: $e');
-      return AuthResult(success: false, error: '카카오 로그인 실패: $e');
+      if (kDebugMode) debugPrint('⚠️ 세션 저장 실패 (무시): $e');
     }
+
+    if (kDebugMode) debugPrint('✅ 카카오 로그인 완료: ${userModel.name}');
+    return AuthResult(success: true, user: userModel);
   }
 
   static Future<void> signOutKakao() async {
@@ -974,65 +1046,90 @@ class AuthService {
     required String name,
     required String photoUrl,
   }) async {
-    // Firebase 계정 연동 (이메일/비밀번호 방식)
+    // ── Firebase Auth 계정 연동 ─────────────────────────────
     final fakePassword = 'naver_${naverId}_2fit';
     UserCredential userCred;
     try {
       userCred = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: fakePassword,
+        email: email, password: fakePassword,
       );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
-        userCred = await _auth.signInWithEmailAndPassword(
-          email: email,
-          password: fakePassword,
-        );
+        try {
+          userCred = await _auth.signInWithEmailAndPassword(
+            email: email, password: fakePassword,
+          );
+        } catch (e2) {
+          if (kDebugMode) debugPrint('⚠️ 네이버 Firebase Auth 실패: $e2');
+          return AuthResult(success: false, error: '네이버 계정 인증에 실패했습니다. 다시 시도해주세요.');
+        }
       } else {
-        rethrow;
+        if (kDebugMode) debugPrint('⚠️ 네이버 Firebase Auth 계정 생성 실패: $e');
+        return AuthResult(success: false, error: '네이버 계정 연동에 실패했습니다. 다시 시도해주세요.');
       }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 네이버 Firebase Auth 예외: $e');
+      return AuthResult(success: false, error: '네이버 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
 
     final user = userCred.user;
-    if (user == null) return const AuthResult(success: false, error: '네이버 로그인 실패');
+    if (user == null) return const AuthResult(success: false, error: '네이버 로그인 실패: 사용자 정보 없음');
 
     if (user.displayName == null || user.displayName!.isEmpty) {
-      await user.updateDisplayName(name);
+      user.updateDisplayName(name).catchError((_) {});
     }
 
     final emailKey = email.toLowerCase();
     final isAdmin  = _adminEmails.contains(emailKey);
 
-    // Firestore 사용자 문서 생성/업데이트
-    final docRef = _db.collection('users').doc(user.uid);
-    final doc    = await docRef.get();
-    if (!doc.exists) {
-      await docRef.set({
-        'id'              : user.uid,
-        'name'            : name,
-        'email'           : email,
-        'phone'           : '',
-        'profileImageUrl' : photoUrl,
-        'grade'           : 'bronze',
-        'isAdmin'         : isAdmin,
-        'points'          : 0,
-        'coupons'         : [],
-        'wishlist'        : [],
-        'createdAt'       : FieldValue.serverTimestamp(),
-        'loginProvider'   : 'naver',
-        'naverId'         : naverId,
-      });
-    } else {
-      await docRef.update({
-        'lastLoginAt'   : FieldValue.serverTimestamp(),
-        'loginProvider' : 'naver',
-        'naverId'       : naverId,
-        if (photoUrl.isNotEmpty) 'profileImageUrl': photoUrl,
-      });
+    // ── Firestore 사용자 문서 생성/업데이트 ─────────────────
+    // assertion 에러 발생 시 로컬 데이터로 폴백
+    Map<String, dynamic>? firestoreData;
+    try {
+      await Future.delayed(const Duration(milliseconds: 300));
+      final docRef = _db.collection('users').doc(user.uid);
+      final doc    = await docRef.get();
+      if (!doc.exists) {
+        await docRef.set({
+          'id'              : user.uid,
+          'name'            : name,
+          'email'           : email,
+          'phone'           : '',
+          'profileImageUrl' : photoUrl,
+          'grade'           : 'bronze',
+          'isAdmin'         : isAdmin,
+          'points'          : 0,
+          'coupons'         : [],
+          'wishlist'        : [],
+          'createdAt'       : FieldValue.serverTimestamp(),
+          'loginProvider'   : 'naver',
+          'naverId'         : naverId,
+        });
+        firestoreData = {
+          'name': name, 'email': email, 'phone': '',
+          'profileImageUrl': photoUrl, 'grade': 'bronze',
+          'isAdmin': isAdmin, 'points': 0, 'wishlist': [],
+        };
+      } else {
+        docRef.update({
+          'lastLoginAt'   : FieldValue.serverTimestamp(),
+          'loginProvider' : 'naver',
+          'naverId'       : naverId,
+          if (photoUrl.isNotEmpty) 'profileImageUrl': photoUrl,
+        }).catchError((_) {});
+        firestoreData = doc.data();
+      }
+      try {
+        final fresh = await _db.collection('users').doc(user.uid).get();
+        if (fresh.data() != null) firestoreData = fresh.data();
+      } catch (_) {}
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 네이버 Firestore 오류 (무시하고 계속): $e');
+      firestoreData ??= {};
     }
 
-    final data = (await docRef.get()).data()!;
-    final tier = data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
+    final data   = firestoreData ?? {};
+    final tier   = data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
     final userModel = UserModel(
       id              : user.uid,
       name            : data['name']            as String? ?? name,
@@ -1049,14 +1146,19 @@ class AuthService {
       loginProvider   : 'naver',
     );
     // 세션 저장
-    final box = await _getSessionBox();
-    await box.put('user', {
-      'id': userModel.id, 'name': userModel.name, 'email': userModel.email,
-      'phone': userModel.phone, 'profileImageUrl': userModel.profileImageUrl,
-      'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
-      'points': userModel.points, 'wishlist': userModel.wishlist,
-      'loginProvider': userModel.loginProvider,
-    });
+    try {
+      final box = await _getSessionBox();
+      await box.put('user', {
+        'id': userModel.id, 'name': userModel.name, 'email': userModel.email,
+        'phone': userModel.phone, 'profileImageUrl': userModel.profileImageUrl,
+        'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
+        'points': userModel.points, 'wishlist': userModel.wishlist,
+        'loginProvider': userModel.loginProvider,
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 네이버 세션 저장 실패 (무시): $e');
+    }
+    if (kDebugMode) debugPrint('✅ 네이버 로그인 완료: ${userModel.name}');
     return AuthResult(success: true, user: userModel);
   }
 
