@@ -2628,34 +2628,44 @@ class _MobilePaymentHistoryTab extends StatelessWidget {
       itemCount: orders.length,
       itemBuilder: (_, i) {
         final o = orders[i];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(12),
-            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8)],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(color: const Color(0xFF00796B).withValues(alpha:0.1), shape: BoxShape.circle),
-                child: const Icon(Icons.payment_rounded, size: 22, color: Color(0xFF00796B)),
+        return Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => _showUserOrderDetail(context, o),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8)],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(o.id, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                    Text(o.paymentMethod, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                    Text(_fmtDate(o.createdAt), style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                  ],
-                ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44, height: 44,
+                    decoration: BoxDecoration(color: const Color(0xFF00796B).withValues(alpha:0.1), shape: BoxShape.circle),
+                    child: const Icon(Icons.payment_rounded, size: 22, color: Color(0xFF00796B)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(o.id, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                        Text(o.paymentMethod, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                        Text(_fmtDate(o.createdAt), style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                      ],
+                    ),
+                  ),
+                  Text(_fmtPrice(o.totalAmount),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF00796B))),
+                  const SizedBox(width: 4),
+                  Icon(Icons.chevron_right_rounded, size: 16, color: Colors.grey[400]),
+                ],
               ),
-              Text(_fmtPrice(o.totalAmount),
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF00796B))),
-            ],
+            ),
           ),
         );
       },
@@ -4521,8 +4531,8 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                 ),
                 const SizedBox(width: 8),
                 // 영수증 버튼
-                Builder(builder: (btnCtx2) => OutlinedButton(
-                  onPressed: () => ScaffoldMessenger.of(btnCtx2).showSnackBar(
+OutlinedButton(
+                  onPressed: () => ScaffoldMessenger.of(sheetCtx).showSnackBar(
                     SnackBar(content: Text('영수증 발급은 고객센터로 문의해 주세요.\n주문번호: ${order.id}'),
                       action: SnackBarAction(label: '닫기', onPressed: () {})),
                   ),
@@ -4535,7 +4545,7 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                   ),
                   child: const Text('영수증', style: TextStyle(fontSize: 12)),
-                )),
+                ),
                 const SizedBox(width: 6),
                 // 닫기
                 GestureDetector(
