@@ -31,6 +31,8 @@ import '../../services/fcm_service.dart';
 import '../../widgets/address_search_widget.dart';
 import 'size_profile_screen.dart';
 import '../../utils/navigation_helper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class MyPageScreen extends StatefulWidget {
   final VoidCallback? onBack; // 홈(탭0)으로 돌아가는 콜백
@@ -5462,6 +5464,76 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
     'TD Logi', '대신택배', '경동택배', '일양로지스', '기타',
   ];
 
+  // ── 사진 첨부 ──
+  final List<XFile> _images = [];
+  final List<String> _uploadedUrls = []; // Storage 업로드 후 URL
+  bool _isUploading = false;
+
+  static const _maxImages = 3;
+  static const _maxFileSizeBytes = 10 * 1024 * 1024; // 10MB
+
+  Future<void> _pickImages() async {
+    if (_images.length >= _maxImages) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('사진은 최대 3장까지 첨부할 수 있어요.'), duration: Duration(seconds: 2)),
+      );
+      return;
+    }
+    final picker = ImagePicker();
+    final remaining = _maxImages - _images.length;
+    try {
+      List<XFile> picked = [];
+      if (kIsWeb) {
+        // 웹: 단일 선택 반복 or 다중 선택
+        picked = await picker.pickMultiImage(imageQuality: 85, limit: remaining);
+      } else {
+        picked = await picker.pickMultiImage(imageQuality: 85, limit: remaining);
+      }
+      if (picked.isEmpty) return;
+      // 용량 체크
+      final oversized = <String>[];
+      final valid = <XFile>[];
+      for (final f in picked) {
+        final bytes = await f.readAsBytes();
+        if (bytes.length > _maxFileSizeBytes) {
+          oversized.add(f.name);
+        } else {
+          valid.add(f);
+        }
+      }
+      if (oversized.isNotEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${oversized.join(', ')} 파일이 10MB를 초과해 제외됐어요.'), duration: const Duration(seconds: 3)),
+        );
+      }
+      if (valid.isNotEmpty && mounted) {
+        setState(() => _images.addAll(valid.take(_maxImages - _images.length)));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('사진 선택 중 오류가 발생했어요: $e'), duration: const Duration(seconds: 2)),
+        );
+      }
+    }
+  }
+
+  Future<List<String>> _uploadImages(String requestId) async {
+    final urls = <String>[];
+    for (int i = 0; i < _images.length; i++) {
+      final file = _images[i];
+      final bytes = await file.readAsBytes();
+      final ext = file.name.contains('.') ? file.name.split('.').last.toLowerCase() : 'jpg';
+      final ref = FirebaseStorage.instance
+          .ref('exchange_requests/$requestId/image_$i.$ext');
+      final meta = SettableMetadata(contentType: 'image/$ext');
+      await ref.putData(bytes, meta);
+      final url = await ref.getDownloadURL();
+      urls.add(url);
+    }
+    return urls;
+  }
+
   @override
   void dispose() {
     _reasonCtrl.dispose();
@@ -5626,32 +5698,106 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
               ),
             ),
             const SizedBox(height: 10),
-            GestureDetector(
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('사진 첨부는 카카오톡 채널로 직접 전송해주세요.'),
-                  duration: Duration(seconds: 2),
-                ),
-              ),
-              child: Container(
-                width: 72, height: 72,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(Icons.photo_camera_outlined, size: 24, color: Colors.grey[500]),
-                  const SizedBox(height: 4),
-                  Text('사진 올리기', style: TextStyle(fontSize: 10, color: Colors.grey[500])),
-                ]),
-              ),
-            ),
+            // ── 사진 첨부 영역 ──
+            _buildImagePicker(),
           ]),
         ),
       ],
     ]);
   }
+
+  Widget _buildImagePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 미리보기 + 추가 버튼 가로 스크롤
+        SizedBox(
+          height: 80,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              // 추가된 이미지 미리보기
+              ..._images.asMap().entries.map((entry) {
+                final i = entry.key;
+                final file = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: kIsWeb
+                            ? Image.network(
+                                file.path,
+                                width: 72, height: 72,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                              )
+                            : Image.file(
+                                File(file.path),
+                                width: 72, height: 72,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _imagePlaceholder(),
+                              ),
+                      ),
+                      // 삭제 버튼
+                      Positioned(
+                        top: 2, right: 2,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _images.removeAt(i)),
+                          child: Container(
+                            width: 20, height: 20,
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.close, size: 13, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              // 추가 버튼 (3장 미만일 때)
+              if (_images.length < _maxImages)
+                GestureDetector(
+                  onTap: _pickImages,
+                  child: Container(
+                    width: 72, height: 72,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Icon(Icons.photo_camera_outlined, size: 24, color: Colors.grey[500]),
+                      const SizedBox(height: 4),
+                      Text(
+                        '사진 올리기\n${_images.length}/$_maxImages',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 9, color: Colors.grey[500]),
+                      ),
+                    ]),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '· 사진은 최대 3장, 각 10MB 이하',
+          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+        ),
+      ],
+    );
+  }
+
+  Widget _imagePlaceholder() => Container(
+    width: 72, height: 72,
+    color: Colors.grey[100],
+    child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+  );
 
   Widget _sectionHeader(String text) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -6054,21 +6200,26 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
         Expanded(
           flex: 2,
           child: GestureDetector(
-            onTap: () => _onNext(context),
+            onTap: _isUploading ? null : () => _onNext(context),
             child: Container(
               height: 50,
               decoration: BoxDecoration(
-                color: _canProceed ? const Color(0xFF1565C0) : Colors.grey[300],
+                color: (_canProceed && !_isUploading) ? const Color(0xFF1565C0) : Colors.grey[300],
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Center(
-                child: Text(
-                  nextLabel,
-                  style: TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w700,
-                    color: _canProceed ? Colors.white : Colors.grey[500],
-                  ),
-                ),
+                child: _isUploading
+                    ? const SizedBox(
+                        width: 22, height: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                      )
+                    : Text(
+                        nextLabel,
+                        style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w700,
+                          color: _canProceed ? Colors.white : Colors.grey[500],
+                        ),
+                      ),
               ),
             ),
           ),
@@ -6100,13 +6251,21 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
   }
 
   Future<void> _submit(BuildContext context) async {
-    // Firestore 저장
+    // 이미지 업로드 중 표시
+    setState(() => _isUploading = true);
     try {
-      await FirebaseFirestore.instance.collection('exchange_requests').add({
+      // 임시 doc ID 생성 후 이미지 업로드
+      final docRef = FirebaseFirestore.instance.collection('exchange_requests').doc();
+      List<String> imageUrls = [];
+      if (_images.isNotEmpty) {
+        imageUrls = await _uploadImages(docRef.id);
+      }
+      await docRef.set({
         'orderId': widget.order.id,
         'type': widget.isReturn ? 'return' : 'exchange',
         'reason': _selectedReason ?? '',
         'detail': _reasonCtrl.text.trim(),
+        'imageUrls': imageUrls,
         'pickupMethod': _pickupMethod == 1 ? 'pickup' : 'already_sent',
         'returnTrackingNumber': _trackingCtrl.text.trim(),
         'returnTrackingCompany': _trackingCompany ?? '',
@@ -6117,7 +6276,16 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
         'userId': widget.order.userId,
         'userName': widget.order.userName,
       });
-    } catch (_) {}
+    } catch (e) {
+      setState(() => _isUploading = false);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('요청 중 오류가 발생했어요: $e'), duration: const Duration(seconds: 3)),
+        );
+      }
+      return;
+    }
+    setState(() => _isUploading = false);
 
     if (!context.mounted) return;
     Navigator.pop(context);

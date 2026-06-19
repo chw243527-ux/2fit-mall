@@ -149,6 +149,7 @@ class _ExchangeCard extends StatelessWidget {
     final userName = data['userName'] as String? ?? '';
     final userId = data['userId'] as String? ?? '';
     final adminNote = data['adminNote'] as String? ?? '';
+    final imageUrls = (data['imageUrls'] as List?)?.cast<String>() ?? [];
 
     final dateStr = createdAt.length >= 16 ? createdAt.substring(0, 16).replaceAll('T', ' ') : createdAt;
 
@@ -215,6 +216,45 @@ class _ExchangeCard extends StatelessWidget {
               // 사유
               _infoRow('사유', reason),
               if (detail.isNotEmpty) _infoRow('상세', detail),
+              // 첨부 사진
+              if (imageUrls.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text('첨부 사진 (${imageUrls.length}장)',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+                const SizedBox(height: 6),
+                SizedBox(
+                  height: 80,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: imageUrls.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 6),
+                    itemBuilder: (ctx, i) => GestureDetector(
+                      onTap: () => showDialog(
+                        context: ctx,
+                        builder: (_) => Dialog(
+                          backgroundColor: Colors.black,
+                          child: InteractiveViewer(
+                            child: Image.network(imageUrls[i], fit: BoxFit.contain),
+                          ),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          imageUrls[i],
+                          width: 80, height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 80, height: 80,
+                            color: Colors.grey[100],
+                            child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               // 수거방법
               _infoRow('수거방법', pickupMethod == 'pickup' ? '직접수거 (택배사 방문)' : '이미 발송'),
               // 운송장 (이미 발송한 경우)
