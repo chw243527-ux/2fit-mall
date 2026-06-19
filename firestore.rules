@@ -243,6 +243,43 @@ service cloud.firestore {
 
 
     // ════════════════════════════════════════════════════════
+    // banners 컬렉션
+    // ════════════════════════════════════════════════════════
+    match /banners/{bannerId} {
+      allow read: if true;        // 누구나 배너 조회
+      allow write: if isAdmin();  // 관리자만 수정/삭제
+    }
+
+
+    // ════════════════════════════════════════════════════════
+    // exchange_requests 컬렉션 (교환/반품 요청)
+    // ════════════════════════════════════════════════════════
+    match /exchange_requests/{requestId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      allow create: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+
+    // ════════════════════════════════════════════════════════
+    // design_requests 컬렉션 (디자인 수정 요청)
+    // ════════════════════════════════════════════════════════
+    match /design_requests/{reqId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      allow create: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+
+    // ════════════════════════════════════════════════════════
     // 그 외 모든 컬렉션: 기본 차단
     // ════════════════════════════════════════════════════════
     match /{document=**} {

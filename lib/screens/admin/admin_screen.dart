@@ -4319,11 +4319,23 @@ class _AdminScreenState extends State<AdminScreen>
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: p.images.isNotEmpty
-                ? NetImage(
+                ? Image.network(
                     p.images.first,
                     width: 54,
                     height: 54,
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 54, height: 54,
+                      color: const Color(0xFFF0F0F0),
+                      child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC)),
+                    ),
+                    loadingBuilder: (_, child, progress) => progress == null
+                        ? child
+                        : Container(
+                            width: 54, height: 54,
+                            color: const Color(0xFFF0F0F0),
+                            child: const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                          ),
                   )
                 : Container(
                     width: 54,
@@ -7164,7 +7176,7 @@ class _AdminScreenState extends State<AdminScreen>
           child: StreamBuilder<List<ChatRoomModel>>(
             stream: ChatService.watchAllRooms(),
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+              if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
               final rooms = snapshot.data ?? [];
@@ -7681,24 +7693,25 @@ class _AdminScreenState extends State<AdminScreen>
                     child: const Icon(Icons.layers_rounded, color: Colors.white, size: 18),
                   ),
                   const SizedBox(width: 10),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('섹션 이미지 관리', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                        Text('상품별 상세페이지 섹션 이미지를 관리합니다', style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                      children: const [
+                        Text('섹션 이미지 관리', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800), overflow: TextOverflow.ellipsis),
+                        Text('상품별 섹션 이미지 관리', style: TextStyle(fontSize: 10, color: Color(0xFF888888)), overflow: TextOverflow.ellipsis),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 6),
                   // 섹션 추가 버튼
                   ElevatedButton.icon(
                     onPressed: () => _showAddSectionDialog(),
-                    icon: const Icon(Icons.add_rounded, size: 14),
-                    label: const Text('섹션 추가', style: TextStyle(fontSize: 12)),
+                    icon: const Icon(Icons.add_rounded, size: 13),
+                    label: const Text('섹션 추가', style: TextStyle(fontSize: 11)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A1A2E),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       elevation: 0,
                     ),
@@ -7727,10 +7740,21 @@ class _AdminScreenState extends State<AdminScreen>
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(6),
-                            child: NetImage(
-                              p.images.isNotEmpty ? p.images.first : '',
-                              width: 32, height: 32, fit: BoxFit.cover,
-                            ),
+                            child: p.images.isNotEmpty
+                              ? Image.network(
+                                  p.images.first,
+                                  width: 32, height: 32, fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: 32, height: 32,
+                                    color: const Color(0xFFF0F0F0),
+                                    child: const Icon(Icons.checkroom_rounded, size: 16, color: Color(0xFFCCCCCC)),
+                                  ),
+                                )
+                              : Container(
+                                  width: 32, height: 32,
+                                  color: const Color(0xFFF0F0F0),
+                                  child: const Icon(Icons.checkroom_rounded, size: 16, color: Color(0xFFCCCCCC)),
+                                ),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
