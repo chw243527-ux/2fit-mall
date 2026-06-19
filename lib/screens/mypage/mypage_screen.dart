@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
@@ -16,7 +17,6 @@ import '../../services/email_service.dart';
 import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
 import '../products/product_detail_screen.dart';
-import '../cart/cart_screen.dart';
 import '../admin/admin_screen.dart';
 import '../auth/login_screen.dart';
 import '../orders/group_order_form_screen.dart';
@@ -26,180 +26,162 @@ import '../../services/order_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/fcm_service.dart';
 import '../../widgets/address_search_widget.dart';
+import 'size_profile_screen.dart';
 import '../../utils/navigation_helper.dart';
 
-// ══════════════════════════════════════════════════════════════
-// MyPageScreen — 오늘의집 스타일 마이페이지
-// ══════════════════════════════════════════════════════════════
-
 class MyPageScreen extends StatefulWidget {
-  final VoidCallback? onBack;
+  final VoidCallback? onBack; // 홈(탭0)으로 돌아가는 콜백
   const MyPageScreen({super.key, this.onBack});
+
   @override
   State<MyPageScreen> createState() => _MyPageScreenState();
 }
 
-class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabCtrl;
+class _MyPageScreenState extends State<MyPageScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
 
-  // ── 진행중인 주문 카운트 (상태별)
-  Map<OrderStatus, int> get _statusCounts {
-    final orders = context.read<OrderProvider>().orders;
-    final map = <OrderStatus, int>{};
-    for (final s in OrderStatus.values) map[s] = 0;
-    for (final o in orders) map[o.status] = (map[o.status] ?? 0) + 1;
-    return map;
-  }
+  // ignore: unused_element
+  AppLocalizations get _loc => context.watch<LanguageProvider>().loc;
 
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
+    // 앱 시작 시 실제 주문 데이터 로드
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = context.read<UserProvider>().user;
-      if (user != null) context.read<OrderProvider>().loadUserOrders(user.id);
+      if (user != null) {
+        context.read<OrderProvider>().loadUserOrders(user.id);
+      }
     });
   }
 
   @override
   void dispose() {
-    _tabCtrl.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
-  // ── 시트 열기 헬퍼 ──────────────────────
-  void _openSheet(Widget sheet) => showModalBottomSheet(
-      context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
-      builder: (_) => sheet);
-
-  void _openAdditionalOrder(OrderModel o) => _openSheet(_AdditionalOrderSheet(order: o));
-  void _openColorEdit(OrderModel o) => _openSheet(_ColorEditSheet(order: o));
-  void _openDesignRevision(OrderModel o) => _openSheet(_DesignRevisionSheet(order: o));
-
-  // 헤더 통계칩 → 바텀시트 열기
-  void _openOrderListFiltered(BuildContext ctx, OrderStatus status) {
-    final all = context.read<OrderProvider>().orders;
-    final filtered = all.where((o) => o.status == status).toList();
-    if (filtered.isEmpty) {
-      ScaffoldMessenger.of(ctx).showSnackBar(
-        SnackBar(content: Text('${status.label} 상태의 주문이 없습니다.')));
-      return;
+  @override
+  Widget build(BuildContext context) {
+    final userProvider = context.watch<UserProvider>();
+    if (isPcWeb(context)) {
+      return _PcMyPage(
+        tabController: _tabController,
+        userProvider: userProvider,
+        onShowAdditionalOrder: _showAdditionalOrderSheet,
+        onShowColorEdit: _showColorEditSheet,
+        onShowProfileEdit: _showProfileEdit,
+        onShowAddressManager: _showAddressManager,
+        onShowLogout: _showLogoutDialog,
+        onShowChangePassword: _showChangePasswordDialog,
+        onShowDeleteAccount: _showDeleteAccountDialog,
+        onExcelDownload: _exportOrderExcel,
+        onShowDesignRevision: _showDesignRevisionSheet,
+      );
     }
-    Navigator.push(ctx, MaterialPageRoute(builder: (_) => _OrderListScreen(
-      orders: filtered,
-      onAdditional: _openAdditionalOrder,
-      onColorEdit: _openColorEdit,
-      onDesignRevision: _openDesignRevision,
-      onExcelDownload: _exportExcel,
-    )));
-  }
-
-  void _openOrderList(BuildContext ctx) {
-    // orders 로딩 여부와 무관하게 항상 화면 열기 (화면 안에서 로딩 처리)
-    final orders = context.read<OrderProvider>().orders;
-    Navigator.push(ctx, MaterialPageRoute(builder: (_) => _OrderListScreen(
-      orders: orders,
-      onAdditional: _openAdditionalOrder,
-      onColorEdit: _openColorEdit,
-      onDesignRevision: _openDesignRevision,
-      onExcelDownload: _exportExcel,
-    )));
-  }
-
-  void _openWishlist(BuildContext ctx, UserModel user) {
-    Navigator.push(ctx, MaterialPageRoute(
-      builder: (_) => _WishlistScreen(userId: user.id),
-    ));
-  }
-
-  void _openCouponSheet(BuildContext ctx) {
-    final coupons = context.read<CouponProvider>().validCoupons;
-    showModalBottomSheet(
-      context: ctx, isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (bsCtx) => SizedBox(
-        height: MediaQuery.of(ctx).size.height * 0.7,
-        child: Column(children: [
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              Text('쿠폰 ${coupons.length}장', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              const Spacer(),
-              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
-            ]),
-          ),
-          if (coupons.isEmpty)
-            const Expanded(child: Center(
-              child: Text('사용 가능한 쿠폰이 없습니다.', style: TextStyle(fontSize: 14, color: Colors.grey)),
-            ))
-          else
-            Expanded(child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: coupons.length,
-              itemBuilder: (_, i) {
-                final c = coupons[i];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white, borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFEEEEEE)),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4)],
-                  ),
-                  child: Row(children: [
-                    Container(width: 44, height: 44,
-                        decoration: const BoxDecoration(color: Color(0xFFE8EEF8), shape: BoxShape.circle),
-                        child: const Icon(Icons.local_offer_rounded, color: Color(0xFF1C62B9), size: 20)),
-                    const SizedBox(width: 12),
-                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(c.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 2),
-                      Text(c.typeLabel, style: const TextStyle(fontSize: 13, color: Color(0xFF1C62B9), fontWeight: FontWeight.w600)),
-                      Text(
-                        '~${c.expiresAt.year}.${c.expiresAt.month.toString().padLeft(2, '0')}.${c.expiresAt.day.toString().padLeft(2, '0')}',
-                        style: const TextStyle(fontSize: 11, color: Colors.grey),
-                      ),
-                    ])),
-                  ]),
-                );
-              },
-            )),
-        ]),
-      ),
+    return _MobileMyPage(
+      tabController: _tabController,
+      userProvider: userProvider,
+      onBack: widget.onBack,
+      onShowAdditionalOrder: _showAdditionalOrderSheet,
+      onShowColorEdit: _showColorEditSheet,
+      onShowProfileEdit: _showProfileEdit,
+      onShowAddressManager: _showAddressManager,
+      onShowLogout: _showLogoutDialog,
+      onShowChangePassword: _showChangePasswordDialog,
+      onShowDeleteAccount: _showDeleteAccountDialog,
+      onExcelDownload: _exportOrderExcel,
+      onShowDesignRevision: _showDesignRevisionSheet,
     );
   }
 
-  void _openProfileEdit(BuildContext ctx, UserModel u) =>
-      showModalBottomSheet(context: ctx, isScrollControlled: true, backgroundColor: Colors.transparent,
-          builder: (_) => _ProfileEditSheet(user: u));
+  void _showAdditionalOrderSheet(OrderModel order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _AdditionalOrderSheet(order: order),
+    );
+  }
 
-  void _openAddressManager(BuildContext ctx) {
+  void _showColorEditSheet(OrderModel order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ColorEditSheet(order: order),
+    );
+  }
+
+  void _showDesignRevisionSheet(OrderModel order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _DesignRevisionSheet(order: order),
+    );
+  }
+
+  void _showProfileEdit(BuildContext ctx, UserModel user) {
+    showModalBottomSheet(
+      context: ctx,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ProfileEditSheet(user: user),
+    );
+  }
+
+  void _showAddressManager(BuildContext ctx) {
     final user = context.read<UserProvider>().user;
     if (user == null) return;
     showModalBottomSheet(
-      context: ctx, isScrollControlled: true, backgroundColor: Colors.transparent,
+      context: ctx,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => _AddressManagerSheet(
         user: user,
-        onUpdated: (a) => context.read<UserProvider>().updateAddresses(a),
+        onUpdated: (addresses) {
+          context.read<UserProvider>().updateAddresses(addresses);
+        },
       ),
     );
   }
 
-  void _openLogout(BuildContext ctx, UserProvider up) {
+  void _showLogoutDialog(BuildContext ctx, UserProvider up) {
+    // 이미 비로그인 상태면 바로 로그인 화면으로 이동
     if (up.user == null) {
-      Navigator.of(ctx).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+      Navigator.of(ctx).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
       return;
     }
     showDialog(
       context: ctx,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text('로그아웃', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-        content: const Text('로그아웃 하시겠습니까?', style: TextStyle(fontSize: 14)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(children: [
+          const Icon(Icons.logout_rounded, color: Colors.orange, size: 22),
+          const SizedBox(width: 8),
+          Text(context.read<LanguageProvider>().loc.mypageLogout,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+        ]),
+        content: const Text('로그아웃 하시겠습니까?',
+            style: TextStyle(fontSize: 14, color: Color(0xFF555555))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소', style: TextStyle(color: Colors.grey))),
           TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.read<LanguageProvider>().loc.cancel,
+                style: const TextStyle(color: Color(0xFF888888))),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             onPressed: () async {
               Navigator.pop(ctx);
               await AuthService.logout();
@@ -207,2256 +189,2900 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
               if (ctx.mounted) {
                 ctx.read<SizeProfileProvider>().clear();
                 ctx.read<CartProvider>().clearCart();
-                ctx.read<CouponProvider>().clear();
-                Navigator.of(ctx).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+                ctx.read<CouponProvider>().clear(); // 쿠폰 데이터 초기화
+                Navigator.of(ctx).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
               }
             },
-            child: const Text('로그아웃', style: TextStyle(color: Color(0xFF1C62B9), fontWeight: FontWeight.w700)),
+            child: Text(context.read<LanguageProvider>().loc.mypageLogout),
           ),
         ],
       ),
     );
   }
 
-  void _openChangePassword(BuildContext ctx) {
-    final cur = TextEditingController(), nw = TextEditingController(), nw2 = TextEditingController();
+  // ── 단체주문 엑셀 다운로드 (이미지 포함) ──
+  Future<void> _exportOrderExcel(BuildContext ctx, OrderModel order) async {
+    const mimeType =
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    final dateStr = '${order.createdAt.year}${order.createdAt.month.toString().padLeft(2,'0')}${order.createdAt.day.toString().padLeft(2,'0')}';
+    final teamName = (order.customOptions?['teamName'] as String? ?? order.groupName ?? '').replaceAll(' ', '_');
+    final fileName = '2FIT_${teamName.isNotEmpty ? '${teamName}_' : ''}${order.id}_$dateStr.xlsx';
+
+    // 로딩 다이얼로그
     showDialog(
       context: ctx,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text('비밀번호 변경', style: TextStyle(fontWeight: FontWeight.w700)),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          _pwField(cur, '현재 비밀번호'),
-          const SizedBox(height: 10),
-          _pwField(nw, '새 비밀번호'),
-          const SizedBox(height: 10),
-          _pwField(nw2, '새 비밀번호 확인'),
-        ]),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소', style: TextStyle(color: Colors.grey))),
-          TextButton(
-            onPressed: () async {
-              if (nw.text != nw2.text) {
-                ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('새 비밀번호가 일치하지 않습니다.')));
-                return;
-              }
-              final user = context.read<UserProvider>().user;
-              final ok = await AuthService.updateProfile(
-                email: user?.email ?? '',
-                currentPassword: cur.text,
-                newPassword: nw.text,
-              );
-              if (ctx.mounted) {
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                  content: Text(ok ? '비밀번호가 변경되었습니다.' : '현재 비밀번호가 올바르지 않습니다.'),
-                ));
-              }
-            },
-            child: const Text('변경', style: TextStyle(color: Color(0xFF1C62B9), fontWeight: FontWeight.w700)),
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Color(0xFF6A1B9A)),
+                SizedBox(height: 16),
+                Text('이미지 포함 엑셀 생성 중...', style: TextStyle(fontSize: 14)),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
-  }
 
-  TextField _pwField(TextEditingController c, String label) => TextField(
-      controller: c, obscureText: true,
-      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder(), isDense: true));
-
-  void _openDeleteAccount(BuildContext ctx, UserProvider up) {
-    showDialog(
-      context: ctx,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text('회원 탈퇴', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.red)),
-        content: const Text('탈퇴 시 모든 데이터가 삭제됩니다.\n정말 탈퇴하시겠습니까?', style: TextStyle(fontSize: 14)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소', style: TextStyle(color: Colors.grey))),
-          TextButton(
-            onPressed: () async {
-              final user = up.user;
-              if (user == null) return;
-              await AuthService.deleteUserDocument(user.id);
-              await AuthService.logout();
-              up.logout();
-              if (ctx.mounted) {
-                ctx.read<CartProvider>().clearCart();
-                ctx.read<CouponProvider>().clear();
-                ctx.read<SizeProfileProvider>().clear();
-                Navigator.pop(ctx);
-                Navigator.of(ctx).pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
-              }
-            },
-            child: const Text('탈퇴', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _exportExcel(BuildContext ctx, OrderModel order) async {
-    const mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    final date = '${order.createdAt.year}${order.createdAt.month.toString().padLeft(2,'0')}${order.createdAt.day.toString().padLeft(2,'0')}';
-    final team = (order.customOptions?['teamName'] as String? ?? order.groupName ?? '').replaceAll(' ', '_');
-    final name = '2FIT_${team.isNotEmpty ? '${team}_' : ''}${order.id}_$date.xlsx';
-    showDialog(context: ctx, barrierDismissible: false,
-        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              CircularProgressIndicator(color: Color(0xFF1C62B9)), SizedBox(height: 16),
-              Text('엑셀 생성 중...'),
-            ])))));
     try {
-      final bytes = await OrderExcelService.generateSelectedOrdersExcel([order], DateTime.now());
-      if (!ctx.mounted) return;
-      Navigator.pop(ctx);
+      final bytes = await OrderExcelService.generateGroupOrderExcelAsync(order);
+      if (ctx.mounted) Navigator.pop(ctx); // 로딩 닫기
+
       if (kIsWeb) {
-        downloadFileWeb(bytes, name, mime);
+        downloadFileWeb(bytes, fileName, mimeType);
+        if (ctx.mounted) {
+          ScaffoldMessenger.of(ctx).showSnackBar(
+            SnackBar(
+              content: Row(children: const [
+                Icon(Icons.file_download_done_rounded, color: Colors.white, size: 16),
+                SizedBox(width: 8),
+                Expanded(child: Text('엑셀 파일 다운로드 완료')),
+              ]),
+              backgroundColor: const Color(0xFF6A1B9A),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       } else {
         final dir = await getTemporaryDirectory();
-        final file = File('${dir.path}/$name');
-        await file.writeAsBytes(bytes);
-        await Share.shareXFiles([XFile(file.path)], text: '주문서 엑셀');
+        final filePath = '${dir.path}/$fileName';
+        await File(filePath).writeAsBytes(bytes, flush: true);
+        if (ctx.mounted) {
+          await SharePlus.instance.share(
+            ShareParams(
+              files: [XFile(filePath, mimeType: mimeType, name: fileName)],
+              subject: '2FIT 단체주문 내역',
+              text: fileName,
+            ),
+          );
+        }
       }
     } catch (e) {
-      if (ctx.mounted) { Navigator.pop(ctx); ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('오류: $e'))); }
+      if (ctx.mounted) {
+        Navigator.pop(ctx);
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(content: Text('엑셀 생성 오류: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
-  // 검색 바텀시트
-  void _openSearch(BuildContext ctx) {
-    final ctrl = TextEditingController();
-    showModalBottomSheet(
-      context: ctx, isScrollControlled: true, backgroundColor: Colors.transparent,
-      builder: (bsCtx) => DraggableScrollableSheet(
-        initialChildSize: 0.88,
-        builder: (_, sc) => Container(
-          decoration: const BoxDecoration(color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
-          child: Column(children: [
-            const SizedBox(height: 12),
-            Container(width: 40, height: 4,
-                decoration: BoxDecoration(color: const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 16),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                controller: ctrl, autofocus: true,
-                decoration: InputDecoration(
-                  hintText: '상품명, 카테고리 검색',
-                  prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF1A1A1A)),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    onPressed: () => ctrl.clear(),
-                  ),
-                  filled: true, fillColor: const Color(0xFFF5F5F5),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
-                onSubmitted: (q) {
-                  Navigator.pop(bsCtx);
-                  if (q.trim().isNotEmpty) {
-                    ScaffoldMessenger.of(ctx).showSnackBar(
-                      SnackBar(content: Text('"${q.trim()}" 검색 결과를 표시합니다.')));
-                  }
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Padding(padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Align(alignment: Alignment.centerLeft,
-                child: Text('최근 검색어', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)))),
-            const SizedBox(height: 10),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Wrap(spacing: 8, runSpacing: 8, children: [
-                '2FIT 티셔츠', '라운드넥', '단체주문', '조거팬츠', '크롭탑',
-              ].map((tag) => GestureDetector(
-                onTap: () { ctrl.text = tag; },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0F4FF),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFD0DEFF)),
-                  ),
-                  child: Text(tag, style: const TextStyle(fontSize: 13, color: Color(0xFF1C62B9))),
-                ),
-              )).toList()),
-            ),
+  void _showChangePasswordDialog(BuildContext ctx) {
+    final currentCtrl = TextEditingController();
+    final newCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+    bool isLoading = false;
+    String? errorMsg;
+
+    showDialog(
+      context: ctx,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (dialogCtx, setD) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(children: [
+            Icon(Icons.lock_rounded, color: Color(0xFF1A1A2E), size: 22),
+            SizedBox(width: 8),
+            Text('비밀번호 변경', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           ]),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: currentCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: '현재 비밀번호',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  isDense: true,
+                  prefixIcon: const Icon(Icons.lock_outline, size: 18),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: newCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: '새 비밀번호 (6자 이상)',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  isDense: true,
+                  prefixIcon: const Icon(Icons.lock_rounded, size: 18),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: confirmCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: '새 비밀번호 확인',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  isDense: true,
+                  prefixIcon: const Icon(Icons.lock_rounded, size: 18),
+                ),
+              ),
+              if (errorMsg != null) ...[
+                const SizedBox(height: 8),
+                Text(errorMsg!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(dialogCtx),
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1A1A2E),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: isLoading ? null : () async {
+                if (newCtrl.text != confirmCtrl.text) {
+                  setD(() => errorMsg = '새 비밀번호가 일치하지 않습니다.');
+                  return;
+                }
+                if (newCtrl.text.length < 6) {
+                  setD(() => errorMsg = '비밀번호는 6자 이상이어야 합니다.');
+                  return;
+                }
+                setD(() { isLoading = true; errorMsg = null; });
+                final user = context.read<UserProvider>().user;
+                final result = await AuthService.updateProfile(
+                  email: user?.email ?? '',
+                  currentPassword: currentCtrl.text,
+                  newPassword: newCtrl.text,
+                );
+                if (result) {
+                  if (ctx.mounted) {
+                    Navigator.pop(dialogCtx);
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(content: Text('비밀번호가 변경되었습니다.'), backgroundColor: Color(0xFF1A1A2E)),
+                    );
+                  }
+                } else {
+                  setD(() { isLoading = false; errorMsg = '현재 비밀번호가 올바르지 않습니다.'; });
+                }
+              },
+              child: isLoading
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('변경'),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // 설정 바텀시트
-  void _openSettings(BuildContext ctx, UserProvider up) {
-    showModalBottomSheet(
-      context: ctx, isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (bsCtx) {
-        final user = up.user;
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(0, 12, 0, 32),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Container(width: 40, height: 4,
-                decoration: BoxDecoration(color: const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 16),
-            const Padding(padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Align(alignment: Alignment.centerLeft,
-                child: Text('설정', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)))),
-            const SizedBox(height: 8),
-            ListTile(
-              leading: const Icon(Icons.person_outline_rounded, color: Color(0xFF1C62B9)),
-              title: const Text('프로필 수정'),
-              onTap: () { Navigator.pop(bsCtx); if (user != null) _openProfileEdit(ctx, user); },
-            ),
-            ListTile(
-              leading: const Icon(Icons.location_on_outlined, color: Color(0xFF1C62B9)),
-              title: const Text('배송지 관리'),
-              onTap: () { Navigator.pop(bsCtx); _openAddressManager(ctx); },
-            ),
-            ListTile(
-              leading: const Icon(Icons.lock_outline_rounded, color: Color(0xFF1C62B9)),
-              title: const Text('비밀번호 변경'),
-              onTap: () { Navigator.pop(bsCtx); _openChangePassword(ctx); },
-            ),
-            const Divider(height: 1),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded, color: Colors.orange),
-              title: const Text('로그아웃', style: TextStyle(color: Colors.orange)),
-              onTap: () { Navigator.pop(bsCtx); _openLogout(ctx, up); },
-            ),
+  void _showDeleteAccountDialog(BuildContext ctx, UserProvider up) {
+    final passwordCtrl = TextEditingController();
+    bool isLoading = false;
+    String? errorMsg;
+
+    showDialog(
+      context: ctx,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (dialogCtx, setD) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(children: [
+            Icon(Icons.warning_rounded, color: Colors.red, size: 22),
+            SizedBox(width: 8),
+            Text('회원 탈퇴', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Colors.red)),
           ]),
-        );
-      },
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('탈퇴하시면 모든 데이터가 삭제되며 복구할 수 없습니다.\n비밀번호를 입력하여 탈퇴를 확인해주세요.',
+                  style: TextStyle(fontSize: 13, color: Color(0xFF666666))),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordCtrl,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: '비밀번호',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  isDense: true,
+                  prefixIcon: const Icon(Icons.lock_outline, size: 18),
+                ),
+              ),
+              if (errorMsg != null) ...[
+                const SizedBox(height: 8),
+                Text(errorMsg!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(dialogCtx),
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: isLoading ? null : () async {
+                setD(() { isLoading = true; errorMsg = null; });
+                final user2 = up.user;
+                if (user2 == null) return;
+                try {
+                  final result = await AuthService.updateProfile(
+                    email: user2.email,
+                    currentPassword: passwordCtrl.text,
+                  );
+                  if (result) {
+                    await AuthService.deleteUserDocument(user2.id);
+                    await AuthService.logout();
+                    if (ctx.mounted) {
+                      up.logout();
+                      ctx.read<CartProvider>().clearCart();
+                      ctx.read<CouponProvider>().clear();
+                      ctx.read<SizeProfileProvider>().clear();
+                      Navigator.pop(dialogCtx);
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        const SnackBar(content: Text('회원 탈퇴가 완료되었습니다.'), backgroundColor: Colors.red),
+                      );
+                    }
+                  } else {
+                    setD(() { isLoading = false; errorMsg = '비밀번호가 올바르지 않습니다.'; });
+                  }
+                } catch (e) {
+                  setD(() { isLoading = false; errorMsg = '탈퇴 처리 중 오류가 발생했습니다.'; });
+                }
+              },
+              child: isLoading
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('탈퇴하기'),
+            ),
+          ],
+        ),
+      ),
     );
   }
+}
 
-  // ── 로그인 전 화면 ─────────────────────
-  Widget _buildNotLoggedIn() => Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-    const Icon(Icons.person_outline_rounded, size: 64, color: Color(0xFFCCCCCC)),
-    const SizedBox(height: 16),
-    const Text('로그인이 필요합니다', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-    const SizedBox(height: 8),
-    const Text('로그인하고 다양한 혜택을 받아보세요', style: TextStyle(fontSize: 13, color: Color(0xFF888888))),
-    const SizedBox(height: 24),
-    SizedBox(width: 200, height: 44,
-      child: ElevatedButton(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
-        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1C62B9), foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6))),
-        child: const Text('로그인', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-      ),
-    ),
-  ]));
+// ═══════════════════════════════════════════════════════════════════
+// PC 버전 마이페이지
+// ═══════════════════════════════════════════════════════════════════
+class _PcMyPage extends StatelessWidget {
+  final TabController tabController;
+  final UserProvider userProvider;
+  final void Function(OrderModel) onShowAdditionalOrder;
+  final void Function(OrderModel) onShowColorEdit;
+  final void Function(BuildContext, UserModel) onShowProfileEdit;
+  final void Function(BuildContext) onShowAddressManager;
+  final void Function(BuildContext, UserProvider) onShowLogout;
+  final void Function(BuildContext) onShowChangePassword;
+  final void Function(BuildContext, UserProvider) onShowDeleteAccount;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
+  final void Function(OrderModel)? onShowDesignRevision;
+
+  const _PcMyPage({
+    required this.tabController,
+    required this.userProvider,
+    required this.onShowAdditionalOrder,
+    required this.onShowColorEdit,
+    required this.onShowProfileEdit,
+    required this.onShowAddressManager,
+    required this.onShowLogout,
+    required this.onShowChangePassword,
+    required this.onShowDeleteAccount,
+    this.onExcelDownload,
+    this.onShowDesignRevision,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final up = context.watch<UserProvider>();
-    final user = up.user;
-    if (user == null) return wrapWithPopScope(context, Scaffold(appBar: _buildAppBar(null), body: _buildNotLoggedIn()));
-    return isPcWeb(context) ? _buildPc(context, user, up) : _buildMobile(context, user, up);
+    final loc = context.watch<LanguageProvider>().loc;
+    final user = userProvider.user;
+    final screenH = MediaQuery.of(context).size.height;
+    const sideW = 260.0;
+
+    final menuItems = [
+      (Icons.receipt_long_rounded,   loc.myOrders),
+      (Icons.payment_rounded,        loc.mypagePaymentHistory),
+      (Icons.favorite_rounded,       loc.wishlist),
+      (Icons.local_activity_rounded, loc.mypageCouponBox),
+      (Icons.settings_rounded,       loc.settings),
+    ];
+
+    return Container(
+      color: const Color(0xFFF2F4F8),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1280),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── 사이드바 ──
+                SizedBox(
+                  width: sideW,
+                  child: Column(
+                    children: [
+                      _PcProfileCard(user: user, loc: loc,
+                        onShowProfileEdit: onShowProfileEdit),
+                      const SizedBox(height: 12),
+                      _PcQuickStats(user: user, loc: loc, tabController: tabController),
+                      const SizedBox(height: 12),
+                      // 메뉴
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.06), blurRadius: 12, offset: const Offset(0, 4))],
+                        ),
+                        child: AnimatedBuilder(
+                          animation: tabController,
+                          builder: (_, __) => Column(
+                            children: List.generate(menuItems.length, (i) {
+                              final sel = tabController.index == i;
+                              final isLast = i == menuItems.length - 1;
+                              return Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.vertical(
+                                    top: i == 0 ? const Radius.circular(16) : Radius.zero,
+                                    bottom: isLast ? const Radius.circular(16) : Radius.zero,
+                                  ),
+                                  onTap: () => tabController.animateTo(i),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                    decoration: BoxDecoration(
+                                      color: sel ? const Color(0xFF1565C0).withValues(alpha:0.08) : Colors.transparent,
+                                      borderRadius: BorderRadius.vertical(
+                                        top: i == 0 ? const Radius.circular(16) : Radius.zero,
+                                        bottom: isLast ? const Radius.circular(16) : Radius.zero,
+                                      ),
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: sel ? const Color(0xFF1565C0) : Colors.transparent,
+                                          width: 3,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(menuItems[i].$1,
+                                          size: 20,
+                                          color: sel ? const Color(0xFF1565C0) : Colors.grey[600]),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(menuItems[i].$2,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
+                                              color: sel ? const Color(0xFF1565C0) : Colors.grey[800],
+                                            ),
+                                          ),
+                                        ),
+                                        if (sel) const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1565C0)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                      if (user?.isAdmin == true) ...[
+                        const SizedBox(height: 12),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminScreen())),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE53935).withValues(alpha:0.08),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFFE53935).withValues(alpha:0.3)),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.admin_panel_settings_rounded, size: 18, color: Color(0xFFE53935)),
+                                  SizedBox(width: 8),
+                                  Text('관리자 페이지', style: TextStyle(fontSize: 13, color: Color(0xFFE53935), fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      // 로그아웃 (항상 표시)
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: () => onShowLogout(context, userProvider),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.orange.withValues(alpha:0.4)),
+                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.04), blurRadius: 8)],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.logout_rounded, size: 18, color: Colors.orange),
+                                const SizedBox(width: 8),
+                                Text(loc.mypageLogout, style: const TextStyle(fontSize: 13, color: Colors.orange, fontWeight: FontWeight.w600)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 20),
+                // ── 콘텐츠 ──
+                Expanded(
+                  child: Container(
+                    constraints: BoxConstraints(minHeight: screenH - 120),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.06), blurRadius: 16, offset: const Offset(0, 4))],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: AnimatedBuilder(
+                        animation: tabController,
+                        builder: (_, __) {
+                          switch (tabController.index) {
+                            case 0: return _PcOrderHistoryTab(userProvider: userProvider, loc: loc,
+                                onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
+                                onExcelDownload: onExcelDownload,
+                                onDesignRevision: onShowDesignRevision);
+                            case 1: return _PcPaymentHistoryTab(userProvider: userProvider, loc: loc);
+                            case 2: return _PcWishlistTab(userProvider: userProvider, loc: loc);
+                            case 3: return _PcCouponTab(userProvider: userProvider, loc: loc);
+                            case 4: return _PcSettingsTab(userProvider: userProvider, loc: loc,
+                                onShowProfileEdit: onShowProfileEdit,
+                                onShowAddressManager: onShowAddressManager,
+                                onShowLogout: onShowLogout,
+                                onShowChangePassword: onShowChangePassword,
+                                onShowDeleteAccount: onShowDeleteAccount);
+                            default: return const SizedBox();
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
+}
 
-  AppBar _buildAppBar(UserModel? user) => AppBar(
-    backgroundColor: Colors.white,
-    elevation: 0,
-    leading: widget.onBack != null
-        ? IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87), onPressed: widget.onBack)
-        : null,
-    title: const Text('마이페이지', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w700, fontSize: 17)),
-    bottom: PreferredSize(preferredSize: const Size.fromHeight(1), child: Divider(height: 1, color: Colors.grey[200])),
-    actions: [
-      if (user?.isAdmin == true)
-        IconButton(icon: const Icon(Icons.admin_panel_settings_rounded, color: Colors.black54),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdminScreen()))),
-    ],
-  );
+// ── PC 프로필 카드 ──
+class _PcProfileCard extends StatelessWidget {
+  final UserModel? user;
+  final AppLocalizations loc;
+  final void Function(BuildContext, UserModel) onShowProfileEdit;
 
-  // ════════════════════════════════════════
-  // 모바일 레이아웃
-  // ════════════════════════════════════════
-  Widget _buildMobile(BuildContext context, UserModel user, UserProvider up) {
-    return wrapWithPopScope(context, Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: _buildMobileAppBar(user, up),
-      body: NestedScrollView(
-        headerSliverBuilder: (ctx, innerScrolled) => [
-          // 프로필 + 통계칩
-          SliverToBoxAdapter(child: _MobileHeader(
-            user: user, up: up,
-            onProfileEdit: () => _openProfileEdit(context, user),
-            onLogout: () => _openLogout(context, up),
-            onOrderTap: () => _openOrderList(context),
-            onWishlistTap: () => _openWishlist(context, user),
-            onCouponTap: () => _openCouponSheet(context),
-            onStatusTap: (st) => _openOrderListFiltered(context, st),
-          )),
-          // 탭바 핀고정
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _OhouseTabDelegate(
-              TabBar(
-                controller: _tabCtrl,
-                tabs: const [Tab(text: '쇼핑'), Tab(text: '활동')],
-                labelColor: Colors.black87,
-                unselectedLabelColor: Colors.grey,
-                labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
-                indicatorColor: Colors.black87,
-                indicatorWeight: 2,
+  const _PcProfileCard({required this.user, required this.loc, required this.onShowProfileEdit});
+
+  @override
+  Widget build(BuildContext context) {
+    if (user == null) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1A237E), Color(0xFF283593)],
+            begin: Alignment.topLeft, end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: const Color(0xFF1A237E).withValues(alpha:0.3), blurRadius: 12, offset: const Offset(0, 6))],
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 64, height: 64,
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha:0.2), shape: BoxShape.circle),
+              child: const Icon(Icons.person_outline_rounded, size: 36, color: Colors.white),
+            ),
+            const SizedBox(height: 12),
+            Text(loc.mypageLoginPrompt, style: const TextStyle(color: Colors.white70, fontSize: 12), textAlign: TextAlign.center),
+          ],
+        ),
+      );
+    }
+
+    final tier = _tierLabel(user!.memberTier, loc);
+    final tierColor = _tierColor(user!.memberTier);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1A237E), Color(0xFF283593)],
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: const Color(0xFF1A237E).withValues(alpha:0.3), blurRadius: 12, offset: const Offset(0, 6))],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 56, height: 56,
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha:0.2), shape: BoxShape.circle),
+                child: const Icon(Icons.person_rounded, size: 32, color: Colors.white),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(user!.name, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(color: tierColor.withValues(alpha:0.3), borderRadius: BorderRadius.circular(10)),
+                      child: Text(tier, style: TextStyle(color: tierColor, fontSize: 11, fontWeight: FontWeight.w700)),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: () => onShowProfileEdit(context, user!),
+                icon: const Icon(Icons.edit_rounded, size: 18, color: Colors.white70),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha:0.1), borderRadius: BorderRadius.circular(10)),
+            child: Row(
+              children: [
+                Icon(Icons.star_rounded, size: 16, color: Colors.amber[300]),
+                const SizedBox(width: 6),
+                Text('${_fmt(user!.points)} P',
+                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                const Spacer(),
+                Text(loc.mypagePointsTotal, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+              ],
             ),
           ),
         ],
-        body: TabBarView(
-          controller: _tabCtrl,
+      ),
+    );
+  }
+
+  String _tierLabel(String tier, AppLocalizations loc) {
+    switch (tier) {
+      case 'silver': return loc.mypageTierSilver;
+      case 'gold': return loc.mypageTierGold;
+      case 'vip': return loc.mypageTierVip;
+      default: return loc.mypageTierBronze;
+    }
+  }
+
+  Color _tierColor(String tier) {
+    switch (tier) {
+      case 'silver': return Colors.blueGrey[200]!;
+      case 'gold': return Colors.amber[400]!;
+      case 'vip': return Colors.purple[300]!;
+      default: return Colors.brown[300]!;
+    }
+  }
+
+  String _fmt(int n) {
+    return n.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '\${m[1]},');
+  }
+}
+
+// ── PC 빠른 통계 ──
+class _PcQuickStats extends StatelessWidget {
+  final UserModel? user;
+  final AppLocalizations loc;
+  final TabController tabController;
+
+  const _PcQuickStats({required this.user, required this.loc, required this.tabController});
+
+  @override
+  Widget build(BuildContext context) {
+    final orderProvider = context.watch<OrderProvider>();
+    final orders = user != null ? orderProvider.getUserOrders(user!.id) : <OrderModel>[];
+    final wishCount = user?.wishlist.length ?? 0;
+    final couponCount = user?.coupons.where((c) => c.isValid).length ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.06), blurRadius: 12, offset: const Offset(0, 4))],
+      ),
+      child: Row(
+        children: [
+          _StatItem(label: loc.myOrders, count: orders.length, onTap: () => tabController.animateTo(0)),
+          _Divider(),
+          _StatItem(label: loc.wishlist, count: wishCount, onTap: () => tabController.animateTo(2)),
+          _Divider(),
+          _StatItem(label: loc.mypageCouponBox, count: couponCount, onTap: () => tabController.animateTo(3)),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String label;
+  final int count;
+  final VoidCallback onTap;
+  const _StatItem({required this.label, required this.count, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
           children: [
-            _ShoppingTab(
-              user: user, up: up,
-              onAdditional: _openAdditionalOrder,
-              onColorEdit: _openColorEdit,
-              onDesignRevision: _openDesignRevision,
-              onExcelDownload: _exportExcel,
-              onAddressManager: () => _openAddressManager(context),
-              onChangePassword: () => _openChangePassword(context),
-              onLogout: () => _openLogout(context, up),
-              onDeleteAccount: () => _openDeleteAccount(context, up),
+            Text('$count', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+            const SizedBox(height: 2),
+            Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) =>
+    Container(width: 1, height: 28, color: Colors.grey[200]);
+}
+
+// ── PC 탭 헤더 ──
+class _PcTabHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Color color;
+  final String? badge;
+  final VoidCallback? onRefresh;
+
+  const _PcTabHeader({required this.icon, required this.title, required this.color, this.badge, this.onRefresh});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.grey[100]!, width: 1)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(color: color.withValues(alpha:0.1), shape: BoxShape.circle),
+            child: Icon(icon, size: 18, color: color),
+          ),
+          const SizedBox(width: 12),
+          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          if (badge != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(color: color.withValues(alpha:0.12), borderRadius: BorderRadius.circular(10)),
+              child: Text(badge!, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w700)),
             ),
-            _ActivityTab(user: user),
+          ],
+          const Spacer(),
+          if (onRefresh != null)
+            IconButton(onPressed: onRefresh, icon: Icon(Icons.refresh_rounded, color: color)),
+        ],
+      ),
+    );
+  }
+}
+
+// ── PC 빈 상태 ──
+class _PcEmptyState extends StatelessWidget {
+  final IconData icon;
+  final String message;
+  final String? subtitle;
+
+  const _PcEmptyState({required this.icon, required this.message, this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 64, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(message, style: TextStyle(fontSize: 16, color: Colors.grey[600], fontWeight: FontWeight.w600), textAlign: TextAlign.center),
+            if (subtitle != null) ...[
+              const SizedBox(height: 8),
+              Text(subtitle!, style: TextStyle(fontSize: 13, color: Colors.grey[400]), textAlign: TextAlign.center),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PC 주문 내역 탭
+// ═══════════════════════════════════════════════════════
+class _PcOrderHistoryTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+  final void Function(OrderModel) onAdditionalOrder;
+  final void Function(OrderModel) onColorEdit;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
+  final void Function(OrderModel)? onDesignRevision;
+
+  const _PcOrderHistoryTab({
+    required this.userProvider, required this.loc,
+    required this.onAdditionalOrder, required this.onColorEdit,
+    this.onExcelDownload,
+    this.onDesignRevision,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final user = userProvider.user;
+    if (user == null) {
+      return Column(children: [
+        _PcTabHeader(icon: Icons.receipt_long_rounded, title: loc.myOrders, color: const Color(0xFF1565C0)),
+        Expanded(child: _PcEmptyState(icon: Icons.login_rounded, message: loc.mypageLoginPrompt)),
+      ]);
+    }
+
+    final orderProvider = context.watch<OrderProvider>();
+    final orders = orderProvider.getUserOrders(user.id);
+
+    return Column(
+      children: [
+        _PcTabHeader(
+          icon: Icons.receipt_long_rounded, title: loc.myOrders,
+          color: const Color(0xFF1565C0), badge: '${orders.length}',
+          onRefresh: () => orderProvider.loadUserOrders(user.id),
+        ),
+        Expanded(
+          child: orders.isEmpty
+            ? _PcEmptyState(icon: Icons.receipt_long_outlined, message: loc.mypageNoOrders, subtitle: loc.mypageFirstOrder)
+            : ListView.builder(
+                padding: const EdgeInsets.all(20),
+                itemCount: orders.length,
+                itemBuilder: (_, i) => _PcOrderCard(
+                  order: orders[i], loc: loc,
+                  onAdditionalOrder: onAdditionalOrder,
+                  onColorEdit: onColorEdit,
+                  onExcelDownload: onExcelDownload,
+                  onDesignRevision: onDesignRevision,
+                ),
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PcOrderCard extends StatelessWidget {
+  final OrderModel order;
+  final AppLocalizations loc;
+  final void Function(OrderModel) onAdditionalOrder;
+  final void Function(OrderModel) onColorEdit;
+  final void Function(OrderModel)? onDesignRevision;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
+
+  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision, this.onExcelDownload});
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = _statusColor(order.status);
+    final isGroup = order.orderType == 'group' || order.orderType == 'additional' || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
+    final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
+    final canColorEdit = isGroup && isActive && order.canEditColor;
+    final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
+    final canDesignRevision = isGroup && isActive && order.canDesignRevision;
+
+    final canCancelReadyMade = !isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
+    final canCancelGroup = isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
+    final canCancel = canCancelReadyMade || canCancelGroup;
+    final cancelBlockedByDesign = isGroup && order.status == OrderStatus.processing;
+    final canExchangeReturn = !isGroup && order.status == OrderStatus.delivered;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.04), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        children: [
+          // ── 헤더 ──
+          GestureDetector(
+            onTap: () => _showUserOrderDetail(context, order),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+              child: Row(
+                children: [
+                  Text(order.id, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                  const SizedBox(width: 8),
+                  if (isGroup)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(color: Colors.purple.withValues(alpha:0.1), borderRadius: BorderRadius.circular(8)),
+                      child: Text(loc.groupCustom, style: const TextStyle(fontSize: 11, color: Colors.purple, fontWeight: FontWeight.w600)),
+                    ),
+                  const Spacer(),
+                  Text(_fmtDate(order.createdAt), style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: statusColor.withValues(alpha:0.1), borderRadius: BorderRadius.circular(20)),
+                    child: Text(order.status.label, style: TextStyle(fontSize: 12, color: statusColor, fontWeight: FontWeight.w700)),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.chevron_right_rounded, size: 18, color: Colors.grey[400]),
+                ],
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+          // ── 상품 목록 ──
+          GestureDetector(
+            onTap: () => _showUserOrderDetail(context, order),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  ...order.items.take(2).map((item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                            ? NetImage(item.imageUrl!, width: 52, height: 52, fit: BoxFit.cover)
+                            : Container(
+                                width: 52, height: 52,
+                                decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                                child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                              ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(item.productName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text('${item.size} / ${item.color} / ${item.quantity}개', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                            ],
+                          ),
+                        ),
+                        Text(_fmtPrice(item.price * item.quantity), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                  )),
+                  if (order.items.length > 2)
+                    Text(loc.mypageMoreItems.replaceAll('{n}', '${order.items.length - 2}'),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                ],
+              ),
+            ),
+          ),
+          // ── 금액 합계 ──
+          GestureDetector(
+            onTap: () => _showUserOrderDetail(context, order),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              color: Colors.grey[50],
+              child: Row(
+                children: [
+                  Text('${loc.mypagePaymentMethod}: ${order.paymentMethod}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  const Spacer(),
+                  Text('${loc.mypageOrderTotal}: ', style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                  Text(_fmtPrice(order.totalAmount), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                ],
+              ),
+            ),
+          ),
+          // ── 버튼 행 (네이버 스타일) ──
+          Container(height: 1, color: Colors.grey[100]),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Builder(builder: (btnCtx) {
+              Future<void> doCancel() async {
+                final confirm = await showDialog<bool>(
+                  context: btnCtx,
+                  builder: (_) => AlertDialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    title: const Text('주문 취소', style: TextStyle(fontWeight: FontWeight.w800)),
+                    content: Text(isGroup
+                        ? '단체주문을 취소하시겠습니까?\n제작 시작 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'
+                        : '주문을 취소하시겠습니까?\n발송 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(btnCtx, false), child: const Text('아니오')),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        onPressed: () => Navigator.pop(btnCtx, true),
+                        child: const Text('취소하기', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true && btnCtx.mounted) {
+                  await OrderService.updateOrderStatus(order.id, OrderStatus.cancelled);
+                  NotificationService.sendCancelled(order: order, reason: '고객 직접 취소').catchError((_) {});
+                  FcmService.sendOrderStatusNotification(order: order, newStatus: OrderStatus.cancelled).catchError((_) {});
+                  if (btnCtx.mounted) {
+                    ScaffoldMessenger.of(btnCtx).showSnackBar(
+                      const SnackBar(content: Text('주문이 취소되었습니다.'), backgroundColor: Color(0xFF1A1A2E)),
+                    );
+                  }
+                }
+              }
+
+              void showContactSheet(String subject) {
+                showModalBottomSheet(
+                  context: btnCtx,
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                  builder: (_) => Container(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(subject, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 8),
+                      Text('주문번호: ${order.id}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F8FF),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
+                        ),
+                        child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('고객센터 문의', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                          SizedBox(height: 6),
+                          Text('• 카카오톡: @2fitkorea', style: TextStyle(fontSize: 13)),
+                          Text('• 전화: 010-7227-6914', style: TextStyle(fontSize: 13)),
+                          Text('• 이메일: chw243527@gmail.com', style: TextStyle(fontSize: 13)),
+                          SizedBox(height: 6),
+                          Text('배송 완료 후 7일 이내 접수해 주세요.\n(상품 하자의 경우 3개월 이내)',
+                              style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5)),
+                        ]),
+                      ),
+                      const SizedBox(height: 16),
+                    ]),
+                  ),
+                );
+              }
+
+              final btns = <Widget>[];
+              btns.add(_ActionBtn(icon: Icons.receipt_long_rounded, label: '주문상세', onTap: () => _showUserOrderDetail(btnCtx, order)));
+              if (canCancel) btns.add(_ActionBtn(icon: Icons.cancel_outlined, label: isGroup ? '취소(제작전)' : '주문취소', color: Colors.red, onTap: doCancel));
+              if (cancelBlockedByDesign) btns.add(_ActionBtn(icon: Icons.lock_outline_rounded, label: '취소불가', color: Colors.red.shade300,
+                onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다. 고객센터로 문의해 주세요.')))));
+              if (canExchangeReturn) {
+                btns.add(_ActionBtn(icon: Icons.swap_horiz_rounded, label: '교환신청', color: const Color(0xFF1565C0), onTap: () => showContactSheet('교환 신청')));
+                btns.add(_ActionBtn(icon: Icons.assignment_return_outlined, label: '반품신청', color: Colors.orange, onTap: () => showContactSheet('반품 신청')));
+              }
+              if (canDesignRevision) btns.add(_ActionBtn(icon: Icons.edit_note_rounded, label: '디자인수정', color: const Color(0xFF7B1FA2), badge: '${order.remainingDesignRevisions}', onTap: () => onDesignRevision?.call(order)));
+              if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), badge: '무료', onTap: () => onAdditionalOrder(order)));
+              if (canColorEdit) btns.add(_ActionBtn(icon: Icons.palette_outlined, label: '색상변경', color: const Color(0xFF1565C0), badge: '${order.remainingColorEdits}', onTap: () => onColorEdit(order)));
+              if (isGroup) btns.add(Builder(builder: (ctx2) => _ActionBtn(icon: Icons.file_download_outlined, label: '엑셀', color: const Color(0xFF00695C), onTap: () => onExcelDownload?.call(ctx2, order))));
+
+              return Row(
+                children: btns.asMap().entries.map((e) {
+                  final w = Expanded(child: e.value);
+                  if (e.key == 0) return w;
+                  return Row(mainAxisSize: MainAxisSize.min, children: [Container(width: 1, height: 32, color: Colors.grey[200]), w]);
+                }).toList(),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _statusColor(OrderStatus s) {
+    switch (s) {
+      case OrderStatus.pending: return Colors.orange;
+      case OrderStatus.confirmed: return Colors.blue;
+      case OrderStatus.processing: return const Color(0xFF7B1FA2);
+      case OrderStatus.shipped: return const Color(0xFF00838F);
+      case OrderStatus.delivered: return Colors.green;
+      case OrderStatus.cancelled: return Colors.red;
+      case OrderStatus.refunded: return Colors.brown;
+    }
+  }
+
+  String _fmtDate(DateTime d) {
+    final y = d.year.toString();
+    final m = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    return '$y.$m.$dd';
+  }
+  String _fmtPrice(double p) {
+    final s = p.toInt().toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return '$buf원';
+  }
+}
+
+class _PcBtn extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final String? badge;
+  final VoidCallback onTap;
+
+  const _PcBtn({required this.label, required this.icon, required this.color, this.badge, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha:0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha:0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600)),
+            if (badge != null) ...[
+              const SizedBox(width: 4),
+              Container(
+                width: 18, height: 18,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                child: Center(child: Text(badge!, style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700))),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PC 결제 내역 탭
+// ═══════════════════════════════════════════════════════
+class _PcPaymentHistoryTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+
+  const _PcPaymentHistoryTab({required this.userProvider, required this.loc});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = userProvider.user;
+    final orderProvider = context.watch<OrderProvider>();
+    final orders = user != null ? orderProvider.getUserOrders(user.id) : <OrderModel>[];
+
+    return Column(
+      children: [
+        _PcTabHeader(icon: Icons.payment_rounded, title: loc.mypagePaymentHistory, color: const Color(0xFF00796B), badge: '${orders.length}'),
+        Expanded(
+          child: orders.isEmpty
+            ? _PcEmptyState(icon: Icons.payment_outlined, message: loc.mypageNoPayment)
+            : ListView.builder(
+                padding: const EdgeInsets.all(20),
+                itemCount: orders.length,
+                itemBuilder: (_, i) {
+                  final o = orders[i];
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white, borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[200]!),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.04), blurRadius: 8)],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(child: Text(o.id, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF00796B)))),
+                            Text(_fmtDate(o.createdAt), style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(children: [
+                          Icon(Icons.credit_card_rounded, size: 14, color: Colors.grey[500]),
+                          const SizedBox(width: 4),
+                          Text(o.paymentMethod, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                          const Spacer(),
+                          Text(_fmtPrice(o.totalAmount), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF00796B))),
+                        ]),
+                        if ((o.shippingFee) > 0) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text('${loc.mypageShipping}: ', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                              Text(_fmtPrice(o.shippingFee), style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                },
+              ),
+        ),
+      ],
+    );
+  }
+
+  String _fmtDate(DateTime d) {
+    final y = d.year.toString();
+    final m = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    return '$y.$m.$dd';
+  }
+  String _fmtPrice(double p) {
+    final s = p.toInt().toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return '$buf원';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PC 찜 목록 탭
+// ═══════════════════════════════════════════════════════
+class _PcWishlistTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+
+  const _PcWishlistTab({required this.userProvider, required this.loc});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = userProvider.user;
+    final wishIds = user?.wishlist ?? [];
+    final products = wishIds
+        .map((id) => ProductService.getProductByIdSync(id))
+        .where((p) => p != null)
+        .cast<ProductModel>()
+        .toList();
+
+    return Column(
+      children: [
+        _PcTabHeader(icon: Icons.favorite_rounded, title: loc.wishlist, color: Colors.pinkAccent, badge: '${products.length}'),
+        Expanded(
+          child: products.isEmpty
+            ? _PcEmptyState(icon: Icons.favorite_border_rounded, message: loc.mypageNoWishlist, subtitle: loc.mypageNoWishlistSub)
+            : GridView.builder(
+                padding: const EdgeInsets.all(20),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3, childAspectRatio: 0.72, crossAxisSpacing: 16, mainAxisSpacing: 16),
+                itemCount: products.length,
+                itemBuilder: (_, i) {
+                  final p = products[i];
+                  return GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
+                    child: Container(
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey[200]!),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.04), blurRadius: 8)]),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                  child: NetImage(p.images.first, width: double.infinity, fit: BoxFit.cover),
+                                ),
+                                Positioned(top: 8, right: 8,
+                                  child: GestureDetector(
+                                    onTap: () => userProvider.toggleWishlist(p.id),
+                                    child: Container(width: 28, height: 28,
+                                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                                      child: const Icon(Icons.favorite_rounded, size: 16, color: Colors.pinkAccent)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(p.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                                  const Spacer(),
+                                  Text(_fmtPrice(p.price.toDouble()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+        ),
+      ],
+    );
+  }
+
+  String _fmtPrice(double p) {
+    final s = p.toInt().toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return '$buf원';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PC 쿠폰함 탭
+// ═══════════════════════════════════════════════════════
+class _PcCouponTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+
+  const _PcCouponTab({required this.userProvider, required this.loc});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = userProvider.user;
+    final coupons = user?.coupons ?? [];
+    final valid = coupons.where((c) => c.isValid).toList();
+    final used = coupons.where((c) => c.isUsed).toList();
+    final expired = coupons.where((c) => !c.isValid && !c.isUsed).toList();
+
+    return Column(
+      children: [
+        _PcTabHeader(icon: Icons.local_activity_rounded, title: loc.mypageCouponBox,
+          color: const Color(0xFFE65100), badge: '${valid.length}'),
+        Expanded(
+          child: coupons.isEmpty
+            ? _PcEmptyState(icon: Icons.local_activity_outlined, message: loc.mypageNoCoupons)
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (valid.isNotEmpty) ...[
+                      _CouponSectionTitle(title: loc.mypageAvailableCoupon, count: valid.length, color: const Color(0xFF2E7D32)),
+                      const SizedBox(height: 8),
+                      ...valid.map((c) => _PcCouponCard(coupon: c, loc: loc, color: const Color(0xFF2E7D32))),
+                      const SizedBox(height: 20),
+                    ],
+                    if (used.isNotEmpty) ...[
+                      _CouponSectionTitle(title: loc.mypageUsedCoupon, count: used.length, color: Colors.grey),
+                      const SizedBox(height: 8),
+                      ...used.map((c) => _PcCouponCard(coupon: c, loc: loc, color: Colors.grey, dimmed: true)),
+                      const SizedBox(height: 20),
+                    ],
+                    if (expired.isNotEmpty) ...[
+                      _CouponSectionTitle(title: loc.mypageExpiredCoupon, count: expired.length, color: Colors.red),
+                      const SizedBox(height: 8),
+                      ...expired.map((c) => _PcCouponCard(coupon: c, loc: loc, color: Colors.red, dimmed: true)),
+                    ],
+                  ],
+                ),
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CouponSectionTitle extends StatelessWidget {
+  final String title;
+  final int count;
+  final Color color;
+  const _CouponSectionTitle({required this.title, required this.count, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(width: 4, height: 16, color: color, margin: const EdgeInsets.only(right: 8)),
+        Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color)),
+        const SizedBox(width: 6),
+        Text('($count)', style: TextStyle(fontSize: 13, color: color.withValues(alpha:0.7))),
+      ],
+    );
+  }
+}
+
+class _PcCouponCard extends StatelessWidget {
+  final CouponModel coupon;
+  final AppLocalizations loc;
+  final Color color;
+  final bool dimmed;
+
+  const _PcCouponCard({required this.coupon, required this.loc, required this.color, this.dimmed = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final discountText = coupon.type == CouponType.percent
+        ? '${coupon.value.toInt()}% OFF'
+        : '${coupon.value.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '\${m[1]},')}원 할인';
+
+    return Opacity(
+      opacity: dimmed ? 0.55 : 1.0,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: dimmed ? Colors.grey[300]! : color.withValues(alpha:0.3)),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.04), blurRadius: 8)],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 80,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              decoration: BoxDecoration(
+                color: dimmed ? Colors.grey[200] : color.withValues(alpha:0.1),
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.local_activity_rounded, color: dimmed ? Colors.grey : color, size: 24),
+                  const SizedBox(height: 4),
+                  Text(discountText, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: dimmed ? Colors.grey : color), textAlign: TextAlign.center),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(coupon.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700), maxLines: 2, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 4),
+                    if (coupon.minOrderAmount > 0)
+                      Text('${loc.mypageMinOrder}: ${coupon.minOrderAmount.toInt()}원 이상',
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.schedule_rounded, size: 12, color: Colors.grey[400]),
+                        const SizedBox(width: 4),
+                        Text('${loc.mypageCouponExpiry}: ${_fmtDate(coupon.expiresAt)}',
+                          style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: dimmed ? Colors.grey[100] : color.withValues(alpha:0.08),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: dimmed ? Colors.grey[300]! : color.withValues(alpha:0.3)),
+              ),
+              child: Text(
+                dimmed ? (coupon.isUsed ? loc.mypageUsedCoupon : loc.mypageExpiredCoupon) : loc.mypageAvailableCoupon,
+                style: TextStyle(fontSize: 11, color: dimmed ? Colors.grey : color, fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _fmtDate(DateTime d) {
+    final y = d.year.toString();
+    final m = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    return '$y.$m.$dd';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// PC 설정 탭
+// ═══════════════════════════════════════════════════════
+class _PcSettingsTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+  final void Function(BuildContext, UserModel) onShowProfileEdit;
+  final void Function(BuildContext) onShowAddressManager;
+  final void Function(BuildContext, UserProvider) onShowLogout;
+  final void Function(BuildContext) onShowChangePassword;
+  final void Function(BuildContext, UserProvider) onShowDeleteAccount;
+
+  const _PcSettingsTab({
+    required this.userProvider, required this.loc,
+    required this.onShowProfileEdit, required this.onShowAddressManager, required this.onShowLogout,
+    required this.onShowChangePassword, required this.onShowDeleteAccount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final user = userProvider.user;
+
+    return Column(
+      children: [
+        _PcTabHeader(icon: Icons.settings_rounded, title: loc.settings, color: Colors.blueGrey),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _PcSettingSection(
+                  title: loc.mypageProfileSection,
+                  items: [
+                    _PcSettingItem(icon: Icons.person_rounded, title: loc.mypageEditProfile,
+                      onTap: user != null ? () => onShowProfileEdit(context, user) : null),
+                    _PcSettingItem(icon: Icons.location_on_rounded, title: loc.mypageAddressBook,
+                      onTap: () => onShowAddressManager(context)),
+                    _PcSettingItem(
+                      icon: Icons.straighten_rounded,
+                      title: '내 사이즈 관리',
+                      subtitle: '저장된 사이즈로 주문 시 빠르게 입력',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SizeProfileScreen()),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _PcSettingSection(
+                  title: loc.mypageNotificationSection,
+                  items: [
+                    _PcSettingItem(icon: Icons.notifications_rounded, title: loc.mypageNotifOrder,
+                      trailing: Switch(value: true, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0)))),  // Color + WidgetStatePropertyAll + Switch trailing + _PcSettingItem
+                    _PcSettingItem(icon: Icons.campaign_rounded, title: loc.mypageNotifMarketing,
+                      trailing: Switch(value: false, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0)))),  // Color + WidgetStatePropertyAll + Switch trailing + _PcSettingItem
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _PcSettingSection(
+                  title: loc.mypageAppSection,
+                  items: [
+                    _PcSettingItem(icon: Icons.language_rounded, title: loc.mypageLanguageSetting,
+                      trailing: _LanguageDropdown()),
+                    const _PcSettingItem(icon: Icons.info_outline_rounded, title: '앱 정보', subtitle: 'v1.0.0'),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _PcSettingSection(
+                  title: '약관 및 정책',
+                  items: [
+                    _PcSettingItem(
+                      icon: Icons.privacy_tip_outlined,
+                      title: '개인정보처리방침',
+                      onTap: () => Navigator.pushNamed(context, '/privacy-policy'),
+                    ),
+                    _PcSettingItem(
+                      icon: Icons.description_outlined,
+                      title: '이용약관',
+                      onTap: () => Navigator.pushNamed(context, '/terms-of-service'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                if (user != null)
+                  _PcSettingSection(
+                    title: loc.mypageSecuritySection,
+                    items: [
+                      _PcSettingItem(icon: Icons.lock_rounded, title: loc.mypageChangePassword,
+                        onTap: () => onShowChangePassword(context)),
+                      _PcSettingItem(icon: Icons.logout_rounded, title: loc.mypageLogout,
+                        onTap: () => onShowLogout(context, userProvider), color: Colors.orange),
+                      _PcSettingItem(icon: Icons.delete_outline_rounded, title: loc.mypageDeleteAccount,
+                        onTap: () => onShowDeleteAccount(context, userProvider), color: Colors.red),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LanguageDropdown extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
+    return DropdownButton<AppLanguage>(
+      value: lang.language,
+      underline: const SizedBox(),
+      style: const TextStyle(fontSize: 13, color: Colors.black87),
+      items: AppLanguage.values.map((l) {
+        final labels = {AppLanguage.korean: '한국어', AppLanguage.english: 'English', AppLanguage.japanese: '日本語', AppLanguage.chinese: '中文', AppLanguage.mongolian: 'Монгол'};
+        return DropdownMenuItem(value: l, child: Text(labels[l] ?? l.name));
+      }).toList(),
+      onChanged: (v) { if (v != null) lang.setLanguage(v); },
+    );
+  }
+}
+
+class _PcSettingSection extends StatelessWidget {
+  final String title;
+  final List<Widget> items;
+  const _PcSettingSection({required this.title, required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.grey)),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Column(
+            children: List.generate(items.length, (i) => Column(
+              children: [
+                items[i],
+                if (i < items.length - 1) Divider(height: 1, indent: 52, color: Colors.grey[100]),
+              ],
+            )),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PcSettingItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final Color? color;
+
+  const _PcSettingItem({required this.icon, required this.title, this.subtitle, this.trailing, this.onTap, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? Colors.grey[800]!;
+    return ListTile(
+      leading: Container(
+        width: 36, height: 36,
+        decoration: BoxDecoration(color: (color ?? Colors.blueGrey).withValues(alpha:0.1), borderRadius: BorderRadius.circular(8)),
+        child: Icon(icon, size: 18, color: c),
+      ),
+      title: Text(title, style: TextStyle(fontSize: 14, color: c, fontWeight: FontWeight.w500)),
+      subtitle: subtitle != null ? Text(subtitle!, style: const TextStyle(fontSize: 12, color: Colors.grey)) : null,
+      trailing: trailing ?? (onTap != null ? Icon(Icons.chevron_right_rounded, size: 18, color: Colors.grey[400]) : null),
+      onTap: onTap,
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 모바일 버전 마이페이지
+// ═══════════════════════════════════════════════════════════════════
+class _MobileMyPage extends StatelessWidget {
+  final TabController tabController;
+  final UserProvider userProvider;
+  final VoidCallback? onBack; // 탭0(홈)으로 돌아가기 콜백
+  final void Function(OrderModel) onShowAdditionalOrder;
+  final void Function(OrderModel) onShowColorEdit;
+  final void Function(BuildContext, UserModel) onShowProfileEdit;
+  final void Function(BuildContext) onShowAddressManager;
+  final void Function(BuildContext, UserProvider) onShowLogout;
+  final void Function(BuildContext) onShowChangePassword;
+  final void Function(BuildContext, UserProvider) onShowDeleteAccount;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
+  final void Function(OrderModel)? onShowDesignRevision;
+
+  const _MobileMyPage({
+    required this.tabController,
+    required this.userProvider,
+    this.onBack,
+    required this.onShowAdditionalOrder,
+    required this.onShowColorEdit,
+    required this.onShowProfileEdit,
+    required this.onShowAddressManager,
+    required this.onShowLogout,
+    required this.onShowChangePassword,
+    required this.onShowDeleteAccount,
+    this.onExcelDownload,
+    this.onShowDesignRevision,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = context.watch<LanguageProvider>().loc;
+    final user = userProvider.user;
+
+    return wrapWithPopScope(context, Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A1A1A)),
+          onPressed: onBack ?? () => goBackOrHome(context),
+          tooltip: '이전으로',
+        ),
+        automaticallyImplyLeading: false,
+        title: const Text('마이페이지', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // 프로필 헤더
+            _MobileProfileHeader(user: user, loc: loc, userProvider: userProvider,
+              onShowProfileEdit: onShowProfileEdit, onShowLogout: onShowLogout),
+            // 빠른 통계
+            _MobileQuickStats(user: user, loc: loc, tabController: tabController),
+            // 탭바
+            Container(
+              color: Colors.white,
+              child: TabBar(
+                controller: tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicatorColor: const Color(0xFF1565C0),
+                labelColor: const Color(0xFF1565C0),
+                unselectedLabelColor: Colors.grey,
+                labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                tabs: [
+                  Tab(text: loc.myOrders),
+                  Tab(text: loc.mypagePaymentHistory),
+                  Tab(text: loc.wishlist),
+                  Tab(text: loc.mypageCouponBox),
+                  Tab(text: loc.settings),
+                ],
+              ),
+            ),
+            // 콘텐츠
+            Expanded(
+              child: TabBarView(
+                controller: tabController,
+                children: [
+                  _MobileOrderHistoryTab(userProvider: userProvider, loc: loc,
+                    onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
+                    onExcelDownload: onExcelDownload,
+                    onDesignRevision: onShowDesignRevision),
+                  _MobilePaymentHistoryTab(userProvider: userProvider, loc: loc),
+                  _MobileWishlistTab(userProvider: userProvider, loc: loc),
+                  _MobileCouponTab(userProvider: userProvider, loc: loc),
+                  _MobileSettingsTab(userProvider: userProvider, loc: loc,
+                    onShowProfileEdit: onShowProfileEdit,
+                    onShowAddressManager: onShowAddressManager,
+                    onShowLogout: onShowLogout,
+                    onShowChangePassword: onShowChangePassword,
+                    onShowDeleteAccount: onShowDeleteAccount),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     ));
   }
-
-  AppBar _buildMobileAppBar(UserModel user, UserProvider up) => AppBar(
-    backgroundColor: Colors.white,
-    elevation: 0,
-    leading: widget.onBack != null
-        ? IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87), onPressed: widget.onBack)
-        : null,
-    title: Row(children: [
-      GestureDetector(
-        onTap: () => _tabCtrl.animateTo(1),
-        child: const Text('프로필', style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w400)),
-      ),
-      const SizedBox(width: 12),
-      Row(children: [
-        const Text('쇼핑', style: TextStyle(fontSize: 14, color: Colors.black87, fontWeight: FontWeight.w800)),
-        const SizedBox(width: 2),
-        Container(width: 5, height: 5, decoration: const BoxDecoration(color: Color(0xFFFF6B35), shape: BoxShape.circle)),
-      ]),
-    ]),
-    bottom: PreferredSize(preferredSize: const Size.fromHeight(1), child: Divider(height: 1, color: Colors.grey[200])),
-    actions: [
-      if (user.isAdmin)
-        IconButton(icon: const Icon(Icons.admin_panel_settings_rounded, color: Colors.black54, size: 22),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdminScreen()))),
-      IconButton(icon: const Icon(Icons.search, color: Colors.black87, size: 22),
-          onPressed: () => _openSearch(context)),
-      IconButton(icon: const Icon(Icons.settings_outlined, color: Colors.black87, size: 22),
-          onPressed: () => _openSettings(context, up)),
-      Stack(children: [
-        IconButton(icon: const Icon(Icons.shopping_cart_outlined, color: Colors.black87, size: 22),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CartScreen()))),
-        Builder(builder: (ctx) {
-          final count = ctx.watch<CartProvider>().items.length;
-          if (count == 0) return const SizedBox.shrink();
-          return Positioned(top: 6, right: 6,
-            child: Container(width: 14, height: 14,
-              decoration: const BoxDecoration(color: Color(0xFFFF6B35), shape: BoxShape.circle),
-              child: Center(child: Text('$count',
-                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)))));
-        }),
-      ]),
-    ],
-  );
-
-  // ════════════════════════════════════════
-  // PC 레이아웃
-  // ════════════════════════════════════════
-  Widget _buildPc(BuildContext context, UserModel user, UserProvider up) {
-    return wrapWithPopScope(context, Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: Row(children: [
-        // 좌측 프로필 패널 (260px)
-        Container(
-          width: 260, color: Colors.white,
-          child: _PcSidebar(
-            user: user, up: up,
-            onProfileEdit: () => _openProfileEdit(context, user),
-            onAddressManager: () => _openAddressManager(context),
-            onChangePassword: () => _openChangePassword(context),
-            onLogout: () => _openLogout(context, up),
-            onDeleteAccount: () => _openDeleteAccount(context, up),
-          ),
-        ),
-        Container(width: 1, color: Colors.grey[200]),
-        // 우측 콘텐츠
-        Expanded(child: _ShoppingTab(
-          user: user, up: up,
-          onAdditional: _openAdditionalOrder,
-          onColorEdit: _openColorEdit,
-          onDesignRevision: _openDesignRevision,
-          onExcelDownload: _exportExcel,
-          onAddressManager: () => _openAddressManager(context),
-          onChangePassword: () => _openChangePassword(context),
-          onLogout: () => _openLogout(context, up),
-          onDeleteAccount: () => _openDeleteAccount(context, up),
-        )),
-      ]),
-    ));
-  }
 }
 
-// ════════════════════════════════════════════════════════════════
-// 모바일 헤더 (프로필 + 주문 통계)
-// ════════════════════════════════════════════════════════════════
-class _MobileHeader extends StatelessWidget {
-  final UserModel user;
-  final UserProvider up;
-  final VoidCallback onProfileEdit;
-  final VoidCallback onLogout;
-  final VoidCallback onOrderTap;
-  final VoidCallback onWishlistTap;
-  final VoidCallback onCouponTap;
-  final void Function(OrderStatus)? onStatusTap;
-  const _MobileHeader({
-    required this.user, required this.up,
-    required this.onProfileEdit, required this.onLogout,
-    required this.onOrderTap, required this.onWishlistTap, required this.onCouponTap,
-    this.onStatusTap,
+// ── 모바일 프로필 헤더 ──
+class _MobileProfileHeader extends StatelessWidget {
+  final UserModel? user;
+  final AppLocalizations loc;
+  final UserProvider userProvider;
+  final void Function(BuildContext, UserModel) onShowProfileEdit;
+  final void Function(BuildContext, UserProvider) onShowLogout;
+
+  const _MobileProfileHeader({
+    required this.user, required this.loc, required this.userProvider,
+    required this.onShowProfileEdit, required this.onShowLogout,
   });
 
   @override
   Widget build(BuildContext context) {
-    final orders = context.watch<OrderProvider>().orders;
-    final statusCounts = <OrderStatus, int>{};
-    for (final s in OrderStatus.values) statusCounts[s] = 0;
-    for (final o in orders) statusCounts[o.status] = (statusCounts[o.status] ?? 0) + 1;
-
-    final coupons = context.watch<CouponProvider>().validCoupons.length;
-    final wishlistCount = context.watch<UserProvider>().user?.wishlist.length ?? 0;
+    final tier = user?.memberTier ?? 'bronze';
+    final tierColor = _tierColor(tier);
+    final tierLabel = _tierLabel(tier, loc);
 
     return Container(
-      color: Colors.white,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // 프로필 행
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-          child: Row(children: [
-            _ProfileAvatar(user: user, radius: 28),
-            const SizedBox(width: 14),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(user.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 2),
-              Text(user.email, style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
-              if (user.points > 0) ...[ const SizedBox(height: 4),
-                Row(children: [
-                  Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(color: const Color(0xFFFFF3ED), borderRadius: BorderRadius.circular(4)),
-                      child: Text('P ${user.points}', style: const TextStyle(fontSize: 11, color: Color(0xFFFF6B35), fontWeight: FontWeight.w700))),
-                ]),
-              ],
-            ])),
-            GestureDetector(onTap: onProfileEdit,
-              child: Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(border: Border.all(color: const Color(0xFFBDBDBD)), borderRadius: BorderRadius.circular(4)),
-                child: const Text('프로필 수정', style: TextStyle(fontSize: 12, color: Colors.black54)))),
-          ]),
-        ),
-        // 빠른 통계 바
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Row(children: [
-            _StatChip(label: '주문', value: orders.length, onTap: onOrderTap),
-            const SizedBox(width: 8),
-            _StatChip(label: '찜', value: wishlistCount, onTap: onWishlistTap),
-            const SizedBox(width: 8),
-            _StatChip(label: '쿠폰', value: coupons, onTap: onCouponTap),
-          ]),
-        ),
-        // 진행중인 주문 스텝
-        _OrderProgressBar(statusCounts: statusCounts, onStatusTap: onStatusTap),
-        const Divider(height: 1, color: Color(0xFFEEEEEE)),
-      ]),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final String label; final int value; final VoidCallback onTap;
-  const _StatChip({required this.label, required this.value, required this.onTap});
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-      decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(20)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
-        const SizedBox(width: 4),
-        Text('$value', style: const TextStyle(fontSize: 12, color: Color(0xFF1C62B9), fontWeight: FontWeight.w700)),
-      ]),
-    ),
-  );
-}
-
-// 주문 진행 스텝 바 (오늘의집 스타일)
-class _OrderProgressBar extends StatelessWidget {
-  final Map<OrderStatus, int> statusCounts;
-  final void Function(OrderStatus)? onStatusTap;
-  const _OrderProgressBar({required this.statusCounts, this.onStatusTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final steps = [
-      (OrderStatus.pending, '입금\n대기'),
-      (OrderStatus.confirmed, '결제\n완료'),
-      (OrderStatus.processing, '배송\n준비'),
-      (OrderStatus.shipped, '배송중'),
-      (OrderStatus.delivered, '배송\n완료'),
-    ];
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 8, bottom: 10),
-          child: Text('진행중인 주문 (최근 3개월)',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.black87)),
-        ),
-        Row(children: steps.asMap().entries.map((e) {
-          final st = e.value.$1;
-          final label = e.value.$2;
-          final count = statusCounts[st] ?? 0;
-          final isActive = count > 0;
-          return Expanded(child: GestureDetector(
-            onTap: () => onStatusTap?.call(st),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              decoration: BoxDecoration(
-                color: isActive ? const Color(0xFFF0F4FF) : Colors.transparent,
-                borderRadius: BorderRadius.circular(8),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(colors: [Color(0xFF1A237E), Color(0xFF283593)],
+          begin: Alignment.topLeft, end: Alignment.bottomRight),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 56, height: 56,
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha:0.2), shape: BoxShape.circle),
+                child: const Icon(Icons.person_rounded, size: 32, color: Colors.white),
               ),
-              child: Column(children: [
-                Text('$count',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800,
-                        color: isActive ? const Color(0xFF1C62B9) : const Color(0xFFBBBBBB))),
-                const SizedBox(height: 4),
-                Text(label, textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 10,
-                        color: isActive ? const Color(0xFF1C62B9) : const Color(0xFF888888),
-                        height: 1.3,
-                        fontWeight: isActive ? FontWeight.w600 : FontWeight.w400)),
-              ]),
+              const SizedBox(width: 14),
+              Expanded(
+                child: user == null
+                  ? Text(loc.mypageLoginPrompt, style: const TextStyle(color: Colors.white70, fontSize: 14))
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(user!.name, style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w800)),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(color: tierColor.withValues(alpha:0.3), borderRadius: BorderRadius.circular(10)),
+                              child: Text(tierLabel, style: TextStyle(color: tierColor, fontSize: 11, fontWeight: FontWeight.w700)),
+                            ),
+                          ],
+                        ),
+                        Text(user!.email, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+                      ],
+                    ),
+              ),
+              if (user != null)
+                IconButton(
+                  onPressed: () => onShowProfileEdit(context, user!),
+                  icon: const Icon(Icons.edit_rounded, color: Colors.white70, size: 20),
+                ),
+            ],
+          ),
+          if (user != null) ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(child: _InfoChip(icon: Icons.star_rounded, label: '${_fmt(user!.points)} P', color: Colors.amber)),
+                const SizedBox(width: 10),
+                Expanded(child: GestureDetector(
+                  onTap: () => onShowLogout(context, userProvider),
+                  child: _InfoChip(icon: Icons.logout_rounded, label: loc.mypageLogout, color: Colors.red[300]!),
+                )),
+              ],
             ),
-          ));
-        }).expand((w) sync* {
-          yield w;
-        }).toList()),
-      ]),
+          ],
+        ],
+      ),
     );
   }
+
+  String _tierLabel(String tier, AppLocalizations loc) {
+    switch (tier) {
+      case 'silver': return loc.mypageTierSilver;
+      case 'gold': return loc.mypageTierGold;
+      case 'vip': return loc.mypageTierVip;
+      default: return loc.mypageTierBronze;
+    }
+  }
+
+  Color _tierColor(String tier) {
+    switch (tier) {
+      case 'silver': return Colors.blueGrey[200]!;
+      case 'gold': return Colors.amber[400]!;
+      case 'vip': return Colors.purple[300]!;
+      default: return Colors.brown[300]!;
+    }
+  }
+
+  String _fmt(int n) =>
+    n.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '\${m[1]},');
 }
 
-// ════════════════════════════════════════════════════════════════
-// PC 사이드바
-// ════════════════════════════════════════════════════════════════
-class _PcSidebar extends StatelessWidget {
-  final UserModel user; final UserProvider up;
-  final VoidCallback onProfileEdit, onAddressManager, onChangePassword, onLogout, onDeleteAccount;
-  const _PcSidebar({required this.user, required this.up,
-      required this.onProfileEdit, required this.onAddressManager,
-      required this.onChangePassword, required this.onLogout, required this.onDeleteAccount});
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  const _InfoChip({required this.icon, required this.label, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    final orders = context.watch<OrderProvider>().orders.length;
-    final wishlist = user.wishlist.length;
-    final coupons = context.watch<CouponProvider>().validCoupons.length;
-    return SingleChildScrollView(
-      child: Column(children: [
-        // 프로필
-        Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(children: [
-            const SizedBox(height: 12),
-            _ProfileAvatar(user: user, radius: 32),
-            const SizedBox(height: 12),
-            Text(user.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 2),
-            Text(user.email, style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
-            const SizedBox(height: 10),
-            if (user.points > 0)
-              Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: const Color(0xFFFFF3ED), borderRadius: BorderRadius.circular(4)),
-                  child: Text('P ${user.points}', style: const TextStyle(fontSize: 12, color: Color(0xFFFF6B35), fontWeight: FontWeight.w700))),
-            const SizedBox(height: 14),
-            SizedBox(width: double.infinity, height: 36,
-              child: OutlinedButton(onPressed: onProfileEdit,
-                style: OutlinedButton.styleFrom(side: BorderSide(color: const Color(0xFFBDBDBD)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4))),
-                child: const Text('프로필 수정', style: TextStyle(fontSize: 13, color: Colors.black54)))),
-          ]),
-        ),
-        Divider(height: 1, color: Colors.grey[200]),
-        // 통계
-        Row(children: [
-          _PcStatItem(label: '주문', value: orders),
-          Container(width: 1, height: 30, color: Colors.grey[200]),
-          _PcStatItem(label: '찜', value: wishlist),
-          Container(width: 1, height: 30, color: Colors.grey[200]),
-          _PcStatItem(label: '쿠폰', value: coupons),
-        ]),
-        Divider(height: 1, color: Colors.grey[200]),
-        const SizedBox(height: 8),
-        // 메뉴
-        _SideItem(icon: Icons.location_on_outlined, label: '배송지 관리', onTap: onAddressManager),
-        _SideItem(icon: Icons.lock_outline_rounded, label: '비밀번호 변경', onTap: onChangePassword),
-        if (user.isAdmin)
-          _SideItem(icon: Icons.admin_panel_settings_rounded, label: '관리자',
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AdminScreen()))),
-        Divider(height: 1, color: Colors.grey[100]),
-        _SideItem(icon: Icons.logout_rounded, label: '로그아웃', onTap: onLogout, color: Colors.orange),
-        _SideItem(icon: Icons.delete_forever_outlined, label: '회원 탈퇴', onTap: onDeleteAccount, color: Colors.red),
-        const SizedBox(height: 20),
-      ]),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(color: Colors.white.withValues(alpha:0.12), borderRadius: BorderRadius.circular(10)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 }
 
-class _PcStatItem extends StatelessWidget {
-  final String label; final int value;
-  const _PcStatItem({required this.label, required this.value});
+// ── 모바일 빠른 통계 ──
+class _MobileQuickStats extends StatelessWidget {
+  final UserModel? user;
+  final AppLocalizations loc;
+  final TabController tabController;
+
+  const _MobileQuickStats({required this.user, required this.loc, required this.tabController});
+
   @override
-  Widget build(BuildContext context) => Expanded(
-    child: Padding(padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(children: [
-        Text('$value', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800,
-            color: value > 0 ? const Color(0xFF1C62B9) : Colors.black54)),
-        const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
-      ])),
-  );
+  Widget build(BuildContext context) {
+    final orderProvider = context.watch<OrderProvider>();
+    final orders = user != null ? orderProvider.getUserOrders(user!.id) : <OrderModel>[];
+    final wishCount = user?.wishlist.length ?? 0;
+    final couponCount = user?.coupons.where((c) => c.isValid).length ?? 0;
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          _MobileStatItem(label: loc.myOrders, count: orders.length, onTap: () => tabController.animateTo(0)),
+          _VertDiv(),
+          _MobileStatItem(label: loc.wishlist, count: wishCount, onTap: () => tabController.animateTo(2)),
+          _VertDiv(),
+          _MobileStatItem(label: loc.mypageCouponBox, count: couponCount, onTap: () => tabController.animateTo(3)),
+          _VertDiv(),
+          _MobileStatItem(label: loc.mypagePoints, count: user?.points ?? 0, onTap: () => tabController.animateTo(4)),
+        ],
+      ),
+    );
+  }
 }
 
-class _SideItem extends StatelessWidget {
-  final IconData icon; final String label; final VoidCallback onTap; final Color? color;
-  const _SideItem({required this.icon, required this.label, required this.onTap, this.color});
+class _MobileStatItem extends StatelessWidget {
+  final String label;
+  final int count;
+  final VoidCallback onTap;
+  const _MobileStatItem({required this.label, required this.count, required this.onTap});
+
   @override
-  Widget build(BuildContext context) => ListTile(
-    leading: Icon(icon, size: 18, color: color ?? Colors.grey[600]),
-    title: Text(label, style: TextStyle(fontSize: 13, color: color ?? Colors.black87)),
-    onTap: onTap, dense: true,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-  );
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          children: [
+            Text('$count', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+            const SizedBox(height: 2),
+            Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-// ════════════════════════════════════════════════════════════════
-// Tab Delegate
-// ════════════════════════════════════════════════════════════════
-class _OhouseTabDelegate extends SliverPersistentHeaderDelegate {
-  final TabBar tabBar;
-  const _OhouseTabDelegate(this.tabBar);
-  @override double get minExtent => 46;
-  @override double get maxExtent => 46;
-  @override Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) =>
-    Container(color: Colors.white,
-      child: Column(children: [tabBar, Divider(height: 1, color: Colors.grey[200])]));
-  @override bool shouldRebuild(_OhouseTabDelegate old) => old.tabBar != tabBar;
+class _VertDiv extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) =>
+    Container(width: 1, height: 24, color: Colors.grey[200]);
 }
 
-// ════════════════════════════════════════════════════════════════
-// 쇼핑 탭 (주문목록 + 메뉴 리스트)
-// ════════════════════════════════════════════════════════════════
-class _ShoppingTab extends StatelessWidget {
-  final UserModel user; final UserProvider up;
-  final void Function(OrderModel) onAdditional, onColorEdit, onDesignRevision;
-  final Future<void> Function(BuildContext, OrderModel) onExcelDownload;
-  final VoidCallback onAddressManager, onChangePassword, onLogout, onDeleteAccount;
-  const _ShoppingTab({
-    required this.user, required this.up,
-    required this.onAdditional, required this.onColorEdit, required this.onDesignRevision,
-    required this.onExcelDownload, required this.onAddressManager,
-    required this.onChangePassword, required this.onLogout, required this.onDeleteAccount,
+// ═══════════════════════════════════════════════════════
+// 모바일 주문 내역 탭
+// ═══════════════════════════════════════════════════════
+class _MobileOrderHistoryTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+  final void Function(OrderModel) onAdditionalOrder;
+  final void Function(OrderModel) onColorEdit;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
+  final void Function(OrderModel)? onDesignRevision;
+
+  const _MobileOrderHistoryTab({
+    required this.userProvider, required this.loc,
+    required this.onAdditionalOrder, required this.onColorEdit,
+    this.onExcelDownload,
+    this.onDesignRevision,
   });
 
   @override
   Widget build(BuildContext context) {
-    final orders = context.watch<OrderProvider>().orders;
-    final statusCounts = <OrderStatus, int>{};
-    for (final s in OrderStatus.values) statusCounts[s] = 0;
-    for (final o in orders) statusCounts[o.status] = (statusCounts[o.status] ?? 0) + 1;
-    final deliveryCount = (statusCounts[OrderStatus.shipped] ?? 0) +
-        (statusCounts[OrderStatus.processing] ?? 0) + (statusCounts[OrderStatus.confirmed] ?? 0);
+    final user = userProvider.user;
+    if (user == null) return _MobileEmptyState(icon: Icons.login_rounded, message: loc.mypageLoginPrompt);
 
-    return ListView(
-      physics: const ClampingScrollPhysics(),
-      children: [
-        // ── 주문/배송 조회 ──────────────────
-        _OhouseMenuTile(
-          label: '주문/배송 조회',
-          badge: deliveryCount > 0 ? '$deliveryCount' : null,
-          onTap: () => _showOrderList(context, orders, onAdditional, onColorEdit, onDesignRevision, onExcelDownload),
-        ),
-        const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF0F0F0)),
+    final orderProvider = context.watch<OrderProvider>();
+    final orders = orderProvider.getUserOrders(user.id);
 
-        // ── 최근 본 상품 ──────────────────
-        _OhouseMenuTile(label: '최근 본 상품', onTap: () =>
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('최근 본 상품 기능은 준비 중입니다.')))),
-        const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF0F0F0)),
+    if (orders.isEmpty) {
+      return _MobileEmptyState(icon: Icons.receipt_long_outlined, message: loc.mypageNoOrders, subtitle: loc.mypageFirstOrder);
+    }
 
-        // ── 상품 스크랩북 (찜) ──────────────
-        _OhouseMenuTile(
-          label: '상품 스크랩북',
-          badge: user.wishlist.isNotEmpty ? '${user.wishlist.length}' : null,
-          onTap: () => _showWishlist(context, user),
-        ),
-        const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF0F0F0)),
-
-        // ── 쿠폰함 ──────────────────
-        Builder(builder: (ctx) {
-          final coupons = ctx.watch<CouponProvider>().validCoupons;
-          return _OhouseMenuTile(
-            label: '쿠폰함',
-            badge: coupons.isNotEmpty ? '${coupons.length}' : null,
-            onTap: () => _showCoupons(context, coupons),
-          );
-        }),
-        const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF0F0F0)),
-
-        // ── 포인트 ──────────────────
-        _OhouseMenuTile(
-          label: '포인트',
-          badge: user.points > 0 ? '${user.points}P' : null,
-          badgeColor: const Color(0xFFFF6B35),
-          onTap: () => _showPointsSheet(context, user),
-        ),
-        Container(height: 8, color: const Color(0xFFF5F5F5)),
-
-        // ── 설정 섹션 ──────────────────
-        _OhouseMenuTile(label: '배송지 관리', onTap: onAddressManager),
-        const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF0F0F0)),
-        _OhouseMenuTile(label: '비밀번호 변경', onTap: onChangePassword),
-        const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF0F0F0)),
-        _OhouseMenuTile(label: '고객센터', onTap: () => _showCS(context)),
-        Container(height: 8, color: const Color(0xFFF5F5F5)),
-
-        // ── 계정 ──────────────────
-        _OhouseMenuTile(label: '로그아웃', onTap: onLogout, textColor: Colors.orange),
-        const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF0F0F0)),
-        _OhouseMenuTile(label: '회원 탈퇴', onTap: onDeleteAccount, textColor: Colors.red),
-        const SizedBox(height: 40),
-      ],
-    );
-  }
-
-  void _showPointsSheet(BuildContext context, UserModel user) => showModalBottomSheet(
-    context: context,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-    builder: (bsCtx) => Container(
-      padding: const EdgeInsets.all(24),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Text('포인트', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-          const Spacer(),
-          IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
-        ]),
-        const SizedBox(height: 16),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF3ED),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(children: [
-            const Icon(Icons.stars_rounded, color: Color(0xFFFF6B35), size: 28),
-            const SizedBox(width: 12),
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('보유 포인트', style: TextStyle(fontSize: 12, color: Color(0xFF888888))),
-              const SizedBox(height: 2),
-              Text('${user.points} P',
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFFFF6B35))),
-            ]),
-          ]),
-        ),
-        const SizedBox(height: 16),
-        const Text('• 포인트는 주문 시 할인에 사용할 수 있습니다.',
-            style: TextStyle(fontSize: 13, color: Color(0xFF555555))),
-        const SizedBox(height: 6),
-        const Text('• 포인트 사용 문의: 카카오톡 @2fitkorea',
-            style: TextStyle(fontSize: 13, color: Color(0xFF555555))),
-        const SizedBox(height: 20),
-      ]),
-    ),
-  );
-
-  void _showCS(BuildContext context) => showModalBottomSheet(
-    context: context,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-    builder: (bsCtx) => Container(
-      padding: const EdgeInsets.all(24),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Text('고객센터', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-          const Spacer(),
-          IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
-        ]),
-        const SizedBox(height: 16),
-        const Text('• 카카오톡: @2fitkorea'),
-        const Text('• 전화: 010-7227-6914'),
-        const Text('• 이메일: chw243527@gmail.com'),
-        const SizedBox(height: 6),
-        const Text('운영시간: 평일 09:00 ~ 18:00', style: TextStyle(fontSize: 12, color: Colors.grey)),
-        const SizedBox(height: 20),
-      ]),
-    ),
-  );
-
-  void _showWishlist(BuildContext context, UserModel user) {
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => _WishlistScreen(userId: user.id),
-    ));
-  }
-
-  void _showCoupons(BuildContext context, List<CouponModel> coupons) => showModalBottomSheet(
-    context: context, isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-    builder: (bsCtx) => SizedBox(
-      height: MediaQuery.of(context).size.height * 0.7,
-      child: Column(children: [
-        const SizedBox(height: 16),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(children: [
-            Text('쿠폰 ${coupons.length}장', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-            const Spacer(),
-            IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
-          ])),
-        if (coupons.isEmpty)
-          const Expanded(child: Center(
-            child: Text('사용 가능한 쿠폰이 없습니다.', style: TextStyle(fontSize: 14, color: Colors.grey)),
-          ))
-        else
-          Expanded(child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: coupons.length,
-          itemBuilder: (_, i) {
-            final c = coupons[i];
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[200] ?? const Color(0xFFEEEEEE)),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4)]),
-              child: Row(children: [
-                Container(width: 44, height: 44,
-                    decoration: const BoxDecoration(color: Color(0xFFE8EEF8), shape: BoxShape.circle),
-                    child: const Icon(Icons.local_offer_rounded, color: Color(0xFF1C62B9), size: 20)),
-                const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(c.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 2),
-                  Text(c.typeLabel, style: const TextStyle(fontSize: 13, color: Color(0xFF1C62B9), fontWeight: FontWeight.w600)),
-                  Text('~${c.expiresAt.year}.${c.expiresAt.month.toString().padLeft(2,'0')}.${c.expiresAt.day.toString().padLeft(2,'0')}',
-                      style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                ])),
-              ]),
-            );
-          },
-        )),
-      ]),
-    ),
-  );
-
-  void _showOrderList(BuildContext context, List<OrderModel> orders,
-      void Function(OrderModel) onAdd, void Function(OrderModel) onCol,
-      void Function(OrderModel) onDes, Future<void> Function(BuildContext, OrderModel) onXls) {
-    // orders 로딩 전이어도 항상 화면 열기
-    Navigator.push(context, MaterialPageRoute(builder: (_) => _OrderListScreen(
-      orders: orders,
-      onAdditional: onAdd, onColorEdit: onCol, onDesignRevision: onDes, onExcelDownload: onXls,
-    )));
-  }
-}
-
-// ════════════════════════════════════════════════════════════════
-// 메뉴 타일 (오늘의집 스타일)
-// ════════════════════════════════════════════════════════════════
-class _OhouseMenuTile extends StatelessWidget {
-  final String label; final String? badge; final Color? badgeColor;
-  final Color? textColor; final VoidCallback onTap;
-  const _OhouseMenuTile({required this.label, required this.onTap,
-      this.badge, this.badgeColor, this.textColor});
-  @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    child: Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Row(children: [
-        Text(label, style: TextStyle(fontSize: 14, color: textColor ?? Colors.black87,
-            fontWeight: textColor != null ? FontWeight.w600 : FontWeight.w400)),
-        if (badge != null) ...[ const SizedBox(width: 6),
-          Text(badge!, style: TextStyle(fontSize: 14, color: badgeColor ?? const Color(0xFF1C62B9),
-              fontWeight: FontWeight.w700)),
-        ],
-        const Spacer(),
-        Icon(Icons.chevron_right, size: 18, color: Colors.grey[400]),
-      ]),
-    ),
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// 활동 탭 (찜, 리뷰 등)
-// ════════════════════════════════════════════════════════════════
-class _ActivityTab extends StatelessWidget {
-  final UserModel user;
-  const _ActivityTab({required this.user});
-  @override
-  Widget build(BuildContext context) => ListView(children: [
-    _OhouseMenuTile(
-      label: '찜한 상품',
-      badge: user.wishlist.isNotEmpty ? '${user.wishlist.length}' : null,
-      onTap: () => _showWishlistSheet(context),
-    ),
-    const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF0F0F0)),
-    _OhouseMenuTile(label: '나의 리뷰', onTap: () =>
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('리뷰 기능은 준비 중입니다.')))),
-    const Divider(height: 1, indent: 16, endIndent: 16, color: Color(0xFFF0F0F0)),
-    _OhouseMenuTile(label: '나의 문의내역', onTap: () =>
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('문의내역은 카카오톡 @2fitkorea에서 확인하세요.')))),
-    const SizedBox(height: 40),
-  ]);
-
-  void _showWishlistSheet(BuildContext context) {
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => _WishlistScreen(userId: user.id),
-    ));
-  }
-}
-
-
-// ════════════════════════════════════════════════════════════════
-
-// ════════════════════════════════════════════════════════════════
-// 찜 목록 전체화면
-// ════════════════════════════════════════════════════════════════
-class _WishlistScreen extends StatelessWidget {
-  final String userId;
-  const _WishlistScreen({required this.userId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('찜 목록',
-            style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w700, fontSize: 16)),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Divider(height: 1, color: Colors.grey[200]),
+    return RefreshIndicator(
+      onRefresh: () => orderProvider.loadUserOrders(user.id),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: orders.length,
+        itemBuilder: (_, i) => _MobileOrderCard(
+          order: orders[i], loc: loc,
+          onAdditionalOrder: onAdditionalOrder, onColorEdit: onColorEdit,
+          onExcelDownload: onExcelDownload,
+          onDesignRevision: onDesignRevision,
         ),
       ),
-      body: _WishlistContent(userId: userId),
     );
   }
 }
 
-// ════════════════════════════════════════════════════════════════
-// 찜 목록 콘텐츠
-// ════════════════════════════════════════════════════════════════
-class _WishlistContent extends StatefulWidget {
-  final String userId;
-  const _WishlistContent({required this.userId});
-  @override
-  State<_WishlistContent> createState() => _WishlistContentState();
-}
+class _MobileOrderCard extends StatelessWidget {
+  final OrderModel order;
+  final AppLocalizations loc;
+  final void Function(OrderModel) onAdditionalOrder;
+  final void Function(OrderModel) onColorEdit;
+  final void Function(OrderModel)? onDesignRevision;
+  final void Function(BuildContext, OrderModel)? onExcelDownload;
 
-class _WishlistContentState extends State<_WishlistContent> {
-  List<ProductModel>? _products;
-
-  @override
-  void initState() {
-    super.initState();
-    // addPostFrameCallback: initState 시점에 context 접근 안전하게
-    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
-  }
-
-  Future<void> _load() async {
-    if (!mounted) return;
-    // UserProvider에서 최신 user를 읽어 stale snapshot 문제 방지
-    final user = context.read<UserProvider>().user;
-    final ids = user?.wishlist ?? [];
-    if (ids.isEmpty) {
-      if (mounted) setState(() => _products = []);
-      return;
-    }
-    // 1) 동기 캐시 우선 표시
-    final synced = ids
-        .map(ProductService.getProductByIdSync)
-        .whereType<ProductModel>()
-        .toList();
-    if (synced.isNotEmpty && mounted) setState(() => _products = synced);
-
-    // 2) 비동기 완전 로드 후 순서 유지
-    final all = List<ProductModel>.from(synced);
-    final cachedIds = synced.map((p) => p.id).toSet();
-    for (final id in ids.where((id) => !cachedIds.contains(id))) {
-      try {
-        final p = await ProductService.getProductById(id);
-        if (p != null) all.add(p);
-      } catch (_) {}
-    }
-    all.sort((a, b) => ids.indexOf(a.id).compareTo(ids.indexOf(b.id)));
-    if (mounted) setState(() => _products = all);
-  }
+  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision, this.onExcelDownload});
 
   @override
   Widget build(BuildContext context) {
-    final products = _products;
-    if (products == null) {
-      return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF1C62B9)));
-    }
-    if (products.isEmpty) {
-      return Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Icon(Icons.favorite_border_rounded, size: 48, color: Colors.grey[300]),
-        const SizedBox(height: 12),
-        Text('찜한 상품이 없습니다',
-            style: TextStyle(fontSize: 14, color: Colors.grey[400])),
-      ]));
-    }
-    return GridView.builder(
-      padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-        childAspectRatio: 0.72,
+    final statusColor = _statusColor(order.status);
+    final isGroup = order.orderType == 'group' || order.orderType == 'additional' || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
+    final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
+    final canColorEdit = isGroup && isActive && order.canEditColor;
+    final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
+    final canDesignRevision = isGroup && isActive && order.canDesignRevision;
+
+    // 취소/교환/반품 조건
+    final canCancelReadyMade = !isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
+    final canCancelGroup = isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
+    final canCancel = canCancelReadyMade || canCancelGroup;
+    final cancelBlockedByDesign = isGroup && order.status == OrderStatus.processing;
+    final canExchangeReturn = !isGroup && order.status == OrderStatus.delivered;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.06), blurRadius: 8, offset: const Offset(0, 2))],
       ),
-      itemCount: products.length,
-      itemBuilder: (ctx, i) {
-        final p = products[i];
-        final imgUrl =
-            p.images.firstWhere((u) => u.isNotEmpty, orElse: () => '');
-        return GestureDetector(
-          onTap: () => Navigator.push(ctx,
-              MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFEEEEEE)),
-            ),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        children: [
+          // ── 헤더: 주문번호 + 날짜 + 상태 ──
+          GestureDetector(
+            onTap: () => _showUserOrderDetail(context, order),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+              child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(8)),
-                    child: imgUrl.isNotEmpty
-                        ? NetImage(imgUrl,
-                            width: double.infinity,
-                            height: 140,
-                            fit: BoxFit.cover,
-                            backgroundColor: const Color(0xFFEEEEEE))
-                        : Container(
-                            height: 140,
-                            color: const Color(0xFFEEEEEE),
-                            child: const Center(
-                                child: Icon(Icons.checkroom_rounded,
-                                    color: Colors.grey, size: 36))),
+                  if (isGroup) Container(
+                    margin: const EdgeInsets.only(right: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(color: Colors.purple.withValues(alpha:0.1), borderRadius: BorderRadius.circular(6)),
+                    child: Text(loc.groupCustom, style: const TextStyle(fontSize: 10, color: Colors.purple, fontWeight: FontWeight.w600)),
                   ),
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(p.name,
-                                style: const TextStyle(
-                                    fontSize: 12, fontWeight: FontWeight.w500),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${p.price.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
-                              style: const TextStyle(
-                                  fontSize: 13, fontWeight: FontWeight.w700),
-                            ),
-                          ]),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(order.id, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                        Text(_fmtDate(order.createdAt), style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                      ],
                     ),
                   ),
-                ]),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(color: statusColor.withValues(alpha:0.12), borderRadius: BorderRadius.circular(12)),
+                    child: Text(order.status.label, style: TextStyle(fontSize: 12, color: statusColor, fontWeight: FontWeight.w800)),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.chevron_right_rounded, size: 18, color: Colors.grey[400]),
+                ],
+              ),
+            ),
+          ),
+          const Divider(height: 1),
+          // ── 상품 정보 ──
+          GestureDetector(
+            onTap: () => _showUserOrderDetail(context, order),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: order.items.isNotEmpty && order.items.first.imageUrl != null && order.items.first.imageUrl!.isNotEmpty
+                      ? NetImage(order.items.first.imageUrl!, width: 60, height: 60, fit: BoxFit.cover)
+                      : Container(
+                          width: 60, height: 60,
+                          decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                        ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (order.items.isNotEmpty)
+                          Text(order.items.first.productName,
+                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        if (order.items.isNotEmpty)
+                          Text(
+                            '${order.items.first.size != '단체' && order.items.first.size.isNotEmpty ? order.items.first.size : ''}'
+                            '${order.items.first.color.isNotEmpty ? ' / ${order.items.first.color}' : ''}'
+                            ' · ${order.items.first.quantity}개',
+                            style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                          ),
+                        if (order.items.length > 1)
+                          Text('외 ${order.items.length - 1}개 상품 더보기',
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF1565C0))),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // ── 결제 금액 요약 ──
+          GestureDetector(
+            onTap: () => _showUserOrderDetail(context, order),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+              child: Row(
+                children: [
+                  Text('결제금액 ', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                  Text(_fmtPrice(order.totalAmount),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF1565C0))),
+                  const Spacer(),
+                  Text('${order.paymentMethod}', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                ],
+              ),
+            ),
+          ),
+          // ── 액션 버튼 구분선 ──
+          Container(height: 1, color: Colors.grey[100]),
+          // ── 버튼 행 (네이버 스타일: 항상 노출) ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: Builder(builder: (btnCtx) {
+              Future<void> doCancel() async {
+                final confirm = await showDialog<bool>(
+                  context: btnCtx,
+                  builder: (_) => AlertDialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    title: const Text('주문 취소', style: TextStyle(fontWeight: FontWeight.w800)),
+                    content: Text(isGroup
+                        ? '단체주문을 취소하시겠습니까?\n제작 시작 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'
+                        : '주문을 취소하시겠습니까?\n발송 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(btnCtx, false), child: const Text('아니오')),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        onPressed: () => Navigator.pop(btnCtx, true),
+                        child: const Text('취소하기', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true && btnCtx.mounted) {
+                  await OrderService.updateOrderStatus(order.id, OrderStatus.cancelled);
+                  NotificationService.sendCancelled(order: order, reason: '고객 직접 취소').catchError((_) {});
+                  FcmService.sendOrderStatusNotification(order: order, newStatus: OrderStatus.cancelled).catchError((_) {});
+                  if (btnCtx.mounted) {
+                    ScaffoldMessenger.of(btnCtx).showSnackBar(
+                      const SnackBar(content: Text('주문이 취소되었습니다.'), backgroundColor: Color(0xFF1A1A2E)),
+                    );
+                  }
+                }
+              }
+
+              void showContactSheet(String subject) {
+                showModalBottomSheet(
+                  context: btnCtx,
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                  builder: (_) => Container(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(subject, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 8),
+                      Text('주문번호: ${order.id}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F8FF),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
+                        ),
+                        child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('고객센터 문의', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                          SizedBox(height: 6),
+                          Text('• 카카오톡: @2fitkorea', style: TextStyle(fontSize: 13)),
+                          Text('• 전화: 010-7227-6914', style: TextStyle(fontSize: 13)),
+                          Text('• 이메일: chw243527@gmail.com', style: TextStyle(fontSize: 13)),
+                          SizedBox(height: 6),
+                          Text('배송 완료 후 7일 이내 접수해 주세요.\n(상품 하자의 경우 3개월 이내)',
+                              style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5)),
+                        ]),
+                      ),
+                      const SizedBox(height: 16),
+                    ]),
+                  ),
+                );
+              }
+
+              // 버튼 목록 구성
+              final btns = <Widget>[];
+
+              // 주문 상세 (항상)
+              btns.add(_ActionBtn(
+                icon: Icons.receipt_long_rounded,
+                label: '주문상세',
+                onTap: () => _showUserOrderDetail(btnCtx, order),
+              ));
+
+              // 취소 버튼
+              if (canCancel) btns.add(_ActionBtn(
+                icon: Icons.cancel_outlined,
+                label: isGroup ? '취소(제작전)' : '주문취소',
+                color: Colors.red,
+                onTap: doCancel,
+              ));
+
+              // 취소 불가 안내
+              if (cancelBlockedByDesign) btns.add(_ActionBtn(
+                icon: Icons.lock_outline_rounded,
+                label: '취소불가',
+                color: Colors.red.shade300,
+                onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
+                  const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다. 고객센터로 문의해 주세요.')),
+                ),
+              ));
+
+              // 교환/반품
+              if (canExchangeReturn) {
+                btns.add(_ActionBtn(
+                  icon: Icons.swap_horiz_rounded,
+                  label: '교환신청',
+                  color: const Color(0xFF1565C0),
+                  onTap: () => showContactSheet('교환 신청'),
+                ));
+                btns.add(_ActionBtn(
+                  icon: Icons.assignment_return_outlined,
+                  label: '반품신청',
+                  color: Colors.orange,
+                  onTap: () => showContactSheet('반품 신청'),
+                ));
+              }
+
+              // 디자인 수정
+              if (canDesignRevision) btns.add(_ActionBtn(
+                icon: Icons.edit_note_rounded,
+                label: '디자인수정',
+                color: const Color(0xFF7B1FA2),
+                badge: '${order.remainingDesignRevisions}',
+                onTap: () => onDesignRevision?.call(order),
+              ));
+
+              // 추가제작
+              if (canAdditional) btns.add(_ActionBtn(
+                icon: Icons.add_circle_outline_rounded,
+                label: '추가제작',
+                color: const Color(0xFF2E7D32),
+                badge: '무료',
+                onTap: () => onAdditionalOrder(order),
+              ));
+
+              // 색상변경
+              if (canColorEdit) btns.add(_ActionBtn(
+                icon: Icons.palette_outlined,
+                label: '색상변경',
+                color: const Color(0xFF1565C0),
+                badge: '${order.remainingColorEdits}',
+                onTap: () => onColorEdit(order),
+              ));
+
+              // 엑셀 다운로드 (단체주문)
+              if (isGroup) btns.add(Builder(builder: (ctx2) => _ActionBtn(
+                icon: Icons.file_download_outlined,
+                label: '엑셀',
+                color: const Color(0xFF00695C),
+                onTap: () => onExcelDownload?.call(ctx2, order),
+              )));
+
+              return Row(
+                children: btns.asMap().entries.map((e) {
+                  final w = Expanded(child: e.value);
+                  if (e.key == 0) return w;
+                  return Row(mainAxisSize: MainAxisSize.min, children: [
+                    Container(width: 1, height: 32, color: Colors.grey[200]),
+                    w,
+                  ]);
+                }).toList(),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _statusColor(OrderStatus s) {
+    switch (s) {
+      case OrderStatus.pending: return Colors.orange;
+      case OrderStatus.confirmed: return Colors.blue;
+      case OrderStatus.processing: return const Color(0xFF7B1FA2);
+      case OrderStatus.shipped: return const Color(0xFF00838F);
+      case OrderStatus.delivered: return Colors.green;
+      case OrderStatus.cancelled: return Colors.red;
+      case OrderStatus.refunded: return Colors.brown;
+    }
+  }
+
+  String _fmtDate(DateTime d) {
+    final y = d.year.toString();
+    final m = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    return '$y.$m.$dd';
+  }
+  String _fmtPrice(double p) {
+    final s = p.toInt().toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return '$buf원';
+  }
+}
+
+class _MobileBtn extends StatelessWidget {
+  final String label;
+  final Color color;
+  final String? badge;
+  final VoidCallback onTap;
+
+  const _MobileBtn({required this.label, required this.color, this.badge, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha:0.08),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withValues(alpha:0.3)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(label, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w700)),
+            if (badge != null) ...[
+              const SizedBox(width: 4),
+              Container(
+                width: 16, height: 16,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                child: Center(child: Text(badge!, style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700))),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── 네이버 스타일 아이콘+텍스트 액션 버튼 ──
+class _ActionBtn extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final String? badge;
+  final VoidCallback onTap;
+
+  const _ActionBtn({
+    required this.icon,
+    required this.label,
+    this.color = const Color(0xFF555555),
+    this.badge,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, size: 22, color: color),
+                if (badge != null)
+                  Positioned(
+                    top: -4, right: -8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
+                      child: Text(badge!, style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w800)),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 3),
+            Text(label, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// 모바일 결제 내역 탭
+// ═══════════════════════════════════════════════════════
+class _MobilePaymentHistoryTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+
+  const _MobilePaymentHistoryTab({required this.userProvider, required this.loc});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = userProvider.user;
+    final orderProvider = context.watch<OrderProvider>();
+    final orders = user != null ? orderProvider.getUserOrders(user.id) : <OrderModel>[];
+
+    if (orders.isEmpty) return _MobileEmptyState(icon: Icons.payment_outlined, message: loc.mypageNoPayment);
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: orders.length,
+      itemBuilder: (_, i) {
+        final o = orders[i];
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(12),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8)],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44, height: 44,
+                decoration: BoxDecoration(color: const Color(0xFF00796B).withValues(alpha:0.1), shape: BoxShape.circle),
+                child: const Icon(Icons.payment_rounded, size: 22, color: Color(0xFF00796B)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(o.id, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    Text(o.paymentMethod, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                    Text(_fmtDate(o.createdAt), style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                  ],
+                ),
+              ),
+              Text(_fmtPrice(o.totalAmount),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF00796B))),
+            ],
           ),
         );
       },
     );
   }
+
+  String _fmtDate(DateTime d) {
+    final y = d.year.toString();
+    final m = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    return '$y.$m.$dd';
+  }
+  String _fmtPrice(double p) {
+    final s = p.toInt().toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return '$buf원';
+  }
 }
 
-// ════════════════════════════════════════════════════════════════
-// 주문배송목록 전체화면
-// ════════════════════════════════════════════════════════════════
-class _OrderListScreen extends StatefulWidget {
-  final List<OrderModel> initialOrders;
-  final void Function(OrderModel) onAdditional, onColorEdit, onDesignRevision;
-  final Future<void> Function(BuildContext, OrderModel) onExcelDownload;
-  const _OrderListScreen({
-    required List<OrderModel> orders,
-    required this.onAdditional,
-    required this.onColorEdit,
-    required this.onDesignRevision,
-    required this.onExcelDownload,
-  }) : initialOrders = orders;
+// ═══════════════════════════════════════════════════════
+// 모바일 찜 목록 탭
+// ═══════════════════════════════════════════════════════
+class _MobileWishlistTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
 
-  @override
-  State<_OrderListScreen> createState() => _OrderListScreenState();
-}
-
-class _OrderListScreenState extends State<_OrderListScreen> {
-  final _searchCtrl = TextEditingController();
-  String _query = '';
-
-  @override
-  void dispose() {
-    _searchCtrl.dispose();
-    super.dispose();
-  }
-
-  List<OrderModel> get _allOrders {
-    final prov = context.read<OrderProvider>().orders;
-    return prov.isNotEmpty ? prov : widget.initialOrders;
-  }
-
-  List<OrderModel> get _filtered {
-    final all = _allOrders;
-    if (_query.isEmpty) return all;
-    final q = _query.toLowerCase();
-    return all.where((o) {
-      final names =
-          o.items.map((i) => i.productName.toLowerCase()).join(' ');
-      return names.contains(q) ||
-          o.id.toLowerCase().contains(q) ||
-          (o.groupName ?? '').toLowerCase().contains(q);
-    }).toList();
-  }
+  const _MobileWishlistTab({required this.userProvider, required this.loc});
 
   @override
   Widget build(BuildContext context) {
-    context.watch<OrderProvider>(); // 실시간 구독
-    final filtered = _filtered;
+    final user = userProvider.user;
+    final wishIds = user?.wishlist ?? [];
+    final products = wishIds
+        .map((id) => ProductService.getProductByIdSync(id))
+        .where((p) => p != null)
+        .cast<ProductModel>()
+        .toList();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('주문배송목록',
-            style: TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.w700,
-                fontSize: 16)),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Divider(height: 1, color: Colors.grey[200]),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined,
-                color: Colors.black87),
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const CartScreen())),
-          ),
-        ],
-      ),
-      body: Column(children: [
-        // 검색바
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-          child: TextField(
-            controller: _searchCtrl,
-            onChanged: (v) => setState(() => _query = v),
-            decoration: InputDecoration(
-              prefixIcon:
-                  const Icon(Icons.search, size: 20, color: Colors.grey),
-              hintText: '상품명 검색',
-              hintStyle:
-                  const TextStyle(fontSize: 14, color: Colors.grey),
-              suffixIcon: _query.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.close,
-                          size: 18, color: Colors.grey),
-                      onPressed: () {
-                        _searchCtrl.clear();
-                        setState(() => _query = '');
-                      })
-                  : null,
-              filled: true,
-              fillColor: const Color(0xFFF5F5F5),
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 0, vertical: 10),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(6),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-        ),
-        Divider(height: 1, color: Colors.grey[200]),
-        // 주문 목록
-        Expanded(
-          child: filtered.isEmpty
-              ? Center(
-                  child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                    if (widget.initialOrders.isEmpty && _query.isEmpty)
-                      const CircularProgressIndicator(
-                          color: Color(0xFF1C62B9))
-                    else ...[
-                      Icon(Icons.inbox_rounded,
-                          size: 48, color: Colors.grey[300]),
-                      const SizedBox(height: 12),
-                      Text(
-                        _query.isEmpty
-                            ? '주문 내역이 없습니다'
-                            : '검색 결과가 없습니다',
-                        style: TextStyle(
-                            fontSize: 14, color: Colors.grey[400]),
+    if (products.isEmpty) {
+      return _MobileEmptyState(icon: Icons.favorite_border_rounded, message: loc.mypageNoWishlist, subtitle: loc.mypageNoWishlistSub);
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, childAspectRatio: 0.68, crossAxisSpacing: 10, mainAxisSpacing: 10),
+      itemCount: products.length,
+      itemBuilder: (_, i) {
+        final p = products[i];
+        return GestureDetector(
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
+          child: Container(
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.06), blurRadius: 8)]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                        child: NetImage(p.images.first, width: double.infinity, fit: BoxFit.cover),
+                      ),
+                      Positioned(top: 6, right: 6,
+                        child: GestureDetector(
+                          onTap: () => userProvider.toggleWishlist(p.id),
+                          child: Container(width: 26, height: 26,
+                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                            child: const Icon(Icons.favorite_rounded, size: 14, color: Colors.pinkAccent)),
+                        ),
                       ),
                     ],
-                  ]))
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: filtered.length,
-                  itemBuilder: (ctx, i) {
-                    final order = filtered[i];
-                    return _OrderCard(
-                      order: order,
-                      onDetail: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              _OrderDetailScreen(order: order),
-                        ),
-                      ),
-                      onAdditional: widget.onAdditional,
-                      onColorEdit: widget.onColorEdit,
-                      onDesignRevision: widget.onDesignRevision,
-                      onExcelDownload: widget.onExcelDownload,
-                    );
-                  },
-                ),
-        ),
-      ]),
-    );
-  }
-}
-
-// ════════════════════════════════════════════════════════════════
-// 주문 카드
-// ════════════════════════════════════════════════════════════════
-class _OrderCard extends StatelessWidget {
-  final OrderModel order;
-  final VoidCallback onDetail;
-  final void Function(OrderModel) onAdditional, onColorEdit, onDesignRevision;
-  final Future<void> Function(BuildContext, OrderModel) onExcelDownload;
-
-  const _OrderCard({
-    required this.order,
-    required this.onDetail,
-    required this.onAdditional,
-    required this.onColorEdit,
-    required this.onDesignRevision,
-    required this.onExcelDownload,
-  });
-
-  String _fmt(double v) =>
-      '${v.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원';
-  String _fmtDate(DateTime dt) =>
-      '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')}';
-
-  String get _statusLabel {
-    switch (order.status) {
-      case OrderStatus.pending:    return '입금 대기';
-      case OrderStatus.confirmed:  return '결제 완료';
-      case OrderStatus.processing: return '배송 준비';
-      case OrderStatus.shipped:    return '배송중';
-      case OrderStatus.delivered:  return '구매확정';
-      case OrderStatus.cancelled:  return '주문 취소';
-      case OrderStatus.refunded:   return '환불 완료';
-    }
-  }
-
-  Color get _statusColor {
-    switch (order.status) {
-      case OrderStatus.pending:    return Colors.orange;
-      case OrderStatus.confirmed:  return const Color(0xFF1C62B9);
-      case OrderStatus.processing: return const Color(0xFF7B1FA2);
-      case OrderStatus.shipped:    return const Color(0xFF1C62B9);
-      case OrderStatus.delivered:  return Colors.green;
-      default:                     return Colors.grey;
-    }
-  }
-
-  String? get _eta {
-    DateTime? d;
-    if (order.status == OrderStatus.shipped) {
-      d = order.createdAt.add(const Duration(days: 8));
-    } else if (order.status == OrderStatus.confirmed ||
-        order.status == OrderStatus.processing) {
-      d = order.createdAt.add(const Duration(days: 10));
-    }
-    if (d == null) return null;
-    if (d.difference(DateTime.now()).inDays < 0) return null;
-    final wd = ['월', '화', '수', '목', '금', '토', '일'][d.weekday - 1];
-    return '${d.month}/${d.day}($wd) 이내 도착';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isGroup = order.orderType == 'group' ||
-        order.orderType == 'additional' ||
-        order.id.startsWith('GRP_') ||
-        order.id.startsWith('GROUP-');
-    final safeTotal = order.totalAmount.isFinite && order.totalAmount > 0
-        ? order.totalAmount
-        : 0.0;
-    final firstItem = order.items.isNotEmpty ? order.items.first : null;
-    final displayName = firstItem != null && firstItem.productName.isNotEmpty
-        ? firstItem.productName
-        : (order.groupName?.isNotEmpty == true
-            ? order.groupName!
-            : (isGroup ? '단체주문' : '주문 상품'));
-    final displayAmt = firstItem != null && firstItem.price > 0
-        ? firstItem.price * firstItem.quantity
-        : (safeTotal > 0 ? safeTotal : order.totalAmount);
-    final eta = _eta;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      elevation: 0,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-      color: Colors.white,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 날짜 + 주문상세 버튼
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-            child: Row(children: [
-              Text(_fmtDate(order.createdAt),
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w700)),
-              const Spacer(),
-              GestureDetector(
-                onTap: onDetail,
-                child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('주문상세',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF888888))),
-                      Icon(Icons.chevron_right,
-                          size: 16, color: Color(0xFF888888)),
-                    ]),
-              ),
-            ]),
-          ),
-          Divider(height: 1, color: Colors.grey[100]),
-
-          // 상태 + 예정일
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Row(children: [
-              Text(_statusLabel,
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: _statusColor)),
-              if (eta != null) ...[
-                const Text('  ·  ',
-                    style:
-                        TextStyle(color: Colors.grey, fontSize: 13)),
-                Text(eta,
-                    style: const TextStyle(
-                        fontSize: 13, color: Colors.black87)),
-              ],
-              const Spacer(),
-              if (order.status == OrderStatus.shipped)
-                GestureDetector(
-                  onTap: () => ScaffoldMessenger.of(context)
-                      .showSnackBar(const SnackBar(
-                          content: Text(
-                              '배송조회는 카카오톡 @2fitkorea로 문의해 주세요.'))),
-                  child: const Text('배송조회 >',
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF1C62B9),
-                          fontWeight: FontWeight.w600)),
-                ),
-            ]),
-          ),
-          const SizedBox(height: 12),
-
-          // 이미지 + 상품정보
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: firstItem != null
-                        ? _OrderItemImage(item: firstItem, size: 80)
-                        : Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEEEEEE),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Icon(
-                              isGroup
-                                  ? Icons.groups_rounded
-                                  : Icons.shopping_bag_outlined,
-                              color: const Color(0xFFAAAAAA),
-                              size: 36,
-                            ),
-                          ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
                     child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(displayName,
-                              style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  height: 1.3),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis),
-                          const SizedBox(height: 4),
-                          if (firstItem != null) ...[
-                            if (firstItem.color.isNotEmpty ||
-                                (firstItem.size.isNotEmpty &&
-                                    firstItem.size != '단체'))
-                              Text(
-                                [
-                                  if (firstItem.color.isNotEmpty)
-                                    firstItem.color,
-                                  if (firstItem.size.isNotEmpty &&
-                                      firstItem.size != '단체')
-                                    firstItem.size,
-                                ].join(' / '),
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF888888)),
-                              ),
-                            const SizedBox(height: 2),
-                          ],
-                          Row(children: [
-                            Text(_fmt(displayAmt),
-                                style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700)),
-                            const SizedBox(width: 6),
-                            Text(
-                                '· ${firstItem?.quantity ?? 1}개',
-                                style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF888888))),
-                          ]),
-                          if (order.items.length > 1) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                                '외 ${order.items.length - 1}개 상품',
-                                style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF888888))),
-                          ],
-                        ]),
-                  ),
-                ]),
-          ),
-
-          // 버튼
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-            child: _buildButtons(context),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildButtons(BuildContext context) {
-    final List<Widget> buttons = [];
-    final isGroup = order.orderType == 'group' ||
-        order.orderType == 'additional' ||
-        order.id.startsWith('GRP_') ||
-        order.id.startsWith('GROUP-');
-    final canCancel = order.status == OrderStatus.pending ||
-        order.status == OrderStatus.confirmed;
-
-    void addBtn(String label, VoidCallback tap, {bool primary = false}) {
-      if (buttons.isNotEmpty) buttons.add(const SizedBox(width: 6));
-      buttons.add(Expanded(
-        child: primary
-            ? ElevatedButton(
-                onPressed: tap,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1C62B9),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4)),
-                ),
-                child: Text(label,
-                    style: const TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w700)),
-              )
-            : OutlinedButton(
-                onPressed: tap,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.black87,
-                  side: const BorderSide(color: Color(0xFFBDBDBD)),
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4)),
-                ),
-                child: Text(label,
-                    style: const TextStyle(fontSize: 12)),
-              ),
-      ));
-    }
-
-    // 상세 버튼은 항상 포함
-    addBtn('주문상세', onDetail, primary: true);
-
-    if (canCancel) {
-      addBtn('주문취소', () => _doCancel(context, isGroup));
-    } else if (order.status == OrderStatus.shipped) {
-      addBtn('구매확정', () => _confirmPurchase(context));
-    } else if (order.status == OrderStatus.delivered) {
-      addBtn('재구매', () => _repurchase(context, order));
-    }
-
-    return Row(children: buttons);
-  }
-
-  void _doCancel(BuildContext context, bool isGroup) {
-    showDialog(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text('주문 취소',
-            style: TextStyle(fontWeight: FontWeight.w700)),
-        content: const Text('주문을 취소하시겠습니까?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx),
-              child: const Text('아니오',
-                  style: TextStyle(color: Colors.grey))),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(dCtx); // 다이얼로그만 닫기
-              await OrderService.updateOrderStatus(
-                  order.id, OrderStatus.cancelled);
-              NotificationService.sendCancelled(
-                      order: order, reason: '고객 직접 취소')
-                  .catchError((_) {});
-              FcmService.sendOrderStatusNotification(
-                      order: order,
-                      newStatus: OrderStatus.cancelled)
-                  .catchError((_) {});
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('주문이 취소되었습니다.')));
-              }
-            },
-            child: const Text('취소하기',
-                style: TextStyle(
-                    color: Colors.red, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmPurchase(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text('구매확정',
-            style: TextStyle(fontWeight: FontWeight.w700)),
-        content: const Text('구매를 확정하시겠습니까?\n확정 후에는 취소/반품이 불가합니다.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx),
-              child: const Text('취소',
-                  style: TextStyle(color: Colors.grey))),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(dCtx); // 다이얼로그만 닫기
-              await OrderService.updateOrderStatus(
-                  order.id, OrderStatus.delivered);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('구매가 확정되었습니다.')));
-              }
-            },
-            child: const Text('확정',
-                style: TextStyle(
-                    color: Color(0xFF1C62B9),
-                    fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ════════════════════════════════════════════════════════════════
-// 주문 상품 이미지 위젯 (3단계 로딩)
-// ════════════════════════════════════════════════════════════════
-class _OrderItemImage extends StatefulWidget {
-  final OrderItem item;
-  final double size;
-  const _OrderItemImage({required this.item, this.size = 80});
-  @override
-  State<_OrderItemImage> createState() => _OrderItemImageState();
-}
-
-class _OrderItemImageState extends State<_OrderItemImage> {
-  String? _url;
-
-  @override
-  void initState() {
-    super.initState();
-    // ✅ addPostFrameCallback: mounted 보장 후 실행
-    WidgetsBinding.instance.addPostFrameCallback((_) => _resolve());
-  }
-
-  void _resolve() {
-    if (!mounted) return;
-    // 1) item에 직접 URL이 있으면 바로 사용
-    final direct = widget.item.imageUrl;
-    if (direct != null && direct.isNotEmpty) {
-      setState(() => _url = direct);
-      return;
-    }
-    // 2) productId 없으면 중단
-    if (widget.item.productId.isEmpty) return;
-    // 3) 동기 캐시
-    final cached =
-        ProductService.getProductByIdSync(widget.item.productId);
-    if (cached != null) {
-      final img = cached.images
-          .firstWhere((u) => u.isNotEmpty, orElse: () => '');
-      if (img.isNotEmpty) {
-        setState(() => _url = img);
-        return;
-      }
-    }
-    // 4) 비동기 조회
-    ProductService.getProductById(widget.item.productId).then((p) {
-      if (!mounted) return;
-      final img =
-          p?.images.firstWhere((u) => u.isNotEmpty, orElse: () => '') ??
-              '';
-      if (img.isNotEmpty) setState(() => _url = img);
-    }).catchError((_) {});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final s = widget.size;
-    if (_url != null && _url!.isNotEmpty) {
-      return NetImage(_url!, width: s, height: s, fit: BoxFit.cover,
-          backgroundColor: const Color(0xFFEEEEEE));
-    }
-    return Container(
-      width: s,
-      height: s,
-      color: const Color(0xFFEEEEEE),
-      child: const Icon(Icons.checkroom_rounded,
-          color: Colors.grey, size: 28),
-    );
-  }
-}
-
-// ════════════════════════════════════════════════════════════════
-// 주문상세 전체화면 (Navigator.push로 열림)
-// ════════════════════════════════════════════════════════════════
-class _OrderDetailScreen extends StatelessWidget {
-  final OrderModel order;
-  const _OrderDetailScreen({required this.order});
-
-  String _fmt(double v) =>
-      '${v.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원';
-  String _fmtDate(DateTime dt) =>
-      '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')}';
-
-  String get _statusLabel {
-    switch (order.status) {
-      case OrderStatus.pending:    return '입금 대기';
-      case OrderStatus.confirmed:  return '결제 완료';
-      case OrderStatus.processing: return '배송 준비';
-      case OrderStatus.shipped:    return '배송중';
-      case OrderStatus.delivered:  return '구매확정';
-      case OrderStatus.cancelled:  return '주문 취소';
-      case OrderStatus.refunded:   return '환불 완료';
-    }
-  }
-
-  Color get _statusColor {
-    switch (order.status) {
-      case OrderStatus.pending:    return Colors.orange;
-      case OrderStatus.confirmed:
-      case OrderStatus.processing:
-      case OrderStatus.shipped:    return const Color(0xFF1C62B9);
-      case OrderStatus.delivered:  return Colors.green;
-      default:                     return Colors.grey;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final opts = order.customOptions ?? {};
-    final isGroup = order.orderType == 'group' ||
-        order.orderType == 'additional' ||
-        order.id.startsWith('GRP_') ||
-        order.id.startsWith('GROUP-');
-    final canCancel = order.status == OrderStatus.pending ||
-        order.status == OrderStatus.confirmed;
-    final safeTotal = order.totalAmount.isFinite && order.totalAmount > 0
-        ? order.totalAmount
-        : 0.0;
-    final productAmt = safeTotal - order.shippingFee;
-    final discountAmt =
-        (opts['discountAmount'] as num?)?.toDouble() ?? 0.0;
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('주문상세',
-            style: TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.w700,
-                fontSize: 16)),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1),
-          child: Divider(height: 1, color: Colors.grey[200]),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 주문번호
-              Container(
-                color: Colors.white,
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                child: Text(
-                  '${_fmtDate(order.createdAt)} 주문   |   ${order.id}',
-                  style: const TextStyle(
-                      fontSize: 12, color: Color(0xFF888888)),
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // ── 배송상태 ──
-              Container(
-                color: Colors.white,
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                child: Row(children: [
-                  Text(_statusLabel,
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: _statusColor)),
-                  const SizedBox(width: 8),
-                  if (order.status == OrderStatus.shipped)
-                    GestureDetector(
-                      onTap: () => ScaffoldMessenger.of(context)
-                          .showSnackBar(const SnackBar(
-                              content: Text(
-                                  '배송조회는 카카오톡 @2fitkorea로 문의해 주세요.'))),
-                      child: const Text('배송조회 >',
-                          style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF1C62B9),
-                              fontWeight: FontWeight.w600)),
-                    ),
-                ]),
-              ),
-              const SizedBox(height: 8),
-
-              // ── 주문상품 ──
-              Container(
-                color: Colors.white,
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('주문상품',
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 12),
-                      ..._buildItems(context, isGroup, safeTotal),
-                    ]),
-              ),
-              const SizedBox(height: 8),
-
-              // ── 배송지정보 ──
-              _section('배송지정보', [
-                _row2('받는 사람', order.userName),
-                if (order.userPhone.isNotEmpty)
-                  _row2('연락처', order.userPhone),
-                if (order.userAddress.isNotEmpty)
-                  _row2('주소', order.userAddress),
-                if ((order.memo ?? '').isNotEmpty)
-                  _row2('배송메모', order.memo!),
-              ]),
-              const SizedBox(height: 8),
-
-              // ── 결제정보 ──
-              _section('결제정보', [
-                _amtRow2('상품금액',
-                    _fmt(productAmt > 0 ? productAmt : safeTotal)),
-                _amtRow2('배송비',
-                    order.shippingFee == 0
-                        ? '착불'
-                        : _fmt(order.shippingFee)),
-                if (discountAmt > 0)
-                  _amtRow2('할인금액', '-${_fmt(discountAmt)}',
-                      valueColor: Colors.red),
-                const Divider(height: 20),
-                _amtRow2('최종금액', _fmt(safeTotal),
-                    bold: true, fontSize: 15),
-                if (order.paymentMethod.isNotEmpty)
-                  _amtRow2('결제수단', order.paymentMethod,
-                      valueColor: Colors.black54),
-              ]),
-              const SizedBox(height: 8),
-
-              // ── 주문자정보 ──
-              _section('주문자정보', [
-                _row2('주문자', order.userName),
-                if (order.userPhone.isNotEmpty)
-                  _row2('연락처', order.userPhone),
-              ]),
-              const SizedBox(height: 8),
-
-              // ── 액션 버튼 ──
-              Container(
-                color: Colors.white,
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                child: Column(children: [
-                  if (canCancel)
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => _cancelOrder(context),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red),
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 13),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6)),
-                        ),
-                        child: const Text('주문 취소',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600)),
-                      ),
-                    ),
-                  if (order.status == OrderStatus.shipped) ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () => _confirmOrder(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1C62B9),
-                          foregroundColor: Colors.white,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 13),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6)),
-                        ),
-                        child: const Text('구매 확정',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600)),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
-                                content: Text(
-                                    '반품·교환은 카카오톡 @2fitkorea로 접수해 주세요.'))),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.black87,
-                          side: const BorderSide(
-                              color: Color(0xFFBDBDBD)),
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 13),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6)),
-                        ),
-                        child: const Text('반품·교환 신청',
-                            style: TextStyle(fontSize: 14)),
-                      ),
-                    ),
-                  ],
-                  if (order.status == OrderStatus.delivered) ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // pop 후 context가 무효화되므로 pop 없이 직접 리뷰 시트 열기
-                          _showReviewSheet(context, order);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF6B35),
-                          foregroundColor: Colors.white,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 13),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6)),
-                        ),
-                        child: const Text('리뷰 쓰기',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600)),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  // 고객센터
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () =>
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      '카카오톡: @2fitkorea  |  010-7227-6914'))),
-                      icon: const Icon(Icons.headset_mic_outlined,
-                          size: 16),
-                      label: const Text('고객센터 문의',
-                          style: TextStyle(fontSize: 14)),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.black54,
-                        side: const BorderSide(
-                            color: Color(0xFFDDDDDD)),
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6)),
-                      ),
-                    ),
-                  ),
-                ]),
-              ),
-              const SizedBox(height: 24),
-            ]),
-      ),
-    );
-  }
-
-  List<Widget> _buildItems(
-      BuildContext context, bool isGroup, double safeTotal) {
-    if (order.items.isEmpty) {
-      final name = order.groupName?.isNotEmpty == true
-          ? order.groupName!
-          : (isGroup ? '단체주문' : '주문 상품');
-      return [
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEEEEEE),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Icon(
-                isGroup
-                    ? Icons.groups_rounded
-                    : Icons.shopping_bag_outlined,
-                color: const Color(0xFFAAAAAA),
-                size: 36),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-              child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                Text(name,
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w600),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
-                if (order.groupCount != null) ...[
-                  const SizedBox(height: 4),
-                  Text('총 ${order.groupCount}벌',
-                      style: const TextStyle(
-                          fontSize: 12, color: Color(0xFF888888))),
-                ],
-                const SizedBox(height: 4),
-                Text(
-                    '${(safeTotal > 0 ? safeTotal : order.totalAmount).toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
-                    style: const TextStyle(
-                        fontSize: 14, fontWeight: FontWeight.w700)),
-              ])),
-        ])
-      ];
-    }
-
-    return order.items.map((item) {
-      final sz = (item.size == '단체' || item.size.isEmpty) ? '' : item.size;
-      final optStr = [
-        if (sz.isNotEmpty) sz,
-        if (item.color.isNotEmpty) item.color
-      ].join(' / ');
-      final name = item.productName.isNotEmpty
-          ? item.productName
-          : (order.groupName?.isNotEmpty == true
-              ? order.groupName!
-              : (isGroup ? '단체주문 상품' : '주문 상품'));
-      final price = item.price > 0
-          ? item.price * item.quantity
-          : (safeTotal > 0 ? safeTotal : order.totalAmount);
-
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 14),
-        child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: _OrderItemImage(item: item, size: 72),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                  child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                    Text(name,
-                        style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis),
-                    if (optStr.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(optStr,
-                          style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF888888))),
-                    ],
-                    const SizedBox(height: 4),
-                    Row(children: [
-                      Text(
-                          '${price.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
-                          style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700)),
-                      const SizedBox(width: 6),
-                      Text('· ${item.quantity}개',
-                          style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF888888))),
-                    ]),
-                  ])),
-            ]),
-      );
-    }).toList();
+                        Text(p.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        const Spacer(),
+                        Text(_fmtPrice(p.price.toDouble()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  void _cancelOrder(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12)),
-        title: const Text('주문 취소',
-            style: TextStyle(fontWeight: FontWeight.w700)),
-        content: const Text('주문을 취소하시겠습니까?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx),
-              child: const Text('아니오',
-                  style: TextStyle(color: Colors.grey))),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(dCtx);
-              await OrderService.updateOrderStatus(
-                  order.id, OrderStatus.cancelled);
-              NotificationService.sendCancelled(
-                      order: order, reason: '고객 직접 취소')
-                  .catchError((_) {});
-              FcmService.sendOrderStatusNotification(
-                      order: order,
-                      newStatus: OrderStatus.cancelled)
-                  .catchError((_) {});
-              if (context.mounted) {
-                Navigator.pop(context); // 주문상세 화면 닫기
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('주문이 취소되었습니다.')));
-              }
-            },
-            child: const Text('취소하기',
-                style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.w700)),
-          ),
+  String _fmtPrice(double p) {
+    final s = p.toInt().toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return '$buf원';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// 모바일 쿠폰함 탭
+// ═══════════════════════════════════════════════════════
+class _MobileCouponTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+
+  const _MobileCouponTab({required this.userProvider, required this.loc});
+
+  @override
+  Widget build(BuildContext context) {
+    final user = userProvider.user;
+    final coupons = user?.coupons ?? [];
+
+    if (coupons.isEmpty) return _MobileEmptyState(icon: Icons.local_activity_outlined, message: loc.mypageNoCoupons);
+
+    final valid = coupons.where((c) => c.isValid).toList();
+    final used = coupons.where((c) => c.isUsed).toList();
+    final expired = coupons.where((c) => !c.isValid && !c.isUsed).toList();
+
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: [
+        if (valid.isNotEmpty) ...[
+          _MobileCouponSectionTitle(title: loc.mypageAvailableCoupon, count: valid.length, color: const Color(0xFF2E7D32)),
+          const SizedBox(height: 8),
+          ...valid.map((c) => _MobileCouponCard(coupon: c, loc: loc, color: const Color(0xFF2E7D32))),
+          const SizedBox(height: 16),
         ],
+        if (used.isNotEmpty) ...[
+          _MobileCouponSectionTitle(title: loc.mypageUsedCoupon, count: used.length, color: Colors.grey),
+          const SizedBox(height: 8),
+          ...used.map((c) => _MobileCouponCard(coupon: c, loc: loc, color: Colors.grey, dimmed: true)),
+          const SizedBox(height: 16),
+        ],
+        if (expired.isNotEmpty) ...[
+          _MobileCouponSectionTitle(title: loc.mypageExpiredCoupon, count: expired.length, color: Colors.red),
+          const SizedBox(height: 8),
+          ...expired.map((c) => _MobileCouponCard(coupon: c, loc: loc, color: Colors.red, dimmed: true)),
+        ],
+      ],
+    );
+  }
+}
+
+class _MobileCouponSectionTitle extends StatelessWidget {
+  final String title;
+  final int count;
+  final Color color;
+  const _MobileCouponSectionTitle({required this.title, required this.count, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(width: 3, height: 14, color: color, margin: const EdgeInsets.only(right: 6)),
+        Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
+        const SizedBox(width: 4),
+        Text('($count)', style: TextStyle(fontSize: 12, color: color.withValues(alpha:0.7))),
+      ],
+    );
+  }
+}
+
+class _MobileCouponCard extends StatelessWidget {
+  final CouponModel coupon;
+  final AppLocalizations loc;
+  final Color color;
+  final bool dimmed;
+
+  const _MobileCouponCard({required this.coupon, required this.loc, required this.color, this.dimmed = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final discountText = coupon.type == CouponType.percent
+        ? '${coupon.value.toInt()}%'
+        : '${coupon.value.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '\${m[1]},')}원';
+
+    return Opacity(
+      opacity: dimmed ? 0.55 : 1.0,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.06), blurRadius: 8)],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 70,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              decoration: BoxDecoration(
+                color: dimmed ? Colors.grey[100] : color.withValues(alpha:0.1),
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.local_activity_rounded, color: dimmed ? Colors.grey : color, size: 20),
+                  const SizedBox(height: 4),
+                  Text(discountText, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: dimmed ? Colors.grey : color)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(coupon.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Text('${loc.mypageCouponExpiry}: ${_fmtDate(coupon.expiresAt)}',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _confirmOrder(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dCtx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12)),
-        title: const Text('구매확정',
-            style: TextStyle(fontWeight: FontWeight.w700)),
-        content: const Text('구매를 확정하시겠습니까?\n확정 후에는 취소/반품이 불가합니다.'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dCtx),
-              child: const Text('취소',
-                  style: TextStyle(color: Colors.grey))),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(dCtx);
-              await OrderService.updateOrderStatus(
-                  order.id, OrderStatus.delivered);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('구매가 확정되었습니다.')));
-              }
-            },
-            child: const Text('확정',
-                style: TextStyle(
-                    color: Color(0xFF1C62B9),
-                    fontWeight: FontWeight.w700)),
+  String _fmtDate(DateTime d) {
+    final y = d.year.toString();
+    final m = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    return '$y.$m.$dd';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// 모바일 설정 탭
+// ═══════════════════════════════════════════════════════
+class _MobileSettingsTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+  final void Function(BuildContext, UserModel) onShowProfileEdit;
+  final void Function(BuildContext) onShowAddressManager;
+  final void Function(BuildContext, UserProvider) onShowLogout;
+  final void Function(BuildContext) onShowChangePassword;
+  final void Function(BuildContext, UserProvider) onShowDeleteAccount;
+
+  const _MobileSettingsTab({
+    required this.userProvider, required this.loc,
+    required this.onShowProfileEdit, required this.onShowAddressManager, required this.onShowLogout,
+    required this.onShowChangePassword, required this.onShowDeleteAccount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final user = userProvider.user;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _MobileSettingGroup(title: loc.mypageProfileSection, items: [
+          _MobileSettingItem(icon: Icons.person_rounded, title: loc.mypageEditProfile,
+            onTap: user != null ? () => onShowProfileEdit(context, user) : null),
+          _MobileSettingItem(icon: Icons.location_on_rounded, title: loc.mypageAddressBook,
+            onTap: () => onShowAddressManager(context)),
+          _MobileSettingItem(
+            icon: Icons.straighten_rounded,
+            title: '내 사이즈 관리',
+            subtitle: '저장된 사이즈로 주문 시 빠르게 입력',
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SizeProfileScreen()),
+            ),
           ),
-        ],
+        ]),
+        const SizedBox(height: 16),
+        _MobileSettingGroup(title: loc.mypageNotificationSection, items: [
+          _MobileSwitchItem(icon: Icons.notifications_rounded, title: loc.mypageNotifOrder, value: true, onChanged: (_) {}),
+          _MobileSwitchItem(icon: Icons.campaign_rounded, title: loc.mypageNotifMarketing, value: false, onChanged: (_) {}),
+        ]),
+        const SizedBox(height: 16),
+        _MobileSettingGroup(title: loc.mypageAppSection, items: [
+          _MobileSettingItem(icon: Icons.language_rounded, title: loc.mypageLanguageSetting,
+            trailing: _LanguageDropdown()),
+          const _MobileSettingItem(icon: Icons.info_outline_rounded, title: '앱 정보', subtitle: 'v1.0.0'),
+        ]),
+        const SizedBox(height: 16),
+        _MobileSettingGroup(title: '약관 및 정책', items: [
+          _MobileSettingItem(
+            icon: Icons.privacy_tip_outlined,
+            title: '개인정보처리방침',
+            onTap: () => Navigator.pushNamed(context, '/privacy-policy'),
+          ),
+          _MobileSettingItem(
+            icon: Icons.description_outlined,
+            title: '이용약관',
+            onTap: () => Navigator.pushNamed(context, '/terms-of-service'),
+          ),
+        ]),
+        const SizedBox(height: 16),
+        _MobileSettingGroup(title: loc.mypageSecuritySection, items: [
+          if (user != null) _MobileSettingItem(icon: Icons.lock_rounded, title: loc.mypageChangePassword,
+            onTap: () => onShowChangePassword(context)),
+          _MobileSettingItem(icon: Icons.logout_rounded, title: loc.mypageLogout,
+            onTap: () => onShowLogout(context, userProvider), color: Colors.orange),
+          if (user != null) _MobileSettingItem(icon: Icons.delete_outline_rounded, title: loc.mypageDeleteAccount,
+            onTap: () => onShowDeleteAccount(context, userProvider), color: Colors.red),
+        ]),
+        const SizedBox(height: 40),
+      ],
+    );
+  }
+}
+
+class _MobileSettingGroup extends StatelessWidget {
+  final String title;
+  final List<Widget> items;
+  const _MobileSettingGroup({required this.title, required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey)),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(12),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.04), blurRadius: 8)],
+          ),
+          child: Column(
+            children: List.generate(items.length, (i) => Column(
+              children: [
+                items[i],
+                if (i < items.length - 1) const Divider(height: 1, indent: 50),
+              ],
+            )),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MobileSettingItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  final VoidCallback? onTap;
+  final Color? color;
+
+  const _MobileSettingItem({required this.icon, required this.title, this.subtitle, this.trailing, this.onTap, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? Colors.grey[800]!;
+    return ListTile(
+      dense: true,
+      leading: Container(
+        width: 34, height: 34,
+        decoration: BoxDecoration(color: (color ?? Colors.blueGrey).withValues(alpha:0.1), borderRadius: BorderRadius.circular(8)),
+        child: Icon(icon, size: 16, color: c),
+      ),
+      title: Text(title, style: TextStyle(fontSize: 14, color: c)),
+      subtitle: subtitle != null ? Text(subtitle!, style: const TextStyle(fontSize: 11, color: Colors.grey)) : null,
+      trailing: trailing ?? (onTap != null ? Icon(Icons.chevron_right_rounded, size: 16, color: Colors.grey[400]) : null),
+      onTap: onTap,
+    );
+  }
+}
+
+class _MobileSwitchItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  const _MobileSwitchItem({required this.icon, required this.title, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      leading: Container(
+        width: 34, height: 34,
+        decoration: BoxDecoration(color: Colors.blueGrey.withValues(alpha:0.1), borderRadius: BorderRadius.circular(8)),
+        child: Icon(icon, size: 16, color: Colors.blueGrey),
+      ),
+      title: Text(title, style: const TextStyle(fontSize: 14, color: Colors.black87)),
+      trailing: Switch(value: value, onChanged: onChanged, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0)), materialTapTargetSize: MaterialTapTargetSize.shrinkWrap),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// 공통 빈 상태 (모바일)
+// ═══════════════════════════════════════════════════════
+class _MobileEmptyState extends StatelessWidget {
+  final IconData icon;
+  final String message;
+  final String? subtitle;
+
+  const _MobileEmptyState({required this.icon, required this.message, this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 56, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(message, style: TextStyle(fontSize: 15, color: Colors.grey[600], fontWeight: FontWeight.w600), textAlign: TextAlign.center),
+            if (subtitle != null) ...[
+              const SizedBox(height: 8),
+              Text(subtitle!, style: TextStyle(fontSize: 12, color: Colors.grey[400]), textAlign: TextAlign.center),
+            ],
+          ],
+        ),
       ),
     );
   }
 }
 
-// ── 섹션 박스 헬퍼 ──────────────────────────────────
-Widget _section(String title, List<Widget> rows) => Container(
-      color: Colors.white,
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title,
-            style: const TextStyle(
-                fontSize: 14, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 10),
-        ...rows,
-      ]),
-    );
-
-Widget _row2(String label, String value) => Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(
-          width: 72,
-          child: Text(label,
-              style: const TextStyle(
-                  fontSize: 13, color: Color(0xFF888888))),
-        ),
-        Expanded(
-          child: Text(value,
-              style: const TextStyle(
-                  fontSize: 13, color: Colors.black87)),
-        ),
-      ]),
-    );
-
-Widget _amtRow2(
-  String label,
-  String value, {
-  Color? valueColor,
-  bool bold = false,
-  double fontSize = 13,
-}) =>
-    Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(children: [
-        Text(label,
-            style: TextStyle(
-                fontSize: fontSize, color: const Color(0xFF888888))),
-        const Spacer(),
-        Text(value,
-            style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
-                color: valueColor ?? Colors.black87)),
-      ]),
-    );
-
+// ═══════════════════════════════════════════════════════
+// 프로필 수정 시트
+// ═══════════════════════════════════════════════════════
 class _ProfileEditSheet extends StatefulWidget {
   final UserModel user;
   const _ProfileEditSheet({required this.user});
@@ -3807,6 +4433,643 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
   }
 }
 
+// ── 사용자 주문 상세 다이얼로그 ──────────────────────────────────────
+void _showUserOrderDetail(BuildContext context, OrderModel order) {
+  // ── 헬퍼
+  String _fmtAmt(double v) =>
+      '${v.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원';
+
+  Color _sc(OrderStatus s) {
+    switch (s) {
+      case OrderStatus.pending:   return Colors.orange;
+      case OrderStatus.confirmed: return Colors.blue;
+      case OrderStatus.processing:return const Color(0xFF7B1FA2);
+      case OrderStatus.shipped:   return const Color(0xFF00838F);
+      case OrderStatus.delivered: return Colors.green;
+      case OrderStatus.cancelled: return Colors.red;
+      case OrderStatus.refunded:  return Colors.brown;
+    }
+  }
+
+  final opts      = order.customOptions ?? {};
+  final isGroup   = order.orderType == 'group' || order.orderType == 'additional'
+      || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
+  final statusColor = _sc(order.status);
+
+  // 날짜 포맷
+  final dt = order.createdAt;
+  final dtStr =
+      '${dt.year}.${dt.month.toString().padLeft(2,'0')}.${dt.day.toString().padLeft(2,'0')}  '
+      '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}:${dt.second.toString().padLeft(2,'0')}';
+
+  // 금액
+  final productAmt  = order.totalAmount - order.shippingFee;
+  final discountAmt = (opts['discountAmount'] as num?)?.toDouble() ?? 0.0;
+  final shippingFee = order.shippingFee;
+  final totalAmt    = order.totalAmount;
+
+  // 모바일/PC 분기
+  final isMobile = !isPcWeb(context);
+
+  // 공통 콘텐츠 빌더
+  Widget buildContent(BuildContext sheetCtx, {bool isSheet = false}) {
+    return Column(
+      mainAxisSize: isSheet ? MainAxisSize.min : MainAxisSize.max,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+            // ══════════════════════════════════════
+            // ① 헤더 — 흰 배경, 날짜+주문번호+영수증 버튼
+            // ══════════════════════════════════════
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+              ),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(dtStr,
+                      style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                    const SizedBox(height: 3),
+                    Row(children: [
+                      const Text('주문번호  ', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                      Expanded(
+                        child: Text(order.id,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                          overflow: TextOverflow.ellipsis),
+                      ),
+                    ]),
+                  ]),
+                ),
+                const SizedBox(width: 8),
+                // 영수증 버튼
+                Builder(builder: (btnCtx2) => OutlinedButton(
+                  onPressed: () => ScaffoldMessenger.of(btnCtx2).showSnackBar(
+                    SnackBar(content: Text('영수증 발급은 고객센터로 문의해 주세요.\n주문번호: ${order.id}'),
+                      action: SnackBarAction(label: '닫기', onPressed: () {})),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black87,
+                    side: BorderSide(color: Colors.grey.shade400),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  ),
+                  child: const Text('영수증', style: TextStyle(fontSize: 12)),
+                )),
+                const SizedBox(width: 6),
+                // 닫기
+                GestureDetector(
+                  onTap: () => Navigator.pop(sheetCtx),
+                  child: Icon(Icons.close, size: 20, color: Colors.grey[500]),
+                ),
+              ]),
+            ),
+
+            // ══════════════════════════════════════
+            // ② 스크롤 콘텐츠
+            // ══════════════════════════════════════
+            Flexible(
+              child: Builder(builder: (btnCtx) {
+                // ── 버튼 가능 조건
+                final canCancelReadyMade = !isGroup &&
+                    (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
+                final canCancelGroup = isGroup &&
+                    (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
+                final canCancel = canCancelReadyMade || canCancelGroup;
+                final cancelBlockedByDesign = isGroup && order.status == OrderStatus.processing;
+                final canExchangeReturn = !isGroup && order.status == OrderStatus.delivered;
+
+                // 디자인 이미지
+                final designImages = <String>[];
+                for (final key in ['refImageBase64','designLogoBase64','waistbandLogoBase64']) {
+                  final v = opts[key]?.toString() ?? '';
+                  if (v.isNotEmpty) designImages.add(v);
+                }
+                final waistbandRefs = (opts['waistbandRefImages'] as List?)?.cast<String>() ?? [];
+                final allDesignImages = [...designImages, ...waistbandRefs];
+
+                // ── 취소 확인 다이얼로그
+                Future<void> doCancel() async {
+                  final confirm = await showDialog<bool>(
+                    context: btnCtx,
+                    builder: (_) => AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      title: const Text('주문 취소', style: TextStyle(fontWeight: FontWeight.w800)),
+                      content: Text(isGroup
+                          ? '단체주문을 취소하시겠습니까?\n제작 시작 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'
+                          : '주문을 취소하시겠습니까?\n발송 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(btnCtx, false), child: const Text('아니오')),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                          onPressed: () => Navigator.pop(btnCtx, true),
+                          child: const Text('취소하기', style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true && btnCtx.mounted) {
+                    await OrderService.updateOrderStatus(order.id, OrderStatus.cancelled);
+                    NotificationService.sendCancelled(order: order, reason: '고객 직접 취소').catchError((_) {});
+                    FcmService.sendOrderStatusNotification(order: order, newStatus: OrderStatus.cancelled).catchError((_) {});
+                    if (btnCtx.mounted) {
+                      Navigator.pop(btnCtx);
+                      ScaffoldMessenger.of(btnCtx).showSnackBar(
+                        const SnackBar(content: Text('주문이 취소되었습니다.'), backgroundColor: Color(0xFF1A1A2E)),
+                      );
+                    }
+                  }
+                }
+
+                // ── 교환/반품 바텀시트
+                void showContactSheet(String subject) {
+                  Navigator.pop(btnCtx);
+                  showModalBottomSheet(
+                    context: btnCtx,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                    builder: (_) => Container(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(subject, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 4),
+                        Text('주문번호: ${order.id}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F8FF),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
+                          ),
+                          child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text('고객센터 문의', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                            SizedBox(height: 6),
+                            Text('• 카카오톡: @2fitkorea'),
+                            Text('• 전화: 010-7227-6914'),
+                            Text('• 이메일: chw243527@gmail.com'),
+                            SizedBox(height: 6),
+                            Text('배송 완료 후 7일 이내 접수해 주세요.\n(상품 하자의 경우 3개월 이내)',
+                                style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5)),
+                          ]),
+                        ),
+                        const SizedBox(height: 16),
+                      ]),
+                    ),
+                  );
+                }
+
+                return SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      // ── [주문 상품] ─────────────────────────
+                      _npSection(
+                        title: '주문상품',
+                        icon: Icons.shopping_bag_outlined,
+                        child: order.items.isEmpty
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              alignment: Alignment.center,
+                              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                Icon(Icons.inventory_2_outlined, size: 36, color: Colors.grey[300]),
+                                const SizedBox(height: 8),
+                                Text('상품 정보를 불러올 수 없습니다.',
+                                  style: TextStyle(fontSize: 13, color: Colors.grey[400])),
+                                const SizedBox(height: 4),
+                                Text('주문번호: ${order.id}',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey[300])),
+                              ]),
+                            )
+                          : Column(
+                          children: [
+                            ...order.items.map((item) {
+                              final displaySize = (item.size == '단체' || item.size.isEmpty) ? null : item.size;
+                              final optionStr = [
+                                if (displaySize != null) displaySize,
+                                if (item.color.isNotEmpty) item.color,
+                              ].join(' / ');
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                    // 이미지
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: item.imageUrl != null && item.imageUrl!.isNotEmpty
+                                        ? NetImage(item.imageUrl!, width: 72, height: 72, fit: BoxFit.cover)
+                                        : Container(
+                                            width: 72, height: 72,
+                                            decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                                            child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
+                                          ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                        // 배송 상태 배지
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: statusColor.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(order.status.label,
+                                            style: TextStyle(fontSize: 10, color: statusColor, fontWeight: FontWeight.w700)),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(item.productName,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                                          maxLines: 2, overflow: TextOverflow.ellipsis),
+                                        if (optionStr.isNotEmpty)
+                                          Text('옵션: $optionStr  ${item.quantity}개',
+                                            style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                                        const SizedBox(height: 4),
+                                        Text(_fmtAmt(item.price * item.quantity),
+                                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                                      ]),
+                                    ),
+                                  ]),
+                                  const SizedBox(height: 10),
+                                  // ── 상품별 액션 버튼 행 (네이버 스타일)
+                                  Row(children: [
+                                    if (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered)
+                                      Expanded(child: _npActionButton(
+                                        label: '배송조회',
+                                        isPrimary: true,
+                                        onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
+                                          const SnackBar(content: Text('배송조회는 고객센터로 문의해 주세요.\n카카오톡: @2fitkorea'))),
+                                      )),
+                                    if (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered)
+                                      const SizedBox(width: 8),
+                                    if (canCancel)
+                                      Expanded(child: _npActionButton(
+                                        label: isGroup ? '취소(제작전)' : '주문취소',
+                                        onTap: doCancel,
+                                      )),
+                                    if (canCancel) const SizedBox(width: 8),
+                                    if (canExchangeReturn) ...[
+                                      Expanded(child: _npActionButton(
+                                        label: '교환신청',
+                                        onTap: () => showContactSheet('교환 신청'),
+                                      )),
+                                      const SizedBox(width: 8),
+                                      Expanded(child: _npActionButton(
+                                        label: '반품신청',
+                                        onTap: () => showContactSheet('반품 신청'),
+                                      )),
+                                    ],
+                                    if (!canCancel && !canExchangeReturn &&
+                                        order.status != OrderStatus.shipped &&
+                                        order.status != OrderStatus.delivered)
+                                      Expanded(child: _npActionButton(
+                                        label: '문의하기',
+                                        onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
+                                          const SnackBar(content: Text('카카오톡: @2fitkorea  |  전화: 010-7227-6914'))),
+                                      )),
+                                  ]),
+                                  // 취소불가 안내
+                                  if (cancelBlockedByDesign) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.shade50,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: Colors.red.shade200),
+                                      ),
+                                      child: Row(children: [
+                                        Icon(Icons.lock_outline_rounded, size: 13, color: Colors.red.shade600),
+                                        const SizedBox(width: 6),
+                                        Expanded(child: Text('디자인 수정이 시작되어 취소가 불가합니다.',
+                                          style: TextStyle(fontSize: 11, color: Colors.red.shade700))),
+                                      ]),
+                                    ),
+                                  ],
+                                  // 디자인 이미지 확인
+                                  if (isGroup && allDesignImages.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: OutlinedButton.icon(
+                                        onPressed: () {
+                                          showDialog(
+                                            context: btnCtx,
+                                            builder: (_) => Dialog(
+                                              backgroundColor: Colors.black87,
+                                              insetPadding: const EdgeInsets.all(12),
+                                              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                                Padding(
+                                                  padding: const EdgeInsets.all(12),
+                                                  child: Row(children: [
+                                                    const Icon(Icons.design_services_outlined, color: Colors.white70, size: 16),
+                                                    const SizedBox(width: 8),
+                                                    const Expanded(child: Text('디자인 참고 이미지',
+                                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700))),
+                                                    GestureDetector(
+                                                      onTap: () => Navigator.pop(btnCtx),
+                                                      child: const Icon(Icons.close, color: Colors.white70, size: 20),
+                                                    ),
+                                                  ]),
+                                                ),
+                                                SizedBox(
+                                                  height: 300,
+                                                  child: PageView.builder(
+                                                    itemCount: allDesignImages.length,
+                                                    itemBuilder: (_, i) {
+                                                      final img = allDesignImages[i];
+                                                      try {
+                                                        final bytes = base64Decode(img.contains(',') ? img.split(',').last : img);
+                                                        return InteractiveViewer(
+                                                          child: Center(child: Image.memory(bytes, fit: BoxFit.contain)));
+                                                      } catch (_) {
+                                                        return const Center(child: Icon(Icons.broken_image, color: Colors.white54, size: 48));
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets.all(8),
+                                                  child: Text('총 ${allDesignImages.length}장 · 좌우로 스와이프',
+                                                    style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                                                ),
+                                              ]),
+                                            ),
+                                          );
+                                        },
+                                        icon: const Icon(Icons.image_search_rounded, size: 15),
+                                        label: Text('디자인 이미지 확인 (${allDesignImages.length}장)',
+                                          style: const TextStyle(fontSize: 12)),
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: const Color(0xFF7B1FA2),
+                                          side: const BorderSide(color: Color(0xFF7B1FA2)),
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ]),
+                              );
+                            }),
+                          ],
+                        ),
+                      ),
+
+                      // ── [배송지] ────────────────────────────
+                      _npSection(
+                        title: '배송지',
+                        icon: Icons.location_on_outlined,
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(order.userName,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+                          if (order.userPhone.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(order.userPhone,
+                              style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                          ],
+                          if (order.userAddress.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(order.userAddress,
+                              style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                          ],
+                        ]),
+                      ),
+
+                      // ── [단체주문 정보] (isGroup) ───────────
+                      if (isGroup && opts.isNotEmpty)
+                        _npSection(
+                          title: '단체주문 정보',
+                          icon: Icons.groups_outlined,
+                          child: Column(children: [
+                            if ((opts['teamName'] ?? '').toString().isNotEmpty)
+                              _npInfoRow('단체명', opts['teamName'].toString()),
+                            if ((opts['totalCount'] ?? order.groupCount) != null)
+                              _npInfoRow('총 인원', '${opts['totalCount'] ?? order.groupCount}명'),
+                            if ((opts['printTypeLabel'] ?? opts['printType'] ?? '').toString().isNotEmpty)
+                              _npInfoRow('인쇄 옵션', (opts['printTypeLabel'] ?? opts['printType']).toString()),
+                            if ((opts['mainColor'] ?? '').toString().isNotEmpty)
+                              _npInfoRow('주요 색상', opts['mainColor'].toString()),
+                          ]),
+                        ),
+
+                      // ── [결제정보] ──────────────────────────
+                      _npSection(
+                        title: '결제정보',
+                        icon: Icons.payment_rounded,
+                        child: Column(children: [
+                          // 주문금액 강조
+                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                            const Text('주문금액', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                            Text('총 ${_fmtAmt(totalAmt)}',
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                          ]),
+                          const SizedBox(height: 12),
+                          Divider(height: 1, color: Colors.grey.shade200),
+                          const SizedBox(height: 10),
+                          // 상세 금액 줄
+                          _npAmtRow('상품금액', _fmtAmt(productAmt)),
+                          if (discountAmt > 0)
+                            _npAmtRow('할인금액', '-${_fmtAmt(discountAmt)}', valueColor: Colors.red),
+                          _npAmtRow('배송비', shippingFee == 0 ? '무료' : _fmtAmt(shippingFee)),
+                          const SizedBox(height: 10),
+                          Divider(height: 1, color: Colors.grey.shade200),
+                          const SizedBox(height: 10),
+                          // 결제 수단
+                          _npAmtRow('결제수단', order.paymentMethod,
+                            labelColor: Colors.black54),
+                          if ((order.memo ?? '').isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            _npAmtRow('메모', order.memo!, labelColor: Colors.black54),
+                          ],
+                        ]),
+                      ),
+
+                      // ── [영수증 / 현금영수증] ────────────────
+                      _npSection(
+                        title: '영수증 / 현금영수증',
+                        icon: Icons.receipt_outlined,
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Row(children: [
+                            Expanded(
+                              child: Builder(builder: (rcCtx) => OutlinedButton.icon(
+                                onPressed: () => ScaffoldMessenger.of(rcCtx).showSnackBar(
+                                  SnackBar(content: Text('영수증 발급은 고객센터로 문의해 주세요.\n주문번호: ${order.id}'),
+                                    action: SnackBarAction(label: '닫기', onPressed: () {})),
+                                ),
+                                icon: const Icon(Icons.receipt_long_outlined, size: 14),
+                                label: const Text('영수증 조회', style: TextStyle(fontSize: 12)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.black54,
+                                  side: BorderSide(color: Colors.grey.shade400),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                              )),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Builder(builder: (rcCtx) => OutlinedButton.icon(
+                                onPressed: () => ScaffoldMessenger.of(rcCtx).showSnackBar(
+                                  SnackBar(
+                                    content: const Text('현금영수증은 현금/계좌이체 결제 시 발급 가능합니다.\n문의: 010-7227-6914'),
+                                    action: SnackBarAction(label: '닫기', onPressed: () {})),
+                                ),
+                                icon: const Icon(Icons.assignment_outlined, size: 14),
+                                label: const Text('현금영수증', style: TextStyle(fontSize: 12)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF1565C0),
+                                  side: const BorderSide(color: Color(0xFF1565C0)),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                              )),
+                            ),
+                          ]),
+                          const SizedBox(height: 6),
+                          Text('* 영수증·현금영수증은 결제 완료 후 고객센터로 문의해 주세요.',
+                            style: TextStyle(fontSize: 10, color: Colors.grey[400], height: 1.4)),
+                        ]),
+                      ),
+
+                      const SizedBox(height: 8),
+                    ],
+                  ),
+                );
+              }),
+            ),
+
+            // ══════════════════════════════════════
+            // ③ 하단 닫기 버튼
+            // ══════════════════════════════════════
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(16, 8, 16, isSheet ? 16 + MediaQuery.of(sheetCtx).padding.bottom : 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(top: BorderSide(color: Colors.grey.shade200)),
+              ),
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(sheetCtx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A1A2E),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  elevation: 0,
+                ),
+                child: const Text('닫기', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+        );
+  }
+
+  if (isMobile) {
+    // ── 모바일: 풀스크린 바텀시트
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => Container(
+        height: MediaQuery.of(sheetCtx).size.height * 0.92,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF4F4F4),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: buildContent(sheetCtx, isSheet: true),
+      ),
+    );
+  } else {
+    // ── PC: 다이얼로그
+    showDialog(
+      context: context,
+      builder: (sheetCtx) => Dialog(
+        backgroundColor: const Color(0xFFF4F4F4),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 480, maxHeight: 820),
+          child: buildContent(sheetCtx),
+        ),
+      ),
+    );
+  }
+}
+
+// ── 네이버 스타일 섹션 컨테이너
+Widget _npSection({required String title, required IconData icon, required Widget child}) {
+  return Container(
+    width: double.infinity,
+    margin: const EdgeInsets.only(bottom: 0),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border(bottom: BorderSide(color: Colors.grey.shade100, width: 6)),
+    ),
+    padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Icon(icon, size: 15, color: Colors.black87),
+        const SizedBox(width: 6),
+        Text(title,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.black87)),
+      ]),
+      const SizedBox(height: 14),
+      child,
+    ]),
+  );
+}
+
+// ── 정보 행 (단체주문 정보 등)
+Widget _npInfoRow(String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(children: [
+      SizedBox(width: 72,
+        child: Text(label, style: TextStyle(fontSize: 13, color: Colors.grey[500]))),
+      Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+    ]),
+  );
+}
+
+// ── 금액 행
+Widget _npAmtRow(String label, String value, {Color? valueColor, Color? labelColor}) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 7),
+    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Text(label, style: TextStyle(fontSize: 13, color: labelColor ?? Colors.grey[600])),
+      Text(value, style: TextStyle(fontSize: 13, color: valueColor ?? Colors.black87, fontWeight: FontWeight.w600)),
+    ]),
+  );
+}
+
+// ── 액션 버튼 (배송조회, 취소 등)
+Widget _npActionButton({required String label, required VoidCallback onTap, bool isPrimary = false}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: isPrimary ? const Color(0xFF03C75A) : Colors.white,
+        border: Border.all(color: isPrimary ? const Color(0xFF03C75A) : Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(label,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: isPrimary ? Colors.white : Colors.black87,
+        )),
+    ),
+  );
+}
+
+
 // ════════════════════════════════════════════════
 // 디자인 수정 요청 바텀시트
 // ════════════════════════════════════════════════
@@ -4050,7 +5313,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey[200] ?? const Color(0xFFEEEEEE)),
+                    border: Border.all(color: Colors.grey[200]!),
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Row(children: [
@@ -4135,173 +5398,4 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
       Expanded(child: Text(text, style: const TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.4))),
     ]),
   );
-}
-
-// ════════════════════════════════════════════════════════════════
-// 프로필 아바타 위젯 (이미지 있으면 NetImage, 없으면 이니셜)
-// ════════════════════════════════════════════════════════════════
-class _ProfileAvatar extends StatelessWidget {
-  final UserModel user;
-  final double radius;
-  const _ProfileAvatar({required this.user, required this.radius});
-
-  @override
-  Widget build(BuildContext context) {
-    final hasImage = user.profileImageUrl.isNotEmpty;
-    if (hasImage) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundColor: const Color(0xFFE8EEF8),
-        child: ClipOval(
-          child: NetImage(
-            user.profileImageUrl,
-            width: radius * 2,
-            height: radius * 2,
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    }
-    // 이니셜 아바타
-    final initial = user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U';
-    final fontSize = radius * 0.72;
-    return CircleAvatar(
-      radius: radius,
-      backgroundColor: const Color(0xFFE8EEF8),
-      child: Text(initial,
-          style: TextStyle(
-            color: const Color(0xFF1C62B9),
-            fontSize: fontSize,
-            fontWeight: FontWeight.w800,
-          )),
-    );
-  }
-}
-
-// ════════════════════════════════════════════════════════════════
-// 주문 아이템 이미지 위젯
-// imageUrl 있으면 NetImage, 없으면 ProductService 캐시에서 조회
-// ════════════════════════════════════════════════════════════════
-void _showReviewSheet(BuildContext context, OrderModel order) {
-  if (order.items.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('리뷰를 작성할 상품이 없습니다.')));
-    return;
-  }
-  final item = order.items.first;
-  double rating = 5.0;
-  final ctrl = TextEditingController();
-
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-    builder: (bsCtx) => StatefulBuilder(builder: (ctx, setSt) {
-      return Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const Text('리뷰 작성', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              const Spacer(),
-              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
-            ]),
-            const SizedBox(height: 4),
-            Text(item.productName,
-                style: const TextStyle(fontSize: 13, color: Color(0xFF555555)),
-                maxLines: 1, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 16),
-            // 별점
-            const Text('만족도', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            Row(children: List.generate(5, (i) => GestureDetector(
-              onTap: () => setSt(() => rating = (i + 1).toDouble()),
-              child: Icon(
-                i < rating ? Icons.star_rounded : Icons.star_outline_rounded,
-                color: const Color(0xFFFFB300), size: 32),
-            ))),
-            const SizedBox(height: 14),
-            // 내용
-            TextField(
-              controller: ctrl,
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: '상품 사용 후기를 작성해 주세요.',
-                hintStyle: const TextStyle(fontSize: 13, color: Color(0xFFAAAAAA)),
-                filled: true, fillColor: const Color(0xFFF7F8FA),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
-                enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
-                contentPadding: const EdgeInsets.all(12),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (ctrl.text.trim().isEmpty) {
-                    ScaffoldMessenger.of(ctx).showSnackBar(
-                        const SnackBar(content: Text('리뷰 내용을 입력해 주세요.')));
-                    return;
-                  }
-                  Navigator.pop(bsCtx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(
-                        '리뷰가 등록되었습니다. (★${rating.toInt()} "${ctrl.text.trim().length > 20 ? ctrl.text.trim().substring(0, 20) + "..." : ctrl.text.trim()}")')));
-                },
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1C62B9),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-                child: const Text('리뷰 등록', style: TextStyle(fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ]),
-        ),
-      );
-    }),
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// 재구매 — 첫 번째 상품의 상세 페이지로 이동
-// ════════════════════════════════════════════════════════════════
-void _repurchase(BuildContext context, OrderModel order) {
-  if (order.items.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('상품 정보를 불러올 수 없습니다.')));
-    return;
-  }
-  final item = order.items.first;
-  // 동기 캐시 우선
-  final cached = ProductService.getProductByIdSync(item.productId);
-  if (cached != null) {
-    Navigator.push(context, MaterialPageRoute(
-        builder: (_) => ProductDetailScreen(product: cached)));
-    return;
-  }
-  // 비동기 로딩 중 스낵바
-  ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('상품 정보를 불러오는 중...')));
-  ProductService.getProductById(item.productId).then((p) {
-    if (p != null && context.mounted) {
-      ScaffoldMessenger.of(context).clearSnackBars();
-      Navigator.push(context, MaterialPageRoute(
-          builder: (_) => ProductDetailScreen(product: p)));
-    } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('상품 정보를 불러올 수 없습니다.')));
-    }
-  }).catchError((_) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('상품 정보를 불러올 수 없습니다.')));
-    }
-  });
 }
