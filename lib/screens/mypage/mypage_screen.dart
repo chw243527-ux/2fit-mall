@@ -1262,8 +1262,8 @@ class _WishlistContentState extends State<_WishlistContent> {
             child: Column(mainAxisSize: MainAxisSize.max, crossAxisAlignment: CrossAxisAlignment.start, children: [
               ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
                 child: validImages.isNotEmpty
-                    ? NetImage(validImages.first, width: double.infinity, height: 140, fit: BoxFit.cover)
-                    : Container(height: 140, color: Colors.grey[100],
+                    ? NetImage(validImages.first, width: double.infinity, height: 140, fit: BoxFit.cover, backgroundColor: const Color(0xFFEEEEEE))
+                    : Container(height: 140, color: Colors.grey[200],
                         child: const Center(child: Icon(Icons.checkroom_rounded, color: Colors.grey, size: 36)))),
               Expanded(
                 child: Padding(padding: const EdgeInsets.all(8), child: Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1804,8 +1804,6 @@ class _BtnDef {
 // 주문 상세 (오늘의집 주문상세 스타일)
 // ════════════════════════════════════════════════════════════════
 void _showDetail(BuildContext context, OrderModel order) {
-  final isMobile = !isPcWeb(context);
-
   Widget content(BuildContext sheetCtx) {
     final opts = order.customOptions ?? {};
     final isGroup = order.orderType == 'group' || order.orderType == 'additional'
@@ -2046,8 +2044,7 @@ void _showDetail(BuildContext context, OrderModel order) {
     final eta = deliveryEta();
     final stLabel = statusLabel();
 
-    return Column(children: [
-      // ── AppBar 스타일 헤더 ──
+    return Column(mainAxisSize: MainAxisSize.max, children: [
       Container(
         color: Colors.white,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -2074,7 +2071,7 @@ void _showDetail(BuildContext context, OrderModel order) {
         ]),
       ),
       // ── 스크롤 내용 ──
-      Flexible(child: SingleChildScrollView(
+      Expanded(child: SingleChildScrollView(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // 날짜 + 주문번호 서브헤더
           Container(
@@ -2214,28 +2211,13 @@ void _showDetail(BuildContext context, OrderModel order) {
     ]);
   }
 
-  if (isMobile) {
-    showModalBottomSheet(
-      context: context, isScrollControlled: true, backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(ctx).size.height * 0.93,
-        decoration: const BoxDecoration(
-            color: Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-        child: content(ctx),
-      ),
-    );
-  } else {
-    showDialog(
-      context: context,
-      builder: (ctx) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-        child: SizedBox(width: 460, height: MediaQuery.of(ctx).size.height * 0.85,
-            child: content(ctx)),
-      ),
-    );
-  }
+  // 모바일/PC 모두 Navigator.push로 전체 화면으로 표시 (bottomSheet 레이아웃 버그 방지)
+  Navigator.push(context, MaterialPageRoute(
+    builder: (ctx) => Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: SafeArea(child: content(ctx)),
+    ),
+  ));
 }
 
 // ── 상세 섹션 컨테이너 ───────────────────────────
@@ -4014,9 +3996,14 @@ class _OrderItemImageState extends State<_OrderItemImage> {
   }
 
   void _resolve() {
-    // 1) item에 이미지가 있으면 바로 사용
-    if (widget.item.imageUrl != null && widget.item.imageUrl!.isNotEmpty) {
-      _imageUrl = widget.item.imageUrl;
+    // 1) item에 직접 이미지 URL이 있으면 바로 사용
+    final directUrl = widget.item.imageUrl;
+    if (directUrl != null && directUrl.isNotEmpty) {
+      if (mounted) {
+        setState(() => _imageUrl = directUrl);
+      } else {
+        _imageUrl = directUrl;
+      }
       return;
     }
     // productId가 없으면 캐시/비동기 조회 불가
@@ -4026,7 +4013,11 @@ class _OrderItemImageState extends State<_OrderItemImage> {
     if (cached != null) {
       final validImg = cached.images.firstWhere((u) => u.isNotEmpty, orElse: () => '');
       if (validImg.isNotEmpty) {
-        _imageUrl = validImg;
+        if (mounted) {
+          setState(() => _imageUrl = validImg);
+        } else {
+          _imageUrl = validImg;
+        }
         return;
       }
     }
