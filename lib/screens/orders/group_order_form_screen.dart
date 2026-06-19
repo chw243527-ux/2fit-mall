@@ -851,13 +851,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 _buildBasicInfoSection(),
                 _buildCancelPolicySection(),
                 _buildSummarySection(),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+                // ── 동의 체크박스 + 구매 버튼 (폼 맨 아래 인라인) ──
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                  child: _buildBottomBar(),
+                ),
               ],
             ],
           ),
         ),
       ),
-      bottomNavigationBar: _countFixed ? _buildBottomBar() : null,
+      bottomNavigationBar: null,
     );
   }
 
@@ -5039,15 +5044,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // 하단 제출 바
   // ══════════════════════════════════════════════
   Widget _buildBottomBar() {
-    final safeBottom = MediaQuery.of(context).padding.bottom;
-    return Container(
-      padding: EdgeInsets.fromLTRB(16, 10, 16, 10 + safeBottom),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -2))],
-      ),
-      child: Column(
+    return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // ── 주문 확정 동의 체크박스 ──
@@ -5138,12 +5135,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             ),
           ]),
         ],
-      ),
-    );
+      );
   }
-
-  // ══════════════════════════════════════════════
-  // 취소 규정 섹션
   // ══════════════════════════════════════════════
   Widget _buildCancelPolicySection() {
     return _card(
