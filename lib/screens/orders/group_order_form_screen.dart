@@ -851,12 +851,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 _buildBasicInfoSection(),
                 _buildCancelPolicySection(),
                 _buildSummarySection(),
-                const SizedBox(height: 16),
-                // ── 동의 체크박스 + 구매 버튼 (폼 맨 아래 인라인) ──
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                  child: _buildBottomBar(),
-                ),
+                const SizedBox(height: 32),
               ],
             ],
           ),
@@ -5008,6 +5003,67 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         const Divider(height: 20),
         _sumRow('최종 결제금액', '${_fmt(_finalPrice)}원',
             isTotal: true),
+
+        const SizedBox(height: 20),
+        const Divider(height: 1),
+        const SizedBox(height: 16),
+
+        // ── 동의 체크박스 ──
+        GestureDetector(
+          onTap: () => setState(() => _orderConfirmed = !_orderConfirmed),
+          child: Row(
+            children: [
+              Icon(
+                _orderConfirmed
+                    ? Icons.check_box_rounded
+                    : Icons.check_box_outline_blank_rounded,
+                size: 22,
+                color: _orderConfirmed
+                    ? const Color(0xFF1A1A1A)
+                    : const Color(0xFFFFA000),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  '주문 내용을 모두 확인하였으며 구매에 동의합니다.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A1A1A),
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // ── 주문하기 버튼 ──
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            onPressed: _orderConfirmed
+                ? () => _submitOrder(isBuyNow: true)
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _orderConfirmed
+                  ? const Color(0xFF1A1A1A)
+                  : Colors.grey.shade300,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: Colors.grey.shade300,
+              disabledForegroundColor: Colors.grey.shade500,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              elevation: 0,
+            ),
+            child: const Text(
+              '주문하기',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+            ),
+          ),
+        ),
       ]),
     );
   }
@@ -5040,103 +5096,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     );
   }
 
-  // ══════════════════════════════════════════════
-  // 하단 제출 바
-  // ══════════════════════════════════════════════
-  Widget _buildBottomBar() {
-    return Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ── 주문 확정 동의 체크박스 ──
-          GestureDetector(
-            onTap: () => setState(() => _orderConfirmed = !_orderConfirmed),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: _orderConfirmed
-                    ? const Color(0xFF1A1A1A).withValues(alpha: 0.04)
-                    : const Color(0xFFFFF8E1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: _orderConfirmed
-                      ? const Color(0xFF1A1A1A).withValues(alpha: 0.25)
-                      : const Color(0xFFFFC107).withValues(alpha: 0.6),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _orderConfirmed
-                        ? Icons.check_box_rounded
-                        : Icons.check_box_outline_blank_rounded,
-                    size: 20,
-                    color: _orderConfirmed
-                        ? const Color(0xFF1A1A1A)
-                        : const Color(0xFFFFA000),
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      '주문 내용을 모두 확인하였으며 구매에 동의합니다.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1A1A1A),
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          // ── 장바구니 / 바로 구매 버튼 ──
-          Row(children: [
-            OutlinedButton(
-              onPressed: _orderConfirmed
-                  ? () => _submitOrder(isBuyNow: false)
-                  : null,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: _orderConfirmed
-                    ? const Color(0xFF1A1A1A)
-                    : Colors.grey.shade400,
-                side: BorderSide(
-                  color: _orderConfirmed
-                      ? const Color(0xFF1A1A1A)
-                      : Colors.grey.shade300,
-                ),
-                shape: const RoundedRectangleBorder(),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-              child: const Text('장바구니',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _orderConfirmed
-                    ? () => _submitOrder(isBuyNow: true)
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _orderConfirmed
-                      ? const Color(0xFF1A1A1A)
-                      : Colors.grey.shade300,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey.shade300,
-                  disabledForegroundColor: Colors.grey.shade500,
-                  shape: const RoundedRectangleBorder(),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  elevation: 0,
-                ),
-                child: const Text('바로 구매',
-                    style: TextStyle(fontWeight: FontWeight.w800)),
-              ),
-            ),
-          ]),
-        ],
-      );
-  }
   // ══════════════════════════════════════════════
   Widget _buildCancelPolicySection() {
     return _card(
