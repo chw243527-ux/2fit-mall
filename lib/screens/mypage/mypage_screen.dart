@@ -5307,27 +5307,25 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                       if ((o.memo ?? '').isNotEmpty)
                         detailRow(Icons.notes_outlined, '메모', o.memo!),
                     ]),
-                    // 영수증 보기 버튼 (토스페이먼츠 결제 시)
-                    if (o.paymentKey?.isNotEmpty == true) ...[
-                      const SizedBox(height: 10),
-                      GestureDetector(
-                        onTap: () => _showReceiptDialog(dlgCtx, o),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 11),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.4)),
-                            borderRadius: BorderRadius.circular(8),
-                            color: const Color(0xFFEFF3FF),
-                          ),
-                          child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                            Icon(Icons.receipt_long_rounded, size: 15, color: Color(0xFF1565C0)),
-                            SizedBox(width: 6),
-                            Text('영수증 보기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-                          ]),
+                    // 영수증 보기 버튼 (항상 표시)
+                    const SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: () => _showReceiptDialog(dlgCtx, o),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 11),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.4)),
+                          borderRadius: BorderRadius.circular(8),
+                          color: const Color(0xFFEFF3FF),
                         ),
+                        child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          Icon(Icons.receipt_long_rounded, size: 15, color: Color(0xFF1565C0)),
+                          SizedBox(width: 6),
+                          Text('영수증 보기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                        ]),
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),
