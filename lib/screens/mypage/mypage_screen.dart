@@ -95,11 +95,8 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
   }
 
   void _openOrderList(BuildContext ctx) {
+    // orders 로딩 여부와 무관하게 항상 화면 열기 (화면 안에서 로딩 처리)
     final orders = context.read<OrderProvider>().orders;
-    if (orders.isEmpty) {
-      ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('주문 내역이 없습니다.')));
-      return;
-    }
     Navigator.push(ctx, MaterialPageRoute(builder: (_) => _OrderListScreen(
       orders: orders,
       onAdditional: _openAdditionalOrder,
@@ -110,25 +107,9 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
   }
 
   void _openWishlist(BuildContext ctx, UserModel user) {
-    showModalBottomSheet(
-      context: ctx, isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (bsCtx) => SizedBox(
-        height: MediaQuery.of(ctx).size.height * 0.85,
-        child: Column(children: [
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              const Text('찜 목록', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              const Spacer(),
-              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
-            ]),
-          ),
-          Expanded(child: _WishlistContent(user: user)),
-        ]),
-      ),
-    );
+    Navigator.push(ctx, MaterialPageRoute(
+      builder: (_) => _WishlistScreen(user: user),
+    ));
   }
 
   void _openCouponSheet(BuildContext ctx) {
@@ -1037,23 +1018,11 @@ class _ShoppingTab extends StatelessWidget {
     ),
   );
 
-  void _showWishlist(BuildContext context, UserModel user) => showModalBottomSheet(
-    context: context, isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-    builder: (bsCtx) => SizedBox(
-      height: MediaQuery.of(context).size.height * 0.85,
-      child: Column(children: [
-        const SizedBox(height: 16),
-        Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(children: [
-            const Text('찜 목록', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-            const Spacer(),
-            IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
-          ])),
-        Expanded(child: _WishlistContent(user: user)),
-      ]),
-    ),
-  );
+  void _showWishlist(BuildContext context, UserModel user) {
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => _WishlistScreen(user: user),
+    ));
+  }
 
   void _showCoupons(BuildContext context, List<CouponModel> coupons) => showModalBottomSheet(
     context: context, isScrollControlled: true,
@@ -1107,10 +1076,7 @@ class _ShoppingTab extends StatelessWidget {
   void _showOrderList(BuildContext context, List<OrderModel> orders,
       void Function(OrderModel) onAdd, void Function(OrderModel) onCol,
       void Function(OrderModel) onDes, Future<void> Function(BuildContext, OrderModel) onXls) {
-    if (orders.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('주문 내역이 없습니다.')));
-      return;
-    }
+    // orders 로딩 전이어도 항상 화면 열기
     Navigator.push(context, MaterialPageRoute(builder: (_) => _OrderListScreen(
       orders: orders,
       onAdditional: onAdd, onColorEdit: onCol, onDesignRevision: onDes, onExcelDownload: onXls,
@@ -1171,28 +1137,39 @@ class _ActivityTab extends StatelessWidget {
   ]);
 
   void _showWishlistSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context, isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (bsCtx) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.85,
-        child: Column(children: [
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(children: [
-              const Text('찜한 상품', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-              const Spacer(),
-              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
-            ]),
-          ),
-          Expanded(child: _WishlistContent(user: user)),
-        ]),
-      ),
-    );
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => _WishlistScreen(user: user),
+    ));
   }
 }
 
+
+// ════════════════════════════════════════════════════════════════
+// 찜 목록 전체화면 (Navigator.push로 열림 — showModalBottomSheet 아님)
+// ════════════════════════════════════════════════════════════════
+class _WishlistScreen extends StatelessWidget {
+  final UserModel user;
+  const _WishlistScreen({required this.user});
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: const Color(0xFFF5F5F5),
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: const Text('찜 목록',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w700, fontSize: 16)),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Divider(height: 1, color: Colors.grey[200]),
+      ),
+    ),
+    body: _WishlistContent(user: user),
+  );
+}
 
 // ════════════════════════════════════════════════════════════════
 // 찜 목록 콘텐츠
@@ -1312,14 +1289,14 @@ class _WishlistContentState extends State<_WishlistContent> {
 // 주문배송목록 화면
 // ════════════════════════════════════════════════════════════════
 class _OrderListScreen extends StatefulWidget {
-  final List<OrderModel> orders;
+  final List<OrderModel> initialOrders;   // 초기값 (비어있어도 됨)
   final void Function(OrderModel) onAdditional, onColorEdit, onDesignRevision;
   final Future<void> Function(BuildContext, OrderModel) onExcelDownload;
   const _OrderListScreen({
-    required this.orders,
+    required List<OrderModel> orders,
     required this.onAdditional, required this.onColorEdit,
     required this.onDesignRevision, required this.onExcelDownload,
-  });
+  }) : initialOrders = orders;
   @override
   State<_OrderListScreen> createState() => _OrderListScreenState();
 }
@@ -1332,9 +1309,12 @@ class _OrderListScreenState extends State<_OrderListScreen> {
   void dispose() { _searchCtrl.dispose(); super.dispose(); }
 
   List<OrderModel> get _filtered {
-    if (_query.isEmpty) return widget.orders;
+    // Provider에서 실시간 orders 구독 (초기값 없어도 로딩 후 자동 표시)
+    final provOrders = context.read<OrderProvider>().orders;
+    final allOrders = provOrders.isNotEmpty ? provOrders : widget.initialOrders;
+    if (_query.isEmpty) return allOrders;
     final q = _query.toLowerCase();
-    return widget.orders.where((o) {
+    return allOrders.where((o) {
       final names = o.items.map((i) => i.productName.toLowerCase()).join(' ');
       return names.contains(q)
           || o.id.toLowerCase().contains(q)
@@ -1344,6 +1324,8 @@ class _OrderListScreenState extends State<_OrderListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Provider 구독 → orders 변경될 때 자동 rebuild
+    context.watch<OrderProvider>();
     final filtered = _filtered;
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -1397,12 +1379,17 @@ class _OrderListScreenState extends State<_OrderListScreen> {
         Expanded(
           child: filtered.isEmpty
               ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(Icons.inbox_rounded, size: 48, color: Colors.grey[300]),
-                  const SizedBox(height: 12),
-                  Text(
-                    _query.isEmpty ? '주문 내역이 없습니다' : '검색 결과가 없습니다',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[400]),
-                  ),
+                  // 로딩 중이면 스피너, 아니면 빈 안내
+                  if (widget.initialOrders.isEmpty && _query.isEmpty)
+                    const CircularProgressIndicator(color: Color(0xFF1C62B9))
+                  else ...[
+                    Icon(Icons.inbox_rounded, size: 48, color: Colors.grey[300]),
+                    const SizedBox(height: 12),
+                    Text(
+                      _query.isEmpty ? '주문 내역이 없습니다' : '검색 결과가 없습니다',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                    ),
+                  ],
                 ]))
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8),
