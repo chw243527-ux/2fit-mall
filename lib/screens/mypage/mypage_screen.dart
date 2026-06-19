@@ -1251,6 +1251,9 @@ class _WishlistContentState extends State<_WishlistContent> {
       itemCount: _products!.length,
       itemBuilder: (ctx, i) {
         final p = _products![i];
+        // 유효한 이미지 URL 필터링 (빈 문자열 제외)
+        final validImages = p.images.where((url) => url.isNotEmpty).toList();
+        final displayName = p.name.isNotEmpty ? p.name : '상품';
         return GestureDetector(
           onTap: () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
           child: Container(
@@ -1258,12 +1261,12 @@ class _WishlistContentState extends State<_WishlistContent> {
                 border: Border.all(color: Colors.grey[200] ?? const Color(0xFFEEEEEE))),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                child: p.images.isNotEmpty
-                    ? NetImage(p.images.first, width: double.infinity, height: 140, fit: BoxFit.cover)
+                child: validImages.isNotEmpty
+                    ? NetImage(validImages.first, width: double.infinity, height: 140, fit: BoxFit.cover)
                     : Container(height: 140, color: Colors.grey[100],
-                        child: const Icon(Icons.checkroom_rounded, color: Colors.grey))),
+                        child: const Center(child: Icon(Icons.checkroom_rounded, color: Colors.grey, size: 36)))),
               Padding(padding: const EdgeInsets.all(8), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(p.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(displayName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
                 Text('${p.price.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.black87)),
@@ -1415,61 +1418,72 @@ class _OrderCard extends StatelessWidget {
                 ),
             ]),
             const SizedBox(height: 12),
-            // 상품 정보 행
+            // 상품 정보 행 — item이 있으면 무조건 표시 (빈값 방어 포함)
             if (item != null) Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               ClipRRect(borderRadius: BorderRadius.circular(6),
                 child: _OrderItemImage(item: item, size: 68)),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(item.productName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                    maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(
+                  item.productName.isNotEmpty ? item.productName
+                      : (order.groupName?.isNotEmpty == true ? order.groupName! : '주문 상품'),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  maxLines: 2, overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 4),
-                if (item.color.isNotEmpty || item.size.isNotEmpty)
-                  Text([if (item.color.isNotEmpty) item.color,
-                    if (item.size.isNotEmpty && item.size != '단체') item.size].join(' / '),
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
-                const SizedBox(height: 4),
-                Text('${_fmtAmt(item.price * item.quantity)} · ${item.quantity}개',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
+                if (item.color.isNotEmpty || (item.size.isNotEmpty && item.size != '단체'))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      [if (item.color.isNotEmpty) item.color,
+                       if (item.size.isNotEmpty && item.size != '단체') item.size].join(' / '),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF888888)),
+                    ),
+                  ),
+                Text(
+                  item.price > 0
+                      ? '${_fmtAmt(item.price * item.quantity)} · ${item.quantity}개'
+                      : order.totalAmount > 0
+                          ? '${_fmtAmt(order.totalAmount)}'
+                          : '금액 확인 중',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF555555)),
+                ),
                 if (order.items.length > 1)
                   Text('외 ${order.items.length - 1}개 상품',
                       style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
               ])),
             ])
             else
-              // 단체주문: item 없을 때 기본 정보 표시
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8F8F8),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(children: [
-                  Container(
-                    width: 68, height: 68,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEEEEE),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(Icons.groups_rounded, color: Color(0xFFAAAAAA), size: 32),
+              // item이 없을 때 기본 정보 표시 (단체/개인 모두)
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Container(
+                  width: 68, height: 68,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEEEEE),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(
-                      order.groupName?.isNotEmpty == true ? order.groupName! : '단체주문',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                      maxLines: 2, overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    if (order.groupCount != null)
-                      Text('총 ${order.groupCount}벌',
-                          style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
-                    const SizedBox(height: 4),
-                    Text(_fmtAmt(order.totalAmount),
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
-                  ])),
-                ]),
-              ),
+                  child: Icon(
+                    isGroup ? Icons.groups_rounded : Icons.shopping_bag_outlined,
+                    color: const Color(0xFFAAAAAA), size: 32,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(
+                    order.groupName?.isNotEmpty == true ? order.groupName!
+                        : isGroup ? '단체주문' : '주문 상품',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    maxLines: 2, overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  if (order.groupCount != null)
+                    Text('총 ${order.groupCount}벌',
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                  const SizedBox(height: 4),
+                  Text(_fmtAmt(order.totalAmount),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
+                ])),
+              ]),
           ]),
         ),
         // 액션 버튼 행
@@ -1632,10 +1646,9 @@ void _showDetail(BuildContext context, OrderModel order) {
 
         // ── 주문상품 ──
         _DetailSection(title: '주문상품', child: Builder(builder: (ctx) {
-          // items가 없는 경우 (단체주문 등)
+          // items가 없는 경우 (단체주문 또는 개인주문 데이터 미완성)
           if (order.items.isEmpty) {
-            final isGrp = isGroup;
-            if (isGrp) {
+            if (isGroup) {
               return Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -1673,15 +1686,49 @@ void _showDetail(BuildContext context, OrderModel order) {
                 ]),
               );
             }
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text('상품 정보를 불러올 수 없습니다.', style: TextStyle(fontSize: 13, color: Colors.grey)),
+            // 개인주문인데 items 없는 경우 — totalAmount 기반 표시
+            return Container(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                Container(
+                  width: 72, height: 72,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEEEEE),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(Icons.shopping_bag_outlined, color: Color(0xFFAAAAAA), size: 36),
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(color: const Color(0xFFF0F0F0), borderRadius: BorderRadius.circular(3)),
+                    child: Text(order.status.label, style: const TextStyle(fontSize: 10, color: Color(0xFF555555))),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text('주문 상품', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${order.totalAmount.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                  ),
+                ])),
+              ]),
             );
           }
           // items가 있는 경우
           return Column(children: order.items.map((item) {
               final sz = (item.size == '단체' || item.size.isEmpty) ? null : item.size;
               final optStr = [if (sz != null) sz, if (item.color.isNotEmpty) item.color].join(' / ');
+              // 빈값 방어: productName이 없으면 groupName 또는 기본값 사용
+              final displayName = item.productName.isNotEmpty
+                  ? item.productName
+                  : (order.groupName?.isNotEmpty == true
+                      ? order.groupName!
+                      : isGroup ? '단체주문 상품' : '주문 상품');
+              final displayAmt = item.price > 0
+                  ? (item.price * item.quantity)
+                  : order.totalAmount;
               return Padding(padding: const EdgeInsets.only(bottom: 16), child: Column(children: [
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   ClipRRect(borderRadius: BorderRadius.circular(4),
@@ -1692,13 +1739,15 @@ void _showDetail(BuildContext context, OrderModel order) {
                         decoration: BoxDecoration(color: const Color(0xFFF0F0F0), borderRadius: BorderRadius.circular(3)),
                         child: Text(order.status.label, style: const TextStyle(fontSize: 10, color: Color(0xFF555555)))),
                     const SizedBox(height: 6),
-                    Text(item.productName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                    Text(displayName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                         maxLines: 2, overflow: TextOverflow.ellipsis),
                     if (optStr.isNotEmpty) ...[ const SizedBox(height: 2),
                       Text('$optStr · ${item.quantity}개', style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                    ] else ...[ const SizedBox(height: 2),
+                      Text('${item.quantity}개', style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
                     ],
                     const SizedBox(height: 4),
-                    Text('${(item.price * item.quantity).toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
+                    Text('${displayAmt.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                   ])),
                 ]),
@@ -3609,16 +3658,22 @@ class _OrderItemImageState extends State<_OrderItemImage> {
       _imageUrl = widget.item.imageUrl;
       return;
     }
+    // productId가 없으면 캐시/비동기 조회 불가
+    if (widget.item.productId.isEmpty) return;
     // 2) ProductService 동기 캐시에서 조회
     final cached = ProductService.getProductByIdSync(widget.item.productId);
-    if (cached != null && cached.images.isNotEmpty) {
-      _imageUrl = cached.images.first;
-      return;
+    if (cached != null) {
+      final validImg = cached.images.firstWhere((u) => u.isNotEmpty, orElse: () => '');
+      if (validImg.isNotEmpty) {
+        _imageUrl = validImg;
+        return;
+      }
     }
     // 3) 비동기 조회
     ProductService.getProductById(widget.item.productId).then((p) {
-      if (p != null && p.images.isNotEmpty && mounted) {
-        setState(() => _imageUrl = p.images.first);
+      if (p != null && mounted) {
+        final validImg = p.images.firstWhere((u) => u.isNotEmpty, orElse: () => '');
+        if (validImg.isNotEmpty) setState(() => _imageUrl = validImg);
       }
     }).catchError((_) {});
   }
