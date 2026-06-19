@@ -29,6 +29,7 @@ import '../home/home_screen.dart';
 import '../chat/chat_screen.dart';
 import 'admin_extra_tabs.dart';
 import 'admin_delivery_tab.dart';
+import 'admin_exchange_tab.dart';
 import 'dart:typed_data';
 import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
@@ -156,7 +157,7 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 14, vsync: this);
+    _tabCtrl = TabController(length: 15, vsync: this);
     // initialTab이 지정된 경우 해당 탭으로 이동
     if (widget.initialTab > 0 && widget.initialTab < 14) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -311,6 +312,9 @@ class _AdminScreenState extends State<AdminScreen>
       {'icon': Icons.warehouse_rounded, 'label': '재고관리'},
       {'icon': Icons.badge_rounded, 'label': '직원관리'},
       {'icon': Icons.campaign_rounded, 'label': '공지관리'},
+      {'icon': Icons.local_shipping_rounded, 'label': '배송관리'},
+      {'icon': Icons.folder_special_rounded, 'label': '카테고리관리'},
+      {'icon': Icons.swap_horiz_rounded, 'label': '교환/반품'},
     ];
 
     return Scaffold(
@@ -750,6 +754,7 @@ class _AdminScreenState extends State<AdminScreen>
             const Tab(icon: Icon(Icons.campaign_rounded, size: 14), text: '공지관리'),
             const Tab(icon: Icon(Icons.local_shipping_rounded, size: 14), text: '배송관리'),
             const Tab(icon: Icon(Icons.folder_special_rounded, size: 14), text: '카테고리관리'),
+            const Tab(icon: Icon(Icons.swap_horiz_rounded, size: 14), text: '교환/반품'),
           ],
         ),
       ),
@@ -784,6 +789,7 @@ class _AdminScreenState extends State<AdminScreen>
         Offstage(offstage: index != 12, child: _buildNoticeManagement()),
         Offstage(offstage: index != 13, child: const AdminDeliveryTab()),
         Offstage(offstage: index != 14, child: const _CategoryManagementTab()),
+        Offstage(offstage: index != 15, child: const AdminExchangeTab()),
       ],
     );
   }

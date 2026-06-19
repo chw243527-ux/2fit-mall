@@ -5473,6 +5473,9 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
   // ── 2단계: 수거방법 ──
   // 0=미선택, 1=직접수거, 2=이미발송
   int _pickupMethod = 0;
+  // 이미 발송한 경우 운송장번호
+  final _trackingCtrl = TextEditingController();
+  String? _trackingCompany; // 택배사
 
   // ── 3단계: 결제수단 ──
   String? _payMethod; // 'card' | 'kakao' | 'payco' | 'toss'
@@ -5482,9 +5485,15 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
 
   String get _title => widget.isReturn ? '반품요청' : '교환요청';
 
+  static const _shippingCompanies = [
+    'CJ대한통운', '한진택배', '롯데택배', '우체국택배', 'GS택배',
+    'TD Logi', '대신택배', '경동택배', '일양로지스', '기타',
+  ];
+
   @override
   void dispose() {
     _reasonCtrl.dispose();
+    _trackingCtrl.dispose();
     super.dispose();
   }
 
@@ -5716,6 +5725,60 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
         label: '상품을 직접 수거해주세요',
         subLabel: '택배사가 2~5일 이내 방문 예정',
       ),
+
+      // 이미 발송 선택 시 운송장 입력
+      if (_pickupMethod == 2) ...[
+        const SizedBox(height: 8),
+        Container(
+          margin: const EdgeInsets.only(left: 8),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFBF0),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFFFE082)),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('운송장 정보를 입력해주세요',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+            const SizedBox(height: 10),
+            // 택배사 선택
+            DropdownButtonFormField<String>(
+              value: _trackingCompany,
+              hint: const Text('택배사 선택', style: TextStyle(fontSize: 13)),
+              decoration: InputDecoration(
+                filled: true, fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!)),
+              ),
+              items: _shippingCompanies.map((c) =>
+                  DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 13)))).toList(),
+              onChanged: (v) => setState(() => _trackingCompany = v),
+            ),
+            const SizedBox(height: 10),
+            // 운송장 번호
+            TextField(
+              controller: _trackingCtrl,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(fontSize: 13),
+              decoration: InputDecoration(
+                hintText: '운송장 번호를 입력해주세요',
+                hintStyle: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                filled: true, fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey[300]!)),
+              ),
+            ),
+          ]),
+        ),
+      ],
+
+      const SizedBox(height: 12),
 
       // 직접수거 선택 시 주소 표시
       if (_pickupMethod == 1) ...[
@@ -6073,9 +6136,14 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
         'reason': _selectedReason ?? '',
         'detail': _reasonCtrl.text.trim(),
         'pickupMethod': _pickupMethod == 1 ? 'pickup' : 'already_sent',
+        'returnTrackingNumber': _trackingCtrl.text.trim(),
+        'returnTrackingCompany': _trackingCompany ?? '',
         'shippingBySelf': _shippingBySelf,
         'payMethod': _payMethod ?? '',
+        'status': 'pending',
         'createdAt': DateTime.now().toIso8601String(),
+        'userId': widget.order.userId,
+        'userName': widget.order.userName,
       });
     } catch (_) {}
 
@@ -6083,47 +6151,11 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
     Navigator.pop(context);
 
     final label = widget.isReturn ? '반품' : '교환';
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(children: [
-          const Text('✅ ', style: TextStyle(fontSize: 20)),
-          Text('$label 요청 완료',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        ]),
-        content: Text(
-          _shippingBySelf
-              ? '$label 요청이 접수됐어요.\n카카오톡 채널로 결제 링크를 보내드릴게요.'
-              : '$label 요청이 접수됐어요.\n카카오톡 채널로 상세 안내를 받으실 수 있어요.',
-          style: const TextStyle(fontSize: 13, height: 1.6),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('닫기'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFEE500),
-              foregroundColor: const Color(0xFF3A1D1D),
-            ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final app = Uri.parse('kakaoplus://plusfriend/home/@2fitkorea');
-              final web = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
-              if (await canLaunchUrl(app)) {
-                await launchUrl(app, mode: LaunchMode.externalApplication);
-              } else {
-                await launchUrl(web, mode: LaunchMode.externalApplication);
-              }
-            },
-            child: const Row(mainAxisSize: MainAxisSize.min, children: [
-              Text('💬 '),
-              Text('카카오톡 채널 문의'),
-            ]),
-          ),
-        ],
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('✅ $label 요청이 접수됐어요. 담당자가 확인 후 처리해드립니다.'),
+        backgroundColor: const Color(0xFF1A1A2E),
+        duration: const Duration(seconds: 4),
       ),
     );
   }
