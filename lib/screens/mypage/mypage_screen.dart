@@ -1769,19 +1769,19 @@ class _OrderCard extends StatelessWidget {
   void _doCancel(BuildContext context, bool isGroup) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: const Text('주문 취소',
             style: TextStyle(fontWeight: FontWeight.w700)),
         content: const Text('주문을 취소하시겠습니까?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dCtx),
               child: const Text('아니오',
                   style: TextStyle(color: Colors.grey))),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dCtx); // 다이얼로그만 닫기
               await OrderService.updateOrderStatus(
                   order.id, OrderStatus.cancelled);
               NotificationService.sendCancelled(
@@ -1808,19 +1808,19 @@ class _OrderCard extends StatelessWidget {
   void _confirmPurchase(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dCtx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         title: const Text('구매확정',
             style: TextStyle(fontWeight: FontWeight.w700)),
         content: const Text('구매를 확정하시겠습니까?\n확정 후에는 취소/반품이 불가합니다.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dCtx),
               child: const Text('취소',
                   style: TextStyle(color: Colors.grey))),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.pop(dCtx); // 다이얼로그만 닫기
               await OrderService.updateOrderStatus(
                   order.id, OrderStatus.delivered);
               if (context.mounted) {
@@ -2155,7 +2155,7 @@ class _OrderDetailScreen extends StatelessWidget {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.pop(context);
+                          // pop 후 context가 무효화되므로 pop 없이 직접 리뷰 시트 열기
                           _showReviewSheet(context, order);
                         },
                         style: ElevatedButton.styleFrom(
