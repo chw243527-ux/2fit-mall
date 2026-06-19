@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
@@ -9741,6 +9742,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   // 상품명 입력 후 1.2초 뒤 자동번역 (디바운스)
   DateTime? _lastTyped;
   void _onNameChanged(String val) {
+    _scheduleAutoSave();
     _lastTyped = DateTime.now();
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (!mounted) return;
@@ -9809,6 +9811,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   String _uploadStatus = '';
   String _uploadError = '';
   bool _isSaving = false;
+  // ── 자동저장 타이머 (수정 모드 전용)
+  Timer? _autoSaveTimer;
+  bool _autoSaved = false; // 마지막 자동저장 성공 표시
   // ── 신규 등록 시 사용할 고정 임시 ID (업로드와 저장 간 ID 일치 보장)
   late final String _tempProductId;
   // ── 토글
@@ -9941,12 +9946,25 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
 
   @override
   void dispose() {
+    _autoSaveTimer?.cancel();
     _nameCtrl.dispose(); _productCodeCtrl.dispose(); _priceCtrl.dispose(); _origPriceCtrl.dispose();
     _descCtrl.dispose(); _sizesCtrl.dispose();
     _stockCtrl.dispose(); _urlCtrl.dispose();
     _materialCtrl.dispose(); _bottomLengthCtrl.dispose();
     for (final c in _sizeStockCtrls.values) { c.dispose(); }
     super.dispose();
+  }
+
+  // ── 수정 모드 자동저장: 1.5초 디바운스 후 _save() 호출
+  void _scheduleAutoSave() {
+    if (!_isEdit) return;
+    _autoSaveTimer?.cancel();
+    if (mounted) setState(() => _autoSaved = false);
+    _autoSaveTimer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted && !_isUploading) {
+        _save(isAutoSave: true);
+      }
+    });
   }
 
   // ── 이미지 파일 여러 장 선택 & Firebase Storage 업로드
@@ -10038,19 +10056,19 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   }
 
   // ── 저장
-  Future<void> _save() async {
+  Future<void> _save({bool isAutoSave = false}) async {
     if (_nameCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('상품명을 입력해주세요')));
+      if (!isAutoSave) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('상품명을 입력해주세요')));
       return;
     }
     // ── 업로드 중이면 완료 대기
     if (_isUploading) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('이미지 업로드 중입니다. 완료 후 저장해주세요.')));
+      if (!isAutoSave) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('이미지 업로드 중입니다. 완료 후 저장해주세요.')));
       return;
     }
     final price = double.tryParse(_priceCtrl.text.replaceAll(',', '')) ?? 0;
     if (price <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('올바른 가격을 입력해주세요')));
+      if (!isAutoSave) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('올바른 가격을 입력해주세요')));
       return;
     }
     final origPrice = double.tryParse(_origPriceCtrl.text.replaceAll(',', ''));
@@ -10133,25 +10151,36 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     try {
       await widget.onSaved(product, _isEdit);
       if (!mounted) return;
-      setState(() { _isSaving = false; });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Row(children: [
-          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Text(_isEdit ? '${product.name} 수정 완료!' : '${product.name} 등록 완료!'),
-        ]),
-        backgroundColor: const Color(0xFF2E7D32),
-        duration: const Duration(seconds: 2),
-      ));
+      setState(() { _isSaving = false; _autoSaved = isAutoSave; });
+      // 자동저장이면 스낵바 대신 인디케이터만 (스낵바 생략)
+      if (!isAutoSave) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Row(children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Text(_isEdit ? '${product.name} 수정 완료!' : '${product.name} 등록 완료!'),
+          ]),
+          backgroundColor: const Color(0xFF2E7D32),
+          duration: const Duration(seconds: 2),
+        ));
+      }
       // 수정 모드면 폼 유지, 신규 등록이면 닫기
       if (!_isEdit) Navigator.pop(context);
+      // 자동저장 완료 표시 2초 후 초기화
+      if (isAutoSave && mounted) {
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted) setState(() => _autoSaved = false);
+        });
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() { _isSaving = false; });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('저장 실패: $e'),
-        backgroundColor: Colors.red,
-      ));
+      if (!isAutoSave) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('저장 실패: $e'),
+          backgroundColor: Colors.red,
+        ));
+      }
     }
   }
 
@@ -10290,6 +10319,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                 _descCtrl.text = _defaultDescForCat(v);
                               }
                             });
+                            _scheduleAutoSave();
                           },
                         ),
                       ),
@@ -10339,6 +10369,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                   _isGroupOnly = true;
                                 }
                               });
+                              _scheduleAutoSave();
                             }
                           },
                         ),
@@ -10368,7 +10399,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     children: _tightsSubCats.map<Widget>((s) {
                       final sel = _selTightsSub == s;
                       return GestureDetector(
-                        onTap: () => setState(() => _selTightsSub = s),
+                        onTap: () {
+                          setState(() => _selTightsSub = s);
+                          _scheduleAutoSave();
+                        },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                           decoration: BoxDecoration(
@@ -10424,6 +10458,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                     contentPadding: const EdgeInsets.all(14),
                   ),
+                  onChanged: (_) => _scheduleAutoSave(),
                 ),
                 const SizedBox(height: 14),
 
@@ -10665,6 +10700,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     ),
                     prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
                   ),
+                  onChanged: (_) => _scheduleAutoSave(),
                 ),
                 const SizedBox(height: 6),
                 // 카테고리별 기본 소재 안내
@@ -10772,13 +10808,16 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                       final color = Color(hexVal);
                       final isLight = color.computeLuminance() > 0.35;
                       return GestureDetector(
-                        onTap: () => setState(() {
-                          if (isSelected) {
-                            _selectedColors.remove(name);
-                          } else {
-                            _selectedColors.add(name);
-                          }
-                        }),
+                        onTap: () {
+                          setState(() {
+                            if (isSelected) {
+                              _selectedColors.remove(name);
+                            } else {
+                              _selectedColors.add(name);
+                            }
+                          });
+                          _scheduleAutoSave();
+                        },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 120),
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
@@ -10828,8 +10867,8 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                 // ── 토글 칩
                 Wrap(spacing: 8, runSpacing: 6, children: [
                   _newChip(),
-                  _chip('세일', _isSale, (v) => setState(() => _isSale = v)),
-                  _chip('무료배송', _isFreeShip, (v) => setState(() => _isFreeShip = v)),
+                  _chip('세일', _isSale, (v) { setState(() => _isSale = v); _scheduleAutoSave(); }),
+                  _chip('무료배송', _isFreeShip, (v) { setState(() => _isFreeShip = v); _scheduleAutoSave(); }),
                   _chip('단체전용', _isGroupOnly, (v) => setState(() {
                     _isGroupOnly = v;
                     if (v) {
@@ -10848,13 +10887,14 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                       _selTightsSub = '';
                     }
                     // 단체전용 OFF + 기성품 ON → 현재 카테고리 유지
+                    _scheduleAutoSave();
                   }), ac: const Color(0xFF6A1B9A)),
-                  _chip('기성품', _isReadyMade, (v) => setState(() {
+                  _chip('기성품', _isReadyMade, (v) { setState(() {
                     _isReadyMade = v;
                     // 기성품 ON/OFF 시 카테고리 변경 없음 — 현재 카테고리 그대로 유지
                     // (단체전용도 ON 상태면 단체주문 카테고리 유지)
-                  }), ac: Colors.teal),
-                  _chip('활성화(판매중)', _isActive, (v) => setState(() => _isActive = v), ac: Colors.green),
+                  }); _scheduleAutoSave(); }, ac: Colors.teal),
+                  _chip('활성화(판매중)', _isActive, (v) { setState(() => _isActive = v); _scheduleAutoSave(); }, ac: Colors.green),
                 ]),
                 // ── 현재 상품 속성 상태 안내
                 if (_isGroupOnly || _isReadyMade)
@@ -10956,30 +10996,85 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
           Container(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
             decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFFEEEEEE)))),
-            child: Row(children: [
-              Expanded(child: OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text('취소'),
-              )),
-              const SizedBox(width: 10),
-              Expanded(flex: 2, child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1A1A2E),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: _isSaving ? null : _save,
-                child: _isSaving
-                    ? const SizedBox(height: 20, width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : Text(_isEdit ? '수정 저장' : widget.isCopy ? '복사 등록' : '상품 등록',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-              )),
-            ]),
+            child: _isEdit
+                // ── 수정 모드: 자동저장 인디케이터 + 닫기 버튼
+                ? Row(children: [
+                    // 자동저장 상태 표시
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          color: _isSaving
+                              ? const Color(0xFFFFF8E1)
+                              : _autoSaved
+                                  ? const Color(0xFFE8F5E9)
+                                  : const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _isSaving
+                                ? const Color(0xFFFFCC02)
+                                : _autoSaved
+                                    ? const Color(0xFF4CAF50)
+                                    : const Color(0xFFEEEEEE),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (_isSaving) ...[
+                              const SizedBox(height: 16, width: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFF57F17))),
+                              const SizedBox(width: 8),
+                              const Text('저장 중...', style: TextStyle(fontSize: 13, color: Color(0xFFF57F17), fontWeight: FontWeight.w600)),
+                            ] else if (_autoSaved) ...[
+                              const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF4CAF50)),
+                              const SizedBox(width: 6),
+                              const Text('자동 저장됨', style: TextStyle(fontSize: 13, color: Color(0xFF4CAF50), fontWeight: FontWeight.w600)),
+                            ] else ...[
+                              Icon(Icons.sync_rounded, size: 16, color: Colors.grey[400]),
+                              const SizedBox(width: 6),
+                              Text('변경 시 자동 저장', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1A1A2E),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('닫기', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                    )),
+                  ])
+                // ── 신규/복사 등록: 기존 취소 + 등록 버튼
+                : Row(children: [
+                    Expanded(child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('취소'),
+                    )),
+                    const SizedBox(width: 10),
+                    Expanded(flex: 2, child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1A1A2E),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: _isSaving ? null : _save,
+                      child: _isSaving
+                          ? const SizedBox(height: 20, width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : Text(widget.isCopy ? '복사 등록' : '상품 등록',
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                    )),
+                  ]),
           ),
         ]),
       ),
@@ -11013,6 +11108,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         ];
         _sizesCtrl.text = ordered.join(', ');
       });
+      _scheduleAutoSave();
     }
 
     void selectPreset(List<String> preset) {
@@ -11030,6 +11126,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         ];
         _sizesCtrl.text = ordered.join(', ');
       });
+      _scheduleAutoSave();
     }
 
     Widget groupLabel(String label, IconData icon, Color color) => Padding(
@@ -11657,6 +11754,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         isDense: true,
       ),
+      onChanged: (_) => _scheduleAutoSave(),
     );
 
   Widget _chip(String label, bool val, ValueChanged<bool> onChanged, {Color? ac}) =>
