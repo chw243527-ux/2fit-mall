@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -2585,39 +2586,10 @@ class _MobileOrderCard extends StatelessWidget {
                     final company = (order.customOptions?['shippingCompany'] as String? ?? '').trim();
                     showDialog(
                       context: btnCtx,
-                      builder: (dlg) => AlertDialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        title: const Row(children: [
-                          Icon(Icons.local_shipping_rounded, color: Color(0xFF00838F)),
-                          SizedBox(width: 8),
-                          Text('배송조회', style: TextStyle(fontWeight: FontWeight.w800)),
-                        ]),
-                        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          if (company.isNotEmpty) ...[
-                            Text('택배사', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                            const SizedBox(height: 2),
-                            Text(company, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                            const SizedBox(height: 12),
-                          ],
-                          Text('운송장번호', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                          const SizedBox(height: 2),
-                          Row(children: [
-                            Expanded(child: Text(trackingNumber,
-                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF00838F)))),
-                            IconButton(
-                              icon: const Icon(Icons.copy_rounded, size: 18),
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: trackingNumber));
-                                ScaffoldMessenger.of(btnCtx).showSnackBar(
-                                  const SnackBar(content: Text('운송장번호가 복사되었습니다.'), duration: Duration(seconds: 1)),
-                                );
-                              },
-                            ),
-                          ]),
-                        ]),
-                        actions: [
-                          TextButton(onPressed: () => Navigator.pop(dlg), child: const Text('닫기')),
-                        ],
+                      barrierDismissible: true,
+                      builder: (_) => _TrackingDialog(
+                        trackingNumber: trackingNumber,
+                        companyName: company,
                       ),
                     );
                   },
@@ -6156,6 +6128,398 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
         content: Text('✅ $label 요청이 접수됐어요. 담당자가 확인 후 처리해드립니다.'),
         backgroundColor: const Color(0xFF1A1A2E),
         duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// 배송 실시간 추적 다이얼로그
+// ════════════════════════════════════════════════════════════════
+
+/// 택배사 이름 → tracker.delivery carrierId 매핑
+String _carrierIdFromName(String name) {
+  final n = name.trim().toLowerCase();
+  if (n.contains('cj') || n.contains('대한통운')) return 'kr.cjlogistics';
+  if (n.contains('한진')) return 'kr.hanjin';
+  if (n.contains('롯데') || n.contains('lotte')) return 'kr.lotte';
+  if (n.contains('우체국') || n.contains('epost')) return 'kr.epost';
+  if (n.contains('gs') || n.contains('편의점')) return 'kr.gspostbox';
+  if (n.contains('td') || n.contains('logi') || n.contains('로지')) return 'kr.tdlogi';
+  if (n.contains('대신')) return 'kr.daesin';
+  if (n.contains('경동')) return 'kr.kdexp';
+  if (n.contains('일양')) return 'kr.ilyanglogis';
+  if (n.contains('coupang') || n.contains('쿠팡')) return 'kr.coupang';
+  if (n.contains('ssg') || n.contains('신세계')) return 'kr.ssglogistics';
+  if (n.contains('로젠') || n.contains('logen')) return 'kr.logen';
+  return 'kr.cjlogistics'; // 기본값
+}
+
+/// 배송 상태 코드 → 한국어 + 아이콘
+({String label, IconData icon, Color color}) _statusInfo(String code) {
+  switch (code.toUpperCase()) {
+    case 'AT_PICKUP':
+      return (label: '집하 완료', icon: Icons.inventory_2_outlined, color: const Color(0xFF7B1FA2));
+    case 'IN_TRANSIT':
+      return (label: '이동 중', icon: Icons.local_shipping_outlined, color: const Color(0xFF1565C0));
+    case 'OUT_FOR_DELIVERY':
+      return (label: '배달 중', icon: Icons.delivery_dining_outlined, color: const Color(0xFFE65100));
+    case 'DELIVERED':
+      return (label: '배달 완료', icon: Icons.check_circle_outline_rounded, color: const Color(0xFF2E7D32));
+    case 'FAILED_ATTEMPT':
+      return (label: '배달 실패', icon: Icons.error_outline_rounded, color: const Color(0xFFC62828));
+    case 'AVAILABLE_FOR_PICKUP':
+      return (label: '픽업 대기', icon: Icons.store_outlined, color: const Color(0xFF00838F));
+    case 'INFORMATION_RECEIVED':
+      return (label: '운송장 등록', icon: Icons.receipt_long_outlined, color: Colors.grey);
+    default:
+      return (label: code, icon: Icons.radio_button_unchecked, color: Colors.grey);
+  }
+}
+
+class _TrackingDialog extends StatefulWidget {
+  final String trackingNumber;
+  final String companyName;
+  const _TrackingDialog({required this.trackingNumber, required this.companyName});
+
+  @override
+  State<_TrackingDialog> createState() => _TrackingDialogState();
+}
+
+class _TrackingDialogState extends State<_TrackingDialog> {
+  bool _loading = true;
+  String? _error;
+  List<Map<String, dynamic>> _events = [];
+  Map<String, dynamic>? _lastEvent;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    setState(() { _loading = true; _error = null; });
+    try {
+      final carrierId = _carrierIdFromName(widget.companyName);
+      const endpoint = 'https://apis.tracker.delivery/graphql';
+      const query = r'''
+query Track($carrierId: ID!, $trackingNumber: String!) {
+  track(carrierId: $carrierId, trackingNumber: $trackingNumber) {
+    lastEvent {
+      time
+      status { code text }
+      description
+    }
+    events(last: 30) {
+      edges {
+        node {
+          time
+          status { code text }
+          description
+        }
+      }
+    }
+  }
+}
+''';
+      final resp = await http.post(
+        Uri.parse(endpoint),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'query': query,
+          'variables': {'carrierId': carrierId, 'trackingNumber': widget.trackingNumber},
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body) as Map<String, dynamic>;
+        if (data.containsKey('errors')) {
+          setState(() { _error = '배송 정보를 찾을 수 없습니다.'; _loading = false; });
+          return;
+        }
+        final track = data['data']?['track'];
+        if (track == null) {
+          setState(() { _error = '배송 정보를 찾을 수 없습니다.'; _loading = false; });
+          return;
+        }
+        final edges = (track['events']?['edges'] as List? ?? []);
+        final events = edges
+            .map((e) => e['node'] as Map<String, dynamic>)
+            .toList()
+            .reversed
+            .toList();
+        setState(() {
+          _events = List<Map<String, dynamic>>.from(events);
+          _lastEvent = track['lastEvent'] as Map<String, dynamic>?;
+          _loading = false;
+        });
+      } else {
+        setState(() { _error = '서버 오류 (${resp.statusCode})'; _loading = false; });
+      }
+    } catch (e) {
+      setState(() { _error = '네트워크 오류: $e'; _loading = false; });
+    }
+  }
+
+  String _formatTime(String? raw) {
+    if (raw == null || raw.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(raw).toLocal();
+      return '${dt.month}/${dt.day} ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
+    } catch (_) {
+      return raw;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 620),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── 헤더 ──
+            Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFF00838F),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  const Icon(Icons.local_shipping_rounded, color: Colors.white, size: 22),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text('배송조회', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── 택배사 + 운송장 정보 ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      if (widget.companyName.isNotEmpty) ...[
+                        Text('택배사', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                        Text(widget.companyName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 6),
+                      ],
+                      Text('운송장번호', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                      Text(widget.trackingNumber,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF00838F))),
+                    ]),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy_rounded, size: 18, color: Color(0xFF00838F)),
+                    tooltip: '운송장 복사',
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: widget.trackingNumber));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('운송장번호가 복사됐어요.'), duration: Duration(seconds: 1)),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, size: 18, color: Color(0xFF00838F)),
+                    tooltip: '새로고침',
+                    onPressed: _fetch,
+                  ),
+                ],
+              ),
+            ),
+
+            const Divider(height: 20, indent: 16, endIndent: 16),
+
+            // ── 본문 ──
+            Flexible(
+              child: _loading
+                  ? const Center(child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        CircularProgressIndicator(color: Color(0xFF00838F)),
+                        SizedBox(height: 16),
+                        Text('배송 정보를 불러오는 중...', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                      ]),
+                    ))
+                  : _error != null
+                      ? _ErrorFallback(
+                          message: _error!,
+                          trackingNumber: widget.trackingNumber,
+                          onRetry: _fetch,
+                        )
+                      : _events.isEmpty
+                          ? const Center(child: Padding(
+                              padding: EdgeInsets.all(32),
+                              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
+                                SizedBox(height: 12),
+                                Text('아직 배송 정보가 없습니다.\n운송장 등록 직후에는 잠시 후 다시 확인해주세요.',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(fontSize: 13, color: Colors.grey)),
+                              ]),
+                            ))
+                          : _TrackingTimeline(events: _events, formatTime: _formatTime),
+            ),
+
+            // ── 하단 버튼 ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00838F),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('닫기'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TrackingTimeline extends StatelessWidget {
+  final List<Map<String, dynamic>> events;
+  final String Function(String?) formatTime;
+  const _TrackingTimeline({required this.events, required this.formatTime});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      itemCount: events.length,
+      itemBuilder: (ctx, i) {
+        final ev = events[i];
+        final isFirst = i == 0; // 최신 이벤트
+        final statusCode = (ev['status']?['code'] as String? ?? '').toUpperCase();
+        final statusText = ev['status']?['text'] as String? ?? statusCode;
+        final desc = ev['description'] as String? ?? '';
+        final time = formatTime(ev['time'] as String?);
+        final info = _statusInfo(statusCode);
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── 타임라인 라인 + 아이콘 ──
+                SizedBox(
+                  width: 36,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: isFirst ? info.color : info.color.withOpacity(0.12),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: info.color, width: isFirst ? 2.5 : 1.5),
+                        ),
+                        child: Icon(info.icon, size: 14,
+                            color: isFirst ? Colors.white : info.color),
+                      ),
+                      if (i < events.length - 1)
+                        Expanded(child: Container(
+                          width: 2,
+                          color: Colors.grey[200],
+                          margin: const EdgeInsets.symmetric(vertical: 2),
+                        )),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // ── 이벤트 내용 ──
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 12, top: 2),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                statusText,
+                                style: TextStyle(
+                                  fontSize: isFirst ? 14 : 13,
+                                  fontWeight: isFirst ? FontWeight.w800 : FontWeight.w600,
+                                  color: isFirst ? info.color : Colors.black87,
+                                ),
+                              ),
+                            ),
+                            if (time.isNotEmpty)
+                              Text(time, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                          ],
+                        ),
+                        if (desc.isNotEmpty) ...[
+                          const SizedBox(height: 3),
+                          Text(desc, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ErrorFallback extends StatelessWidget {
+  final String message;
+  final String trackingNumber;
+  final VoidCallback onRetry;
+  const _ErrorFallback({required this.message, required this.trackingNumber, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.grey),
+          const SizedBox(height: 12),
+          Text(message, textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 16),
+          Text('운송장번호: $trackingNumber',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF00838F))),
+          const SizedBox(height: 4),
+          const Text('택배사 앱 또는 사이트에서 직접 조회하실 수 있어요.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.refresh_rounded, size: 16),
+            label: const Text('다시 시도'),
+            onPressed: onRetry,
+          ),
+        ],
       ),
     );
   }
