@@ -330,6 +330,10 @@ class OrderModel {
   final DateTime? designRevisionDeadline;
   /// 배송완료 날짜 (자동 구매확정 기준)
   final DateTime? deliveredAt;
+  /// 결제 키 (토스페이먼츠 paymentKey — 영수증 조회용)
+  final String? paymentKey;
+  /// 현금영수증 번호 (전화번호 or 사업자번호)
+  final String? cashReceiptNum;
   /// 추가제작 가능 마감일 (주문완료 후 7일)
   DateTime get additionalOrderDeadline => createdAt.add(const Duration(days: 7));
   /// 추가제작 무료 가능 여부
@@ -358,6 +362,8 @@ class OrderModel {
     this.designRevisionCount = 0,
     this.designRevisionDeadline,
     this.deliveredAt,
+    this.paymentKey,
+    this.cashReceiptNum,
   });
 
   /// 자동 구매확정 여부 (배송완료 후 3일 경과)
@@ -409,6 +415,8 @@ class OrderModel {
     int? designRevisionCount,
     DateTime? designRevisionDeadline,
     DateTime? deliveredAt,
+    String? paymentKey,
+    String? cashReceiptNum,
   }) {
     return OrderModel(
       id: id,
@@ -433,6 +441,8 @@ class OrderModel {
       designRevisionCount: designRevisionCount ?? this.designRevisionCount,
       designRevisionDeadline: designRevisionDeadline ?? this.designRevisionDeadline,
       deliveredAt: deliveredAt ?? this.deliveredAt,
+      paymentKey: paymentKey ?? this.paymentKey,
+      cashReceiptNum: cashReceiptNum ?? this.cashReceiptNum,
     );
   }
 
@@ -459,6 +469,8 @@ class OrderModel {
       'colorEditCount': colorEditCount,
       'designRevisionCount': designRevisionCount,
       'designRevisionDeadline': designRevisionDeadline?.toIso8601String(),
+      if (paymentKey != null) 'paymentKey': paymentKey,
+      if (cashReceiptNum != null) 'cashReceiptNum': cashReceiptNum,
     };
   }
 }
@@ -698,6 +710,7 @@ class UserModel {
   DateTime createdAt;
   List<AddressModel> addresses; // 배송지 목록
   String loginProvider; // email, google, kakao, naver
+  String? cashReceiptNum; // 현금영수증 번호 (전화번호 or 사업자번호)
 
   UserModel({
     required this.id,
@@ -715,6 +728,7 @@ class UserModel {
     required this.createdAt,
     this.addresses = const [],
     this.loginProvider = 'email',
+    this.cashReceiptNum,
   }) : grade = grade ?? memberTier;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -739,6 +753,7 @@ class UserModel {
       addresses: (json['addresses'] as List? ?? []).map((a) =>
         AddressModel.fromJson(Map<String, dynamic>.from(a as Map))).toList(),
       loginProvider: json['loginProvider'] as String? ?? 'email',
+      cashReceiptNum: json['cashReceiptNum'] as String?,
     );
   }
 
@@ -758,6 +773,8 @@ class UserModel {
       'createdAt': createdAt.toIso8601String(),
       'addresses': addresses.map((a) => a.toJson()).toList(),
       'loginProvider': loginProvider,
+      if (cashReceiptNum != null && cashReceiptNum!.isNotEmpty)
+        'cashReceiptNum': cashReceiptNum,
     };
   }
   

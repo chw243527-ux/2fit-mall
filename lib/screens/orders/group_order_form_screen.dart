@@ -784,6 +784,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       groupName: _teamNameCtrl.text.trim(), groupCount: _totalCount,
       memo: _memoCtrl.text.trim(), createdAt: DateTime.now(),
       customOptions: customOptions,
+      cashReceiptNum: user?.cashReceiptNum?.isNotEmpty == true ? user!.cashReceiptNum : null,
     );
 
     final cart = context.read<CartProvider>();

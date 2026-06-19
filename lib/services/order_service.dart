@@ -467,6 +467,9 @@ class OrderService {
       final teamName = opts['teamName'] ?? order.groupName;
       if (teamName != null) map['teamName'] = teamName;
     }
+    // 결제키 / 현금영수증 번호
+    if (order.paymentKey != null) map['paymentKey'] = order.paymentKey;
+    if (order.cashReceiptNum != null) map['cashReceiptNum'] = order.cashReceiptNum;
     return map;
   }
 
@@ -610,6 +613,8 @@ class OrderService {
               ? (data['deliveredAt'] as Timestamp).toDate()
               : DateTime.tryParse(data['deliveredAt'].toString()))
           : null,
+      paymentKey: data['paymentKey'] as String?,
+      cashReceiptNum: data['cashReceiptNum'] as String?,
       items: _parseItems(data),
     );
   }
@@ -710,6 +715,8 @@ class OrderService {
               ? (data['deliveredAt'] as Timestamp).toDate()
               : DateTime.tryParse(data['deliveredAt'].toString()))
           : null,
+      paymentKey: data['paymentKey'] as String?,
+      cashReceiptNum: data['cashReceiptNum'] as String?,
       items: (data['items'] as List? ?? []).map((i) {
         final item = Map<String, dynamic>.from(i as Map);
         return OrderItem(

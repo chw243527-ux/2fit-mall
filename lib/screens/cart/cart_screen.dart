@@ -1158,6 +1158,9 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
       orderType:   'regular',
       createdAt:   DateTime.now(),
       items:       orderItems,
+      paymentKey:  paymentKey,
+      // 현금영수증 번호: 마이페이지에 저장된 번호 자동 적용
+      cashReceiptNum: user?.cashReceiptNum?.isNotEmpty == true ? user!.cashReceiptNum : null,
     );
 
     // Hive에 영구 저장

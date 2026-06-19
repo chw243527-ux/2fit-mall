@@ -186,7 +186,7 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> updateUserProfile({String? name, String? phone}) async {
+  Future<void> updateUserProfile({String? name, String? phone, String? cashReceiptNum}) async {
     if (_user == null) return;
     _user = UserModel(
       id: _user!.id,
@@ -201,6 +201,7 @@ class UserProvider extends ChangeNotifier {
       memberTier: _user!.memberTier,
       createdAt: _user!.createdAt,
       addresses: _user!.addresses,
+      cashReceiptNum: cashReceiptNum ?? _user!.cashReceiptNum,
     );
     notifyListeners();
     // Firestore 동기화
@@ -211,6 +212,7 @@ class UserProvider extends ChangeNotifier {
           .update({
         if (name != null) 'name': name,
         if (phone != null) 'phone': phone,
+        if (cashReceiptNum != null) 'cashReceiptNum': cashReceiptNum,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
