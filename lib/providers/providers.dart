@@ -356,14 +356,15 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  /// Hive에서 사용자 주문 로드 (앱 시작 시)
+  /// Firestore에서 해당 사용자의 주문 로드
+  /// 기존 메모리 데이터에서 이 유저 주문을 최신 Firestore 데이터로 교체
   Future<void> loadUserOrders(String userId) async {
     final saved = await OrderService.getUserOrders(userId);
-    for (final order in saved) {
-      if (!_orders.any((o) => o.id == order.id)) {
-        _orders.add(order);
-      }
-    }
+    // 이 유저의 기존 주문을 모두 제거 후 최신 데이터로 교체 (stale 방지)
+    _orders.removeWhere((o) => o.userId == userId);
+    _orders.addAll(saved);
+    // 최신순 정렬
+    _orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     notifyListeners();
   }
 

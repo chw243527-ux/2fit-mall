@@ -971,7 +971,7 @@ class _PcEmptyState extends StatelessWidget {
 // ═══════════════════════════════════════════════════════
 // PC 주문 내역 탭
 // ═══════════════════════════════════════════════════════
-class _PcOrderHistoryTab extends StatelessWidget {
+class _PcOrderHistoryTab extends StatefulWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
@@ -987,12 +987,35 @@ class _PcOrderHistoryTab extends StatelessWidget {
   });
 
   @override
+  State<_PcOrderHistoryTab> createState() => _PcOrderHistoryTabState();
+}
+
+class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
+  bool _initialLoadDone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final user = widget.userProvider.user;
+      if (user != null) {
+        context.read<OrderProvider>().loadUserOrders(user.id).then((_) {
+          if (mounted) setState(() => _initialLoadDone = true);
+        });
+      } else {
+        setState(() => _initialLoadDone = true);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = userProvider.user;
+    final user = widget.userProvider.user;
     if (user == null) {
       return Column(children: [
-        _PcTabHeader(icon: Icons.receipt_long_rounded, title: loc.myOrders, color: const Color(0xFF1565C0)),
-        Expanded(child: _PcEmptyState(icon: Icons.login_rounded, message: loc.mypageLoginPrompt)),
+        _PcTabHeader(icon: Icons.receipt_long_rounded, title: widget.loc.myOrders, color: const Color(0xFF1565C0)),
+        Expanded(child: _PcEmptyState(icon: Icons.login_rounded, message: widget.loc.mypageLoginPrompt)),
       ]);
     }
 
@@ -1002,24 +1025,26 @@ class _PcOrderHistoryTab extends StatelessWidget {
     return Column(
       children: [
         _PcTabHeader(
-          icon: Icons.receipt_long_rounded, title: loc.myOrders,
+          icon: Icons.receipt_long_rounded, title: widget.loc.myOrders,
           color: const Color(0xFF1565C0), badge: '${orders.length}',
           onRefresh: () => orderProvider.loadUserOrders(user.id),
         ),
         Expanded(
-          child: orders.isEmpty
-            ? _PcEmptyState(icon: Icons.receipt_long_outlined, message: loc.mypageNoOrders, subtitle: loc.mypageFirstOrder)
-            : ListView.builder(
-                padding: const EdgeInsets.all(20),
-                itemCount: orders.length,
-                itemBuilder: (_, i) => _PcOrderCard(
-                  order: orders[i], loc: loc,
-                  onAdditionalOrder: onAdditionalOrder,
-                  onColorEdit: onColorEdit,
-                  onExcelDownload: onExcelDownload,
-                  onDesignRevision: onDesignRevision,
+          child: !_initialLoadDone && orders.isEmpty
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFF1565C0)))
+            : orders.isEmpty
+              ? _PcEmptyState(icon: Icons.receipt_long_outlined, message: widget.loc.mypageNoOrders, subtitle: widget.loc.mypageFirstOrder)
+              : ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: orders.length,
+                  itemBuilder: (_, i) => _PcOrderCard(
+                    order: orders[i], loc: widget.loc,
+                    onAdditionalOrder: widget.onAdditionalOrder,
+                    onColorEdit: widget.onColorEdit,
+                    onExcelDownload: widget.onExcelDownload,
+                    onDesignRevision: widget.onDesignRevision,
+                  ),
                 ),
-              ),
         ),
       ],
     );
@@ -2146,7 +2171,7 @@ class _VertDiv extends StatelessWidget {
 // ═══════════════════════════════════════════════════════
 // 모바일 주문 내역 탭
 // ═══════════════════════════════════════════════════════
-class _MobileOrderHistoryTab extends StatelessWidget {
+class _MobileOrderHistoryTab extends StatefulWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
@@ -2162,15 +2187,43 @@ class _MobileOrderHistoryTab extends StatelessWidget {
   });
 
   @override
+  State<_MobileOrderHistoryTab> createState() => _MobileOrderHistoryTabState();
+}
+
+class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
+  bool _initialLoadDone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final user = widget.userProvider.user;
+      if (user != null) {
+        context.read<OrderProvider>().loadUserOrders(user.id).then((_) {
+          if (mounted) setState(() => _initialLoadDone = true);
+        });
+      } else {
+        setState(() => _initialLoadDone = true);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = userProvider.user;
-    if (user == null) return _MobileEmptyState(icon: Icons.login_rounded, message: loc.mypageLoginPrompt);
+    final user = widget.userProvider.user;
+    if (user == null) return _MobileEmptyState(icon: Icons.login_rounded, message: widget.loc.mypageLoginPrompt);
 
     final orderProvider = context.watch<OrderProvider>();
     final orders = orderProvider.getUserOrders(user.id);
 
+    // 초기 로드 전이고 주문도 없으면 로딩 표시
+    if (!_initialLoadDone && orders.isEmpty) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF1565C0)));
+    }
+
     if (orders.isEmpty) {
-      return _MobileEmptyState(icon: Icons.receipt_long_outlined, message: loc.mypageNoOrders, subtitle: loc.mypageFirstOrder);
+      return _MobileEmptyState(icon: Icons.receipt_long_outlined, message: widget.loc.mypageNoOrders, subtitle: widget.loc.mypageFirstOrder);
     }
 
     return RefreshIndicator(
@@ -2179,10 +2232,10 @@ class _MobileOrderHistoryTab extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         itemCount: orders.length,
         itemBuilder: (_, i) => _MobileOrderCard(
-          order: orders[i], loc: loc,
-          onAdditionalOrder: onAdditionalOrder, onColorEdit: onColorEdit,
-          onExcelDownload: onExcelDownload,
-          onDesignRevision: onDesignRevision,
+          order: orders[i], loc: widget.loc,
+          onAdditionalOrder: widget.onAdditionalOrder, onColorEdit: widget.onColorEdit,
+          onExcelDownload: widget.onExcelDownload,
+          onDesignRevision: widget.onDesignRevision,
         ),
       ),
     );
@@ -4473,7 +4526,33 @@ class _AddressFormSheetState extends State<_AddressFormSheet> {
 }
 
 // ── 사용자 주문 상세 다이얼로그 ──────────────────────────────────────
-void _showUserOrderDetail(BuildContext context, OrderModel order) {
+/// Firestore에서 최신 주문 데이터를 가져온 후 상세 모달 표시
+/// order.items가 비어있을 때도 Firestore에서 실시간 보완
+Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async {
+  // items가 이미 있으면 바로 표시 (빠른 경로)
+  if (order.items.isNotEmpty) {
+    _showUserOrderDetailModal(context, order);
+    return;
+  }
+
+  // items가 비어있으면 Firestore에서 최신 데이터 재조회
+  OrderModel freshOrder = order;
+  try {
+    final doc = await FirebaseFirestore.instance
+        .collection('orders')
+        .doc(order.id)
+        .get();
+    if (doc.exists && doc.data() != null) {
+      freshOrder = OrderService.parseOrderFromFirestore(doc.data()!, docId: doc.id);
+    }
+  } catch (e) {
+    if (kDebugMode) debugPrint('⚠️ 주문 상세 Firestore 재조회 실패: $e');
+  }
+  if (!context.mounted) return;
+  _showUserOrderDetailModal(context, freshOrder);
+}
+
+void _showUserOrderDetailModal(BuildContext context, OrderModel order) {
   // ── 헬퍼
   String _fmtAmt(double v) =>
       '${v.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원';

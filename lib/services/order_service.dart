@@ -482,6 +482,11 @@ class OrderService {
     }).toList();
   }
 
+  /// public wrapper — mypage_screen 등 외부에서 Firestore doc 파싱에 직접 사용
+  static OrderModel parseOrderFromFirestore(Map<String, dynamic> data, {String? docId}) {
+    return _orderFromFirestore(data, docId: docId);
+  }
+
   static OrderModel _orderFromFirestore(Map<String, dynamic> data, {String? docId}) {
     // 문서 ID: 파라미터 우선, 없으면 data['id'] 사용
     final resolvedDocId = (docId?.isNotEmpty == true) ? docId! : (data['id'] as String? ?? '');
