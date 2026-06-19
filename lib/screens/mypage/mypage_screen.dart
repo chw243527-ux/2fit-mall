@@ -1374,11 +1374,15 @@ class _OrderCard extends StatelessWidget {
     final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
     final canColor = isGroup && isActive && order.canEditColor;
     final item = order.items.isNotEmpty ? order.items.first : null;
+    // NaN/Infinity/음수 방어
+    final safeTotal = order.totalAmount.isFinite && order.totalAmount > 0 ? order.totalAmount : 0.0;
 
-    return Container(
+    return Material(
+      color: Colors.white,
+      child: Container(
       margin: const EdgeInsets.only(bottom: 8),
       color: Colors.white,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
         // 날짜 + 주문상세 링크
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
@@ -1441,10 +1445,10 @@ class _OrderCard extends StatelessWidget {
                     ),
                   ),
                 Text(
-                  item.price > 0
+                  item.price.isFinite && item.price > 0
                       ? '${_fmtAmt(item.price * item.quantity)} · ${item.quantity}개'
-                      : order.totalAmount > 0
-                          ? '${_fmtAmt(order.totalAmount)}'
+                      : safeTotal > 0
+                          ? _fmtAmt(safeTotal)
                           : '금액 확인 중',
                   style: const TextStyle(fontSize: 12, color: Color(0xFF555555)),
                 ),
@@ -1480,7 +1484,7 @@ class _OrderCard extends StatelessWidget {
                     Text('총 ${order.groupCount}벌',
                         style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
                   const SizedBox(height: 4),
-                  Text(_fmtAmt(order.totalAmount),
+                  Text(_fmtAmt(safeTotal > 0 ? safeTotal : order.totalAmount),
                       style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
                 ])),
               ]),
@@ -1507,7 +1511,7 @@ class _OrderCard extends StatelessWidget {
           ]),
         ),
       ]),
-    );
+    ));
   }
 
   Widget _actionBtn(BuildContext context, String label, {required VoidCallback onTap, bool isPrimary = false}) =>
