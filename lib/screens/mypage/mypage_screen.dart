@@ -2269,12 +2269,20 @@ class _MobileOrderCard extends StatelessWidget {
     final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
     final canDesignRevision = isGroup && isActive && order.canDesignRevision;
 
+    // 운송장 등록 여부
+    final trackingNumber = (order.customOptions?['trackingNumber'] as String? ?? '').trim();
+    final hasTracking = trackingNumber.isNotEmpty;
+
     // 취소/교환/반품 조건
     final canCancelReadyMade = !isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
     final canCancelGroup = isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
-    final canCancel = canCancelReadyMade || canCancelGroup;
+    final canCancel = (canCancelReadyMade || canCancelGroup) && !hasTracking;
     final cancelBlockedByDesign = isGroup && order.status == OrderStatus.processing;
-    final canExchangeReturn = !isGroup && order.status == OrderStatus.delivered;
+    // 교환/반품: 운송장 등록 후 (배송중 or 배송완료)
+    final canExchangeReturn = hasTracking &&
+        (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered);
+    // 배송조회: 운송장 등록된 경우
+    final canTrack = hasTracking;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -2461,60 +2469,112 @@ class _MobileOrderCard extends StatelessWidget {
               final row1 = <Widget>[];
               final row2 = <Widget>[];
 
-              // 행1: 영수증 (항상)
+              // ── 행1: 채팅문의 (항상 표시) ──
               row1.add(_ActionBtn(
-                icon: Icons.receipt_outlined,
-                label: '영수증',
-                onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
-                  SnackBar(content: Text('영수증 발급은 고객센터로 문의해 주세요.\n주문번호: ${order.id}'),
-                    action: SnackBarAction(label: '닫기', onPressed: () {})),
-                ),
+                icon: Icons.chat_bubble_outline_rounded,
+                label: '채팅문의',
+                color: const Color(0xFFFF8F00),
+                onTap: () => showContactSheet('채팅 문의'),
               ));
 
-              // 행1: 배송조회 (shipped/delivered)
-              if (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered)
+              // ── 운송장 등록 전: 배송조회(회색) + 주문취소 or 취소불가 ──
+              if (!hasTracking) ...[
+                // 배송조회 (비활성 - 운송장 미등록)
+                row1.add(_ActionBtn(
+                  icon: Icons.local_shipping_outlined,
+                  label: '배송조회',
+                  color: Colors.grey[400]!,
+                  onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
+                    const SnackBar(content: Text('배송 준비 중입니다. 운송장 등록 후 조회 가능합니다.')),
+                  ),
+                )),
+                // 주문취소
+                if (canCancel)
+                  row1.add(_ActionBtn(
+                    icon: Icons.cancel_outlined,
+                    label: isGroup ? '취소(제작전)' : '주문취소',
+                    color: Colors.red,
+                    onTap: doCancel,
+                  )),
+                // 취소불가 (디자인 진행중)
+                if (cancelBlockedByDesign)
+                  row1.add(_ActionBtn(
+                    icon: Icons.lock_outline_rounded,
+                    label: '취소불가',
+                    color: Colors.red.shade300,
+                    onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
+                      const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다.\n고객센터로 문의해 주세요.')),
+                    ),
+                  )),
+              ],
+
+              // ── 운송장 등록 후: 배송조회(활성) + 교환신청 + 반품신청 ──
+              if (hasTracking) ...[
+                // 배송조회 (활성)
                 row1.add(_ActionBtn(
                   icon: Icons.local_shipping_outlined,
                   label: '배송조회',
                   color: const Color(0xFF00838F),
-                  onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
-                    const SnackBar(content: Text('배송조회: 카카오톡 @2fitkorea 또는\n전화 010-7227-6914')),
-                  ),
-                ));
-
-              // 행1: 교환신청 / 반품신청 (delivered)
-              if (canExchangeReturn) {
-                row1.add(_ActionBtn(
-                  icon: Icons.swap_horiz_rounded,
-                  label: '교환신청',
-                  color: const Color(0xFF1565C0),
-                  onTap: () => showContactSheet('교환 신청'),
-                ));
-                row1.add(_ActionBtn(
-                  icon: Icons.assignment_return_outlined,
-                  label: '반품신청',
-                  color: Colors.orange,
-                  onTap: () => showContactSheet('반품 신청'),
-                ));
-              }
-
-              // 행1: 주문취소
-              if (canCancel) row1.add(_ActionBtn(
-                icon: Icons.cancel_outlined,
-                label: isGroup ? '취소(제작전)' : '주문취소',
-                color: Colors.red,
-                onTap: doCancel,
-              ));
-
-              // 행1: 취소불가 안내
-              if (cancelBlockedByDesign) row1.add(_ActionBtn(
-                icon: Icons.lock_outline_rounded,
-                label: '취소불가',
-                color: Colors.red.shade300,
-                onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
-                  const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다. 고객센터로 문의해 주세요.')),
-                ),
-              ));
+                  onTap: () {
+                    final company = (order.customOptions?['shippingCompany'] as String? ?? '').trim();
+                    final msg = trackingNumber.isNotEmpty
+                        ? '운송장번호: $trackingNumber${company.isNotEmpty ? '\n택배사: $company' : ''}'
+                        : '배송조회: 카카오톡 @2fitkorea 또는\n전화 010-7227-6914';
+                    showDialog(
+                      context: btnCtx,
+                      builder: (_) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        title: const Row(children: [
+                          Icon(Icons.local_shipping_rounded, color: Color(0xFF00838F)),
+                          SizedBox(width: 8),
+                          Text('배송조회', style: TextStyle(fontWeight: FontWeight.w800)),
+                        ]),
+                        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          if (company.isNotEmpty) ...[
+                            Text('택배사', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                            const SizedBox(height: 2),
+                            Text(company, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 12),
+                          ],
+                          Text('운송장번호', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                          const SizedBox(height: 2),
+                          Row(children: [
+                            Expanded(child: Text(trackingNumber,
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF00838F)))),
+                            IconButton(
+                              icon: const Icon(Icons.copy_rounded, size: 18),
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: trackingNumber));
+                                ScaffoldMessenger.of(btnCtx).showSnackBar(
+                                  const SnackBar(content: Text('운송장번호가 복사되었습니다.'), duration: Duration(seconds: 1)),
+                                );
+                              },
+                            ),
+                          ]),
+                        ]),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(_), child: const Text('닫기')),
+                        ],
+                      ),
+                    );
+                  },
+                )),
+                // 교환신청 + 반품신청 (운송장 등록 후)
+                if (canExchangeReturn) ...[
+                  row1.add(_ActionBtn(
+                    icon: Icons.swap_horiz_rounded,
+                    label: '교환신청',
+                    color: const Color(0xFF1565C0),
+                    onTap: () => showContactSheet('교환 신청'),
+                  )),
+                  row1.add(_ActionBtn(
+                    icon: Icons.assignment_return_outlined,
+                    label: '반품신청',
+                    color: Colors.orange,
+                    onTap: () => showContactSheet('반품 신청'),
+                  )),
+                ],
+              ],
 
               // 행2: 단체주문 전용
               if (canDesignRevision) row2.add(_ActionBtn(
