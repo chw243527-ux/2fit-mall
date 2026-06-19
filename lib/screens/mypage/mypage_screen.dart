@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +25,6 @@ import '../../services/order_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/fcm_service.dart';
 import '../../widgets/address_search_widget.dart';
-import 'size_profile_screen.dart';
 import '../../utils/navigation_helper.dart';
 
 // ══════════════════════════════════════════════════════════════
@@ -214,7 +212,7 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
               Text('엑셀 생성 중...'),
             ])))));
     try {
-      final bytes = await OrderExcelService.generateOrderExcel(order);
+      final bytes = await OrderExcelService.generateSelectedOrdersExcel([order], DateTime.now());
       if (!ctx.mounted) return;
       Navigator.pop(ctx);
       if (kIsWeb) {
@@ -892,7 +890,7 @@ class _WishlistContentState extends State<_WishlistContent> {
       itemBuilder: (ctx, i) {
         final p = _products![i];
         return GestureDetector(
-          onTap: () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => ProductDetailScreen(productId: p.id))),
+          onTap: () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => ProductDetailScreen(product: p))),
           child: Container(
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.grey[200] ?? const Color(0xFFEEEEEE))),
