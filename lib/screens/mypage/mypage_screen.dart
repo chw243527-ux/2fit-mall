@@ -534,7 +534,7 @@ class _PcMyPage extends StatelessWidget {
     ];
 
     return Container(
-      color: const Color(0xFFF2F4F8),
+      color: const Color(0xFFF3F0F7),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
@@ -577,14 +577,14 @@ class _PcMyPage extends StatelessWidget {
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                                     decoration: BoxDecoration(
-                                      color: sel ? const Color(0xFF1565C0).withValues(alpha:0.08) : Colors.transparent,
+                                      color: sel ? const Color(0xFF6A1B9A).withValues(alpha:0.08) : Colors.transparent,
                                       borderRadius: BorderRadius.vertical(
                                         top: i == 0 ? const Radius.circular(16) : Radius.zero,
                                         bottom: isLast ? const Radius.circular(16) : Radius.zero,
                                       ),
                                       border: Border(
                                         left: BorderSide(
-                                          color: sel ? const Color(0xFF1565C0) : Colors.transparent,
+                                          color: sel ? const Color(0xFF6A1B9A) : Colors.transparent,
                                           width: 3,
                                         ),
                                       ),
@@ -593,18 +593,18 @@ class _PcMyPage extends StatelessWidget {
                                       children: [
                                         Icon(menuItems[i].$1,
                                           size: 20,
-                                          color: sel ? const Color(0xFF1565C0) : Colors.grey[600]),
+                                          color: sel ? const Color(0xFF6A1B9A) : Colors.grey[600]),
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Text(menuItems[i].$2,
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
-                                              color: sel ? const Color(0xFF1565C0) : Colors.grey[800],
+                                              color: sel ? const Color(0xFF6A1B9A) : Colors.grey[800],
                                             ),
                                           ),
                                         ),
-                                        if (sel) const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF1565C0)),
+                                        if (sel) const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF6A1B9A)),
                                       ],
                                     ),
                                   ),
@@ -730,11 +730,11 @@ class _PcProfileCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF1A237E), Color(0xFF283593)],
+            colors: [Color(0xFF1A1A2E), Color(0xFF2D2B55)],
             begin: Alignment.topLeft, end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: const Color(0xFF1A237E).withValues(alpha:0.3), blurRadius: 12, offset: const Offset(0, 6))],
+          boxShadow: [BoxShadow(color: const Color(0xFF1A1A2E).withValues(alpha:0.3), blurRadius: 12, offset: const Offset(0, 6))],
         ),
         child: Column(
           children: [
@@ -757,11 +757,11 @@ class _PcProfileCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1A237E), Color(0xFF283593)],
+          colors: [Color(0xFF1A1A2E), Color(0xFF2D2B55)],
           begin: Alignment.topLeft, end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: const Color(0xFF1A237E).withValues(alpha:0.3), blurRadius: 12, offset: const Offset(0, 6))],
+        boxShadow: [BoxShadow(color: const Color(0xFF1A1A2E).withValues(alpha:0.3), blurRadius: 12, offset: const Offset(0, 6))],
       ),
       child: Column(
         children: [
@@ -884,7 +884,7 @@ class _StatItem extends StatelessWidget {
         onTap: onTap,
         child: Column(
           children: [
-            Text('$count', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+            Text('$count', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
             const SizedBox(height: 2),
             Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
           ],
@@ -1019,7 +1019,7 @@ class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
     final user = widget.userProvider.user;
     if (user == null) {
       return Column(children: [
-        _PcTabHeader(icon: Icons.receipt_long_rounded, title: widget.loc.myOrders, color: const Color(0xFF1565C0)),
+        _PcTabHeader(icon: Icons.receipt_long_rounded, title: widget.loc.myOrders, color: const Color(0xFF6A1B9A)),
         Expanded(child: _PcEmptyState(icon: Icons.login_rounded, message: widget.loc.mypageLoginPrompt)),
       ]);
     }
@@ -1031,12 +1031,12 @@ class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
       children: [
         _PcTabHeader(
           icon: Icons.receipt_long_rounded, title: widget.loc.myOrders,
-          color: const Color(0xFF1565C0), badge: '${orders.length}',
+          color: const Color(0xFF6A1B9A), badge: '${orders.length}',
           onRefresh: () => orderProvider.loadUserOrders(user.id),
         ),
         Expanded(
           child: !_initialLoadDone && orders.isEmpty
-            ? const Center(child: CircularProgressIndicator(color: Color(0xFF1565C0)))
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFF6A1B9A)))
             : orders.isEmpty
               ? _PcEmptyState(icon: Icons.receipt_long_outlined, message: widget.loc.mypageNoOrders, subtitle: widget.loc.mypageFirstOrder)
               : ListView.builder(
@@ -1105,7 +1105,7 @@ class _PcOrderCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
               child: Row(
                 children: [
-                  Text(order.id, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                  Text(order.id, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))),
                   const SizedBox(width: 8),
                   if (isGroup)
                     Container(
@@ -1193,7 +1193,7 @@ class _PcOrderCard extends StatelessWidget {
                     style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                   const Spacer(),
                   Text('${loc.mypageOrderTotal}: ', style: TextStyle(fontSize: 13, color: Colors.grey[700])),
-                  Text(_fmtPrice(order.totalAmount), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                  Text(_fmtPrice(order.totalAmount), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
                 ],
               ),
             ),
@@ -1286,7 +1286,7 @@ class _PcOrderCard extends StatelessWidget {
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: const Color(0xFFF3F0F7), borderRadius: BorderRadius.circular(12)),
                           child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                             Icon(Icons.phone_outlined, size: 20, color: Color(0xFF333333)),
                             SizedBox(width: 8),
@@ -1318,7 +1318,7 @@ class _PcOrderCard extends StatelessWidget {
                 onTap: null,
               ));
               if (canExchangeReturn) {
-                btns.add(_ActionBtn(icon: Icons.swap_horiz_rounded, label: '교환신청', color: const Color(0xFF1565C0), onTap: () => _showExchangeRequestDialog(btnCtx, order)));
+                btns.add(_ActionBtn(icon: Icons.swap_horiz_rounded, label: '교환신청', color: const Color(0xFF6A1B9A), onTap: () => _showExchangeRequestDialog(btnCtx, order)));
                 btns.add(_ActionBtn(icon: Icons.assignment_return_outlined, label: '반품신청', color: Colors.orange, onTap: () => _showReturnRequestDialog(btnCtx, order)));
               }
               if (canWriteReview) btns.add(_ActionBtn(
@@ -1343,7 +1343,7 @@ class _PcOrderCard extends StatelessWidget {
                 onTap: null,
               ));
               if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), badge: '무료', onTap: () => onAdditionalOrder(order)));
-              if (canColorEdit) btns.add(_ActionBtn(icon: Icons.palette_outlined, label: '색상변경', color: const Color(0xFF1565C0), badge: '${order.remainingColorEdits}', onTap: () => onColorEdit(order)));
+              if (canColorEdit) btns.add(_ActionBtn(icon: Icons.palette_outlined, label: '색상변경', color: const Color(0xFF6A1B9A), badge: '${order.remainingColorEdits}', onTap: () => onColorEdit(order)));
               if (isGroup) btns.add(Builder(builder: (ctx2) => _ActionBtn(icon: Icons.file_download_outlined, label: '엑셀', color: const Color(0xFF00695C), onTap: () => onExcelDownload?.call(ctx2, order))));
 
               return Row(
@@ -1592,7 +1592,7 @@ class _PcWishlistTab extends StatelessWidget {
                                 children: [
                                   Text(p.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
                                   const Spacer(),
-                                  Text(_fmtPrice(p.price.toDouble()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                                  Text(_fmtPrice(p.price.toDouble()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
                                 ],
                               ),
                             ),
@@ -1849,9 +1849,9 @@ class _PcSettingsTab extends StatelessWidget {
                   title: loc.mypageNotificationSection,
                   items: [
                     _PcSettingItem(icon: Icons.notifications_rounded, title: loc.mypageNotifOrder,
-                      trailing: Switch(value: true, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0)))),  // Color + WidgetStatePropertyAll + Switch trailing + _PcSettingItem
+                      trailing: Switch(value: true, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF6A1B9A)))),  // Color + WidgetStatePropertyAll + Switch trailing + _PcSettingItem
                     _PcSettingItem(icon: Icons.campaign_rounded, title: loc.mypageNotifMarketing,
-                      trailing: Switch(value: false, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0)))),  // Color + WidgetStatePropertyAll + Switch trailing + _PcSettingItem
+                      trailing: Switch(value: false, onChanged: (_) {}, thumbColor: const WidgetStatePropertyAll(Color(0xFF6A1B9A)))),  // Color + WidgetStatePropertyAll + Switch trailing + _PcSettingItem
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -2061,7 +2061,7 @@ void _showCashReceiptDialog(BuildContext context, UserProvider userProvider) {  
     builder: (ctx) => StatefulBuilder(builder: (ctx, setSt) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: const Row(children: [
-        Icon(Icons.receipt_long_rounded, color: Color(0xFF1565C0), size: 20),
+        Icon(Icons.receipt_long_rounded, color: Color(0xFF6A1B9A), size: 20),
         SizedBox(width: 8),
         Text('현금영수증 번호', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
       ]),
@@ -2103,11 +2103,11 @@ void _showCashReceiptDialog(BuildContext context, UserProvider userProvider) {  
             if (ctx.mounted) {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('현금영수증 번호가 저장되었습니다'), backgroundColor: Color(0xFF1565C0)),
+                const SnackBar(content: Text('현금영수증 번호가 저장되었습니다'), backgroundColor: Color(0xFF6A1B9A)),
               );
             }
           },
-          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1565C0), foregroundColor: Colors.white),
+          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6A1B9A), foregroundColor: Colors.white),
           child: saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('저장'),
         ),
       ],
@@ -2228,17 +2228,17 @@ class _MobileMyPage extends StatelessWidget {
     final user = userProvider.user;
 
     return wrapWithPopScope(context, Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF3F0F7),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF1A1A2E),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1A1A1A)),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
           onPressed: onBack ?? () => goBackOrHome(context),
           tooltip: '이전으로',
         ),
         automaticallyImplyLeading: false,
-        title: const Text('마이페이지', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+        title: const Text('마이페이지', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white)),
       ),
       body: SafeArea(
         child: Column(
@@ -2250,14 +2250,14 @@ class _MobileMyPage extends StatelessWidget {
             _MobileQuickStats(user: user, loc: loc, tabController: tabController),
             // 탭바
             Container(
-              color: Colors.white,
+              color: const Color(0xFF1A1A2E),
               child: TabBar(
                 controller: tabController,
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,
-                indicatorColor: const Color(0xFF1565C0),
-                labelColor: const Color(0xFF1565C0),
-                unselectedLabelColor: Colors.grey,
+                indicatorColor: const Color(0xFFCE93D8),
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white60,
                 labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                 unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
                 tabs: [
@@ -2317,7 +2317,7 @@ class _MobileProfileHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(colors: [Color(0xFF1A237E), Color(0xFF283593)],
+        gradient: LinearGradient(colors: [Color(0xFF1A1A2E), Color(0xFF2D2B55)],
           begin: Alignment.topLeft, end: Alignment.bottomRight),
       ),
       child: Column(
@@ -2437,7 +2437,7 @@ class _MobileQuickStats extends StatelessWidget {
     final couponCount = user?.coupons.where((c) => c.isValid).length ?? 0;
 
     return Container(
-      color: Colors.white,
+      color: const Color(0xFF1A1A2E),
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
@@ -2467,9 +2467,9 @@ class _MobileStatItem extends StatelessWidget {
         onTap: onTap,
         child: Column(
           children: [
-            Text('$count', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+            Text('$count', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            Text(label, style: const TextStyle(fontSize: 10, color: Colors.white60)),
           ],
         ),
       ),
@@ -2480,7 +2480,7 @@ class _MobileStatItem extends StatelessWidget {
 class _VertDiv extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
-    Container(width: 1, height: 24, color: Colors.grey[200]);
+    Container(width: 1, height: 24, color: Colors.white24);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2534,7 +2534,7 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
 
     // 초기 로드 전이고 주문도 없으면 로딩 표시
     if (!_initialLoadDone && orders.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFF1565C0)));
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF6A1B9A)));
     }
 
     if (orders.isEmpty) {
@@ -2624,7 +2624,7 @@ class _MobileOrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(order.id,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1565C0)),
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A)),
                           overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 2),
                         Text(_fmtDate(order.createdAt),
@@ -2694,7 +2694,7 @@ class _MobileOrderCard extends StatelessWidget {
                           ),
                         if (order.items.length > 1)
                           Text('외 ${order.items.length - 1}개 상품 더보기',
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF1565C0))),
+                            style: const TextStyle(fontSize: 11, color: Color(0xFF6A1B9A))),
                       ],
                     ),
                   ),
@@ -2711,7 +2711,7 @@ class _MobileOrderCard extends StatelessWidget {
                 children: [
                   Text('결제금액 ', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                   Text(_fmtPrice(order.totalAmount),
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF1565C0))),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF6A1B9A))),
                   const Spacer(),
                   Text('${order.paymentMethod}', style: TextStyle(fontSize: 11, color: Colors.grey[500])),
                 ],
@@ -2807,7 +2807,7 @@ class _MobileOrderCard extends StatelessWidget {
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
+                          decoration: BoxDecoration(color: const Color(0xFFF3F0F7), borderRadius: BorderRadius.circular(12)),
                           child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                             Icon(Icons.phone_outlined, size: 20, color: Color(0xFF333333)),
                             SizedBox(width: 8),
@@ -2907,7 +2907,7 @@ class _MobileOrderCard extends StatelessWidget {
                   row1.add(_ActionBtn(
                     icon: Icons.swap_horiz_rounded,
                     label: '교환신청',
-                    color: const Color(0xFF1565C0),
+                    color: const Color(0xFF6A1B9A),
                     onTap: () => _showExchangeRequestDialog(btnCtx, order),
                   ));
                   row1.add(_ActionBtn(
@@ -2954,7 +2954,7 @@ class _MobileOrderCard extends StatelessWidget {
               if (canColorEdit) row2.add(_ActionBtn(
                 icon: Icons.palette_outlined,
                 label: '색상변경',
-                color: const Color(0xFF1565C0),
+                color: const Color(0xFF6A1B9A),
                 badge: '${order.remainingColorEdits}',
                 onTap: () => onColorEdit(order),
               ));
@@ -3264,7 +3264,7 @@ class _MobileWishlistTab extends StatelessWidget {
                       children: [
                         Text(p.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
                         const Spacer(),
-                        Text(_fmtPrice(p.price.toDouble()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
+                        Text(_fmtPrice(p.price.toDouble()), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
                       ],
                     ),
                   ),
@@ -3661,7 +3661,7 @@ class _MobileSwitchItem extends StatelessWidget {
         child: Icon(icon, size: 16, color: Colors.blueGrey),
       ),
       title: Text(title, style: const TextStyle(fontSize: 14, color: Colors.black87)),
-      trailing: Switch(value: value, onChanged: onChanged, thumbColor: const WidgetStatePropertyAll(Color(0xFF1565C0)), materialTapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      trailing: Switch(value: value, onChanged: onChanged, thumbColor: const WidgetStatePropertyAll(Color(0xFF6A1B9A)), materialTapTargetSize: MaterialTapTargetSize.shrinkWrap),
     );
   }
 }
@@ -3756,7 +3756,7 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                   await userProvider.updateUserProfile(name: _nameCtrl.text, phone: _phoneCtrl.text);
                   if (context.mounted) Navigator.pop(context);
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1565C0), padding: const EdgeInsets.symmetric(vertical: 14)),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6A1B9A), padding: const EdgeInsets.symmetric(vertical: 14)),
                 child: Text(loc.save, style: const TextStyle(color: Colors.white)),
               ),
             ),
@@ -4134,7 +4134,7 @@ class _ColorEditSheetState extends State<_ColorEditSheet> {
   @override
   Widget build(BuildContext context) {
     final remaining = widget.order.remainingColorEdits;
-    const blueColor = Color(0xFF1565C0);
+    const blueColor = Color(0xFF6A1B9A);
 
     return Container(
       decoration: const BoxDecoration(
@@ -4530,12 +4530,12 @@ class _ColorEditSheetState extends State<_ColorEditSheet> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isSelected
-                          ? const Color(0xFF1565C0)
+                          ? const Color(0xFF6A1B9A)
                           : (isLight ? const Color(0xFFCCCCCC) : Colors.transparent),
                       width: isSelected ? 2.5 : 1.0,
                     ),
                     boxShadow: isSelected
-                        ? [BoxShadow(color: const Color(0xFF1565C0).withValues(alpha: 0.4), blurRadius: 4)]
+                        ? [BoxShadow(color: const Color(0xFF6A1B9A).withValues(alpha: 0.4), blurRadius: 4)]
                         : null,
                   ),
                   child: Column(
@@ -4544,7 +4544,7 @@ class _ColorEditSheetState extends State<_ColorEditSheet> {
                       if (isSelected)
                         Icon(Icons.check_circle_rounded,
                             size: 14,
-                            color: isLight ? const Color(0xFF1565C0) : Colors.white),
+                            color: isLight ? const Color(0xFF6A1B9A) : Colors.white),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 3),
@@ -4601,7 +4601,7 @@ class _ColorEditSheetState extends State<_ColorEditSheet> {
           ]),
           const SizedBox(height: 10),
           // 성인
-          _sizeLabel(_loc.adultSizeLabel, const Color(0xFF1565C0)),
+          _sizeLabel(_loc.adultSizeLabel, const Color(0xFF6A1B9A)),
           const SizedBox(height: 6),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -5085,7 +5085,7 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
   Color statusColor(OrderStatus s) {
     switch (s) {
       case OrderStatus.pending:    return const Color(0xFFFF8F00);
-      case OrderStatus.confirmed:  return const Color(0xFF1565C0);
+      case OrderStatus.confirmed:  return const Color(0xFF6A1B9A);
       case OrderStatus.processing: return const Color(0xFF6A1B9A);
       case OrderStatus.shipped:    return const Color(0xFF00838F);
       case OrderStatus.delivered:  return const Color(0xFF2E7D32);
@@ -5225,7 +5225,7 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                             : isGroup ? '단체' : '개인';
                         final typeColor = o.orderType == 'additional'
                             ? const Color(0xFFC62828)
-                            : isGroup ? const Color(0xFF6A1B9A) : const Color(0xFF1565C0);
+                            : isGroup ? const Color(0xFF6A1B9A) : const Color(0xFF6A1B9A);
                         final displaySize = (item.size == '단체' || item.size == 'GROUP' || item.size.isEmpty)
                             ? null : item.size;
                         final imageUrl = item.imageUrl?.isNotEmpty == true
@@ -5315,14 +5315,14 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(vertical: 11),
                         decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.4)),
+                          border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.4)),
                           borderRadius: BorderRadius.circular(8),
                           color: const Color(0xFFEFF3FF),
                         ),
                         child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          Icon(Icons.receipt_long_rounded, size: 15, color: Color(0xFF1565C0)),
+                          Icon(Icons.receipt_long_rounded, size: 15, color: Color(0xFF6A1B9A)),
                           SizedBox(width: 6),
-                          Text('영수증 보기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
+                          Text('영수증 보기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))),
                         ]),
                       ),
                     ),
@@ -5577,7 +5577,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 6),
                     Wrap(spacing: 6, children: [
-                      if (_canChangeColor) _chip('색상 변경 가능', const Color(0xFF1565C0)),
+                      if (_canChangeColor) _chip('색상 변경 가능', const Color(0xFF6A1B9A)),
                       if (_canChangeTeamName) _chip('단체명 변경 가능', const Color(0xFF2E7D32)),
                       if (_canChangeDesign) _chip('디자인 변경 가능', const Color(0xFF7B1FA2)),
                     ]),
@@ -6065,14 +6065,14 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
             if (i > 0)
               Container(
                 width: 32, height: 1,
-                color: isDone ? const Color(0xFF1565C0) : Colors.grey[300],
+                color: isDone ? const Color(0xFF6A1B9A) : Colors.grey[300],
               ),
             Column(children: [
               Container(
                 width: 24, height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: (isActive || isDone) ? const Color(0xFF1565C0) : Colors.grey[300],
+                  color: (isActive || isDone) ? const Color(0xFF6A1B9A) : Colors.grey[300],
                 ),
                 child: Center(
                   child: isDone
@@ -6088,7 +6088,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
               Text(labels[i],
                   style: TextStyle(
                     fontSize: 10,
-                    color: isActive ? const Color(0xFF1565C0) : Colors.grey[400],
+                    color: isActive ? const Color(0xFF6A1B9A) : Colors.grey[400],
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.normal,
                   )),
             ]),
@@ -6276,7 +6276,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           Text(reason,
               style: TextStyle(
                 fontSize: 14,
-                color: sel ? const Color(0xFF1565C0) : Colors.black87,
+                color: sel ? const Color(0xFF6A1B9A) : Colors.black87,
                 fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
               )),
         ]),
@@ -6383,7 +6383,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: const Text('주소변경 >',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF1565C0), fontWeight: FontWeight.w600)),
+                  style: TextStyle(fontSize: 13, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w600)),
             ),
           ]),
         ),
@@ -6415,7 +6415,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: sel ? const Color(0xFFE3F2FD) : Colors.white,
-          border: Border.all(color: sel ? const Color(0xFF1565C0) : Colors.grey[300]!, width: sel ? 2 : 1),
+          border: Border.all(color: sel ? const Color(0xFF6A1B9A) : Colors.grey[300]!, width: sel ? 2 : 1),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(children: [
@@ -6425,7 +6425,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
             Text(label,
                 style: TextStyle(
                   fontSize: 14, fontWeight: FontWeight.w600,
-                  color: sel ? const Color(0xFF1565C0) : Colors.black87,
+                  color: sel ? const Color(0xFF6A1B9A) : Colors.black87,
                 )),
             const SizedBox(height: 2),
             Text(subLabel, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
@@ -6539,7 +6539,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: sel ? FontWeight.w700 : FontWeight.normal,
-                color: sel ? const Color(0xFF1565C0) : Colors.black87,
+                color: sel ? const Color(0xFF6A1B9A) : Colors.black87,
               )),
         ]),
       ),
@@ -6597,14 +6597,14 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
     decoration: BoxDecoration(
       shape: BoxShape.circle,
       border: Border.all(
-        color: selected ? const Color(0xFF1565C0) : Colors.grey[400]!,
+        color: selected ? const Color(0xFF6A1B9A) : Colors.grey[400]!,
         width: 2,
       ),
     ),
     child: selected
         ? Container(
             margin: const EdgeInsets.all(3),
-            decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF1565C0)),
+            decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF6A1B9A)),
           )
         : null,
   );
@@ -6662,7 +6662,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
             child: Container(
               height: 50,
               decoration: BoxDecoration(
-                color: (_canProceed && !_isUploading) ? const Color(0xFF1565C0) : Colors.grey[300],
+                color: (_canProceed && !_isUploading) ? const Color(0xFF6A1B9A) : Colors.grey[300],
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Center(
@@ -6787,7 +6787,7 @@ String _carrierIdFromName(String name) {
     case 'AT_PICKUP':
       return (label: '집하 완료', icon: Icons.inventory_2_outlined, color: const Color(0xFF7B1FA2));
     case 'IN_TRANSIT':
-      return (label: '이동 중', icon: Icons.local_shipping_outlined, color: const Color(0xFF1565C0));
+      return (label: '이동 중', icon: Icons.local_shipping_outlined, color: const Color(0xFF6A1B9A));
     case 'OUT_FOR_DELIVERY':
       return (label: '배달 중', icon: Icons.delivery_dining_outlined, color: const Color(0xFFE65100));
     case 'DELIVERED':
