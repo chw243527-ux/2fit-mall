@@ -865,7 +865,7 @@ class _OrderCard extends StatelessWidget {
           }
 
           return Container(
-            decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.grey[100]!))),
+            decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.grey[100] ?? const Color(0xFFF5F5F5)))),
             child: Column(children: [
               // 배송완료 시 초록 배송조회 버튼 (네이버 스타일)
               if (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered)
@@ -3215,7 +3215,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey[200]!),
+                    border: Border.all(color: Colors.grey[200] ?? const Color(0xFFEEEEEE)),
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                     const Row(children: [
