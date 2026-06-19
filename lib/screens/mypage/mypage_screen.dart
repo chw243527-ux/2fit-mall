@@ -1259,18 +1259,20 @@ class _WishlistContentState extends State<_WishlistContent> {
           child: Container(
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: Colors.grey[200] ?? const Color(0xFFEEEEEE))),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child: Column(mainAxisSize: MainAxisSize.max, crossAxisAlignment: CrossAxisAlignment.start, children: [
               ClipRRect(borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
                 child: validImages.isNotEmpty
                     ? NetImage(validImages.first, width: double.infinity, height: 140, fit: BoxFit.cover)
                     : Container(height: 140, color: Colors.grey[100],
                         child: const Center(child: Icon(Icons.checkroom_rounded, color: Colors.grey, size: 36)))),
-              Padding(padding: const EdgeInsets.all(8), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(displayName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 4),
-                Text('${p.price.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.black87)),
-              ])),
+              Expanded(
+                child: Padding(padding: const EdgeInsets.all(8), child: Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(displayName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 4),
+                  Text('${p.price.toInt().toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},')}원',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.black87)),
+                ])),
+              ),
             ]),
           ),
         );
@@ -1403,7 +1405,7 @@ class _OrderCard extends StatelessWidget {
         // 상태 + 상품 정보
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             // 배송 상태
             Row(children: [
               Text(_statusLabel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _statusColor)),
@@ -1427,7 +1429,7 @@ class _OrderCard extends StatelessWidget {
               ClipRRect(borderRadius: BorderRadius.circular(6),
                 child: _OrderItemImage(item: item, size: 68)),
               const SizedBox(width: 12),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(
                   item.productName.isNotEmpty ? item.productName
                       : (order.groupName?.isNotEmpty == true ? order.groupName! : '주문 상품'),
