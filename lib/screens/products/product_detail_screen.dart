@@ -845,7 +845,7 @@ $productUrl
   Future<void> _openKakaoChannel() async {
     const channelId = '@2fitkorea';
     final kakaoChannelUrl = Uri.parse('kakaoplus://plusfriend/home/$channelId');
-    final webUrl = Uri.parse('https://pf.kakao.com/_xjxmxaK'); // 실제 카카오 채널 URL로 변경 필요
+    final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat'); // 실제 카카오 채널 URL로 변경 필요
     
     if (await canLaunchUrl(kakaoChannelUrl)) {
       await launchUrl(kakaoChannelUrl);
