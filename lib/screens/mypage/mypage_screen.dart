@@ -4713,22 +4713,23 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                             // 디자인 이미지 (왼쪽)
                             if (hasImage) ...[
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
+                              Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFFDDDDDD)),
+                                ),
+                                clipBehavior: Clip.hardEdge,
                                 child: Image.network(
                                   item.imageUrl!,
-                                  width: 64,
-                                  height: 64,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    width: 64,
-                                    height: 64,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFE0E0E0),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: const Icon(Icons.image_not_supported_outlined,
-                                        size: 24, color: Color(0xFFAAAAAA)),
+                                  width: 72,
+                                  height: 72,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => const Center(
+                                    child: Icon(Icons.image_not_supported_outlined,
+                                        size: 28, color: Color(0xFFAAAAAA)),
                                   ),
                                 ),
                               ),
