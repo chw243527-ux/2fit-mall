@@ -579,8 +579,8 @@ class _QuickStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final orders = context.watch<OrderProvider>().userOrders.length;
-    final wishlist = context.watch<WishlistProvider>().items.length;
-    final coupons = context.watch<CouponProvider>().availableCoupons.length;
+    final wishlist = context.watch<UserProvider>().user?.wishlist.length ?? 0;
+    final coupons = context.watch<CouponProvider>().validCoupons.length;
     final points = user.points;
     final items = [
       (orders, '내 주문', 0),
@@ -953,12 +953,38 @@ class _CardBtn extends StatelessWidget {
 // ════════════════════════════════════════════════════════════════
 // 찜 목록 탭
 // ════════════════════════════════════════════════════════════════
-class _WishlistTab extends StatelessWidget {
+class _WishlistTab extends StatefulWidget {
   final UserModel user; final bool isMobile;
   const _WishlistTab({required this.user, this.isMobile = false});
   @override
+  State<_WishlistTab> createState() => _WishlistTabState();
+}
+class _WishlistTabState extends State<_WishlistTab> {
+  List<ProductModel>? _products;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final wishIds = widget.user.wishlist;
+    if (wishIds.isEmpty) { setState(() => _products = []); return; }
+    final all = <ProductModel>[];
+    for (final id in wishIds) {
+      try {
+        final p = await ProductService.getProductById(id);
+        if (p != null) all.add(p);
+      } catch (_) {}
+    }
+    if (mounted) setState(() => _products = all);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final items = context.watch<WishlistProvider>().items;
+    if (_products == null) return const Center(child: CircularProgressIndicator(color: Color(0xFF1A1A2E)));
+    final items = _products!;
     if (items.isEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
       Icon(Icons.favorite_border_rounded, size: 56, color: Colors.grey[300]),
       const SizedBox(height: 12),
@@ -967,7 +993,7 @@ class _WishlistTab extends StatelessWidget {
     return GridView.builder(
       padding: const EdgeInsets.all(12),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: isMobile ? 2 : 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.72),
+          crossAxisCount: widget.isMobile ? 2 : 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.72),
       itemCount: items.length,
       itemBuilder: (ctx, i) {
         final p = items[i];
@@ -1009,7 +1035,7 @@ class _CouponTab extends StatelessWidget {
   const _CouponTab({required this.user, this.isMobile = false});
   @override
   Widget build(BuildContext context) {
-    final coupons = context.watch<CouponProvider>().availableCoupons;
+    final coupons = context.watch<CouponProvider>().validCoupons;
     if (coupons.isEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
       Icon(Icons.local_offer_outlined, size: 56, color: Colors.grey[300]),
       const SizedBox(height: 12),
