@@ -3198,8 +3198,82 @@ class _MobileSettingsTab extends StatelessWidget {
             onTap: () => onShowDeleteAccount(context, userProvider), color: Colors.red),
         ]),
         const SizedBox(height: 40),
+        // ── 관리자 전용: 테스트 데이터 생성 ──
+        if (user?.isAdmin == true) ...[
+          const SizedBox(height: 8),
+          _MobileSettingGroup(title: '🔧 개발자 도구 (관리자 전용)', items: [
+            _MobileSettingItem(
+              icon: Icons.science_outlined,
+              title: '테스트 주문 생성 (배송조회 포함)',
+              subtitle: '운송장 등록된 shipped 상태 테스트 주문',
+              color: const Color(0xFF7B1FA2),
+              onTap: () => _createTestOrder(context, user!),
+            ),
+          ]),
+          const SizedBox(height: 40),
+        ],
       ],
     );
+  }
+
+  Future<void> _createTestOrder(BuildContext context, UserModel user) async {
+    final now = DateTime.now();
+    final pad2 = (int v) => v.toString().padLeft(2, '0');
+    final orderId =
+        'ORD-TEST-${now.year}${pad2(now.month)}${pad2(now.day)}-SHIP';
+
+    try {
+      await FirebaseFirestore.instance.collection('orders').doc(orderId).set({
+        'id': orderId,
+        'userId': user.id,
+        'userName': user.name ?? '',
+        'userEmail': user.email ?? '',
+        'userPhone': user.phone ?? '',
+        'userAddress': user.address ?? '',
+        'status': 'shipped',
+        'totalAmount': 72000.0,
+        'shippingFee': 4000.0,
+        'paymentMethod': '카카오페이',
+        'orderType': 'personal',
+        'createdAt': now.toIso8601String(),
+        'trackingNumber': '1234567890123',
+        'shippingCompany': 'CJ대한통운',
+        'customOptions': {
+          'trackingNumber': '1234567890123',
+          'shippingCompany': 'CJ대한통운',
+        },
+        'items': [
+          {
+            'productId': 'test-001',
+            'productName': '2.5부 숏 여성 골지 블랙',
+            'size': 'M',
+            'color': '블랙',
+            'quantity': 2,
+            'price': 34000.0,
+            'imageUrl': '',
+          }
+        ],
+      });
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ 테스트 주문 생성 완료\n주문번호: $orderId'),
+            backgroundColor: const Color(0xFF7B1FA2),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ 테스트 주문 생성 실패: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
 
