@@ -276,32 +276,34 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
     return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: _buildMobileAppBar(user, up),
-      body: DefaultTabController(
-        length: 2,
-        child: NestedScrollView(
-          headerSliverBuilder: (ctx, innerScrolled) => [
-            // 프로필 + 탭바
-            SliverToBoxAdapter(child: _MobileHeader(
-              user: user, up: up,
-              onProfileEdit: () => _openProfileEdit(context, user),
-              onLogout: () => _openLogout(context, up),
-            )),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _OhouseTabDelegate(
-                TabBar(
-                  tabs: const [Tab(text: '쇼핑'), Tab(text: '활동')],
-                  labelColor: Colors.black87,
-                  unselectedLabelColor: Colors.grey,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                  unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
-                  indicatorColor: Colors.black87,
-                  indicatorWeight: 2,
-                ),
+      body: NestedScrollView(
+        headerSliverBuilder: (ctx, innerScrolled) => [
+          // 프로필 + 통계칩
+          SliverToBoxAdapter(child: _MobileHeader(
+            user: user, up: up,
+            onProfileEdit: () => _openProfileEdit(context, user),
+            onLogout: () => _openLogout(context, up),
+          )),
+          // 탭바 핀고정
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _OhouseTabDelegate(
+              TabBar(
+                controller: _tabCtrl,
+                tabs: const [Tab(text: '쇼핑'), Tab(text: '활동')],
+                labelColor: Colors.black87,
+                unselectedLabelColor: Colors.grey,
+                labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
+                indicatorColor: Colors.black87,
+                indicatorWeight: 2,
               ),
             ),
-          ],
-          body: TabBarView(children: [
+          ),
+        ],
+        body: TabBarView(
+          controller: _tabCtrl,
+          children: [
             _ShoppingTab(
               user: user, up: up,
               onAdditional: _openAdditionalOrder,
@@ -314,7 +316,7 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
               onDeleteAccount: () => _openDeleteAccount(context, up),
             ),
             _ActivityTab(user: user),
-          ]),
+          ],
         ),
       ),
     ));
@@ -650,6 +652,7 @@ class _ShoppingTab extends StatelessWidget {
         (statusCounts[OrderStatus.processing] ?? 0) + (statusCounts[OrderStatus.confirmed] ?? 0);
 
     return ListView(
+      physics: const ClampingScrollPhysics(),
       children: [
         // ── 주문/배송 조회 ──────────────────
         _OhouseMenuTile(
@@ -1075,7 +1078,41 @@ class _OrderCard extends StatelessWidget {
                   Text('외 ${order.items.length - 1}개 상품',
                       style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
               ])),
-            ]),
+            ])
+            else
+              // 단체주문: item 없을 때 기본 정보 표시
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F8F8),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(children: [
+                  Container(
+                    width: 68, height: 68,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEEEEEE),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Icon(Icons.groups_rounded, color: Color(0xFFAAAAAA), size: 32),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(
+                      order.groupName?.isNotEmpty == true ? order.groupName! : '단체주문',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      maxLines: 2, overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    if (order.groupCount != null)
+                      Text('총 ${order.groupCount}벌',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+                    const SizedBox(height: 4),
+                    Text(_fmtAmt(order.totalAmount),
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
+                  ])),
+                ]),
+              ),
           ]),
         ),
         // 액션 버튼 행
