@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -1214,36 +1215,67 @@ class _PcOrderCard extends StatelessWidget {
                 }
               }
 
+              Future<void> openKakaoChannel() async {
+                final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fitkorea');
+                final webUrl = Uri.parse('https://pf.kakao.com/_xjxmxaK');
+                if (await canLaunchUrl(appUrl)) {
+                  await launchUrl(appUrl, mode: LaunchMode.externalApplication);
+                } else {
+                  await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+                }
+              }
+
               void showContactSheet(String subject) {
                 showModalBottomSheet(
                   context: btnCtx,
                   shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                  builder: (_) => Container(
-                    padding: const EdgeInsets.all(24),
+                  builder: (sheetCtx) => Container(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
                     child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(subject, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-                      const SizedBox(height: 8),
-                      Text('주문번호: ${order.id}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF3F8FF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
+                      Row(children: [
+                        Container(
+                          width: 36, height: 36,
+                          decoration: BoxDecoration(color: const Color(0xFFFEE500), borderRadius: BorderRadius.circular(8)),
+                          child: const Center(child: Text('💬', style: TextStyle(fontSize: 18))),
                         ),
-                        child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('고객센터 문의', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-                          SizedBox(height: 6),
-                          Text('• 카카오톡: @2fitkorea', style: TextStyle(fontSize: 13)),
-                          Text('• 전화: 010-7227-6914', style: TextStyle(fontSize: 13)),
-                          Text('• 이메일: chw243527@gmail.com', style: TextStyle(fontSize: 13)),
-                          SizedBox(height: 6),
-                          Text('배송 완료 후 7일 이내 접수해 주세요.\n(상품 하자의 경우 3개월 이내)',
-                              style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5)),
-                        ]),
+                        const SizedBox(width: 10),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(subject, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                          Text('주문번호: ${order.id}',
+                            style: const TextStyle(fontSize: 11, color: Colors.black45),
+                            overflow: TextOverflow.ellipsis),
+                        ])),
+                      ]),
+                      const SizedBox(height: 20),
+                      GestureDetector(
+                        onTap: () { Navigator.pop(sheetCtx); openKakaoChannel(); },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(color: const Color(0xFFFEE500), borderRadius: BorderRadius.circular(12)),
+                          child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Text('💬', style: TextStyle(fontSize: 20)),
+                            SizedBox(width: 8),
+                            Text('카카오톡 채널 문의',
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF3A1D1D))),
+                          ]),
+                        ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: () { Navigator.pop(sheetCtx); launchUrl(Uri.parse('tel:01072276914')); },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
+                          child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Icon(Icons.phone_outlined, size: 20, color: Color(0xFF333333)),
+                            SizedBox(width: 8),
+                            Text('전화 문의  010-7227-6914',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
+                          ]),
+                        ),
+                      ),
                     ]),
                   ),
                 );
@@ -2431,36 +2463,67 @@ class _MobileOrderCard extends StatelessWidget {
                 }
               }
 
+              Future<void> openKakaoChannel() async {
+                final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fitkorea');
+                final webUrl = Uri.parse('https://pf.kakao.com/_xjxmxaK');
+                if (await canLaunchUrl(appUrl)) {
+                  await launchUrl(appUrl, mode: LaunchMode.externalApplication);
+                } else {
+                  await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+                }
+              }
+
               void showContactSheet(String subject) {
                 showModalBottomSheet(
                   context: btnCtx,
                   shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                  builder: (_) => Container(
-                    padding: const EdgeInsets.all(24),
+                  builder: (sheetCtx) => Container(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
                     child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(subject, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-                      const SizedBox(height: 8),
-                      Text('주문번호: ${order.id}', style: const TextStyle(fontSize: 13, color: Colors.black54)),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF3F8FF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.3)),
+                      Row(children: [
+                        Container(
+                          width: 36, height: 36,
+                          decoration: BoxDecoration(color: const Color(0xFFFEE500), borderRadius: BorderRadius.circular(8)),
+                          child: const Center(child: Text('💬', style: TextStyle(fontSize: 18))),
                         ),
-                        child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text('고객센터 문의', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-                          SizedBox(height: 6),
-                          Text('• 카카오톡: @2fitkorea', style: TextStyle(fontSize: 13)),
-                          Text('• 전화: 010-7227-6914', style: TextStyle(fontSize: 13)),
-                          Text('• 이메일: chw243527@gmail.com', style: TextStyle(fontSize: 13)),
-                          SizedBox(height: 6),
-                          Text('배송 완료 후 7일 이내 접수해 주세요.\n(상품 하자의 경우 3개월 이내)',
-                              style: TextStyle(fontSize: 11, color: Colors.black54, height: 1.5)),
-                        ]),
+                        const SizedBox(width: 10),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(subject, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                          Text('주문번호: ${order.id}',
+                            style: const TextStyle(fontSize: 11, color: Colors.black45),
+                            overflow: TextOverflow.ellipsis),
+                        ])),
+                      ]),
+                      const SizedBox(height: 20),
+                      GestureDetector(
+                        onTap: () { Navigator.pop(sheetCtx); openKakaoChannel(); },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(color: const Color(0xFFFEE500), borderRadius: BorderRadius.circular(12)),
+                          child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Text('💬', style: TextStyle(fontSize: 20)),
+                            SizedBox(width: 8),
+                            Text('카카오톡 채널 문의',
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF3A1D1D))),
+                          ]),
+                        ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: () { Navigator.pop(sheetCtx); launchUrl(Uri.parse('tel:01072276914')); },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(12)),
+                          child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                            Icon(Icons.phone_outlined, size: 20, color: Color(0xFF333333)),
+                            SizedBox(width: 8),
+                            Text('전화 문의  010-7227-6914',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF333333))),
+                          ]),
+                        ),
+                      ),
                     ]),
                   ),
                 );
@@ -2475,7 +2538,7 @@ class _MobileOrderCard extends StatelessWidget {
                 icon: Icons.chat_bubble_outline_rounded,
                 label: '채팅문의',
                 color: const Color(0xFFFF8F00),
-                onTap: () => showContactSheet('채팅 문의'),
+                onTap: () => openKakaoChannel(),
               ));
 
               // ── 운송장 등록 전: 배송조회(회색) + 주문취소 or 취소불가 ──
