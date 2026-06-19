@@ -4489,7 +4489,7 @@ void _showUserOrderDetail(BuildContext context, OrderModel order) {
   // 공통 콘텐츠 빌더
   Widget buildContent(BuildContext sheetCtx, {bool isSheet = false}) {
     return Column(
-      mainAxisSize: isSheet ? MainAxisSize.min : MainAxisSize.max,
+      mainAxisSize: MainAxisSize.max,   // ← min → max: Flexible이 남은 공간을 차지하도록
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
             // ══════════════════════════════════════
