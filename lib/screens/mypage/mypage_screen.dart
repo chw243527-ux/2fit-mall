@@ -75,6 +75,102 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
   void _openColorEdit(OrderModel o) => _openSheet(_ColorEditSheet(order: o));
   void _openDesignRevision(OrderModel o) => _openSheet(_DesignRevisionSheet(order: o));
 
+  // 헤더 통계칩 → 바텀시트 열기
+  void _openOrderList(BuildContext ctx) {
+    final orders = context.read<OrderProvider>().orders;
+    if (orders.isEmpty) {
+      ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('주문 내역이 없습니다.')));
+      return;
+    }
+    Navigator.push(ctx, MaterialPageRoute(builder: (_) => _OrderListScreen(
+      orders: orders,
+      onAdditional: _openAdditionalOrder,
+      onColorEdit: _openColorEdit,
+      onDesignRevision: _openDesignRevision,
+      onExcelDownload: _exportExcel,
+    )));
+  }
+
+  void _openWishlist(BuildContext ctx, UserModel user) {
+    showModalBottomSheet(
+      context: ctx, isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (bsCtx) => SizedBox(
+        height: MediaQuery.of(ctx).size.height * 0.85,
+        child: Column(children: [
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              const Text('찜 목록', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+              const Spacer(),
+              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
+            ]),
+          ),
+          Expanded(child: _WishlistContent(user: user)),
+        ]),
+      ),
+    );
+  }
+
+  void _openCouponSheet(BuildContext ctx) {
+    final coupons = context.read<CouponProvider>().validCoupons;
+    showModalBottomSheet(
+      context: ctx, isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (bsCtx) => SizedBox(
+        height: MediaQuery.of(ctx).size.height * 0.7,
+        child: Column(children: [
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(children: [
+              Text('쿠폰 ${coupons.length}장', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+              const Spacer(),
+              IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
+            ]),
+          ),
+          if (coupons.isEmpty)
+            const Expanded(child: Center(
+              child: Text('사용 가능한 쿠폰이 없습니다.', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            ))
+          else
+            Expanded(child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: coupons.length,
+              itemBuilder: (_, i) {
+                final c = coupons[i];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white, borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFEEEEEE)),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4)],
+                  ),
+                  child: Row(children: [
+                    Container(width: 44, height: 44,
+                        decoration: const BoxDecoration(color: Color(0xFFE8EEF8), shape: BoxShape.circle),
+                        child: const Icon(Icons.local_offer_rounded, color: Color(0xFF1C62B9), size: 20)),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(c.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 2),
+                      Text(c.typeLabel, style: const TextStyle(fontSize: 13, color: Color(0xFF1C62B9), fontWeight: FontWeight.w600)),
+                      Text(
+                        '~${c.expiresAt.year}.${c.expiresAt.month.toString().padLeft(2, '0')}.${c.expiresAt.day.toString().padLeft(2, '0')}',
+                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      ),
+                    ])),
+                  ]),
+                );
+              },
+            )),
+        ]),
+      ),
+    );
+  }
+
   void _openProfileEdit(BuildContext ctx, UserModel u) =>
       showModalBottomSheet(context: ctx, isScrollControlled: true, backgroundColor: Colors.transparent,
           builder: (_) => _ProfileEditSheet(user: u));
@@ -283,6 +379,9 @@ class _MyPageScreenState extends State<MyPageScreen> with SingleTickerProviderSt
             user: user, up: up,
             onProfileEdit: () => _openProfileEdit(context, user),
             onLogout: () => _openLogout(context, up),
+            onOrderTap: () => _openOrderList(context),
+            onWishlistTap: () => _openWishlist(context, user),
+            onCouponTap: () => _openCouponSheet(context),
           )),
           // 탭바 핀고정
           SliverPersistentHeader(
@@ -396,7 +495,14 @@ class _MobileHeader extends StatelessWidget {
   final UserProvider up;
   final VoidCallback onProfileEdit;
   final VoidCallback onLogout;
-  const _MobileHeader({required this.user, required this.up, required this.onProfileEdit, required this.onLogout});
+  final VoidCallback onOrderTap;
+  final VoidCallback onWishlistTap;
+  final VoidCallback onCouponTap;
+  const _MobileHeader({
+    required this.user, required this.up,
+    required this.onProfileEdit, required this.onLogout,
+    required this.onOrderTap, required this.onWishlistTap, required this.onCouponTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -441,11 +547,11 @@ class _MobileHeader extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Row(children: [
-            _StatChip(label: '주문', value: orders.length, onTap: () {}),
+            _StatChip(label: '주문', value: orders.length, onTap: onOrderTap),
             const SizedBox(width: 8),
-            _StatChip(label: '찜', value: wishlistCount, onTap: () {}),
+            _StatChip(label: '찜', value: wishlistCount, onTap: onWishlistTap),
             const SizedBox(width: 8),
-            _StatChip(label: '쿠폰', value: coupons, onTap: () {}),
+            _StatChip(label: '쿠폰', value: coupons, onTap: onCouponTap),
           ]),
         ),
         // 진행중인 주문 스텝
@@ -736,15 +842,15 @@ class _ShoppingTab extends StatelessWidget {
   void _showWishlist(BuildContext context, UserModel user) => showModalBottomSheet(
     context: context, isScrollControlled: true,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-    builder: (_) => Container(
+    builder: (bsCtx) => SizedBox(
       height: MediaQuery.of(context).size.height * 0.85,
-      padding: const EdgeInsets.only(top: 16),
       child: Column(children: [
+        const SizedBox(height: 16),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(children: [
             const Text('찜 목록', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
             const Spacer(),
-            IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+            IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
           ])),
         Expanded(child: _WishlistContent(user: user)),
       ]),
@@ -754,17 +860,22 @@ class _ShoppingTab extends StatelessWidget {
   void _showCoupons(BuildContext context, List<CouponModel> coupons) => showModalBottomSheet(
     context: context, isScrollControlled: true,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-    builder: (_) => Container(
+    builder: (bsCtx) => SizedBox(
       height: MediaQuery.of(context).size.height * 0.7,
-      padding: const EdgeInsets.only(top: 16),
       child: Column(children: [
+        const SizedBox(height: 16),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(children: [
             Text('쿠폰 ${coupons.length}장', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
             const Spacer(),
-            IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+            IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(bsCtx)),
           ])),
-        Expanded(child: ListView.builder(
+        if (coupons.isEmpty)
+          const Expanded(child: Center(
+            child: Text('사용 가능한 쿠폰이 없습니다.', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          ))
+        else
+          Expanded(child: ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: coupons.length,
           itemBuilder: (_, i) {
@@ -777,7 +888,7 @@ class _ShoppingTab extends StatelessWidget {
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4)]),
               child: Row(children: [
                 Container(width: 44, height: 44,
-                    decoration: BoxDecoration(color: const Color(0xFFE8EEF8), shape: BoxShape.circle),
+                    decoration: const BoxDecoration(color: Color(0xFFE8EEF8), shape: BoxShape.circle),
                     child: const Icon(Icons.local_offer_rounded, color: Color(0xFF1C62B9), size: 20)),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -868,23 +979,44 @@ class _WishlistContentState extends State<_WishlistContent> {
   List<ProductModel>? _products;
   @override
   void initState() { super.initState(); _load(); }
+
   Future<void> _load() async {
     final wishIds = widget.user.wishlist;
-    if (wishIds.isEmpty) { setState(() => _products = []); return; }
-    final all = <ProductModel>[];
-    for (final id in wishIds) {
-      try { final p = await ProductService.getProductById(id); if (p != null) all.add(p); } catch (_) {}
+    if (wishIds.isEmpty) {
+      if (mounted) setState(() => _products = []);
+      return;
+    }
+    // 1) 동기 캐시에서 즉시 로드
+    final synced = wishIds
+        .map((id) => ProductService.getProductByIdSync(id))
+        .whereType<ProductModel>()
+        .toList();
+    if (synced.isNotEmpty && mounted) setState(() => _products = synced);
+
+    // 2) 비동기로 누락된 상품 보완
+    final all = List<ProductModel>.from(synced);
+    final cachedIds = synced.map((p) => p.id).toSet();
+    for (final id in wishIds.where((id) => !cachedIds.contains(id))) {
+      try {
+        final p = await ProductService.getProductById(id);
+        if (p != null) all.add(p);
+      } catch (_) {}
     }
     if (mounted) setState(() => _products = all);
   }
+
   @override
   Widget build(BuildContext context) {
-    if (_products == null) return const Center(child: CircularProgressIndicator(color: Color(0xFF1C62B9)));
-    if (_products!.isEmpty) return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(Icons.favorite_border_rounded, size: 48, color: Colors.grey[300]),
-      const SizedBox(height: 12),
-      Text('찜한 상품이 없습니다', style: TextStyle(fontSize: 14, color: Colors.grey[400])),
-    ]));
+    if (_products == null) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF1C62B9)));
+    }
+    if (_products!.isEmpty) {
+      return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.favorite_border_rounded, size: 48, color: Colors.grey[300]),
+        const SizedBox(height: 12),
+        Text('찜한 상품이 없습니다', style: TextStyle(fontSize: 14, color: Colors.grey[400])),
+      ]));
+    }
     return GridView.builder(
       padding: const EdgeInsets.all(12),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
