@@ -225,6 +225,21 @@ service cloud.firestore {
 
 
     // ════════════════════════════════════════════════════════
+    // chat_rooms 컬렉션 (채팅방 메타데이터)
+    // ════════════════════════════════════════════════════════
+    match /chat_rooms/{roomId} {
+      // 본인 채팅방 또는 관리자
+      allow read: if isSignedIn() && (
+        request.auth.uid == roomId || isAdmin()
+      );
+      allow create, update: if isSignedIn() && (
+        request.auth.uid == roomId || isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+
+    // ════════════════════════════════════════════════════════
     // fcmTokens 컬렉션
     // ════════════════════════════════════════════════════════
     match /fcmTokens/{tokenId} {
