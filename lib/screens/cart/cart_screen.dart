@@ -1103,6 +1103,35 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
           payMethod:  _selectedPayment!,
           paymentKey: result.paymentKey,
         );
+
+        // 6. 현금영수증 자동 발급
+        //    - 마이페이지에 번호 등록 + 카드/간편결제 수단인 경우에만 API 호출
+        //    - 가상계좌·계좌이체는 토스페이먼츠가 자동 발급하므로 스킵
+        final cashNum = userProv.user?.cashReceiptNum;
+        if (cashNum != null &&
+            cashNum.isNotEmpty &&
+            result.paymentKey != null &&
+            PaymentService.needsCashReceiptApiCall(_selectedPayment)) {
+          final receiptType = _isBusiness(cashNum) ? '지출증빙' : '소득공제';
+          final receiptResult = await PaymentService.issueCashReceipt(
+            paymentKey: result.paymentKey!,
+            customerIdentityNumber: cashNum,
+            type: receiptType,
+          );
+          if (!receiptResult.success) {
+            // 현금영수증 발급 실패는 주문 자체를 막지 않고 스낵바 안내만
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      '현금영수증 발급 실패: ${receiptResult.error ?? '잠시 후 마이페이지에서 재신청하세요.'}'),
+                  backgroundColor: Colors.orange,
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+            }
+          }
+        }
       } else {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1123,6 +1152,13 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
         );
       }
     }
+  }
+
+  // ── 사업자번호 여부 판별 ──────────────────────────────────────
+  // 숫자만 추출 후 10자리 → 지출증빙(사업자), 그 외 → 소득공제(개인)
+  bool _isBusiness(String num) {
+    final digits = num.replaceAll(RegExp(r'\D'), '');
+    return digits.length == 10;
   }
 
   Future<void> _saveAndComplete({

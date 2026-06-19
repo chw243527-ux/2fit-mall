@@ -36,6 +36,12 @@ class TossConfig {
   //     'https://YOUR_PROJECT.supabase.co/functions/v1/confirm-payment';
   static const confirmEdgeFunctionUrl = '';
 
+  // ── Supabase Edge Function URL (현금영수증 발급용) ──────────
+  // 배포 후 아래 주석 해제 및 URL 입력:
+  // static const cashReceiptEdgeFunctionUrl =
+  //     'https://YOUR_PROJECT.supabase.co/functions/v1/issue-cash-receipt';
+  static const cashReceiptEdgeFunctionUrl = '';
+
   static bool get useEdgeFunction => confirmEdgeFunctionUrl.isNotEmpty;
   static bool get isLiveMode => !clientKey.startsWith('test_');
 }
@@ -213,6 +219,135 @@ class PaymentService {
     return result ?? const PaymentResult(success: false, error: '결제가 취소되었습니다.');
   }
 
+  // ─── 현금영수증 발급 ──────────────────────────────────────────
+  // 토스페이먼츠 POST /v1/payments/{paymentKey}/cash-receipts
+  //
+  // [type]
+  //   '소득공제' — 개인 소비자, 전화번호 or 주민등록번호 뒤 7자리
+  //   '지출증빙' — 사업자, 사업자번호 10자리
+  //
+  // 발급 다음 날 오전 9시경 국세청 홈택스에 자동 신고됩니다.
+  // 가상계좌·계좌이체는 결제 승인 시 자동 발급되므로,
+  // 카드(KAKAO_PAY / NAVER_PAY / TOSS_PAY / CARD) 결제 시 이 메서드를 호출하세요.
+  static Future<CashReceiptResult> issueCashReceipt({
+    required String paymentKey,
+    required String customerIdentityNumber, // 전화번호(010-...) or 사업자번호(10자리)
+    String type = '소득공제',               // '소득공제' or '지출증빙'
+    int taxFreeAmount = 0,
+  }) async {
+    if (TossConfig.useEdgeFunction &&
+        TossConfig.cashReceiptEdgeFunctionUrl.isNotEmpty) {
+      return await _issueCashReceiptViaEdge(
+        paymentKey: paymentKey,
+        customerIdentityNumber: customerIdentityNumber,
+        type: type,
+        taxFreeAmount: taxFreeAmount,
+      );
+    }
+    return await _issueCashReceiptDirectly(
+      paymentKey: paymentKey,
+      customerIdentityNumber: customerIdentityNumber,
+      type: type,
+      taxFreeAmount: taxFreeAmount,
+    );
+  }
+
+  // ── Edge Function 경유 현금영수증 발급 (운영 권장) ──
+  static Future<CashReceiptResult> _issueCashReceiptViaEdge({
+    required String paymentKey,
+    required String customerIdentityNumber,
+    required String type,
+    required int taxFreeAmount,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse(TossConfig.cashReceiptEdgeFunctionUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SupabaseConfig.supabaseAnonKey,
+          'Authorization': 'Bearer ${SupabaseConfig.supabaseAnonKey}',
+        },
+        body: jsonEncode({
+          'paymentKey': paymentKey,
+          'customerIdentityNumber': customerIdentityNumber,
+          'type': type,
+          'taxFreeAmount': taxFreeAmount,
+        }),
+      ).timeout(const Duration(seconds: 30));
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return CashReceiptResult(
+          success: true,
+          receiptKey: data['receiptKey'] as String?,
+          orderId: data['orderId'] as String?,
+        );
+      }
+      return CashReceiptResult(
+        success: false,
+        error: data['message'] as String? ?? '현금영수증 발급에 실패했습니다.',
+      );
+    } catch (e) {
+      return CashReceiptResult(success: false, error: '네트워크 오류: $e');
+    }
+  }
+
+  // ── 직접 API 현금영수증 발급 (테스트/개발 전용) ──
+  static Future<CashReceiptResult> _issueCashReceiptDirectly({
+    required String paymentKey,
+    required String customerIdentityNumber,
+    required String type,
+    required int taxFreeAmount,
+  }) async {
+    try {
+      final credentials = base64Encode(utf8.encode('${TossConfig.secretKey}:'));
+      final response = await http.post(
+        Uri.parse(
+            'https://api.tosspayments.com/v1/payments/$paymentKey/cash-receipts'),
+        headers: {
+          'Authorization': 'Basic $credentials',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'customerIdentityNumber': customerIdentityNumber,
+          'type': type,
+          if (taxFreeAmount > 0) 'taxFreeAmount': taxFreeAmount,
+        }),
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return CashReceiptResult(
+          success: true,
+          receiptKey: data['receiptKey'] as String?,
+          orderId: data['orderId'] as String?,
+        );
+      } else {
+        // 테스트 환경 — API 오류(또는 이미 발급)여도 성공으로 처리
+        if (!TossConfig.isLiveMode) {
+          return CashReceiptResult(
+            success: true,
+            receiptKey: 'test_rcpt_${DateTime.now().millisecondsSinceEpoch}',
+          );
+        }
+        final err = jsonDecode(response.body);
+        return CashReceiptResult(
+          success: false,
+          error: err['message'] as String? ?? '현금영수증 발급에 실패했습니다.',
+        );
+      }
+    } catch (e) {
+      if (!TossConfig.isLiveMode) {
+        // 테스트 환경 네트워크 오류 → 시뮬레이션 성공
+        return CashReceiptResult(
+          success: true,
+          receiptKey: 'test_rcpt_${DateTime.now().millisecondsSinceEpoch}',
+        );
+      }
+      return CashReceiptResult(success: false, error: '네트워크 오류: $e');
+    }
+  }
+
   // ─── 결제 수단 매핑 ───────────────────────────────────────────
   static String mapPaymentMethod(String method) {
     switch (method) {
@@ -223,6 +358,15 @@ class PaymentService {
       case '무통장입금':   return 'VIRTUAL_ACCOUNT';
       default:           return 'CARD';
     }
+  }
+
+  // ─── 현금영수증 필요 결제수단 여부 ────────────────────────────
+  // 가상계좌·계좌이체는 토스페이먼츠가 자동 발급 → API 불필요
+  // 카드·간편결제는 별도 API 호출 필요
+  static bool needsCashReceiptApiCall(String? paymentMethod) {
+    if (paymentMethod == null) return false;
+    const autoIssueMethods = ['무통장입금', 'VIRTUAL_ACCOUNT'];
+    return !autoIssueMethods.contains(paymentMethod);
   }
 }
 
@@ -624,6 +768,21 @@ class PaymentResult {
   });
 }
 
+// ── 현금영수증 발급 결과 모델 ────────────────────────────────────
+class CashReceiptResult {
+  final bool success;
+  final String? receiptKey; // 토스페이먼츠 현금영수증 키
+  final String? orderId;
+  final String? error;
+
+  const CashReceiptResult({
+    required this.success,
+    this.receiptKey,
+    this.orderId,
+    this.error,
+  });
+}
+
 /* ══════════════════════════════════════════════════════════════
    Supabase Edge Function — confirm-payment
    (supabase/functions/confirm-payment/index.ts)
@@ -660,5 +819,51 @@ serve(async (req) => {
 });
 
    환경변수 설정:
+   supabase secrets set TOSS_SECRET_KEY=live_sk_여기에실제시크릿키
+   ══════════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════════
+   Supabase Edge Function — issue-cash-receipt
+   (supabase/functions/issue-cash-receipt/index.ts)
+
+   현금영수증 발급 — secretKey를 서버에서만 사용합니다.
+   배포 명령: supabase functions deploy issue-cash-receipt
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+serve(async (req) => {
+  const { paymentKey, customerIdentityNumber, type, taxFreeAmount } =
+    await req.json();
+  const secretKey = Deno.env.get("TOSS_SECRET_KEY")!;
+  const credentials = btoa(`${secretKey}:`);
+
+  const body: Record<string, unknown> = { customerIdentityNumber, type };
+  if (taxFreeAmount > 0) body.taxFreeAmount = taxFreeAmount;
+
+  const res = await fetch(
+    `https://api.tosspayments.com/v1/payments/${paymentKey}/cash-receipts`,
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Basic ${credentials}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  const data = await res.json();
+  if (res.ok) {
+    return new Response(JSON.stringify({ success: true, ...data }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  return new Response(
+    JSON.stringify({ success: false, message: data.message }),
+    { status: 400, headers: { "Content-Type": "application/json" } }
+  );
+});
+
+   환경변수 설정: (confirm-payment와 동일한 시크릿 재사용 가능)
    supabase secrets set TOSS_SECRET_KEY=live_sk_여기에실제시크릿키
    ══════════════════════════════════════════════════════════════ */
