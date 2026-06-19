@@ -1127,15 +1127,17 @@ class _PcOrderCard extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                        Container(
+                          width: 56, height: 56,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFEEEEEE)),
+                          ),
+                          clipBehavior: Clip.hardEdge,
                           child: item.imageUrl != null && item.imageUrl!.isNotEmpty
-                            ? NetImage(item.imageUrl!, width: 52, height: 52, fit: BoxFit.cover)
-                            : Container(
-                                width: 52, height: 52,
-                                decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
-                                child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
-                              ),
+                            ? Image.network(item.imageUrl!, width: 56, height: 56, fit: BoxFit.contain)
+                            : const Icon(Icons.checkroom_rounded, color: Colors.grey, size: 28),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -1290,7 +1292,9 @@ class _PcOrderCard extends StatelessWidget {
     final y = d.year.toString();
     final m = d.month.toString().padLeft(2, '0');
     final dd = d.day.toString().padLeft(2, '0');
-    return '$y.$m.$dd';
+    final hh = d.hour.toString().padLeft(2, '0');
+    final min = d.minute.toString().padLeft(2, '0');
+    return '$y.$m.$dd $hh:$min';
   }
   String _fmtPrice(double p) {
     final s = p.toInt().toString();
@@ -1419,7 +1423,9 @@ class _PcPaymentHistoryTab extends StatelessWidget {
     final y = d.year.toString();
     final m = d.month.toString().padLeft(2, '0');
     final dd = d.day.toString().padLeft(2, '0');
-    return '$y.$m.$dd';
+    final hh = d.hour.toString().padLeft(2, '0');
+    final min = d.minute.toString().padLeft(2, '0');
+    return '$y.$m.$dd $hh:$min';
   }
   String _fmtPrice(double p) {
     final s = p.toInt().toString();
@@ -1690,7 +1696,9 @@ class _PcCouponCard extends StatelessWidget {
     final y = d.year.toString();
     final m = d.month.toString().padLeft(2, '0');
     final dd = d.day.toString().padLeft(2, '0');
-    return '$y.$m.$dd';
+    final hh = d.hour.toString().padLeft(2, '0');
+    final min = d.minute.toString().padLeft(2, '0');
+    return '$y.$m.$dd $hh:$min';
   }
 }
 
@@ -2294,8 +2302,12 @@ class _MobileOrderCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(order.id, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1565C0))),
-                        Text(_fmtDate(order.createdAt), style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                        Text(order.id,
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF1565C0)),
+                          overflow: TextOverflow.ellipsis),
+                        const SizedBox(height: 2),
+                        Text(_fmtDate(order.createdAt),
+                          style: TextStyle(fontSize: 11, color: Colors.grey[500])),
                       ],
                     ),
                   ),
@@ -2319,15 +2331,17 @@ class _MobileOrderCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
               child: Row(
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
+                  Container(
+                    width: 64, height: 64,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFEEEEEE)),
+                    ),
+                    clipBehavior: Clip.hardEdge,
                     child: order.items.isNotEmpty && order.items.first.imageUrl != null && order.items.first.imageUrl!.isNotEmpty
-                      ? NetImage(order.items.first.imageUrl!, width: 60, height: 60, fit: BoxFit.cover)
-                      : Container(
-                          width: 60, height: 60,
-                          decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
-                          child: const Icon(Icons.checkroom_rounded, color: Colors.grey),
-                        ),
+                      ? Image.network(order.items.first.imageUrl!, width: 64, height: 64, fit: BoxFit.contain)
+                      : const Icon(Icons.checkroom_rounded, color: Colors.grey, size: 30),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2573,7 +2587,9 @@ class _MobileOrderCard extends StatelessWidget {
     final y = d.year.toString();
     final m = d.month.toString().padLeft(2, '0');
     final dd = d.day.toString().padLeft(2, '0');
-    return '$y.$m.$dd';
+    final hh = d.hour.toString().padLeft(2, '0');
+    final min = d.minute.toString().padLeft(2, '0');
+    return '$y.$m.$dd $hh:$min';
   }
   String _fmtPrice(double p) {
     final s = p.toInt().toString();
@@ -2743,7 +2759,9 @@ class _MobilePaymentHistoryTab extends StatelessWidget {
     final y = d.year.toString();
     final m = d.month.toString().padLeft(2, '0');
     final dd = d.day.toString().padLeft(2, '0');
-    return '$y.$m.$dd';
+    final hh = d.hour.toString().padLeft(2, '0');
+    final min = d.minute.toString().padLeft(2, '0');
+    return '$y.$m.$dd $hh:$min';
   }
   String _fmtPrice(double p) {
     final s = p.toInt().toString();
@@ -2974,7 +2992,9 @@ class _MobileCouponCard extends StatelessWidget {
     final y = d.year.toString();
     final m = d.month.toString().padLeft(2, '0');
     final dd = d.day.toString().padLeft(2, '0');
-    return '$y.$m.$dd';
+    final hh = d.hour.toString().padLeft(2, '0');
+    final min = d.minute.toString().padLeft(2, '0');
+    return '$y.$m.$dd $hh:$min';
   }
 }
 
