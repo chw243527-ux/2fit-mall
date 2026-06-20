@@ -17,7 +17,7 @@ import '../../models/models.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/email_service.dart';
-import '../../services/order_excel_service.dart';
+// order_excel_service: 마이페이지 엑셀 기능 제거 — 관리자 대시보드에서만 관리
 import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
 import '../products/product_detail_screen.dart';
 import '../admin/admin_screen.dart';
@@ -97,7 +97,6 @@ class _MyPageScreenState extends State<MyPageScreen>
         onShowLogout: _showLogoutDialog,
         onShowChangePassword: _showChangePasswordDialog,
         onShowDeleteAccount: _showDeleteAccountDialog,
-        onExcelDownload: _exportOrderExcel,
         onShowDesignRevision: _showDesignRevisionSheet,
       );
     }
@@ -112,7 +111,6 @@ class _MyPageScreenState extends State<MyPageScreen>
       onShowLogout: _showLogoutDialog,
       onShowChangePassword: _showChangePasswordDialog,
       onShowDeleteAccount: _showDeleteAccountDialog,
-      onExcelDownload: _exportOrderExcel,
       onShowDesignRevision: _showDesignRevisionSheet,
     );
   }
@@ -223,77 +221,7 @@ class _MyPageScreenState extends State<MyPageScreen>
     );
   }
 
-  // ── 단체주문 엑셀 다운로드 (이미지 포함) ──
-  Future<void> _exportOrderExcel(BuildContext ctx, OrderModel order) async {
-    const mimeType =
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-    final dateStr = '${order.createdAt.year}${order.createdAt.month.toString().padLeft(2,'0')}${order.createdAt.day.toString().padLeft(2,'0')}';
-    final teamName = (order.customOptions?['teamName'] as String? ?? order.groupName ?? '').replaceAll(' ', '_');
-    final fileName = '2FIT_${teamName.isNotEmpty ? '${teamName}_' : ''}${order.id}_$dateStr.xlsx';
 
-    // 로딩 다이얼로그
-    showDialog(
-      context: ctx,
-      barrierDismissible: false,
-      builder: (_) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(color: Color(0xFF6A1B9A)),
-                SizedBox(height: 16),
-                Text('이미지 포함 엑셀 생성 중...', style: TextStyle(fontSize: 14)),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    try {
-      final bytes = await OrderExcelService.generateGroupOrderExcelAsync(order);
-      if (ctx.mounted) Navigator.pop(ctx); // 로딩 닫기
-
-      if (kIsWeb) {
-        downloadFileWeb(bytes, fileName, mimeType);
-        if (ctx.mounted) {
-          ScaffoldMessenger.of(ctx).showSnackBar(
-            SnackBar(
-              content: Row(children: const [
-                Icon(Icons.file_download_done_rounded, color: Colors.white, size: 16),
-                SizedBox(width: 8),
-                Expanded(child: Text('엑셀 파일 다운로드 완료')),
-              ]),
-              backgroundColor: const Color(0xFF6A1B9A),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-      } else {
-        final dir = await getTemporaryDirectory();
-        final filePath = '${dir.path}/$fileName';
-        await File(filePath).writeAsBytes(bytes, flush: true);
-        if (ctx.mounted) {
-          await SharePlus.instance.share(
-            ShareParams(
-              files: [XFile(filePath, mimeType: mimeType, name: fileName)],
-              subject: '2FIT 단체주문 내역',
-              text: fileName,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (ctx.mounted) {
-        Navigator.pop(ctx);
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(content: Text('엑셀 생성 오류: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
 
   void _showChangePasswordDialog(BuildContext ctx) {
     final currentCtrl = TextEditingController();
@@ -502,7 +430,6 @@ class _PcMyPage extends StatelessWidget {
   final void Function(BuildContext, UserProvider) onShowLogout;
   final void Function(BuildContext) onShowChangePassword;
   final void Function(BuildContext, UserProvider) onShowDeleteAccount;
-  final void Function(BuildContext, OrderModel)? onExcelDownload;
   final void Function(OrderModel)? onShowDesignRevision;
 
   const _PcMyPage({
@@ -515,7 +442,6 @@ class _PcMyPage extends StatelessWidget {
     required this.onShowLogout,
     required this.onShowChangePassword,
     required this.onShowDeleteAccount,
-    this.onExcelDownload,
     this.onShowDesignRevision,
   });
 
@@ -689,7 +615,6 @@ class _PcMyPage extends StatelessWidget {
                           switch (tabController.index) {
                             case 0: return _PcOrderHistoryTab(userProvider: userProvider, loc: loc,
                                 onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
-                                onExcelDownload: onExcelDownload,
                                 onDesignRevision: onShowDesignRevision);
                             case 1: return _PcWishlistTab(userProvider: userProvider, loc: loc);
                             case 2: return _PcCouponTab(userProvider: userProvider, loc: loc);
@@ -981,13 +906,11 @@ class _PcOrderHistoryTab extends StatefulWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
-  final void Function(BuildContext, OrderModel)? onExcelDownload;
   final void Function(OrderModel)? onDesignRevision;
 
   const _PcOrderHistoryTab({
     required this.userProvider, required this.loc,
     required this.onAdditionalOrder, required this.onColorEdit,
-    this.onExcelDownload,
     this.onDesignRevision,
   });
 
@@ -1046,7 +969,6 @@ class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
                     order: orders[i], loc: widget.loc,
                     onAdditionalOrder: widget.onAdditionalOrder,
                     onColorEdit: widget.onColorEdit,
-                    onExcelDownload: widget.onExcelDownload,
                     onDesignRevision: widget.onDesignRevision,
                   ),
                 ),
@@ -1062,9 +984,8 @@ class _PcOrderCard extends StatelessWidget {
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
   final void Function(OrderModel)? onDesignRevision;
-  final void Function(BuildContext, OrderModel)? onExcelDownload;
 
-  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision, this.onExcelDownload});
+  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision});
 
   @override
   Widget build(BuildContext context) {
@@ -1344,7 +1265,6 @@ class _PcOrderCard extends StatelessWidget {
               ));
               if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), badge: '무료', onTap: () => onAdditionalOrder(order)));
               if (canColorEdit) btns.add(_ActionBtn(icon: Icons.palette_outlined, label: '색상변경', color: const Color(0xFF6A1B9A), badge: '${order.remainingColorEdits}', onTap: () => onColorEdit(order)));
-              if (isGroup) btns.add(Builder(builder: (ctx2) => _ActionBtn(icon: Icons.file_download_outlined, label: '엑셀', color: const Color(0xFF00695C), onTap: () => onExcelDownload?.call(ctx2, order))));
 
               return Row(
                 children: btns.asMap().entries.map((e) {
@@ -2490,7 +2410,6 @@ class _MobileMyPage extends StatelessWidget {
   final void Function(BuildContext, UserProvider) onShowLogout;
   final void Function(BuildContext) onShowChangePassword;
   final void Function(BuildContext, UserProvider) onShowDeleteAccount;
-  final void Function(BuildContext, OrderModel)? onExcelDownload;
   final void Function(OrderModel)? onShowDesignRevision;
 
   const _MobileMyPage({
@@ -2504,7 +2423,6 @@ class _MobileMyPage extends StatelessWidget {
     required this.onShowLogout,
     required this.onShowChangePassword,
     required this.onShowDeleteAccount,
-    this.onExcelDownload,
     this.onShowDesignRevision,
   });
 
@@ -2561,7 +2479,6 @@ class _MobileMyPage extends StatelessWidget {
                 children: [
                   _MobileOrderHistoryTab(userProvider: userProvider, loc: loc,
                     onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
-                    onExcelDownload: onExcelDownload,
                     onDesignRevision: onShowDesignRevision),
                   _MobileWishlistTab(userProvider: userProvider, loc: loc),
                   _MobileCouponTab(userProvider: userProvider, loc: loc),
@@ -2777,13 +2694,11 @@ class _MobileOrderHistoryTab extends StatefulWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
-  final void Function(BuildContext, OrderModel)? onExcelDownload;
   final void Function(OrderModel)? onDesignRevision;
 
   const _MobileOrderHistoryTab({
     required this.userProvider, required this.loc,
     required this.onAdditionalOrder, required this.onColorEdit,
-    this.onExcelDownload,
     this.onDesignRevision,
   });
 
@@ -2835,7 +2750,6 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
         itemBuilder: (_, i) => _MobileOrderCard(
           order: orders[i], loc: widget.loc,
           onAdditionalOrder: widget.onAdditionalOrder, onColorEdit: widget.onColorEdit,
-          onExcelDownload: widget.onExcelDownload,
           onDesignRevision: widget.onDesignRevision,
         ),
       ),
@@ -2849,9 +2763,8 @@ class _MobileOrderCard extends StatelessWidget {
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel) onColorEdit;
   final void Function(OrderModel)? onDesignRevision;
-  final void Function(BuildContext, OrderModel)? onExcelDownload;
 
-  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision, this.onExcelDownload});
+  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision});
 
   @override
   Widget build(BuildContext context) {
@@ -3244,12 +3157,7 @@ class _MobileOrderCard extends StatelessWidget {
                 badge: '${order.remainingColorEdits}',
                 onTap: () => onColorEdit(order),
               ));
-              if (isGroup) row2.add(Builder(builder: (ctx2) => _ActionBtn(
-                icon: Icons.file_download_outlined,
-                label: '엑셀',
-                color: const Color(0xFF00695C),
-                onTap: () => onExcelDownload?.call(ctx2, order),
-              )));
+
 
               Widget buildRow(List<Widget> items) {
                 final List<Widget> cells = [];
