@@ -211,16 +211,29 @@ class _AdminScreenState extends State<AdminScreen>
           label: '허용',
           textColor: const Color(0xFFCE93D8),
           onPressed: () async {
+            final status = AdminWebNotifier.permissionStatus;
+            if (status == 'denied') {
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                backgroundColor: Color(0xFF5D4037),
+                duration: Duration(seconds: 6),
+                content: Text(
+                  '브라우저에서 알림이 차단됐습니다.\n주소창 자물쇠 아이콘 → 알림 → 허용으로 변경해 주세요.',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ));
+              return;
+            }
             final ok = await AdminWebNotifier.requestPermission();
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 backgroundColor: ok ? const Color(0xFF2E7D32) : const Color(0xFFB71C1C),
                 content: Text(
-                  ok ? '✅ 브라우저 알림이 활성화되었습니다!' : '❌ 알림 권한이 거부되었습니다.',
-                  style: const TextStyle(color: Colors.white),
+                  ok ? '✅ 브라우저 알림이 활성화되었습니다!' : '❌ 알림 권한이 거부되었습니다.\n주소창 자물쇠 → 알림 → 허용으로 변경해 주세요.',
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
                 ),
-                duration: const Duration(seconds: 3),
+                duration: const Duration(seconds: 5),
               ),
             );
           },
@@ -7188,13 +7201,36 @@ class _AdminScreenState extends State<AdminScreen>
               if (kIsWeb)
                 TextButton.icon(
                   onPressed: () async {
+                    final status = AdminWebNotifier.permissionStatus;
+                    if (status == 'denied') {
+                      // 브라우저가 이미 거부 — 설정에서 직접 변경해야 함
+                      if (ctx.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: const Color(0xFF5D4037),
+                            duration: const Duration(seconds: 6),
+                            content: const Text(
+                              '브라우저에서 알림이 차단됐습니다.\n주소창 자물쇠 아이콘 → 알림 → 허용으로 변경해 주세요.',
+                              style: TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                          ),
+                        );
+                      }
+                      return;
+                    }
                     final ok = await AdminWebNotifier.requestPermission();
                     setDlgState(() {});
-                    if (ok && ctx.mounted && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('브라우저 알림이 허용되었습니다 🔔'), backgroundColor: Colors.green),
-                      );
-                    }
+                    if (!ctx.mounted || !context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: ok ? const Color(0xFF2E7D32) : const Color(0xFFB71C1C),
+                        content: Text(
+                          ok ? '✅ 브라우저 알림이 활성화되었습니다!' : '❌ 알림 권한이 거부되었습니다.\n주소창 자물쇠 → 알림 → 허용으로 변경해 주세요.',
+                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                        ),
+                        duration: const Duration(seconds: 5),
+                      ),
+                    );
                   },
                   icon: Icon(
                     AdminWebNotifier.isGranted ? Icons.notifications_active_rounded : Icons.notifications_off_rounded,
@@ -7202,7 +7238,11 @@ class _AdminScreenState extends State<AdminScreen>
                     color: AdminWebNotifier.isGranted ? Colors.green : const Color(0xFFE53935),
                   ),
                   label: Text(
-                    AdminWebNotifier.isGranted ? '알림 ON' : '알림 허용',
+                    AdminWebNotifier.isGranted
+                        ? '알림 ON'
+                        : AdminWebNotifier.permissionStatus == 'denied'
+                            ? '알림 차단됨'
+                            : '알림 허용',
                     style: TextStyle(
                       fontSize: 11,
                       color: AdminWebNotifier.isGranted ? Colors.green : const Color(0xFFE53935),

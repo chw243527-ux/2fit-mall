@@ -453,14 +453,29 @@ class AdminWebNotifier {
   // ── 알림 권한 요청 ──────────────────────────────────────────
   static Future<bool> requestPermission() async {
     if (!kIsWeb) return false;
-    if (_permissionGranted) return true;
-    if (_permissionRequested) return false;
 
+    // 브라우저의 현재 실제 상태를 먼저 확인
+    final currentStatus = web_notif.getNotificationPermission();
+
+    // 이미 허용돼 있으면 바로 true
+    if (currentStatus == 'granted') {
+      _permissionGranted = true;
+      return true;
+    }
+
+    // 브라우저가 명시적으로 거부한 상태 — 재요청 불가 (브라우저 정책)
+    if (currentStatus == 'denied') {
+      _permissionGranted = false;
+      return false;
+    }
+
+    // 'default' 상태: 실제 브라우저 권한 팝업 요청
+    // (_permissionRequested 플래그로 막지 않음 — 사용자가 수동으로 재시도 가능)
     try {
       _permissionRequested = true;
       final permission = await web_notif.requestNotificationPermission();
       _permissionGranted = permission == 'granted';
-      if (kDebugMode) debugPrint('🔔 알림 권한: $permission');
+      if (kDebugMode) debugPrint('🔔 알림 권한 결과: $permission');
       return _permissionGranted;
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 알림 권한 요청 실패: $e');
