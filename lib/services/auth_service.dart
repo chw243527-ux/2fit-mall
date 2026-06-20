@@ -483,6 +483,7 @@ class AuthService {
           points: (data['points'] as int?) ?? 0,
           createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
           loginProvider: (data['loginProvider'] as String?) ?? 'email',
+          cashReceiptNum: data['cashReceiptNum'] as String?,
         );
       }
 
@@ -754,6 +755,7 @@ class AuthService {
         wishlist: List<String>.from(data['wishlist'] as List? ?? []),
         createdAt: DateTime.now(),
         loginProvider: 'google',
+        cashReceiptNum: data['cashReceiptNum'] as String?,
       );
       // 세션 저장
       try {
@@ -764,6 +766,8 @@ class AuthService {
           'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
           'points': userModel.points, 'wishlist': userModel.wishlist,
           'loginProvider': userModel.loginProvider,
+          if (userModel.cashReceiptNum?.isNotEmpty == true)
+            'cashReceiptNum': userModel.cashReceiptNum,
         });
       } catch (e) {
         if (kDebugMode) debugPrint('⚠️ 구글 세션 저장 실패 (무시): $e');
@@ -933,6 +937,7 @@ class AuthService {
       wishlist        : List<String>.from(data['wishlist'] as List? ?? []),
       createdAt       : DateTime.now(),
       loginProvider   : 'kakao',
+      cashReceiptNum  : data['cashReceiptNum'] as String?,
     );
 
     // ── Step 5: 세션 저장 ────────────────────────────────────
@@ -944,6 +949,8 @@ class AuthService {
         'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
         'points': userModel.points, 'wishlist': userModel.wishlist,
         'loginProvider': userModel.loginProvider,
+        if (userModel.cashReceiptNum?.isNotEmpty == true)
+          'cashReceiptNum': userModel.cashReceiptNum,
       });
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 세션 저장 실패 (무시): $e');
@@ -1144,6 +1151,7 @@ class AuthService {
       wishlist        : List<String>.from(data['wishlist'] as List? ?? []),
       createdAt       : DateTime.now(),
       loginProvider   : 'naver',
+      cashReceiptNum  : data['cashReceiptNum'] as String?,
     );
     // 세션 저장
     try {
@@ -1154,6 +1162,8 @@ class AuthService {
         'grade': userModel.memberTier, 'isAdmin': userModel.isAdmin,
         'points': userModel.points, 'wishlist': userModel.wishlist,
         'loginProvider': userModel.loginProvider,
+        if (userModel.cashReceiptNum?.isNotEmpty == true)
+          'cashReceiptNum': userModel.cashReceiptNum,
       });
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 네이버 세션 저장 실패 (무시): $e');

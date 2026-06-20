@@ -188,6 +188,10 @@ class UserProvider extends ChangeNotifier {
 
   Future<void> updateUserProfile({String? name, String? phone, String? cashReceiptNum}) async {
     if (_user == null) return;
+    // cashReceiptNum: '' 전달 시 삭제 처리 (null로 저장)
+    final newCashReceipt = (cashReceiptNum != null && cashReceiptNum.isEmpty)
+        ? null
+        : cashReceiptNum ?? _user!.cashReceiptNum;
     _user = UserModel(
       id: _user!.id,
       name: name ?? _user!.name,
@@ -201,7 +205,7 @@ class UserProvider extends ChangeNotifier {
       memberTier: _user!.memberTier,
       createdAt: _user!.createdAt,
       addresses: _user!.addresses,
-      cashReceiptNum: cashReceiptNum ?? _user!.cashReceiptNum,
+      cashReceiptNum: newCashReceipt,
     );
     notifyListeners();
     // Firestore 동기화
@@ -212,7 +216,11 @@ class UserProvider extends ChangeNotifier {
           .update({
         if (name != null) 'name': name,
         if (phone != null) 'phone': phone,
-        if (cashReceiptNum != null) 'cashReceiptNum': cashReceiptNum,
+        // 빈 문자열로 삭제 요청 시 → 필드 자체 삭제
+        if (cashReceiptNum != null)
+          'cashReceiptNum': cashReceiptNum.isEmpty
+              ? FieldValue.delete()
+              : cashReceiptNum,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
