@@ -9471,7 +9471,7 @@ class _AdminScreenState extends State<AdminScreen>
                             child: Row(
                               children: [
                                 if (status == '대기중')
-                                  Expanded(child: _drActionBtn('처리 시작', const Color(0xFF1565C0), () => _updateDesignRequestStatus(req, '처리중'))),
+                                  Expanded(child: _drActionBtn('처리 시작', const Color(0xFF1565C0), () async => _updateDesignRequestStatus(req, '처리중'))),
                                 if (status == '처리중') ...[
                                   Expanded(child: _drActionBtn('완료 처리', const Color(0xFF2E7D32), () async {
                                     // Firestore에서 주문 불러와 이미지 업로드 다이얼로그 열기
@@ -9488,12 +9488,12 @@ class _AdminScreenState extends State<AdminScreen>
                                     }
                                   })),
                                   const SizedBox(width: 6),
-                                  Expanded(child: _drActionBtn('거절', const Color(0xFFE53935), () => _updateDesignRequestStatus(req, '거절'))),
+                                  Expanded(child: _drActionBtn('거절', const Color(0xFFE53935), () async => _updateDesignRequestStatus(req, '거절'))),
                                 ],
                                 if (status == '완료' || status == '거절')
-                                  Expanded(child: _drActionBtn('재처리', const Color(0xFF6A1B9A), () => _updateDesignRequestStatus(req, '처리중'))),
+                                  Expanded(child: _drActionBtn('재처리', const Color(0xFF6A1B9A), () async => _updateDesignRequestStatus(req, '처리중'))),
                                 const SizedBox(width: 6),
-                                Expanded(child: _drActionBtn('메모 추가', const Color(0xFF555555), () => _showAddAdminNoteDialog(req))),
+                                Expanded(child: _drActionBtn('메모 추가', const Color(0xFF555555), () async => _showAddAdminNoteDialog(req))),
                                 const SizedBox(width: 6),
                                 GestureDetector(
                                   onTap: () {
@@ -9546,7 +9546,7 @@ class _AdminScreenState extends State<AdminScreen>
     ]),
   );
 
-  Widget _drActionBtn(String label, Color color, VoidCallback onTap) => GestureDetector(
+  Widget _drActionBtn(String label, Color color, Future<void> Function() onTap) => GestureDetector(
     onTap: onTap,
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 7),
