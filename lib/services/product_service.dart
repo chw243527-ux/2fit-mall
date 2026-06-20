@@ -1040,7 +1040,10 @@ class ProductService {
     } else {
       _allProducts.add(safeUpdated);
     }
-    if (idx < 0 && allIdx < 0) return false;
+    // _products에도 없고 _allProducts에도 없는 완전 미등록 상품이면 캐시에 추가 후 계속 저장
+    if (idx < 0 && allIdx < 0) {
+      _allProducts.add(safeUpdated);
+    }
     _cache = List.from(_products);
     await _persistToLocal();
     // Firestore 업데이트

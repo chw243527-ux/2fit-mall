@@ -10303,8 +10303,13 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   // ── 선택된 색상 (twoFitColors 기반)
   final Set<String> _selectedColors = {};
 
-  // ── 이미지 (base64 or url 혼합)
-  List<String> _images = [];
+  // ── 이미지 항목 (업로드 상태 추적)
+  // _imageItems[i] = {'url': String, 'pending': bool}
+  //   url: base64 미리보기(pending=true) 또는 Firebase URL(pending=false)
+  //   pending: true = 아직 업로드 중
+  List<Map<String, dynamic>> _imageItems = [];
+  // 하위 호환: _images getter (url 리스트)
+  List<String> get _images => _imageItems.map((e) => e['url'] as String).toList();
   bool _isUploading = false;
   String _uploadStatus = '';
   String _uploadError = '';
@@ -10387,7 +10392,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
 
     _selCat = e?.category ?? '상의';
     _selSubCat = e?.subCategory ?? '';
-    _images = List<String>.from(e?.images ?? []);
+    _imageItems = (e?.images ?? [])
+        .map((url) => <String, dynamic>{'url': url, 'pending': false})
+        .toList();
     _isNew = e?.isNew ?? false;
     _newExpiresAt = e?.newExpiresAt;
     _isSale = e?.isSale ?? false;
@@ -10477,21 +10484,17 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
         return;
       }
 
-      // ① 즉시 base64 미리보기 추가 (업로드 전에 바로 화면에 표시)
-      final previews = <String>[];
+      // ① base64 미리보기 항목 추가 (pending=true), 삽입 시작 인덱스 고정
+      final startIdx = _imageItems.length;
       for (final f in files) {
         final bytes = await f.readAsBytes();
         final b64 = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-        previews.add(b64);
+        _imageItems.add({'url': b64, 'pending': true});
       }
       if (!mounted) return;
-      setState(() {
-        _images = [..._images, ...previews];
-        _uploadStatus = 'Firebase 업로드 중... (0/${files.length})';
-      });
+      setState(() => _uploadStatus = 'Firebase 업로드 중... (0/${files.length})');
 
-      // ② 백그라운드에서 Firebase Storage 업로드 후 URL 교체
-      // _tempProductId 사용으로 업로드/저장 간 상품 ID 일치 보장
+      // ② Firebase Storage 업로드 후 인덱스로 직접 교체
       final productId = _tempProductId;
       int success = 0;
       for (int i = 0; i < files.length; i++) {
@@ -10505,14 +10508,23 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
             fileName: '${DateTime.now().millisecondsSinceEpoch}_$i.jpg',
           );
           if (url.isNotEmpty && mounted) {
-            // base64 미리보기를 실제 URL로 교체
-            final previewIdx = _images.indexOf(previews[i]);
-            if (previewIdx >= 0) {
-              setState(() => _images[previewIdx] = url);
+            final targetIdx = startIdx + i;
+            if (targetIdx < _imageItems.length) {
+              setState(() => _imageItems[targetIdx] = {'url': url, 'pending': false});
             }
             success++;
           }
         } catch (e) {
+          // 업로드 실패: pending 해제(base64 유지) → 저장 시 제외됨
+          if (mounted) {
+            final targetIdx = startIdx + i;
+            if (targetIdx < _imageItems.length) {
+              setState(() => _imageItems[targetIdx] = {
+                'url': _imageItems[targetIdx]['url'] as String,
+                'pending': false,
+              });
+            }
+          }
           if (kDebugMode) debugPrint('이미지 업로드 실패 ($i): $e');
         }
       }
@@ -10538,18 +10550,18 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   void _addImageByUrl() {
     final url = _urlCtrl.text.trim();
     if (url.isEmpty) return;
-    setState(() { _images.add(url); });
+    setState(() { _imageItems.add({'url': url, 'pending': false}); });
     _urlCtrl.clear();
   }
 
   // ── 이미지 삭제
-  void _removeImage(int i) => setState(() => _images.removeAt(i));
+  void _removeImage(int i) => setState(() => _imageItems.removeAt(i));
 
   // ── 이미지 순서 위로
   void _moveUp(int i) {
     if (i == 0) return;
     setState(() {
-      final tmp = _images[i]; _images[i] = _images[i-1]; _images[i-1] = tmp;
+      final tmp = _imageItems[i]; _imageItems[i] = _imageItems[i-1]; _imageItems[i-1] = tmp;
     });
   }
 
@@ -10571,10 +10583,10 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     }
     final origPrice = double.tryParse(_origPriceCtrl.text.replaceAll(',', ''));
 
-    // ── base64 미리보기 이미지 잔재 확인 (업로드 진행 중이거나 실패한 경우)
-    final base64Remaining = _images.where((img) => img.startsWith('data:')).toList();
-    if (base64Remaining.isNotEmpty) {
-      // base64가 남아있으면 아직 Storage 업로드가 완료되지 않은 것
+    // ── base64 미리보기(pending) 항목 확인 — 업로드 실패 항목은 저장에서 제외
+    final pendingCount = _imageItems.where((e) => e['pending'] == true).length;
+    if (pendingCount > 0) {
+      // pending 항목이 있으면 아직 업로드 중
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('이미지 Firebase 업로드 중입니다. 잠시 후 다시 저장해주세요.'),
         duration: Duration(seconds: 3),
@@ -10582,11 +10594,12 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
       return;
     }
 
-    // ── Storage URL만 추출 (data: 외에도 잘못된 URL 방지)
-    final images = _images
-        .where((img) => img.startsWith('http') || img.startsWith('https'))
+    // ── Firebase Storage URL만 추출 (base64 잔재 및 잘못된 URL 제외)
+    final images = _imageItems
+        .map((e) => e['url'] as String)
+        .where((url) => url.startsWith('http') || url.startsWith('https'))
         .toList();
-    // 이미지가 없어도 저장 허용 (picsum placeholder 사용 안 함 — Storage URL만 영속)
+    // 이미지가 없어도 저장 허용 (Storage URL만 영속)
 
     // 번역이 아직 안 됐으면 저장 전 실행
     final productName = _nameCtrl.text.trim();
@@ -11064,7 +11077,7 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                 const SizedBox(height: 10),
 
                 // 이미지 미리보기 그리드
-                if (_images.isNotEmpty) ...[
+                if (_imageItems.isNotEmpty) ...[
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -11074,15 +11087,17 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                     ),
                     child: Wrap(
                       spacing: 8, runSpacing: 8,
-                      children: List.generate(_images.length, (i) {
-                        final img = _images[i];
+                      children: List.generate(_imageItems.length, (i) {
+                        final item = _imageItems[i];
+                        final img = item['url'] as String;
+                        final isPending = item['pending'] == true;
                         final isBase64 = img.startsWith('data:');
                         return Stack(
                           clipBehavior: Clip.none,
                           children: [
                             // 썸네일 (탭 → 라이트박스 확대)
                             GestureDetector(
-                              onTap: () => showImageLightbox(context, _images, initialIndex: i),
+                              onTap: isPending ? null : () => showImageLightbox(context, _images, initialIndex: i),
                               child: Container(
                                 width: 90, height: 90,
                                 decoration: BoxDecoration(
@@ -11099,8 +11114,22 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
                                 ),
                               ),
                             ),
+                            // 업로드 중 오버레이
+                            if (isPending)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    borderRadius: BorderRadius.circular(9),
+                                  ),
+                                  child: const Center(
+                                    child: SizedBox(width: 24, height: 24,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                                  ),
+                                ),
+                              ),
                             // 대표 배지
-                            if (i == 0)
+                            if (i == 0 && !isPending)
                               Positioned(
                                 bottom: 4, left: 4,
                                 child: Container(

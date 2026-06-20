@@ -187,9 +187,9 @@ class ProductModel {
           ? (json['originalPrice'] as num).toDouble()
           : null,
       description: json['description'] as String,
-      images: List<String>.from(json['images'] as List),
-      sizes: List<String>.from(json['sizes'] as List),
-      colors: List<String>.from(json['colors'] as List),
+      images: json['images'] != null ? List<String>.from(json['images'] as List) : const [],
+      sizes: json['sizes'] != null ? List<String>.from(json['sizes'] as List) : const [],
+      colors: json['colors'] != null ? List<String>.from(json['colors'] as List) : const [],
       material: json['material'] as String? ?? '78% Nylon, 22% Spandex',
       bottomLength: json['bottomLength'] as String? ?? '',
       isNew: json['isNew'] as bool? ?? false,
