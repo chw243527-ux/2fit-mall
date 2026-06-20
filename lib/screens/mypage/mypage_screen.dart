@@ -1913,40 +1913,83 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
     return buf.toString();
   }
   String fmtDateTime(DateTime dt) =>
-      '${dt.year}년 ${dt.month}월 ${dt.day}일 ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}:${dt.second.toString().padLeft(2,'0')}';
+      '${dt.year}년 ${dt.month}월 ${dt.day}일 '
+      '${dt.hour.toString().padLeft(2, '0')}:'
+      '${dt.minute.toString().padLeft(2, '0')}:'
+      '${dt.second.toString().padLeft(2, '0')}';
 
   final supplyAmt = (o.totalAmount / 1.1).roundToDouble();
-  final vatAmt    = o.totalAmount - supplyAmt;
+  final vatAmt    = (o.totalAmount - supplyAmt).roundToDouble();
 
-  Widget row(String label, String value, {bool bold = false, Color? valueColor}) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(width: 90, child: Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF888888)))),
-      Expanded(child: Text(value,
-        style: TextStyle(fontSize: 13,
-          fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-          color: valueColor ?? const Color(0xFF1A1A1A)),
-        textAlign: TextAlign.right,
-      )),
-    ]),
+  // 현금영수증 용도 판별 (10자리=사업자→지출증빙, 그 외→소득공제)
+  String cashReceiptType = '소득공제';
+  if ((o.cashReceiptNum ?? '').isNotEmpty) {
+    final digits = o.cashReceiptNum!.replaceAll(RegExp(r'\D'), '');
+    if (digits.length == 10) cashReceiptType = '지출증빙';
+  }
+
+  // 주문 ID 뒤 8자리를 승인번호로 표시
+  final approvalNum = o.id.length >= 8
+      ? o.id.substring(o.id.length - 8).toUpperCase()
+      : o.id.toUpperCase();
+
+  Widget row(String label, String value, {
+    bool bold = false,
+    Color? valueColor,
+    bool multiLine = false,
+  }) =>
+    Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: multiLine
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(label,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF888888))),
+          ),
+          Expanded(
+            child: Text(value,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+                color: valueColor ?? const Color(0xFF1A1A1A),
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+
+  Widget divider() => const Divider(height: 1, thickness: 1, color: Color(0xFFF0F0F0));
+
+  Widget sectionHeader(String title) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
+    child: Text(title,
+      style: const TextStyle(
+        fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
   );
 
-  Widget divider() => const Divider(height: 1, color: Color(0xFFEEEEEE));
-
-  Widget sectionTitle(String title) => Padding(
-    padding: const EdgeInsets.only(top: 16, bottom: 8),
-    child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
-  );
+  // 상품명 (여러 개면 첫 번째 + 외 N건)
+  String itemSummary = '-';
+  if (o.items.isNotEmpty) {
+    itemSummary = o.items.first.productName;
+    if (o.items.length > 1) itemSummary += ' 외 ${o.items.length - 1}건';
+  }
 
   showDialog(
     context: context,
     builder: (ctx) => Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 420, maxHeight: 640),
+        constraints: const BoxConstraints(maxWidth: 440, maxHeight: 700),
         child: Column(children: [
-          // 헤더
+          // ── 헤더 ──────────────────────────────────────────
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: const BoxDecoration(
@@ -1956,80 +1999,141 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
             child: Row(children: [
               const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 18),
               const SizedBox(width: 8),
-              const Expanded(child: Text('영수증', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700))),
-              GestureDetector(onTap: () => Navigator.pop(ctx), child: const Icon(Icons.close, color: Colors.white70, size: 20)),
+              const Expanded(
+                child: Text('거래 확인서',
+                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pop(ctx),
+                child: const Icon(Icons.close, color: Colors.white70, size: 20),
+              ),
             ]),
           ),
-          // 콘텐츠
+
+          // ── 콘텐츠 ────────────────────────────────────────
           Expanded(child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              sectionTitle('결제 정보'),
-              row('결제 금액', '${fmtPrice(o.totalAmount)}원', bold: true, valueColor: const Color(0xFFE53935)),
-              divider(),
-              row('공급가액', '${fmtPrice(supplyAmt)}원'),
-              divider(),
-              row('부가세', '${fmtPrice(vatAmt)}원'),
-              divider(),
-              row('봉사료', '0원'),
-              divider(),
-              row('결제수단', o.paymentMethod.isNotEmpty ? o.paymentMethod : '-'),
-              divider(),
-              row('구매자', o.userName.isNotEmpty ? o.userName : '-'),
-              if (o.items.isNotEmpty) ...[
-                divider(),
-                row('상품명', o.items.first.productName),
-              ],
-              divider(),
-              row('거래일시\n(취소일시)', fmtDateTime(o.createdAt)),
 
-              sectionTitle('판매자 정보'),
+              // ── 승인 배지 ──
+              const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8F9FA),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFEEEEEE)),
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFA5D6A7)),
                 ),
-                child: Column(children: [
-                  row('상호', '투핏몰(2FIT-mall)'),
-                  divider(),
-                  row('대표자', '대표이사'),
-                  divider(),
-                  row('전화번호', '1670-0876'),
-                  divider(),
-                  row('주소', '서울특별시'),
+                child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 14),
+                  SizedBox(width: 5),
+                  Text('승인', style: TextStyle(fontSize: 12, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
                 ]),
               ),
 
+              // ── 이용상점 ──────────────────────────────────
+              sectionHeader('이용상점'),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FA),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFEEEEEE)),
+                ),
+                child: Column(children: [
+                  row('상호', AppConstants.companyName),
+                  divider(),
+                  row('대표자', AppConstants.ceoName),
+                  divider(),
+                  row('사업자등록번호', AppConstants.businessRegNumber),
+                  divider(),
+                  row('전화번호', AppConstants.customerServicePhone),
+                  divider(),
+                  row('URL', 'www.2fit-mall.co.kr'),
+                  divider(),
+                  row('주소', AppConstants.companyAddress, multiLine: true),
+                ]),
+              ),
+
+              // ── 결제 정보 ─────────────────────────────────
+              sectionHeader('결제 정보'),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FA),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFEEEEEE)),
+                ),
+                child: Column(children: [
+                  row('결제 금액', '${fmtPrice(o.totalAmount)}원',
+                      bold: true, valueColor: const Color(0xFFE53935)),
+                  divider(),
+                  row('공급가액', '${fmtPrice(supplyAmt)}원'),
+                  divider(),
+                  row('부가세', '${fmtPrice(vatAmt)}원'),
+                  divider(),
+                  row('봉사료', '0원'),
+                  divider(),
+                  row('결제수단', o.paymentMethod.isNotEmpty ? o.paymentMethod : '-'),
+                  divider(),
+                  row('구매자', o.userName.isNotEmpty ? o.userName : '-'),
+                  divider(),
+                  row('상품명', itemSummary, multiLine: true),
+                  divider(),
+                  row('거래일시\n(취소일시)', fmtDateTime(o.createdAt), multiLine: true),
+                ]),
+              ),
+
+              // ── 현금영수증 ────────────────────────────────
               if ((o.cashReceiptNum ?? '').isNotEmpty) ...[
-                sectionTitle('현금영수증'),
+                sectionHeader('현금영수증'),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
                     color: const Color(0xFFE8F5E9),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFC8E6C9)),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFA5D6A7)),
                   ),
                   child: Column(children: [
-                    row('발행번호', o.cashReceiptNum!),
+                    row('발행일시', fmtDateTime(o.createdAt), multiLine: true),
                     divider(),
-                    row('용도', '소득공제'),
+                    row('승인번호', approvalNum),
+                    divider(),
+                    row('용도', cashReceiptType),
                     divider(),
                     row('발행정보', o.cashReceiptNum!),
                   ]),
                 ),
               ],
-              const SizedBox(height: 8),
-              const Text(
-                '본 거래확인서는 세금계산서 대용으로 사용할 수 없습니다.',
-                style: TextStyle(fontSize: 10, color: Color(0xFF888888)),
-                textAlign: TextAlign.center,
+
+              // ── 안내문구 ──────────────────────────────────
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Column(children: [
+                  Text(
+                    '본 거래확인서는 세금계산서 대용으로 사용할 수 없습니다.',
+                    style: TextStyle(fontSize: 10, color: Color(0xFF888888)),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    '현금영수증 문의: 126-1-1',
+                    style: TextStyle(fontSize: 10, color: Color(0xFF888888)),
+                    textAlign: TextAlign.center,
+                  ),
+                ]),
               ),
               const SizedBox(height: 16),
             ]),
           )),
-          // 닫기 버튼
+
+          // ── 닫기 버튼 ─────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
             child: SizedBox(
@@ -2043,7 +2147,8 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('닫기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                child: const Text('닫기',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
               ),
             ),
           ),
