@@ -4157,7 +4157,61 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
+
+            // ── 배송비 실시간 안내 ──
+            Builder(builder: (_) {
+              final isFreeShip = _quantity >= AppConstants.groupMinFreeShipping;
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: isFreeShip
+                      ? const Color(0xFF2E7D32).withValues(alpha: 0.07)
+                      : const Color(0xFFF57F17).withValues(alpha: 0.07),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isFreeShip
+                        ? const Color(0xFF2E7D32).withValues(alpha: 0.35)
+                        : const Color(0xFFF57F17).withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Row(children: [
+                  Icon(
+                    Icons.local_shipping_outlined,
+                    size: 15,
+                    color: isFreeShip ? const Color(0xFF2E7D32) : const Color(0xFFF57F17),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 12, height: 1.5),
+                        children: [
+                          TextSpan(
+                            text: isFreeShip ? '무료배송' : '배송비 4,000원',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              color: isFreeShip ? const Color(0xFF2E7D32) : const Color(0xFFF57F17),
+                            ),
+                          ),
+                          TextSpan(
+                            text: isFreeShip
+                                ? '  (5장 이상)'
+                                : '  — 5장 이상 주문 시 무료',
+                            style: const TextStyle(
+                              color: Color(0xFF757575),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ]),
+              );
+            }),
+            const SizedBox(height: 10),
 
             // 안내
             _noticeBox(
@@ -4195,7 +4249,7 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
                         product: null,
                         isAdditionalOrder: true,
                         originalOrder: widget.order,
-                        initialCount: 5,
+                        initialCount: _quantity,
                       ),
                     ));
                   },

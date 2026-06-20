@@ -15159,11 +15159,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Шинэчлэх';
     default: return '새로고침';
   }}  String get additionalShipNote { switch (language) {
-    case AppLanguage.english:  return '🚚 Additional items are shipped separately';
-    case AppLanguage.japanese: return '🚚 追加制作品は別途配送されます';
-    case AppLanguage.chinese:  return '🚚 追加生产品将单独配送';
-    case AppLanguage.mongolian:return '🚚 Нэмэлт бараа тусдаа хүргэгдэнэ';
-    default: return '🚚 추가제작 물품은 별도 배송됩니다';
+    case AppLanguage.english:  return '🚚 Free shipping on 5+ items · ₩4,000 fee under 5 items';
+    case AppLanguage.japanese: return '🚚 5点以上は送料無料・5点未満は送料4,000ウォン';
+    case AppLanguage.chinese:  return '🚚 5件以上免运费 · 不足5件运费4,000韩元';
+    case AppLanguage.mongolian:return '🚚 5-с дээш: үнэгүй хүргэлт · 5-аас доош: 4,000 ₩ хүргэлтийн төлбөр';
+    default: return '🚚 5장 이상 무료배송 · 5장 미만 배송비 4,000원';
   }}
 
   // ── 기성품 배송 안내 ──────────────────────────────────────────

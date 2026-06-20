@@ -285,7 +285,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       + (_isTights9 ? _tights9Price : 0)     // 9부:    인원당 +20,000
       + (_hasPocket ? _pocketPrice : 0);     // 주머니: 인원당 +10,000
   double get _subTotal     => _unitPrice * _totalCount;
-  // 배송비: 5인 이상 무료, 미만 4,000원
+  // 배송비: 5장 이상 무료, 5장 미만 4,000원
   double get _shipping     => _totalCount >= AppConstants.groupMinFreeShipping ? 0 : AppConstants.groupAdditionalShippingFee.toDouble();
   // 최종 = 소계(단가×인원) + 배송비 + 허리밴드 + 독점
   // ※ 주머니는 단가에 이미 포함 — 별도 가산 없음
@@ -5060,8 +5060,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _sumRow('상품 합계', '${_fmt(_subTotal)}원'),
         _sumRow(
           '배송비',
-          _totalCount >= AppConstants.groupMinFreeShipping ? '무료 (5장 이상)' : '+${_fmt(_shipping)}원',
-          valueColor: _totalCount >= AppConstants.groupMinFreeShipping ? Colors.green.shade700 : null,
+          _totalCount >= AppConstants.groupMinFreeShipping
+              ? '무료 (5장 이상)'
+              : '+${_fmt(_shipping)}원 (5장 미만)',
+          valueColor: _totalCount >= AppConstants.groupMinFreeShipping
+              ? Colors.green.shade700
+              : const Color(0xFFF57F17),
         ),
         if (_waistbandExtra > 0)
           _sumRow('허리밴드 ${_waistbandOptionLabel}',
