@@ -174,8 +174,58 @@ class _AdminScreenState extends State<AdminScreen>
         context.read<ProductProvider>().loadAdminProducts();
         // 카테고리 서비스 로드
         CategoryService.load();
+        // 🔔 브라우저 알림 권한 자동 요청 (채팅 알림용)
+        _requestBrowserNotificationPermission();
       }
     });
+  }
+
+  // 브라우저 알림 권한 요청 — 관리자 로그인 직후 1회
+  Future<void> _requestBrowserNotificationPermission() async {
+    if (!mounted) return;
+    final status = AdminWebNotifier.permissionStatus;
+    if (status == 'granted') return; // 이미 허용됨
+    if (status == 'denied') return;  // 사용자가 명시적으로 거부함
+
+    // 'default' 상태일 때만 배너 표시
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: const Color(0xFF1A1A2E),
+        duration: const Duration(seconds: 8),
+        content: const Row(
+          children: [
+            Icon(Icons.notifications_active_rounded, color: Color(0xFFCE93D8), size: 18),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                '채팅 알림을 받으려면 브라우저 알림을 허용해 주세요.',
+                style: TextStyle(color: Colors.white, fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+        action: SnackBarAction(
+          label: '허용',
+          textColor: const Color(0xFFCE93D8),
+          onPressed: () async {
+            final ok = await AdminWebNotifier.requestPermission();
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: ok ? const Color(0xFF2E7D32) : const Color(0xFFB71C1C),
+                content: Text(
+                  ok ? '✅ 브라우저 알림이 활성화되었습니다!' : '❌ 알림 권한이 거부되었습니다.',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 
   /// 앱 시작 시 주요 데이터를 미리 로드해 탭 전환 시 즉시 표시

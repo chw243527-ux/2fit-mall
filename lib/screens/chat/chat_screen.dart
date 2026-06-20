@@ -206,11 +206,16 @@ class _ChatScreenState extends State<ChatScreen> {
       language: loc.language.code,
     );
 
-    // 관리자 이메일 알림 (FAQ 문의도 알림)
+    // 관리자 알림 3종: 이메일 + SMS/알림톡 + 브라우저 알림
     EmailService.sendChatAlert(
       userName: userName,
       message: displayQuestion,
       userId: userId,
+    );
+    NotificationService.sendChatAlertToAdmin(
+      userName: userName,
+      message: displayQuestion,
+      language: loc.language.code,
     );
   }
 
@@ -273,11 +278,17 @@ class _ChatScreenState extends State<ChatScreen> {
       language: loc.language.code,
     );
 
-    // 관리자 이메일 알림 발송 (핸드폰으로 수신)
+    // 관리자 알림 3종 발송: 이메일 + SMS/알림톡 + 브라우저 알림
     EmailService.sendChatAlert(
       userName: userName,
       message: text.trim(),
       userId: userId,
+    );
+    // SMS / 카카오 알림톡 (관리자 핸드폰)
+    NotificationService.sendChatAlertToAdmin(
+      userName: userName,
+      message: text.trim(),
+      language: loc.language.code,
     );
   }
 

@@ -38,6 +38,14 @@ class KakaoConfig {
   static const templateShipped      = '1o2lfrsB54'; // 배송 시작
   static const templateDelivered    = 'GmR1Ij666P'; // 배송 완료
   static const templateCancelled    = 'EOMxrky4zz'; // 주문 취소
+  // ⚠️ 채팅 알림톡 템플릿: SOLAPI에서 검수 후 실제 코드로 교체
+  // console.solapi.com → 카카오 알림톡 → 템플릿 관리 → 새 템플릿 등록
+  // 템플릿 내용 예시:
+  //   [2FIT MALL] 새 채팅 문의가 도착했습니다.
+  //   고객명: #{고객명} / #{시간}
+  //   내용: #{메시지}
+  //   관리자 확인: https://2fit-mall.co.kr/#/admin?tab=chat
+  static const templateChatAlert = ''; // 등록 후 코드 입력 (현재 SMS로 대체 발송)
 
   static bool get isConfigured =>
       apiKey.isNotEmpty && apiSecret.isNotEmpty && senderKey.isNotEmpty;
@@ -46,16 +54,20 @@ class KakaoConfig {
   static const apiUrl = 'https://api.solapi.com/messages/v4/send';
 }
 
-// ─── 관리자 이메일 ────────────────────────────────────────────
+// ─── 관리자 설정 ────────────────────────────────────────────
 class AdminConfig {
   // 주문 알림을 받을 관리자 이메일
   static const adminEmail = 'chw243527@gmail.com';
+
+  // ✅ 관리자 핸드폰 번호 (SMS/알림톡 수신)
+  static const adminPhone = '01072276914';
 
   // Supabase Edge Function URL (이메일 발송용) — 사용 시 입력
   static const emailEdgeFunctionUrl = '';
 
   static bool get hasEmail => adminEmail.isNotEmpty;
   static bool get hasEdgeFunction => emailEdgeFunctionUrl.isNotEmpty;
+  static bool get hasPhone => adminPhone.isNotEmpty;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -134,6 +146,43 @@ class NotificationService {
     );
   }
 
+  // ─── 관리자 채팅 알림 (SMS + 알림톡) ──────────────────────────
+  // 일반 사용자가 채팅 입력 시 관리자 핸드폰으로 즉시 알림
+  static Future<void> sendChatAlertToAdmin({
+    required String userName,
+    required String message,
+    String language = 'KO',
+  }) async {
+    if (!AdminConfig.hasPhone) return;
+
+    final now = DateTime.now();
+    final timeStr =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final shortMsg = message.length > 30 ? '${message.substring(0, 30)}...' : message;
+
+    // 1) 카카오 알림톡 시도 (템플릿 등록된 경우)
+    if (KakaoConfig.templateChatAlert.isNotEmpty) {
+      await _sendKakaoAlimtalk(
+        phone: AdminConfig.adminPhone,
+        templateCode: KakaoConfig.templateChatAlert,
+        params: {
+          '#{고객명}': userName,
+          '#{시간}': timeStr,
+          '#{메시지}': shortMsg,
+        },
+      );
+    } else {
+      // 2) 알림톡 템플릿 미등록 시 → SMS로 대체 발송
+      await _sendSms(
+        phone: AdminConfig.adminPhone,
+        text: '[2FIT MALL] 새 채팅 문의\n'
+            '고객: $userName ($timeStr)\n'
+            '내용: $shortMsg\n'
+            '확인: 2fit-mall.co.kr/#/admin?tab=chat',
+      );
+    }
+  }
+
   // ══════════════════════════════════════════════════════════════
   // 카카오 알림톡 발송 (내부) — SOLAPI 경유
   // 참고: https://docs.solapi.com/references/messages/send-many-detail
@@ -207,6 +256,46 @@ class NotificationService {
     final bytes = utf8.encode(data);
     final hmac = Hmac(sha256, key);
     return hmac.convert(bytes).toString();
+  }
+
+  // ── SMS 문자 발송 (SOLAPI) ───────────────────────────────────
+  static Future<void> _sendSms({
+    required String phone,
+    required String text,
+  }) async {
+    if (!KakaoConfig.isConfigured) {
+      if (kDebugMode) debugPrint('📲 [SMS 시뮬레이션] → $phone\n$text');
+      return;
+    }
+    try {
+      final date = DateTime.now().toUtc().toIso8601String();
+      final salt = DateTime.now().millisecondsSinceEpoch.toString();
+      final signature = _hmacSha256(KakaoConfig.apiSecret, '$date$salt');
+
+      final response = await http.post(
+        Uri.parse(KakaoConfig.apiUrl),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Authorization':
+              'HMAC-SHA256 apiKey=${KakaoConfig.apiKey}, date=$date, salt=$salt, signature=$signature',
+        },
+        body: jsonEncode({
+          'message': {
+            'to': phone.replaceAll('-', ''),
+            'from': KakaoConfig.senderPhone,
+            'type': text.length > 90 ? 'LMS' : 'SMS',
+            'text': text,
+          },
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (kDebugMode) {
+        debugPrint('📲 SMS 발송 결과: ${response.statusCode}');
+        debugPrint('   응답: ${response.body}');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ SMS 발송 실패: $e');
+    }
   }
 
   // ── 관리자 이메일 알림 ──────────────────────────────────────
@@ -441,8 +530,8 @@ class AdminWebNotifier {
         }
       }
 
-      // 브라우저 알림 생성 (Web API - 기본 방식)
-      web_notif.showBrowserNotification(title);
+      // 브라우저 알림 생성 (title + body 함께 전달)
+      web_notif.showBrowserNotification(title, body);
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 브라우저 알림 실패: $e');
     }
