@@ -1432,11 +1432,14 @@ class OrderExcelService {
     try {
       final archive = ZipDecoder().decodeBytes(xlsxBytes);
 
-      // 시트별로 그룹화
-      final Map<int, List<_ImageToInsert>> bySheet = {};
+      // 시트별로 그룹화 — sheetName 우선, 없으면 sheetIndex 문자열을 키로 사용
+      final Map<String, List<_ImageToInsert>> bySheet = {};
       for (final img in images) {
         if (img.bytes == null) continue;
-        bySheet.putIfAbsent(img.sheetIndex, () => []).add(img);
+        final key = (img.sheetName != null && img.sheetName!.isNotEmpty)
+            ? img.sheetName!
+            : '__idx_${img.sheetIndex}';
+        bySheet.putIfAbsent(key, () => []).add(img);
       }
       if (bySheet.isEmpty) return xlsxBytes;
 
@@ -1485,14 +1488,18 @@ class OrderExcelService {
       final List<ArchiveFile> newFiles = [];
 
       for (final entry in bySheet.entries) {
-        final sheetIdx = entry.key;
+        final sheetKey = entry.key;
         final imgs = entry.value;
 
-        // sheetName이 있으면 이름으로 인덱스를 찾고, 없으면 sheetIndex 사용
-        final firstImg = imgs.first;
-        final resolvedIdx = (firstImg.sheetName != null && nameToIdx.containsKey(firstImg.sheetName))
-            ? nameToIdx[firstImg.sheetName]!
-            : sheetIdx;
+        // sheetName으로 인덱스 resolve, 없으면 '__idx_N' 키에서 N 파싱
+        int resolvedIdx;
+        if (sheetKey.startsWith('__idx_')) {
+          resolvedIdx = int.tryParse(sheetKey.substring(6)) ?? 0;
+        } else {
+          resolvedIdx = nameToIdx.containsKey(sheetKey)
+              ? nameToIdx[sheetKey]!
+              : imgs.first.sheetIndex;
+        }
 
         if (resolvedIdx >= sheetRIds.length) continue;
         final sheetRId = sheetRIds[resolvedIdx];
