@@ -3764,9 +3764,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         if (_isAdditional && _originalOrder != null) ...[
           // ── 기존 주문 디자인 확정 이미지
           Builder(builder: (_) {
-            final originalDesignUrl =
+            // 1순위: 디자인 수정 완료 후 확정된 이미지
+            // 2순위: 주문 시 등록된 디자인 파일 이미지 (폴백)
+            final confirmedUrl =
+                (_originalOrder!.customOptions?['designConfirmedImageUrl'] as String?)?.trim() ?? '';
+            final fallbackUrl =
                 (_originalOrder!.customOptions?['designFileUrl'] as String?)?.trim() ?? '';
+            final originalDesignUrl = confirmedUrl.isNotEmpty ? confirmedUrl : fallbackUrl;
             final hasDesignImg = originalDesignUrl.isNotEmpty;
+            final isConfirmed = confirmedUrl.isNotEmpty;
             return Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -3790,8 +3796,37 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     style: TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.5)),
                 if (hasDesignImg) ...[
                   const SizedBox(height: 10),
-                  const Text('디자인 확정 이미지',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF5D4037))),
+                  Row(
+                    children: [
+                      Text(
+                        isConfirmed ? '디자인 확정 이미지' : '주문 당시 디자인 이미지',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF5D4037)),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isConfirmed
+                              ? const Color(0xFF2E7D32).withValues(alpha: 0.12)
+                              : const Color(0xFFF57F17).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: isConfirmed
+                                ? const Color(0xFF2E7D32).withValues(alpha: 0.4)
+                                : const Color(0xFFF57F17).withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Text(
+                          isConfirmed ? '수정 완료' : '수정 전',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: isConfirmed ? const Color(0xFF2E7D32) : const Color(0xFFF57F17),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 6),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),

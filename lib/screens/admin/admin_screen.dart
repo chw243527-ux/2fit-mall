@@ -3386,6 +3386,10 @@ class _AdminScreenState extends State<AdminScreen>
     final canChangeDesign = printType == 3 || printType == 4;
     String? selectedColor;
     bool isSubmitting = false;
+    // 확정 이미지 업로드
+    Uint8List? confirmedImageBytes;
+    String? confirmedImageFileName;
+    String? confirmedImageUrl; // 업로드 완료 후 URL
 
     final printTypeLabels = ['색상변경', '단체명변경', '단체명+색상', '디자인+단체명+색상', '디자인+색상+단체명+이름'];
     final printLabel = printType < printTypeLabels.length ? printTypeLabels[printType] : '알 수 없음';
@@ -3395,8 +3399,23 @@ class _AdminScreenState extends State<AdminScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setSheet) => Container(
-          height: MediaQuery.of(context).size.height * 0.75,
+        builder: (ctx, setSheet) {
+
+          // 이미지 선택 핸들러
+          Future<void> pickConfirmedImage() async {
+            final picker = ImagePicker();
+            final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 88, maxWidth: 1920);
+            if (file == null) return;
+            final bytes = await file.readAsBytes();
+            setSheet(() {
+              confirmedImageBytes = bytes;
+              confirmedImageFileName = file.name;
+              confirmedImageUrl = null; // 새 파일 선택 시 이전 URL 초기화
+            });
+          }
+
+          return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -3491,6 +3510,91 @@ class _AdminScreenState extends State<AdminScreen>
                           }).toList(),
                         ),
                       ],
+
+                      // ── 디자인 확정 이미지 업로드 ──
+                      const SizedBox(height: 20),
+                      const Text('디자인 확정 이미지 (필수)',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: 4),
+                      const Text('수정 완료 후 확정된 최종 디자인 이미지를 첨부해 주세요.\n고객의 추가제작 주문서에 자동으로 표시됩니다.',
+                          style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.5)),
+                      const SizedBox(height: 10),
+                      GestureDetector(
+                        onTap: () => pickConfirmedImage(),
+                        child: Container(
+                          width: double.infinity,
+                          constraints: const BoxConstraints(minHeight: 130),
+                          decoration: BoxDecoration(
+                            color: confirmedImageBytes != null
+                                ? Colors.transparent
+                                : const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: confirmedImageBytes != null
+                                  ? const Color(0xFF2E7D32)
+                                  : const Color(0xFFDDDDDD),
+                              width: confirmedImageBytes != null ? 2 : 1,
+                            ),
+                          ),
+                          child: confirmedImageBytes != null
+                              ? Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(9),
+                                      child: Image.memory(
+                                        confirmedImageBytes!,
+                                        width: double.infinity,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 6, right: 6,
+                                      child: GestureDetector(
+                                        onTap: () => setSheet(() {
+                                          confirmedImageBytes = null;
+                                          confirmedImageFileName = null;
+                                          confirmedImageUrl = null;
+                                        }),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black54,
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
+                                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      bottom: 6, left: 6,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF2E7D32).withValues(alpha: 0.9),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          confirmedImageFileName ?? '이미지 선택됨',
+                                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: const [
+                                    SizedBox(height: 28),
+                                    Icon(Icons.add_photo_alternate_outlined, size: 36, color: Color(0xFFBBBBBB)),
+                                    SizedBox(height: 8),
+                                    Text('탭하여 확정 이미지 첨부',
+                                        style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
+                                    SizedBox(height: 28),
+                                  ],
+                                ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -3515,8 +3619,21 @@ class _AdminScreenState extends State<AdminScreen>
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('처리 내용을 입력해주세요.')));
                           return;
                         }
+                        if (confirmedImageBytes == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('디자인 확정 이미지를 첨부해주세요.')));
+                          return;
+                        }
                         setSheet(() => isSubmitting = true);
                         try {
+                          // 1) 확정 이미지 Storage 업로드
+                          final uploadUrl = await StorageService.uploadBannerImage(
+                            bannerId: 'design_confirmed/${order.id}_${DateTime.now().millisecondsSinceEpoch}',
+                            imageBytes: confirmedImageBytes!,
+                          );
+                          if (uploadUrl == null) throw Exception('이미지 업로드 실패');
+                          setSheet(() => confirmedImageUrl = uploadUrl);
+
+                          // 2) Firestore 저장
                           final db = FirebaseFirestore.instance;
                           await db.collection('orders').doc(order.id).update({
                             'customOptions.designRevisionResponse': {
@@ -3526,6 +3643,7 @@ class _AdminScreenState extends State<AdminScreen>
                               'status': 'responded',
                             },
                             'customOptions.designRevisionRequest.status': 'responded',
+                            'customOptions.designConfirmedImageUrl': uploadUrl,
                           });
                           if (!ctx.mounted) return;
                           Navigator.pop(ctx);
@@ -3553,7 +3671,8 @@ class _AdminScreenState extends State<AdminScreen>
               ),
             ],
           ),
-        ),
+        );
+        }, // StatefulBuilder builder
       ),
     );
   }
