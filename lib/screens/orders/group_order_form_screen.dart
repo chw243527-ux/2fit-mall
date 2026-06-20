@@ -860,23 +860,33 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               _buildHeader(),
               _buildCountSection(),
               if (_countFixed) ...[
-                _buildAllMembersNotice(),
-                if (!_isBottomOnly) _buildPrintTypeSection(),
-                if (!_isBottomOnly) _build2FitLogoBanner(),
-                if (widget.product != null) _buildProductCard(),
-                if (!_isBottomOnly) _buildFabricSection(),
-                if (!_isTopOnly) _buildLengthSection(),
-                if (!_isTopOnly) _buildPocketSection(),
-                if (!_isTopOnly) _buildWaistbandSection(),
-                _buildColorSection(),
-                if (!_isBottomOnly) _buildRefImageSection(),
-                if (!_isTopOnly) _buildWaistbandDesignSection(),
-                _buildMemoSection(),
-                _buildPersonListSection(),
-                _buildBasicInfoSection(),
-                _buildCancelPolicySection(),
-                _buildSummarySection(),
-                const SizedBox(height: 32),
+                // ── 추가제작: 인원별 사이즈 + 기본정보 + 요약만 표시 ──
+                if (_isAdditional) ...[
+                  _buildPersonListSection(),
+                  _buildBasicInfoSection(),
+                  _buildCancelPolicySection(),
+                  _buildSummarySection(),
+                  const SizedBox(height: 32),
+                // ── 신규 단체주문: 전체 섹션 표시 ──
+                ] else ...[
+                  _buildAllMembersNotice(),
+                  if (!_isBottomOnly) _buildPrintTypeSection(),
+                  if (!_isBottomOnly) _build2FitLogoBanner(),
+                  if (widget.product != null) _buildProductCard(),
+                  if (!_isBottomOnly) _buildFabricSection(),
+                  if (!_isTopOnly) _buildLengthSection(),
+                  if (!_isTopOnly) _buildPocketSection(),
+                  if (!_isTopOnly) _buildWaistbandSection(),
+                  _buildColorSection(),
+                  if (!_isBottomOnly) _buildRefImageSection(),
+                  if (!_isTopOnly) _buildWaistbandDesignSection(),
+                  _buildMemoSection(),
+                  _buildPersonListSection(),
+                  _buildBasicInfoSection(),
+                  _buildCancelPolicySection(),
+                  _buildSummarySection(),
+                  const SizedBox(height: 32),
+                ],
               ],
             ],
           ),
@@ -1065,8 +1075,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           }),
         ]),
         const SizedBox(height: 4),
-        const Text('최소 5명 이상 주문 가능합니다.',
-            style: TextStyle(fontSize: 11, color: Colors.grey)),
+        if (!_isAdditional)
+          const Text('최소 5명 이상 주문 가능합니다.',
+              style: TextStyle(fontSize: 11, color: Colors.grey))
+        else
+          const Text('1장부터 추가제작 가능합니다.',
+              style: TextStyle(fontSize: 11, color: Colors.grey)),
         const SizedBox(height: 12),
         if (!_countFixed)
           SizedBox(
@@ -3745,8 +3759,35 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       icon: Icons.format_list_numbered_rounded,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-        // ── 재봉방법 선택사항 표시 배너
-        Container(
+        // ── 추가제작: 기존 주문 동일 디자인 안내 배너
+        if (_isAdditional && _originalOrder != null) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF795548).withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF795548).withValues(alpha: 0.35)),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF795548)),
+                const SizedBox(width: 6),
+                const Text('기존 주문과 동일한 디자인으로 제작됩니다',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF795548))),
+              ]),
+              const SizedBox(height: 6),
+              const Text('• 색상 · 원단 · 허리밴드 · 로고 등 모든 옵션은 기존 주문과 동일하게 적용됩니다.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.5)),
+              const Text('• 인원별 사이즈와 주문자 정보만 새로 입력해 주세요.',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.5)),
+            ]),
+          ),
+        ],
+
+        // ── 재봉방법 선택사항 표시 배너 (신규 주문만)
+        if (!_isAdditional) Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           margin: const EdgeInsets.only(bottom: 8),
           decoration: BoxDecoration(
@@ -3773,8 +3814,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           ]),
         ),
 
-        // ── 색상 통일 안내 배너
-        if (_mainColorName != null) ...[
+        // ── 색상 통일 안내 배너 (신규 주문만)
+        if (!_isAdditional && _mainColorName != null) ...[
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             margin: const EdgeInsets.only(bottom: 10),
@@ -3835,8 +3876,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           ),
         ],
 
-        // ── 하의 길이 안내 배너 (남/여 각각 표시)
-        if (_maleLengthSel != null || _femaleLengthSel != null) ...[
+        // ── 하의 길이 안내 배너 (신규 주문만)
+        if (!_isAdditional && (_maleLengthSel != null || _femaleLengthSel != null)) ...[
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             margin: const EdgeInsets.only(bottom: 10),
