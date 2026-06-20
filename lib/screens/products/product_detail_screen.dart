@@ -9089,7 +9089,10 @@ class _WriteReviewSheet extends StatefulWidget {
   final ProductModel product;
   final ReviewModel? existing;
   final VoidCallback? onSubmitted;
-  const _WriteReviewSheet({required this.product, this.existing, this.onSubmitted});
+  final String? initialSize;
+  final String? initialColor;
+  const _WriteReviewSheet({required this.product, this.existing, this.onSubmitted,
+      this.initialSize, this.initialColor});
   @override
   State<_WriteReviewSheet> createState() => _WriteReviewSheetState();
 }
@@ -9109,6 +9112,10 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
       _contentCtrl.text = widget.existing!.content;
       _sizeCtrl.text = widget.existing!.size;
       _colorCtrl.text = widget.existing!.color;
+    } else {
+      // 주문내역에서 전달된 사이즈/색상 자동 입력
+      if (widget.initialSize != null) _sizeCtrl.text = widget.initialSize!;
+      if (widget.initialColor != null) _colorCtrl.text = widget.initialColor!;
     }
   }
 
@@ -10380,7 +10387,8 @@ class _FabricTab extends StatelessWidget {
 
 /// 외부에서 리뷰 작성 시트를 열기 위한 public 함수
 /// 마이페이지 주문내역 등에서 재활용
-void showWriteReviewSheet(BuildContext context, ProductModel product, {VoidCallback? onSubmitted}) {
+void showWriteReviewSheet(BuildContext context, ProductModel product,
+    {VoidCallback? onSubmitted, String? initialSize, String? initialColor}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -10388,6 +10396,8 @@ void showWriteReviewSheet(BuildContext context, ProductModel product, {VoidCallb
     builder: (_) => _WriteReviewSheet(
       product: product,
       onSubmitted: onSubmitted,
+      initialSize: initialSize,
+      initialColor: initialColor,
     ),
   );
 }

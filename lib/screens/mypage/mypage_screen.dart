@@ -3543,10 +3543,10 @@ class _MobileSettingsTab extends StatelessWidget {
         'orderType': 'personal',
         'createdAt': now.toIso8601String(),
         'trackingNumber': '1234567890123',
-        'shippingCompany': 'CJ대한통운',
+        'shippingCompany': '한진택배',
         'customOptions': {
           'trackingNumber': '1234567890123',
-          'shippingCompany': 'CJ대한통운',
+          'shippingCompany': '한진택배',
         },
         'items': [
           {
@@ -5762,17 +5762,56 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
 // ═══════════════════════════════════════════════════════════════
 
 /// 주문내역에서 리뷰 작성 시트 열기
-/// 주문의 첫 번째 상품 정보를 기반으로 _WriteReviewSheet를 엽니다.
+/// 상품이 여러 개면 선택 다이얼로그 → 선택한 상품의 실제 productId로 저장
 void _showWriteReviewFromOrder(BuildContext context, OrderModel order) async {
   if (order.items.isEmpty) return;
-  final item = order.items.first;
 
-  // Firestore에서 실제 상품 정보 조회 (없으면 주문 정보로 최소 ProductModel 생성)
+  // 상품 1개면 바로 열기, 여러 개면 선택 다이얼로그
+  OrderItem? selectedItem;
+  if (order.items.length == 1) {
+    selectedItem = order.items.first;
+  } else {
+    if (!context.mounted) return;
+    selectedItem = await showDialog<OrderItem>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('리뷰 작성할 상품 선택', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        content: SizedBox(
+          width: 320,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: order.items.map((item) => ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              leading: Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F0F7),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.shopping_bag_outlined, size: 20, color: Color(0xFF6A1B9A)),
+              ),
+              title: Text(item.productName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              subtitle: Text('${item.size} · ${item.color} · ${item.quantity}개',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey)),
+              onTap: () => Navigator.pop(ctx, item),
+            )).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+        ],
+      ),
+    );
+    if (selectedItem == null) return;
+  }
+
+  // Firestore에서 실제 상품 정보 조회
   ProductModel? product;
   try {
     final doc = await FirebaseFirestore.instance
         .collection('products')
-        .doc(item.productId)
+        .doc(selectedItem.productId)
         .get();
     if (doc.exists && doc.data() != null) {
       final data = doc.data()!;
@@ -5786,13 +5825,13 @@ void _showWriteReviewFromOrder(BuildContext context, OrderModel order) async {
 
   // Firestore 조회 실패 시 주문 정보로 최소 ProductModel 구성
   product ??= ProductModel(
-    id: item.productId,
-    name: item.productName,
+    id: selectedItem.productId,
+    name: selectedItem.productName,
     category: '',
-    price: item.price,
+    price: selectedItem.price,
     description: '',
-    images: item.imageUrl != null && item.imageUrl!.isNotEmpty
-        ? [item.imageUrl!]
+    images: selectedItem.imageUrl != null && selectedItem.imageUrl!.isNotEmpty
+        ? [selectedItem.imageUrl!]
         : [],
     sizes: [],
     colors: [],
@@ -5811,7 +5850,10 @@ void _showWriteReviewFromOrder(BuildContext context, OrderModel order) async {
   );
 
   if (!context.mounted) return;
-  showWriteReviewSheet(context, product);
+  // orderId를 hint로 전달해 리뷰 시트에서 주문번호 자동 입력
+  showWriteReviewSheet(context, product,
+      initialSize: selectedItem.size,
+      initialColor: selectedItem.color);
 }
 
 void _showConfirmPurchaseDialog(BuildContext context, OrderModel order) {

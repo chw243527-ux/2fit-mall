@@ -611,6 +611,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                           ),
                           _buildInputArea(loc),
+                          _buildBusinessInfoFooter(),
                         ],
                       ),
                     ),
@@ -634,6 +635,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                     ),
                     _buildInputArea(loc),
+                    _buildBusinessInfoFooter(),
                   ],
                 ),
         );
@@ -933,6 +935,68 @@ class _ChatScreenState extends State<ChatScreen> {
             child: IconButton(
               icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
               onPressed: () => _sendMessage(_messageController.text, loc),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ────────── 사업자 정보 Footer ──────────
+  Widget _buildBusinessInfoFooter() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFF1A1A2E),
+        border: Border(top: BorderSide(color: Color(0xFF2D2B55), width: 1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppConstants.companyName,
+            style: const TextStyle(
+              color: Color(0xFFCE93D8),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 4),
+          _footerInfoRow(Icons.person_outline_rounded,
+              '대표자: ${AppConstants.ceoName}'),
+          _footerInfoRow(Icons.location_on_outlined,
+              AppConstants.companyAddress),
+          _footerInfoRow(Icons.business_outlined,
+              '사업자등록번호: ${AppConstants.businessRegNumber}'),
+          _footerInfoRow(Icons.storefront_outlined,
+              '통신판매업신고번호: 심사 중'),
+          _footerInfoRow(Icons.phone_outlined,
+              AppConstants.customerServicePhone),
+          _footerInfoRow(Icons.email_outlined,
+              AppConstants.customerServiceEmail),
+        ],
+      ),
+    );
+  }
+
+  Widget _footerInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 11, color: const Color(0xFF9E9E9E)),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFFB0B0B0),
+                fontSize: 10,
+                height: 1.4,
+              ),
             ),
           ),
         ],

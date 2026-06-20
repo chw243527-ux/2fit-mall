@@ -5251,7 +5251,7 @@ class _HomeScreenState extends State<HomeScreen>
           Row(
             children: [
               _footerSocialBtn(loc.homeKakao, const Color(0xFFFFE000), Colors.black,
-                  () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
+                  () => _openKakaoChannel()),
               SizedBox(width: r.w(8)),
               _footerSocialBtn('고객센터', const Color(0xFF333333), Colors.white,
                   () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
@@ -5269,7 +5269,7 @@ class _HomeScreenState extends State<HomeScreen>
               _footerLink(loc.footerGroupOrder, () => Navigator.pushNamed(context, '/group-guide')),
               _footerLink('주문 현황', () => widget.onNavigate?.call(3)),
               _footerLink('1:1 문의', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
-              _footerLink('카카오톡 채널', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
+              _footerLink('카카오톡 채널', () => _openKakaoChannel()),
             ],
           ),
           SizedBox(height: r.h(16)),
@@ -5354,7 +5354,7 @@ class _HomeScreenState extends State<HomeScreen>
                           Row(
                             children: [
                               _footerSocialBtn(loc.homeKakao, const Color(0xFFFFE000), Colors.black,
-                                  () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
+                                  () => _openKakaoChannel()),
                               SizedBox(width: r.w(8)),
                               _footerSocialBtn('고객센터', const Color(0xFF333333), Colors.white,
                                   () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
@@ -5403,7 +5403,7 @@ class _HomeScreenState extends State<HomeScreen>
                           _footerLink('1:1 문의', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
                           _footerLink('자주 묻는 질문', null),
                           _footerLink(loc.myPageLabel, () => widget.onNavigate?.call(3)),
-                          _footerLink('카카오톡 채널', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
+                          _footerLink('카카오톡 채널', () => _openKakaoChannel()),
                         ],
                       ),
                     ),
@@ -5434,6 +5434,16 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
+  }
+
+  Future<void> _openKakaoChannel() async {
+    final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
+    final webUrl = Uri.parse('https://pf.kakao.com/_xfVlxb/chat');
+    if (await canLaunchUrl(appUrl)) {
+      await launchUrl(appUrl);
+    } else {
+      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+    }
   }
 
   Widget _footerInfoRow(String text) {
