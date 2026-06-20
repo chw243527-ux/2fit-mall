@@ -564,6 +564,21 @@ class OrderService {
       if (mgr != null && mgr.isNotEmpty) customOptions['manager'] = mgr;
     }
 
+    // ── 최상위 designRevisionRequest → customOptions에 병합 ──
+    // 디자인수정 요청은 최상위 필드로 저장, customOptions getter는 customOptions 안에서 읽음
+    final topDrReq = data['designRevisionRequest'];
+    if (topDrReq is Map) {
+      final existing = customOptions['designRevisionRequest'];
+      if (existing is Map) {
+        // 이미 있으면 최상위 값으로 덮어쓰기 (더 최신 데이터 우선)
+        final merged = Map<String, dynamic>.from(existing);
+        merged.addAll(Map<String, dynamic>.from(topDrReq));
+        customOptions['designRevisionRequest'] = merged;
+      } else {
+        customOptions['designRevisionRequest'] = Map<String, dynamic>.from(topDrReq);
+      }
+    }
+
     // ── orderType 자동 보정 ──
     // Firestore에 'personal'로 저장됐더라도 진짜 단체주문이면 보정
     String rawOrderType = data['orderType'] as String? ?? 'personal';

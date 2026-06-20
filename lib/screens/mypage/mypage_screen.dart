@@ -5227,7 +5227,6 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
           .update({
         'customOptions.userDesignApproved': true,
         'customOptions.userDesignApprovedAt': DateTime.now().toIso8601String(),
-        // 디자인수정 기간을 과거로 만료 → canRequestDesignRevision = false
         'designRevisionDeadline': DateTime.now()
             .subtract(const Duration(seconds: 1))
             .toIso8601String(),
@@ -5240,8 +5239,11 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isApproving = false);
+      // 시트 내부 ScaffoldMessenger 사용 (부모 SnackBar와 겹침 방지)
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('오류가 발생했습니다: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating),
       );
     }
   }
@@ -5250,7 +5252,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
   Widget build(BuildContext context) {
     final order    = widget.order;
     final imageUrl = order.designConfirmedImageUrl;
-    final req      = order.designRevisionRequest;                      // customOptions.designRevisionRequest
+    final req      = order.designRevisionRequest;
     final memo        = req?['memo']        as String?;
     final colorName   = req?['colorName']   as String?;
     final colorHex    = req?['adjustedColorHex'] as String?;
@@ -5270,7 +5272,11 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
     if (personChanges.isNotEmpty) changeItems.add({'label': '사이즈 변경', 'value': '${personChanges.length}명 변경'});
     if (memo?.isNotEmpty == true) changeItems.add({'label': '추가 메모', 'value': memo!});
 
-    return DraggableScrollableSheet(
+    // ScaffoldMessenger로 감싸 SnackBar가 시트 내부에만 표시되도록
+    return ScaffoldMessenger(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: DraggableScrollableSheet(
       initialChildSize: 0.95,
       minChildSize: 0.5,
       maxChildSize: 0.98,
@@ -5633,7 +5639,9 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
           ],
         ),
       ),
-    );
+        ), // DraggableScrollableSheet
+      ), // Scaffold body
+    ); // ScaffoldMessenger
   }
 
   /// #RRGGBB 문자열 → Color
