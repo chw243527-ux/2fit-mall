@@ -1265,6 +1265,8 @@ class _PcOrderCard extends StatelessWidget {
                 badge: '${order.remainingDesignRevisions}회',
                 onTap: () => onDesignRevision?.call(order),
               ));
+              // 추가제작
+              if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), onTap: () => onAdditionalOrder(order)));
               // 단체주문 디자인 확인 버튼 (수정완료 이미지가 있을 때)
               if (isGroup && order.designConfirmedImageUrl?.isNotEmpty == true) btns.add(_ActionBtn(
                 icon: Icons.image_search_rounded,
@@ -1279,7 +1281,6 @@ class _PcOrderCard extends StatelessWidget {
                 color: Colors.grey,
                 onTap: null,
               ));
-              if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), onTap: () => onAdditionalOrder(order)));
 
               return Row(
                 children: btns.asMap().entries.map((e) {
@@ -3161,6 +3162,13 @@ class _MobileOrderCard extends StatelessWidget {
                 badge: '${order.remainingDesignRevisions}회',
                 onTap: () => onDesignRevision?.call(order),
               ));
+              // 추가제작
+              if (canAdditional) row2.add(_ActionBtn(
+                icon: Icons.add_circle_outline_rounded,
+                label: '추가제작',
+                color: const Color(0xFF2E7D32),
+                onTap: () => onAdditionalOrder(order),
+              ));
               // 디자인 확인 버튼 (수정완료 이미지가 있을 때)
               if (isGroup && order.designConfirmedImageUrl?.isNotEmpty == true) row2.add(_ActionBtn(
                 icon: Icons.image_search_rounded,
@@ -3174,12 +3182,6 @@ class _MobileOrderCard extends StatelessWidget {
                 label: '디자인확정',
                 color: Colors.grey,
                 onTap: null,
-              ));
-              if (canAdditional) row2.add(_ActionBtn(
-                icon: Icons.add_circle_outline_rounded,
-                label: '추가제작',
-                color: const Color(0xFF2E7D32),
-                onTap: () => onAdditionalOrder(order),
               ));
 
 
