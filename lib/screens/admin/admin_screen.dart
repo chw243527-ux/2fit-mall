@@ -258,45 +258,74 @@ class _AdminScreenState extends State<AdminScreen>
 
   Future<void> _loadDesignRequests() async {
     try {
+      // designRevisionCount > 0 인 주문에서 designRevisionRequest 필드 파싱
       final snap = await FirebaseFirestore.instance
           .collection('orders')
-          .where('colorEditRequested', isEqualTo: true)
+          .where('designRevisionCount', isGreaterThan: 0)
           .get();
       if (!mounted) return;
-      final requests = snap.docs.map((doc) {
-        final d = doc.data();
-        final opts = d['customOptions'] as Map<String, dynamic>? ?? {};
-        final raw = d['colorEditRequestedAt'];
+
+      final requests = <Map<String, dynamic>>[];
+      for (final doc in snap.docs) {
+        final d   = doc.data();
+        final req = d['designRevisionRequest'] as Map<String, dynamic>?;
+        if (req == null) continue;
+
+        // 날짜 파싱
         DateTime createdAt;
-        if (raw is Timestamp) {
-          createdAt = raw.toDate();
+        final rawAt = req['requestedAt'];
+        if (rawAt is String) {
+          createdAt = DateTime.tryParse(rawAt) ?? DateTime.now();
+        } else if (rawAt is Timestamp) {
+          createdAt = rawAt.toDate();
         } else {
           final fallback = d['createdAt'];
-          if (fallback is Timestamp) {
-            createdAt = fallback.toDate();
-          } else {
-            createdAt = DateTime.now();
-          }
+          createdAt = fallback is Timestamp ? fallback.toDate() : DateTime.now();
         }
-        final newColor = d['newColorName'] as String? ?? opts['newColorName'] as String? ?? '';
-        final newTeamName = d['newTeamName'] as String? ?? '';
-        final memo = d['colorEditMemo'] as String? ?? '';
-        String desc = '';
-        if (newColor.isNotEmpty) desc += '색상: $newColor';
-        if (newTeamName.isNotEmpty) desc += (desc.isNotEmpty ? ' / ' : '') + '팀명: $newTeamName';
-        if (memo.isNotEmpty) desc += (desc.isNotEmpty ? ' / ' : '') + '메모: $memo';
-        return {
-          'id': doc.id,
-          'orderId': doc.id,
-          'userName': d['userName'] as String? ?? '-',
-          'requestType': '색상/팀명 변경',
-          'description': desc.isNotEmpty ? desc : '변경 요청',
-          'status': '대기중',
-          'createdAt': createdAt,
-          'images': <String>[],
-          'adminNote': '',
-        };
-      }).toList();
+
+        // 상태 매핑
+        final reqStatus = req['status'] as String? ?? 'pending';
+        final String status;
+        switch (reqStatus) {
+          case 'responded': status = '처리완료'; break;
+          case 'rejected':  status = '반려';    break;
+          default:          status = '대기중';
+        }
+
+        // 요약 설명 생성
+        final memo         = req['memo']        as String? ?? '';
+        final colorName    = req['colorName']   as String? ?? '';
+        final teamName     = req['teamName']    as String? ?? '';
+        final personList   = req['personChanges'] as List<dynamic>? ?? [];
+        final descParts    = <String>[];
+        if (colorName.isNotEmpty)      descParts.add('색상: $colorName');
+        if (teamName.isNotEmpty)       descParts.add('단체명: $teamName');
+        if (personList.isNotEmpty)     descParts.add('사이즈 변경 ${personList.length}명');
+        if (descParts.isEmpty && memo.isNotEmpty)
+          descParts.add(memo.split('\n').first);
+
+        requests.add({
+          'id'              : doc.id,
+          'orderId'         : doc.id,
+          'userName'        : d['userName']  as String? ?? '-',
+          'userPhone'       : d['userPhone'] as String? ?? '',
+          'requestType'     : '디자인 수정',
+          'description'     : descParts.isNotEmpty ? descParts.join(' / ') : '변경 요청',
+          'memo'            : memo,
+          'colorName'       : colorName,
+          'adjustedColorHex': req['adjustedColorHex'] as String? ?? '',
+          'teamName'        : teamName,
+          'personChanges'   : personList,
+          'fabricName'      : req['fabricName']  as String? ?? '',
+          'printType'       : req['printType']   as String? ?? '',
+          'status'          : status,
+          'createdAt'       : createdAt,
+          'images'          : <String>[],
+          'adminNote'       : '',
+          'rawRequest'      : req,
+        });
+      }
+
       requests.sort((a, b) =>
           (b['createdAt'] as DateTime).compareTo(a['createdAt'] as DateTime));
       if (!mounted) return;
@@ -9189,12 +9218,96 @@ class _AdminScreenState extends State<AdminScreen>
                                         ],
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
-                                        req['description'] as String,
-                                        style: const TextStyle(fontSize: 12, color: Color(0xFF333333)),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                      // ── 변경 요청 상세 ──
+                                      Builder(builder: (_) {
+                                        final colorName     = req['colorName']       as String? ?? '';
+                                        final adjustedHex   = req['adjustedColorHex'] as String? ?? '';
+                                        final teamName      = req['teamName']        as String? ?? '';
+                                        final fabricName    = req['fabricName']      as String? ?? '';
+                                        final printType     = req['printType']       as String? ?? '';
+                                        final memo          = req['memo']            as String? ?? '';
+                                        final personChanges = req['personChanges']   as List<dynamic>? ?? [];
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            // 색상
+                                            if (colorName.isNotEmpty)
+                                              _drInfoRow(Icons.palette_outlined, '색상',
+                                                colorName + (adjustedHex.isNotEmpty ? '  $adjustedHex' : ''),
+                                                adjustedHex.isNotEmpty
+                                                  ? () {
+                                                      try {
+                                                        return Color(int.parse('FF${adjustedHex.replaceAll('#', '')}', radix: 16));
+                                                      } catch (_) { return null; }
+                                                    }()
+                                                  : null),
+                                            // 원단
+                                            if (fabricName.isNotEmpty)
+                                              _drInfoRow(Icons.texture_rounded, '원단', fabricName, null),
+                                            // 인쇄타입
+                                            if (printType.isNotEmpty)
+                                              _drInfoRow(Icons.print_rounded, '인쇄타입', printType, null),
+                                            // 단체명
+                                            if (teamName.isNotEmpty)
+                                              _drInfoRow(Icons.groups_outlined, '단체명', teamName, null),
+                                            // 인원별 사이즈 변경
+                                            if (personChanges.isNotEmpty)
+                                              Container(
+                                                margin: const EdgeInsets.only(top: 4),
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFE0F2F1),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Row(children: [
+                                                      const Icon(Icons.straighten_rounded, size: 12, color: Color(0xFF00695C)),
+                                                      const SizedBox(width: 4),
+                                                      Text('사이즈 변경 (${personChanges.length}명)',
+                                                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF00695C))),
+                                                    ]),
+                                                    const SizedBox(height: 4),
+                                                    ...personChanges.take(5).map((ch) {
+                                                      final m = ch as Map;
+                                                      final idx  = m['index']  ?? '';
+                                                      final name = m['name']   as String? ?? '';
+                                                      final before = m['before'] as String? ?? '';
+                                                      final after  = m['after']  as String? ?? '';
+                                                      return Text(
+                                                        '${idx}번${name.isNotEmpty ? " $name" : ""}: $before → $after',
+                                                        style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A), height: 1.5),
+                                                      );
+                                                    }),
+                                                    if (personChanges.length > 5)
+                                                      Text('외 ${personChanges.length - 5}명 더...',
+                                                        style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
+                                                  ],
+                                                ),
+                                              ),
+                                            // 추가 메모 (memo 전체 텍스트)
+                                            if (memo.isNotEmpty)
+                                              Container(
+                                                margin: const EdgeInsets.only(top: 4),
+                                                padding: const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFFFF8E1),
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  border: Border.all(color: const Color(0xFFFFCC02).withValues(alpha: 0.5)),
+                                                ),
+                                                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                                  const Icon(Icons.notes_rounded, size: 12, color: Color(0xFFE65100)),
+                                                  const SizedBox(width: 4),
+                                                  Expanded(
+                                                    child: Text(memo,
+                                                      style: const TextStyle(fontSize: 11, color: Color(0xFF1A1A1A), height: 1.5)),
+                                                  ),
+                                                ]),
+                                              ),
+                                          ],
+                                        );
+                                      }),
                                       const SizedBox(height: 4),
                                       Row(
                                         children: [
@@ -9276,6 +9389,28 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
+  Widget _drInfoRow(IconData icon, String label, String value, Color? dotColor) => Padding(
+    padding: const EdgeInsets.only(top: 3),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+      Icon(icon, size: 12, color: const Color(0xFF888888)),
+      const SizedBox(width: 4),
+      Text('$label: ', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+      if (dotColor != null) ...[
+        Container(
+          width: 10, height: 10,
+          margin: const EdgeInsets.only(right: 4),
+          decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade300)),
+        ),
+      ],
+      Expanded(
+        child: Text(value,
+          style: const TextStyle(fontSize: 11, color: Color(0xFF333333)),
+          overflow: TextOverflow.ellipsis, maxLines: 2),
+      ),
+    ]),
+  );
+
   Widget _drActionBtn(String label, Color color, VoidCallback onTap) => GestureDetector(
     onTap: onTap,
     child: Container(
@@ -9312,19 +9447,27 @@ class _AdminScreenState extends State<AdminScreen>
     final idx = _designRequests.indexWhere((r) => r['id'] == req['id']);
     if (idx >= 0) {
       setState(() => _designRequests[idx] = {..._designRequests[idx], 'status': newStatus});
-      // 완료/거절 시 Firestore에서 colorEditRequested 플래그 해제
-      if (newStatus == '완료' || newStatus == '거절') {
-        final orderId = req['orderId'] as String? ?? req['id'] as String;
-        FirebaseFirestore.instance.collection('orders').doc(orderId).update({
-          'colorEditRequested': false,
-          'colorEditHandledAt': FieldValue.serverTimestamp(),
-          'colorEditHandledStatus': newStatus,
-        }).catchError((e) {
-          if (kDebugMode) debugPrint('디자인 수정 처리 업데이트 실패: $e');
-        });
+
+      // Firestore status 매핑 (한글 → 영문 key)
+      final String fsStatus;
+      switch (newStatus) {
+        case '완료':  fsStatus = 'responded'; break;
+        case '거절':  fsStatus = 'rejected';  break;
+        case '처리중': fsStatus = 'processing'; break;
+        default:      fsStatus = 'pending';
       }
+
+      final orderId = req['orderId'] as String? ?? req['id'] as String;
+      FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+        'designRevisionRequest.status'    : fsStatus,
+        'designRevisionRequest.handledAt' : FieldValue.serverTimestamp(),
+      }).catchError((e) {
+        if (kDebugMode) debugPrint('디자인 수정 처리 업데이트 실패: $e');
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('상태가 "$newStatus"로 변경되었습니다'), backgroundColor: _getDesignStatusColor(newStatus)),
+        SnackBar(content: Text('상태가 "$newStatus"로 변경되었습니다'),
+            backgroundColor: _getDesignStatusColor(newStatus)),
       );
     }
   }
