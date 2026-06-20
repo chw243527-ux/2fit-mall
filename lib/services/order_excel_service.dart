@@ -2555,6 +2555,43 @@ class OrderExcelService {
     }
   }
 
+  // ── personChange before/after 파싱 ──
+  // Firestore 저장 형식: before/after = '상의 XL / 하의 L'
+  // 반환: {'curTop','newTop','curBot','newBot'}
+  static Map<String, String> _parsePersonSizes(Map<dynamic, dynamic> person) {
+    // 신규 키 방식 우선 (currentTopSize 등)
+    final curTop = (person['currentTopSize'] ?? person['현재상의'] ?? '').toString().trim();
+    final newTop = (person['newTopSize']     ?? person['변경상의'] ?? '').toString().trim();
+    final curBot = (person['currentBottomSize'] ?? person['현재하의'] ?? '').toString().trim();
+    final newBot = (person['newBottomSize']     ?? person['변경하의'] ?? '').toString().trim();
+    if (newTop.isNotEmpty || newBot.isNotEmpty || curTop.isNotEmpty || curBot.isNotEmpty) {
+      return {'curTop': curTop, 'newTop': newTop, 'curBot': curBot, 'newBot': newBot,
+              'topLen': (person['topLength']    ?? person['상의길이'] ?? '').toString().trim(),
+              'botLen': (person['bottomLength'] ?? person['하의길이'] ?? '').toString().trim()};
+    }
+    // 레거시 before/after 방식 파싱
+    // 형식: '상의 XL / 하의 L' 또는 '상의 XXL' 또는 '하의 L'
+    String _parseSize(String text, String prefix) {
+      final lower = text.toLowerCase();
+      final idx = lower.indexOf(prefix);
+      if (idx < 0) return '';
+      final rest = text.substring(idx + prefix.length).trim();
+      // '/' 로 다음 항목 구분
+      final end = rest.indexOf('/');
+      return (end >= 0 ? rest.substring(0, end) : rest).trim();
+    }
+    final before = (person['before'] ?? '').toString();
+    final after  = (person['after']  ?? '').toString();
+    return {
+      'curTop': _parseSize(before, '상의'),
+      'newTop': _parseSize(after,  '상의'),
+      'curBot': _parseSize(before, '하의'),
+      'newBot': _parseSize(after,  '하의'),
+      'topLen': '',
+      'botLen': '',
+    };
+  }
+
   // ════════════════════════════════════════════════════════════════
   // 예시(샘플) 엑셀 파일 생성 — 실제 주문 없이 구조 미리보기용
   // ════════════════════════════════════════════════════════════════
@@ -2890,18 +2927,19 @@ class OrderExcelService {
       _setCell(summarySheet, row, 1, req['teamName'] as String? ?? '-', style: rowStyle);
       _setCell(summarySheet, row, 2, req['userName'] as String? ?? '-', style: rowStyle);
       _setCell(summarySheet, row, 3, req['colorName'] as String? ?? '-', style: rowStyle);
-      // 사이즈 변경 상세: "이름: 상의 XL→XXL / 이름2: 하의 L→XL" 형식
+      // 사이즈 변경 상세: "이름: 상의 XL→XXL, 하의 L→XL" 형식
       final personChangesForSummary = (req['personChanges'] as List<dynamic>?) ?? [];
       final sizeChangeSummary = personChangesForSummary.map((p) {
         final person = p as Map<dynamic, dynamic>;
         final name = (person['name'] ?? person['이름'] ?? '?').toString();
+        final sz = _parsePersonSizes(person);
+        final curTop = sz['curTop']!;
+        final newTop = sz['newTop']!;
+        final curBot = sz['curBot']!;
+        final newBot = sz['newBot']!;
+        final topLen = sz['topLen']!;
+        final botLen = sz['botLen']!;
         final parts = <String>[];
-        final curTop    = (person['currentTopSize']    ?? person['현재상의']    ?? '').toString().trim();
-        final newTop    = (person['newTopSize']        ?? person['변경상의']    ?? '').toString().trim();
-        final curBot    = (person['currentBottomSize'] ?? person['현재하의']    ?? '').toString().trim();
-        final newBot    = (person['newBottomSize']     ?? person['변경하의']    ?? '').toString().trim();
-        final topLen    = (person['topLength']         ?? person['상의길이']    ?? '').toString().trim();
-        final botLen    = (person['bottomLength']      ?? person['하의길이']    ?? '').toString().trim();
         if (newTop.isNotEmpty && newTop != '-') {
           final from = (curTop.isNotEmpty && curTop != '-') ? '$curTop→' : '';
           final len  = (topLen.isNotEmpty && topLen != '-') ? '($topLen)' : '';
@@ -3078,12 +3116,14 @@ class OrderExcelService {
             _setCell(sheet, rowIdx, 0, '${pi + 1}', style: pStyle);
             _setCell(sheet, rowIdx, 1, (person['name'] ?? person['이름'] ?? '-').toString(), style: pStyle);
             _setCell(sheet, rowIdx, 2, isMale ? '남' : (isFemale ? '여' : (person['gender'] ?? '-').toString()), style: pStyle);
-            _setCell(sheet, rowIdx, 3, (person['currentTopSize'] ?? person['현재상의'] ?? '-').toString(), style: pStyle);
-            _setCell(sheet, rowIdx, 4, (person['currentBottomSize'] ?? person['현재하의'] ?? '-').toString(), style: pStyle);
-            _setCell(sheet, rowIdx, 5, (person['newTopSize'] ?? person['변경상의'] ?? '-').toString(), style: pStyle);
-            _setCell(sheet, rowIdx, 6, (person['newBottomSize'] ?? person['변경하의'] ?? '-').toString(), style: pStyle);
-            _setCell(sheet, rowIdx, 7, (person['topLength'] ?? person['상의길이'] ?? '-').toString(), style: pStyle);
-            _setCell(sheet, rowIdx, 8, (person['bottomLength'] ?? person['하의길이'] ?? '-').toString(), style: pStyle);
+            // before/after 파싱 (레거시) or currentTopSize 등 신규 키
+            final sz = _parsePersonSizes(person);
+            _setCell(sheet, rowIdx, 3, sz['curTop']!.isNotEmpty ? sz['curTop']! : '-', style: pStyle);
+            _setCell(sheet, rowIdx, 4, sz['curBot']!.isNotEmpty ? sz['curBot']! : '-', style: pStyle);
+            _setCell(sheet, rowIdx, 5, sz['newTop']!.isNotEmpty ? sz['newTop']! : '-', style: pStyle);
+            _setCell(sheet, rowIdx, 6, sz['newBot']!.isNotEmpty ? sz['newBot']! : '-', style: pStyle);
+            _setCell(sheet, rowIdx, 7, sz['topLen']!.isNotEmpty ? sz['topLen']! : '-', style: pStyle);
+            _setCell(sheet, rowIdx, 8, sz['botLen']!.isNotEmpty ? sz['botLen']! : '-', style: pStyle);
             _setCell(sheet, rowIdx, 9, (person['note'] ?? person['비고'] ?? '').toString(), style: pStyle);
             sheet.setRowHeight(rowIdx, 18);
             rowIdx++;
