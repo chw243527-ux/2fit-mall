@@ -2084,28 +2084,6 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                 ]),
               ),
 
-              // ── 현금영수증 ────────────────────────────────
-              if ((o.cashReceiptNum ?? '').isNotEmpty) ...[
-                sectionHeader('현금영수증'),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8F5E9),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFA5D6A7)),
-                  ),
-                  child: Column(children: [
-                    row('발행일시', fmtDateTime(o.createdAt), multiLine: true),
-                    divider(),
-                    row('승인번호', approvalNum),
-                    divider(),
-                    row('용도', cashReceiptType),
-                    divider(),
-                    row('발행정보', o.cashReceiptNum!),
-                  ]),
-                ),
-              ],
-
               // ── 안내문구 ──────────────────────────────────
               const SizedBox(height: 16),
               Container(
@@ -2133,6 +2111,207 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
             ]),
           )),
 
+          // ── 버튼 영역 ─────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              // 현금영수증 보기 버튼 (항상 표시)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _showCashReceiptDetailDialog(context, o,
+                        fmtDateTime: fmtDateTime,
+                        approvalNum: approvalNum,
+                        cashReceiptType: cashReceiptType);
+                  },
+                  icon: const Icon(Icons.receipt_outlined, size: 16),
+                  label: const Text('현금영수증 보기',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF1A1A2E),
+                    side: const BorderSide(color: Color(0xFF1A1A2E), width: 1.2),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // 닫기 버튼
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A1A2E),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('닫기',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ]),
+          ),
+        ]),
+      ),
+    ),
+  );
+}
+
+// ── 현금영수증 상세 보기 다이얼로그 (오늘의집페이 스타일) ──
+void _showCashReceiptDetailDialog(
+  BuildContext context,
+  OrderModel o, {
+  required String Function(DateTime) fmtDateTime,
+  required String approvalNum,
+  required String cashReceiptType,
+}) {
+  final hasCashReceipt = (o.cashReceiptNum ?? '').isNotEmpty;
+
+  Widget row(String label, String value, {bool bold = false, Color? valueColor}) =>
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 90,
+              child: Text(label,
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF888888))),
+            ),
+            Expanded(
+              child: Text(value,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+                  color: valueColor ?? const Color(0xFF1A1A1A),
+                ),
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget divider() =>
+      const Divider(height: 1, thickness: 1, color: Color(0xFFF0F0F0));
+
+  showDialog(
+    context: context,
+    builder: (ctx) => Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          // ── 헤더 ──────────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1A1A2E),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Row(children: [
+              const Icon(Icons.receipt_outlined, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text('현금영수증 정보',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700)),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pop(ctx),
+                child: const Icon(Icons.close, color: Colors.white70, size: 20),
+              ),
+            ]),
+          ),
+
+          // ── 콘텐츠 ────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: hasCashReceipt
+                ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    // 현금영수증 발행 정보 카드
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F5E9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFA5D6A7)),
+                      ),
+                      child: Column(children: [
+                        row('발행일시', fmtDateTime(o.createdAt)),
+                        divider(),
+                        row('승인번호', approvalNum,
+                            bold: true,
+                            valueColor: const Color(0xFF1B5E20)),
+                        divider(),
+                        row('용도', cashReceiptType),
+                        divider(),
+                        row('발행정보', o.cashReceiptNum!),
+                      ]),
+                    ),
+                    const SizedBox(height: 14),
+                    // 국세청 안내
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Column(children: [
+                        Text(
+                          '현금영수증 승인번호는 국세청에서\n익일 13시 이후 확인됩니다.',
+                          style: TextStyle(
+                              fontSize: 11, color: Color(0xFF888888)),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          '현금영수증 문의: 126-1-1',
+                          style: TextStyle(
+                              fontSize: 11, color: Color(0xFF888888)),
+                          textAlign: TextAlign.center,
+                        ),
+                      ]),
+                    ),
+                    const SizedBox(height: 14),
+                  ])
+                // 현금영수증 번호 미등록 안내
+                : Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Column(children: [
+                      const Icon(Icons.info_outline_rounded,
+                          color: Color(0xFFBBBBBB), size: 40),
+                      const SizedBox(height: 10),
+                      const Text(
+                        '현금영수증 번호가 등록되지 않았습니다.',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF555555)),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        '마이페이지 → 현금영수증 번호 등록 후\n결제하시면 자동으로 발급됩니다.',
+                        style: TextStyle(
+                            fontSize: 12, color: Color(0xFF999999)),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                    ]),
+                  ),
+          ),
+
           // ── 닫기 버튼 ─────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
@@ -2145,10 +2324,12 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('닫기',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                child: const Text('확인',
+                    style: TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w700)),
               ),
             ),
           ),
