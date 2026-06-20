@@ -410,6 +410,19 @@ class OrderModel {
       (status == OrderStatus.shipped || status == OrderStatus.delivered ||
        status == OrderStatus.purchaseConfirmed);
 
+  /// 관리자가 업로드한 수정 완료 디자인 이미지 URL
+  /// customOptions['designConfirmedImageUrl'] 에 저장됨
+  String? get designConfirmedImageUrl =>
+      customOptions?['designConfirmedImageUrl'] as String?;
+
+  /// 디자인 수정 요청 맵 (customOptions['designRevisionRequest'])
+  Map<String, dynamic>? get designRevisionRequest =>
+      customOptions?['designRevisionRequest'] as Map<String, dynamic>?;
+
+  /// 관리자 응답 여부 (designRevisionRequest.status == 'responded')
+  bool get isDesignRevisionResponded =>
+      designRevisionRequest?['status'] == 'responded';
+
   OrderModel copyWith({
     OrderStatus? status,
     int? additionalOrderCount,

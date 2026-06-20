@@ -4817,6 +4817,172 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                       }),
                     const SizedBox(height: 14),
 
+                    // ── 수정된 디자인 이미지 (관리자 응답 완료 시) ──
+                    if (o.designConfirmedImageUrl?.isNotEmpty == true) ...[
+                      const SizedBox(height: 4),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFF3E5F5), Color(0xFFEDE7F6)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF7B1FA2).withValues(alpha: 0.25)),
+                        ),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          // 헤더
+                          Row(children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF7B1FA2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.design_services_rounded, size: 14, color: Colors.white),
+                            ),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text('수정된 디자인', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF4A148C))),
+                                Text('관리자가 수정 반영한 최신 디자인입니다', style: TextStyle(fontSize: 10, color: Color(0xFF7B1FA2))),
+                              ]),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF7B1FA2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text('수정 완료', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+                            ),
+                          ]),
+                          const SizedBox(height: 12),
+                          // 이미지
+                          GestureDetector(
+                            onTap: () => showDialog(
+                              context: context,
+                              builder: (_) => Dialog(
+                                backgroundColor: Colors.black,
+                                insetPadding: const EdgeInsets.all(12),
+                                child: Stack(children: [
+                                  InteractiveViewer(
+                                    child: Image.network(
+                                      o.designConfirmedImageUrl!,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (_, __, ___) => const Center(
+                                        child: Icon(Icons.broken_image_outlined, color: Colors.white54, size: 60)),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 8, right: 8,
+                                    child: GestureDetector(
+                                      onTap: () => Navigator.pop(context),
+                                      child: Container(
+                                        width: 32, height: 32,
+                                        decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                                        child: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                                      ),
+                                    ),
+                                  ),
+                                ]),
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Stack(children: [
+                                Image.network(
+                                  o.designConfirmedImageUrl!,
+                                  width: double.infinity,
+                                  height: 220,
+                                  fit: BoxFit.contain,
+                                  loadingBuilder: (_, child, prog) => prog == null
+                                      ? child
+                                      : Container(
+                                          height: 220,
+                                          color: const Color(0xFFF3E5F5),
+                                          child: const Center(
+                                            child: CircularProgressIndicator(
+                                              color: Color(0xFF7B1FA2), strokeWidth: 2)),
+                                        ),
+                                  errorBuilder: (_, __, ___) => Container(
+                                    height: 120,
+                                    color: const Color(0xFFEDE7F6),
+                                    child: const Center(
+                                      child: Icon(Icons.broken_image_outlined,
+                                          size: 40, color: Color(0xFF7B1FA2))),
+                                  ),
+                                ),
+                                // 확대 힌트
+                                Positioned(
+                                  bottom: 8, right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                                      Icon(Icons.zoom_in_rounded, size: 12, color: Colors.white),
+                                      SizedBox(width: 3),
+                                      Text('탭하여 확대', style: TextStyle(fontSize: 10, color: Colors.white)),
+                                    ]),
+                                  ),
+                                ),
+                              ]),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          // 요청 내용 요약
+                          if (o.designRevisionRequest?['memo']?.isNotEmpty == true)
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                const Icon(Icons.chat_bubble_outline_rounded, size: 13, color: Color(0xFF7B1FA2)),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    o.designRevisionRequest!['memo'] as String,
+                                    style: const TextStyle(fontSize: 11, color: Color(0xFF333333), height: 1.5),
+                                  ),
+                                ),
+                              ]),
+                            ),
+                        ]),
+                      ),
+                      const SizedBox(height: 14),
+                    ] else if (o.designRevisionRequest != null &&
+                               o.designRevisionRequest!['status'] == 'pending') ...[
+                      // 수정 요청 대기 중 배너
+                      const SizedBox(height: 4),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3E0),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFFF9800).withValues(alpha: 0.4)),
+                        ),
+                        child: Row(children: [
+                          const Icon(Icons.hourglass_top_rounded, size: 16, color: Color(0xFFE65100)),
+                          const SizedBox(width: 8),
+                          const Expanded(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text('디자인 수정 요청 검토 중', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFFE65100))),
+                              Text('관리자가 요청을 확인하고 수정된 디자인을 업로드하면 여기에 표시됩니다.', style: TextStyle(fontSize: 10, color: Color(0xFFBF360C), height: 1.4)),
+                            ]),
+                          ),
+                        ]),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+
                     // 결제 정보
                     sectionBox('결제 정보', [
                       detailRow(Icons.payments_outlined, '결제방법', o.paymentMethod.isNotEmpty ? o.paymentMethod : '-'),
