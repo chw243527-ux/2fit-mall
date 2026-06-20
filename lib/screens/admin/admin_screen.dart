@@ -4296,7 +4296,7 @@ class _AdminScreenState extends State<AdminScreen>
       );
     }
     try {
-      final bytes = OrderExcelService.generateAdditionalOrderExcel(order);
+      final bytes = await OrderExcelService.generateAdditionalOrderExcelAsync(order);
       final teamName = (order.customOptions?['teamName'] as String?)?.replaceAll(' ', '_') ?? order.id;
       final dateStr = '${order.createdAt.month.toString().padLeft(2,'0')}${order.createdAt.day.toString().padLeft(2,'0')}';
       final fileName = '추가제작_${teamName}_$dateStr.xlsx';

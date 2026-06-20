@@ -2994,6 +2994,110 @@ class OrderExcelService {
   //  시트2(주문정보): 주문자 정보 (기존 generateGroupOrderExcel의 주문정보 시트)
   // ─────────────────────────────────────────────────────────────
   static Uint8List generateAdditionalOrderExcel(OrderModel order) {
+    // sync 버전은 이미지 없이 기본 엑셀만 생성 (내부 전용)
+    return _buildAdditionalOrderExcelBase(order);
+  }
+
+  /// async 버전: 이미지 다운로드 후 삽입
+  static Future<Uint8List> generateAdditionalOrderExcelAsync(OrderModel order) async {
+    final opts = order.customOptions ?? {};
+
+    // 이미지 URL 수집 (customOptions 우선 → items 폴백)
+    final productImageUrl = opts['productImageUrl']?.toString() ??
+        opts['designImageUrl']?.toString() ??
+        opts['imageUrl']?.toString() ??
+        order.items.firstWhere(
+          (i) => i.imageUrl != null && i.imageUrl!.isNotEmpty,
+          orElse: () => order.items.isNotEmpty
+              ? order.items.first
+              : OrderItem(productId: '', productName: '', size: '', color: '', quantity: 0, price: 0),
+        ).imageUrl ?? '';
+    final designFileUrl = opts['designFileUrl']?.toString() ??
+        opts['maleRefImageUrl']?.toString() ?? '';
+    final confirmedImageUrl = opts['designConfirmedImageUrl']?.toString() ?? '';
+
+    // 기본 xlsx 생성 (sync)
+    final baseBytes = _buildAdditionalOrderExcelBase(order,
+        hasProductImage: productImageUrl.isNotEmpty,
+        hasDesignFile: designFileUrl.isNotEmpty,
+        hasConfirmedImage: confirmedImageUrl.isNotEmpty);
+
+    // 이미지가 전혀 없으면 그대로 반환
+    if (productImageUrl.isEmpty && designFileUrl.isEmpty && confirmedImageUrl.isEmpty) {
+      return baseBytes;
+    }
+
+    // 이미지 삽입 목록 구성
+    // 주문정보 시트 = sheetIndex 1 (시트1=0, 주문정보=1)
+    // row 번호는 _buildAdditionalOrderExcelBase에서 예약한 행 위치와 맞춰야 함
+    // 제목(row0) 다음부터: 이미지 행들
+    final List<_ImageToInsert> imagesToInsert = [];
+    int imgRow = 1; // 1-based row (0=제목)
+    if (productImageUrl.isNotEmpty) {
+      imagesToInsert.add(_ImageToInsert(
+        url: productImageUrl,
+        sheetIndex: 1,   // '주문정보' 시트
+        sheetName: '주문정보',
+        row: imgRow,
+        col: 1,          // B열
+        widthPx: 300,
+        heightPx: 220,
+        label: '디자인이미지',
+      ));
+      imgRow++;
+    }
+    if (designFileUrl.isNotEmpty) {
+      imagesToInsert.add(_ImageToInsert(
+        url: designFileUrl,
+        sheetIndex: 1,
+        sheetName: '주문정보',
+        row: imgRow,
+        col: 1,
+        widthPx: 300,
+        heightPx: 220,
+        label: '참조이미지',
+      ));
+      imgRow++;
+    }
+    if (confirmedImageUrl.isNotEmpty) {
+      imagesToInsert.add(_ImageToInsert(
+        url: confirmedImageUrl,
+        sheetIndex: 1,
+        sheetName: '주문정보',
+        row: imgRow,
+        col: 1,
+        widthPx: 300,
+        heightPx: 220,
+        label: '수정확정이미지',
+      ));
+    }
+
+    // 이미지 다운로드
+    for (final img in imagesToInsert) {
+      try {
+        final resp = await http.get(Uri.parse(img.url))
+            .timeout(const Duration(seconds: 15));
+        if (resp.statusCode == 200) {
+          img.bytes = resp.bodyBytes;
+          final ct = resp.headers['content-type'] ?? '';
+          img.ext = (ct.contains('png') || img.url.toLowerCase().contains('.png'))
+              ? 'png' : 'jpeg';
+        }
+      } catch (_) {
+        // 다운로드 실패 → 건너뜀
+      }
+    }
+
+    return _insertImagesIntoXlsx(baseBytes, imagesToInsert);
+  }
+
+  /// 추가제작 엑셀 기본 구조 생성 (이미지 행 공간 예약 포함)
+  static Uint8List _buildAdditionalOrderExcelBase(
+    OrderModel order, {
+    bool hasProductImage = false,
+    bool hasDesignFile = false,
+    bool hasConfirmedImage = false,
+  }) {
     final excel = Excel.createExcel();
     final opts = order.customOptions ?? {};
     final rawPersons = (opts['persons'] as List<dynamic>?) ?? [];
@@ -3285,11 +3389,12 @@ class OrderExcelService {
     sheet1.setColumnWidth(9, 18);
 
     // ══════════════════════════════════════════════
-    // 시트2: 주문정보 (상세 주문자/배송 정보)
+    // 시트2: 주문정보 (이미지 + 상세 주문자/배송 정보)
     // ══════════════════════════════════════════════
     final infoSheet = excel['주문정보'];
     int ir = 0;
 
+    // 제목 행 (row 0)
     _setCell(infoSheet, ir, 0, '2FIT 추가제작 주문정보', style: purpleTitleStyle);
     infoSheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: ir),
@@ -3298,12 +3403,53 @@ class OrderExcelService {
     infoSheet.setRowHeight(ir, 28);
     ir++;
 
+    // ── 이미지 행 예약 (row 1~) ──
+    final imgLabelStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 10,
+    );
+    if (hasProductImage) {
+      _setCell(infoSheet, ir, 0, '디자인이미지', style: imgLabelStyle);
+      infoSheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: ir),
+        CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: ir),
+      );
+      _setCell(infoSheet, ir, 1, '', style: CellStyle(fontSize: 9));
+      infoSheet.setRowHeight(ir, 200.0);
+      ir++;
+    }
+    if (hasDesignFile) {
+      _setCell(infoSheet, ir, 0, '참조이미지', style: imgLabelStyle);
+      infoSheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: ir),
+        CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: ir),
+      );
+      _setCell(infoSheet, ir, 1, '', style: CellStyle(fontSize: 9));
+      infoSheet.setRowHeight(ir, 200.0);
+      ir++;
+    }
+    if (hasConfirmedImage) {
+      _setCell(infoSheet, ir, 0, '수정확정이미지', style: imgLabelStyle);
+      infoSheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: ir),
+        CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: ir),
+      );
+      _setCell(infoSheet, ir, 1, '', style: CellStyle(fontSize: 9));
+      infoSheet.setRowHeight(ir, 200.0);
+      ir++;
+    }
+    ir++; // 이미지 섹션과 주문정보 사이 여백
+
     // 주문자 정보 섹션
     _setCell(infoSheet, ir, 0, '▶ 주문자 정보', style: purpleHeader);
     infoSheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: ir),
       CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: ir),
     );
+
     infoSheet.setRowHeight(ir, 20);
     ir++;
 
