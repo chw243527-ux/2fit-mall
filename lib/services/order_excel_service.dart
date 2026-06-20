@@ -2683,36 +2683,79 @@ class OrderExcelService {
       sz.setColumnWidth(c, c == 1 ? 12.0 : 10.0);
     }
 
-    // ════ Sheet 3 : 디자인 이미지 ════
+    // ════ Sheet 3 : 디자인 이미지 (주문정보 시트와 동일한 레이아웃 예시) ════
     final img = excel['디자인이미지'];
     _setCell(img, 0, 0, '⚡ 예시 데이터', style: sampleNoteStyle);
     img.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
               CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 0));
 
-    _setCell(img, 1, 0, '디자인 이미지 URL 목록', style: titleStyle);
+    _setCell(img, 1, 0, '2FIT 단체주문 주문서 (예시)', style: titleStyle);
     img.merge(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1),
               CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 1));
 
-    final imgHeaders = ['No', '주문번호', '디자인이미지URL', '남성레퍼런스URL', '여성레퍼런스URL', '메모'];
-    for (int c = 0; c < imgHeaders.length; c++) {
-      _setCell(img, 2, c, imgHeaders[c], style: headerStyle);
-    }
+    // 이미지 행 레이아웃 — generateGroupOrderExcel 과 동일 구조
+    final imgLabelStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 10,
+    );
+    final imgNoteStyle2 = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#F5F5F5'),
+      fontColorHex: ExcelColor.fromHexString('#9E9E9E'),
+      fontSize: 9,
+      italic: true,
+      horizontalAlign: HorizontalAlign.Center,
+    );
 
-    final sampleImages = [
-      ['1', 'ORD-2024-0001', 'https://example.com/design1.jpg', 'https://example.com/male_ref1.jpg', 'https://example.com/female_ref1.jpg', '부산 트라이애슬론팀 - 네이비'],
-      ['2', 'ORD-2024-0002', 'https://example.com/design2.jpg', 'https://example.com/male_ref2.jpg', 'https://example.com/female_ref2.jpg', '서울 마라톤클럽 - 블랙'],
+    // 디자인이미지 행
+    _setCell(img, 2, 0, '디자인이미지', style: imgLabelStyle);
+    img.merge(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 2),
+              CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 2));
+    _setCell(img, 2, 1, '← 실제 엑셀에서는 디자인 이미지가 여기에 표시됩니다', style: imgNoteStyle2);
+    img.setRowHeight(2, 200.0);
+
+    // 참조이미지 행
+    _setCell(img, 3, 0, '참조이미지', style: imgLabelStyle);
+    img.merge(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 3),
+              CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 3));
+    _setCell(img, 3, 1, '← 실제 엑셀에서는 참조 이미지가 여기에 표시됩니다', style: imgNoteStyle2);
+    img.setRowHeight(3, 200.0);
+
+    // 주문 정보 rows 예시
+    final sampleInfoStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#F3E5F5'),
+      fontColorHex: ExcelColor.fromHexString('#4A148C'),
+      fontSize: 10,
+    );
+    final sampleValueStyle = CellStyle(fontSize: 10);
+    final sampleInfoRows = [
+      ['주문번호', 'ORD-2024-0001'],
+      ['주문날짜', '2024-03-25 14:30'],
+      ['단체명/팀명', '부산 트라이애슬론팀'],
+      ['담당자', '김철수'],
+      ['연락처', '010-****-1234'],
+      ['색상', '네이비'],
+      ['총 인원', '20명'],
+      ['주문 상태', '제작중'],
     ];
-
-    for (int r = 0; r < sampleImages.length; r++) {
-      final row = sampleImages[r];
-      for (int c = 0; c < row.length; c++) {
-        _setCell(img, r + 3, c, row[c], style: r.isEven ? evenRowStyle : null);
-      }
+    for (int r = 0; r < sampleInfoRows.length; r++) {
+      _setCell(img, 5 + r, 0, sampleInfoRows[r][0], style: sampleInfoStyle);
+      _setCell(img, 5 + r, 1, sampleInfoRows[r][1], style: sampleValueStyle);
+      img.merge(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 5 + r),
+                CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 5 + r));
+      img.setRowHeight(5 + r, 20.0);
     }
 
-    for (int c = 0; c < imgHeaders.length; c++) {
-      img.setColumnWidth(c, c >= 2 && c <= 4 ? 40.0 : c == 5 ? 25.0 : 12.0);
-    }
+    // 열 너비 (generateGroupOrderExcel과 동일 구조)
+    img.setColumnWidth(0, 16.0);  // A열: 레이블
+    img.setColumnWidth(1, 50.0);  // B열: 이미지/값
+    img.setColumnWidth(2, 20.0);
+    img.setColumnWidth(3, 20.0);
+    img.setColumnWidth(4, 20.0);
+    img.setColumnWidth(5, 20.0);
 
     // 기본 Sheet 제거
     if (excel.sheets.containsKey('Sheet1')) {
@@ -2944,32 +2987,31 @@ class OrderExcelService {
         sheet.setRowHeight(rowIdx, 20);
         rowIdx++;
 
-        // ─ 확정 디자인 이미지 자리 확보 ─
+        // ─ 확정 디자인 이미지 자리 확보 (generateGroupOrderExcel과 동일 레이아웃) ─
         final confirmedImgUrl = req['designConfirmedImageUrl'] as String? ?? '';
         if (confirmedImgUrl.isNotEmpty) {
-          final imgLabelStyle = CellStyle(
+          final imgLabelStyleSheet = CellStyle(
             bold: true,
             backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
             fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
             horizontalAlign: HorizontalAlign.Center,
             fontSize: 10,
           );
-          _setCell(sheet, rowIdx, 0, '확정 디자인', style: imgLabelStyle);
+          _setCell(sheet, rowIdx, 0, '확정 디자인', style: imgLabelStyleSheet);
           sheet.merge(
             CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIdx),
             CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
           );
           _setCell(sheet, rowIdx, 1, '', style: CellStyle(fontSize: 9));
-          sheet.setRowHeight(rowIdx, 220.0);
-          // 1-based row for _insertImagesIntoXlsx
+          sheet.setRowHeight(rowIdx, 200.0); // generateGroupOrderExcel과 동일
           imageSlots.add(_ImageToInsert(
             url       : confirmedImgUrl,
             sheetName : sheetName,
-            sheetIndex: 1,        // fallback (실제 sheetName으로 찾음)
+            sheetIndex: 1,
             row       : rowIdx + 1, // 1-based
-            col       : 1,          // B열
-            widthPx   : 300,
-            heightPx  : 210,
+            col       : 1,          // B열 — generateGroupOrderExcel과 동일
+            widthPx   : 260,        // generateGroupOrderExcel과 동일
+            heightPx  : 195,        // generateGroupOrderExcel과 동일
             label     : '확정디자인',
           ));
           rowIdx++;
@@ -3051,16 +3093,16 @@ class OrderExcelService {
         rowIdx += 2; // 다음 요청 간 간격
       }
 
-      // 열 너비
-      sheet.setColumnWidth(0, 12);
-      sheet.setColumnWidth(1, 18);
-      sheet.setColumnWidth(2, 6);
-      sheet.setColumnWidth(3, 12);
-      sheet.setColumnWidth(4, 12);
-      sheet.setColumnWidth(5, 12);
-      sheet.setColumnWidth(6, 12);
-      sheet.setColumnWidth(7, 10);
-      sheet.setColumnWidth(8, 10);
+      // 열 너비 — generateGroupOrderExcel 주문정보 시트와 동일한 레이아웃
+      sheet.setColumnWidth(0, 16);   // A열: 레이블 (이미지 행 레이블 포함)
+      sheet.setColumnWidth(1, 20);   // B열: 값/이미지
+      sheet.setColumnWidth(2, 8);
+      sheet.setColumnWidth(3, 13);
+      sheet.setColumnWidth(4, 13);
+      sheet.setColumnWidth(5, 13);
+      sheet.setColumnWidth(6, 13);
+      sheet.setColumnWidth(7, 11);
+      sheet.setColumnWidth(8, 11);
       sheet.setColumnWidth(9, 18);
     }
 
