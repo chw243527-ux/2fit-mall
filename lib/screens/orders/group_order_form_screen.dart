@@ -920,6 +920,49 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           '아래 폼을 작성하여 주문을 완료해 주세요.',
           style: TextStyle(color: Colors.white60, fontSize: 12),
         ),
+
+        // ── 추가제작: 기존 주문번호 필수 표시 ──
+        if (_isAdditional && _originalOrder != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.13),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1),
+            ),
+            child: Row(children: [
+              const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 15),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('기존 주문번호 (필수)',
+                      style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.3)),
+                  const SizedBox(height: 2),
+                  Text(
+                    _originalOrder!.id,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ]),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2E7D32).withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text('연결됨', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
+              ),
+            ]),
+          ),
+        ],
+
         const SizedBox(height: 16),
         // ── 핵심 안내 칩 목록 (모노크롬 스타일) ──
         Wrap(

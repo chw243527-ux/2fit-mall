@@ -993,7 +993,8 @@ class _PcOrderCard extends StatelessWidget {
     final isGroup = order.orderType == 'group' || order.orderType == 'additional' || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
     final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
     final canColorEdit = isGroup && isActive && order.canEditColor;
-    final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
+    // 추가제작: 취소/환불 아니면 배송완료 후에도 항상 가능 (같은 디자인 재주문)
+    final canAdditional = isGroup && isActive;
     final canDesignRevision = isGroup && isActive && order.canDesignRevision;
 
     final canCancelReadyMade = !isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
@@ -1270,7 +1271,7 @@ class _PcOrderCard extends StatelessWidget {
                 color: Colors.grey,
                 onTap: null,
               ));
-              if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), badge: '무료', onTap: () => onAdditionalOrder(order)));
+              if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), onTap: () => onAdditionalOrder(order)));
               if (canColorEdit) btns.add(_ActionBtn(icon: Icons.palette_outlined, label: '색상변경', color: const Color(0xFF6A1B9A), badge: '${order.remainingColorEdits}', onTap: () => onColorEdit(order)));
 
               return Row(
@@ -2779,7 +2780,8 @@ class _MobileOrderCard extends StatelessWidget {
     final isGroup = order.orderType == 'group' || order.orderType == 'additional' || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
     final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
     final canColorEdit = isGroup && isActive && order.canEditColor;
-    final canAdditional = isGroup && isActive && order.canOrderAdditionalFree;
+    // 추가제작: 취소/환불 아니면 배송완료 후에도 항상 가능 (같은 디자인 재주문)
+    final canAdditional = isGroup && isActive;
     final canDesignRevision = isGroup && isActive && order.canDesignRevision;
 
     // 운송장 등록 여부
@@ -3161,7 +3163,6 @@ class _MobileOrderCard extends StatelessWidget {
                 icon: Icons.add_circle_outline_rounded,
                 label: '추가제작',
                 color: const Color(0xFF2E7D32),
-                badge: '무료',
                 onTap: () => onAdditionalOrder(order),
               ));
               if (canColorEdit) row2.add(_ActionBtn(

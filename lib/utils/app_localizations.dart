@@ -10354,11 +10354,11 @@ class AppLocalizations {
     default: return '✅ 색상·사이즈 등 모든 옵션을 새로 선택할 수 있습니다';
   }}
   String get mypageAdditionalNote3 { switch (language) {
-    case AppLanguage.english: return '⏰ Applications accepted within 1 week after order completion';
-    case AppLanguage.japanese: return '⏰ 本注文完了後1週間以内に申請可能です';
-    case AppLanguage.chinese: return '⏰ 订单完成后1周内可申请';
-    case AppLanguage.mongolian: return '⏰ Захиалга дууссанаас 1 долоо хоногийн дотор бүртгэх боломжтой';
-    default: return '⏰ 본 주문 완료 후 1주일 이내까지만 신청 가능합니다';
+    case AppLanguage.english: return '✅ Additional production available anytime regardless of delivery status';
+    case AppLanguage.japanese: return '✅ 配送完了後もいつでも同じデザインで追加制作申請可能です';
+    case AppLanguage.chinese: return '✅ 即使收货后，也可随时申请追加制作相同设计';
+    case AppLanguage.mongolian: return '✅ Хүргэлтийн дараа ч ижил дизайнаар нэмэлт үйлдвэрлэл хийх боломжтой';
+    default: return '✅ 배송완료 후에도 같은 디자인으로 언제든 추가제작 신청 가능합니다';
   }}
   String get mypageCurrentGroupName { switch (language) {
     case AppLanguage.english: return 'Current Group Name';
