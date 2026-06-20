@@ -319,24 +319,26 @@ class _AdminScreenState extends State<AdminScreen>
           descParts.add(memo.split('\n').first);
 
         requests.add({
-          'id'              : doc.id,
-          'orderId'         : doc.id,
-          'userName'        : d['userName']  as String? ?? '-',
-          'userPhone'       : d['userPhone'] as String? ?? '',
-          'requestType'     : '디자인 수정',
-          'description'     : descParts.isNotEmpty ? descParts.join(' / ') : '변경 요청',
-          'memo'            : memo,
-          'colorName'       : colorName,
-          'adjustedColorHex': req['adjustedColorHex'] as String? ?? '',
-          'teamName'        : teamName,
-          'personChanges'   : personList,
-          'fabricName'      : req['fabricName']  as String? ?? '',
-          'printType'       : req['printType']   as String? ?? '',
-          'status'          : status,
-          'createdAt'       : createdAt,
-          'images'          : <String>[],
-          'adminNote'       : '',
-          'rawRequest'      : req,
+          'id'                      : doc.id,
+          'orderId'                 : doc.id,
+          'userName'                : d['userName']  as String? ?? '-',
+          'userPhone'               : d['userPhone'] as String? ?? '',
+          'requestType'             : '디자인 수정',
+          'description'             : descParts.isNotEmpty ? descParts.join(' / ') : '변경 요청',
+          'memo'                    : memo,
+          'colorName'               : colorName,
+          'adjustedColorHex'        : req['adjustedColorHex'] as String? ?? '',
+          'teamName'                : teamName,
+          'personChanges'           : personList,
+          'fabricName'              : req['fabricName']  as String? ?? '',
+          'printType'               : req['printType']   as String? ?? '',
+          'status'                  : status,
+          'createdAt'               : createdAt,
+          'images'                  : <String>[],
+          'adminNote'               : '',
+          'rawRequest'              : req,
+          // 어드민이 업로드한 확정 디자인 이미지
+          'designConfirmedImageUrl' : (d['customOptions'] as Map<String, dynamic>?)?['designConfirmedImageUrl'] as String? ?? '',
         });
       }
 
@@ -1672,7 +1674,7 @@ class _AdminScreenState extends State<AdminScreen>
     final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
     final fileName = '2FIT_디자인수정요청_${requests.length}건_$dateStr.xlsx';
     try {
-      final bytes = OrderExcelService.generateDesignRevisionExcel(requests);
+      final bytes = await OrderExcelService.generateDesignRevisionExcelAsync(requests);
       if (kIsWeb) {
         downloadFileWeb(bytes, fileName, mimeType);
         if (!ctx.mounted) return;

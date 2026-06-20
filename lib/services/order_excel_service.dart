@@ -2725,6 +2725,37 @@ class OrderExcelService {
   // }
   // ─────────────────────────────────────────────────────────────
   static Uint8List generateDesignRevisionExcel(List<Map<String, dynamic>> requests) {
+    return _buildDesignRevisionBase(requests).bytes;
+  }
+
+  // ── async 버전: 팀별 시트에 확정 디자인 이미지 실제 삽입 ──
+  static Future<Uint8List> generateDesignRevisionExcelAsync(
+      List<Map<String, dynamic>> requests) async {
+    final result = _buildDesignRevisionBase(requests);
+    if (result.imageSlots.isEmpty) return result.bytes;
+
+    // 이미지 다운로드
+    for (final slot in result.imageSlots) {
+      try {
+        final uri = Uri.parse(slot.url);
+        final resp = await http.get(uri).timeout(const Duration(seconds: 15));
+        if (resp.statusCode == 200) {
+          slot.bytes = resp.bodyBytes;
+          final ct = resp.headers['content-type'] ?? '';
+          slot.ext = (ct.contains('png') || slot.url.toLowerCase().contains('.png'))
+              ? 'png'
+              : 'jpeg';
+        }
+      } catch (_) {
+        // 다운로드 실패 → 해당 이미지 건너뜀
+      }
+    }
+
+    return _insertImagesIntoXlsx(result.bytes, result.imageSlots);
+  }
+
+  static ({Uint8List bytes, List<_ImageToInsert> imageSlots}) _buildDesignRevisionBase(
+      List<Map<String, dynamic>> requests) {
     final excel = Excel.createExcel();
 
     // ── 스타일 ──
@@ -2862,6 +2893,9 @@ class OrderExcelService {
     summarySheet.setColumnWidth(4, 40);  // 사이즈 변경 상세 — 넓게
     summarySheet.setColumnWidth(5, 20);
 
+    // 이미지 삽입 슬롯 수집
+    final List<_ImageToInsert> imageSlots = [];
+
     // ── 2. 팀별 시트 ──
     // 팀명으로 그룹화
     final Map<String, List<Map<String, dynamic>>> teamMap = {};
@@ -2902,6 +2936,37 @@ class OrderExcelService {
         );
         sheet.setRowHeight(rowIdx, 20);
         rowIdx++;
+
+        // ─ 확정 디자인 이미지 자리 확보 ─
+        final confirmedImgUrl = req['designConfirmedImageUrl'] as String? ?? '';
+        if (confirmedImgUrl.isNotEmpty) {
+          final imgLabelStyle = CellStyle(
+            bold: true,
+            backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
+            fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+            horizontalAlign: HorizontalAlign.Center,
+            fontSize: 10,
+          );
+          _setCell(sheet, rowIdx, 0, '확정 디자인', style: imgLabelStyle);
+          sheet.merge(
+            CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIdx),
+            CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+          );
+          _setCell(sheet, rowIdx, 1, '', style: CellStyle(fontSize: 9));
+          sheet.setRowHeight(rowIdx, 220.0);
+          // 1-based row for _insertImagesIntoXlsx
+          imageSlots.add(_ImageToInsert(
+            url       : confirmedImgUrl,
+            sheetName : sheetName,
+            sheetIndex: 1,        // fallback (실제 sheetName으로 찾음)
+            row       : rowIdx + 1, // 1-based
+            col       : 1,          // B열
+            widthPx   : 300,
+            heightPx  : 210,
+            label     : '확정디자인',
+          ));
+          rowIdx++;
+        }
 
         // 기본 정보 rows
         final infoRows = [
@@ -2999,7 +3064,7 @@ class OrderExcelService {
 
     final encoded = excel.encode();
     if (encoded == null) throw Exception('디자인 수정 요청 엑셀 생성 실패');
-    return Uint8List.fromList(encoded);
+    return (bytes: Uint8List.fromList(encoded), imageSlots: imageSlots);
   }
 
   // ─────────────────────────────────────────────────────────────
