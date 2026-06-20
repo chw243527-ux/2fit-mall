@@ -2809,15 +2809,49 @@ class OrderExcelService {
       _setCell(summarySheet, row, 1, req['teamName'] as String? ?? '-', style: rowStyle);
       _setCell(summarySheet, row, 2, req['userName'] as String? ?? '-', style: rowStyle);
       _setCell(summarySheet, row, 3, req['colorName'] as String? ?? '-', style: rowStyle);
-      final personCount = (req['personChanges'] as List?)?.length ?? 0;
-      _setCell(summarySheet, row, 4, personCount > 0 ? '${personCount}명' : '-', style: rowStyle);
+      // 사이즈 변경 상세: "이름: 상의 XL→XXL / 이름2: 하의 L→XL" 형식
+      final personChangesForSummary = (req['personChanges'] as List<dynamic>?) ?? [];
+      final sizeChangeSummary = personChangesForSummary.map((p) {
+        final person = p as Map<dynamic, dynamic>;
+        final name = (person['name'] ?? person['이름'] ?? '?').toString();
+        final parts = <String>[];
+        final curTop    = (person['currentTopSize']    ?? person['현재상의']    ?? '').toString().trim();
+        final newTop    = (person['newTopSize']        ?? person['변경상의']    ?? '').toString().trim();
+        final curBot    = (person['currentBottomSize'] ?? person['현재하의']    ?? '').toString().trim();
+        final newBot    = (person['newBottomSize']     ?? person['변경하의']    ?? '').toString().trim();
+        final topLen    = (person['topLength']         ?? person['상의길이']    ?? '').toString().trim();
+        final botLen    = (person['bottomLength']      ?? person['하의길이']    ?? '').toString().trim();
+        if (newTop.isNotEmpty && newTop != '-') {
+          final from = (curTop.isNotEmpty && curTop != '-') ? '$curTop→' : '';
+          final len  = (topLen.isNotEmpty && topLen != '-') ? '($topLen)' : '';
+          parts.add('상의 $from$newTop$len');
+        }
+        if (newBot.isNotEmpty && newBot != '-') {
+          final from = (curBot.isNotEmpty && curBot != '-') ? '$curBot→' : '';
+          final len  = (botLen.isNotEmpty && botLen != '-') ? '($botLen)' : '';
+          parts.add('하의 $from$newBot$len');
+        }
+        if (parts.isEmpty) return null;
+        return '$name: ${parts.join(', ')}';
+      }).whereType<String>().toList();
+      final sizeChangeText = sizeChangeSummary.isNotEmpty
+          ? sizeChangeSummary.join('\n')
+          : '-';
+      final sizeChangeStyle = CellStyle(
+        fontSize: 9,
+        backgroundColorHex: i.isEven
+            ? ExcelColor.fromHexString('#F5F5F5')
+            : ExcelColor.fromHexString('#FFFFFF'),
+        textWrapping: TextWrapping.WrapText,
+      );
+      _setCell(summarySheet, row, 4, sizeChangeText, style: sizeChangeStyle);
       final createdAt = req['createdAt'] as DateTime?;
       _setCell(summarySheet, row, 5,
           createdAt != null
               ? '${createdAt.year}.${createdAt.month.toString().padLeft(2,'0')}.${createdAt.day.toString().padLeft(2,'0')} ${createdAt.hour.toString().padLeft(2,'0')}:${createdAt.minute.toString().padLeft(2,'0')}'
               : '-',
           style: rowStyle);
-      summarySheet.setRowHeight(row, 18);
+      summarySheet.setRowHeight(row, sizeChangeSummary.length > 1 ? (18.0 * sizeChangeSummary.length).clamp(18, 120).toDouble() : 18);
     }
 
     // 열 너비 조정
@@ -2825,7 +2859,7 @@ class OrderExcelService {
     summarySheet.setColumnWidth(1, 22);
     summarySheet.setColumnWidth(2, 14);
     summarySheet.setColumnWidth(3, 20);
-    summarySheet.setColumnWidth(4, 12);
+    summarySheet.setColumnWidth(4, 40);  // 사이즈 변경 상세 — 넓게
     summarySheet.setColumnWidth(5, 20);
 
     // ── 2. 팀별 시트 ──
