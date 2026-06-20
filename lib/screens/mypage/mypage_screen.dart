@@ -4958,16 +4958,66 @@ class _DesignRevisionSheet extends StatefulWidget {
 }
 
 class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
-  final _memoCtrl = TextEditingController();
-  bool _submitted = false;
+  final _memoCtrl        = TextEditingController(); // 추가 요청사항
+  final _teamNameCtrl    = TextEditingController(); // 단체명 변경
+  bool _submitted    = false;
   bool _isSubmitting = false;
-  String? _selectedColorName;
-  // ignore: unused_field
-  Color? _selectedColor;
+
+  // ── 기존 주문에서 읽어온 값 (초기화용)
+  late String  _currentColor;   // customOptions['mainColor']
+  late String  _currentFabric;  // customOptions['fabric']
+  late String  _currentTeamName;
+  late List<Map<String, dynamic>> _persons; // 인원별 사이즈 목록
+  late List<TextEditingController> _personSizeCtrl; // 각 인원 수정 컨트롤러
+
+  // ── 희망 변경 값
+  String? _newColorName;
+  Color?  _newColorValue;
+  String? _newFabric;
+
+  // ── 원단 목록
+  final List<String> _fabricTypes = AppConstants.fabricTypes;
+
+  @override
+  void initState() {
+    super.initState();
+    final opts = widget.order.customOptions ?? {};
+
+    _currentColor    = (opts['mainColor']  as String?) ?? '';
+    _currentFabric   = (opts['fabric']     as String?) ?? '';
+    _currentTeamName = (opts['teamName']   as String?)
+        ?? widget.order.groupName ?? '';
+    _teamNameCtrl.text = _currentTeamName;
+
+    // 인원별 사이즈 목록
+    final rawPersons = (opts['persons'] as List<dynamic>?) ?? [];
+    _persons = rawPersons.map((p) => Map<String, dynamic>.from(p as Map)).toList();
+    _personSizeCtrl = _persons.map((p) {
+      final top    = (p['topSize']    as String?) ?? '';
+      final bottom = (p['bottomSize'] as String?) ?? '';
+      final combined = [if (top.isNotEmpty) '상의 $top', if (bottom.isNotEmpty) '하의 $bottom'].join(' / ');
+      return TextEditingController(text: combined);
+    }).toList();
+
+    // 기존 색상 hex 로 Color 초기화 (색상 팔레트에서 매칭)
+    if (_currentColor.isNotEmpty) {
+      final match = AppConstants.twoFitColors.firstWhere(
+        (c) => c['name'] == _currentColor,
+        orElse: () => <String, dynamic>{},
+      );
+      if (match.isNotEmpty) {
+        _newColorName  = _currentColor;
+        _newColorValue = Color(match['hex'] as int);
+      }
+    }
+    _newFabric = _currentFabric.isNotEmpty ? _currentFabric : null;
+  }
 
   @override
   void dispose() {
     _memoCtrl.dispose();
+    _teamNameCtrl.dispose();
+    for (final c in _personSizeCtrl) { c.dispose(); }
     super.dispose();
   }
 
@@ -4981,12 +5031,6 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
   }
 
   Future<void> _submit() async {
-    if (_memoCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('수정 요청 내용을 입력해주세요.')),
-      );
-      return;
-    }
     if (!widget.order.canDesignRevision) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('디자인 수정 가능 횟수를 모두 사용했습니다.')),
@@ -4995,34 +5039,86 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
     }
     setState(() => _isSubmitting = true);
     try {
-      final db = FirebaseFirestore.instance;
+      final db       = FirebaseFirestore.instance;
       final deadline = DateTime.now().add(const Duration(days: 3));
+
+      // 변경된 인원별 사이즈 수집
+      final personChanges = <Map<String, dynamic>>[];
+      for (int i = 0; i < _persons.length; i++) {
+        final p      = _persons[i];
+        final newVal = _personSizeCtrl[i].text.trim();
+        final oldTop    = (p['topSize']    as String?) ?? '';
+        final oldBottom = (p['bottomSize'] as String?) ?? '';
+        final oldCombined = [if (oldTop.isNotEmpty) '상의 $oldTop', if (oldBottom.isNotEmpty) '하의 $oldBottom'].join(' / ');
+        if (newVal != oldCombined) {
+          personChanges.add({
+            'index'   : p['index'] ?? (i + 1),
+            'name'    : p['name']  ?? '',
+            'gender'  : p['gender'] ?? '',
+            'before'  : oldCombined,
+            'after'   : newVal,
+          });
+        }
+      }
+
+      // 변경사항 요약 텍스트 생성
+      final changeSummary = StringBuffer();
+      if (_newColorName != null && _newColorName != _currentColor) {
+        changeSummary.writeln('■ 색상: $_currentColor → $_newColorName');
+      }
+      if (_newFabric != null && _newFabric != _currentFabric) {
+        changeSummary.writeln('■ 원단: $_currentFabric → $_newFabric');
+      }
+      final newTeamName = _teamNameCtrl.text.trim();
+      if (newTeamName != _currentTeamName) {
+        changeSummary.writeln('■ 단체명: $_currentTeamName → $newTeamName');
+      }
+      if (personChanges.isNotEmpty) {
+        changeSummary.writeln('■ 사이즈 변경 (${personChanges.length}명):');
+        for (final ch in personChanges) {
+          final nameStr = (ch['name'] as String).isNotEmpty ? ' ${ch['name']}' : '';
+          changeSummary.writeln('  ${ch['index']}번$nameStr: ${ch['before']} → ${ch['after']}');
+        }
+      }
+      if (_memoCtrl.text.trim().isNotEmpty) {
+        changeSummary.writeln('■ 추가 요청: ${_memoCtrl.text.trim()}');
+      }
+
+      if (changeSummary.isEmpty) {
+        setState(() => _isSubmitting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('변경할 내용을 입력해주세요.')),
+        );
+        return;
+      }
+
       await db.collection('orders').doc(widget.order.id).update({
-        'designRevisionCount': FieldValue.increment(1),
+        'designRevisionCount'   : FieldValue.increment(1),
         'designRevisionDeadline': deadline.toIso8601String(),
-        'designRevisionRequest': {
-          'memo': _memoCtrl.text.trim(),
-          'colorName': _selectedColorName,
-          'requestedAt': DateTime.now().toIso8601String(),
-          'status': 'pending', // pending / confirmed / rejected
+        'designRevisionRequest' : {
+          'memo'         : changeSummary.toString().trim(),
+          'colorName'    : _newColorName,
+          'fabricName'   : _newFabric,
+          'teamName'     : newTeamName,
+          'personChanges': personChanges,
+          'requestedAt'  : DateTime.now().toIso8601String(),
+          'status'       : 'pending',
         },
       });
-      // 관리자 알림 (FCM/이메일)
+
       try {
         await EmailService.sendAdminAlert(
           subject: '[2FIT] 디자인 수정 요청 - 주문 ${widget.order.id}',
           body: '주문번호: ${widget.order.id}\n'
               '고객: ${widget.order.userName}\n'
               '남은횟수: ${widget.order.remainingDesignRevisions - 1}회\n'
-              '요청내용: ${_memoCtrl.text.trim()}\n'
-              '응답기한: ${deadline.year}.${deadline.month}.${deadline.day} (3일 이내)',
+              '응답기한: ${deadline.year}.${deadline.month}.${deadline.day}\n\n'
+              '변경 요청:\n${changeSummary.toString()}',
         );
       } catch (_) {}
+
       if (!mounted) return;
-      setState(() {
-        _submitted = true;
-        _isSubmitting = false;
-      });
+      setState(() { _submitted = true; _isSubmitting = false; });
       final user = context.read<UserProvider>().user;
       if (user != null) context.read<OrderProvider>().loadUserOrders(user.id);
     } catch (e) {
@@ -5037,7 +5133,9 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final h = MediaQuery.of(context).size.height * 0.85;
+    final h = MediaQuery.of(context).size.height * 0.92;
+    const purple = Color(0xFF7B1FA2);
+
     return Container(
       height: h,
       decoration: const BoxDecoration(
@@ -5056,7 +5154,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
             child: Row(children: [
-              const Icon(Icons.edit_note_rounded, color: Color(0xFF7B1FA2), size: 22),
+              const Icon(Icons.edit_note_rounded, color: purple, size: 22),
               const SizedBox(width: 8),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const Text('디자인 수정 요청', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
@@ -5065,52 +5163,21 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
               ])),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF3E5F5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
+                decoration: BoxDecoration(color: const Color(0xFFF3E5F5), borderRadius: BorderRadius.circular(20)),
                 child: Text('${widget.order.remainingDesignRevisions}회 남음',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF7B1FA2))),
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: purple)),
               ),
             ]),
           ),
           const Divider(height: 1),
           Expanded(
             child: _submitted ? _buildSuccess() : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                // 수정 가능 항목 안내
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF3E5F5),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFCE93D8)),
-                  ),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Row(children: [
-                      Icon(Icons.edit_note_rounded, size: 15, color: Color(0xFF7B1FA2)),
-                      SizedBox(width: 6),
-                      Text('수정 가능 항목', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF7B1FA2))),
-                    ]),
-                    const SizedBox(height: 8),
-                    Wrap(spacing: 8, runSpacing: 6, children: [
-                      _chip('사이즈 변경', const Color(0xFF1565C0)),
-                      _chip('색상 변경', const Color(0xFF6A1B9A)),
-                      _chip('디자인 패턴 변경', const Color(0xFF7B1FA2)),
-                      _chip('단체명 변경', const Color(0xFF2E7D32)),
-                      _chip('기타 수정', const Color(0xFF616161)),
-                    ]),
-                    const SizedBox(height: 8),
-                    const Text('※ 인쇄타입은 기존 주문과 동일하게 유지됩니다.',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.4)),
-                  ]),
-                ),
-                const SizedBox(height: 16),
-                // 3일 자동확정 안내
-                if (widget.order.designRevisionDeadline != null)
+
+                // ── 3일 자동확정 안내 ──
+                if (widget.order.designRevisionDeadline != null) ...[
                   Container(
-                    margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFF3E0),
@@ -5126,67 +5193,225 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
                       )),
                     ]),
                   ),
-                // 수정 요청 내용 입력
-                const Text('수정 요청 내용 *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _memoCtrl,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: '원하시는 수정 내용을 자세히 입력해주세요.\n\n예) 3번 사람 사이즈 M → L로 변경\n예) 전체 색상 블랙 → 네이비로 변경\n예) 앞면 로고 디자인 패턴 변경 요청',
-                    hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF7B1FA2)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // 희망 색상 선택 (선택사항)
-                const Text('희망 색상 (선택)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 16),
+                ],
+
+                // ══ 1. 색상 변경 ══
+                _sectionLabel(Icons.palette_outlined, '색상', purple),
                 const SizedBox(height: 4),
-                const Text('색상 변경을 원하실 경우 선택해주세요.', style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
-                const SizedBox(height: 8),
+                if (_currentColor.isNotEmpty)
+                  Text('현재: $_currentColor',
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                const SizedBox(height: 10),
                 Wrap(
                   spacing: 8, runSpacing: 8,
-                  children: [
-                    {'name': '블랙', 'hex': 0xFF1A1A1A}, {'name': '네이비', 'hex': 0xFF0D1B4F},
-                    {'name': '화이트', 'hex': 0xFFF5F5F5}, {'name': '그레이', 'hex': 0xFF9E9E9E},
-                    {'name': '스카이블루', 'hex': 0xFF90CAF9}, {'name': '블루', 'hex': 0xFF1A4DB3},
-                    {'name': '레드', 'hex': 0xFFE53935}, {'name': '그린', 'hex': 0xFF2E7D32},
-                    {'name': '버건디', 'hex': 0xFF880E4F}, {'name': '오렌지', 'hex': 0xFFE65100},
-                  ].map((c) {
-                    final isSelected = _selectedColorName == c['name'];
+                  children: AppConstants.twoFitColors.map((c) {
+                    final isSelected = _newColorName == c['name'];
+                    final cVal = Color(c['hex'] as int);
+                    // 화이트 계열 텍스트 가시성 처리
+                    final isLight = cVal.computeLuminance() > 0.7;
                     return GestureDetector(
                       onTap: () => setState(() {
-                        _selectedColorName = isSelected ? null : c['name'] as String;
-                        _selectedColor = isSelected ? null : Color(c['hex'] as int);
+                        _newColorName  = isSelected ? _currentColor : c['name'] as String;
+                        _newColorValue = isSelected ? null : cVal;
                       }),
-                      child: Container(
-                        width: 50, height: 50,
-                        decoration: BoxDecoration(
-                          color: Color(c['hex'] as int),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: isSelected ? const Color(0xFF7B1FA2) : Colors.grey.shade300,
-                            width: isSelected ? 2.5 : 1,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 44, height: 44,
+                            decoration: BoxDecoration(
+                              color: cVal,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected ? purple : (isLight ? Colors.grey.shade400 : Colors.transparent),
+                                width: isSelected ? 3 : 1,
+                              ),
+                              boxShadow: isSelected ? [BoxShadow(color: purple.withValues(alpha: 0.35), blurRadius: 6)] : [],
+                            ),
+                            child: isSelected
+                                ? Icon(Icons.check_rounded, color: isLight ? Colors.black54 : Colors.white, size: 20)
+                                : null,
                           ),
-                        ),
-                        child: isSelected
-                            ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
-                            : null,
+                          const SizedBox(height: 3),
+                          SizedBox(
+                            width: 44,
+                            child: Text(
+                              (c['name'] as String).replaceAll('다크', '다크\n').replaceAll('스카이', '스카이\n').replaceAll('라이트', '라이트\n'),
+                              style: const TextStyle(fontSize: 8, color: Color(0xFF555555)),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }).toList(),
                 ),
-                if (_selectedColorName != null) ...[
+                if (_newColorName != null && _newColorName != _currentColor) ...[
                   const SizedBox(height: 6),
-                  Text('선택: $_selectedColorName',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF7B1FA2), fontWeight: FontWeight.w600)),
+                  Row(children: [
+                    const Icon(Icons.arrow_forward_rounded, size: 13, color: purple),
+                    const SizedBox(width: 4),
+                    Text('변경: $_newColorName',
+                      style: const TextStyle(fontSize: 12, color: purple, fontWeight: FontWeight.w700)),
+                  ]),
                 ],
+                const SizedBox(height: 20),
+
+                // ══ 2. 원단 변경 ══
+                _sectionLabel(Icons.texture_rounded, '원단', const Color(0xFF1565C0)),
+                if (_currentFabric.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text('현재: $_currentFabric',
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                ],
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: _fabricTypes.map((f) {
+                    final isSel = _newFabric == f;
+                    final isCurrent = f == _currentFabric;
+                    return GestureDetector(
+                      onTap: () => setState(() => _newFabric = f),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSel ? const Color(0xFF1565C0) : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSel ? const Color(0xFF1565C0) : (isCurrent ? const Color(0xFF1565C0).withValues(alpha: 0.4) : const Color(0xFFDDDDDD)),
+                            width: isSel || isCurrent ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Text(f,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isSel ? Colors.white : const Color(0xFF333333),
+                              fontWeight: isSel || isCurrent ? FontWeight.w700 : FontWeight.w400,
+                            ),
+                          ),
+                          if (isCurrent && !isSel) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1565C0).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: const Text('현재', style: TextStyle(fontSize: 9, color: Color(0xFF1565C0), fontWeight: FontWeight.w700)),
+                            ),
+                          ],
+                        ]),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                if (_newFabric != null && _newFabric != _currentFabric) ...[
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    const Icon(Icons.arrow_forward_rounded, size: 13, color: Color(0xFF1565C0)),
+                    const SizedBox(width: 4),
+                    Text('변경: $_newFabric',
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF1565C0), fontWeight: FontWeight.w700)),
+                  ]),
+                ],
+                const SizedBox(height: 20),
+
+                // ══ 3. 단체명 변경 ══
+                _sectionLabel(Icons.groups_outlined, '단체명', const Color(0xFF2E7D32)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _teamNameCtrl,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    hintText: '단체명을 입력하세요',
+                    prefixIcon: const Icon(Icons.groups_outlined, size: 18, color: Color(0xFF2E7D32)),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    filled: true,
+                    fillColor: const Color(0xFFF1F8E9),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFC8E6C9))),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFC8E6C9))),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 1.5)),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // ══ 4. 인원별 사이즈 수정 ══
+                if (_persons.isNotEmpty) ...[
+                  _sectionLabel(Icons.straighten_rounded, '인원별 사이즈', const Color(0xFF00695C)),
+                  const SizedBox(height: 4),
+                  const Text('변경할 사이즈를 직접 수정해주세요.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                  const SizedBox(height: 8),
+                  ...List.generate(_persons.length, (i) {
+                    final p       = _persons[i];
+                    final num     = (p['index'] as int?) ?? (i + 1);
+                    final name    = (p['name']   as String?) ?? '';
+                    final gender  = (p['gender'] as String?) ?? '';
+                    final gIcon   = gender == 'female' ? '👩' : (gender == 'junior' ? '🧒' : '👨');
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(children: [
+                        // 인원 번호/이름
+                        Container(
+                          width: 52,
+                          alignment: Alignment.center,
+                          child: Column(mainAxisSize: MainAxisSize.min, children: [
+                            Text(gIcon, style: const TextStyle(fontSize: 16)),
+                            Text('$num번', style: const TextStyle(fontSize: 10, color: Color(0xFF555555), fontWeight: FontWeight.w700)),
+                            if (name.isNotEmpty)
+                              Text(name, style: const TextStyle(fontSize: 9, color: Color(0xFF888888)), overflow: TextOverflow.ellipsis),
+                          ]),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: _personSizeCtrl[i],
+                            style: const TextStyle(fontSize: 12),
+                            decoration: InputDecoration(
+                              hintText: '예) 상의 L / 하의 M',
+                              hintStyle: const TextStyle(fontSize: 11, color: Color(0xFFBBBBBB)),
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                              filled: true,
+                              fillColor: const Color(0xFFE0F2F1),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFB2DFDB))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFB2DFDB))),
+                              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF00695C), width: 1.5)),
+                            ),
+                          ),
+                        ),
+                      ]),
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                ],
+
+                // ══ 5. 추가 요청사항 ══
+                _sectionLabel(Icons.chat_bubble_outline_rounded, '추가 요청사항', const Color(0xFF616161)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _memoCtrl,
+                  maxLines: 3,
+                  style: const TextStyle(fontSize: 13),
+                  decoration: InputDecoration(
+                    hintText: '디자인 패턴, 로고 위치 등 위 항목 외 수정 요청 사항을 입력해주세요.',
+                    hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                    filled: true,
+                    fillColor: const Color(0xFFF9F9F9),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: purple),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 16),
-                // 안내 문구
+
+                // ── 안내사항 ──
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -5201,22 +5426,22 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
                       Text('안내사항', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
                     ]),
                     const SizedBox(height: 6),
-                    _infoRow('사이즈·색상·디자인 패턴·단체명 등 모든 항목 수정 가능합니다.'),
-                    _infoRow('디자인 수정 요청은 총 2회까지 가능합니다.'),
                     _infoRow('인쇄타입(승화/나염 등)은 기존 주문과 동일하게 유지됩니다.'),
+                    _infoRow('디자인 수정 요청은 총 2회까지 가능합니다.'),
                     _infoRow('요청 후 3일 이내 관리자 미응답 시 현재 디자인으로 자동 확정됩니다.'),
                     _infoRow('확정 후에는 추가 수정이 불가합니다.'),
                   ]),
                 ),
                 const SizedBox(height: 24),
-                // 제출 버튼
+
+                // ── 제출 버튼 ──
                 SizedBox(
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton(
                     onPressed: _isSubmitting ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7B1FA2),
+                      backgroundColor: purple,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _isSubmitting
@@ -5272,6 +5497,15 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
     child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('• ', style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
       Expanded(child: Text(text, style: const TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.4))),
+    ]),
+  );
+
+  Widget _sectionLabel(IconData icon, String label, Color color) => Padding(
+    padding: const EdgeInsets.only(bottom: 2),
+    child: Row(children: [
+      Icon(icon, size: 16, color: color),
+      const SizedBox(width: 6),
+      Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: color)),
     ]),
   );
 }
