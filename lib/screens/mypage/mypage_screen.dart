@@ -97,6 +97,7 @@ class _MyPageScreenState extends State<MyPageScreen>
         onShowChangePassword: _showChangePasswordDialog,
         onShowDeleteAccount: _showDeleteAccountDialog,
         onShowDesignRevision: _showDesignRevisionSheet,
+        onShowDesignConfirm: _showDesignConfirmSheet,
       );
     }
     return _MobileMyPage(
@@ -110,6 +111,7 @@ class _MyPageScreenState extends State<MyPageScreen>
       onShowChangePassword: _showChangePasswordDialog,
       onShowDeleteAccount: _showDeleteAccountDialog,
       onShowDesignRevision: _showDesignRevisionSheet,
+      onShowDesignConfirm: _showDesignConfirmSheet,
     );
   }
 
@@ -128,6 +130,15 @@ class _MyPageScreenState extends State<MyPageScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _DesignRevisionSheet(order: order),
+    );
+  }
+
+  void _showDesignConfirmSheet(OrderModel order) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _DesignConfirmSheet(order: order),
     );
   }
 
@@ -419,6 +430,7 @@ class _PcMyPage extends StatelessWidget {
   final void Function(BuildContext) onShowChangePassword;
   final void Function(BuildContext, UserProvider) onShowDeleteAccount;
   final void Function(OrderModel)? onShowDesignRevision;
+  final void Function(OrderModel)? onShowDesignConfirm;
 
   const _PcMyPage({
     required this.tabController,
@@ -430,6 +442,7 @@ class _PcMyPage extends StatelessWidget {
     required this.onShowChangePassword,
     required this.onShowDeleteAccount,
     this.onShowDesignRevision,
+    this.onShowDesignConfirm,
   });
 
   @override
@@ -602,7 +615,8 @@ class _PcMyPage extends StatelessWidget {
                           switch (tabController.index) {
                             case 0: return _PcOrderHistoryTab(userProvider: userProvider, loc: loc,
                                 onAdditionalOrder: onShowAdditionalOrder,
-                                onDesignRevision: onShowDesignRevision);
+                                onDesignRevision: onShowDesignRevision,
+                                onDesignConfirm: onShowDesignConfirm);
                             case 1: return _PcWishlistTab(userProvider: userProvider, loc: loc);
                             case 2: return _PcCouponTab(userProvider: userProvider, loc: loc);
                             case 3: return _PcSettingsTab(userProvider: userProvider, loc: loc,
@@ -893,11 +907,13 @@ class _PcOrderHistoryTab extends StatefulWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel)? onDesignRevision;
+  final void Function(OrderModel)? onDesignConfirm;
 
   const _PcOrderHistoryTab({
     required this.userProvider, required this.loc,
     required this.onAdditionalOrder,
     this.onDesignRevision,
+    this.onDesignConfirm,
   });
 
   @override
@@ -955,6 +971,7 @@ class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
                     order: orders[i], loc: widget.loc,
                     onAdditionalOrder: widget.onAdditionalOrder,
                     onDesignRevision: widget.onDesignRevision,
+                    onDesignConfirm: widget.onDesignConfirm,
                   ),
                 ),
         ),
@@ -968,8 +985,9 @@ class _PcOrderCard extends StatelessWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel)? onDesignRevision;
+  final void Function(OrderModel)? onDesignConfirm;
 
-  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, this.onDesignRevision});
+  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, this.onDesignRevision, this.onDesignConfirm});
 
   @override
   Widget build(BuildContext context) {
@@ -1246,6 +1264,13 @@ class _PcOrderCard extends StatelessWidget {
                 color: const Color(0xFF7B1FA2),
                 badge: '${order.remainingDesignRevisions}회',
                 onTap: () => onDesignRevision?.call(order),
+              ));
+              // 단체주문 디자인 확인 버튼 (수정완료 이미지가 있을 때)
+              if (isGroup && order.designConfirmedImageUrl?.isNotEmpty == true) btns.add(_ActionBtn(
+                icon: Icons.image_search_rounded,
+                label: '디자인확인',
+                color: const Color(0xFF0277BD),
+                onTap: () => onDesignConfirm?.call(order),
               ));
               // 단체주문 디자인 확정 표시 (3일 경과 또는 배송 이상)
               if (isGroup && order.isDesignConfirmed && !order.canRequestDesignRevision) btns.add(_ActionBtn(
@@ -2400,6 +2425,7 @@ class _MobileMyPage extends StatelessWidget {
   final void Function(BuildContext) onShowChangePassword;
   final void Function(BuildContext, UserProvider) onShowDeleteAccount;
   final void Function(OrderModel)? onShowDesignRevision;
+  final void Function(OrderModel)? onShowDesignConfirm;
 
   const _MobileMyPage({
     required this.tabController,
@@ -2412,6 +2438,7 @@ class _MobileMyPage extends StatelessWidget {
     required this.onShowChangePassword,
     required this.onShowDeleteAccount,
     this.onShowDesignRevision,
+    this.onShowDesignConfirm,
   });
 
   @override
@@ -2467,7 +2494,8 @@ class _MobileMyPage extends StatelessWidget {
                 children: [
                   _MobileOrderHistoryTab(userProvider: userProvider, loc: loc,
                     onAdditionalOrder: onShowAdditionalOrder,
-                    onDesignRevision: onShowDesignRevision),
+                    onDesignRevision: onShowDesignRevision,
+                    onDesignConfirm: onShowDesignConfirm),
                   _MobileWishlistTab(userProvider: userProvider, loc: loc),
                   _MobileCouponTab(userProvider: userProvider, loc: loc),
                   _MobileSettingsTab(userProvider: userProvider, loc: loc,
@@ -2682,11 +2710,13 @@ class _MobileOrderHistoryTab extends StatefulWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel)? onDesignRevision;
+  final void Function(OrderModel)? onDesignConfirm;
 
   const _MobileOrderHistoryTab({
     required this.userProvider, required this.loc,
     required this.onAdditionalOrder,
     this.onDesignRevision,
+    this.onDesignConfirm,
   });
 
   @override
@@ -2738,6 +2768,7 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
           order: orders[i], loc: widget.loc,
           onAdditionalOrder: widget.onAdditionalOrder,
           onDesignRevision: widget.onDesignRevision,
+          onDesignConfirm: widget.onDesignConfirm,
         ),
       ),
     );
@@ -2749,8 +2780,9 @@ class _MobileOrderCard extends StatelessWidget {
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
   final void Function(OrderModel)? onDesignRevision;
+  final void Function(OrderModel)? onDesignConfirm;
 
-  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, this.onDesignRevision});
+  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, this.onDesignRevision, this.onDesignConfirm});
 
   @override
   Widget build(BuildContext context) {
@@ -3128,6 +3160,13 @@ class _MobileOrderCard extends StatelessWidget {
                 color: const Color(0xFF7B1FA2),
                 badge: '${order.remainingDesignRevisions}회',
                 onTap: () => onDesignRevision?.call(order),
+              ));
+              // 디자인 확인 버튼 (수정완료 이미지가 있을 때)
+              if (isGroup && order.designConfirmedImageUrl?.isNotEmpty == true) row2.add(_ActionBtn(
+                icon: Icons.image_search_rounded,
+                label: '디자인확인',
+                color: const Color(0xFF0277BD),
+                onTap: () => onDesignConfirm?.call(order),
               ));
               // 디자인 확정 표시 (3일 경과 or 배송 이상)
               if (isGroup && order.isDesignConfirmed && !order.canRequestDesignRevision) row2.add(_ActionBtn(
@@ -5113,6 +5152,360 @@ Widget _npActionButton({required String label, required VoidCallback onTap, bool
 
 
 // ════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// 디자인 확인 바텀시트 (수정완료 이미지 전용)
+// ═══════════════════════════════════════════════════════
+class _DesignConfirmSheet extends StatefulWidget {
+  final OrderModel order;
+  const _DesignConfirmSheet({required this.order});
+
+  @override
+  State<_DesignConfirmSheet> createState() => _DesignConfirmSheetState();
+}
+
+class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
+  bool _fullscreen = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final order = widget.order;
+    final imageUrl = order.designConfirmedImageUrl;
+    final memo = order.designRevisionRequest?['memo'] as String?;
+    final screenH = MediaQuery.of(context).size.height;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.92,
+      minChildSize: 0.5,
+      maxChildSize: 0.97,
+      expand: false,
+      builder: (_, scrollCtrl) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            // ── 핸들 바 ──────────────────────────
+            Container(
+              margin: const EdgeInsets.only(top: 10, bottom: 4),
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // ── 헤더 ─────────────────────────────
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0277BD), Color(0xFF01579B)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.image_search_rounded, color: Colors.white, size: 22),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      '수정 완료 디자인 확인',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white, size: 22),
+                    onPressed: () => Navigator.of(context).pop(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+            // ── 본문 ─────────────────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                controller: scrollCtrl,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 주문 정보 요약
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3F8FF),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFBBDEFB)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.receipt_long_rounded, color: Color(0xFF0277BD), size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  order.items.isEmpty ? '주문 상품' : order.items.first.productName,
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF01579B)),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  '주문번호: ${order.id}',
+                                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 수정 요청 메모 (있으면)
+                    if (memo?.isNotEmpty == true) ...[
+                      const Text(
+                        '수정 요청 내용',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF37474F)),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF8E1),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFFFE082)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.format_quote_rounded, color: Color(0xFFFF8F00), size: 18),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                memo!,
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF5D4037), height: 1.5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // 수정 완료 디자인 이미지
+                    const Text(
+                      '수정 완료 디자인',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF37474F)),
+                    ),
+                    const SizedBox(height: 8),
+
+                    if (imageUrl == null || imageUrl.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.image_not_supported_outlined, size: 48, color: Colors.grey[400]),
+                            const SizedBox(height: 8),
+                            Text('아직 수정 완료 이미지가 없습니다.', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+                          ],
+                        ),
+                      )
+                    else
+                      GestureDetector(
+                        onTap: () => _openFullscreen(context, imageUrl),
+                        child: Container(
+                          width: double.infinity,
+                          constraints: BoxConstraints(maxHeight: screenH * 0.45),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFBBDEFB), width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(11),
+                            child: Stack(
+                              alignment: Alignment.bottomRight,
+                              children: [
+                                Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.contain,
+                                  width: double.infinity,
+                                  loadingBuilder: (_, child, progress) {
+                                    if (progress == null) return child;
+                                    return SizedBox(
+                                      height: 200,
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          value: progress.expectedTotalBytes != null
+                                              ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                                              : null,
+                                          color: const Color(0xFF0277BD),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (_, __, ___) => Container(
+                                    height: 200,
+                                    color: Colors.grey[100],
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.broken_image_outlined, size: 48, color: Colors.grey[400]),
+                                        const SizedBox(height: 8),
+                                        Text('이미지를 불러올 수 없습니다.', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                // 확대 힌트 배지
+                                Container(
+                                  margin: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.zoom_in_rounded, color: Colors.white, size: 14),
+                                      SizedBox(width: 4),
+                                      Text('탭하여 확대', style: TextStyle(fontSize: 11, color: Colors.white)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 16),
+
+                    // 안내 문구
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3F2FD),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.info_outline_rounded, color: Color(0xFF0277BD), size: 16),
+                          SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              '이미지를 탭하면 핀치줌으로 확대하여 자세히 확인할 수 있습니다.\n추가 수정이 필요하면 \'디자인수정\' 버튼을 이용해 주세요.',
+                              style: TextStyle(fontSize: 12, color: Color(0xFF01579B), height: 1.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 닫기 버튼
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0277BD),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: const Text('확인', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openFullscreen(BuildContext context, String imageUrl) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            title: const Text(
+              '수정 완료 디자인',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          body: Center(
+            child: InteractiveViewer(
+              panEnabled: true,
+              scaleEnabled: true,
+              minScale: 0.5,
+              maxScale: 6.0,
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.contain,
+                loadingBuilder: (_, child, progress) {
+                  if (progress == null) return child;
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  );
+                },
+                errorBuilder: (_, __, ___) => Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.broken_image_outlined, size: 64, color: Colors.white54),
+                    const SizedBox(height: 12),
+                    Text('이미지를 불러올 수 없습니다.',
+                      style: TextStyle(color: Colors.white60, fontSize: 14)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // 디자인 수정 요청 바텀시트
 // ════════════════════════════════════════════════
 class _DesignRevisionSheet extends StatefulWidget {
