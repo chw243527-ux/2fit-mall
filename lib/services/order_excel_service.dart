@@ -1953,14 +1953,8 @@ class OrderExcelService {
       sheet.setRowHeight(rowIdx, 22);
       rowIdx++;
 
-      // 남성 먼저, 여성 다음
-      final males   = persons.where((p) => (p as Map)['gender']?.toString() == '남').toList();
-      final females = persons.where((p) => (p as Map)['gender']?.toString() == '여').toList();
-      final others  = persons.where((p) {
-        final g = (p as Map)['gender']?.toString() ?? '';
-        return g != '남' && g != '여';
-      }).toList();
-      final sorted = [...males, ...females, ...others];
+      // 입력 순서 그대로 출력
+      final sorted = persons;
 
       for (var i = 0; i < sorted.length; i++) {
         final p      = sorted[i] as Map<dynamic, dynamic>;
