@@ -997,9 +997,16 @@ class _PcOrderCard extends StatelessWidget {
     final canDesignRevision = isGroup && isActive && order.canDesignRevision;
 
     final canCancelReadyMade = !isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
-    final canCancelGroup = isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
+    // 단체주문: 디자인 발송 전(designRevisionDeadline == null)이고 pending/confirmed 상태일 때만 취소 가능
+    final canCancelGroup = isGroup &&
+        (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed) &&
+        order.designRevisionDeadline == null;
     final canCancel = canCancelReadyMade || canCancelGroup;
-    final cancelBlockedByDesign = isGroup && order.status == OrderStatus.processing;
+    // 단체주문 취소불가: 디자인이 이미 발송됐거나(designRevisionDeadline != null) processing 이상
+    final cancelBlockedByDesign = isGroup && !canCancelGroup &&
+        (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed ||
+         order.status == OrderStatus.processing) &&
+        !(order.status == OrderStatus.cancelled || order.status == OrderStatus.refunded);
     // 구매확정 여부 (수동 or 3일 자동)
     final isPurchaseConfirmed = order.isPurchaseConfirmed;
     // 배송완료 후 3일 이내 → 구매확정 버튼 표시
@@ -1131,7 +1138,7 @@ class _PcOrderCard extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     title: const Text('주문 취소', style: TextStyle(fontWeight: FontWeight.w800)),
                     content: Text(isGroup
-                        ? '단체주문을 취소하시겠습니까?\n제작 시작 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'
+                        ? '단체주문을 취소하시겠습니까?\n디자인 수정 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'
                         : '주문을 취소하시겠습니까?\n발송 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'),
                     actions: [
                       TextButton(onPressed: () => Navigator.pop(btnCtx, false), child: const Text('아니오')),
@@ -1223,9 +1230,9 @@ class _PcOrderCard extends StatelessWidget {
 
               final btns = <Widget>[];
               btns.add(_ActionBtn(icon: Icons.receipt_long_rounded, label: '주문상세', onTap: () { _showUserOrderDetail(btnCtx, order); }));
-              if (canCancel) btns.add(_ActionBtn(icon: Icons.cancel_outlined, label: isGroup ? '취소(제작전)' : '주문취소', color: Colors.red, onTap: doCancel));
+              if (canCancel) btns.add(_ActionBtn(icon: Icons.cancel_outlined, label: isGroup ? '취소(디자인전)' : '주문취소', color: Colors.red, onTap: doCancel));
               if (cancelBlockedByDesign) btns.add(_ActionBtn(icon: Icons.lock_outline_rounded, label: '취소불가', color: Colors.red.shade300,
-                onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다. 고객센터로 문의해 주세요.')))));
+                onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(const SnackBar(content: Text('디자인 수정이 시작된 이후에는 취소가 불가합니다.\n고객센터로 문의해 주세요.')))));
               if (canConfirmPurchase) btns.add(_ActionBtn(
                 icon: Icons.check_circle_rounded,
                 label: '구매확정',
@@ -2781,9 +2788,16 @@ class _MobileOrderCard extends StatelessWidget {
 
     // 취소/교환/반품 조건
     final canCancelReadyMade = !isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
-    final canCancelGroup = isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
+    // 단체주문: 디자인 발송 전(designRevisionDeadline == null)이고 pending/confirmed 상태일 때만 취소 가능
+    final canCancelGroup = isGroup &&
+        (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed) &&
+        order.designRevisionDeadline == null;
     final canCancel = (canCancelReadyMade || canCancelGroup) && !hasTracking;
-    final cancelBlockedByDesign = isGroup && order.status == OrderStatus.processing;
+    // 단체주문 취소불가: 디자인이 이미 발송됐거나(designRevisionDeadline != null) processing 이상
+    final cancelBlockedByDesign = isGroup && !canCancelGroup &&
+        (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed ||
+         order.status == OrderStatus.processing) &&
+        !(order.status == OrderStatus.cancelled || order.status == OrderStatus.refunded);
     // 교환/반품: 운송장 등록 후 (배송중 or 배송완료) + 구매확정 전
     final isPurchaseConfirmed = order.isPurchaseConfirmed;
     final canExchangeReturn = hasTracking &&
@@ -2930,7 +2944,7 @@ class _MobileOrderCard extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     title: const Text('주문 취소', style: TextStyle(fontWeight: FontWeight.w800)),
                     content: Text(isGroup
-                        ? '단체주문을 취소하시겠습니까?\n제작 시작 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'
+                        ? '단체주문을 취소하시겠습니까?\n디자인 수정 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'
                         : '주문을 취소하시겠습니까?\n발송 전에만 취소 가능합니다.\n결제 취소는 1~3 영업일 내 처리됩니다.'),
                     actions: [
                       TextButton(onPressed: () => Navigator.pop(btnCtx, false), child: const Text('아니오')),
@@ -3047,7 +3061,7 @@ class _MobileOrderCard extends StatelessWidget {
                 if (canCancel) {
                   row1.add(_ActionBtn(
                     icon: Icons.cancel_outlined,
-                    label: isGroup ? '취소(제작전)' : '주문취소',
+                    label: isGroup ? '취소(디자인전)' : '주문취소',
                     color: Colors.red,
                     onTap: doCancel,
                   ));
@@ -3059,7 +3073,7 @@ class _MobileOrderCard extends StatelessWidget {
                     label: '취소불가',
                     color: Colors.red.shade300,
                     onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(
-                      const SnackBar(content: Text('디자인 수정이 시작되어 취소가 불가합니다.\n고객센터로 문의해 주세요.')),
+                      const SnackBar(content: Text('디자인 수정이 시작된 이후에는 취소가 불가합니다.\n고객센터로 문의해 주세요.')),
                     ),
                   ));
                 }
