@@ -396,9 +396,11 @@ class OrderModel {
     return DateTime.now().isBefore(designRevisionDeadline!);
   }
 
-  /// 단체주문 디자인수정요청 가능 여부 (제작중 상태 + 2회 미만 + 기간 이내)
+  /// 단체주문 디자인수정요청 가능 여부 (주문대기/확인/제작중 상태 + 2회 미만 + 기간 이내)
   bool get canRequestDesignRevision =>
-      (status == OrderStatus.processing || status == OrderStatus.confirmed) &&
+      (status == OrderStatus.pending ||
+       status == OrderStatus.confirmed ||
+       status == OrderStatus.processing) &&
       canDesignRevision &&
       isDesignRevisionPeriodActive;
 

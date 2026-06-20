@@ -3961,22 +3961,11 @@ class _AdditionalOrderSheet extends StatefulWidget {
 class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
   AppLocalizations get _loc => context.watch<LanguageProvider>().loc;
 
-  // 색상 선택
-  String? _selectedColor;
-  // ignore: unused_field
-  Color? _selectedColorValue;
-
-  // 사이즈 입력
-  final _sizeCtrl = TextEditingController();
-
   // 수량 입력
   int _quantity = 1;
 
-  final List<Map<String, dynamic>> _twoFitColors = AppConstants.twoFitColors;
-
   @override
   void dispose() {
-    _sizeCtrl.dispose();
     super.dispose();
   }
 
@@ -4019,80 +4008,6 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
               _infoRow(loc.mypageOrderDate, '${widget.order.createdAt.year}.${widget.order.createdAt.month.toString().padLeft(2,'0')}.${widget.order.createdAt.day.toString().padLeft(2,'0')}'),
               _infoRow(loc.mypageOriginalQty, '${widget.order.groupCount ?? widget.order.items.fold<int>(0, (s, i) => s + i.quantity)}장'),
             ]),
-            const SizedBox(height: 14),
-
-            // ── 색상 선택 ──
-            Text(_loc.colorSelect, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 44,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _twoFitColors.length,
-                itemBuilder: (_, i) {
-                  final c = _twoFitColors[i];
-                  final cName = c['name'] as String;
-                  final cHex = c['hex'] as int;
-                  final cVal = Color(cHex);
-                  final isSel = _selectedColor == cName;
-                  return GestureDetector(
-                    onTap: () => setState(() {
-                      _selectedColor = cName;
-                      _selectedColorValue = cVal;
-                    }),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 6),
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: cVal,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isSel ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD),
-                          width: isSel ? 2.5 : 1,
-                        ),
-                        boxShadow: isSel ? [BoxShadow(color: const Color(0xFF6A1B9A).withValues(alpha: 0.3), blurRadius: 6)] : [],
-                      ),
-                      child: isSel ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
-                    ),
-                  );
-                },
-              ),
-            ),
-            if (_selectedColor != null) ...[
-              const SizedBox(height: 6),
-              Text(loc.mypageSelectedColor(_selectedColor!),
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w600)),
-            ],
-            const SizedBox(height: 14),
-
-            // ── 사이즈 입력 ──
-            Text(_loc.sizeInput, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 6),
-            TextField(
-              controller: _sizeCtrl,
-              style: const TextStyle(fontSize: 13),
-              decoration: InputDecoration(
-                hintText: loc.mypageAdditionalSizeHint,
-                hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                filled: true,
-                fillColor: const Color(0xFFF7F8FA),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Color(0xFF795548), width: 1.5),
-                ),
-              ),
-            ),
             const SizedBox(height: 14),
 
             // ── 수량 ──
