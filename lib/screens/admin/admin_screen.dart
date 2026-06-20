@@ -287,9 +287,10 @@ class _AdminScreenState extends State<AdminScreen>
         final reqStatus = req['status'] as String? ?? 'pending';
         final String status;
         switch (reqStatus) {
-          case 'responded': status = '처리완료'; break;
-          case 'rejected':  status = '반려';    break;
-          default:          status = '대기중';
+          case 'responded':  status = '완료';   break;
+          case 'rejected':   status = '거절';   break;
+          case 'processing': status = '처리중'; break;
+          default:           status = '대기중';
         }
 
         // 요약 설명 생성
@@ -1643,6 +1644,53 @@ class _AdminScreenState extends State<AdminScreen>
     }
     // 날짜별 내보내기 선택 다이얼로그
     _showExportDialog(orders);
+  }
+
+  // ── 디자인 수정 요청 엑셀 내보내기 ──
+  Future<void> exportDesignRequestsToExcel(
+      BuildContext ctx, List<Map<String, dynamic>> requests) async {
+    if (requests.isEmpty) {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        const SnackBar(content: Text('내보낼 디자인 수정 요청이 없습니다.'), backgroundColor: Color(0xFF6A1B9A)));
+      return;
+    }
+    const mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    final now = DateTime.now();
+    final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final fileName = '2FIT_디자인수정요청_${requests.length}건_$dateStr.xlsx';
+    try {
+      final bytes = OrderExcelService.generateDesignRevisionExcel(requests);
+      if (kIsWeb) {
+        downloadFileWeb(bytes, fileName, mimeType);
+        if (!ctx.mounted) return;
+        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+          content: Row(children: [
+            const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Expanded(child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${requests.length}건 엑셀 다운로드 완료!',
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                const Text('팀별 시트로 구성되어 있습니다',
+                    style: TextStyle(fontSize: 11, color: Colors.white70)),
+              ],
+            )),
+          ]),
+          backgroundColor: const Color(0xFF2E7D32),
+          duration: const Duration(seconds: 4),
+        ));
+      } else {
+        if (!ctx.mounted) return;
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          const SnackBar(content: Text('웹 환경에서만 다운로드가 지원됩니다.'), backgroundColor: Color(0xFF555555)));
+      }
+    } catch (e) {
+      if (!ctx.mounted) return;
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(content: Text('엑셀 생성 실패: $e'), backgroundColor: Colors.red));
+    }
   }
 
   // ──────────────────────────────────────────────
@@ -9351,7 +9399,20 @@ class _AdminScreenState extends State<AdminScreen>
                                 if (status == '대기중')
                                   Expanded(child: _drActionBtn('처리 시작', const Color(0xFF1565C0), () => _updateDesignRequestStatus(req, '처리중'))),
                                 if (status == '처리중') ...[
-                                  Expanded(child: _drActionBtn('완료 처리', const Color(0xFF2E7D32), () => _updateDesignRequestStatus(req, '완료'))),
+                                  Expanded(child: _drActionBtn('완료 처리', const Color(0xFF2E7D32), () async {
+                                    // Firestore에서 주문 불러와 이미지 업로드 다이얼로그 열기
+                                    final orderId = req['orderId'] as String? ?? req['id'] as String;
+                                    try {
+                                      final doc = await FirebaseFirestore.instance.collection('orders').doc(orderId).get();
+                                      if (!doc.exists || !context.mounted) return;
+                                      final order = OrderService.parseOrderFromFirestore(doc.data()!, docId: orderId);
+                                      _showDesignRevisionAdminSheet(order);
+                                    } catch (e) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('주문 정보 로드 실패: $e'), backgroundColor: Colors.red));
+                                    }
+                                  })),
                                   const SizedBox(width: 6),
                                   Expanded(child: _drActionBtn('거절', const Color(0xFFE53935), () => _updateDesignRequestStatus(req, '거절'))),
                                 ],

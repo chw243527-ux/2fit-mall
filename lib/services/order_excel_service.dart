@@ -2716,7 +2716,279 @@ class OrderExcelService {
     if (encoded == null) throw Exception('샘플 엑셀 생성 실패');
     return Uint8List.fromList(encoded);
   }
-}
+
+  // ─────────────────────────────────────────────────────────────
+  // 디자인 수정 요청 엑셀 (팀별 시트)
+  // requests: _designRequests 리스트, 각 항목 = {
+  //   orderId, userName, teamName, colorName, adjustedColorHex,
+  //   fabricName, printType, personChanges, memo, status, createdAt
+  // }
+  // ─────────────────────────────────────────────────────────────
+  static Uint8List generateDesignRevisionExcel(List<Map<String, dynamic>> requests) {
+    final excel = Excel.createExcel();
+
+    // ── 스타일 ──
+    final titleStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#6A1B9A'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 13,
+    );
+    final sectionStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      fontSize: 10,
+    );
+    final labelStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#F3E5F5'),
+      fontColorHex: ExcelColor.fromHexString('#4A148C'),
+      fontSize: 10,
+    );
+    final valueStyle = CellStyle(fontSize: 10);
+    final headerStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#1A237E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 10,
+    );
+    final maleStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#E3F2FD'),
+      fontColorHex: ExcelColor.fromHexString('#1565C0'),
+      fontSize: 10,
+    );
+    final femaleStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#FCE4EC'),
+      fontColorHex: ExcelColor.fromHexString('#C62828'),
+      fontSize: 10,
+    );
+    final evenRowStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#F5F5F5'),
+      fontSize: 10,
+    );
+    final memoStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#FFFDE7'),
+      fontColorHex: ExcelColor.fromHexString('#795548'),
+      fontSize: 10,
+    );
+
+    final statusColors = {
+      '대기중': '#E65100',
+      '처리중': '#1565C0',
+      '완료': '#2E7D32',
+      '거절': '#E53935',
+    };
+
+    // ── 1. 요약 시트 ──
+    final summarySheet = excel['요약'];
+    excel.setDefaultSheet('요약');
+
+    _setCell(summarySheet, 0, 0, '2FIT 디자인 수정 요청 목록', style: titleStyle);
+    summarySheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
+      CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: 0),
+    );
+    summarySheet.setRowHeight(0, 28);
+
+    final now = DateTime.now();
+    _setCell(summarySheet, 1, 0,
+        '생성일시: ${now.year}.${now.month.toString().padLeft(2,'0')}.${now.day.toString().padLeft(2,'0')} ${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}  총 ${requests.length}건',
+        style: CellStyle(fontSize: 9, fontColorHex: ExcelColor.fromHexString('#757575')));
+    summarySheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1),
+      CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: 1),
+    );
+
+    final summaryHeaders = ['No', '단체명', '담당자', '색상', '원단', '인쇄타입', '상태', '요청일시'];
+    for (int c = 0; c < summaryHeaders.length; c++) {
+      _setCell(summarySheet, 3, c, summaryHeaders[c], style: headerStyle);
+    }
+    summarySheet.setRowHeight(3, 22);
+
+    for (int i = 0; i < requests.length; i++) {
+      final req = requests[i];
+      final row = 4 + i;
+      final rowStyle = i.isEven ? evenRowStyle : valueStyle;
+      final statusStr = req['status'] as String? ?? '-';
+      final statusHex = statusColors[statusStr] ?? '#555555';
+      final statusCellStyle = CellStyle(
+        bold: true,
+        fontColorHex: ExcelColor.fromHexString(statusHex),
+        fontSize: 10,
+      );
+      _setCell(summarySheet, row, 0, '${i + 1}', style: rowStyle);
+      _setCell(summarySheet, row, 1, req['teamName'] as String? ?? '-', style: rowStyle);
+      _setCell(summarySheet, row, 2, req['userName'] as String? ?? '-', style: rowStyle);
+      _setCell(summarySheet, row, 3, req['colorName'] as String? ?? '-', style: rowStyle);
+      _setCell(summarySheet, row, 4, req['fabricName'] as String? ?? '-', style: rowStyle);
+      _setCell(summarySheet, row, 5, req['printType']?.toString() ?? '-', style: rowStyle);
+      _setCell(summarySheet, row, 6, statusStr, style: statusCellStyle);
+      final createdAt = req['createdAt'] as DateTime?;
+      _setCell(summarySheet, row, 7,
+          createdAt != null
+              ? '${createdAt.year}.${createdAt.month.toString().padLeft(2,'0')}.${createdAt.day.toString().padLeft(2,'0')} ${createdAt.hour.toString().padLeft(2,'0')}:${createdAt.minute.toString().padLeft(2,'0')}'
+              : '-',
+          style: rowStyle);
+      summarySheet.setRowHeight(row, 18);
+    }
+
+    // 열 너비 조정
+    summarySheet.setColumnWidth(0, 6);
+    summarySheet.setColumnWidth(1, 20);
+    summarySheet.setColumnWidth(2, 14);
+    summarySheet.setColumnWidth(3, 18);
+    summarySheet.setColumnWidth(4, 14);
+    summarySheet.setColumnWidth(5, 20);
+    summarySheet.setColumnWidth(6, 10);
+    summarySheet.setColumnWidth(7, 18);
+
+    // ── 2. 팀별 시트 ──
+    // 팀명으로 그룹화
+    final Map<String, List<Map<String, dynamic>>> teamMap = {};
+    for (final req in requests) {
+      final teamName = (req['teamName'] as String?)?.isNotEmpty == true
+          ? req['teamName'] as String
+          : req['userName'] as String? ?? '미분류';
+      teamMap.putIfAbsent(teamName, () => []).add(req);
+    }
+
+    int sheetOrder = 0;
+    for (final entry in teamMap.entries) {
+      sheetOrder++;
+      final teamName = entry.key;
+      // 시트 이름 길이 제한 (Excel 최대 31자)
+      final sheetName = teamName.length > 28
+          ? '${teamName.substring(0, 25)}...'
+          : teamName;
+
+      final sheet = excel[sheetName];
+
+      // 팀 타이틀
+      _setCell(sheet, 0, 0, '[$sheetName] 디자인 수정 요청', style: titleStyle);
+      sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
+        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: 0),
+      );
+      sheet.setRowHeight(0, 28);
+
+      int rowIdx = 1;
+
+      for (final req in entry.value) {
+        // ─ 요청 정보 헤더 ─
+        _setCell(sheet, rowIdx, 0, '▶ 주문 / 요청 정보', style: sectionStyle);
+        sheet.merge(
+          CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIdx),
+          CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+        );
+        sheet.setRowHeight(rowIdx, 20);
+        rowIdx++;
+
+        // 기본 정보 rows
+        final infoRows = [
+          ['주문ID',    req['orderId']   ?? req['id'] ?? '-'],
+          ['담당자',    req['userName']  ?? '-'],
+          ['단체명',    req['teamName']  ?? '-'],
+          ['색상',      '${req['colorName'] ?? '-'}  ${req['adjustedColorHex']?.isNotEmpty == true ? "(${req['adjustedColorHex']})" : ""}'],
+          ['원단',      req['fabricName']?? '-'],
+          ['인쇄타입',  req['printType']?.toString() ?? '-'],
+          ['상태',      req['status']    ?? '-'],
+        ];
+        for (final info in infoRows) {
+          _setCell(sheet, rowIdx, 0, info[0].toString(), style: labelStyle);
+          _setCell(sheet, rowIdx, 1, info[1].toString(), style: valueStyle);
+          sheet.merge(
+            CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIdx),
+            CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+          );
+          sheet.setRowHeight(rowIdx, 18);
+          rowIdx++;
+        }
+
+        // 메모
+        final memo = req['memo'] as String? ?? '';
+        if (memo.isNotEmpty) {
+          _setCell(sheet, rowIdx, 0, '요청 메모', style: labelStyle);
+          _setCell(sheet, rowIdx, 1, memo, style: memoStyle);
+          sheet.merge(
+            CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIdx),
+            CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+          );
+          sheet.setRowHeight(rowIdx, 18);
+          rowIdx++;
+        }
+
+        // 인원별 사이즈 변경
+        final personChanges = req['personChanges'] as List<dynamic>? ?? [];
+        if (personChanges.isNotEmpty) {
+          rowIdx++; // 빈 행
+          _setCell(sheet, rowIdx, 0, '▶ 인원별 사이즈 변경', style: sectionStyle);
+          sheet.merge(
+            CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIdx),
+            CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+          );
+          sheet.setRowHeight(rowIdx, 20);
+          rowIdx++;
+
+          // 컬럼 헤더
+          final personHeaders = ['No', '이름', '성별', '현재 상의', '현재 하의', '변경 상의', '변경 하의', '상의 길이', '하의 길이', '비고'];
+          for (int c = 0; c < personHeaders.length; c++) {
+            _setCell(sheet, rowIdx, c, personHeaders[c], style: headerStyle);
+          }
+          sheet.setRowHeight(rowIdx, 22);
+          rowIdx++;
+
+          for (int pi = 0; pi < personChanges.length; pi++) {
+            final person = personChanges[pi] as Map<dynamic, dynamic>;
+            final gender = (person['gender'] ?? person['성별'] ?? '').toString().toLowerCase();
+            final isMale = gender == 'm' || gender == 'male' || gender == '남' || gender == '남성';
+            final isFemale = gender == 'f' || gender == 'female' || gender == '여' || gender == '여성';
+            final pStyle = isMale ? maleStyle : (isFemale ? femaleStyle : (pi.isEven ? evenRowStyle : valueStyle));
+
+            _setCell(sheet, rowIdx, 0, '${pi + 1}', style: pStyle);
+            _setCell(sheet, rowIdx, 1, (person['name'] ?? person['이름'] ?? '-').toString(), style: pStyle);
+            _setCell(sheet, rowIdx, 2, isMale ? '남' : (isFemale ? '여' : (person['gender'] ?? '-').toString()), style: pStyle);
+            _setCell(sheet, rowIdx, 3, (person['currentTopSize'] ?? person['현재상의'] ?? '-').toString(), style: pStyle);
+            _setCell(sheet, rowIdx, 4, (person['currentBottomSize'] ?? person['현재하의'] ?? '-').toString(), style: pStyle);
+            _setCell(sheet, rowIdx, 5, (person['newTopSize'] ?? person['변경상의'] ?? '-').toString(), style: pStyle);
+            _setCell(sheet, rowIdx, 6, (person['newBottomSize'] ?? person['변경하의'] ?? '-').toString(), style: pStyle);
+            _setCell(sheet, rowIdx, 7, (person['topLength'] ?? person['상의길이'] ?? '-').toString(), style: pStyle);
+            _setCell(sheet, rowIdx, 8, (person['bottomLength'] ?? person['하의길이'] ?? '-').toString(), style: pStyle);
+            _setCell(sheet, rowIdx, 9, (person['note'] ?? person['비고'] ?? '').toString(), style: pStyle);
+            sheet.setRowHeight(rowIdx, 18);
+            rowIdx++;
+          }
+        }
+
+        rowIdx += 2; // 다음 요청 간 간격
+      }
+
+      // 열 너비
+      sheet.setColumnWidth(0, 12);
+      sheet.setColumnWidth(1, 18);
+      sheet.setColumnWidth(2, 6);
+      sheet.setColumnWidth(3, 12);
+      sheet.setColumnWidth(4, 12);
+      sheet.setColumnWidth(5, 12);
+      sheet.setColumnWidth(6, 12);
+      sheet.setColumnWidth(7, 10);
+      sheet.setColumnWidth(8, 10);
+      sheet.setColumnWidth(9, 18);
+    }
+
+    // 기본 Sheet1 제거
+    if (excel.sheets.containsKey('Sheet1')) {
+      excel.delete('Sheet1');
+    }
+
+    final encoded = excel.encode();
+    if (encoded == null) throw Exception('디자인 수정 요청 엑셀 생성 실패');
+    return Uint8List.fromList(encoded);
+  }
+} // end OrderExcelService
+
 
 class OrderDateRange {
   final DateTime start;
