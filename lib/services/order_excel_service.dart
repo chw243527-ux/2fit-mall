@@ -2556,39 +2556,44 @@ class OrderExcelService {
   }
 
   // ── personChange before/after 파싱 ──
-  // Firestore 저장 형식: before/after = '상의 XL / 하의 L'
-  // 반환: {'curTop','newTop','curBot','newBot'}
+  // Firestore 저장 형식 A (신규): currentTopSize, newTopSize 등
+  // Firestore 저장 형식 B (레거시): before='상의 XL / 하의 L', after='상의 XXL'
+  static String _extractSizeFromText(String text, String prefix) {
+    final idx = text.indexOf(prefix);
+    if (idx < 0) return '';
+    final rest = text.substring(idx + prefix.length).trim();
+    final slashIdx = rest.indexOf('/');
+    return (slashIdx >= 0 ? rest.substring(0, slashIdx) : rest).trim();
+  }
+
   static Map<String, String> _parsePersonSizes(Map<dynamic, dynamic> person) {
-    // 신규 키 방식 우선 (currentTopSize 등)
-    final curTop = (person['currentTopSize'] ?? person['현재상의'] ?? '').toString().trim();
-    final newTop = (person['newTopSize']     ?? person['변경상의'] ?? '').toString().trim();
-    final curBot = (person['currentBottomSize'] ?? person['현재하의'] ?? '').toString().trim();
-    final newBot = (person['newBottomSize']     ?? person['변경하의'] ?? '').toString().trim();
-    if (newTop.isNotEmpty || newBot.isNotEmpty || curTop.isNotEmpty || curBot.isNotEmpty) {
-      return {'curTop': curTop, 'newTop': newTop, 'curBot': curBot, 'newBot': newBot,
-              'topLen': (person['topLength']    ?? person['상의길이'] ?? '').toString().trim(),
-              'botLen': (person['bottomLength'] ?? person['하의길이'] ?? '').toString().trim()};
+    // ① 신규 키 방식 (currentTopSize 등)
+    final curTopNew = (person['currentTopSize']    ?? person['현재상의']    ?? '').toString().trim();
+    final newTopNew = (person['newTopSize']        ?? person['변경상의']    ?? '').toString().trim();
+    final curBotNew = (person['currentBottomSize'] ?? person['현재하의']    ?? '').toString().trim();
+    final newBotNew = (person['newBottomSize']     ?? person['변경하의']    ?? '').toString().trim();
+    final topLen    = (person['topLength']         ?? person['상의길이']    ?? '').toString().trim();
+    final botLen    = (person['bottomLength']      ?? person['하의길이']    ?? '').toString().trim();
+
+    if (newTopNew.isNotEmpty || newBotNew.isNotEmpty ||
+        curTopNew.isNotEmpty || curBotNew.isNotEmpty) {
+      return {
+        'curTop': curTopNew, 'newTop': newTopNew,
+        'curBot': curBotNew, 'newBot': newBotNew,
+        'topLen': topLen,    'botLen': botLen,
+      };
     }
-    // 레거시 before/after 방식 파싱
-    // 형식: '상의 XL / 하의 L' 또는 '상의 XXL' 또는 '하의 L'
-    String _parseSize(String text, String prefix) {
-      final lower = text.toLowerCase();
-      final idx = lower.indexOf(prefix);
-      if (idx < 0) return '';
-      final rest = text.substring(idx + prefix.length).trim();
-      // '/' 로 다음 항목 구분
-      final end = rest.indexOf('/');
-      return (end >= 0 ? rest.substring(0, end) : rest).trim();
-    }
+
+    // ② 레거시 before/after 방식
+    // before 예: '상의 L / 하의 L'   after 예: '상의 M(110)'
     final before = (person['before'] ?? '').toString();
     final after  = (person['after']  ?? '').toString();
     return {
-      'curTop': _parseSize(before, '상의'),
-      'newTop': _parseSize(after,  '상의'),
-      'curBot': _parseSize(before, '하의'),
-      'newBot': _parseSize(after,  '하의'),
-      'topLen': '',
-      'botLen': '',
+      'curTop': _extractSizeFromText(before, '상의'),
+      'newTop': _extractSizeFromText(after,  '상의'),
+      'curBot': _extractSizeFromText(before, '하의'),
+      'newBot': _extractSizeFromText(after,  '하의'),
+      'topLen': '', 'botLen': '',
     };
   }
 
@@ -3055,12 +3060,11 @@ class OrderExcelService {
           rowIdx++;
         }
 
-        // 기본 정보 rows
+        // 기본 정보 rows (색상은 아래 별도 행으로 표시)
         final infoRows = [
           ['주문ID',    req['orderId']   ?? req['id'] ?? '-'],
           ['담당자',    req['userName']  ?? '-'],
           ['단체명',    req['teamName']  ?? '-'],
-          ['색상',      '${req['colorName'] ?? '-'}  ${req['adjustedColorHex']?.isNotEmpty == true ? "(${req['adjustedColorHex']})" : ""}'],
         ];
         for (final info in infoRows) {
           _setCell(sheet, rowIdx, 0, info[0].toString(), style: labelStyle);
@@ -3073,11 +3077,13 @@ class OrderExcelService {
           rowIdx++;
         }
 
-        // 메모
-        final memo = req['memo'] as String? ?? '';
-        if (memo.isNotEmpty) {
-          _setCell(sheet, rowIdx, 0, '요청 메모', style: labelStyle);
-          _setCell(sheet, rowIdx, 1, memo, style: memoStyle);
+        // 색상 정보 행 (memo 대신 colorName + adjustedColorHex만 표시)
+        final colorName = req['colorName'] as String? ?? '';
+        final colorHex  = req['adjustedColorHex'] as String? ?? '';
+        if (colorName.isNotEmpty) {
+          final colorText = colorHex.isNotEmpty ? '$colorName ($colorHex)' : colorName;
+          _setCell(sheet, rowIdx, 0, '색상', style: labelStyle);
+          _setCell(sheet, rowIdx, 1, colorText, style: valueStyle);
           sheet.merge(
             CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIdx),
             CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
