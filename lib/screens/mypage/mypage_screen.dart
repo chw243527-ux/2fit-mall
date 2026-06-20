@@ -91,7 +91,6 @@ class _MyPageScreenState extends State<MyPageScreen>
         tabController: _tabController,
         userProvider: userProvider,
         onShowAdditionalOrder: _showAdditionalOrderSheet,
-        onShowColorEdit: _showColorEditSheet,
         onShowProfileEdit: _showProfileEdit,
         onShowAddressManager: _showAddressManager,
         onShowLogout: _showLogoutDialog,
@@ -105,7 +104,6 @@ class _MyPageScreenState extends State<MyPageScreen>
       userProvider: userProvider,
       onBack: widget.onBack,
       onShowAdditionalOrder: _showAdditionalOrderSheet,
-      onShowColorEdit: _showColorEditSheet,
       onShowProfileEdit: _showProfileEdit,
       onShowAddressManager: _showAddressManager,
       onShowLogout: _showLogoutDialog,
@@ -121,15 +119,6 @@ class _MyPageScreenState extends State<MyPageScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _AdditionalOrderSheet(order: order),
-    );
-  }
-
-  void _showColorEditSheet(OrderModel order) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _ColorEditSheet(order: order),
     );
   }
 
@@ -424,7 +413,6 @@ class _PcMyPage extends StatelessWidget {
   final TabController tabController;
   final UserProvider userProvider;
   final void Function(OrderModel) onShowAdditionalOrder;
-  final void Function(OrderModel) onShowColorEdit;
   final void Function(BuildContext, UserModel) onShowProfileEdit;
   final void Function(BuildContext) onShowAddressManager;
   final void Function(BuildContext, UserProvider) onShowLogout;
@@ -436,7 +424,6 @@ class _PcMyPage extends StatelessWidget {
     required this.tabController,
     required this.userProvider,
     required this.onShowAdditionalOrder,
-    required this.onShowColorEdit,
     required this.onShowProfileEdit,
     required this.onShowAddressManager,
     required this.onShowLogout,
@@ -614,7 +601,7 @@ class _PcMyPage extends StatelessWidget {
                         builder: (_, __) {
                           switch (tabController.index) {
                             case 0: return _PcOrderHistoryTab(userProvider: userProvider, loc: loc,
-                                onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
+                                onAdditionalOrder: onShowAdditionalOrder,
                                 onDesignRevision: onShowDesignRevision);
                             case 1: return _PcWishlistTab(userProvider: userProvider, loc: loc);
                             case 2: return _PcCouponTab(userProvider: userProvider, loc: loc);
@@ -905,12 +892,11 @@ class _PcOrderHistoryTab extends StatefulWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
-  final void Function(OrderModel) onColorEdit;
   final void Function(OrderModel)? onDesignRevision;
 
   const _PcOrderHistoryTab({
     required this.userProvider, required this.loc,
-    required this.onAdditionalOrder, required this.onColorEdit,
+    required this.onAdditionalOrder,
     this.onDesignRevision,
   });
 
@@ -968,7 +954,6 @@ class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
                   itemBuilder: (_, i) => _PcOrderCard(
                     order: orders[i], loc: widget.loc,
                     onAdditionalOrder: widget.onAdditionalOrder,
-                    onColorEdit: widget.onColorEdit,
                     onDesignRevision: widget.onDesignRevision,
                   ),
                 ),
@@ -982,17 +967,15 @@ class _PcOrderCard extends StatelessWidget {
   final OrderModel order;
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
-  final void Function(OrderModel) onColorEdit;
   final void Function(OrderModel)? onDesignRevision;
 
-  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision});
+  const _PcOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, this.onDesignRevision});
 
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(order.status);
     final isGroup = order.orderType == 'group' || order.orderType == 'additional' || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
     final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
-    final canColorEdit = isGroup && isActive && order.canEditColor;
     // 추가제작: 취소/환불 아니면 배송완료 후에도 항상 가능 (같은 디자인 재주문)
     final canAdditional = isGroup && isActive;
     final canDesignRevision = isGroup && isActive && order.canDesignRevision;
@@ -1272,7 +1255,6 @@ class _PcOrderCard extends StatelessWidget {
                 onTap: null,
               ));
               if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), onTap: () => onAdditionalOrder(order)));
-              if (canColorEdit) btns.add(_ActionBtn(icon: Icons.palette_outlined, label: '색상변경', color: const Color(0xFF6A1B9A), badge: '${order.remainingColorEdits}', onTap: () => onColorEdit(order)));
 
               return Row(
                 children: btns.asMap().entries.map((e) {
@@ -2412,7 +2394,6 @@ class _MobileMyPage extends StatelessWidget {
   final UserProvider userProvider;
   final VoidCallback? onBack; // 탭0(홈)으로 돌아가기 콜백
   final void Function(OrderModel) onShowAdditionalOrder;
-  final void Function(OrderModel) onShowColorEdit;
   final void Function(BuildContext, UserModel) onShowProfileEdit;
   final void Function(BuildContext) onShowAddressManager;
   final void Function(BuildContext, UserProvider) onShowLogout;
@@ -2425,7 +2406,6 @@ class _MobileMyPage extends StatelessWidget {
     required this.userProvider,
     this.onBack,
     required this.onShowAdditionalOrder,
-    required this.onShowColorEdit,
     required this.onShowProfileEdit,
     required this.onShowAddressManager,
     required this.onShowLogout,
@@ -2486,7 +2466,7 @@ class _MobileMyPage extends StatelessWidget {
                 controller: tabController,
                 children: [
                   _MobileOrderHistoryTab(userProvider: userProvider, loc: loc,
-                    onAdditionalOrder: onShowAdditionalOrder, onColorEdit: onShowColorEdit,
+                    onAdditionalOrder: onShowAdditionalOrder,
                     onDesignRevision: onShowDesignRevision),
                   _MobileWishlistTab(userProvider: userProvider, loc: loc),
                   _MobileCouponTab(userProvider: userProvider, loc: loc),
@@ -2701,12 +2681,11 @@ class _MobileOrderHistoryTab extends StatefulWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
-  final void Function(OrderModel) onColorEdit;
   final void Function(OrderModel)? onDesignRevision;
 
   const _MobileOrderHistoryTab({
     required this.userProvider, required this.loc,
-    required this.onAdditionalOrder, required this.onColorEdit,
+    required this.onAdditionalOrder,
     this.onDesignRevision,
   });
 
@@ -2757,7 +2736,7 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
         itemCount: orders.length,
         itemBuilder: (_, i) => _MobileOrderCard(
           order: orders[i], loc: widget.loc,
-          onAdditionalOrder: widget.onAdditionalOrder, onColorEdit: widget.onColorEdit,
+          onAdditionalOrder: widget.onAdditionalOrder,
           onDesignRevision: widget.onDesignRevision,
         ),
       ),
@@ -2769,17 +2748,15 @@ class _MobileOrderCard extends StatelessWidget {
   final OrderModel order;
   final AppLocalizations loc;
   final void Function(OrderModel) onAdditionalOrder;
-  final void Function(OrderModel) onColorEdit;
   final void Function(OrderModel)? onDesignRevision;
 
-  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, required this.onColorEdit, this.onDesignRevision});
+  const _MobileOrderCard({required this.order, required this.loc, required this.onAdditionalOrder, this.onDesignRevision});
 
   @override
   Widget build(BuildContext context) {
     final statusColor = _statusColor(order.status);
     final isGroup = order.orderType == 'group' || order.orderType == 'additional' || order.id.startsWith('GRP_') || order.id.startsWith('GROUP-');
     final isActive = order.status != OrderStatus.cancelled && order.status != OrderStatus.refunded;
-    final canColorEdit = isGroup && isActive && order.canEditColor;
     // 추가제작: 취소/환불 아니면 배송완료 후에도 항상 가능 (같은 디자인 재주문)
     final canAdditional = isGroup && isActive;
     final canDesignRevision = isGroup && isActive && order.canDesignRevision;
@@ -3164,13 +3141,6 @@ class _MobileOrderCard extends StatelessWidget {
                 label: '추가제작',
                 color: const Color(0xFF2E7D32),
                 onTap: () => onAdditionalOrder(order),
-              ));
-              if (canColorEdit) row2.add(_ActionBtn(
-                icon: Icons.palette_outlined,
-                label: '색상변경',
-                color: const Color(0xFF6A1B9A),
-                badge: '${order.remainingColorEdits}',
-                onTap: () => onColorEdit(order),
               ));
 
 
@@ -4311,633 +4281,6 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
     );
 }
 
-// ════════════════════════════════════════════════
-// 컬러·단체명 수정요청 바텀시트
-// ════════════════════════════════════════════════
-class _ColorEditSheet extends StatefulWidget {
-  final OrderModel order;
-  const _ColorEditSheet({required this.order});
-
-  @override
-  State<_ColorEditSheet> createState() => _ColorEditSheetState();
-}
-
-class _ColorEditSheetState extends State<_ColorEditSheet> {
-  AppLocalizations get _loc => context.watch<LanguageProvider>().loc;
-
-  final _teamNameCtrl = TextEditingController();
-  final _memoCtrl = TextEditingController();
-  bool _submitted = false;
-
-  // 선택된 컬러
-  String? _selectedColorName;
-  Color? _selectedColor;
-
-  // 사이즈/컬러표 펼침 상태
-  bool _showSizeChart = false;
-  bool _showColorChart = false;
-
-  @override
-  void dispose() {
-    _teamNameCtrl.dispose();
-    _memoCtrl.dispose();
-    super.dispose();
-  }
-
-  bool _isSubmitting = false;
-
-  Future<void> _submit() async {
-    if (_selectedColorName == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_loc.selectColor2)),
-      );
-      return;
-    }
-    if (widget.order.remainingColorEdits <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('수정 가능 횟수를 모두 사용했습니다.')),
-      );
-      return;
-    }
-    setState(() => _isSubmitting = true);
-    try {
-      final success = await OrderService.submitColorNameChangeRequest(
-        orderId: widget.order.id,
-        newColorName: _selectedColorName,
-        newTeamName: _teamNameCtrl.text.trim().isNotEmpty ? _teamNameCtrl.text.trim() : null,
-        memo: _memoCtrl.text.trim().isNotEmpty ? _memoCtrl.text.trim() : null,
-      );
-      if (!mounted) return;
-      if (success) {
-        setState(() {
-          _submitted = true;
-          _isSubmitting = false;
-        });
-        // 마이페이지 주문 목록 새로고침
-        final user = context.read<UserProvider>().user;
-        if (user != null) {
-          context.read<OrderProvider>().loadUserOrders(user.id);
-        }
-      } else {
-        setState(() => _isSubmitting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('수정 요청 저장에 실패했습니다. 다시 시도해주세요.'), backgroundColor: Colors.red),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('오류: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final remaining = widget.order.remainingColorEdits;
-    const blueColor = Color(0xFF6A1B9A);
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-      ),
-      padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 24),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 핸들
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 16),
-
-            // 헤더 + 남은 횟수
-            Row(children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: blueColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.palette_outlined, color: blueColor, size: 22),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(_loc.colorNameModify, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
-                  Text(_loc.mypageEditCount(remaining), style: TextStyle(
-                    fontSize: 11,
-                    color: remaining > 0 ? blueColor : Colors.red,
-                    fontWeight: FontWeight.w700,
-                  )),
-                ]),
-              ),
-              // 횟수 원형 표시
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: remaining > 0 ? blueColor.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
-                  border: Border.all(color: remaining > 0 ? blueColor : Colors.red, width: 2),
-                ),
-                child: Center(
-                  child: Text(
-                    '$remaining',
-                    style: TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.w900,
-                      color: remaining > 0 ? blueColor : Colors.red,
-                    ),
-                  ),
-                ),
-              ),
-            ]),
-            const SizedBox(height: 16),
-
-            if (_submitted) ...[
-              // 제출 완료 화면
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.green.shade300),
-                ),
-                child: Column(children: [
-                  const Icon(Icons.check_circle_rounded, color: Colors.green, size: 48),
-                  const SizedBox(height: 10),
-                  Text(_loc.modifyAccepted, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
-                  const SizedBox(height: 6),
-                  if (_selectedColor != null)
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Container(
-                        width: 16, height: 16,
-                        margin: const EdgeInsets.only(right: 6),
-                        decoration: BoxDecoration(
-                          color: _selectedColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFFCCCCCC)),
-                        ),
-                      ),
-                      Text(_loc.mypageSelectedColorLabel(_selectedColorName ?? ''),
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                    ]),
-                  const SizedBox(height: 4),
-                  Text(_loc.mypageRemainingEdits(remaining - 1), style: TextStyle(fontSize: 13, color: Colors.green.shade700)),
-                ]),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: blueColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    elevation: 0,
-                  ),
-                  child: Text(_loc.confirm, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                ),
-              ),
-            ] else ...[
-              // 입력 폼
-              // 주문 정보 요약
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF7F8FA),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFE0E0E0)),
-                ),
-                child: Column(children: [
-                  _infoRow(_loc.mypageOrderNumber, widget.order.id),
-                  _infoRow(_loc.mypageCurrentGroupName, widget.order.groupName ?? '(없음)'),
-                ]),
-              ),
-              const SizedBox(height: 14),
-
-              // 유의사항
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.amber.shade300),
-                ),
-                child: Text(
-                  _loc.modifyWarning,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF7A5000), height: 1.5),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // 변경 컬러 선택 *
-              Text(_loc.colorModify, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 8),
-
-              // 컬러 선택 버튼
-              GestureDetector(
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => ColorPickerWidget(
-                      selectedColorName: _selectedColorName,
-                      selectedColor: _selectedColor,
-                      onColorSelected: (name, color) {
-                        setState(() {
-                          _selectedColorName = name;
-                          _selectedColor = color;
-                        });
-                        Navigator.pop(context);
-                      },
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: _selectedColor != null
-                        ? _selectedColor!.withValues(alpha: 0.06)
-                        : blueColor.withValues(alpha: 0.02),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: _selectedColor != null
-                          ? blueColor.withValues(alpha: 0.6)
-                          : const Color(0xFFCCCCCC),
-                      width: _selectedColor != null ? 1.5 : 1.0,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      if (_selectedColor != null) ...[
-                        Container(
-                          width: 24, height: 24,
-                          decoration: BoxDecoration(
-                            color: _selectedColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFCCCCCC), width: 1),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _selectedColorName ?? '',
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                      ] else ...[
-                        const Icon(Icons.palette_outlined, size: 18, color: Color(0xFF888888)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(_loc.selectColor2,
-                              style: const TextStyle(fontSize: 13, color: Color(0xFF888888))),
-                        ),
-                      ],
-                      Icon(Icons.chevron_right_rounded,
-                          size: 18,
-                          color: _selectedColor != null ? blueColor : const Color(0xFFBBBBBB)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // ── 컬러표 토글 ──
-              _toggleChartButton(
-                label: '🎨 컬러 코드표 보기',
-                expanded: _showColorChart,
-                onTap: () => setState(() => _showColorChart = !_showColorChart),
-                color: blueColor,
-              ),
-              if (_showColorChart) ...[
-                const SizedBox(height: 8),
-                _buildColorTable(),
-              ],
-              const SizedBox(height: 12),
-
-              // ── 사이즈표 토글 ──
-              _toggleChartButton(
-                label: '📐 사이즈표 보기',
-                expanded: _showSizeChart,
-                onTap: () => setState(() => _showSizeChart = !_showSizeChart),
-                color: const Color(0xFF1A1A1A),
-              ),
-              if (_showSizeChart) ...[
-                const SizedBox(height: 8),
-                _buildSizeTable(),
-              ],
-              const SizedBox(height: 12),
-
-              // 변경 단체명 입력
-              Text(_loc.groupNameModify, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _teamNameCtrl,
-                decoration: InputDecoration(
-                  hintText: _loc.mypageChangeIfNeeded,
-                  prefixIcon: const Icon(Icons.groups_outlined, size: 18),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: blueColor, width: 1.5)),
-                  filled: true,
-                  fillColor: const Color(0xFFF7F8FA),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // 기타 메모
-              Text(_loc.additionalRequest, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _memoCtrl,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: _loc.mypageOtherRequest,
-                  contentPadding: const EdgeInsets.all(14),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: blueColor, width: 1.5)),
-                  filled: true,
-                  fillColor: const Color(0xFFF7F8FA),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // 버튼
-              Row(children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text(_loc.cancel, style: const TextStyle(fontWeight: FontWeight.w700)),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton.icon(
-                    onPressed: _isSubmitting ? null : _submit,
-                    icon: _isSubmitting
-                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Icon(Icons.send_rounded, size: 16),
-                    label: Text(_loc.modifyRequest, style: const TextStyle(fontWeight: FontWeight.w800)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: blueColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      elevation: 0,
-                    ),
-                  ),
-                ),
-              ]),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 3),
-    child: Row(children: [
-      SizedBox(width: 80, child: Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF888888)))),
-      Expanded(child: Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700))),
-    ]),
-  );
-
-  // ── 표 토글 버튼 ──
-  Widget _toggleChartButton({
-    required String label,
-    required bool expanded,
-    required VoidCallback onTap,
-    required Color color,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withValues(alpha: 0.25)),
-        ),
-        child: Row(
-          children: [
-            Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
-            const Spacer(),
-            Icon(expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                size: 18, color: color),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── 컬러 코드표 ──
-  Widget _buildColorTable() {
-    const colors = AppColorPalette.registeredColors;
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FA),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-              decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(4)),
-              child: const Text('2FIT', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
-            ),
-            const SizedBox(width: 6),
-            Text(_loc.mypageColorCodeChart, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
-          ]),
-          const SizedBox(height: 10),
-          // 5열 그리드
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 5,
-              mainAxisSpacing: 6,
-              crossAxisSpacing: 6,
-              childAspectRatio: 0.78,
-            ),
-            itemCount: colors.length,
-            itemBuilder: (_, i) {
-              final c = colors[i];
-              final hexColor = Color(c['hex'] as int);
-              final code = c['code'] as String;
-              final isLight = hexColor.computeLuminance() > 0.6;
-              final isSelected = _selectedColorName != null &&
-                  (_selectedColorName!.contains(code));
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedColorName = c['name'] as String;
-                    _selectedColor = hexColor;
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: hexColor,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFF6A1B9A)
-                          : (isLight ? const Color(0xFFCCCCCC) : Colors.transparent),
-                      width: isSelected ? 2.5 : 1.0,
-                    ),
-                    boxShadow: isSelected
-                        ? [BoxShadow(color: const Color(0xFF6A1B9A).withValues(alpha: 0.4), blurRadius: 4)]
-                        : null,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      if (isSelected)
-                        Icon(Icons.check_circle_rounded,
-                            size: 14,
-                            color: isLight ? const Color(0xFF6A1B9A) : Colors.white),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(7)),
-                        ),
-                        child: Text(
-                          code,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 6),
-          Text(_loc.mypageColorNote,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
-        ],
-      ),
-    );
-  }
-
-  // ── 사이즈표 ──
-  Widget _buildSizeTable() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-              decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(4)),
-              child: const Text('2FIT', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900)),
-            ),
-            const SizedBox(width: 6),
-            Text(_loc.mypageSizeChartTitle, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
-            const SizedBox(width: 6),
-            Text(_loc.mypageStandardFit, style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
-          ]),
-          const SizedBox(height: 10),
-          // 성인
-          _sizeLabel(_loc.adultSizeLabel, const Color(0xFF6A1B9A)),
-          const SizedBox(height: 6),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Table(
-              defaultColumnWidth: const IntrinsicColumnWidth(),
-              border: TableBorder.all(color: const Color(0xFFDDDDDD), width: 0.8),
-              children: [
-                _sizeHeaderRow([_loc.sizeLabel, 'XS(85)', 'S(90)', 'M(95)', 'L(100)', 'XL(105)', '2XL(110)', '3XL(115)']),
-                _sizeRow('${_loc.measureHeight}(cm)', ['154~159', '160~165', '166~172', '172~177', '177~182', '182~187', '187~191']),
-                _sizeRow('${_loc.measureWeight}(kg)', ['44~51', '52~60', '61~71', '72~78', '79~85', '86~91', '91~96']),
-                _sizeRow('${_loc.measureChest}(cm)', ['85', '90', '95', '100', '105', '110', '115']),
-                _sizeRow('${_loc.measureWaist}(inch)', ['26~28', '28~30', '30~32', '32~34', '34~36', '36~38', '38~40']),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          // 주니어
-          _sizeLabel(_loc.juniorSizeLabel, const Color(0xFF2E7D32)),
-          const SizedBox(height: 6),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Table(
-              defaultColumnWidth: const IntrinsicColumnWidth(),
-              border: TableBorder.all(color: const Color(0xFFDDDDDD), width: 0.8),
-              children: [
-                _sizeHeaderRow([_loc.sizeLabel, 'J-S(60)', 'J-M(65)', 'J-L(70)', 'J-XL(75)', 'J-2XL(80)']),
-                _sizeRow('${_loc.measureHeight}(cm)', ['112~117', '118~122', '123~133', '130~139', '140~153']),
-                _sizeRow('${_loc.measureWeight}(kg)', ['19~21', '22~24', '25~28', '26~34', '35~43']),
-                _sizeRow(_loc.mypageSizeAgeLabel, ['6~7', '7~8', '8~9', '10~11', '-']),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(_loc.mypageFitNote,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
-        ],
-      ),
-    );
-  }
-
-  Widget _sizeLabel(String label, Color color) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.10),
-      borderRadius: BorderRadius.circular(6),
-      border: Border.all(color: color.withValues(alpha: 0.35)),
-    ),
-    child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color)),
-  );
-
-  TableRow _sizeHeaderRow(List<String> labels) => TableRow(
-    decoration: const BoxDecoration(color: Color(0xFF1A1A1A)),
-    children: labels.map((l) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-      child: Text(l, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.white), textAlign: TextAlign.center),
-    )).toList(),
-  );
-
-  TableRow _sizeRow(String label, List<String> values) => TableRow(
-    children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-        child: Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF444444)), textAlign: TextAlign.center),
-      ),
-      ...values.map((v) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-        child: Text(v, style: const TextStyle(fontSize: 9, color: Color(0xFF555555)), textAlign: TextAlign.center),
-      )),
-    ],
-  );
-}
-
-
 // ═══════════════════════════════════════════════════════════
 // 배송지 관리 바텀시트
 // ═══════════════════════════════════════════════════════════
@@ -5713,12 +5056,6 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
     super.dispose();
   }
 
-  // 인쇄타입에 따른 수정 가능 항목
-  int get _printType => (widget.order.customOptions?['printType'] as num?)?.toInt() ?? 0;
-  bool get _canChangeColor => _printType == 0 || _printType == 2 || _printType == 3 || _printType == 4;
-  bool get _canChangeTeamName => _printType == 1 || _printType == 2 || _printType == 3 || _printType == 4;
-  bool get _canChangeDesign => _printType == 3 || _printType == 4;
-
   // 3일 자동확정 안내
   String get _deadlineText {
     final deadline = widget.order.designRevisionDeadline;
@@ -5827,23 +5164,31 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
             child: _submitted ? _buildSuccess() : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                // 주문 정보 요약
+                // 수정 가능 항목 안내
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8F8FF),
+                    color: const Color(0xFFF3E5F5),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE0E0FF)),
+                    border: Border.all(color: const Color(0xFFCE93D8)),
                   ),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('선택된 인쇄타입: ${_getPrintTypeLabel()}',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 6),
-                    Wrap(spacing: 6, children: [
-                      if (_canChangeColor) _chip('색상 변경 가능', const Color(0xFF6A1B9A)),
-                      if (_canChangeTeamName) _chip('단체명 변경 가능', const Color(0xFF2E7D32)),
-                      if (_canChangeDesign) _chip('디자인 변경 가능', const Color(0xFF7B1FA2)),
+                    const Row(children: [
+                      Icon(Icons.edit_note_rounded, size: 15, color: Color(0xFF7B1FA2)),
+                      SizedBox(width: 6),
+                      Text('수정 가능 항목', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF7B1FA2))),
                     ]),
+                    const SizedBox(height: 8),
+                    Wrap(spacing: 8, runSpacing: 6, children: [
+                      _chip('사이즈 변경', const Color(0xFF1565C0)),
+                      _chip('색상 변경', const Color(0xFF6A1B9A)),
+                      _chip('디자인 패턴 변경', const Color(0xFF7B1FA2)),
+                      _chip('단체명 변경', const Color(0xFF2E7D32)),
+                      _chip('기타 수정', const Color(0xFF616161)),
+                    ]),
+                    const SizedBox(height: 8),
+                    const Text('※ 인쇄타입은 기존 주문과 동일하게 유지됩니다.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.4)),
                   ]),
                 ),
                 const SizedBox(height: 16),
@@ -5867,13 +5212,13 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
                     ]),
                   ),
                 // 수정 요청 내용 입력
-                const Text('수정 요청 내용', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                const Text('수정 요청 내용 *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _memoCtrl,
-                  maxLines: 4,
+                  maxLines: 5,
                   decoration: InputDecoration(
-                    hintText: '원하시는 수정 내용을 자세히 입력해주세요.\n예) 색상을 네이비로 변경, 단체명 "2FIT 팀"으로 변경',
+                    hintText: '원하시는 수정 내용을 자세히 입력해주세요.\n\n예) 3번 사람 사이즈 M → L로 변경\n예) 전체 색상 블랙 → 네이비로 변경\n예) 앞면 로고 디자인 패턴 변경 요청',
                     hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                     focusedBorder: OutlineInputBorder(
@@ -5883,48 +5228,49 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // 색상 선택 (색상변경 가능한 경우)
-                if (_canChangeColor) ...[
-                  const Text('희망 색상 (선택)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8, runSpacing: 8,
-                    children: [
-                      {'name': '블랙', 'hex': 0xFF1A1A1A}, {'name': '네이비', 'hex': 0xFF0D1B4F},
-                      {'name': '화이트', 'hex': 0xFFF5F5F5}, {'name': '그레이', 'hex': 0xFF9E9E9E},
-                      {'name': '스카이블루', 'hex': 0xFF90CAF9}, {'name': '블루', 'hex': 0xFF1A4DB3},
-                      {'name': '레드', 'hex': 0xFFE53935}, {'name': '그린', 'hex': 0xFF2E7D32},
-                    ].map((c) {
-                      final isSelected = _selectedColorName == c['name'];
-                      return GestureDetector(
-                        onTap: () => setState(() {
-                          _selectedColorName = c['name'] as String;
-                          _selectedColor = Color(c['hex'] as int);
-                        }),
-                        child: Container(
-                          width: 50, height: 50,
-                          decoration: BoxDecoration(
-                            color: Color(c['hex'] as int),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isSelected ? const Color(0xFF7B1FA2) : Colors.grey.shade300,
-                              width: isSelected ? 2.5 : 1,
-                            ),
+                // 희망 색상 선택 (선택사항)
+                const Text('희망 색상 (선택)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                const Text('색상 변경을 원하실 경우 선택해주세요.', style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: [
+                    {'name': '블랙', 'hex': 0xFF1A1A1A}, {'name': '네이비', 'hex': 0xFF0D1B4F},
+                    {'name': '화이트', 'hex': 0xFFF5F5F5}, {'name': '그레이', 'hex': 0xFF9E9E9E},
+                    {'name': '스카이블루', 'hex': 0xFF90CAF9}, {'name': '블루', 'hex': 0xFF1A4DB3},
+                    {'name': '레드', 'hex': 0xFFE53935}, {'name': '그린', 'hex': 0xFF2E7D32},
+                    {'name': '버건디', 'hex': 0xFF880E4F}, {'name': '오렌지', 'hex': 0xFFE65100},
+                  ].map((c) {
+                    final isSelected = _selectedColorName == c['name'];
+                    return GestureDetector(
+                      onTap: () => setState(() {
+                        _selectedColorName = isSelected ? null : c['name'] as String;
+                        _selectedColor = isSelected ? null : Color(c['hex'] as int);
+                      }),
+                      child: Container(
+                        width: 50, height: 50,
+                        decoration: BoxDecoration(
+                          color: Color(c['hex'] as int),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isSelected ? const Color(0xFF7B1FA2) : Colors.grey.shade300,
+                            width: isSelected ? 2.5 : 1,
                           ),
-                          child: isSelected
-                              ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
-                              : null,
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  if (_selectedColorName != null) ...[
-                    const SizedBox(height: 6),
-                    Text('선택: $_selectedColorName',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF7B1FA2), fontWeight: FontWeight.w600)),
-                  ],
-                  const SizedBox(height: 16),
+                        child: isSelected
+                            ? const Icon(Icons.check_rounded, color: Colors.white, size: 20)
+                            : null,
+                      ),
+                    );
+                  }).toList(),
+                ),
+                if (_selectedColorName != null) ...[
+                  const SizedBox(height: 6),
+                  Text('선택: $_selectedColorName',
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF7B1FA2), fontWeight: FontWeight.w600)),
                 ],
+                const SizedBox(height: 16),
                 // 안내 문구
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -5940,9 +5286,11 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
                       Text('안내사항', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
                     ]),
                     const SizedBox(height: 6),
-                    _infoRow('디자인 수정은 총 2회까지 가능합니다.'),
+                    _infoRow('사이즈·색상·디자인 패턴·단체명 등 모든 항목 수정 가능합니다.'),
+                    _infoRow('디자인 수정 요청은 총 2회까지 가능합니다.'),
+                    _infoRow('인쇄타입(승화/나염 등)은 기존 주문과 동일하게 유지됩니다.'),
                     _infoRow('요청 후 3일 이내 관리자 미응답 시 현재 디자인으로 자동 확정됩니다.'),
-                    _infoRow('확정 후에는 변경이 불가합니다.'),
+                    _infoRow('확정 후에는 추가 수정이 불가합니다.'),
                   ]),
                 ),
                 const SizedBox(height: 24),
@@ -5993,11 +5341,6 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
       ]),
     ),
   );
-
-  String _getPrintTypeLabel() {
-    const labels = ['색상 변경', '단체명 변경(전면)', '단체명+색상 변경', '디자인+단체명+색상', '전체 변경+이름(후면)'];
-    return _printType < labels.length ? labels[_printType] : '알 수 없음';
-  }
 
   Widget _chip(String label, Color color) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
