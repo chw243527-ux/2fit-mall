@@ -299,10 +299,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   @override
   void initState() {
     super.initState();
-    _printType = widget.initialPrintType.clamp(0, 3); // 최대 id: 3
-    _count = widget.initialCount >= 5 ? widget.initialCount : 5;
-    // 기존 주문 편집 or initialCount가 설정된 경우 바로 확정 상태로 시작
-    _countFixed = widget.initialCount >= 5;
+    _printType = widget.initialPrintType.clamp(0, 3);
+    // 추가제작: 1장부터 가능 / 신규 단체: 최소 5장
+    final minCount = widget.isAdditionalOrder ? 1 : 5;
+    _count = widget.initialCount >= minCount ? widget.initialCount : minCount;
+    _countFixed = widget.initialCount >= minCount;
     for (int i = 0; i < _count; i++) {
       _persons.add(_PersonEntry(index: i));
     }
@@ -1035,7 +1036,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         // 수량 조절
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           _countBtn(Icons.remove_rounded, () {
-            if (_count > 1) {
+            if (_count > (widget.isAdditionalOrder ? 1 : 1)) {
               setState(() {
                 _count--;
                 if (_countFixed) {
@@ -3761,29 +3762,70 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
         // ── 추가제작: 기존 주문 동일 디자인 안내 배너
         if (_isAdditional && _originalOrder != null) ...[
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            margin: const EdgeInsets.only(bottom: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF795548).withValues(alpha: 0.07),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF795548).withValues(alpha: 0.35)),
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF795548)),
-                const SizedBox(width: 6),
-                const Text('기존 주문과 동일한 디자인으로 제작됩니다',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF795548))),
+          // ── 기존 주문 디자인 확정 이미지
+          Builder(builder: (_) {
+            final originalDesignUrl =
+                (_originalOrder!.customOptions?['designFileUrl'] as String?)?.trim() ?? '';
+            final hasDesignImg = originalDesignUrl.isNotEmpty;
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF795548).withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF795548).withValues(alpha: 0.35)),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF795548)),
+                  const SizedBox(width: 6),
+                  const Text('기존 주문과 동일한 디자인으로 제작됩니다',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF795548))),
+                ]),
+                const SizedBox(height: 6),
+                const Text('• 색상 · 원단 · 허리밴드 · 로고 등 모든 옵션은 기존 주문과 동일하게 적용됩니다.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.5)),
+                const Text('• 인원별 사이즈와 주문자 정보만 새로 입력해 주세요.',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.5)),
+                if (hasDesignImg) ...[
+                  const SizedBox(height: 10),
+                  const Text('디자인 확정 이미지',
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF5D4037))),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      originalDesignUrl,
+                      width: double.infinity,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (_, child, progress) => progress == null
+                          ? child
+                          : Container(
+                              height: 120,
+                              alignment: Alignment.center,
+                              child: const CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Text('이미지를 불러올 수 없습니다',
+                            style: TextStyle(fontSize: 11, color: Colors.grey)),
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  const SizedBox(height: 6),
+                  const Text('• 디자인 확정 이미지는 관리자가 등록한 후 확인 가능합니다.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF9E9E9E), height: 1.5)),
+                ],
               ]),
-              const SizedBox(height: 6),
-              const Text('• 색상 · 원단 · 허리밴드 · 로고 등 모든 옵션은 기존 주문과 동일하게 적용됩니다.',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.5)),
-              const Text('• 인원별 사이즈와 주문자 정보만 새로 입력해 주세요.',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.5)),
-            ]),
-          ),
+            );
+          }),
         ],
 
         // ── 재봉방법 선택사항 표시 배너 (신규 주문만)
