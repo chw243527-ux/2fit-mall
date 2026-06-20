@@ -1137,7 +1137,7 @@ $productUrl
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      // 파란색 할인율 (탑텐 시그니처: 배경 없는 텍스트)
+                      // 파란색 할인율
                       Text(
                         '$discount%',
                         style: TextStyle(

@@ -2642,6 +2642,7 @@ class _HomeScreenState extends State<HomeScreen>
                                         style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900)),
                                     ),
                                   ),
+
                                   if (discount > 0)
                                     Positioned(
                                       top: 6, right: 6,
@@ -3153,6 +3154,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 child: Text('$discount%', style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w900)),
                               ),
                             ),
+
                     ],
                   ),
                 ),
@@ -3564,7 +3566,7 @@ class _HomeScreenState extends State<HomeScreen>
           Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 14),
           SizedBox(width: r.w(6)),
           Text(
-            '🎉 봄 시즌 SALE 최대 40% 할인 · 3만원 이상 무료배송',
+            '🎉 단체 맞춤 제작 · 3만원 이상 무료배송',
             style: TextStyle(color: Colors.white, fontSize: r.sp(12), fontWeight: FontWeight.w700, letterSpacing: 0.3),
           ),
           SizedBox(width: r.w(6)),
@@ -3698,14 +3700,6 @@ class _HomeScreenState extends State<HomeScreen>
                                   ? NetImage(p.images.first, width: 130, height: 120, fit: BoxFit.cover)
                                   : Container(height: 120, color: const Color(0xFFF5F5F5)),
                             ),
-                            if (discount > 0)
-                              Positioned(top: 6, left: 6,
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(2)),
-                                  decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(3)),
-                                  child: Text('-$discount%', style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w900)),
-                                ),
-                              ),
                           ],
                         ),
                         Padding(
@@ -3796,7 +3790,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
                           decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(3)),
-                          child: Text('EVENT SALE', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 1)),
+                          child: Text('CUSTOM ORDER', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 1)),
                         ),
                         SizedBox(height: r.h(10)),
                         Text(loc.homeSeasonDiscount, style: TextStyle(color: Colors.white, fontSize: r.sp(20), fontWeight: FontWeight.w900, height: 1.3)),

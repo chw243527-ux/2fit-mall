@@ -502,8 +502,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         const SizedBox(width: 12),
                         _heroCta(
                           icon: Icons.discount_rounded,
-                          label: '최대 10% 할인',
-                          sub: '50인 이상',
+                          label: '단체 맞춤',
+                          sub: '5인 이상',
                           color: const Color(0xFFFF6B35),
                         ),
                         const SizedBox(width: 12),
@@ -835,17 +835,6 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         ],
                       ],
                     ),
-                    if (p.originalPrice != null && p.originalPrice! > p.price)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(
-                          '${(((p.originalPrice! - p.price) / p.originalPrice!) * 100).round()}% 할인',
-                          style: const TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFFE53935),
-                              fontWeight: FontWeight.w700),
-                        ),
-                      ),
                   ],
                 ),
               ),

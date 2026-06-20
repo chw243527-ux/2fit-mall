@@ -1134,7 +1134,7 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Хүлээн авсанаас хойш 3 хоногийн дотор солилт/буцаалт боломжтой (бэлэн бараа).\nГэхдээ захиалгат хэвлэмэл бараанд хамаарахгүй.\nЗахиалгын дугаар болон шалтгааныг мэдэгдэнэ үү.';
   }}
   String get faqGroupOrderAns { switch (language) {
-    case AppLanguage.korean:   return '단체 주문은 5인 이상부터 가능하며, 팀 할인 혜택이 적용됩니다.\n주문서식 > 단체 주문서를 작성하여 문의해 주세요!';
+    case AppLanguage.korean:   return '단체 주문은 5인 이상부터 가능합니다.\n주문서식 > 단체 주문서를 작성하여 문의해 주세요!';
     case AppLanguage.english:  return 'Group orders are available for 5 or more people with team discounts.\nPlease fill out the Group Order Form in Order Guide and contact us!';
     case AppLanguage.japanese: return '団体注文は5人以上から可能で、チーム割引が適用されます。\n注文書式 > 団体注文書をご記入の上、お問い合わせください！';
     case AppLanguage.chinese:  return '5人及以上可申请团体订单，享受团队折扣优惠。\n请填写订单格式 > 团体订单表并联系我们！';
@@ -2585,7 +2585,7 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Багийн лого · нэр · дугаар хэвлэх';
   }}
   String get groupOrderDiscount { switch (language) {
-    case AppLanguage.korean:   return '단체 할인 적용';
+    case AppLanguage.korean:   return '단체 맞춤 제작';
     case AppLanguage.english:  return 'Group discount applied';
     case AppLanguage.japanese: return '団体割引適用';
     case AppLanguage.chinese:  return '适用团体折扣';
@@ -2881,21 +2881,21 @@ class AppLocalizations {
     case AppLanguage.mongolian:return '• Бүсний өнгийг өөрчлөх боломжтой (хэлбэр/дизайн өөрчлөх боломжгүй)';
   }}
   String get groupOrderDiscountTitle { switch (language) {
-    case AppLanguage.korean:   return '수량별 할인';
+    case AppLanguage.korean:   return '단체 맞춤 주문';
     case AppLanguage.english:  return 'Volume Discounts';
     case AppLanguage.japanese: return '数量別割引';
     case AppLanguage.chinese:  return '数量折扣';
     case AppLanguage.mongolian:return 'Тооны хэмжээгээр хямдрал';
   }}
   String get groupOrderDiscount1 { switch (language) {
-    case AppLanguage.korean:   return '• 30개 이상: 10% 할인';
+    case AppLanguage.korean:   return '• 30개 이상: 단체 맞춤 제작';
     case AppLanguage.english:  return '• 30+ items: 10% discount';
     case AppLanguage.japanese: return '• 30個以上：10%割引';
     case AppLanguage.chinese:  return '• 30件以上：9折';
     case AppLanguage.mongolian:return '• 30+ ширхэг: 10% хямдрал';
   }}
   String get groupOrderDiscount2 { switch (language) {
-    case AppLanguage.korean:   return '• 50개 이상: 20% 할인';
+    case AppLanguage.korean:   return '• 50개 이상: 단체 맞춤 제작';
     case AppLanguage.english:  return '• 50+ items: 20% discount';
     case AppLanguage.japanese: return '• 50個以上：20%割引';
     case AppLanguage.chinese:  return '• 50件以上：8折';
@@ -3284,7 +3284,7 @@ class AppLocalizations {
     case AppLanguage.mongolian:return '5+ хүний бүлгийн захиалга';
   }}
   String get groupOrderSheetDiscount { switch (language) {
-    case AppLanguage.korean:   return '단체 할인 혜택';
+    case AppLanguage.korean:   return '단체 맞춤 혜택';
     case AppLanguage.english:  return 'Group Discount Benefits';
     case AppLanguage.japanese: return '団体割引特典';
     case AppLanguage.chinese:  return '团体折扣优惠';
@@ -3521,7 +3521,7 @@ class AppLocalizations {
     case AppLanguage.mongolian:return '5-аас дээш хүний бүлгийн захиалга';
   }}
   String get groupOrderGuideDiscountBadge { switch (language) {
-    case AppLanguage.korean:   return '단체 할인 혜택';
+    case AppLanguage.korean:   return '단체 맞춤 혜택';
     case AppLanguage.english:  return 'Group Discount';
     case AppLanguage.japanese: return '団体割引特典';
     case AppLanguage.chinese:  return '团体折扣优惠';
@@ -3640,21 +3640,21 @@ class AppLocalizations {
     case AppLanguage.mongolian:return '• Ижил дизайн хүсвэл зөвхөн өнгийг өөрчлөх боломжтой, ижил өнгөөр үйлдвэрлэх боломжгүй.';
   }}
   String get groupOrderGuideDiscountTitle { switch (language) {
-    case AppLanguage.korean:   return '수량 할인';
+    case AppLanguage.korean:   return '단체 맞춤 주문';
     case AppLanguage.english:  return 'Quantity Discount';
     case AppLanguage.japanese: return '数量割引';
     case AppLanguage.chinese:  return '数量折扣';
     case AppLanguage.mongolian:return 'Тоо хэмжээний хөнгөлөлт';
   }}
   String get groupOrderGuideDiscount1 { switch (language) {
-    case AppLanguage.korean:   return '• 30개 이상: 10% 할인';
+    case AppLanguage.korean:   return '• 30개 이상: 단체 맞춤 제작';
     case AppLanguage.english:  return '• 30+: 10% discount';
     case AppLanguage.japanese: return '• 30個以上：10%割引';
     case AppLanguage.chinese:  return '• 30件以上：九折优惠';
     case AppLanguage.mongolian:return '• 30+: 10% хөнгөлөлт';
   }}
   String get groupOrderGuideDiscount2 { switch (language) {
-    case AppLanguage.korean:   return '• 50개 이상: 20% 할인';
+    case AppLanguage.korean:   return '• 50개 이상: 단체 맞춤 제작';
     case AppLanguage.english:  return '• 50+: 20% discount';
     case AppLanguage.japanese: return '• 50個以上：20%割引';
     case AppLanguage.chinese:  return '• 50件以上：八折优惠';
@@ -4461,7 +4461,7 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Бүлгийн захиалга';
   }}
   String get groupOrderSubLabel { switch (language) {
-    case AppLanguage.korean:   return '5명~ · 단체 할인';
+    case AppLanguage.korean:   return '5명~ · 단체 맞춤';
     case AppLanguage.english:  return '5+ · Group discount';
     case AppLanguage.japanese: return '5名以上 · 団体割引';
     case AppLanguage.chinese:  return '5人以上 · 团体折扣';
@@ -5495,7 +5495,7 @@ class AppLocalizations {
       case AppLanguage.japanese: return '即時1,000P付与 + 新規会員割引クーポン';
       case AppLanguage.chinese: return '立即获得1,000P + 新会员折扣券';
       case AppLanguage.mongolian: return 'Нэн даруй 1,000P олгох + шинэ гишүүний хөнгөлөлтийн купон';
-      case AppLanguage.korean: return '가입 즉시 1,000P 지급 + 신규회원 할인쿠폰';
+      case AppLanguage.korean: return '가입 즉시 1,000P 지급';
     }
   }
   String get signupNameLabel {
@@ -7065,7 +7065,7 @@ class AppLocalizations {
       case AppLanguage.japanese: return '5名以上団体割引·カスタム製作';
       case AppLanguage.chinese: return '5人以上团购折扣·定制生产';
       case AppLanguage.mongolian: return '5+ хүнд хөнгөлөлт · Захиалгат';
-      default: return '5인 이상 단체 할인 · 커스텀 제작';
+      default: return '5인 이상 단체 맞춤 제작';
     }
   }
   String get homeCustomOrder {
@@ -8668,7 +8668,7 @@ class AppLocalizations {
       case AppLanguage.japanese: return '数量別割引';
       case AppLanguage.chinese: return '数量折扣';
       case AppLanguage.mongolian: return 'Тоо хэмжээний хөнгөлөлт';
-      default: return '수량별 할인';
+      default: return '단체 맞춤 주문';
     }
   }
   String get groupOrderForm {
@@ -8740,7 +8740,7 @@ class AppLocalizations {
       case AppLanguage.japanese: return '10%団体割引';
       case AppLanguage.chinese: return '10%团体折扣';
       case AppLanguage.mongolian: return '10% хөнгөлөлт';
-      default: return '10% 단체 할인';
+      default: return '단체 맞춤 제작';
     }
   }
   String get groupPeople50up {
@@ -8758,7 +8758,7 @@ class AppLocalizations {
       case AppLanguage.japanese: return '20%団体割引';
       case AppLanguage.chinese: return '20%团体折扣';
       case AppLanguage.mongolian: return '20% хөнгөлөлт';
-      default: return '20% 단체 할인';
+      default: return '단체 맞춤 제작';
     }
   }
   String get groupStartOrder {
@@ -8902,7 +8902,7 @@ class AppLocalizations {
       case AppLanguage.japanese: return '5名以上団体特典';
       case AppLanguage.chinese: return '5人以上团体优惠';
       case AppLanguage.mongolian: return '5+ хүн - хөнгөлөлт';
-      default: return '5인 이상 단체 혜택';
+      default: return '5인 이상 단체 맞춤';
     }
   }
   String get groupLogoPrint {
@@ -8911,7 +8911,7 @@ class AppLocalizations {
       case AppLanguage.japanese: return 'チームロゴ、名前/番号印刷、団体割引';
       case AppLanguage.chinese: return '团队logo、名字/号码印刷、团体折扣';
       case AppLanguage.mongolian: return 'Лого, нэр/дугаар хэвлэх, хөнгөлөлт';
-      default: return '팀 로고, 이름/번호 인쇄, 단체 할인 적용';
+      default: return '팀 로고, 이름/번호 인쇄, 단체 맞춤 제작';
     }
   }
   String get groupPersonalOrder {
@@ -9910,11 +9910,11 @@ class AppLocalizations {
     default: return '이벤트 특가';
   }}
   String get homeSeasonDiscount { switch (language) {
-    case AppLanguage.english: return 'Season Event\nUp to 40% OFF';
-    case AppLanguage.japanese: return 'シーズンイベント\n最大40%オフ';
-    case AppLanguage.chinese: return '季节活动\n最高40%折扣';
-    case AppLanguage.mongolian: return 'Улирлын арга хэмжээ\n40% хүртэл хямдрал';
-    default: return '시즌 이벤트\n최대 40% 할인';
+    case AppLanguage.english: return 'Season Event\nCustom Group Order';
+    case AppLanguage.japanese: return 'シーズンイベント\n団体カスタム製作';
+    case AppLanguage.chinese: return '季节活动\n团体定制';
+    case AppLanguage.mongolian: return 'Улирлын арга хэмжээ\nЗахиалгат бүтээл';
+    default: return '시즌 이벤트\n단체 맞춤 제작';
   }}
   String get homeSeasonDiscountSub { switch (language) {
     case AppLanguage.english: return 'Limited quantity · Limited time special price';
@@ -9938,11 +9938,11 @@ class AppLocalizations {
     default: return '이벤트 보기 →';
   }}
   String get homeMaxDiscount { switch (language) {
-    case AppLanguage.english: return 'Up to 40% OFF';
-    case AppLanguage.japanese: return '最大40%オフ';
-    case AppLanguage.chinese: return '最高40%折扣';
-    case AppLanguage.mongolian: return '40% хүртэл хямдрал';
-    default: return '최대 40% OFF';
+    case AppLanguage.english: return 'Custom Order';
+    case AppLanguage.japanese: return 'カスタム注文';
+    case AppLanguage.chinese: return '定制订单';
+    case AppLanguage.mongolian: return 'Захиалгат';
+    default: return '단체 맞춤';
   }}
   String get homeFreeShipping { switch (language) {
     case AppLanguage.english: return 'Free Shipping';
@@ -10996,7 +10996,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '30人↑10%、50人↑20%割引';
     case AppLanguage.chinese: return '30人↑10%，50人↑20%折扣';
     case AppLanguage.mongolian: return '30↑10%, 50↑20% хөнгөлөлт';
-    default: return '30인↑ 10%, 50인↑ 20% 할인';
+    default: return '5인 이상 단체 맞춤 제작';
   }}
 
   String get orderGuideStep1 { switch (language) {
@@ -11124,7 +11124,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '5名以上の団体特典';
     case AppLanguage.chinese: return '5人以上团体优惠';
     case AppLanguage.mongolian: return '5-аас дээш бүлгийн давуу тал';
-    default: return '5인 이상 단체 혜택';
+    default: return '5인 이상 단체 맞춤';
   }}
 
   String get orderGuideGroupDesc { switch (language) {
@@ -11132,7 +11132,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return 'チームロゴ、名前/番号印刷、団体割引';
     case AppLanguage.chinese: return '团队LOGO、姓名/号码印刷、团体折扣';
     case AppLanguage.mongolian: return 'Багийн лого, нэр/дугаар хэвлэх, бүлгийн хөнгөлөлт';
-    default: return '팀 로고, 이름/번호 인쇄, 단체 할인 적용';
+    default: return '팀 로고, 이름/번호 인쇄, 단체 맞춤 제작';
   }}
 
   String get orderGuideGroupBadge1 { switch (language) {
@@ -11156,7 +11156,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '団体割引';
     case AppLanguage.chinese: return '团体折扣';
     case AppLanguage.mongolian: return 'Бүлгийн хөнгөлөлт';
-    default: return '단체 할인';
+    default: return '단체 맞춤';
   }}
 
   String get orderGuideAdditionalNote { switch (language) {
@@ -11268,7 +11268,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '10%団体割引';
     case AppLanguage.chinese: return '10%团体折扣';
     case AppLanguage.mongolian: return '10% бүлгийн хөнгөлөлт';
-    default: return '10% 단체 할인';
+    default: return '단체 맞춤 제작';
   }}
 
   String get groupOrderBenefit4 { switch (language) {
@@ -11276,7 +11276,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '20%団体割引';
     case AppLanguage.chinese: return '20%团体折扣';
     case AppLanguage.mongolian: return '20% бүлгийн хөнгөлөлт';
-    default: return '20% 단체 할인';
+    default: return '단체 맞춤 제작';
   }}
 
   String get groupOrderMinQtyTitle { switch (language) {
@@ -11324,7 +11324,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '5名以上・団体割引・カスタム可能';
     case AppLanguage.chinese: return '5人以上·团体折扣·可定制';
     case AppLanguage.mongolian: return '5+ хүн · бүлгийн хөнгөлөлт · захиалгаар';
-    default: return '5명 이상 · 단체할인 적용 · 커스텀 제작 가능';
+    default: return '5명 이상 · 단체 맞춤 제작 가능';
   }}
 
   String get groupOrderNoProduct { switch (language) {
@@ -12124,7 +12124,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '団体割引';
     case AppLanguage.chinese: return '团体折扣';
     case AppLanguage.mongolian: return 'Бүлгийн хөнгөлөлт';
-    default: return '단체 할인';
+    default: return '단체 맞춤';
   }}
 
   String get groupFormLabelTotalPayment { switch (language) {
@@ -13546,7 +13546,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '団体割引';
     case AppLanguage.chinese: return '团体折扣';
     case AppLanguage.mongolian: return 'Бүлгийн хямдрал';
-    default: return '단체 할인';
+    default: return '단체 맞춤';
   }}
   String get orderTypeGroupCustomTag2 { switch (language) {
     case AppLanguage.english: return 'Team Custom Made';
@@ -14401,7 +14401,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '※ 30人以上5%割引、50人以上10%割引が自動適用されます。';
     case AppLanguage.chinese: return '※ 30人以上享5%折扣，50人以上享10%折扣，自动应用。';
     case AppLanguage.mongolian: return '※ 30-аас дээш 5%, 50-аас дээш 10% хямдрал автоматаар хэрэглэгдэнэ.';
-    default: return '※ 30인 이상 5% 할인, 50인 이상 10% 할인이 자동 적용됩니다.';
+    default: return '단체 맞춤 제작은 주문서식을 통해 문의해 주세요.';
   }}
   String get topColorLabel { switch (language) {
     case AppLanguage.english: return 'Top Color';
