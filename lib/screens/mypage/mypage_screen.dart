@@ -1274,8 +1274,8 @@ class _PcOrderCard extends StatelessWidget {
               ));
               // 추가제작
               if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), onTap: () => onAdditionalOrder(order)));
-              // 단체주문 디자인 확인 버튼 (수정완료 이미지가 있을 때)
-              if (isGroup && order.designConfirmedImageUrl?.isNotEmpty == true) btns.add(_ActionBtn(
+              // 단체주문 디자인 확인 버튼 (단체주문이면 항상 표시)
+              if (isGroup && !order.userDesignApproved) btns.add(_ActionBtn(
                 icon: Icons.image_search_rounded,
                 label: '디자인확인',
                 color: const Color(0xFF0277BD),
@@ -3183,8 +3183,8 @@ class _MobileOrderCard extends StatelessWidget {
                 color: const Color(0xFF2E7D32),
                 onTap: () => onAdditionalOrder(order),
               ));
-              // 디자인 확인 버튼 (수정완료 이미지가 있을 때)
-              if (isGroup && order.designConfirmedImageUrl?.isNotEmpty == true) row2.add(_ActionBtn(
+              // 디자인 확인 버튼 (단체주문이면 항상 표시)
+              if (isGroup && !order.userDesignApproved) row2.add(_ActionBtn(
                 icon: Icons.image_search_rounded,
                 label: '디자인확인',
                 color: const Color(0xFF0277BD),
