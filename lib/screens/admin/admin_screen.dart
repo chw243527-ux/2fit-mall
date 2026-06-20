@@ -3706,16 +3706,18 @@ class _AdminScreenState extends State<AdminScreen>
                           if (uploadUrl == null) throw Exception('이미지 업로드 실패');
                           setSheet(() => confirmedImageUrl = uploadUrl);
 
-                          // 2) Firestore 저장
+                          // 2) Firestore 저장 — 최상위 designRevisionRequest 경로로 통일
                           final db = FirebaseFirestore.instance;
                           await db.collection('orders').doc(order.id).update({
+                            'designRevisionRequest.status'     : 'responded',
+                            'designRevisionRequest.respondedAt': DateTime.now().toIso8601String(),
+                            'designRevisionRequest.adminMemo'  : memoCtrl.text.trim(),
                             'customOptions.designRevisionResponse': {
                               'memo': memoCtrl.text.trim(),
                               'color': selectedColor,
                               'respondedAt': DateTime.now().toIso8601String(),
                               'status': 'responded',
                             },
-                            'customOptions.designRevisionRequest.status': 'responded',
                             'customOptions.designConfirmedImageUrl': uploadUrl,
                           });
                           // TAB8 목록 상태도 '완료'로 업데이트

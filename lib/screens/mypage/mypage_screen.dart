@@ -5248,17 +5248,32 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final order = widget.order;
+    final order    = widget.order;
     final imageUrl = order.designConfirmedImageUrl;
-    final memo = order.designRevisionRequest?['memo'] as String?;
+    final req      = order.designRevisionRequest;                      // customOptions.designRevisionRequest
+    final memo        = req?['memo']        as String?;
+    final colorName   = req?['colorName']   as String?;
+    final colorHex    = req?['adjustedColorHex'] as String?;
+    final teamName    = req?['teamName']    as String?;
+    final fabricName  = req?['fabricName']  as String?;
+    final printType   = req?['printType']   as String?;
+    final personChanges = (req?['personChanges'] as List<dynamic>?) ?? [];
     final screenH = MediaQuery.of(context).size.height;
-    // 이미 확정됐거나 이번 세션에서 방금 확정
     final alreadyApproved = _approved || order.userDesignApproved;
 
+    // 변경 항목 목록 구성
+    final changeItems = <Map<String, String>>[];
+    if (colorName?.isNotEmpty == true) changeItems.add({'label': '색상', 'value': colorName!});
+    if (teamName?.isNotEmpty  == true) changeItems.add({'label': '단체명', 'value': teamName!});
+    if (fabricName?.isNotEmpty == true) changeItems.add({'label': '원단', 'value': fabricName!});
+    if (printType?.isNotEmpty  == true) changeItems.add({'label': '인쇄 방식', 'value': printType!});
+    if (personChanges.isNotEmpty) changeItems.add({'label': '사이즈 변경', 'value': '${personChanges.length}명 변경'});
+    if (memo?.isNotEmpty == true) changeItems.add({'label': '추가 메모', 'value': memo!});
+
     return DraggableScrollableSheet(
-      initialChildSize: 0.92,
+      initialChildSize: 0.95,
       minChildSize: 0.5,
-      maxChildSize: 0.97,
+      maxChildSize: 0.98,
       expand: false,
       builder: (_, scrollCtrl) => Container(
         decoration: const BoxDecoration(
@@ -5267,16 +5282,13 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
         ),
         child: Column(
           children: [
-            // ── 핸들 바 ──────────────────────────
+            // ── 핸들 ──────────────────────────────
             Container(
               margin: const EdgeInsets.only(top: 10, bottom: 4),
               width: 40, height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
+              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
             ),
-            // ── 헤더 ─────────────────────────────
+            // ── 헤더 ──────────────────────────────
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: const BoxDecoration(
@@ -5291,21 +5303,18 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                   const Icon(Icons.image_search_rounded, color: Colors.white, size: 22),
                   const SizedBox(width: 8),
                   const Expanded(
-                    child: Text(
-                      '수정 완료 디자인 확인',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
-                    ),
+                    child: Text('수정 완료 디자인 확인',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded, color: Colors.white, size: 22),
                     onPressed: () => Navigator.of(context).pop(),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                    padding: EdgeInsets.zero, constraints: const BoxConstraints(),
                   ),
                 ],
               ),
             ),
-            // ── 본문 ─────────────────────────────
+            // ── 본문 ──────────────────────────────
             Expanded(
               child: SingleChildScrollView(
                 controller: scrollCtrl,
@@ -5313,7 +5322,8 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 주문 정보 요약
+
+                    // ① 주문 정보 요약
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -5321,169 +5331,203 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: const Color(0xFFBBDEFB)),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.receipt_long_rounded, color: Color(0xFF0277BD), size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  order.items.isEmpty ? '주문 상품' : order.items.first.productName,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF01579B)),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  '주문번호: ${order.id}',
-                                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                                ),
-                              ],
+                      child: Row(children: [
+                        const Icon(Icons.receipt_long_rounded, color: Color(0xFF0277BD), size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              order.items.isEmpty ? '주문 상품' : order.items.first.productName,
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF01579B)),
+                              maxLines: 1, overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
-                      ),
+                            const SizedBox(height: 2),
+                            Text('주문번호: ${order.id}',
+                                style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                          ],
+                        )),
+                      ]),
                     ),
                     const SizedBox(height: 16),
 
-                    // 수정 요청 메모 (있으면)
-                    if (memo?.isNotEmpty == true) ...[
-                      const Text(
-                        '수정 요청 내용',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF37474F)),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFF8E1),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFFFE082)),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.format_quote_rounded, color: Color(0xFFFF8F00), size: 18),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                memo!,
-                                style: const TextStyle(fontSize: 13, color: Color(0xFF5D4037), height: 1.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-
-                    // 수정 완료 디자인 이미지
-                    const Text(
-                      '수정 완료 디자인',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF37474F)),
-                    ),
+                    // ② 수정 완료 디자인 이미지 (먼저 크게)
+                    const Text('수정 완료 디자인',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF37474F))),
                     const SizedBox(height: 8),
 
                     if (imageUrl == null || imageUrl.isEmpty)
                       Container(
-                        width: double.infinity,
-                        height: 200,
+                        width: double.infinity, height: 180,
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.grey[100], borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.grey[300]!),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.image_not_supported_outlined, size: 48, color: Colors.grey[400]),
-                            const SizedBox(height: 8),
-                            Text('아직 수정 완료 이미지가 없습니다.', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
-                          ],
-                        ),
+                        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          Icon(Icons.hourglass_top_rounded, size: 40, color: Colors.grey[400]),
+                          const SizedBox(height: 8),
+                          Text('아직 수정 완료 이미지가 준비 중입니다.',
+                              style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+                        ]),
                       )
                     else
+                      // 이미지 카드 — 탭하면 풀스크린
                       GestureDetector(
                         onTap: () => _openFullscreen(context, imageUrl),
                         child: Container(
                           width: double.infinity,
-                          constraints: BoxConstraints(maxHeight: screenH * 0.45),
+                          constraints: BoxConstraints(maxHeight: screenH * 0.48),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFBBDEFB), width: 1.5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.08),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                            border: Border.all(color: const Color(0xFFBBDEFB), width: 2),
+                            boxShadow: [BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.10),
+                              blurRadius: 14, offset: const Offset(0, 4),
+                            )],
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(11),
-                            child: Stack(
-                              alignment: Alignment.bottomRight,
-                              children: [
-                                Image.network(
-                                  imageUrl,
-                                  fit: BoxFit.contain,
-                                  width: double.infinity,
-                                  loadingBuilder: (_, child, progress) {
-                                    if (progress == null) return child;
-                                    return SizedBox(
-                                      height: 200,
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          value: progress.expectedTotalBytes != null
-                                              ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
-                                              : null,
-                                          color: const Color(0xFF0277BD),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  errorBuilder: (_, __, ___) => Container(
-                                    height: 200,
-                                    color: Colors.grey[100],
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.broken_image_outlined, size: 48, color: Colors.grey[400]),
-                                        const SizedBox(height: 8),
-                                        Text('이미지를 불러올 수 없습니다.', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
-                                      ],
+                            borderRadius: BorderRadius.circular(10),
+                            child: Stack(alignment: Alignment.bottomRight, children: [
+                              Image.network(
+                                imageUrl,
+                                fit: BoxFit.contain,
+                                width: double.infinity,
+                                loadingBuilder: (_, child, progress) {
+                                  if (progress == null) return child;
+                                  return SizedBox(height: 200, child: Center(
+                                    child: CircularProgressIndicator(
+                                      value: progress.expectedTotalBytes != null
+                                          ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
+                                          : null,
+                                      color: const Color(0xFF0277BD),
                                     ),
-                                  ),
+                                  ));
+                                },
+                                errorBuilder: (_, __, ___) => Container(
+                                  height: 200, color: Colors.grey[100],
+                                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                    Icon(Icons.broken_image_outlined, size: 48, color: Colors.grey[400]),
+                                    const SizedBox(height: 8),
+                                    Text('이미지를 불러올 수 없습니다.',
+                                        style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+                                  ]),
                                 ),
-                                // 확대 힌트 배지
-                                Container(
-                                  margin: const EdgeInsets.all(8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black54,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.zoom_in_rounded, color: Colors.white, size: 14),
-                                      SizedBox(width: 4),
-                                      Text('탭하여 확대', style: TextStyle(fontSize: 11, color: Colors.white)),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                              // 확대 힌트
+                              Container(
+                                margin: const EdgeInsets.all(10),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.65), borderRadius: BorderRadius.circular(20)),
+                                child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                                  Icon(Icons.zoom_in_rounded, color: Colors.white, size: 15),
+                                  SizedBox(width: 4),
+                                  Text('탭하여 확대', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600)),
+                                ]),
+                              ),
+                            ]),
                           ),
                         ),
                       ),
+                    const SizedBox(height: 20),
 
-                    const SizedBox(height: 16),
+                    // ③ 수정 변경 내용 (항목이 있을 때)
+                    if (changeItems.isNotEmpty) ...[
+                      const Text('수정 요청 내용',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF37474F))),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFDE7),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFFE082)),
+                        ),
+                        child: Column(
+                          children: changeItems.map((item) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 72,
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFF8F00).withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(item['label']!,
+                                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFFE65100))),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(item['value']!,
+                                    style: const TextStyle(fontSize: 13, color: Color(0xFF4E342E), height: 1.4))),
+                              ],
+                            ),
+                          )).toList(),
+                        ),
+                      ),
+                      // 인원별 사이즈 상세 (있으면)
+                      if (personChanges.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.grey[200]!),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('인원별 사이즈 변경 상세 (${personChanges.length}명)',
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey[700])),
+                              const SizedBox(height: 6),
+                              ...personChanges.map((p) {
+                                final m = p as Map;
+                                final name   = m['name']    as String? ?? '';
+                                final newVal = m['newValue'] as String? ?? m['size'] as String? ?? '';
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Row(children: [
+                                    const Icon(Icons.person_outline_rounded, size: 13, color: Color(0xFF7B1FA2)),
+                                    const SizedBox(width: 4),
+                                    Expanded(child: Text(
+                                      name.isNotEmpty ? '$name: $newVal' : newVal,
+                                      style: const TextStyle(fontSize: 12, color: Color(0xFF37474F)),
+                                    )),
+                                  ]),
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                      ],
+                      // 색상 헥스 프리뷰
+                      if (colorHex?.isNotEmpty == true) ...[
+                        const SizedBox(height: 8),
+                        Row(children: [
+                          const Icon(Icons.palette_rounded, size: 14, color: Color(0xFF7B1FA2)),
+                          const SizedBox(width: 6),
+                          Text('요청 색상 코드: $colorHex',
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF4A148C))),
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 20, height: 20,
+                            decoration: BoxDecoration(
+                              color: _hexToColor(colorHex!),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                          ),
+                        ]),
+                      ],
+                      const SizedBox(height: 16),
+                    ],
 
-                    // ── 확정 완료 배너 or 안내 문구 ──────────────
+                    // ④ 안내 or 확정 완료 배너
                     if (alreadyApproved)
                       Container(
                         padding: const EdgeInsets.all(14),
@@ -5492,22 +5536,20 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: const Color(0xFFA5D6A7)),
                         ),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 22),
-                            SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('디자인 확정 완료', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1B5E20))),
-                                  SizedBox(height: 2),
-                                  Text('제작이 시작되었습니다. 완성까지 조금만 기다려 주세요!', style: TextStyle(fontSize: 12, color: Color(0xFF388E3C), height: 1.5)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                        child: const Row(children: [
+                          Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 22),
+                          SizedBox(width: 10),
+                          Expanded(child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('디자인 확정 완료',
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1B5E20))),
+                              SizedBox(height: 2),
+                              Text('제작이 시작되었습니다. 완성까지 조금만 기다려 주세요!',
+                                  style: TextStyle(fontSize: 12, color: Color(0xFF388E3C), height: 1.5)),
+                            ],
+                          )),
+                        ]),
                       )
                     else
                       Container(
@@ -5521,28 +5563,23 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                           children: [
                             Icon(Icons.info_outline_rounded, color: Color(0xFF0277BD), size: 16),
                             SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                '이미지를 탭하면 핀치줌으로 확대하여 자세히 확인할 수 있습니다.\n추가 수정이 필요하면 \'디자인수정\' 버튼을 이용해 주세요.',
-                                style: TextStyle(fontSize: 12, color: Color(0xFF01579B), height: 1.5),
-                              ),
-                            ),
+                            Expanded(child: Text(
+                              '이미지를 탭하면 핀치줌으로 확대·확인할 수 있습니다.\n이상이 없으면 아래 \'디자인 확정하기\'를 눌러 제작을 시작해 주세요.',
+                              style: TextStyle(fontSize: 12, color: Color(0xFF01579B), height: 1.5),
+                            )),
                           ],
                         ),
                       ),
                     const SizedBox(height: 20),
 
-                    // ── 버튼 영역 ─────────────────────────────
+                    // ⑤ 버튼 영역
                     if (alreadyApproved)
-                      // 확정 후: 닫기 버튼만
                       SizedBox(
-                        width: double.infinity,
-                        height: 50,
+                        width: double.infinity, height: 50,
                         child: ElevatedButton(
                           onPressed: () => Navigator.of(context).pop(),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[700],
-                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.grey[700], foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             elevation: 0,
                           ),
@@ -5550,49 +5587,45 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                         ),
                       )
                     else
-                      // 확정 전: [닫기] [디자인 확정하기] 두 버튼
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 50,
-                              child: OutlinedButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.grey[700],
-                                  side: BorderSide(color: Colors.grey[400]!),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                child: const Text('닫기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                      Row(children: [
+                        Expanded(
+                          child: SizedBox(height: 50,
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.grey[700],
+                                side: BorderSide(color: Colors.grey[400]!),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: const Text('닫기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          flex: 2,
+                          child: SizedBox(height: 50,
+                            child: ElevatedButton.icon(
+                              onPressed: _isApproving ? null : _approveDesign,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2E7D32),
+                                foregroundColor: Colors.white,
+                                disabledBackgroundColor: Colors.grey[300],
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                              icon: _isApproving
+                                  ? const SizedBox(width: 16, height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : const Icon(Icons.check_circle_outline_rounded, size: 18),
+                              label: Text(
+                                _isApproving ? '처리 중...' : '디자인 확정하기',
+                                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            flex: 2,
-                            child: SizedBox(
-                              height: 50,
-                              child: ElevatedButton.icon(
-                                onPressed: _isApproving ? null : _approveDesign,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF2E7D32),
-                                  foregroundColor: Colors.white,
-                                  disabledBackgroundColor: Colors.grey[300],
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  elevation: 0,
-                                ),
-                                icon: _isApproving
-                                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                    : const Icon(Icons.check_circle_outline_rounded, size: 18),
-                                label: Text(
-                                  _isApproving ? '처리 중...' : '디자인 확정하기',
-                                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ]),
                   ],
                 ),
               ),
@@ -5601,6 +5634,16 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
         ),
       ),
     );
+  }
+
+  /// #RRGGBB 문자열 → Color
+  Color _hexToColor(String hex) {
+    try {
+      final h = hex.replaceAll('#', '');
+      return Color(int.parse('FF$h', radix: 16));
+    } catch (_) {
+      return Colors.grey;
+    }
   }
 
   void _openFullscreen(BuildContext context, String imageUrl) {
