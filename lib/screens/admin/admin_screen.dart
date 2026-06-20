@@ -32,6 +32,7 @@ import 'admin_extra_tabs.dart';
 import 'admin_delivery_tab.dart';
 import 'admin_exchange_tab.dart';
 import 'admin_review_tab.dart';
+import '../orders/group_order_test_screen.dart';
 import 'dart:typed_data';
 import '../../services/order_excel_service.dart';
 import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
@@ -985,6 +986,11 @@ class _AdminScreenState extends State<AdminScreen>
                       const SizedBox(height: 6),
                       _quickActionRow(Icons.notifications_active_rounded, '전체 알림 발송', const Color(0xFFFF6F00), () {
                         _showPromoNotificationDialog();
+                      }),
+                      const SizedBox(height: 6),
+                      _quickActionRow(Icons.science_rounded, '단체주문 테스트', const Color(0xFF00838F), () {
+                        Navigator.push(context, MaterialPageRoute(
+                          builder: (_) => const GroupOrderTestScreen()));
                       }),
                     ],
                   ),
