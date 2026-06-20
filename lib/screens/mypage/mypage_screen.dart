@@ -4957,31 +4957,57 @@ class _DesignRevisionSheet extends StatefulWidget {
   State<_DesignRevisionSheet> createState() => _DesignRevisionSheetState();
 }
 
-class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
-  final _memoCtrl        = TextEditingController(); // 추가 요청사항
-  final _teamNameCtrl    = TextEditingController(); // 단체명 변경
+class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
+    with TickerProviderStateMixin {
+  final _memoCtrl     = TextEditingController();
+  final _teamNameCtrl = TextEditingController();
+  final _hexCtrl      = TextEditingController();
   bool _submitted    = false;
   bool _isSubmitting = false;
 
-  // ── 기존 주문에서 읽어온 값 (초기화용)
-  late String  _currentColor;   // customOptions['mainColor']
-  late String  _currentFabric;  // customOptions['fabric']
+  // ── 기존 주문에서 읽어온 값
+  late String  _currentColor;
+  late String  _currentFabric;
+  late String  _currentPrintType; // 인쇄타입
   late String  _currentTeamName;
-  late List<Map<String, dynamic>> _persons; // 인원별 사이즈 목록
-  late List<TextEditingController> _personSizeCtrl; // 각 인원 수정 컨트롤러
+  late List<Map<String, dynamic>> _persons;
+  late List<TextEditingController> _personSizeCtrl;
 
-  // ── 희망 변경 값
+  // ── 색상 선택 state
   String? _newColorName;
   Color?  _newColorValue;
+  double  _colorLightness = 0.5;
+  Color   _hexPreview     = const Color(0xFF1A1A1A);
+  String? _hexError;
+  late TabController _colorTabCtrl;
+
+  // ── 농도 조절된 최종 색상
+  Color get _adjustedColor {
+    if (_newColorValue == null) return Colors.grey;
+    final hsl = HSLColor.fromColor(_newColorValue!);
+    return hsl.withLightness(_colorLightness.clamp(0.05, 0.95)).toColor();
+  }
+
+  String get _lightnessLabel {
+    if (_colorLightness < 0.25) return '매우 진하게';
+    if (_colorLightness < 0.4)  return '진하게';
+    if (_colorLightness < 0.6)  return '기본';
+    if (_colorLightness < 0.75) return '밝게';
+    return '매우 밝게';
+  }
 
   @override
   void initState() {
     super.initState();
+    _colorTabCtrl = TabController(length: 3, vsync: this);
     final opts = widget.order.customOptions ?? {};
 
-    _currentColor    = (opts['mainColor']  as String?) ?? '';
-    _currentFabric   = (opts['fabric']     as String?) ?? '';
-    _currentTeamName = (opts['teamName']   as String?)
+    _currentColor     = (opts['mainColor']  as String?) ?? '';
+    _currentFabric    = (opts['fabric']     as String?) ?? '';
+    final ptRaw = opts['printType'];
+    _currentPrintType = _printTypeLabel(
+      ptRaw is int ? ptRaw : (ptRaw is String ? int.tryParse(ptRaw) ?? -1 : -1));
+    _currentTeamName  = (opts['teamName']   as String?)
         ?? widget.order.groupName ?? '';
     _teamNameCtrl.text = _currentTeamName;
 
@@ -5018,8 +5044,9 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
         }
       }
       if (match.isNotEmpty) {
-        _newColorName  = match['name'] as String;
-        _newColorValue = Color(match['hex'] as int);
+        _newColorName   = match['name'] as String;
+        _newColorValue  = Color(match['hex'] as int);
+        _colorLightness = HSLColor.fromColor(_newColorValue!).lightness.clamp(0.05, 0.95);
       } else {
         // ③ 그래도 없으면 그냥 currentColor 이름 그대로 유지
         _newColorName = _currentColor;
@@ -5029,10 +5056,24 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
 
   @override
   void dispose() {
+    _colorTabCtrl.dispose();
     _memoCtrl.dispose();
     _teamNameCtrl.dispose();
+    _hexCtrl.dispose();
     for (final c in _personSizeCtrl) { c.dispose(); }
     super.dispose();
+  }
+
+  // printType int → 라벨 문자열
+  String _printTypeLabel(int id) {
+    const labels = {
+      0: '디자인 유지 + 색상 변경',
+      1: '디자인 유지 + 단체명 + 색상 변경',
+      2: '디자인 변경 + 단체명 + 색상 변경',
+      3: '디자인 유지 + 색상변경 + 단체명 + 이름(후면)',
+      4: '디자인 변경 + 색상변경 + 단체명 + 이름(후면)',
+    };
+    return labels[id] ?? '정보 없음';
   }
 
   // 3일 자동확정 안내
@@ -5126,13 +5167,18 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
         'designRevisionCount'   : FieldValue.increment(1),
         'designRevisionDeadline': deadline.toIso8601String(),
         'designRevisionRequest' : {
-          'memo'         : changeSummary.toString().trim(),
-          'colorName'    : _newColorName,
-          'fabricName'   : _currentFabric,
-          'teamName'     : newTeamName,
-          'personChanges': personChanges,
-          'requestedAt'  : DateTime.now().toIso8601String(),
-          'status'       : 'pending',
+          'memo'            : changeSummary.toString().trim(),
+          'colorName'       : _newColorName,
+          'adjustedColorHex': _newColorValue != null
+              ? '#${_adjustedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}'
+              : null,
+          'colorLightness'  : _colorLightness,
+          'fabricName'      : _currentFabric,
+          'printType'       : _currentPrintType,
+          'teamName'        : newTeamName,
+          'personChanges'   : personChanges,
+          'requestedAt'     : DateTime.now().toIso8601String(),
+          'status'          : 'pending',
         },
       });
 
@@ -5228,156 +5274,527 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
 
                 // ══ 1. 색상 변경 ══
                 _sectionLabel(Icons.palette_outlined, '색상', purple),
-                const SizedBox(height: 4),
-                // 현재 색상 표시
-                if (_currentColor.isNotEmpty)
-                  Row(children: [
-                    Container(
-                      width: 14, height: 14,
-                      margin: const EdgeInsets.only(right: 5),
-                      decoration: BoxDecoration(
-                        color: _newColorValue ?? Colors.grey,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
+                const SizedBox(height: 6),
+
+                // ── 선택된 색상 미리보기 패널 ──
+                if (_newColorValue != null) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: _adjustedColor.withValues(alpha: 0.4), width: 1.5),
                     ),
-                    Text('현재: $_currentColor',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
-                  ]),
-                const SizedBox(height: 10),
-                // ── 단체주문과 동일한 스타일 스와치 그리드 ──
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 10,
-                  children: AppColorPalette.registeredColors.map((c) {
-                    final name    = c['name'] as String;
-                    final code    = c['code'] as String;
-                    final cVal    = Color(c['hex'] as int);
-                    final isSel   = _newColorName == name;
-                    final isLight = cVal.computeLuminance() > 0.6;
-                    // 표시용 짧은 이름 (괄호 안 한글만)
-                    final displayName = name.contains('(')
-                        ? name.substring(name.indexOf('(') + 1, name.indexOf(')'))
-                        : name;
-                    return GestureDetector(
-                      onTap: () => setState(() {
-                        _newColorName  = name;
-                        _newColorValue = cVal;
-                      }),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 130),
-                        width: 52,
-                        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      // 색상 프리뷰 바
+                      Container(
+                        height: 52,
                         decoration: BoxDecoration(
-                          color: isSel ? const Color(0xFFF3E5F5) : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isSel ? purple : Colors.grey.shade200,
-                            width: isSel ? 2 : 1,
-                          ),
+                          color: _adjustedColor,
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
                         ),
-                        child: Column(mainAxisSize: MainAxisSize.min, children: [
-                          // 색상 원형 스와치
+                        child: Row(children: [
+                          const SizedBox(width: 14),
+                          Container(
+                            width: 30, height: 30,
+                            decoration: BoxDecoration(
+                              color: _newColorValue,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: _newColorValue!.computeLuminance() > 0.5
+                                    ? Colors.black26 : Colors.white38,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(Icons.arrow_forward_rounded, size: 13,
+                              color: _adjustedColor.computeLuminance() > 0.5
+                                  ? Colors.black38 : Colors.white54),
+                          const SizedBox(width: 6),
                           Container(
                             width: 36, height: 36,
                             decoration: BoxDecoration(
-                              color: cVal,
+                              color: _adjustedColor,
                               shape: BoxShape.circle,
                               border: Border.all(
-                                color: isSel ? purple : (isLight ? Colors.grey.shade400 : Colors.transparent),
-                                width: isSel ? 2.5 : 1,
+                                color: _adjustedColor.computeLuminance() > 0.5
+                                    ? Colors.black26 : Colors.white54,
+                                width: 2,
                               ),
-                              boxShadow: isSel
-                                  ? [BoxShadow(color: purple.withValues(alpha: 0.35), blurRadius: 5)]
-                                  : [],
                             ),
-                            child: isSel
-                                ? Icon(Icons.check_rounded,
-                                    color: isLight ? Colors.black54 : Colors.white, size: 17)
-                                : null,
+                            child: Icon(Icons.check_rounded, size: 18,
+                                color: _adjustedColor.computeLuminance() > 0.5
+                                    ? Colors.black87 : Colors.white),
                           ),
-                          const SizedBox(height: 3),
-                          // 색상 코드 (K, N, G ...)
-                          Text(code,
-                            style: TextStyle(
-                              fontSize: 9, fontWeight: FontWeight.w900,
-                              color: isSel ? purple : Colors.black54,
-                              letterSpacing: 0.3,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          // 한글 이름
-                          Text(displayName,
-                            style: TextStyle(
-                              fontSize: 8, fontWeight: FontWeight.w500,
-                              color: isSel ? purple.withValues(alpha: 0.8) : Colors.black38,
-                            ),
-                            textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Text(_newColorName ?? '',
+                                style: TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.w900,
+                                  color: _adjustedColor.computeLuminance() > 0.5
+                                      ? Colors.black87 : Colors.white,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                '#${_adjustedColor.toARGB32().toRadixString(16).substring(2).toUpperCase()}  ·  $_lightnessLabel',
+                                style: TextStyle(
+                                  fontSize: 10, fontWeight: FontWeight.w600,
+                                  color: _adjustedColor.computeLuminance() > 0.5
+                                      ? Colors.black54 : Colors.white70,
+                                ),
+                              ),
+                            ]),
                           ),
                         ]),
                       ),
-                    );
-                  }).toList(),
-                ),
-                if (_newColorName != null && _newColorName != _currentColor) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3E5F5),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Container(
-                        width: 14, height: 14,
-                        margin: const EdgeInsets.only(right: 6),
-                        decoration: BoxDecoration(
-                          color: _newColorValue,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.grey.shade300),
-                        ),
+                      // 농도 슬라이더
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                            const Text('농도', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: purple.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(_lightnessLabel,
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: purple)),
+                            ),
+                          ]),
+                          const SizedBox(height: 4),
+                          Row(children: [
+                            const Text('진하게', style: TextStyle(fontSize: 9, color: Color(0xFF888888))),
+                            Expanded(
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  thumbColor: purple,
+                                  activeTrackColor: purple,
+                                  inactiveTrackColor: Colors.grey.shade200,
+                                  trackHeight: 3,
+                                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                                ),
+                                child: Slider(
+                                  min: 0.05, max: 0.95,
+                                  value: _colorLightness,
+                                  onChanged: (v) => setState(() => _colorLightness = v),
+                                ),
+                              ),
+                            ),
+                            const Text('밝게', style: TextStyle(fontSize: 9, color: Color(0xFF888888))),
+                          ]),
+                        ]),
                       ),
-                      const Icon(Icons.arrow_forward_rounded, size: 13, color: purple),
-                      const SizedBox(width: 4),
-                      Text('변경: $_newColorName',
-                        style: const TextStyle(fontSize: 12, color: purple, fontWeight: FontWeight.w700)),
                     ]),
                   ),
                 ],
+
+                // ── 3탭 색상 선택 ──
+                Container(
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: TabBar(
+                    controller: _colorTabCtrl,
+                    indicator: BoxDecoration(
+                      color: purple,
+                      borderRadius: BorderRadius.circular(9),
+                      boxShadow: [BoxShadow(color: purple.withValues(alpha: 0.3), blurRadius: 4, offset: const Offset(0, 2))],
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.black54,
+                    labelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                    unselectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+                    dividerColor: Colors.transparent,
+                    padding: const EdgeInsets.all(3),
+                    tabs: const [
+                      Tab(text: '기성 19색'),
+                      Tab(text: '추가 색상'),
+                      Tab(text: 'HEX 입력'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // ── 탭 콘텐츠 ──
+                SizedBox(
+                  height: 300,
+                  child: TabBarView(
+                    controller: _colorTabCtrl,
+                    children: [
+                      // 탭1: 기성 19색
+                      SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        child: Wrap(
+                          spacing: 6, runSpacing: 10,
+                          children: AppColorPalette.registeredColors.map((c) {
+                            final name    = c['name'] as String;
+                            final code    = c['code'] as String;
+                            final cVal    = Color(c['hex'] as int);
+                            final isSel   = _newColorName == name;
+                            final isLight = cVal.computeLuminance() > 0.6;
+                            final displayName = name.contains('(')
+                                ? name.substring(name.indexOf('(') + 1, name.indexOf(')'))
+                                : name;
+                            return GestureDetector(
+                              onTap: () => setState(() {
+                                _newColorName   = name;
+                                _newColorValue  = cVal;
+                                _colorLightness = HSLColor.fromColor(cVal).lightness.clamp(0.05, 0.95);
+                              }),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 130),
+                                width: 52,
+                                padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
+                                decoration: BoxDecoration(
+                                  color: isSel ? const Color(0xFFF3E5F5) : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isSel ? purple : Colors.grey.shade200,
+                                    width: isSel ? 2 : 1,
+                                  ),
+                                ),
+                                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                                  RibColorSwatch(
+                                    color: cVal,
+                                    size: 38,
+                                    isSelected: isSel,
+                                    accentColor: purple,
+                                    isLight: isLight,
+                                    borderRadius: 10,
+                                    child: isSel
+                                        ? Icon(Icons.check_rounded, size: 18,
+                                            color: isLight ? Colors.black87 : Colors.white)
+                                        : null,
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(code,
+                                    style: TextStyle(
+                                      fontSize: 9, fontWeight: FontWeight.w900,
+                                      color: isSel ? purple : Colors.black54,
+                                      letterSpacing: 0.3,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Text(displayName,
+                                    style: TextStyle(
+                                      fontSize: 8, fontWeight: FontWeight.w500,
+                                      color: isSel ? purple.withValues(alpha: 0.8) : Colors.black38,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ]),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+
+                      // 탭2: 추가 색상 (전체 스펙트럼)
+                      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(
+                          '${AppColorPalette.extendedPalette.length}가지 확장 색상 팔레트 • 원하는 색상을 탭하세요',
+                          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+                        ),
+                        const SizedBox(height: 6),
+                        Expanded(
+                          child: GridView.builder(
+                            physics: const ClampingScrollPhysics(),
+                            padding: const EdgeInsets.only(bottom: 4),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 10,
+                              crossAxisSpacing: 2,
+                              mainAxisSpacing: 2,
+                              childAspectRatio: 1.0,
+                            ),
+                            itemCount: AppColorPalette.extendedPalette.length,
+                            itemBuilder: (_, i) {
+                              final color  = AppColorPalette.extendedPalette[i];
+                              final hexStr = '#${color.toARGB32().toRadixString(16).substring(2).toUpperCase()}';
+                              final isSel  = _newColorValue?.toARGB32() == color.toARGB32()
+                                  && _newColorName != null
+                                  && !AppColorPalette.registeredColors.any((c) => c['name'] == _newColorName);
+                              final isLight = color.computeLuminance() > 0.6;
+                              return GestureDetector(
+                                onTap: () => setState(() {
+                                  _newColorName   = '확장 ($hexStr)';
+                                  _newColorValue  = color;
+                                  _colorLightness = HSLColor.fromColor(color).lightness.clamp(0.05, 0.95);
+                                }),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 100),
+                                  decoration: BoxDecoration(
+                                    color: color,
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: isSel ? Colors.white : Colors.transparent,
+                                      width: isSel ? 2.5 : 0,
+                                    ),
+                                    boxShadow: isSel
+                                        ? [const BoxShadow(color: Colors.black38, blurRadius: 5, spreadRadius: 1)]
+                                        : [],
+                                  ),
+                                  child: isSel
+                                      ? Icon(Icons.check_rounded, size: 11,
+                                          color: isLight ? Colors.black87 : Colors.white)
+                                      : null,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ]),
+
+                      // 탭3: HEX 직접 입력
+                      SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          // 미리보기
+                          Container(
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: _hexPreview,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '#${_hexPreview.toARGB32().toRadixString(16).substring(2).toUpperCase()}',
+                                style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 2,
+                                  color: _hexPreview.computeLuminance() > 0.4
+                                      ? Colors.black87 : Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(children: [
+                            Container(
+                              width: 34, height: 34,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Text('#',
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.black54)),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: TextField(
+                                controller: _hexCtrl,
+                                textCapitalization: TextCapitalization.characters,
+                                maxLength: 6,
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, letterSpacing: 2),
+                                decoration: InputDecoration(
+                                  hintText: 'RRGGBB (예: FF6B35)',
+                                  hintStyle: const TextStyle(fontSize: 11, color: Colors.grey, letterSpacing: 1),
+                                  counterText: '',
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                                  errorText: _hexError,
+                                  errorStyle: const TextStyle(fontSize: 10),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey.shade300)),
+                                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: purple, width: 1.5)),
+                                ),
+                                onChanged: (v) {
+                                  if (v.length == 6) {
+                                    try {
+                                      final c = Color(int.parse('FF$v', radix: 16));
+                                      setState(() { _hexPreview = c; _hexError = null; });
+                                    } catch (_) {
+                                      setState(() => _hexError = '올바른 HEX 코드를 입력하세요');
+                                    }
+                                  } else {
+                                    setState(() => _hexError = null);
+                                  }
+                                },
+                                onSubmitted: (_) => _applyHex(),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: _applyHex,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: purple,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                elevation: 0,
+                              ),
+                              child: const Text('적용', style: TextStyle(fontWeight: FontWeight.w800)),
+                            ),
+                          ]),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.orange.shade200),
+                            ),
+                            child: const Row(children: [
+                              Icon(Icons.info_outline, size: 13, color: Colors.orange),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  '원하시는 색상의 HEX 코드를 6자리로 입력하세요.\n예) 빨강: FF0000 / 파랑: 0000FF / 노랑: FFFF00',
+                                  style: TextStyle(fontSize: 10, color: Colors.orange, height: 1.4),
+                                ),
+                              ),
+                            ]),
+                          ),
+                          const SizedBox(height: 10),
+                          const Text('자주 쓰는 색상',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.black54)),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 8, runSpacing: 6,
+                            children: [
+                              {'name': '코발트블루', 'hex': '0047AB'},
+                              {'name': '라벤더',    'hex': 'E6CCFF'},
+                              {'name': '카멜',      'hex': 'C19A6B'},
+                              {'name': '민트',      'hex': '26C9A0'},
+                              {'name': '버건디',    'hex': '6D0E19'},
+                              {'name': '골드',      'hex': 'D4AF37'},
+                            ].map((item) {
+                              final hexStr = item['hex']!;
+                              final c      = Color(int.parse('FF$hexStr', radix: 16));
+                              final isLight = c.computeLuminance() > 0.5;
+                              final isSel   = _newColorName == item['name'];
+                              return GestureDetector(
+                                onTap: () {
+                                  _hexCtrl.text = hexStr;
+                                  setState(() {
+                                    _hexPreview     = c;
+                                    _newColorName   = item['name'];
+                                    _newColorValue  = c;
+                                    _colorLightness = HSLColor.fromColor(c).lightness.clamp(0.05, 0.95);
+                                    _hexError       = null;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: isSel ? c : c.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                        color: isSel ? purple : c.withValues(alpha: 0.4)),
+                                  ),
+                                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                                    Container(
+                                      width: 14, height: 14,
+                                      decoration: BoxDecoration(
+                                        color: c,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.grey.shade300),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(item['name']!,
+                                      style: TextStyle(
+                                        fontSize: 11, fontWeight: FontWeight.w700,
+                                        color: isSel
+                                            ? (isLight ? Colors.black87 : Colors.white)
+                                            : Colors.black87,
+                                      )),
+                                  ]),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ]),
+                      ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 20),
 
-                // ══ 2. 원단 (읽기 전용 — 변경 불가) ══
-                _sectionLabel(Icons.texture_rounded, '원단', const Color(0xFF757575)),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                // ══ 2. 원단 + 인쇄타입 (읽기 전용) ══
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  // 원단
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      _sectionLabel(Icons.texture_rounded, '원단', const Color(0xFF757575)),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                        ),
+                        child: Row(children: [
+                          const Icon(Icons.lock_outline_rounded, size: 13, color: Color(0xFF9E9E9E)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              _currentFabric.isNotEmpty ? _currentFabric : '정보 없음',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF424242)),
+                            ),
+                          ),
+                        ]),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEEEEE),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Text('변경 불가',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF757575))),
+                      ),
+                    ]),
                   ),
-                  child: Row(children: [
-                    const Icon(Icons.lock_outline_rounded, size: 14, color: Color(0xFF9E9E9E)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _currentFabric.isNotEmpty ? _currentFabric : '원단 정보 없음',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF424242)),
+                  const SizedBox(width: 12),
+                  // 인쇄타입
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      _sectionLabel(Icons.print_rounded, '인쇄타입', const Color(0xFF757575)),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE0E0E0)),
+                        ),
+                        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const Icon(Icons.lock_outline_rounded, size: 13, color: Color(0xFF9E9E9E)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              _currentPrintType.isNotEmpty ? _currentPrintType : '정보 없음',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF424242)),
+                              maxLines: 3,
+                            ),
+                          ),
+                        ]),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEEEEEE),
-                        borderRadius: BorderRadius.circular(6),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEEEEE),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Text('변경 불가',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF757575))),
                       ),
-                      child: const Text('변경 불가',
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF757575))),
-                    ),
-                  ]),
-                ),
+                    ]),
+                  ),
+                ]),
                 const SizedBox(height: 20),
 
                 // ══ 3. 단체명 변경 ══
@@ -5608,6 +6025,26 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet> {
       Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: color)),
     ]),
   );
+
+  void _applyHex() {
+    final v = _hexCtrl.text.trim().replaceAll('#', '');
+    if (v.length != 6) {
+      setState(() => _hexError = 'HEX 코드는 6자리입니다 (예: FF6B35)');
+      return;
+    }
+    try {
+      final color = Color(int.parse('FF$v', radix: 16));
+      setState(() {
+        _hexPreview     = color;
+        _newColorName   = '커스텀 (#${v.toUpperCase()})';
+        _newColorValue  = color;
+        _colorLightness = HSLColor.fromColor(color).lightness.clamp(0.05, 0.95);
+        _hexError       = null;
+      });
+    } catch (_) {
+      setState(() => _hexError = '올바른 HEX 코드를 입력하세요');
+    }
+  }
 }
 
 
