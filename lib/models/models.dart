@@ -423,6 +423,11 @@ class OrderModel {
   bool get isDesignRevisionResponded =>
       designRevisionRequest?['status'] == 'responded';
 
+  /// 사용자가 수정 완료 디자인을 확정했는지 여부
+  /// customOptions['userDesignApproved'] == true 일 때 제작 시작 상태
+  bool get userDesignApproved =>
+      customOptions?['userDesignApproved'] == true;
+
   OrderModel copyWith({
     OrderStatus? status,
     int? additionalOrderCount,

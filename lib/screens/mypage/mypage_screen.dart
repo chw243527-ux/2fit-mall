@@ -1257,13 +1257,20 @@ class _PcOrderCard extends StatelessWidget {
                 color: const Color(0xFFFF8F00),
                 onTap: () => _showWriteReviewFromOrder(btnCtx, order),
               ));
-              // 단체주문 디자인수정요청 (3일 이내, 2회 미만)
-              if (isGroup && order.canRequestDesignRevision) btns.add(_ActionBtn(
+              // 단체주문 디자인수정요청 (3일 이내, 2회 미만 + 사용자 미확정)
+              if (isGroup && order.canRequestDesignRevision && !order.userDesignApproved) btns.add(_ActionBtn(
                 icon: Icons.edit_note_rounded,
                 label: '디자인수정',
                 color: const Color(0xFF7B1FA2),
                 badge: '${order.remainingDesignRevisions}회',
                 onTap: () => onDesignRevision?.call(order),
+              ));
+              // 사용자가 디자인 확정 → 제작시작 표시
+              if (isGroup && order.userDesignApproved) btns.add(_ActionBtn(
+                icon: Icons.precision_manufacturing_rounded,
+                label: '제작시작',
+                color: const Color(0xFF2E7D32),
+                onTap: null,
               ));
               // 추가제작
               if (canAdditional) btns.add(_ActionBtn(icon: Icons.add_circle_outline_rounded, label: '추가제작', color: const Color(0xFF2E7D32), onTap: () => onAdditionalOrder(order)));
@@ -3154,13 +3161,20 @@ class _MobileOrderCard extends StatelessWidget {
               }
 
               // 행2: 단체주문 전용
-              // 디자인수정요청 (3일 이내, 2회 미만)
-              if (order.canRequestDesignRevision) row2.add(_ActionBtn(
+              // 디자인수정요청 (3일 이내, 2회 미만 + 사용자 미확정)
+              if (order.canRequestDesignRevision && !order.userDesignApproved) row2.add(_ActionBtn(
                 icon: Icons.edit_note_rounded,
                 label: '디자인수정',
                 color: const Color(0xFF7B1FA2),
                 badge: '${order.remainingDesignRevisions}회',
                 onTap: () => onDesignRevision?.call(order),
+              ));
+              // 사용자가 디자인 확정 → 제작시작 표시
+              if (isGroup && order.userDesignApproved) row2.add(_ActionBtn(
+                icon: Icons.precision_manufacturing_rounded,
+                label: '제작시작',
+                color: const Color(0xFF2E7D32),
+                onTap: null,
               ));
               // 추가제작
               if (canAdditional) row2.add(_ActionBtn(
@@ -5166,7 +5180,71 @@ class _DesignConfirmSheet extends StatefulWidget {
 }
 
 class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
-  bool _fullscreen = false;
+  bool _isApproving = false;  // 확정 처리 중 로딩
+  bool _approved = false;     // 이 세션에서 방금 확정 완료됨
+
+  Future<void> _approveDesign() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 22),
+            SizedBox(width: 8),
+            Text('디자인 확정', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: const Text(
+          '수정 완료 디자인을 확정하시겠습니까?\n\n확정 후에는 디자인 수정 요청이 불가하며, 즉시 제작이 시작됩니다.',
+          style: TextStyle(fontSize: 14, height: 1.6),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('취소', style: TextStyle(color: Colors.grey[600])),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2E7D32),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
+            ),
+            child: const Text('확정하기', style: TextStyle(fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isApproving = true);
+    try {
+      await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(widget.order.id)
+          .update({
+        'customOptions.userDesignApproved': true,
+        'customOptions.userDesignApprovedAt': DateTime.now().toIso8601String(),
+        // 디자인수정 기간을 과거로 만료 → canRequestDesignRevision = false
+        'designRevisionDeadline': DateTime.now()
+            .subtract(const Duration(seconds: 1))
+            .toIso8601String(),
+      });
+      if (!mounted) return;
+      setState(() {
+        _isApproving = false;
+        _approved = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isApproving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('오류가 발생했습니다: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -5174,6 +5252,8 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
     final imageUrl = order.designConfirmedImageUrl;
     final memo = order.designRevisionRequest?['memo'] as String?;
     final screenH = MediaQuery.of(context).size.height;
+    // 이미 확정됐거나 이번 세션에서 방금 확정
+    final alreadyApproved = _approved || order.userDesignApproved;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.92,
@@ -5403,44 +5483,116 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
 
                     const SizedBox(height: 16),
 
-                    // 안내 문구
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE3F2FD),
-                        borderRadius: BorderRadius.circular(10),
+                    // ── 확정 완료 배너 or 안내 문구 ──────────────
+                    if (alreadyApproved)
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFA5D6A7)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 22),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('디자인 확정 완료', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1B5E20))),
+                                  SizedBox(height: 2),
+                                  Text('제작이 시작되었습니다. 완성까지 조금만 기다려 주세요!', style: TextStyle(fontSize: 12, color: Color(0xFF388E3C), height: 1.5)),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(Icons.info_outline_rounded, color: Color(0xFF0277BD), size: 16),
+                            SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                '이미지를 탭하면 핀치줌으로 확대하여 자세히 확인할 수 있습니다.\n추가 수정이 필요하면 \'디자인수정\' 버튼을 이용해 주세요.',
+                                style: TextStyle(fontSize: 12, color: Color(0xFF01579B), height: 1.5),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: const Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    const SizedBox(height: 20),
+
+                    // ── 버튼 영역 ─────────────────────────────
+                    if (alreadyApproved)
+                      // 확정 후: 닫기 버튼만
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[700],
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: const Text('닫기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                        ),
+                      )
+                    else
+                      // 확정 전: [닫기] [디자인 확정하기] 두 버튼
+                      Row(
                         children: [
-                          Icon(Icons.info_outline_rounded, color: Color(0xFF0277BD), size: 16),
-                          SizedBox(width: 6),
                           Expanded(
-                            child: Text(
-                              '이미지를 탭하면 핀치줌으로 확대하여 자세히 확인할 수 있습니다.\n추가 수정이 필요하면 \'디자인수정\' 버튼을 이용해 주세요.',
-                              style: TextStyle(fontSize: 12, color: Color(0xFF01579B), height: 1.5),
+                            child: SizedBox(
+                              height: 50,
+                              child: OutlinedButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.grey[700],
+                                  side: BorderSide(color: Colors.grey[400]!),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: const Text('닫기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: SizedBox(
+                              height: 50,
+                              child: ElevatedButton.icon(
+                                onPressed: _isApproving ? null : _approveDesign,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2E7D32),
+                                  foregroundColor: Colors.white,
+                                  disabledBackgroundColor: Colors.grey[300],
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                                icon: _isApproving
+                                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : const Icon(Icons.check_circle_outline_rounded, size: 18),
+                                label: Text(
+                                  _isApproving ? '처리 중...' : '디자인 확정하기',
+                                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // 닫기 버튼
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0277BD),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          elevation: 0,
-                        ),
-                        child: const Text('확인', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                      ),
-                    ),
                   ],
                 ),
               ),
