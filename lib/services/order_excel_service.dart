@@ -2775,13 +2775,6 @@ class OrderExcelService {
       fontSize: 10,
     );
 
-    final statusColors = {
-      '대기중': '#E65100',
-      '처리중': '#1565C0',
-      '완료': '#2E7D32',
-      '거절': '#E53935',
-    };
-
     // ── 1. 요약 시트 ──
     final summarySheet = excel['요약'];
     excel.setDefaultSheet('요약');
@@ -2789,7 +2782,7 @@ class OrderExcelService {
     _setCell(summarySheet, 0, 0, '2FIT 디자인 수정 요청 목록', style: titleStyle);
     summarySheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
-      CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: 0),
+      CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 0),
     );
     summarySheet.setRowHeight(0, 28);
 
@@ -2799,10 +2792,10 @@ class OrderExcelService {
         style: CellStyle(fontSize: 9, fontColorHex: ExcelColor.fromHexString('#757575')));
     summarySheet.merge(
       CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1),
-      CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: 1),
+      CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 1),
     );
 
-    final summaryHeaders = ['No', '단체명', '담당자', '색상', '원단', '인쇄타입', '상태', '요청일시'];
+    final summaryHeaders = ['No', '단체명', '담당자', '색상', '사이즈 변경', '요청일시'];
     for (int c = 0; c < summaryHeaders.length; c++) {
       _setCell(summarySheet, 3, c, summaryHeaders[c], style: headerStyle);
     }
@@ -2812,22 +2805,14 @@ class OrderExcelService {
       final req = requests[i];
       final row = 4 + i;
       final rowStyle = i.isEven ? evenRowStyle : valueStyle;
-      final statusStr = req['status'] as String? ?? '-';
-      final statusHex = statusColors[statusStr] ?? '#555555';
-      final statusCellStyle = CellStyle(
-        bold: true,
-        fontColorHex: ExcelColor.fromHexString(statusHex),
-        fontSize: 10,
-      );
       _setCell(summarySheet, row, 0, '${i + 1}', style: rowStyle);
       _setCell(summarySheet, row, 1, req['teamName'] as String? ?? '-', style: rowStyle);
       _setCell(summarySheet, row, 2, req['userName'] as String? ?? '-', style: rowStyle);
       _setCell(summarySheet, row, 3, req['colorName'] as String? ?? '-', style: rowStyle);
-      _setCell(summarySheet, row, 4, req['fabricName'] as String? ?? '-', style: rowStyle);
-      _setCell(summarySheet, row, 5, req['printType']?.toString() ?? '-', style: rowStyle);
-      _setCell(summarySheet, row, 6, statusStr, style: statusCellStyle);
+      final personCount = (req['personChanges'] as List?)?.length ?? 0;
+      _setCell(summarySheet, row, 4, personCount > 0 ? '${personCount}명' : '-', style: rowStyle);
       final createdAt = req['createdAt'] as DateTime?;
-      _setCell(summarySheet, row, 7,
+      _setCell(summarySheet, row, 5,
           createdAt != null
               ? '${createdAt.year}.${createdAt.month.toString().padLeft(2,'0')}.${createdAt.day.toString().padLeft(2,'0')} ${createdAt.hour.toString().padLeft(2,'0')}:${createdAt.minute.toString().padLeft(2,'0')}'
               : '-',
@@ -2837,13 +2822,11 @@ class OrderExcelService {
 
     // 열 너비 조정
     summarySheet.setColumnWidth(0, 6);
-    summarySheet.setColumnWidth(1, 20);
+    summarySheet.setColumnWidth(1, 22);
     summarySheet.setColumnWidth(2, 14);
-    summarySheet.setColumnWidth(3, 18);
-    summarySheet.setColumnWidth(4, 14);
+    summarySheet.setColumnWidth(3, 20);
+    summarySheet.setColumnWidth(4, 12);
     summarySheet.setColumnWidth(5, 20);
-    summarySheet.setColumnWidth(6, 10);
-    summarySheet.setColumnWidth(7, 18);
 
     // ── 2. 팀별 시트 ──
     // 팀명으로 그룹화
@@ -2892,9 +2875,6 @@ class OrderExcelService {
           ['담당자',    req['userName']  ?? '-'],
           ['단체명',    req['teamName']  ?? '-'],
           ['색상',      '${req['colorName'] ?? '-'}  ${req['adjustedColorHex']?.isNotEmpty == true ? "(${req['adjustedColorHex']})" : ""}'],
-          ['원단',      req['fabricName']?? '-'],
-          ['인쇄타입',  req['printType']?.toString() ?? '-'],
-          ['상태',      req['status']    ?? '-'],
         ];
         for (final info in infoRows) {
           _setCell(sheet, rowIdx, 0, info[0].toString(), style: labelStyle);
