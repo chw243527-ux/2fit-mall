@@ -3547,14 +3547,14 @@ class _AdminScreenState extends State<AdminScreen>
                         if (canChangeDesign) _adminChip('디자인 변경 가능', const Color(0xFF6A1B9A)),
                       ]),
                       const SizedBox(height: 16),
-                      // 수정 내용 입력
-                      const Text('관리자 처리 내용', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      // 수정 내용 입력 (선택 사항)
+                      const Text('관리자 처리 내용 (선택)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 8),
                       TextField(
                         controller: memoCtrl,
                         maxLines: 4,
                         decoration: InputDecoration(
-                          hintText: '수정된 내용을 상세히 입력하세요\n(예: 색상 → 네이비, 단체명 → 한국팀)',
+                          hintText: '수정된 내용을 입력하세요 (선택사항)\n(예: 색상 → 네이비, 단체명 → 한국팀)',
                           hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
                           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
@@ -3692,10 +3692,6 @@ class _AdminScreenState extends State<AdminScreen>
                     flex: 2,
                     child: ElevatedButton(
                       onPressed: isSubmitting ? null : () async {
-                        if (memoCtrl.text.trim().isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('처리 내용을 입력해주세요.')));
-                          return;
-                        }
                         if (confirmedImageBytes == null) {
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('디자인 확정 이미지를 첨부해주세요.')));
                           return;
@@ -3722,6 +3718,11 @@ class _AdminScreenState extends State<AdminScreen>
                             'customOptions.designRevisionRequest.status': 'responded',
                             'customOptions.designConfirmedImageUrl': uploadUrl,
                           });
+                          // TAB8 목록 상태도 '완료'로 업데이트
+                          final reqIdx = _designRequests.indexWhere((r) => (r['orderId'] ?? r['id']) == order.id);
+                          if (reqIdx >= 0) {
+                            setState(() => _designRequests[reqIdx] = {..._designRequests[reqIdx], 'status': '완료'});
+                          }
                           if (!ctx.mounted) return;
                           Navigator.pop(ctx);
                           if (!context.mounted) return;
