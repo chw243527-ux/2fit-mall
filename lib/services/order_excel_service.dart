@@ -1377,7 +1377,8 @@ class OrderExcelService {
     if (productImageUrl.isNotEmpty) {
       imagesToInsert.add(_ImageToInsert(
         url: productImageUrl,
-        sheetIndex: 0,  // '주문정보' 시트
+        sheetName: '주문정보',  // sheetName 기준으로 정확히 찾기
+        sheetIndex: 0,
         row: imgRow,    // 1-based
         col: 1,         // B열 (A열은 레이블)
         widthPx: 260,
@@ -1389,6 +1390,7 @@ class OrderExcelService {
     if (designFileUrl.isNotEmpty) {
       imagesToInsert.add(_ImageToInsert(
         url: designFileUrl,
+        sheetName: '주문정보',  // sheetName 기준으로 정확히 찾기
         sheetIndex: 0,
         row: imgRow,
         col: 1,         // B열
@@ -2056,6 +2058,8 @@ class OrderExcelService {
     // ── 시트 3: 디자인 수정 / 추가제작 이력 ──
     _buildRevisionHistorySheet(excel, order, opts, headerStyle, labelStyle, subHeaderStyle);
 
+    // Excel 라이브러리가 자동 생성한 'Sheet1' 기본 시트 제거
+    try { excel.delete('Sheet1'); } catch (_) {}
     excel.setDefaultSheet('주문정보');
     final bytes = excel.encode();
     return Uint8List.fromList(bytes!);
