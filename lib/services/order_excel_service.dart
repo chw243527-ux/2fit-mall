@@ -305,7 +305,7 @@ class OrderExcelService {
       List<OrderModel> orders, DateTime exportedAt) async {
     final excel = Excel.createExcel();
 
-    // ── 스타일 정의 ──
+    // ── 스타일 정의 (주문요약 시트용) ──
     final titleStyle = CellStyle(
       bold: true, fontSize: 14,
       backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
@@ -319,18 +319,6 @@ class OrderExcelService {
       fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
       horizontalAlign: HorizontalAlign.Center,
       verticalAlign: VerticalAlign.Center,
-    );
-    final maleStyle = CellStyle(
-      backgroundColorHex: ExcelColor.fromHexString('#DBEAFE'),
-      fontColorHex: ExcelColor.fromHexString('#1565C0'),
-      bold: true, fontSize: 10,
-      horizontalAlign: HorizontalAlign.Center,
-    );
-    final femaleStyle = CellStyle(
-      backgroundColorHex: ExcelColor.fromHexString('#FCE4EC'),
-      fontColorHex: ExcelColor.fromHexString('#AD1457'),
-      bold: true, fontSize: 10,
-      horizontalAlign: HorizontalAlign.Center,
     );
     final evenRowStyle = CellStyle(
       backgroundColorHex: ExcelColor.fromHexString('#F0F4FF'),
@@ -350,24 +338,6 @@ class OrderExcelService {
       bold: true, fontSize: 10,
       backgroundColorHex: ExcelColor.fromHexString('#FFF3E0'),
       fontColorHex: ExcelColor.fromHexString('#E65100'),
-    );
-    final separatorStyle = CellStyle(
-      bold: true, fontSize: 11,
-      backgroundColorHex: ExcelColor.fromHexString('#CFD8DC'),
-      fontColorHex: ExcelColor.fromHexString('#263238'),
-      horizontalAlign: HorizontalAlign.Center,
-    );
-    final detailStyle = CellStyle(
-      backgroundColorHex: ExcelColor.fromHexString('#EDE7F6'),
-      fontColorHex: ExcelColor.fromHexString('#4527A0'),
-      fontSize: 10,
-      horizontalAlign: HorizontalAlign.Center,
-    );
-    final subTotalStyle = CellStyle(
-      bold: true, fontSize: 10,
-      backgroundColorHex: ExcelColor.fromHexString('#FFF9C4'),
-      fontColorHex: ExcelColor.fromHexString('#F57F17'),
-      horizontalAlign: HorizontalAlign.Center,
     );
 
     // 단체/커스텀 주문과 개인 주문 분리
@@ -478,268 +448,50 @@ class OrderExcelService {
     }
 
     // ══════════════════════════════════════════════════════════
-    // 시트 2: 인원별 상세 사이즈 명단 (키·몸무게·허리·허벅지 포함)
+    // 시트 2~N: 팀별 상세 시트 — _buildTeamSheet 공통 헬퍼 사용
+    // (이미지+주문정보+인원별사이즈 한 시트에 세로 배치)
     // ══════════════════════════════════════════════════════════
-    final sizeSheet = excel['인원별사이즈명단'];
-
-    final sizeHeaders = [
-      'No', '주문번호', '주문날짜', '단체명', '인원번호', '이름', '성별',
-      '상의사이즈', '하의사이즈', '하의길이', '색상',
-      '키(cm)', '몸무게(kg)', '허리(cm)', '허벅지(cm)',
-      '인쇄옵션', '허리밴드', '비고',
-    ];
-    for (var i = 0; i < sizeHeaders.length; i++) {
-      _setCell(sizeSheet, 0, i, sizeHeaders[i], style: headerStyle);
-    }
-    sizeSheet.setRowHeight(0, 22);
-
-    int sRowIdx = 1;
-    int sNo = 1;
-    for (final order in groupOrders) {
-      final opts = order.customOptions ?? {};
-      final persons = (opts['persons'] as List<dynamic>?) ?? [];
-      if (persons.isEmpty) {
-        final rowStyle = sNo.isOdd ? oddRowStyle : evenRowStyle;
-        _setCell(sizeSheet, sRowIdx, 0, '$sNo', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 1, _shortId(order.id), style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 2, _fmtFull(order.createdAt), style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 3, opts['teamName']?.toString() ?? order.groupName ?? '-', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 4, '-', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 5, order.userName, style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 6, '-', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 7, order.items.isNotEmpty ? order.items.first.size : '-', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 8, '-', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 9, opts['defaultLength']?.toString() ?? '-', style: rowStyle);
-        _setColorCell(sizeSheet, sRowIdx, 10, _extractColorInfo(order), overrideHex: _extractColorHex(order));
-        for (var c = 11; c < sizeHeaders.length; c++) {
-          _setCell(sizeSheet, sRowIdx, c, '-', style: rowStyle);
-        }
-        sizeSheet.setRowHeight(sRowIdx, 17);
-        sRowIdx++;
-        sNo++;
-        continue;
-      }
-
-      final teamName = opts['teamName']?.toString() ?? order.groupName ?? '-';
-      final mainColor = opts['mainColor']?.toString() ?? '-';
-      final defaultLength = opts['defaultLength']?.toString() ?? '';
-      final printType = opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '-';
-
-      // ── 팀 헤더 행 ──
-      _setCell(sizeSheet, sRowIdx, 0,
-          '▶ $teamName  |  ${_fmtFull(order.createdAt)}  |  총 ${persons.length}명',
-          style: separatorStyle, border: false);
-      sizeSheet.merge(
-          CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: sRowIdx),
-          CellIndex.indexByColumnRow(columnIndex: sizeHeaders.length - 1, rowIndex: sRowIdx));
-      sizeSheet.setRowHeight(sRowIdx, 20);
-      sRowIdx++;
-
-      int teamMale = 0, teamFemale = 0;
-
-      for (var i = 0; i < persons.length; i++) {
-        final p = persons[i] as Map<String, dynamic>;
-        final gender = p['gender']?.toString() ?? '';
-        final gStyle = gender == '남' ? maleStyle : (gender == '여' ? femaleStyle : (sNo.isOdd ? oddRowStyle : evenRowStyle));
-        if (gender == '남') teamMale++;
-        if (gender == '여') teamFemale++;
-
-        final height = p['height']?.toString() ?? '';
-        final weight = p['weight']?.toString() ?? '';
-        final waist = p['waist']?.toString() ?? '';
-        final thigh = p['thigh']?.toString() ?? '';
-        final hasDetail = height.isNotEmpty || weight.isNotEmpty || waist.isNotEmpty || thigh.isNotEmpty;
-        final personalLength = p['bottomLength']?.toString() ?? '';
-        final personColor = p['color']?.toString() ?? '';
-
-        _setCell(sizeSheet, sRowIdx, 0, '$sNo', style: gStyle);
-        _setCell(sizeSheet, sRowIdx, 1, _shortId(order.id), style: gStyle);
-        _setCell(sizeSheet, sRowIdx, 2, _fmtFull(order.createdAt), style: gStyle);
-        _setCell(sizeSheet, sRowIdx, 3, teamName, style: gStyle);
-        _setCell(sizeSheet, sRowIdx, 4, '${(p['index'] ?? i + 1)}번', style: gStyle);
-        _setCell(sizeSheet, sRowIdx, 5,
-            p['name']?.toString().isNotEmpty == true ? p['name']!.toString() : '-', style: gStyle);
-        _setCell(sizeSheet, sRowIdx, 6, gender.isNotEmpty ? gender : '-', style: gStyle);
-        _setCell(sizeSheet, sRowIdx, 7,
-            p['topSize']?.toString().isNotEmpty == true ? p['topSize']!.toString() : '-', style: gStyle);
-        _setCell(sizeSheet, sRowIdx, 8,
-            p['bottomSize']?.toString().isNotEmpty == true ? p['bottomSize']!.toString() : '-', style: gStyle);
-        _setCell(sizeSheet, sRowIdx, 9,
-            personalLength.isNotEmpty ? personalLength : (defaultLength.isNotEmpty ? defaultLength : '개별'), style: gStyle);
-        _setColorCell(sizeSheet, sRowIdx, 10,
-            personColor.isNotEmpty ? personColor : mainColor);
-        _setCell(sizeSheet, sRowIdx, 11, hasDetail && height.isNotEmpty ? height : '', style: hasDetail ? detailStyle : gStyle);
-        _setCell(sizeSheet, sRowIdx, 12, hasDetail && weight.isNotEmpty ? weight : '', style: hasDetail ? detailStyle : gStyle);
-        _setCell(sizeSheet, sRowIdx, 13, hasDetail && waist.isNotEmpty ? waist : '', style: hasDetail ? detailStyle : gStyle);
-        _setCell(sizeSheet, sRowIdx, 14, hasDetail && thigh.isNotEmpty ? thigh : '', style: hasDetail ? detailStyle : gStyle);
-        _setCell(sizeSheet, sRowIdx, 15, printType, style: gStyle);
-        _setWaistbandCell(sizeSheet, sRowIdx, 16, opts);
-        _setCell(sizeSheet, sRowIdx, 17, hasDetail ? '상세치수' : '', style: gStyle);
-        sizeSheet.setRowHeight(sRowIdx, 17);
-
-        sRowIdx++;
-        sNo++;
-      }
-
-      // ── 팀 소계 행 ──
-      _setCell(sizeSheet, sRowIdx, 0, '소계', style: subTotalStyle);
-      _setCell(sizeSheet, sRowIdx, 1, teamName, style: subTotalStyle);
-      _setCell(sizeSheet, sRowIdx, 2, '총 ${persons.length}명', style: subTotalStyle);
-      _setCell(sizeSheet, sRowIdx, 3, '남 $teamMale명', style: subTotalStyle);
-      _setCell(sizeSheet, sRowIdx, 4, '여 $teamFemale명', style: subTotalStyle);
-      for (var c = 5; c < sizeHeaders.length; c++) {
-        _setCell(sizeSheet, sRowIdx, c, '', style: subTotalStyle);
-      }
-      sizeSheet.setRowHeight(sRowIdx, 18);
-      sRowIdx++;
-    }
-
-    // 개인 주문도 포함
-    for (final order in personalOrders) {
-      final rowStyle = sNo.isOdd ? oddRowStyle : evenRowStyle;
-      for (final item in order.items) {
-        _setCell(sizeSheet, sRowIdx, 0, '$sNo', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 1, _shortId(order.id), style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 2, _fmtFull(order.createdAt), style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 3, '-', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 4, '-', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 5, order.userName, style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 6, '-', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 7, item.size, style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 8, '-', style: rowStyle);
-        _setCell(sizeSheet, sRowIdx, 9, '-', style: rowStyle);
-        _setColorCell(sizeSheet, sRowIdx, 10, item.color, baseStyle: rowStyle);
-        for (var c = 11; c < sizeHeaders.length; c++) {
-          _setCell(sizeSheet, sRowIdx, c, '-', style: rowStyle);
-        }
-        sizeSheet.setRowHeight(sRowIdx, 17);
-        sRowIdx++;
-        sNo++;
-      }
-    }
-
-    final sizeColWidths = [
-      4.0, 18.0, 15.0, 14.0, 8.0, 12.0, 6.0,
-      10.0, 10.0, 10.0, 13.0,
-      8.0, 10.0, 8.0, 10.0,
-      14.0, 12.0, 10.0,
-    ];
-    for (var i = 0; i < sizeColWidths.length; i++) {
-      sizeSheet.setColumnWidth(i, sizeColWidths[i]);
-    }
-
-    // ══════════════════════════════════════════════════════════
-    // 시트 3: 디자인 이미지 & 주문 상세 (실제 이미지 삽입)
-    // ══════════════════════════════════════════════════════════
-    final imageSheet = excel['디자인이미지및상세'];
-
-    // 이미지 컬럼: 12=상품이미지, 13=참조이미지
-    final imgHeaders = [
-      'No', '주문번호', '주문날짜', '단체명', '상품명',
-      '인쇄옵션', '색상', '하의길이', '허리밴드', '총수량', '남', '여',
-      '상품이미지', '남자참조이미지', '메모',
-    ];
-    for (var i = 0; i < imgHeaders.length; i++) {
-      _setCell(imageSheet, 0, i, imgHeaders[i], style: headerStyle);
-    }
-
-    // 이미지 삽입 목록 (나중에 _insertImagesIntoXlsx에 전달)
     final List<_ImageToInsert> selectedImagesToInsert = [];
-    // 이미지 시트 인덱스: excel의 시트 목록에서 '디자인이미지및상세' 위치
-    // 주문요약(0), 사이즈목록(1), 디자인이미지및상세(2) 순서
-    const int imgSheetIdx = 2;
-    const int imgRowHeightPx = 120; // 행 높이 120px
 
-    int imgRowIdx = 1;
-    int imgNo = 1;
-    for (final order in orders) {
-      final opts = order.customOptions ?? {};
-      final teamName = opts['teamName']?.toString() ?? order.groupName ?? '-';
-      final isEven = imgNo % 2 == 0;
-      final rowStyle = isEven ? evenRowStyle : null;
+    for (var orderIdx = 0; orderIdx < groupOrders.length; orderIdx++) {
+      final order = groupOrders[orderIdx];
+      final opts  = order.customOptions ?? {};
+      final teamName = opts['teamName']?.toString() ?? order.groupName ?? '팀${orderIdx + 1}';
+      final rawSheetName = teamName.replaceAll(RegExp(r'[\\/:*?\[\]]'), '');
+      final sheetName = rawSheetName.length > 28 ? rawSheetName.substring(0, 28) : rawSheetName;
+      final teamSheet = excel[sheetName];
 
-      final maleRefUrl = opts['maleRefImageUrl']?.toString() ?? '';
-      final productImgUrl = _extractDesignImageUrl(order);
-
-      final colorInfo = _extractColorInfo(order);
-      final colorHex2 = _extractColorHex(order);
-      final maleCount = _countGender(order, '남');
-      final femaleCount = _countGender(order, '여');
-      final totalQty = order.items.fold<int>(0, (s, i) => s + i.quantity);
-
-      _setCell(imageSheet, imgRowIdx, 0, '$imgNo', style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 1, order.id, style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 2, _fmtFull(order.createdAt), style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 3, teamName, style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 4,
-          order.items.map((i) => i.productName).toSet().join(' / '), style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 5,
-          opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '-',
-          style: rowStyle);
-      _setColorCell(imageSheet, imgRowIdx, 6, colorInfo, baseStyle: rowStyle, overrideHex: colorHex2);
-      _setCell(imageSheet, imgRowIdx, 7,
-          opts['defaultLength']?.toString() ?? '-', style: rowStyle);
-      _setWaistbandCell(imageSheet, imgRowIdx, 8, opts, baseStyle: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 9, totalQty, style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 10, maleCount > 0 ? maleCount : '-', style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 11, femaleCount > 0 ? femaleCount : '-', style: rowStyle);
-      // 이미지 컬럼: 텍스트 비워두고 실제 이미지 삽입 예약
-      _setCell(imageSheet, imgRowIdx, 12, '', style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 13, '', style: rowStyle);
-      _setCell(imageSheet, imgRowIdx, 14,
-          opts['memoText']?.toString() ?? order.memo ?? '', style: rowStyle);
-
-      // 상품 이미지 삽입 예약
-      if (productImgUrl.isNotEmpty) {
-        selectedImagesToInsert.add(_ImageToInsert(
-          url: productImgUrl,
-          sheetIndex: imgSheetIdx,
-          row: imgRowIdx + 1, // 1-based
-          col: 12,
-          widthPx: 160, heightPx: imgRowHeightPx,
-          label: '상품이미지_$imgNo',
-        ));
-      }
-      // 참조 이미지 삽입 예약
-      if (maleRefUrl.isNotEmpty) {
-        selectedImagesToInsert.add(_ImageToInsert(
-          url: maleRefUrl,
-          sheetIndex: imgSheetIdx,
-          row: imgRowIdx + 1, // 1-based
-          col: 13,
-          widthPx: 160, heightPx: imgRowHeightPx,
-          label: '참조이미지_$imgNo',
-        ));
-      }
-
-      imgRowIdx++;
-      imgNo++;
+      final slots = _buildTeamSheet(teamSheet, sheetName, order);
+      selectedImagesToInsert.addAll(slots);
     }
 
-    final imgColWidths = [
-      5.0, 22.0, 16.0, 14.0, 20.0,
-      16.0, 16.0, 12.0, 14.0, 8.0, 6.0, 6.0,
-      22.0, 22.0, 25.0, // 이미지 컬럼 폭 조정 (22 = ~160px)
-    ];
-    for (var i = 0; i < imgColWidths.length; i++) {
-      imageSheet.setColumnWidth(i, imgColWidths[i]);
-    }
-
+    // Excel 라이브러리가 자동 생성한 'Sheet1' 기본 시트 제거
+    try { excel.delete('Sheet1'); } catch (_) {}
     excel.setDefaultSheet('주문요약');
     final baseBytes = excel.encode()!;
 
     // 이미지 없으면 바로 반환
     if (selectedImagesToInsert.isEmpty) return Uint8List.fromList(baseBytes);
 
-    // 이미지 다운로드 (병렬)
+    // 이미지 다운로드 (병렬, base64 지원)
     await Future.wait(selectedImagesToInsert.map((img) async {
       try {
-        final resp = await http.get(Uri.parse(img.url))
-            .timeout(const Duration(seconds: 20));
-        if (resp.statusCode == 200) {
-          img.bytes = resp.bodyBytes;
-          final ct = resp.headers['content-type'] ?? '';
-          img.ext = (ct.contains('png') || img.url.toLowerCase().contains('.png')) ? 'png' : 'jpeg';
+        if (img.url.startsWith('data:image')) {
+          final comma = img.url.indexOf(',');
+          if (comma >= 0) {
+            final header = img.url.substring(0, comma);
+            img.bytes = base64Decode(img.url.substring(comma + 1));
+            img.ext = header.contains('png') ? 'png' : 'jpeg';
+          }
+        } else {
+          final resp = await http.get(Uri.parse(img.url))
+              .timeout(const Duration(seconds: 20));
+          if (resp.statusCode == 200) {
+            img.bytes = resp.bodyBytes;
+            final ct = resp.headers['content-type'] ?? '';
+            img.ext = (ct.contains('png') || img.url.toLowerCase().contains('.png'))
+                ? 'png' : 'jpeg';
+          }
         }
       } catch (_) {}
     }));
@@ -836,267 +588,18 @@ class OrderExcelService {
     final List<_ImageToInsert> allImagesToInsert = [];
 
     // ══════════════════════════════════════════════
-    // 시트 1~N: 팀별 상세 시트 (팀명 = 시트명)
-    //   레이아웃:
-    //   행 0   : 타이틀 (팀명)
-    //   행 1   : 주문정보 헤더
-    //   행 2~  : 주문 옵션 상세 (좌: 레이블/값, 우: 디자인 이미지)
-    //   이미지 영역 끝 + 2행 : 인원별 사이즈 헤더
-    //   이하   : 인원별 사이즈 데이터
+    // 시트 1~N: 팀별 상세 시트 — _buildTeamSheet 공통 헬퍼 사용
     // ══════════════════════════════════════════════
     for (var orderIdx = 0; orderIdx < groupOrders.length; orderIdx++) {
       final order = groupOrders[orderIdx];
-      final opts = order.customOptions ?? {};
-      final persons = (opts['persons'] as List<dynamic>?) ?? [];
+      final opts  = order.customOptions ?? {};
       final teamName = opts['teamName']?.toString() ?? order.groupName ?? '팀${orderIdx + 1}';
-      // 시트명: 최대 31자, 특수문자 제거
       final rawSheetName = teamName.replaceAll(RegExp(r'[\\/:*?\[\]]'), '');
       final sheetName = rawSheetName.length > 28 ? rawSheetName.substring(0, 28) : rawSheetName;
       final teamSheet = excel[sheetName];
 
-      final maleCount = _countGender(order, '남');
-      final femaleCount = _countGender(order, '여');
-      final totalCount = (opts['totalCount'] as num?)?.toInt() ?? order.groupCount ?? persons.length;
-      final printType = opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '';
-      final printDisplay = printType.isEmpty ? '인쇄옵션 없음' : printType;
-      final defaultLength = opts['defaultLength']?.toString() ?? '개별선택';
-      final colorInfo = _extractColorInfo(order);
-      final colorHex = _extractColorHex(order);
-      final waistbandInfo = _extractWaistbandInfo(opts);
-      final fabric = opts['fabricType']?.toString() ?? opts['fabric']?.toString() ?? '-';
-      final fabricWeight = opts['fabricWeight']?.toString() ?? opts['weight']?.toString() ?? '-';
-      final exclusive = opts['exclusiveDesign'] == true ? '예' : '아니오';
-      final orderTypeLabel = order.orderType == 'additional' ? '추가제작' : '신규주문';
-      final designImgUrl = _extractDesignImageUrl(order);
-
-      // ── 행 0: 팀 타이틀 ──
-      _setCell(teamSheet, 0, 0,
-          '[$teamName]  주문 상세  |  ${_fmt(order.createdAt)}  |  총 ${totalCount}명',
-          style: titleStyle);
-      teamSheet.merge(
-          CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
-          CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: 0));
-      teamSheet.setRowHeight(0, 30);
-
-      // ── 행 1: 섹션 헤더 (주문정보 / 디자인이미지) ──
-      _setCell(teamSheet, 1, 0, '▶ 주문 옵션 및 정보', style: sectionHeaderStyle);
-      teamSheet.merge(
-          CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1),
-          CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: 1));
-      _setCell(teamSheet, 1, 6, '▶ 디자인 이미지', style: sectionHeaderStyle);
-      teamSheet.merge(
-          CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: 1),
-          CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: 1));
-      teamSheet.setRowHeight(1, 20);
-
-      // ── 행 2~: 주문 옵션 정보 (A~F열 = 레이블+값, G~L열 = 이미지 영역) ──
-      final infoRows = [
-        ['주문번호',   _shortId(order.id)],
-        ['주문날짜',   _fmtFull(order.createdAt)],
-        ['단체명',    teamName],
-        ['담당자',    opts['manager']?.toString() ?? opts['managerName']?.toString() ?? order.userName],
-        ['연락처',    _maskPhone(order.userPhone)],
-        ['이메일',    _maskEmail(order.userEmail)],
-        ['배송지',    order.userAddress],
-        ['총 인원',   '${totalCount}명  (남 ${maleCount}명 / 여 ${femaleCount}명)'],
-        ['인쇄옵션',  printDisplay],
-        ['색상',      colorInfo],
-        ['하의길이',  defaultLength],
-        ['허리밴드',  waistbandInfo.isNotEmpty ? waistbandInfo : '없음'],
-        ['원단 종류', fabric],
-        ['원단 무게', fabricWeight],
-        ['독점디자인', exclusive],
-        ['주문 유형', orderTypeLabel],
-        ['메모',      opts['memoText']?.toString() ?? order.memo ?? '-'],
-      ];
-
-      // 이미지 행 범위: 행 2 ~ 행(2 + infoRows.length - 1)
-      const int infoStartRow = 2;
-      final int infoEndRow = infoStartRow + infoRows.length - 1; // inclusive
-
-      // 이미지 셀: G~L 열, 행 2 ~ infoEndRow 머지
-      teamSheet.merge(
-          CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: infoStartRow),
-          CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: infoEndRow));
-
-      if (designImgUrl.isNotEmpty) {
-        _setCell(teamSheet, infoStartRow, 6, '', style: imgPlaceholderStyle);
-        // sheetName 기반으로 정확한 시트에 이미지 삽입
-        allImagesToInsert.add(_ImageToInsert(
-          url: designImgUrl,
-          sheetName: sheetName,  // 시트 이름으로 찾기
-          row: infoStartRow + 1, // 1-based
-          col: 6,                // G열 (0-based)
-          widthPx: 200, heightPx: 150,
-          label: '디자인_$teamName',
-        ));
-      } else {
-        _setCell(teamSheet, infoStartRow, 6, '이미지 없음', style: imgPlaceholderStyle);
-      }
-
-      for (var i = 0; i < infoRows.length; i++) {
-        final row = infoStartRow + i;
-        final key = infoRows[i][0].toString();
-        final val = infoRows[i][1].toString();
-        _setCell(teamSheet, row, 0, key, style: labelStyle);
-        teamSheet.merge(
-            CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
-            CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row));
-        // 색상 셀
-        if (key == '색상') {
-          _setColorCell(teamSheet, row, 2, val, overrideHex: colorHex);
-        } else if (key == '허리밴드') {
-          final wHex = _extractWaistbandHex(opts);
-          if (wHex != null) {
-            _setColorCell(teamSheet, row, 2, val, overrideHex: wHex);
-          } else {
-            _setCell(teamSheet, row, 2, val);
-          }
-        } else if (key == '인쇄옵션' && printType.isEmpty) {
-          _setCell(teamSheet, row, 2, val, style: noOptionStyle);
-        } else {
-          _setCell(teamSheet, row, 2, val);
-        }
-        teamSheet.merge(
-            CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row),
-            CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: row));
-        teamSheet.setRowHeight(row, 18);
-      }
-
-      // ── 인원별 사이즈 섹션 ──
-      final sizeStartRow = infoEndRow + 2;
-
-      // 인원 섹션 헤더
-      _setCell(teamSheet, sizeStartRow, 0,
-          '▶ 인원별 사이즈 명단  (총 ${persons.isNotEmpty ? persons.length : totalCount}명)',
-          style: sectionHeaderStyle);
-      teamSheet.merge(
-          CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: sizeStartRow),
-          CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: sizeStartRow));
-      teamSheet.setRowHeight(sizeStartRow, 20);
-
-      if (persons.isEmpty) {
-        // 인원 정보 없음 안내
-        final noPersonStyle = CellStyle(
-          italic: true,
-          fontColorHex: ExcelColor.fromHexString('#9E9E9E'),
-          horizontalAlign: HorizontalAlign.Center,
-        );
-        _setCell(teamSheet, sizeStartRow + 1, 0, '인원 정보가 없습니다.', style: noPersonStyle);
-        teamSheet.merge(
-            CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: sizeStartRow + 1),
-            CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: sizeStartRow + 1));
-      } else {
-        // 성별 헤더 행
-        _setCell(teamSheet, sizeStartRow + 1, 0, '남성 (${maleCount}명)', style: maleHeaderStyle);
-        teamSheet.merge(
-            CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: sizeStartRow + 1),
-            CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: sizeStartRow + 1));
-        _setCell(teamSheet, sizeStartRow + 1, 6, '여성 (${femaleCount}명)', style: femaleHeaderStyle);
-        teamSheet.merge(
-            CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: sizeStartRow + 1),
-            CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: sizeStartRow + 1));
-        teamSheet.setRowHeight(sizeStartRow + 1, 18);
-
-        // 컬럼 헤더
-        final colHeaders = ['번호', '이름', '성별', '상의', '하의', '길이', '색상', '키', '몸무게', '허리', '허벅지', '비고'];
-        for (var c = 0; c < colHeaders.length; c++) {
-          _setCell(teamSheet, sizeStartRow + 2, c, colHeaders[c], style: headerStyle);
-        }
-        teamSheet.setRowHeight(sizeStartRow + 2, 18);
-
-        // 남성 먼저, 여성 다음으로 정렬
-        final males = persons.where((p) => (p as Map<String, dynamic>)['gender']?.toString() == '남').toList();
-        final females = persons.where((p) => (p as Map<String, dynamic>)['gender']?.toString() == '여').toList();
-        final sorted = [...males, ...females];
-
-        int pRowIdx = sizeStartRow + 3;
-        for (var i = 0; i < sorted.length; i++) {
-          final p = sorted[i] as Map<String, dynamic>;
-          final gender = p['gender']?.toString() ?? '';
-          final gStyle = gender == '남' ? maleStyle : (gender == '여' ? femaleStyle : null);
-          final rowStyle = i % 2 == 0 ? evenRowStyle : null;
-          final usedStyle = gStyle ?? rowStyle;
-
-          final height = p['height']?.toString() ?? '';
-          final weight = p['weight']?.toString() ?? '';
-          final waist = p['waist']?.toString() ?? '';
-          final thigh = p['thigh']?.toString() ?? '';
-          final hasDetail = height.isNotEmpty || weight.isNotEmpty || waist.isNotEmpty || thigh.isNotEmpty;
-          final personalLength = p['bottomLength']?.toString() ?? '';
-          final personColor = p['color']?.toString() ?? '';
-          final personColorHex = _getColorHex(personColor.isNotEmpty ? personColor : colorInfo);
-          final sizeType = p['sizeType']?.toString() ?? '';
-          final juniorStyle = CellStyle(
-            backgroundColorHex: ExcelColor.fromHexString('#E0F2F1'),
-            fontColorHex: ExcelColor.fromHexString('#00695C'),
-            bold: true,
-          );
-          final finalStyle = sizeType == '주니어' ? juniorStyle : usedStyle;
-
-          _setCell(teamSheet, pRowIdx, 0, '${p['index'] ?? i + 1}번', style: finalStyle);
-          _setCell(teamSheet, pRowIdx, 1,
-              p['name']?.toString().isNotEmpty == true ? p['name']!.toString() : '-',
-              style: gStyle);
-          _setCell(teamSheet, pRowIdx, 2, gender.isNotEmpty ? gender : '-', style: gStyle);
-          _setCell(teamSheet, pRowIdx, 3,
-              p['topSize']?.toString().isNotEmpty == true ? p['topSize']!.toString() : '-',
-              style: finalStyle);
-          _setCell(teamSheet, pRowIdx, 4,
-              p['bottomSize']?.toString().isNotEmpty == true ? p['bottomSize']!.toString() : '-',
-              style: finalStyle);
-          _setCell(teamSheet, pRowIdx, 5,
-              personalLength.isNotEmpty ? personalLength : (defaultLength.isNotEmpty ? defaultLength : '개별'),
-              style: rowStyle);
-          _setColorCell(teamSheet, pRowIdx, 6,
-              personColor.isNotEmpty ? personColor : colorInfo,
-              baseStyle: rowStyle, overrideHex: personColorHex);
-          _setCell(teamSheet, pRowIdx, 7,
-              hasDetail && height.isNotEmpty ? height : '-',
-              style: hasDetail ? detailStyle : rowStyle);
-          _setCell(teamSheet, pRowIdx, 8,
-              hasDetail && weight.isNotEmpty ? weight : '-',
-              style: hasDetail ? detailStyle : rowStyle);
-          _setCell(teamSheet, pRowIdx, 9,
-              hasDetail && waist.isNotEmpty ? waist : '-',
-              style: hasDetail ? detailStyle : rowStyle);
-          _setCell(teamSheet, pRowIdx, 10,
-              hasDetail && thigh.isNotEmpty ? thigh : '-',
-              style: hasDetail ? detailStyle : rowStyle);
-          _setCell(teamSheet, pRowIdx, 11,
-              sizeType == '주니어' ? '주니어' : (hasDetail ? '상세입력' : ''), style: rowStyle);
-          teamSheet.setRowHeight(pRowIdx, 17);
-          pRowIdx++;
-        }
-
-        // 합계 행
-        _setCell(teamSheet, pRowIdx, 0, '합계', style: totalStyle);
-        _setCell(teamSheet, pRowIdx, 1, '${sorted.length}명', style: totalStyle);
-        _setCell(teamSheet, pRowIdx, 2, '남 ${maleCount}명 / 여 ${femaleCount}명', style: totalStyle);
-        teamSheet.merge(
-            CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: pRowIdx),
-            CellIndex.indexByColumnRow(columnIndex: 11, rowIndex: pRowIdx));
-        teamSheet.setRowHeight(pRowIdx, 18);
-      }
-
-      // ── 열 너비 설정 ──
-      final teamColWidths = [
-        9.0,   // A: 번호/레이블
-        14.0,  // B: 이름/레이블2
-        14.0,  // C: 성별/값
-        12.0,  // D: 상의사이즈
-        12.0,  // E: 하의사이즈
-        12.0,  // F: 하의길이
-        12.0,  // G: 색상/이미지시작
-        9.0,   // H: 키
-        10.0,  // I: 몸무게
-        9.0,   // J: 허리
-        10.0,  // K: 허벅지
-        10.0,  // L: 비고
-      ];
-      for (var c = 0; c < teamColWidths.length; c++) {
-        teamSheet.setColumnWidth(c, teamColWidths[c]);
-      }
+      final slots = _buildTeamSheet(teamSheet, sheetName, order);
+      allImagesToInsert.addAll(slots);
     } // end for each order
 
     // 첫 번째 팀 시트를 기본 시트로 설정
@@ -1252,83 +755,26 @@ class OrderExcelService {
       summarySheet.setColumnWidth(i, colWidths[i]);
     }
 
-    // ── 디자인 이미지 시트 추가 (실제 이미지 삽입) ──
-    final headerStyle2 = CellStyle(
-      bold: true,
-      backgroundColorHex: ExcelColor.fromHexString('#2C3E50'),
-      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
-      horizontalAlign: HorizontalAlign.Center,
-    );
-    final evenRowStyle2 = CellStyle(
-      backgroundColorHex: ExcelColor.fromHexString('#F5F5F5'),
-    );
-    final imgSheet = excel['디자인이미지'];
-    final baseImgHeaders = [
-      'No', '주문번호', '주문날짜', '단체명', '상품명',
-      '인쇄옵션', '색상', '하의길이', '허리밴드',
-      '상품이미지', '남자참조이미지',
-    ];
-    for (var i = 0; i < baseImgHeaders.length; i++) {
-      _setCell(imgSheet, 0, i, baseImgHeaders[i], style: headerStyle2);
-    }
+    // ══════════════════════════════════════════════════════════
+    // 시트 2~N: 팀별 상세 시트 — _buildTeamSheet 공통 헬퍼 사용
+    // (이미지+주문정보+인원별사이즈 한 시트에 세로 배치)
+    // ══════════════════════════════════════════════════════════
     final List<_ImageToInsert> baseImagesToInsert = [];
-    const int baseImgSheetIdx = 1; // 주문요약=0, 디자인이미지=1
-    int bImgRowIdx = 1;
-    int bImgNo = 1;
-    for (final order in groupOrders) {
-      final opts = order.customOptions ?? {};
-      final isEven = bImgNo % 2 == 0;
-      final rowStyle2 = isEven ? evenRowStyle2 : null;
-      final teamName = opts['teamName']?.toString() ?? order.groupName ?? '-';
-      final productImgUrl = _extractDesignImageUrl(order);
-      final maleRefUrl = opts['maleRefImageUrl']?.toString() ?? '';
 
-      _setCell(imgSheet, bImgRowIdx, 0, '$bImgNo', style: rowStyle2);
-      _setCell(imgSheet, bImgRowIdx, 1, order.id, style: rowStyle2);
-      _setCell(imgSheet, bImgRowIdx, 2, _fmtFull(order.createdAt), style: rowStyle2);
-      _setCell(imgSheet, bImgRowIdx, 3, teamName, style: rowStyle2);
-      _setCell(imgSheet, bImgRowIdx, 4,
-          order.items.map((i) => i.productName).toSet().join(' / '), style: rowStyle2);
-      _setCell(imgSheet, bImgRowIdx, 5,
-          opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '-', style: rowStyle2);
-      _setColorCell(imgSheet, bImgRowIdx, 6, _extractColorInfo(order), baseStyle: rowStyle2, overrideHex: _extractColorHex(order));
-      _setCell(imgSheet, bImgRowIdx, 7, opts['defaultLength']?.toString() ?? '-', style: rowStyle2);
-      _setWaistbandCell(imgSheet, bImgRowIdx, 8, opts, baseStyle: rowStyle2);
-      _setCell(imgSheet, bImgRowIdx, 9, '', style: rowStyle2);
-      _setCell(imgSheet, bImgRowIdx, 10, '', style: rowStyle2);
+    for (var orderIdx = 0; orderIdx < groupOrders.length; orderIdx++) {
+      final order = groupOrders[orderIdx];
+      final opts  = order.customOptions ?? {};
+      final teamName = opts['teamName']?.toString() ?? order.groupName ?? '팀${orderIdx + 1}';
+      final rawSheetName = teamName.replaceAll(RegExp(r'[\\/:*?\[\]]'), '');
+      final sheetName = rawSheetName.length > 28 ? rawSheetName.substring(0, 28) : rawSheetName;
+      final teamSheet = excel[sheetName];
 
-      if (productImgUrl.isNotEmpty) {
-        baseImagesToInsert.add(_ImageToInsert(
-          url: productImgUrl,
-          sheetIndex: baseImgSheetIdx,
-          row: bImgRowIdx + 1,
-          col: 9,
-          widthPx: 160, heightPx: 120,
-          label: '상품이미지_$bImgNo',
-        ));
-      }
-      if (maleRefUrl.isNotEmpty) {
-        baseImagesToInsert.add(_ImageToInsert(
-          url: maleRefUrl,
-          sheetIndex: baseImgSheetIdx,
-          row: bImgRowIdx + 1,
-          col: 10,
-          widthPx: 160, heightPx: 120,
-          label: '참조이미지_$bImgNo',
-        ));
-      }
-      bImgRowIdx++;
-      bImgNo++;
-    }
-    final baseImgColWidths = [
-      5.0, 22.0, 16.0, 16.0, 20.0,
-      16.0, 16.0, 12.0, 14.0,
-      22.0, 22.0,
-    ];
-    for (var i = 0; i < baseImgColWidths.length; i++) {
-      imgSheet.setColumnWidth(i, baseImgColWidths[i]);
+      final slots = _buildTeamSheet(teamSheet, sheetName, order);
+      baseImagesToInsert.addAll(slots);
     }
 
+    // Excel 라이브러리가 자동 생성한 'Sheet1' 기본 시트 제거
+    try { excel.delete('Sheet1'); } catch (_) {}
     excel.setDefaultSheet('주문요약');
     final baseBytes2 = excel.encode()!;
 
@@ -1336,12 +782,21 @@ class OrderExcelService {
 
     await Future.wait(baseImagesToInsert.map((img) async {
       try {
-        final resp = await http.get(Uri.parse(img.url))
-            .timeout(const Duration(seconds: 20));
-        if (resp.statusCode == 200) {
-          img.bytes = resp.bodyBytes;
-          final ct = resp.headers['content-type'] ?? '';
-          img.ext = (ct.contains('png') || img.url.toLowerCase().contains('.png')) ? 'png' : 'jpeg';
+        if (img.url.startsWith('data:image')) {
+          final comma = img.url.indexOf(',');
+          if (comma >= 0) {
+            final header = img.url.substring(0, comma);
+            img.bytes = base64Decode(img.url.substring(comma + 1));
+            img.ext = header.contains('png') ? 'png' : 'jpeg';
+          }
+        } else {
+          final resp = await http.get(Uri.parse(img.url))
+              .timeout(const Duration(seconds: 20));
+          if (resp.statusCode == 200) {
+            img.bytes = resp.bodyBytes;
+            final ct = resp.headers['content-type'] ?? '';
+            img.ext = (ct.contains('png') || img.url.toLowerCase().contains('.png')) ? 'png' : 'jpeg';
+          }
         }
       } catch (_) {}
     }));
@@ -2256,6 +1711,327 @@ class OrderExcelService {
     histSheet.setColumnWidth(2, 12.0);
     histSheet.setColumnWidth(3, 12.0);
     histSheet.setColumnWidth(4, 12.0);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 공통 팀별 시트 빌더 — 디자인수정 엑셀과 동일 스타일/레이아웃
+  //
+  //  레이아웃 (세로 순서):
+  //   행 0      : 팀명 제목 (진보라 #6A1B9A, height 28)
+  //   행 1      : ▶ 주문 정보 섹션 (다크네이비 #1A1A2E, height 20)
+  //   행 2      : [디자인이미지] A열=레이블, B~J merge, height 200 (이미지 있을 때)
+  //   행 3~     : infoRows — A열=레이블(#F3E5F5), B~J merge, height 18
+  //   빈 행
+  //   ▶ 인원별 사이즈 명단 섹션
+  //   컬럼 헤더 (#1A237E 딥인디고)
+  //   인원 데이터 행 (남=파랑/여=핑크/짝수=연회색)
+  //   합계 행
+  //
+  //  반환: 이미지 슬롯 목록 (_ImageToInsert) — 호출자가 _insertImagesIntoXlsx에 전달
+  // ═══════════════════════════════════════════════════════════════════
+  static List<_ImageToInsert> _buildTeamSheet(
+    Sheet sheet,
+    String sheetName,
+    OrderModel order,
+  ) {
+    final opts    = order.customOptions ?? {};
+    final persons = (opts['persons'] as List<dynamic>?) ?? [];
+
+    // ── 스타일 (디자인수정 팔레트와 동일) ──
+    final titleStyle = CellStyle(
+      bold: true, fontSize: 13,
+      backgroundColorHex: ExcelColor.fromHexString('#6A1B9A'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+    );
+    final sectionStyle = CellStyle(
+      bold: true, fontSize: 10,
+      backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+    );
+    final labelStyle = CellStyle(
+      bold: true, fontSize: 10,
+      backgroundColorHex: ExcelColor.fromHexString('#F3E5F5'),
+      fontColorHex: ExcelColor.fromHexString('#4A148C'),
+    );
+    final valueStyle   = CellStyle(fontSize: 10);
+    final headerStyle  = CellStyle(
+      bold: true, fontSize: 10,
+      backgroundColorHex: ExcelColor.fromHexString('#1A237E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+    );
+    final maleStyle    = CellStyle(
+      bold: true, fontSize: 10,
+      backgroundColorHex: ExcelColor.fromHexString('#E3F2FD'),
+      fontColorHex: ExcelColor.fromHexString('#1565C0'),
+    );
+    final femaleStyle  = CellStyle(
+      bold: true, fontSize: 10,
+      backgroundColorHex: ExcelColor.fromHexString('#FCE4EC'),
+      fontColorHex: ExcelColor.fromHexString('#C62828'),
+    );
+    final evenRowStyle = CellStyle(
+      fontSize: 10,
+      backgroundColorHex: ExcelColor.fromHexString('#F5F5F5'),
+    );
+    final oddRowStyle  = CellStyle(fontSize: 10);
+    final totalStyle   = CellStyle(
+      bold: true, fontSize: 10,
+      backgroundColorHex: ExcelColor.fromHexString('#EDE7F6'),
+      fontColorHex: ExcelColor.fromHexString('#4A148C'),
+    );
+    final detailStyle  = CellStyle(
+      fontSize: 10,
+      backgroundColorHex: ExcelColor.fromHexString('#E8EAF6'),
+      fontColorHex: ExcelColor.fromHexString('#283593'),
+    );
+    final imgLabelStyle = CellStyle(
+      bold: true, fontSize: 10,
+      backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+    );
+    final noOptionStyle = CellStyle(
+      fontSize: 10,
+      fontColorHex: ExcelColor.fromHexString('#9E9E9E'),
+      italic: true,
+    );
+
+    // ── 데이터 추출 ──
+    final teamName      = opts['teamName']?.toString() ?? order.groupName ?? sheetName;
+    final mainColor     = opts['mainColor']?.toString() ?? '-';
+    final bottomColorName = opts['bottomColorName']?.toString() ?? '';
+    final colorInfo     = bottomColorName.isNotEmpty
+        ? '상의: $mainColor / 하의: $bottomColorName'
+        : mainColor;
+    final adjustedHex   = opts['adjustedColorHex']?.toString() ?? '';
+    final mainColorHex  = adjustedHex.isNotEmpty && adjustedHex.startsWith('#')
+        ? adjustedHex : _getColorHex(mainColor);
+    final colorDisplay  = bottomColorName.isNotEmpty
+        ? '상의:$mainColor / 하의:$bottomColorName'
+        : mainColor;
+    final printType     = opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '';
+    final defaultLength = opts['defaultLength']?.toString() ?? '개별선택';
+    final waistbandInfo = _extractWaistbandInfo(opts);
+    final maleCount     = _countGender(order, '남');
+    final femaleCount   = _countGender(order, '여');
+    final totalCount    = (opts['totalCount'] as num?)?.toInt()
+        ?? order.groupCount ?? persons.length;
+    final designImgUrl  = _extractDesignImageUrl(order);
+    final designFileUrl = opts['designFileUrl']?.toString() ?? opts['maleRefImageUrl']?.toString() ?? '';
+
+    final imageSlots = <_ImageToInsert>[];
+    int rowIdx = 0;
+
+    // ── 행 0: 제목 ──
+    _setCell(sheet, rowIdx, 0,
+        '[$teamName]  총 ${totalCount}명  |  ${_fmtFull(order.createdAt)}',
+        style: titleStyle);
+    sheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIdx),
+      CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+    );
+    sheet.setRowHeight(rowIdx, 28);
+    rowIdx++;
+
+    // ── 행 1: 주문 정보 섹션 헤더 ──
+    _setCell(sheet, rowIdx, 0, '▶ 주문 정보', style: sectionStyle);
+    sheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIdx),
+      CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+    );
+    sheet.setRowHeight(rowIdx, 20);
+    rowIdx++;
+
+    // ── 이미지 행 (디자인이미지, 참조이미지) ──
+    if (designImgUrl.isNotEmpty) {
+      _setCell(sheet, rowIdx, 0, '디자인이미지', style: imgLabelStyle);
+      sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIdx),
+        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+      );
+      _setCell(sheet, rowIdx, 1, '');
+      sheet.setRowHeight(rowIdx, 200.0);
+      imageSlots.add(_ImageToInsert(
+        url: designImgUrl, sheetName: sheetName,
+        row: rowIdx + 1, col: 1, widthPx: 260, heightPx: 195, label: '디자인이미지',
+      ));
+      rowIdx++;
+    }
+    if (designFileUrl.isNotEmpty) {
+      _setCell(sheet, rowIdx, 0, '참조이미지', style: imgLabelStyle);
+      sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIdx),
+        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+      );
+      _setCell(sheet, rowIdx, 1, '');
+      sheet.setRowHeight(rowIdx, 200.0);
+      imageSlots.add(_ImageToInsert(
+        url: designFileUrl, sheetName: sheetName,
+        row: rowIdx + 1, col: 1, widthPx: 260, heightPx: 195, label: '참조이미지',
+      ));
+      rowIdx++;
+    }
+
+    // ── infoRows ──
+    void _writeRow(String label, dynamic value,
+        {bool isColor = false, bool isWaistband = false, bool isNoOption = false}) {
+      _setCell(sheet, rowIdx, 0, label, style: labelStyle);
+      sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIdx),
+        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+      );
+      sheet.setRowHeight(rowIdx, 18);
+      if (isColor) {
+        _setColorCell(sheet, rowIdx, 1, value.toString(), overrideHex: mainColorHex);
+      } else if (isWaistband) {
+        final wHex = _extractWaistbandHex(opts);
+        wHex != null
+            ? _setColorCell(sheet, rowIdx, 1, value.toString(), overrideHex: wHex)
+            : _setCell(sheet, rowIdx, 1, value, style: valueStyle);
+      } else if (isNoOption) {
+        _setCell(sheet, rowIdx, 1, value, style: noOptionStyle);
+      } else {
+        _setCell(sheet, rowIdx, 1, value, style: valueStyle);
+      }
+      rowIdx++;
+    }
+
+    _writeRow('주문번호',   order.id);
+    _writeRow('주문날짜',   _fmtFull(order.createdAt));
+    _writeRow('단체명/팀명', teamName);
+    _writeRow('담당자', opts['manager']?.toString() ?? opts['managerName']?.toString() ?? order.userName);
+    _writeRow('연락처',     _maskPhone(order.userPhone));
+    _writeRow('이메일',     _maskEmail(order.userEmail));
+    _writeRow('배송지',     order.userAddress);
+    _writeRow('총 인원', '${totalCount}명  (남 ${maleCount}명 / 여 ${femaleCount}명)');
+    _writeRow('인쇄옵션', printType.isNotEmpty ? printType : '인쇄옵션 없음',
+        isNoOption: printType.isEmpty);
+    _writeRow('색상', colorDisplay, isColor: true);
+    _writeRow('하의길이',   defaultLength);
+    _writeRow('허리밴드',   waistbandInfo.isNotEmpty ? waistbandInfo : '없음',
+        isWaistband: waistbandInfo.isNotEmpty);
+    _writeRow('원단 종류',  opts['fabricType']?.toString() ?? opts['fabric']?.toString() ?? '-');
+    _writeRow('원단 무게',  opts['fabricWeight']?.toString() ?? opts['weight']?.toString() ?? '-');
+    _writeRow('독점디자인', opts['exclusiveDesign'] == true ? '예' : '아니오');
+    _writeRow('주문 유형',  order.orderType == 'additional' ? '추가제작주문' : '신규주문');
+    _writeRow('주문 상태',  _statusLabel(order.status));
+    _writeRow('메모', opts['memoText']?.toString() ?? order.memo ?? '-');
+
+    // ── 인원별 사이즈 섹션 ──
+    rowIdx++; // 빈 행
+    _setCell(sheet, rowIdx, 0,
+        '▶ 인원별 사이즈 명단  (총 ${persons.isNotEmpty ? persons.length : totalCount}명  /  색상: $colorInfo)',
+        style: sectionStyle);
+    sheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIdx),
+      CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+    );
+    sheet.setRowHeight(rowIdx, 20);
+    rowIdx++;
+
+    if (persons.isEmpty) {
+      final noPersonStyle = CellStyle(
+        italic: true, fontSize: 10,
+        fontColorHex: ExcelColor.fromHexString('#9E9E9E'),
+        horizontalAlign: HorizontalAlign.Center,
+      );
+      _setCell(sheet, rowIdx, 0, '인원 정보가 없습니다.', style: noPersonStyle);
+      sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIdx),
+        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+      );
+      rowIdx++;
+    } else {
+      // 컬럼 헤더
+      final pHeaders = ['No', '이름', '성별', '사이즈구분', '상의', '하의', '하의길이', '색상', '키', '몸무게', '허리', '허벅지', '비고'];
+      // 13개 헤더이므로 필요한 열까지 확장 (0~12)
+      for (var c = 0; c < pHeaders.length; c++) {
+        _setCell(sheet, rowIdx, c, pHeaders[c], style: headerStyle);
+      }
+      sheet.setRowHeight(rowIdx, 22);
+      rowIdx++;
+
+      // 남성 먼저, 여성 다음
+      final males   = persons.where((p) => (p as Map)['gender']?.toString() == '남').toList();
+      final females = persons.where((p) => (p as Map)['gender']?.toString() == '여').toList();
+      final others  = persons.where((p) {
+        final g = (p as Map)['gender']?.toString() ?? '';
+        return g != '남' && g != '여';
+      }).toList();
+      final sorted = [...males, ...females, ...others];
+
+      for (var i = 0; i < sorted.length; i++) {
+        final p      = sorted[i] as Map<dynamic, dynamic>;
+        final gender = p['gender']?.toString() ?? '';
+        final isMale   = gender == '남';
+        final isFemale = gender == '여';
+        final gStyle   = isMale ? maleStyle : (isFemale ? femaleStyle : null);
+        final rowStyle = i.isEven ? evenRowStyle : oddRowStyle;
+        final usedStyle = gStyle ?? rowStyle;
+
+        final height = p['height']?.toString() ?? '';
+        final weight = p['weight']?.toString() ?? '';
+        final waist  = p['waist']?.toString()  ?? '';
+        final thigh  = p['thigh']?.toString()  ?? '';
+        final hasDetail = height.isNotEmpty || weight.isNotEmpty || waist.isNotEmpty || thigh.isNotEmpty;
+        final personalLength = p['bottomLength']?.toString() ?? '';
+        final personColor    = p['color']?.toString() ?? '';
+        final sizeType       = p['sizeType']?.toString() ?? '성인';
+        final juniorStyle    = CellStyle(
+          bold: true, fontSize: 10,
+          backgroundColorHex: ExcelColor.fromHexString('#E0F2F1'),
+          fontColorHex: ExcelColor.fromHexString('#00695C'),
+        );
+        final finalStyle = sizeType == '주니어' ? juniorStyle : usedStyle;
+        final usedColor  = personColor.isNotEmpty ? personColor : mainColor;
+        final personHex  = _getColorHex(usedColor) ?? mainColorHex;
+
+        _setCell(sheet, rowIdx, 0,  '${p['index'] ?? i + 1}',          style: rowStyle);
+        _setCell(sheet, rowIdx, 1,  p['name']?.toString().isNotEmpty == true ? p['name']!.toString() : '-', style: gStyle ?? rowStyle);
+        _setCell(sheet, rowIdx, 2,  gender.isNotEmpty ? gender : '-',   style: gStyle ?? rowStyle);
+        _setCell(sheet, rowIdx, 3,  sizeType,                            style: finalStyle);
+        _setCell(sheet, rowIdx, 4,  p['topSize']?.toString().isNotEmpty == true ? p['topSize']!.toString() : '-', style: finalStyle);
+        _setCell(sheet, rowIdx, 5,  p['bottomSize']?.toString().isNotEmpty == true ? p['bottomSize']!.toString() : '-', style: finalStyle);
+        _setCell(sheet, rowIdx, 6,  personalLength.isNotEmpty ? personalLength : (defaultLength.isNotEmpty ? defaultLength : '개별선택'), style: rowStyle);
+        _setColorCell(sheet, rowIdx, 7, usedColor, baseStyle: rowStyle, overrideHex: personHex);
+        _setCell(sheet, rowIdx, 8,  hasDetail && height.isNotEmpty ? height : '-', style: hasDetail ? detailStyle : rowStyle);
+        _setCell(sheet, rowIdx, 9,  hasDetail && weight.isNotEmpty ? weight : '-', style: hasDetail ? detailStyle : rowStyle);
+        _setCell(sheet, rowIdx, 10, hasDetail && waist.isNotEmpty  ? waist  : '-', style: hasDetail ? detailStyle : rowStyle);
+        _setCell(sheet, rowIdx, 11, hasDetail && thigh.isNotEmpty  ? thigh  : '-', style: hasDetail ? detailStyle : rowStyle);
+        _setCell(sheet, rowIdx, 12, sizeType == '주니어' ? '주니어' : (hasDetail ? '상세입력' : ''), style: rowStyle);
+        sheet.setRowHeight(rowIdx, 18);
+        rowIdx++;
+      }
+
+      // 합계 행
+      _setCell(sheet, rowIdx, 0, '합계', style: totalStyle);
+      _setCell(sheet, rowIdx, 1, '${sorted.length}명', style: totalStyle);
+      _setCell(sheet, rowIdx, 2, '남 ${maleCount}명 / 여 ${femaleCount}명', style: totalStyle);
+      sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIdx),
+        CellIndex.indexByColumnRow(columnIndex: 12, rowIndex: rowIdx),
+      );
+      sheet.setRowHeight(rowIdx, 20);
+    }
+
+    // ── 열 너비 ──
+    sheet.setColumnWidth(0,  16.0);  // A: 레이블
+    sheet.setColumnWidth(1,  14.0);  // B: 이름/이미지
+    sheet.setColumnWidth(2,   8.0);  // C: 성별
+    sheet.setColumnWidth(3,  14.0);  // D: 사이즈구분
+    sheet.setColumnWidth(4,  13.0);  // E: 상의
+    sheet.setColumnWidth(5,  13.0);  // F: 하의
+    sheet.setColumnWidth(6,  13.0);  // G: 하의길이
+    sheet.setColumnWidth(7,   9.0);  // H: 색상
+    sheet.setColumnWidth(8,   9.0);  // I: 키
+    sheet.setColumnWidth(9,   9.0);  // J: 몸무게
+    sheet.setColumnWidth(10,  9.0);  // K: 허리
+    sheet.setColumnWidth(11, 10.0);  // L: 허벅지
+    sheet.setColumnWidth(12, 12.0);  // M: 비고
+
+    return imageSlots;
   }
 
   /// 디자인 수정 상태 라벨
