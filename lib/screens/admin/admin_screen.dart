@@ -3992,14 +3992,27 @@ class _AdminScreenState extends State<AdminScreen>
                       child: OutlinedButton.icon(
                         onPressed: () {
                           Navigator.pop(context);
-                          _exportGroupOrderExcel(order);
+                          if (order.orderType == 'additional') {
+                            _exportAdditionalOrderExcel(order);
+                          } else {
+                            _exportGroupOrderExcel(order);
+                          }
                         },
                         icon: const Icon(Icons.download_rounded, size: 16),
-                        label: const Text('엑셀 내보내기', style: TextStyle(fontSize: 13)),
+                        label: Text(
+                          order.orderType == 'additional' ? '추가제작 엑셀' : '엑셀 내보내기',
+                          style: const TextStyle(fontSize: 13),
+                        ),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          foregroundColor: const Color(0xFF00897B),
-                          side: const BorderSide(color: Color(0xFF00897B)),
+                          foregroundColor: order.orderType == 'additional'
+                              ? const Color(0xFFC62828)
+                              : const Color(0xFF00897B),
+                          side: BorderSide(
+                            color: order.orderType == 'additional'
+                                ? const Color(0xFFC62828)
+                                : const Color(0xFF00897B),
+                          ),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                       ),
@@ -4267,9 +4280,70 @@ class _AdminScreenState extends State<AdminScreen>
     }
   }
 
-  // ══════════════════════════════════════════════
-  // TAB 3 : 상품 관리
-  // ══════════════════════════════════════════════
+  // ── 추가제작 전용 엑셀 내보내기 ──
+  Future<void> _exportAdditionalOrderExcel(OrderModel order) async {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(children: [
+            SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+            SizedBox(width: 12),
+            Text('추가제작 엑셀 생성 중...'),
+          ]),
+          duration: Duration(seconds: 10),
+          backgroundColor: Color(0xFFC62828),
+        ),
+      );
+    }
+    try {
+      final bytes = OrderExcelService.generateAdditionalOrderExcel(order);
+      final teamName = (order.customOptions?['teamName'] as String?)?.replaceAll(' ', '_') ?? order.id;
+      final dateStr = '${order.createdAt.month.toString().padLeft(2,'0')}${order.createdAt.day.toString().padLeft(2,'0')}';
+      final fileName = '추가제작_${teamName}_$dateStr.xlsx';
+      const mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+      if (kIsWeb) {
+        downloadFileWeb(bytes, fileName, mimeType);
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(children: [
+                const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(fileName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                      const Text('시트1(수정·추가이력+인원명단) + 주문정보 시트',
+                          style: TextStyle(fontSize: 11, color: Colors.white70)),
+                    ],
+                  ),
+                ),
+              ]),
+              backgroundColor: const Color(0xFFC62828),
+              duration: const Duration(seconds: 6),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('웹 환경에서만 다운로드가 지원됩니다.'), backgroundColor: Color(0xFF555555)));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('엑셀 생성 오류: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
   Widget _buildProductManagement() {
     final allProducts = context.watch<ProductProvider>().adminProducts;
     final isAdminLoading = context.watch<ProductProvider>().isAdminLoading;

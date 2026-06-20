@@ -2987,6 +2987,396 @@ class OrderExcelService {
     if (encoded == null) throw Exception('디자인 수정 요청 엑셀 생성 실패');
     return Uint8List.fromList(encoded);
   }
+
+  // ─────────────────────────────────────────────────────────────
+  // 추가제작 주문 전용 엑셀
+  //  시트1: [상단] 디자인 수정·추가제작 이력 + [하단] 인원 명단
+  //  시트2(주문정보): 주문자 정보 (기존 generateGroupOrderExcel의 주문정보 시트)
+  // ─────────────────────────────────────────────────────────────
+  static Uint8List generateAdditionalOrderExcel(OrderModel order) {
+    final excel = Excel.createExcel();
+    final opts = order.customOptions ?? {};
+    final rawPersons = (opts['persons'] as List<dynamic>?) ?? [];
+    final persons = rawPersons.map((p) {
+      if (p is Map) return Map<String, dynamic>.from(p as Map);
+      return p as Map<String, dynamic>;
+    }).toList();
+
+    final teamName = opts['teamName']?.toString() ?? order.id;
+    final mainColor = opts['mainColor']?.toString() ?? opts['color']?.toString() ?? '-';
+    final mainColorHex = _getColorHex(mainColor);
+    final fabricName = opts['fabricName']?.toString() ?? opts['fabric']?.toString() ?? '-';
+    final defaultLength = opts['defaultLength']?.toString() ?? '';
+
+    // ── 스타일 정의 ──
+    final purpleTitleStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#4A148C'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 13,
+    );
+    final purpleHeader = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#6A1B9A'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 11,
+    );
+    final greenHeader = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#1B5E20'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 11,
+    );
+    final sectionLabelStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#EDE7F6'),
+      fontColorHex: ExcelColor.fromHexString('#4A148C'),
+      fontSize: 10,
+    );
+    final greenLabelStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#E8F5E9'),
+      fontColorHex: ExcelColor.fromHexString('#1B5E20'),
+      fontSize: 10,
+    );
+    final grayRowStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#FAFAFA'),
+      fontSize: 10,
+    );
+    final normalStyle = CellStyle(fontSize: 10);
+    final subHeaderStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 10,
+    );
+    final maleStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#E3F2FD'),
+      fontColorHex: ExcelColor.fromHexString('#1565C0'),
+      bold: true,
+      fontSize: 10,
+    );
+    final femaleStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#FCE4EC'),
+      fontColorHex: ExcelColor.fromHexString('#C62828'),
+      bold: true,
+      fontSize: 10,
+    );
+    final juniorStyle = CellStyle(
+      backgroundColorHex: ExcelColor.fromHexString('#E0F2F1'),
+      fontColorHex: ExcelColor.fromHexString('#00695C'),
+      bold: true,
+      fontSize: 10,
+    );
+    final totalStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#EDE7F6'),
+      fontColorHex: ExcelColor.fromHexString('#4A148C'),
+      fontSize: 10,
+    );
+
+    // ══════════════════════════════════════════════
+    // 시트1: 디자인 수정·추가이력 + 인원 명단
+    // ══════════════════════════════════════════════
+    final sheet1 = excel['시트1'];
+    excel.setDefaultSheet('시트1');
+    int row = 0;
+
+    // ── 제목 ──
+    _setCell(sheet1, row, 0,
+        '디자인 수정 · 추가제작 내역 [${order.id}]', style: purpleTitleStyle);
+    sheet1.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+      CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row),
+    );
+    sheet1.setRowHeight(row, 30);
+    row++;
+
+    // ── 디자인 수정 이력 ──
+    _setCell(sheet1, row, 0, '▶ 디자인 수정 이력', style: purpleHeader);
+    sheet1.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+      CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row),
+    );
+    sheet1.setRowHeight(row, 22);
+    row++;
+
+    final designRevCount = order.designRevisionCount;
+    final revisionRequest = opts['designRevisionRequest'] as Map<dynamic, dynamic>?;
+    final revisionNote = revisionRequest?['memo']?.toString() ?? '';
+    final revisionColor = revisionRequest?['colorName']?.toString() ?? '';
+    final revisionStatus = revisionRequest?['status']?.toString() ?? '';
+    final revisionRequestedAt = revisionRequest?['requestedAt']?.toString() ?? '';
+
+    final revRows = [
+      ['디자인 수정 요청 횟수', '$designRevCount회 / 최대 2회'],
+      ['남은 수정 가능 횟수', '${2 - designRevCount.clamp(0, 2)}회'],
+      ['최근 요청 메모', revisionNote.isNotEmpty ? revisionNote : '-'],
+      ['최근 요청 색상', revisionColor.isNotEmpty ? revisionColor : '-'],
+      ['최근 요청 일자', revisionRequestedAt.isNotEmpty
+          ? (revisionRequestedAt.length >= 10 ? revisionRequestedAt.substring(0, 10) : revisionRequestedAt)
+          : '-'],
+      ['최근 요청 상태', revisionStatus.isNotEmpty ? _revStatusLabel(revisionStatus) : '-'],
+      ['수정 요청 / 조치 내용', ''],
+    ];
+    for (int i = 0; i < revRows.length; i++) {
+      final isLabel = i < revRows.length - 1;
+      final st = isLabel ? sectionLabelStyle : CellStyle(
+        bold: true,
+        backgroundColorHex: ExcelColor.fromHexString('#EDE7F6'),
+        fontColorHex: ExcelColor.fromHexString('#4A148C'),
+        fontSize: 10,
+      );
+      _setCell(sheet1, row, 0, revRows[i][0], style: st);
+      _setCell(sheet1, row, 1, revRows[i][1],
+          style: i % 2 == 0 ? grayRowStyle : normalStyle);
+      sheet1.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
+        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row),
+      );
+      // 메모 입력 행은 높이 3배
+      sheet1.setRowHeight(row, i == revRows.length - 1 ? 54 : 18);
+      row++;
+    }
+    row++;
+
+    // ── 추가제작 이력 ──
+    _setCell(sheet1, row, 0, '▶ 추가제작 이력', style: greenHeader);
+    sheet1.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+      CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row),
+    );
+    sheet1.setRowHeight(row, 22);
+    row++;
+
+    final addCount = order.additionalOrderCount;
+    final addDeadline = order.additionalOrderDeadline;
+    final canAddFree = order.canOrderAdditionalFree;
+    final origOrderId = opts['originalOrderId']?.toString() ?? '';
+    final origTeamName = opts['originalTeamName']?.toString() ?? '';
+    final origTotalCount = opts['originalTotalCount']?.toString() ?? '';
+    final origOrderDate = opts['originalOrderDate']?.toString() ?? '';
+
+    final addRows = [
+      ['추가제작 신청 횟수', '$addCount회'],
+      ['무료 추가제작 마감일',
+          '${addDeadline.year}.${addDeadline.month.toString().padLeft(2,'0')}.${addDeadline.day.toString().padLeft(2,'0')}'],
+      ['추가제작 가능 여부', canAddFree ? '가능 (마감 전)' : '마감 (새로 주문 필요)'],
+      ['원주문 번호', origOrderId.isNotEmpty ? origOrderId : '-'],
+      ['원주문 일자', origOrderDate.isNotEmpty
+          ? (origOrderDate.length >= 10 ? origOrderDate.substring(0, 10) : origOrderDate)
+          : '-'],
+      ['원주문 팀명', origTeamName.isNotEmpty ? origTeamName : '-'],
+      ['원주문 인원', origTotalCount.isNotEmpty ? '${origTotalCount}명' : '-'],
+      ['제작 요청일', ''],
+      ['최종 수정 요청 완료', ''],
+      ['출고 예정일', ''],
+    ];
+    for (int i = 0; i < addRows.length; i++) {
+      _setCell(sheet1, row, 0, addRows[i][0], style: greenLabelStyle);
+      _setCell(sheet1, row, 1, addRows[i][1],
+          style: i % 2 == 0 ? grayRowStyle : normalStyle);
+      sheet1.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: row),
+        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row),
+      );
+      sheet1.setRowHeight(row, 18);
+      row++;
+    }
+    row += 2;
+
+    // ── 인원 명단 구분선 ──
+    final personCountLabel = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#1A1A2E'),
+      fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
+      horizontalAlign: HorizontalAlign.Center,
+      fontSize: 10,
+    );
+    _setCell(sheet1, row, 0,
+        '팀 인원 정보 | 총 ${persons.length}명 | ${persons.where((p) => (p['gender']?.toString() ?? '') == '남').length}명 남 / ${persons.where((p) => (p['gender']?.toString() ?? '') == '여').length}명 여',
+        style: personCountLabel);
+    sheet1.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+      CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row),
+    );
+    sheet1.setRowHeight(row, 22);
+    row++;
+
+    // 인원 컬럼 헤더
+    final personHeaders = [
+      'No', '이름', '성별', '사이즈구분', '선택 사이즈',
+      '반영된 상의 사이즈', '상의 수량', '반영된 하의 사이즈', '하의 수량', '비고',
+    ];
+    for (int c = 0; c < personHeaders.length; c++) {
+      _setCell(sheet1, row, c, personHeaders[c], style: subHeaderStyle);
+    }
+    sheet1.setRowHeight(row, 22);
+    row++;
+
+    // 인원 데이터
+    for (int i = 0; i < persons.length; i++) {
+      final p = persons[i];
+      final gender = p['gender']?.toString() ?? '';
+      final sizeType = p['sizeType']?.toString() ?? '성인';
+      final isMale = gender == '남' || gender == 'm' || gender == 'male';
+      final isFemale = gender == '여' || gender == 'f' || gender == 'female';
+      final isJunior = sizeType == '주니어';
+
+      final rowStyle = isJunior
+          ? juniorStyle
+          : (isMale ? maleStyle : (isFemale ? femaleStyle : (i % 2 == 0 ? grayRowStyle : normalStyle)));
+
+      final topSize = p['topSize']?.toString() ?? '-';
+      final bottomSize = p['bottomSize']?.toString() ?? '-';
+      final personalLength = p['bottomLength']?.toString() ?? defaultLength;
+      final note = p['note']?.toString() ?? '';
+
+      _setCell(sheet1, row, 0, '${p['index'] ?? i + 1}', style: rowStyle);
+      _setCell(sheet1, row, 1, p['name']?.toString().isNotEmpty == true ? p['name']!.toString() : '-', style: rowStyle);
+      _setCell(sheet1, row, 2,
+          isMale ? '남' : (isFemale ? '여' : gender.isNotEmpty ? gender : '-'),
+          style: rowStyle);
+      _setCell(sheet1, row, 3, sizeType, style: rowStyle);
+      // 선택 사이즈: topSize와 bottomSize 합쳐서 표시
+      _setCell(sheet1, row, 4,
+          topSize != '-' || bottomSize != '-'
+              ? '상의: $topSize / 하의: $bottomSize'
+              : '-',
+          style: rowStyle);
+      _setCell(sheet1, row, 5, topSize, style: rowStyle);   // 반영된 상의
+      _setCell(sheet1, row, 6, '1', style: rowStyle);        // 상의 수량
+      _setCell(sheet1, row, 7,
+          '$bottomSize${personalLength.isNotEmpty ? " ($personalLength)" : ""}',
+          style: rowStyle);  // 반영된 하의 + 길이
+      _setCell(sheet1, row, 8, '1', style: rowStyle);        // 하의 수량
+      _setCell(sheet1, row, 9, note, style: rowStyle);
+      sheet1.setRowHeight(row, 18);
+      row++;
+    }
+
+    // 합계 행
+    _setCell(sheet1, row, 0, '합계', style: totalStyle);
+    _setCell(sheet1, row, 1, '${persons.length}명', style: totalStyle);
+    _setCell(sheet1, row, 2,
+        '남 ${persons.where((p) => (p['gender']?.toString() ?? '') == '남').length}명 / '
+        '여 ${persons.where((p) => (p['gender']?.toString() ?? '') == '여').length}명',
+        style: totalStyle);
+    sheet1.merge(
+      CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: row),
+      CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: row),
+    );
+    sheet1.setRowHeight(row, 20);
+
+    // 열 너비
+    sheet1.setColumnWidth(0, 6);
+    sheet1.setColumnWidth(1, 14);
+    sheet1.setColumnWidth(2, 7);
+    sheet1.setColumnWidth(3, 12);
+    sheet1.setColumnWidth(4, 22);
+    sheet1.setColumnWidth(5, 16);
+    sheet1.setColumnWidth(6, 10);
+    sheet1.setColumnWidth(7, 20);
+    sheet1.setColumnWidth(8, 10);
+    sheet1.setColumnWidth(9, 18);
+
+    // ══════════════════════════════════════════════
+    // 시트2: 주문정보 (상세 주문자/배송 정보)
+    // ══════════════════════════════════════════════
+    final infoSheet = excel['주문정보'];
+    int ir = 0;
+
+    _setCell(infoSheet, ir, 0, '2FIT 추가제작 주문정보', style: purpleTitleStyle);
+    infoSheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: ir),
+      CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: ir),
+    );
+    infoSheet.setRowHeight(ir, 28);
+    ir++;
+
+    // 주문자 정보 섹션
+    _setCell(infoSheet, ir, 0, '▶ 주문자 정보', style: purpleHeader);
+    infoSheet.merge(
+      CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: ir),
+      CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: ir),
+    );
+    infoSheet.setRowHeight(ir, 20);
+    ir++;
+
+    final orderInfoRows = [
+      ['주문번호', order.id],
+      ['주문일자', '${order.createdAt.year}.${order.createdAt.month.toString().padLeft(2,'0')}.${order.createdAt.day.toString().padLeft(2,'0')} ${order.createdAt.hour.toString().padLeft(2,'0')}:${order.createdAt.minute.toString().padLeft(2,'0')}'],
+      ['주문자', order.userName],
+      ['연락처', order.userPhone],
+      ['이메일', order.userEmail],
+      ['배송지', order.userAddress],
+      ['팀명', teamName],
+      ['색상', '$mainColor${mainColorHex != null ? " ($mainColorHex)" : ""}'],
+      ['원단', fabricName],
+      ['총 인원', '${persons.length}명'],
+    ];
+    for (int i = 0; i < orderInfoRows.length; i++) {
+      _setCell(infoSheet, ir, 0, orderInfoRows[i][0], style: sectionLabelStyle);
+      _setCell(infoSheet, ir, 1, orderInfoRows[i][1],
+          style: i % 2 == 0 ? grayRowStyle : normalStyle);
+      infoSheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: ir),
+        CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: ir),
+      );
+      infoSheet.setRowHeight(ir, 18);
+      ir++;
+    }
+
+    // 원주문 정보
+    if (origOrderId.isNotEmpty) {
+      ir++;
+      _setCell(infoSheet, ir, 0, '▶ 원주문 정보', style: greenHeader);
+      infoSheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: ir),
+        CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: ir),
+      );
+      infoSheet.setRowHeight(ir, 20);
+      ir++;
+      final origRows = [
+        ['원주문 번호', origOrderId],
+        ['원주문 일자', origOrderDate.isNotEmpty ? origOrderDate.substring(0, 10) : '-'],
+        ['원주문 팀명', origTeamName.isNotEmpty ? origTeamName : '-'],
+        ['원주문 인원', origTotalCount.isNotEmpty ? '${origTotalCount}명' : '-'],
+      ];
+      for (int i = 0; i < origRows.length; i++) {
+        _setCell(infoSheet, ir, 0, origRows[i][0], style: greenLabelStyle);
+        _setCell(infoSheet, ir, 1, origRows[i][1],
+            style: i % 2 == 0 ? grayRowStyle : normalStyle);
+        infoSheet.merge(
+          CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: ir),
+          CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: ir),
+        );
+        infoSheet.setRowHeight(ir, 18);
+        ir++;
+      }
+    }
+
+    infoSheet.setColumnWidth(0, 22);
+    infoSheet.setColumnWidth(1, 50);
+    infoSheet.setColumnWidth(2, 16);
+    infoSheet.setColumnWidth(3, 16);
+    infoSheet.setColumnWidth(4, 16);
+    infoSheet.setColumnWidth(5, 16);
+
+    // Sheet1 제거
+    if (excel.sheets.containsKey('Sheet1')) {
+      excel.delete('Sheet1');
+    }
+
+    excel.setDefaultSheet('시트1');
+    final encoded = excel.encode();
+    if (encoded == null) throw Exception('추가제작 엑셀 생성 실패');
+    return Uint8List.fromList(encoded);
+  }
 } // end OrderExcelService
 
 
