@@ -1236,7 +1236,7 @@ class _PcOrderCard extends StatelessWidget {
 
               Future<void> openKakaoChannel() async {
                 final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
-                final webUrl = Uri.parse('https://pf.kakao.com/_xfVlxb/chat');
+                final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
                 if (await canLaunchUrl(appUrl)) {
                   await launchUrl(appUrl, mode: LaunchMode.externalApplication);
                 } else {
@@ -2757,7 +2757,7 @@ class _MobileOrderCard extends StatelessWidget {
 
               Future<void> openKakaoChannel() async {
                 final appUrl = Uri.parse('kakaoplus://plusfriend/home/@2fit-mall');
-                final webUrl = Uri.parse('https://pf.kakao.com/_xfVlxb/chat');
+                final webUrl = Uri.parse('https://pf.kakao.com/_MQxjXX/chat');
                 if (await canLaunchUrl(appUrl)) {
                   await launchUrl(appUrl, mode: LaunchMode.externalApplication);
                 } else {
