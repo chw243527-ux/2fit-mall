@@ -44,18 +44,36 @@ class CategoryService {
   // ── Firestore에서 로드 ──────────────────────────────────────
   static Future<void> load() async {
     try {
-      // 항상 defaultSubCatMap 기준으로 Firestore를 덮어씀 (구 데이터 정리)
-      final cats = List<String>.from(defaultMainCategories);
-      final subs = Map<String, List<String>>.from(defaultSubCatMap.map(
-        (k, v) => MapEntry(k, List<String>.from(v)),
-      ));
-      await _saveToFirestore(cats, subs);
-      _cachedMainCats = cats;
-      _cachedSubCatMap = subs;
+      final snap = await _doc.get();
+      if (snap.exists) {
+        final data = snap.data() as Map<String, dynamic>;
+        // Firestore에 저장된 값 우선 사용
+        final rawMain = data['mainCategories'];
+        final rawSubs = data['subCatMap'];
+        if (rawMain != null) {
+          _cachedMainCats = List<String>.from(rawMain as List);
+        }
+        if (rawSubs != null) {
+          final subMap = rawSubs as Map<String, dynamic>;
+          _cachedSubCatMap = subMap.map(
+            (k, v) => MapEntry(k, List<String>.from(v as List)),
+          );
+        }
+        // 기본 카테고리 중 Firestore에 없는 항목은 추가하지 않음 (관리자가 삭제한 것 존중)
+      } else {
+        // 문서 없으면 기본값으로 초기화 후 저장 (최초 1회)
+        final cats = List<String>.from(defaultMainCategories);
+        final subs = Map<String, List<String>>.from(defaultSubCatMap.map(
+          (k, v) => MapEntry(k, List<String>.from(v)),
+        ));
+        await _saveToFirestore(cats, subs);
+        _cachedMainCats = cats;
+        _cachedSubCatMap = subs;
+      }
     } catch (e) {
       debugPrint('⚠️ CategoryService.load 실패: $e');
-      _cachedMainCats = List<String>.from(defaultMainCategories);
-      _cachedSubCatMap = Map<String, List<String>>.from(defaultSubCatMap.map(
+      _cachedMainCats ??= List<String>.from(defaultMainCategories);
+      _cachedSubCatMap ??= Map<String, List<String>>.from(defaultSubCatMap.map(
         (k, v) => MapEntry(k, List<String>.from(v)),
       ));
     }
