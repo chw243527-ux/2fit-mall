@@ -10460,16 +10460,9 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     super.dispose();
   }
 
-  // ── 수정 모드 자동저장: 1.5초 디바운스 후 _save() 호출
+  // ── 자동저장 비활성화 — 저장 버튼으로 명시적 저장
   void _scheduleAutoSave() {
-    if (!_isEdit) return;
-    _autoSaveTimer?.cancel();
-    if (mounted) setState(() => _autoSaved = false);
-    _autoSaveTimer = Timer(const Duration(milliseconds: 1500), () {
-      if (mounted && !_isUploading) {
-        _save(isAutoSave: true);
-      }
-    });
+    // 자동저장 제거: 저장 버튼을 눌러야 저장됨
   }
 
   // ── 이미지 파일 여러 장 선택 & Firebase Storage 업로드
@@ -10566,19 +10559,19 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
   }
 
   // ── 저장
-  Future<void> _save({bool isAutoSave = false}) async {
+  Future<void> _save() async {
     if (_nameCtrl.text.trim().isEmpty) {
-      if (!isAutoSave) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('상품명을 입력해주세요')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('상품명을 입력해주세요')));
       return;
     }
     // ── 업로드 중이면 완료 대기
     if (_isUploading) {
-      if (!isAutoSave) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('이미지 업로드 중입니다. 완료 후 저장해주세요.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('이미지 업로드 중입니다. 완료 후 저장해주세요.')));
       return;
     }
     final price = double.tryParse(_priceCtrl.text.replaceAll(',', '')) ?? 0;
     if (price <= 0) {
-      if (!isAutoSave) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('올바른 가격을 입력해주세요')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('올바른 가격을 입력해주세요')));
       return;
     }
     final origPrice = double.tryParse(_origPriceCtrl.text.replaceAll(',', ''));
@@ -10663,36 +10656,26 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     try {
       await widget.onSaved(product, _isEdit);
       if (!mounted) return;
-      setState(() { _isSaving = false; _autoSaved = isAutoSave; });
-      // 자동저장이면 스낵바 대신 인디케이터만 (스낵바 생략)
-      if (!isAutoSave) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Row(children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Text(_isEdit ? '${product.name} 수정 완료!' : '${product.name} 등록 완료!'),
-          ]),
-          backgroundColor: const Color(0xFF2E7D32),
-          duration: const Duration(seconds: 2),
-        ));
-      }
+      setState(() { _isSaving = false; });
+      // 저장 완료 스낵바 항상 표시
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Row(children: [
+          const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+          const SizedBox(width: 8),
+          Text(_isEdit ? '${product.name} 수정 완료!' : '${product.name} 등록 완료!'),
+        ]),
+        backgroundColor: const Color(0xFF2E7D32),
+        duration: const Duration(seconds: 2),
+      ));
       // 수정 모드면 폼 유지, 신규 등록이면 닫기
       if (!_isEdit) Navigator.pop(context);
-      // 자동저장 완료 표시 2초 후 초기화
-      if (isAutoSave && mounted) {
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) setState(() => _autoSaved = false);
-        });
-      }
     } catch (e) {
       if (!mounted) return;
       setState(() { _isSaving = false; });
-      if (!isAutoSave) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('저장 실패: $e'),
-          backgroundColor: Colors.red,
-        ));
-      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('저장 실패: $e'),
+        backgroundColor: Colors.red,
+      ));
     }
   }
 
@@ -11510,57 +11493,39 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
             decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFFEEEEEE)))),
             child: _isEdit
-                // ── 수정 모드: 자동저장 인디케이터 + 닫기 버튼
+                // ── 수정 모드: 저장 + 닫기 버튼
                 ? Row(children: [
-                    // 자동저장 상태 표시
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        decoration: BoxDecoration(
-                          color: _isSaving
-                              ? const Color(0xFFFFF8E1)
-                              : _autoSaved
-                                  ? const Color(0xFFE8F5E9)
-                                  : const Color(0xFFF5F5F5),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _isSaving
-                                ? const Color(0xFFFFCC02)
-                                : _autoSaved
-                                    ? const Color(0xFF4CAF50)
-                                    : const Color(0xFFEEEEEE),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (_isSaving) ...[
-                              const SizedBox(height: 16, width: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFF57F17))),
-                              const SizedBox(width: 8),
-                              const Text('저장 중...', style: TextStyle(fontSize: 13, color: Color(0xFFF57F17), fontWeight: FontWeight.w600)),
-                            ] else if (_autoSaved) ...[
-                              const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF4CAF50)),
-                              const SizedBox(width: 6),
-                              const Text('자동 저장됨', style: TextStyle(fontSize: 13, color: Color(0xFF4CAF50), fontWeight: FontWeight.w600)),
-                            ] else ...[
-                              Icon(Icons.sync_rounded, size: 16, color: Colors.grey[400]),
-                              const SizedBox(width: 6),
-                              Text('변경 시 자동 저장', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1A1A2E),
+                    Expanded(child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('닫기', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                      child: const Text('닫기'),
+                    )),
+                    const SizedBox(width: 10),
+                    Expanded(flex: 2, child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6A1B9A),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: (_isSaving || _isUploading) ? null : _save,
+                      child: _isSaving
+                          ? const SizedBox(height: 20, width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : _isUploading
+                              ? const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                  SizedBox(height: 16, width: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70)),
+                                  SizedBox(width: 8),
+                                  Text('업로드 중...', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w700)),
+                                ])
+                              : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                  Icon(Icons.save_rounded, size: 16, color: Colors.white),
+                                  SizedBox(width: 6),
+                                  Text('저장', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                                ]),
                     )),
                   ])
                 // ── 신규/복사 등록: 기존 취소 + 등록 버튼
