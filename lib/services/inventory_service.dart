@@ -40,10 +40,15 @@ class InventoryService {
     // reorderPoint: products 문서에 저장된 값 or 기본값 5
     final reorderPoint = (data['reorderPoint'] as num?)?.toInt() ?? 5;
 
+    // 대표 이미지 (첫 번째 이미지 URL)
+    final rawImages = data['images'] as List<dynamic>? ?? [];
+    final imageUrl  = rawImages.isNotEmpty ? rawImages.first.toString() : '';
+
     return InventoryModel(
       productId:    docId,
       productName:  name,
       productCode:  code,
+      imageUrl:     imageUrl,
       stock:        stock,
       reorderPoint: reorderPoint,
       updatedAt:    DateTime.now(),

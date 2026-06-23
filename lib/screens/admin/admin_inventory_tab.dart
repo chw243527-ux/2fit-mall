@@ -488,27 +488,54 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
             : BorderSide.none,
       ),
       child: ExpansionTile(
-        leading: CircleAvatar(
-          backgroundColor: isLow ? Colors.orange.shade100 : Colors.purple.shade50,
-          child: Text(inv.totalStock.toString(),
-              style: TextStyle(
-                fontSize: 12, fontWeight: FontWeight.bold,
-                color: isLow ? Colors.orange : const Color(0xFF6A1B9A))),
+        // ── 대표 이미지 썸네일
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: inv.imageUrl.isNotEmpty
+              ? Image.network(
+                  inv.imageUrl,
+                  width: 48, height: 48,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _stockCircle(inv, isLow),
+                )
+              : _stockCircle(inv, isLow),
         ),
         title: Text(inv.productName,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         subtitle: Row(children: [
           Text('코드: ${inv.productCode}',
               style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+            decoration: BoxDecoration(
+              color: isLow ? Colors.orange.shade100 : Colors.purple.shade50,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text('재고 ${inv.totalStock}',
+                style: TextStyle(
+                  fontSize: 10, fontWeight: FontWeight.bold,
+                  color: isLow ? Colors.orange : const Color(0xFF6A1B9A))),
+          ),
           if (isLow) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
                   color: Colors.orange, borderRadius: BorderRadius.circular(4)),
               child: const Text('부족', style: TextStyle(color: Colors.white, fontSize: 10)),
             ),
           ],
+        ]),
+        // ── 바코드 출력 버튼 (trailing)
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+          IconButton(
+            tooltip: '바코드 출력',
+            icon: const Icon(Icons.qr_code_2_rounded,
+                color: Color(0xFF6A1B9A), size: 22),
+            onPressed: () => _showBarcodeSheet(inv),
+          ),
+          const Icon(Icons.expand_more, color: Colors.grey),
         ]),
         children: [
           Padding(
@@ -516,6 +543,170 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
             child: _stockTable(inv),
           ),
         ],
+      ),
+    );
+  }
+
+  // 이미지 없을 때 대체 재고 수 서클
+  Widget _stockCircle(InventoryModel inv, bool isLow) => CircleAvatar(
+    radius: 24,
+    backgroundColor: isLow ? Colors.orange.shade100 : Colors.purple.shade50,
+    child: Text(inv.totalStock.toString(),
+        style: TextStyle(
+          fontSize: 12, fontWeight: FontWeight.bold,
+          color: isLow ? Colors.orange : const Color(0xFF6A1B9A))),
+  );
+
+  // ── 바코드 출력 바텀시트
+  void _showBarcodeSheet(InventoryModel inv) {
+    final sizes = inv.stock.keys.toList();
+    final allColors = <String>{};
+    for (final cm in inv.stock.values) allColors.addAll(cm.keys);
+    final colors = allColors.toList();
+
+    final selSizes  = Set<String>.from(sizes);
+    final selColors = Set<String>.from(colors);
+    int copies = 1;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModal) => DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (_, sc) => Column(children: [
+            // 핸들
+            Container(
+              margin: const EdgeInsets.only(top: 10, bottom: 4),
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2)),
+            ),
+            // 헤더
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(children: [
+                if (inv.imageUrl.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(inv.imageUrl,
+                        width: 48, height: 48, fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            const SizedBox(width: 48, height: 48)),
+                  ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                    Text(inv.productName,
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold),
+                        maxLines: 2, overflow: TextOverflow.ellipsis),
+                    Text('코드: ${inv.productCode}',
+                        style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  ]),
+                ),
+                IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(ctx)),
+              ]),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView(
+                controller: sc,
+                padding: const EdgeInsets.all(16),
+                children: [
+                  // 사이즈 선택
+                  const Text('사이즈',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Wrap(spacing: 8, children: sizes.map((s) {
+                    final sel = selSizes.contains(s);
+                    return FilterChip(
+                      label: Text(s),
+                      selected: sel,
+                      selectedColor: const Color(0xFF6A1B9A).withOpacity(0.2),
+                      checkmarkColor: const Color(0xFF6A1B9A),
+                      onSelected: (v) => setModal(
+                          () => v ? selSizes.add(s) : selSizes.remove(s)),
+                    );
+                  }).toList()),
+                  const SizedBox(height: 12),
+                  // 색상 선택
+                  const Text('색상',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Wrap(spacing: 8, children: colors.map((c) {
+                    final sel = selColors.contains(c);
+                    return FilterChip(
+                      label: Text(c),
+                      selected: sel,
+                      selectedColor: const Color(0xFF6A1B9A).withOpacity(0.2),
+                      checkmarkColor: const Color(0xFF6A1B9A),
+                      onSelected: (v) => setModal(
+                          () => v ? selColors.add(c) : selColors.remove(c)),
+                    );
+                  }).toList()),
+                  const SizedBox(height: 12),
+                  // 출력 매수
+                  Row(children: [
+                    const Text('라벨 매수',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    const SizedBox(width: 16),
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline),
+                      onPressed: () =>
+                          setModal(() { if (copies > 1) copies--; }),
+                    ),
+                    Text('$copies 매',
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold)),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: () =>
+                          setModal(() { if (copies < 20) copies++; }),
+                    ),
+                  ]),
+                  const SizedBox(height: 16),
+                  // 출력 버튼
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6A1B9A),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: (selSizes.isEmpty || selColors.isEmpty)
+                          ? null
+                          : () {
+                              Navigator.pop(ctx);
+                              BarcodePrintService.printLabels(
+                                inventory: inv,
+                                sizes:  selSizes.toList(),
+                                colors: selColors.toList(),
+                                copies: copies,
+                              );
+                            },
+                      icon: const Icon(Icons.print_rounded),
+                      label: Text('바코드 라벨 $copies매 출력'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ]),
+        ),
       ),
     );
   }

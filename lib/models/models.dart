@@ -1056,6 +1056,7 @@ class InventoryModel {
   final String productId;
   final String productName;
   final String productCode; // 바코드용 코드
+  final String imageUrl;    // 대표 이미지 URL
   /// 사이즈 → 색상 → 수량  예: {'S': {'블랙': 10, '화이트': 5}}
   final Map<String, Map<String, int>> stock;
   final int reorderPoint;   // 발주 기준 수량 (이하이면 경고)
@@ -1065,6 +1066,7 @@ class InventoryModel {
     required this.productId,
     required this.productName,
     required this.productCode,
+    this.imageUrl = '',
     required this.stock,
     this.reorderPoint = 5,
     required this.updatedAt,
@@ -1089,10 +1091,12 @@ class InventoryModel {
     Map<String, Map<String, int>>? stock,
     int? reorderPoint,
     DateTime? updatedAt,
+    String? imageUrl,
   }) => InventoryModel(
     productId:   productId,
     productName: productName,
     productCode: productCode,
+    imageUrl:    imageUrl    ?? this.imageUrl,
     stock:        stock        ?? this.stock,
     reorderPoint: reorderPoint ?? this.reorderPoint,
     updatedAt:    updatedAt    ?? this.updatedAt,
