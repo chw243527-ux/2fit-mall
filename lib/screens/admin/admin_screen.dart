@@ -163,9 +163,9 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 17, vsync: this);
+    _tabCtrl = TabController(length: 16, vsync: this);
     // initialTab이 지정된 경우 해당 탭으로 이동
-    if (widget.initialTab > 0 && widget.initialTab < 17) {
+    if (widget.initialTab > 0 && widget.initialTab < 16) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _tabCtrl.animateTo(widget.initialTab);
       });
@@ -511,23 +511,28 @@ class _AdminScreenState extends State<AdminScreen>
   // PC 레이아웃: 좌측 사이드바 + 우측 컨텐츠
   // ══════════════════════════════════════════════
   Widget _buildPcLayout(dynamic user) {
+    // ── 새 탭 순서 ──
+    // 0: 대시보드  1: 주문관리  2: 디자인요청  3: 배송관리  4: 채팅상담
+    // 5: 재고관리  6: 상품관리  7: 교환/반품  8: 리뷰관리  9: 배너관리
+    // 10: 직원관리  11: 회원관리  12: 공지관리  13: 매출통계  14: 카테고리관리  15: 섹션관리
     final tabs = [
-      {'icon': Icons.dashboard_rounded, 'label': '대시보드'},
-      {'icon': Icons.receipt_long_rounded, 'label': '주문관리'},
-      {'icon': Icons.inventory_2_rounded, 'label': '상품관리'},
-      {'icon': Icons.image_rounded, 'label': '배너관리'},
-      {'icon': Icons.people_alt_rounded, 'label': '회원관리'},
-      {'icon': Icons.layers_rounded, 'label': '섹션관리'},
-      {'icon': Icons.design_services_rounded, 'label': '디자인요청'},
-      {'icon': Icons.chat_rounded, 'label': '채팅상담'},
-      {'icon': Icons.bar_chart_rounded, 'label': '매출통계'},
-      {'icon': Icons.warehouse_rounded, 'label': '재고관리'},
-      {'icon': Icons.badge_rounded, 'label': '직원관리'},
-      {'icon': Icons.campaign_rounded, 'label': '공지관리'},
-      {'icon': Icons.local_shipping_rounded, 'label': '배송관리'},
-      {'icon': Icons.folder_special_rounded, 'label': '카테고리관리'},
-      {'icon': Icons.swap_horiz_rounded, 'label': '교환/반품'},
-      {'icon': Icons.rate_review_rounded, 'label': '리뷰관리'},
+      {'icon': Icons.dashboard_rounded,        'label': '대시보드'},
+      {'icon': Icons.receipt_long_rounded,     'label': '주문관리'},
+      {'icon': Icons.design_services_rounded,  'label': '디자인요청'},
+      {'icon': Icons.local_shipping_rounded,   'label': '배송관리'},
+      {'icon': Icons.chat_rounded,             'label': '채팅상담'},
+      {'icon': Icons.warehouse_rounded,        'label': '재고관리'},
+      {'icon': Icons.inventory_2_rounded,      'label': '상품관리'},
+      {'icon': Icons.swap_horiz_rounded,       'label': '교환/반품'},
+      {'icon': Icons.rate_review_rounded,      'label': '리뷰관리'},
+      {'icon': Icons.image_rounded,            'label': '배너관리'},
+      {'icon': Icons.badge_rounded,            'label': '직원관리'},
+      {'icon': Icons.people_alt_rounded,       'label': '회원관리'},
+      {'icon': Icons.campaign_rounded,         'label': '공지관리'},
+      {'icon': Icons.bar_chart_rounded,        'label': '매출통계'},
+      // ── 주문관리 소분류 (들여쓰기로 표시) ──
+      {'icon': Icons.folder_special_rounded,   'label': '카테고리관리', 'sub': true},
+      {'icon': Icons.layers_rounded,           'label': '섹션관리',     'sub': true},
     ];
 
     return Scaffold(
@@ -610,12 +615,18 @@ class _AdminScreenState extends State<AdminScreen>
                     itemCount: tabs.length,
                     itemBuilder: (ctx, i) {
                       final isSelected = _tabCtrl.index == i;
-                      final hasNotif = i == 7 && _pendingChatCount > 0;
+                      final hasNotif = i == 4 && _pendingChatCount > 0; // 채팅상담 = index 4
+                      final isSub = tabs[i]['sub'] == true;
                       return GestureDetector(
                         onTap: () => setState(() => _tabCtrl.animateTo(i)),
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 2),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          padding: EdgeInsets.only(
+                            left: isSub ? 26 : 12,
+                            right: 12,
+                            top: isSub ? 7 : 10,
+                            bottom: isSub ? 7 : 10,
+                          ),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppColors.accent.withValues(alpha: 0.15)
@@ -627,9 +638,19 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                           child: Row(
                             children: [
+                              if (isSub) ...[
+                                Container(
+                                  width: 2, height: 14,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? AppColors.accent : Colors.white24,
+                                    borderRadius: BorderRadius.circular(1),
+                                  ),
+                                ),
+                              ],
                               Icon(
                                 tabs[i]['icon'] as IconData,
-                                size: 16,
+                                size: isSub ? 13 : 16,
                                 color: isSelected ? AppColors.accent : Colors.white38,
                               ),
                               const SizedBox(width: 10),
@@ -638,7 +659,7 @@ class _AdminScreenState extends State<AdminScreen>
                                   tabs[i]['label'] as String,
                                   style: TextStyle(
                                     color: isSelected ? AppColors.accent : Colors.white54,
-                                    fontSize: 12,
+                                    fontSize: isSub ? 11 : 12,
                                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                                   ),
                                 ),
@@ -804,72 +825,79 @@ class _AdminScreenState extends State<AdminScreen>
   // ══════════════════════════════════════════════
   // 모바일 레이아웃 (기존 코드)
   // ══════════════════════════════════════════════
+  // ── 모바일 탭 레이블 (인덱스 순서 = PC와 동일)
+  static const _tabLabels = [
+    '대시보드', '주문관리', '디자인요청', '배송관리', '채팅상담',
+    '재고관리', '상품관리', '교환/반품', '리뷰관리', '배너관리',
+    '직원관리', '회원관리', '공지관리', '매출통계', '카테고리관리', '섹션관리',
+  ];
+  static const _tabIcons = [
+    Icons.dashboard_rounded, Icons.receipt_long_rounded, Icons.design_services_rounded,
+    Icons.local_shipping_rounded, Icons.chat_rounded, Icons.warehouse_rounded,
+    Icons.inventory_2_rounded, Icons.swap_horiz_rounded, Icons.rate_review_rounded,
+    Icons.image_rounded, Icons.badge_rounded, Icons.people_alt_rounded,
+    Icons.campaign_rounded, Icons.bar_chart_rounded, Icons.folder_special_rounded,
+    Icons.layers_rounded,
+  ];
+  // 소분류(들여쓰기) 인덱스
+  static const _subTabIndices = {14, 15};
+
   Widget _buildMobileLayout(dynamic user) {
+    final currentLabel = _tabCtrl.index < _tabLabels.length ? _tabLabels[_tabCtrl.index] : '';
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6FA),
+      // ── AppBar: 햄버거 + 현재 탭명 + 알림/로그아웃 ──
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
         elevation: 0,
         toolbarHeight: 50,
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
-        automaticallyImplyLeading: Navigator.canPop(context),
+        leading: Builder(
+          builder: (ctx) => IconButton(
+            icon: const Icon(Icons.menu_rounded, size: 22, color: Colors.white),
+            onPressed: () => Scaffold.of(ctx).openDrawer(),
+          ),
+        ),
         title: Row(
           children: [
             Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 15),
+              width: 26, height: 26,
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
+              child: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 14),
             ),
             const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('2FIT MALL 관리자', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.3)),
-                Text(user?.name ?? '', style: TextStyle(fontSize: 10, color: Colors.white.withValues(alpha: 0.55))),
+                Text(currentLabel, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
+                Text(user?.name ?? '', style: TextStyle(fontSize: 9, color: Colors.white.withValues(alpha: 0.5))),
               ],
             ),
           ],
         ),
         actions: [
-          // 알림 아이콘 with 배지
+          // 알림 배지
           StreamBuilder<List<AdminNotification>>(
             stream: AdminNotificationStore.stream,
-            builder: (ctx, snapshot) {
+            builder: (ctx, _) {
               final unread = AdminNotificationStore.unreadCount;
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
                   IconButton(
-                    icon: Icon(
-                      unread > 0 ? Icons.notifications_active_rounded : Icons.notifications_outlined,
-                      size: 19,
-                      color: unread > 0 ? const Color(0xFFFFD600) : Colors.white,
-                    ),
+                    icon: Icon(unread > 0 ? Icons.notifications_active_rounded : Icons.notifications_outlined,
+                        size: 19, color: unread > 0 ? const Color(0xFFFFD600) : Colors.white),
                     onPressed: () { setState(() {}); _showAdminNotifications(); },
                   ),
                   if (unread > 0)
-                    Positioned(
-                      right: 4,
-                      top: 4,
+                    Positioned(right: 4, top: 4,
                       child: Container(
                         padding: const EdgeInsets.all(3),
                         decoration: const BoxDecoration(color: Color(0xFFE53935), shape: BoxShape.circle),
                         constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                        child: Text(
-                          unread > 9 ? '9+' : '$unread',
-                          style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
-                          textAlign: TextAlign.center,
-                        ),
+                        child: Text(unread > 9 ? '9+' : '$unread',
+                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                            textAlign: TextAlign.center),
                       ),
                     ),
                 ],
@@ -885,17 +913,11 @@ class _AdminScreenState extends State<AdminScreen>
                   title: const Text('로그아웃'),
                   content: const Text('관리자 계정에서 로그아웃하시겠습니까?'),
                   actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('취소'),
-                    ),
+                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE53935),
-                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE53935)),
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text('로그아웃',
-                          style: TextStyle(color: Colors.white)),
+                      child: const Text('로그아웃', style: TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -907,70 +929,173 @@ class _AdminScreenState extends State<AdminScreen>
                 context.read<CartProvider>().clearCart();
                 context.read<CouponProvider>().clear();
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (r) => false,
-                );
+                  MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false);
               }
             },
           ),
           const SizedBox(width: 4),
         ],
-        bottom: TabBar(
-          controller: _tabCtrl,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          indicatorColor: AppColors.accent,
-          indicatorWeight: 2,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white38,
-          labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-          unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-          tabs: [
-            const Tab(icon: Icon(Icons.dashboard_rounded, size: 14), text: '대시보드'),
-            const Tab(icon: Icon(Icons.receipt_long_rounded, size: 14), text: '주문관리'),
-            const Tab(icon: Icon(Icons.inventory_2_rounded, size: 14), text: '상품관리'),
-            const Tab(icon: Icon(Icons.image_rounded, size: 14), text: '배너관리'),
-            const Tab(icon: Icon(Icons.people_alt_rounded, size: 14), text: '회원관리'),
-            const Tab(icon: Icon(Icons.layers_rounded, size: 14), text: '섹션관리'),
-            const Tab(icon: Icon(Icons.design_services_rounded, size: 14), text: '디자인요청'),
-            Tab(
-              icon: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  const Icon(Icons.chat_rounded, size: 14),
-                  if (_pendingChatCount > 0)
-                    Positioned(
-                      right: -6,
-                      top: -4,
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFE53935),
-                          shape: BoxShape.circle,
+      ),
+      // ── 왼쪽 Drawer (사이드바) ──
+      drawer: Drawer(
+        width: 240,
+        backgroundColor: const Color(0xFF1A1A2E),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // 로고 + 사용자 정보
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 32, height: 32,
+                          decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 17),
                         ),
-                        child: Text(
-                          '$_pendingChatCount',
-                          style: const TextStyle(fontSize: 8, color: Colors.white, fontWeight: FontWeight.w700),
-                          textAlign: TextAlign.center,
+                        const SizedBox(width: 10),
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('2FIT MALL', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+                            Text('관리자 콘솔', style: TextStyle(color: Colors.white38, fontSize: 10)),
+                          ],
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 24, height: 24,
+                            decoration: BoxDecoration(color: AppColors.accent.withValues(alpha: 0.2), shape: BoxShape.circle),
+                            child: const Icon(Icons.person_rounded, size: 13, color: AppColors.accent),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(user?.name ?? '관리자', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+                                Text(user?.email ?? '', style: const TextStyle(color: Colors.white38, fontSize: 9), overflow: TextOverflow.ellipsis),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
-              text: '채팅상담',
-            ),
-            const Tab(icon: Icon(Icons.bar_chart_rounded, size: 14), text: '매출통계'),
-            const Tab(icon: Icon(Icons.warehouse_rounded, size: 14), text: '재고관리'),
-            const Tab(icon: Icon(Icons.badge_rounded, size: 14), text: '직원관리'),
-            const Tab(icon: Icon(Icons.campaign_rounded, size: 14), text: '공지관리'),
-            const Tab(icon: Icon(Icons.local_shipping_rounded, size: 14), text: '배송관리'),
-            const Tab(icon: Icon(Icons.folder_special_rounded, size: 14), text: '카테고리관리'),
-            const Tab(icon: Icon(Icons.swap_horiz_rounded, size: 14), text: '교환/반품'),
-            const Tab(icon: Icon(Icons.rate_review_rounded, size: 14), text: '리뷰관리'),
-          ],
+              Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+              // 탭 목록
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                  itemCount: _tabLabels.length,
+                  itemBuilder: (ctx, i) {
+                    final isSelected = _tabCtrl.index == i;
+                    final isSub = _subTabIndices.contains(i);
+                    final hasNotif = i == 4 && _pendingChatCount > 0;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() => _tabCtrl.animateTo(i));
+                        Navigator.pop(ctx); // Drawer 닫기
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 2),
+                        padding: EdgeInsets.only(
+                          left: isSub ? 24 : 12,
+                          right: 12,
+                          top: isSub ? 7 : 10,
+                          bottom: isSub ? 7 : 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.accent.withValues(alpha: 0.15) : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: isSelected ? Border.all(color: AppColors.accent.withValues(alpha: 0.3)) : null,
+                        ),
+                        child: Row(
+                          children: [
+                            if (isSub) ...[
+                              Container(
+                                width: 2, height: 13,
+                                margin: const EdgeInsets.only(right: 6),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? AppColors.accent : Colors.white24,
+                                  borderRadius: BorderRadius.circular(1),
+                                ),
+                              ),
+                            ],
+                            Icon(_tabIcons[i], size: isSub ? 13 : 15,
+                                color: isSelected ? AppColors.accent : Colors.white38),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(_tabLabels[i],
+                                style: TextStyle(
+                                  color: isSelected ? AppColors.accent : Colors.white54,
+                                  fontSize: isSub ? 11 : 12,
+                                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                            if (hasNotif)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(8)),
+                                child: Text('$_pendingChatCount', style: const TextStyle(fontSize: 9, color: Colors.white, fontWeight: FontWeight.w700)),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // 하단: 홈으로 + 로그아웃
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06)))),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton.icon(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          backgroundColor: Colors.white.withValues(alpha: 0.06),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 13, color: Colors.white70),
+                        label: const Text('홈으로 돌아가기', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(builder: (_) => const HomeScreen()), (r) => false);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+      // ── 본문 ──
       body: AnimatedBuilder(
         animation: _tabCtrl,
         builder: (_, __) => _buildCurrentTab(_tabCtrl.index),
@@ -983,27 +1108,29 @@ class _AdminScreenState extends State<AdminScreen>
   // ══════════════════════════════════════════════
   Widget _buildCurrentTab(int index) {
     // Stack+Offstage: 모든 탭을 미리 빌드해두고 보이기/숨기기만 전환
-    // → 탭 전환 시 재빌드 없음, 스트림 구독 유지
+    // 새 순서: 0대시보드 1주문관리 2디자인요청 3배송관리 4채팅상담
+    //          5재고관리  6상품관리  7교환/반품  8리뷰관리  9배너관리
+    //          10직원관리 11회원관리 12공지관리 13매출통계 14카테고리관리 15섹션관리
     return Stack(
       fit: StackFit.expand,
       children: [
-        Offstage(offstage: index != 0, child: _buildDashboard()),
-        Offstage(offstage: index != 1, child: _buildOrderManagement()),
-        Offstage(offstage: index != 2, child: _buildProductManagement()),
-        Offstage(offstage: index != 3, child: _buildBannerManagement()),
-        Offstage(offstage: index != 4, child: _buildMemberManagement()),
-        Offstage(offstage: index != 5, child: _buildSectionManagement()),
-        Offstage(offstage: index != 6, child: _buildDesignRequests()),
-        Offstage(offstage: index != 7, child: _buildChatManagement()),
-        Offstage(offstage: index != 8, child: const AdminSalesStatsTab()),
-        Offstage(offstage: index != 9, child: AdminInventoryTab(
+        Offstage(offstage: index != 0,  child: _buildDashboard()),
+        Offstage(offstage: index != 1,  child: _buildOrderManagement()),
+        Offstage(offstage: index != 2,  child: _buildDesignRequests()),
+        Offstage(offstage: index != 3,  child: const AdminDeliveryTab()),
+        Offstage(offstage: index != 4,  child: _buildChatManagement()),
+        Offstage(offstage: index != 5,  child: AdminInventoryTab(
           adminId: FirebaseAuth.instance.currentUser?.uid ?? 'admin')),
+        Offstage(offstage: index != 6,  child: _buildProductManagement()),
+        Offstage(offstage: index != 7,  child: const AdminExchangeTab()),
+        Offstage(offstage: index != 8,  child: const AdminReviewTab()),
+        Offstage(offstage: index != 9,  child: _buildBannerManagement()),
         Offstage(offstage: index != 10, child: const AdminStaffTab()),
-        Offstage(offstage: index != 11, child: _buildNoticeManagement()),
-        Offstage(offstage: index != 12, child: const AdminDeliveryTab()),
-        Offstage(offstage: index != 13, child: const _CategoryManagementTab()),
-        Offstage(offstage: index != 14, child: const AdminExchangeTab()),
-        Offstage(offstage: index != 15, child: const AdminReviewTab()),
+        Offstage(offstage: index != 11, child: _buildMemberManagement()),
+        Offstage(offstage: index != 12, child: _buildNoticeManagement()),
+        Offstage(offstage: index != 13, child: const AdminSalesStatsTab()),
+        Offstage(offstage: index != 14, child: const _CategoryManagementTab()),
+        Offstage(offstage: index != 15, child: _buildSectionManagement()),
       ],
     );
   }
@@ -1126,9 +1253,9 @@ class _AdminScreenState extends State<AdminScreen>
                   padding: const EdgeInsets.all(10),
                   child: Column(
                     children: [
-                      _quickActionRow(Icons.add_box_rounded, '상품 추가', const Color(0xFF1565C0), () => _tabCtrl.animateTo(2)),
+                      _quickActionRow(Icons.add_box_rounded, '상품 추가', const Color(0xFF1565C0), () => _tabCtrl.animateTo(6)),
                       const SizedBox(height: 6),
-                      _quickActionRow(Icons.image_rounded, '배너 추가', const Color(0xFF2E7D32), () => _tabCtrl.animateTo(3)),
+                      _quickActionRow(Icons.image_rounded, '배너 추가', const Color(0xFF2E7D32), () => _tabCtrl.animateTo(9)),
                       const SizedBox(height: 6),
                       _quickActionRow(Icons.chat_rounded, '고객 채팅', const Color(0xFF6A1B9A), () {
                         Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()));

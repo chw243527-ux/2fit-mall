@@ -16,10 +16,12 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // 관리자 여부 (Firestore users 문서의 isAdmin 필드 확인)
+    // 관리자 여부 (Custom Claims 우선, 없으면 Firestore users 문서 확인)
     function isAdmin() {
-      return isSignedIn() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      return isSignedIn() && (
+        request.auth.token.get('isAdmin', false) == true ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true
+      );
     }
 
     // 이메일 인증 완료 여부
