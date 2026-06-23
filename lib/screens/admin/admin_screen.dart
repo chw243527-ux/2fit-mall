@@ -22,6 +22,7 @@ import '../../services/chat_service.dart';
 import '../../services/translation_service.dart';
 import '../../services/banner_service.dart';
 import '../../services/category_service.dart';
+import '../../services/inventory_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'admin_inventory_tab.dart';
@@ -6784,6 +6785,8 @@ class _AdminScreenState extends State<AdminScreen>
           } else {
             await context.read<ProductProvider>().addProduct(product);
           }
+          // 재고 DB 자동 초기화 (신규 등록 시 무조건, 수정 시 없으면 생성)
+          try { await InventoryService.initProduct(product); } catch (_) {}
           if (mounted) setState(() {});
         },
       ),
@@ -10715,6 +10718,13 @@ class _ProductFormDialogState extends State<_ProductFormDialog> {
     if (descTranslations.isEmpty && productDesc.isNotEmpty) {
       descTranslations = await TranslationService.translateLongText(productDesc);
       if (mounted) setState(() => _descTranslations = descTranslations);
+    }
+
+    // productCode 비어있으면 자동 생성 (상품ID 기반 8자리)
+    if (_productCodeCtrl.text.trim().isEmpty) {
+      final autoCode = (_tempProductId.hashCode.abs() % 100000000)
+          .toString().padLeft(8, '0');
+      _productCodeCtrl.text = autoCode;
     }
 
     final product = ProductModel(

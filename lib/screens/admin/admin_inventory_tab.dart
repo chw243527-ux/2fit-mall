@@ -272,19 +272,16 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
   Future<void> _syncFromProducts() async {
     setState(() => _syncing = true);
     try {
-      final products = await ProductService.getAllProducts();
-      int count = 0;
-      for (final p in products) {
-        final existing = await InventoryService.fetchOne(p.id);
-        if (existing == null) {
-          await InventoryService.initProduct(p);
-          count++;
-        }
-      }
+      // getAllProductsForAdmin — 숨김 상품 포함 전체
+      final products = await ProductService.getAllProductsForAdmin();
+      final count    = await InventoryService.syncAllProducts(products);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('동기화 완료: $count개 상품 재고 초기화됨'),
+        content: Text(count == 0
+            ? '모든 상품(${products.length}개)이 이미 재고DB에 있습니다.'
+            : '동기화 완료: ${products.length}개 중 $count개 재고 초기화됨'),
         backgroundColor: const Color(0xFF6A1B9A),
+        duration: const Duration(seconds: 4),
       ));
       await _load();
     } catch (e) {

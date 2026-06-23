@@ -49,25 +49,47 @@ class InventoryService {
     final snap = await doc.get();
     if (snap.exists) return; // 이미 있으면 건드리지 않음
 
+    // 사이즈 없으면 기본값
+    final sizes  = product.sizes.isNotEmpty  ? product.sizes  : ['FREE'];
+    // 색상 없으면 기본값
+    final colors = product.colors.isNotEmpty ? product.colors : ['기본'];
+
     // 사이즈×색상 모두 0으로 초기화
     final Map<String, Map<String, int>> stock = {};
-    for (final size in product.sizes) {
+    for (final size in sizes) {
       stock[size] = {};
-      for (final color in product.colors) {
+      for (final color in colors) {
         stock[size]![color] = 0;
       }
     }
 
+    // productCode 없으면 자동 생성
+    final code = product.productCode.isNotEmpty
+        ? product.productCode
+        : _generateCode(product.id);
+
     await doc.set(InventoryModel(
       productId:   product.id,
       productName: product.name,
-      productCode: product.productCode.isNotEmpty
-          ? product.productCode
-          : _generateCode(product.id),
+      productCode: code,
       stock:       stock,
       reorderPoint: 5,
       updatedAt:   DateTime.now(),
     ).toJson());
+  }
+
+  /// 전체 상품 일괄 동기화 — 없는 상품만 생성, 이미 있는 것은 건드리지 않음
+  static Future<int> syncAllProducts(List<ProductModel> products) async {
+    int created = 0;
+    for (final p in products) {
+      final doc  = _inv.doc(p.id);
+      final snap = await doc.get();
+      if (!snap.exists) {
+        await initProduct(p);
+        created++;
+      }
+    }
+    return created;
   }
 
   /// productCode 자동 생성 (8자리 숫자)
