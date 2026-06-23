@@ -205,24 +205,78 @@
   </style>
 
   <!-- ═══════════════════════════════════════════════
-       카메라 권한 헬퍼 (mobile_scanner Web 지원)
-       Flutter에서 카메라 다이얼로그 열기 전 권한 요청 시
-       브라우저 권한 프롬프트가 정상 표시되도록 처리
+       ZXing-js 바코드 스캐너 (Flutter Web 카메라 스캔)
+       - ZXing TypeScript 라이브러리를 UMD 빌드로 로드
+       - window.startBarcodeScanner(containerId, onResult, onError)
+       - window.stopBarcodeScanner()
+       - Flutter Dart → JS Interop으로 호출
   ═══════════════════════════════════════════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
   <script>
-    // Flutter → JS 카메라 권한 요청 브릿지
-    window.requestCameraPermission = function() {
-      return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-        .then(function(stream) {
-          // 스트림 즉시 해제 (권한 확인 목적만)
-          stream.getTracks().forEach(function(t) { t.stop(); });
-          return 'granted';
-        })
-        .catch(function(err) {
-          console.warn('[Camera] 권한 거부:', err.name);
-          return 'denied';
+    (function() {
+      var _reader = null;
+      var _active = false;
+
+      // ── 스캐너 시작 ──────────────────────────────────────────
+      window.startBarcodeScanner = function(videoId, onResult, onError) {
+        if (_active) window.stopBarcodeScanner();
+
+        var hints = new Map();
+        var formats = [
+          ZXing.BarcodeFormat.CODE_128,
+          ZXing.BarcodeFormat.CODE_39,
+          ZXing.BarcodeFormat.EAN_13,
+          ZXing.BarcodeFormat.EAN_8,
+          ZXing.BarcodeFormat.QR_CODE,
+          ZXing.BarcodeFormat.DATA_MATRIX,
+          ZXing.BarcodeFormat.UPC_A,
+          ZXing.BarcodeFormat.UPC_E,
+        ];
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+        hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+
+        _reader = new ZXing.BrowserMultiFormatReader(hints, {
+          delayBetweenScanAttempts: 100,
+          delayBetweenScanSuccess: 500,
         });
-    };
+
+        _active = true;
+        var videoEl = document.getElementById(videoId);
+        if (!videoEl) { if (onError) onError('video element not found'); return; }
+
+        _reader.decodeFromVideoDevice(null, videoEl, function(result, err) {
+          if (!_active) return;
+          if (result) {
+            var text = result.getText();
+            if (text && text.length > 0) {
+              _active = false;
+              _reader.reset();
+              if (onResult) onResult(text);
+            }
+          }
+          // err는 매 프레임마다 발생하는 NotFoundException이므로 무시
+        }).catch(function(e) {
+          _active = false;
+          var msg = e.message || e.toString();
+          if (msg.indexOf('NotAllowed') >= 0 || msg.indexOf('Permission') >= 0) {
+            if (onError) onError('permission_denied');
+          } else if (msg.indexOf('NotReadable') >= 0 || msg.indexOf('Could not start') >= 0) {
+            if (onError) onError('camera_busy');
+          } else {
+            if (onError) onError(msg);
+          }
+        });
+      };
+
+      // ── 스캐너 중지 ──────────────────────────────────────────
+      window.stopBarcodeScanner = function() {
+        _active = false;
+        if (_reader) {
+          try { _reader.reset(); } catch(e) {}
+          _reader = null;
+        }
+      };
+    })();
   </script>
 
   <!-- ═══════════════════════════════════════════════

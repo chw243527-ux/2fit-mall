@@ -1,10 +1,8 @@
 import 'dart:js_interop';
+import 'dart:ui_web' as ui_web;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:barcode_widget/barcode_widget.dart';
-// mobile_scanner의 Barcode가 barcode 패키지의 Barcode와 충돌 → hide로 제외
-import 'package:mobile_scanner/mobile_scanner.dart' hide Barcode;
 import 'package:web/web.dart' as web;
 import '../../models/models.dart';
 import '../../services/inventory_service.dart';
@@ -1746,9 +1744,18 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
   );
 }
 
+
 // ════════════════════════════════════════════════════════════
-//  카메라 바코드 스캔 다이얼로그
+//  카메라 바코드 스캔 다이얼로그 (ZXing-js Web 기반)
 // ════════════════════════════════════════════════════════════
+
+/// JS 함수 바인딩
+@JS('startBarcodeScanner')
+external void _jsStartScanner(String videoId, JSFunction onResult, JSFunction onError);
+
+@JS('stopBarcodeScanner')
+external void _jsStopScanner();
+
 class _BarcodeScannerDialog extends StatefulWidget {
   final void Function(String barcode) onScanned;
   const _BarcodeScannerDialog({required this.onScanned});
@@ -1757,70 +1764,51 @@ class _BarcodeScannerDialog extends StatefulWidget {
 }
 
 class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
-  MobileScannerController? _ctrl;
-  bool _detected = false;
+  static const _videoId = 'zxing-video-preview';
+  bool _started = false;
   String? _errorMsg;
 
   @override
   void initState() {
     super.initState();
-    _startCamera();
+    // 위젯 빌드 후 video 엘리먼트가 DOM에 생긴 다음 스캐너 시작
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startScanner());
   }
 
-  Future<void> _startCamera() async {
-    // Web: getUserMedia로 권한만 확인 후 스트림 해제 → NotReadableError 방지
-    if (kIsWeb) {
-      try {
-        final constraints = web.MediaStreamConstraints(video: true.toJS);
-        final stream = await web.window.navigator.mediaDevices
-            .getUserMedia(constraints)
-            .toDart;
-        // 권한 OK → 스트림 즉시 해제 (MobileScanner가 다시 열도록)
-        stream.getTracks().toDart.forEach((t) => t.stop());
-        // 짧은 딜레이: 이전 스트림이 완전히 닫힌 후 MobileScanner가 열도록
-        await Future.delayed(const Duration(milliseconds: 400));
-      } catch (e) {
-        if (mounted) setState(() => _errorMsg = _friendlyError(e.toString()));
-        return;
-      }
-    }
+  void _startScanner() {
     if (!mounted) return;
-    setState(() {
-      _ctrl = MobileScannerController(
-        facing: CameraFacing.back,
-        detectionSpeed: DetectionSpeed.normal,
-        formats: const [
-          BarcodeFormat.code128, BarcodeFormat.ean13,
-          BarcodeFormat.ean8,    BarcodeFormat.qrCode,
-          BarcodeFormat.dataMatrix,
-        ],
-      );
-    });
-  }
+    setState(() { _started = true; _errorMsg = null; });
 
-  String _friendlyError(String raw) {
-    if (raw.contains('NotAllowed') || raw.contains('Permission')) {
-      return '카메라 권한이 거부되었습니다.\n브라우저 주소창 🔒 → 카메라 허용 후 다시 시도해주세요.';
-    }
-    if (raw.contains('NotReadable') || raw.contains('Could not start')) {
-      return '카메라를 시작할 수 없습니다.\n다른 앱이 카메라를 사용 중일 수 있습니다.';
-    }
-    return '카메라 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
+    final onResult = (JSString raw) {
+      final barcode = raw.toDart;
+      if (barcode.isEmpty) return;
+      if (!mounted) return;
+      _jsStopScanner();
+      Navigator.pop(context);
+      widget.onScanned(barcode);
+    }.toJS;
+
+    final onError = (JSString raw) {
+      final err = raw.toDart;
+      if (!mounted) return;
+      String msg;
+      if (err == 'permission_denied') {
+        msg = '카메라 권한이 거부되었습니다.\n브라우저 주소창 🔒 → 카메라 허용 후 다시 시도해주세요.';
+      } else if (err == 'camera_busy') {
+        msg = '카메라를 사용할 수 없습니다.\n다른 앱이 카메라를 사용 중일 수 있습니다.';
+      } else {
+        msg = '카메라 오류: $err\n잠시 후 다시 시도해주세요.';
+      }
+      setState(() { _started = false; _errorMsg = msg; });
+    }.toJS;
+
+    _jsStartScanner(_videoId, onResult, onError);
   }
 
   @override
   void dispose() {
-    _ctrl?.dispose();
+    _jsStopScanner();
     super.dispose();
-  }
-
-  void _onDetect(BarcodeCapture capture) {
-    if (_detected) return;
-    final raw = capture.barcodes.firstOrNull?.rawValue;
-    if (raw == null || raw.isEmpty) return;
-    _detected = true;
-    Navigator.pop(context);
-    widget.onScanned(raw);
   }
 
   @override
@@ -1829,7 +1817,7 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
       insetPadding: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        // 헤더
+        // ── 헤더 ──────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
           child: Row(children: [
@@ -1841,17 +1829,20 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
             ),
             IconButton(
               icon: const Icon(Icons.close),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () { _jsStopScanner(); Navigator.pop(context); },
             ),
           ]),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text('카메라를 바코드에 가까이 대주세요',
-              style: TextStyle(fontSize: 12, color: Colors.grey)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            _errorMsg == null ? '카메라를 바코드에 가까이 대주세요' : '',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+          ),
         ),
         const SizedBox(height: 8),
-        // 카메라 뷰
+
+        // ── 카메라 뷰 영역 ────────────────────────────────
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
           height: 260,
@@ -1862,82 +1853,67 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
           clipBehavior: Clip.hardEdge,
           child: _errorMsg != null
               ? _buildErrorView(_errorMsg!)
-              : _ctrl == null
-                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                  : Stack(children: [
-            MobileScanner(
-              controller: _ctrl!,
-              onDetect: _onDetect,
-              errorBuilder: (ctx, err) {
-                final msg = _friendlyError(err.errorDetails?.message ?? err.toString());
-                SchedulerBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) setState(() => _errorMsg = msg);
-                });
-                return const SizedBox.shrink();
-              },
-            ),
-            // 스캔 가이드 오버레이
-            Center(
-              child: Container(
-                width: 200, height: 120,
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFF6A1B9A), width: 2),
-                  borderRadius: BorderRadius.circular(8),
+              : Stack(children: [
+                  // ZXing이 직접 접근하는 <video> 엘리먼트
+                  const HtmlElementView(viewType: _videoId),
+                  // 스캔 가이드 오버레이
+                  if (_started)
+                    Center(
+                      child: Container(
+                        width: 220, height: 120,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                              color: const Color(0xFF6A1B9A), width: 2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  // 시작 전 로딩
+                  if (!_started)
+                    const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                ]),
+        ),
+
+        // ── 하단 안내 ─────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.info_outline, size: 14, color: Colors.grey),
+              const SizedBox(width: 6),
+              const Expanded(
+                child: Text(
+                  'USB 바코드 리더기도 아래 입력란에 직접 사용 가능합니다',
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ),
-            ),
-          ]),
-        ),
-        // 하단 버튼
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            // 플래시 토글
-            if (_ctrl != null)
-              ValueListenableBuilder(
-                valueListenable: _ctrl!,
-                builder: (_, state, __) {
-                  final torchOn = state.torchState == TorchState.on;
-                  return IconButton(
-                    tooltip: torchOn ? '플래시 끄기' : '플래시 켜기',
-                    icon: Icon(torchOn ? Icons.flash_on : Icons.flash_off,
-                        color: torchOn ? Colors.amber : Colors.grey),
-                    onPressed: () => _ctrl?.toggleTorch(),
-                  );
-                },
-              ),
-            const SizedBox(width: 8),
-            // 카메라 전환
-            IconButton(
-              tooltip: '카메라 전환',
-              icon: const Icon(Icons.flip_camera_ios_outlined, color: Colors.grey),
-              onPressed: _ctrl == null ? null : () => _ctrl!.switchCamera(),
-            ),
-          ]),
+            ],
+          ),
         ),
       ]),
     );
   }
 
-  /// 카메라 오류 안내 화면
   Widget _buildErrorView(String message) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Icon(Icons.videocam_off_outlined, color: Colors.white54, size: 48),
+          const Icon(Icons.videocam_off_outlined,
+              color: Colors.white54, size: 48),
           const SizedBox(height: 12),
           Text(message,
               style: const TextStyle(color: Colors.white70, fontSize: 12),
               textAlign: TextAlign.center),
           const SizedBox(height: 16),
           TextButton.icon(
-            onPressed: () {
-              setState(() { _errorMsg = null; _ctrl?.dispose(); _ctrl = null; });
-              _startCamera();
-            },
+            onPressed: _startScanner,
             icon: const Icon(Icons.refresh, color: Colors.white70),
-            label: const Text('다시 시도', style: TextStyle(color: Colors.white70)),
+            label: const Text('다시 시도',
+                style: TextStyle(color: Colors.white70)),
           ),
         ]),
       ),
@@ -1948,9 +1924,40 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
 /// 카메라 스캔 다이얼로그 열기 헬퍼
 Future<void> showBarcodeScannerDialog(
     BuildContext context, void Function(String) onScanned) {
-  return showDialog(
-    context: context,
-    barrierDismissible: true,
-    builder: (_) => _BarcodeScannerDialog(onScanned: onScanned),
+  // Web 전용 — ZXing-js 기반
+  if (kIsWeb) {
+    // <video> 엘리먼트를 Flutter PlatformView로 등록
+    _registerVideoViewFactory();
+    return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => _BarcodeScannerDialog(onScanned: onScanned),
+    );
+  }
+  // Non-web: 기능 미지원 안내
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('카메라 스캔은 웹 브라우저에서만 지원됩니다.')),
+  );
+  return Future.value();
+}
+
+bool _videoViewFactoryRegistered = false;
+void _registerVideoViewFactory() {
+  if (_videoViewFactoryRegistered) return;
+  _videoViewFactoryRegistered = true;
+  // ignore: undefined_prefixed_name
+  ui_web.platformViewRegistry.registerViewFactory(
+    'zxing-video-preview',
+    (int viewId) {
+      final video = web.HTMLVideoElement()
+        ..id = 'zxing-video-preview'
+        ..style.width = '100%'
+        ..style.height = '100%'
+        ..style.objectFit = 'cover'
+        ..autoplay = true
+        ..setAttribute('playsinline', 'true')  // iOS Safari 인라인 재생
+        ..muted = true;
+      return video;
+    },
   );
 }
