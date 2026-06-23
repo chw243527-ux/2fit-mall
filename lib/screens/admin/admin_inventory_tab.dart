@@ -1,6 +1,7 @@
 import 'dart:js_interop';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 // mobile_scanner의 Barcode가 barcode 패키지의 Barcode와 충돌 → hide로 제외
 import 'package:mobile_scanner/mobile_scanner.dart' hide Barcode;
@@ -1756,46 +1757,60 @@ class _BarcodeScannerDialog extends StatefulWidget {
 }
 
 class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
-  late final MobileScannerController _ctrl;
+  MobileScannerController? _ctrl;
   bool _detected = false;
-  bool _permissionDenied = false;
+  String? _errorMsg;
 
   @override
   void initState() {
     super.initState();
-    _ctrl = MobileScannerController(
-      detectionSpeed: DetectionSpeed.normal,
-      formats: const [BarcodeFormat.code128, BarcodeFormat.ean13,
-                      BarcodeFormat.ean8, BarcodeFormat.qrCode,
-                      BarcodeFormat.dataMatrix, BarcodeFormat.all],
-    );
-    if (kIsWeb) _requestCameraPermission();
+    _startCamera();
   }
 
-  /// Flutter Web: 카메라 권한을 명시적으로 요청
-  Future<void> _requestCameraPermission() async {
-    try {
-      final constraints = web.MediaStreamConstraints(
-        video: true.toJS,
-      );
-      final stream = await web.window.navigator.mediaDevices
-          .getUserMedia(constraints)
-          .toDart;
-      // 권한 확인 후 스트림 즉시 해제
-      final tracks = stream.getTracks().toDart;
-      for (final track in tracks) {
-        track.stop();
+  Future<void> _startCamera() async {
+    // Web: getUserMedia로 권한만 확인 후 스트림 해제 → NotReadableError 방지
+    if (kIsWeb) {
+      try {
+        final constraints = web.MediaStreamConstraints(video: true.toJS);
+        final stream = await web.window.navigator.mediaDevices
+            .getUserMedia(constraints)
+            .toDart;
+        // 권한 OK → 스트림 즉시 해제 (MobileScanner가 다시 열도록)
+        stream.getTracks().toDart.forEach((t) => t.stop());
+        // 짧은 딜레이: 이전 스트림이 완전히 닫힌 후 MobileScanner가 열도록
+        await Future.delayed(const Duration(milliseconds: 400));
+      } catch (e) {
+        if (mounted) setState(() => _errorMsg = _friendlyError(e.toString()));
+        return;
       }
-      // 이미 MobileScannerController가 시작됐으면 재시작 불필요
-    } catch (e) {
-      debugPrint('[Camera] 권한 거부: $e');
-      if (mounted) setState(() => _permissionDenied = true);
     }
+    if (!mounted) return;
+    setState(() {
+      _ctrl = MobileScannerController(
+        facing: CameraFacing.back,
+        detectionSpeed: DetectionSpeed.normal,
+        formats: const [
+          BarcodeFormat.code128, BarcodeFormat.ean13,
+          BarcodeFormat.ean8,    BarcodeFormat.qrCode,
+          BarcodeFormat.dataMatrix,
+        ],
+      );
+    });
+  }
+
+  String _friendlyError(String raw) {
+    if (raw.contains('NotAllowed') || raw.contains('Permission')) {
+      return '카메라 권한이 거부되었습니다.\n브라우저 주소창 🔒 → 카메라 허용 후 다시 시도해주세요.';
+    }
+    if (raw.contains('NotReadable') || raw.contains('Could not start')) {
+      return '카메라를 시작할 수 없습니다.\n다른 앱이 카메라를 사용 중일 수 있습니다.';
+    }
+    return '카메라 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
   }
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _ctrl?.dispose();
     super.dispose();
   }
 
@@ -1845,12 +1860,21 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
             color: Colors.black,
           ),
           clipBehavior: Clip.hardEdge,
-          child: _permissionDenied
-              ? _buildPermissionDeniedView()
-              : Stack(children: [
+          child: _errorMsg != null
+              ? _buildErrorView(_errorMsg!)
+              : _ctrl == null
+                  ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                  : Stack(children: [
             MobileScanner(
-              controller: _ctrl,
+              controller: _ctrl!,
               onDetect: _onDetect,
+              errorBuilder: (ctx, err) {
+                final msg = _friendlyError(err.errorDetails?.message ?? err.toString());
+                SchedulerBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) setState(() => _errorMsg = msg);
+                });
+                return const SizedBox.shrink();
+              },
             ),
             // 스캔 가이드 오버레이
             Center(
@@ -1869,24 +1893,25 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
           padding: const EdgeInsets.all(16),
           child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             // 플래시 토글
-            ValueListenableBuilder(
-              valueListenable: _ctrl,
-              builder: (_, state, __) {
-                final torchOn = state.torchState == TorchState.on;
-                return IconButton(
-                  tooltip: torchOn ? '플래시 끄기' : '플래시 켜기',
-                  icon: Icon(torchOn ? Icons.flash_on : Icons.flash_off,
-                      color: torchOn ? Colors.amber : Colors.grey),
-                  onPressed: () => _ctrl.toggleTorch(),
-                );
-              },
-            ),
+            if (_ctrl != null)
+              ValueListenableBuilder(
+                valueListenable: _ctrl!,
+                builder: (_, state, __) {
+                  final torchOn = state.torchState == TorchState.on;
+                  return IconButton(
+                    tooltip: torchOn ? '플래시 끄기' : '플래시 켜기',
+                    icon: Icon(torchOn ? Icons.flash_on : Icons.flash_off,
+                        color: torchOn ? Colors.amber : Colors.grey),
+                    onPressed: () => _ctrl?.toggleTorch(),
+                  );
+                },
+              ),
             const SizedBox(width: 8),
             // 카메라 전환
             IconButton(
               tooltip: '카메라 전환',
               icon: const Icon(Icons.flip_camera_ios_outlined, color: Colors.grey),
-              onPressed: () => _ctrl.switchCamera(),
+              onPressed: _ctrl == null ? null : () => _ctrl!.switchCamera(),
             ),
           ]),
         ),
@@ -1894,25 +1919,22 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
     );
   }
 
-  /// 카메라 권한 거부 시 안내 화면
-  Widget _buildPermissionDeniedView() {
+  /// 카메라 오류 안내 화면
+  Widget _buildErrorView(String message) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Icon(Icons.no_photography_outlined, color: Colors.white54, size: 48),
+          const Icon(Icons.videocam_off_outlined, color: Colors.white54, size: 48),
           const SizedBox(height: 12),
-          const Text('카메라 권한이 필요합니다',
-              style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          const Text('브라우저 주소창 왼쪽 🔒 아이콘을 눌러\n카메라 권한을 허용해 주세요.',
-              style: TextStyle(color: Colors.white60, fontSize: 12),
+          Text(message,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
               textAlign: TextAlign.center),
           const SizedBox(height: 16),
           TextButton.icon(
             onPressed: () {
-              setState(() => _permissionDenied = false);
-              _requestCameraPermission();
+              setState(() { _errorMsg = null; _ctrl?.dispose(); _ctrl = null; });
+              _startCamera();
             },
             icon: const Icon(Icons.refresh, color: Colors.white70),
             label: const Text('다시 시도', style: TextStyle(color: Colors.white70)),
