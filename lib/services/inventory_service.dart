@@ -15,11 +15,48 @@ class InventoryService {
   // ─────────────────────────────────────────────
 
   /// 모든 상품 재고 현황
+  /// ─ permission-denied 시 products 컬렉션에서 자동 폴백 생성
   static Future<List<InventoryModel>> fetchAll() async {
-    final snap = await _inv.orderBy('productName').get();
-    return snap.docs
-        .map((d) => InventoryModel.fromJson(d.id, d.data()))
-        .toList();
+    try {
+      final snap = await _inv.orderBy('productName').get();
+      return snap.docs
+          .map((d) => InventoryModel.fromJson(d.id, d.data()))
+          .toList();
+    } catch (e) {
+      // Firestore Rules 미배포 등으로 permission-denied 발생 시
+      // products 컬렉션(공개 읽기)으로 폴백
+      return fetchAllFromProducts();
+    }
+  }
+  static Future<List<InventoryModel>> fetchAllFromProducts() async {
+    try {
+      final snap = await _db.collection('products')
+          .where('isActive', isEqualTo: true)
+          .orderBy('name')
+          .get();
+      return snap.docs.map((d) {
+        final data = d.data();
+        final name = data['name'] as String? ?? '';
+        final code = data['productCode'] as String? ?? _generateCode(d.id);
+        final rawSizes  = data['sizes']  as List<dynamic>? ?? [];
+        final rawColors = data['colors'] as List<dynamic>? ?? [];
+        final sizes  = rawSizes.isNotEmpty  ? rawSizes.map((e) => e.toString()).toList()  : ['FREE'];
+        final colors = rawColors.isNotEmpty ? rawColors.map((e) => e.toString()).toList() : ['기본'];
+        final Map<String, Map<String, int>> stock = {
+          for (final s in sizes) s: {for (final c in colors) c: 0}
+        };
+        return InventoryModel(
+          productId: d.id,
+          productName: name,
+          productCode: code,
+          stock: stock,
+          reorderPoint: 5,
+          updatedAt: DateTime.now(),
+        );
+      }).toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   /// 특정 상품 재고

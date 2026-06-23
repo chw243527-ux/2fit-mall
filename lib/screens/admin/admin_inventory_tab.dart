@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/models.dart';
 import '../../services/inventory_service.dart';
 import '../../services/barcode_print_service.dart';
@@ -257,15 +258,30 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
   bool _loading = true;
   bool _syncing = false;
   String _search = '';
+  bool _isFallback = false; // true = inventory 읽기 실패, products 폴백 데이터
 
   @override
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final list = await InventoryService.fetchAll();
+    bool fallback = false;
+    List<InventoryModel> list = [];
+    try {
+      final snap = await FirebaseFirestore.instance
+          .collection('inventory')
+          .orderBy('productName')
+          .get();
+      list = snap.docs
+          .map((d) => InventoryModel.fromJson(d.id, d.data()))
+          .toList();
+    } catch (_) {
+      // Rules 미배포 등 권한 오류 → products 폴백
+      list = await InventoryService.fetchAllFromProducts();
+      fallback = true;
+    }
     if (!mounted) return;
-    setState(() { _list = list; _loading = false; });
+    setState(() { _list = list; _loading = false; _isFallback = fallback; });
   }
 
   /// 기존 상품 전체를 inventory 컬렉션에 동기화 + 바코드 자동 생성
@@ -316,9 +332,22 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      final isPermission = e.toString().contains('permission-denied');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('동기화 실패: $e'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(isPermission
+                ? '⚠️ Firestore 권한 오류 — 관리자에게 Rules 배포를 요청하세요'
+                : '동기화 실패: $e'),
+            if (isPermission)
+              const Text('firebase deploy --only firestore:rules',
+                  style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
+          ],
+        ),
         backgroundColor: Colors.red,
+        duration: const Duration(seconds: 8),
       ));
     } finally {
       if (mounted) setState(() => _syncing = false);
@@ -338,6 +367,31 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
     return RefreshIndicator(
       onRefresh: _load,
       child: Column(children: [
+        // ── Firestore Rules 미배포 안내 배너 ──
+        if (_isFallback)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            color: const Color(0xFFFFF3E0),
+            child: Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFE65100)),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Firestore 권한 오류 — 상품목록 기준으로 표시 중 (재고수량=0)\n'
+                    '로컬 PC에서 firebase deploy --only firestore:rules 실행 필요',
+                    style: TextStyle(fontSize: 11, color: Color(0xFFE65100)),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _syncFromProducts,
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(40, 24)),
+                  child: const Text('동기화', style: TextStyle(fontSize: 11, color: Color(0xFFE65100))),
+                ),
+              ],
+            ),
+          ),
         _SectionTitle('전체 재고 현황',
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             // 상품관리 동기화 버튼
