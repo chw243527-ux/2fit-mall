@@ -60,14 +60,16 @@ class InventoryService {
   // ─────────────────────────────────────────────
 
   /// 전체 상품 재고 목록 (products 컬렉션 직접 읽기)
+  /// orderBy 없이 where만 사용 → 복합 인덱스 불필요, 정렬은 클라이언트에서 처리
   static Future<List<InventoryModel>> fetchAll() async {
     final snap = await _products
         .where('isActive', isEqualTo: true)
-        .orderBy('name')
         .get();
-    return snap.docs
+    final list = snap.docs
         .map((d) => _toInventory(d.id, d.data()))
-        .toList();
+        .toList()
+      ..sort((a, b) => a.productName.compareTo(b.productName));
+    return list;
   }
 
   /// fetchAll() 이미 products 기반이므로 동일
