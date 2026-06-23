@@ -228,16 +228,49 @@ class _AdminScreenState extends State<AdminScreen>
             }
             final ok = await AdminWebNotifier.requestPermission();
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: ok ? const Color(0xFF2E7D32) : const Color(0xFFB71C1C),
-                content: Text(
-                  ok ? '✅ 브라우저 알림이 활성화되었습니다!' : '❌ 알림 권한이 거부되었습니다.\n주소창 자물쇠 → 알림 → 허용으로 변경해 주세요.',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+            if (!ok) {
+              showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Row(children: [
+                    Icon(Icons.notifications_off, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('알림 권한 거부됨'),
+                  ]),
+                  content: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('브라우저에서 알림이 차단되었습니다.\n아래 방법으로 허용해 주세요.',
+                          style: TextStyle(fontSize: 13)),
+                      SizedBox(height: 12),
+                      Text('구글 크롬:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      Text('주소창 자물쇠 클릭 → 사이트 설정 → 알림 → 허용',
+                          style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      SizedBox(height: 6),
+                      Text('삼성 브라우저:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      Text('메뉴(⋮) → 설정 → 사이트 설정 → 알림 → 허용',
+                          style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('확인'),
+                    ),
+                  ],
                 ),
-                duration: const Duration(seconds: 5),
-              ),
-            );
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  backgroundColor: Color(0xFF2E7D32),
+                  content: Text('✅ 브라우저 알림이 활성화되었습니다!',
+                      style: TextStyle(color: Colors.white)),
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
           },
         ),
       ),

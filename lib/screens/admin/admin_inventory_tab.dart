@@ -3,6 +3,7 @@ import 'package:barcode_widget/barcode_widget.dart';
 import '../../models/models.dart';
 import '../../services/inventory_service.dart';
 import '../../services/barcode_print_service.dart';
+import '../../services/product_service.dart';
 
 // ════════════════════════════════════════════════════════════
 //  관리자 재고관리 탭
@@ -19,7 +20,7 @@ class _AdminInventoryTabState extends State<AdminInventoryTab>
     with SingleTickerProviderStateMixin {
   late final TabController _tc;
 
-  static const _tabs = ['재고 현황', '입고', '출고', '재고 조정', '바코드 출력', '이력'];
+  static const _tabs = ['재고 현황', '입고', '출고', '재고 조정', '바코드 출력', '교환/반품', '이력'];
 
   @override
   void initState() {
@@ -59,6 +60,7 @@ class _AdminInventoryTabState extends State<AdminInventoryTab>
               _OutgoingTab(adminId: widget.adminId),
               _AdjustTab(adminId: widget.adminId),
               _BarcodeTab(adminId: widget.adminId),
+              _ExchangeReturnTab(adminId: widget.adminId),
               _LogTab(adminId: widget.adminId),
             ],
           ),
@@ -253,6 +255,7 @@ class _InventoryDashboard extends StatefulWidget {
 class _InventoryDashboardState extends State<_InventoryDashboard> {
   List<InventoryModel> _list = [];
   bool _loading = true;
+  bool _syncing = false;
   String _search = '';
 
   @override
@@ -263,6 +266,36 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
     final list = await InventoryService.fetchAll();
     if (!mounted) return;
     setState(() { _list = list; _loading = false; });
+  }
+
+  /// 기존 상품 전체를 inventory 콜렉션에 동기화
+  Future<void> _syncFromProducts() async {
+    setState(() => _syncing = true);
+    try {
+      final products = await ProductService.getAllProducts();
+      int count = 0;
+      for (final p in products) {
+        final existing = await InventoryService.fetchOne(p.id);
+        if (existing == null) {
+          await InventoryService.initProduct(p);
+          count++;
+        }
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('동기화 완료: $count개 상품 재고 초기화됨'),
+        backgroundColor: const Color(0xFF6A1B9A),
+      ));
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('동기화 실패: $e'),
+        backgroundColor: Colors.red,
+      ));
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
   }
 
   List<InventoryModel> get _filtered {
@@ -279,7 +312,18 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
       onRefresh: _load,
       child: Column(children: [
         _SectionTitle('전체 재고 현황',
-          trailing: IconButton(icon: const Icon(Icons.refresh), onPressed: _load)),
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            // 상품관리 동기화 버튼
+            _syncing
+              ? const SizedBox(width: 24, height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : TextButton.icon(
+                  onPressed: _syncFromProducts,
+                  icon: const Icon(Icons.sync, size: 16),
+                  label: const Text('상품동기화', style: TextStyle(fontSize: 12)),
+                ),
+            IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+          ])),
         // 요약 카드
         if (!_loading) _summaryRow(),
         // 검색
@@ -300,7 +344,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
           child: _loading
               ? const Center(child: CircularProgressIndicator())
               : _filtered.isEmpty
-                  ? const Center(child: Text('재고 데이터가 없습니다'))
+                  ? _emptyView()
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _filtered.length,
@@ -310,6 +354,36 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
       ]),
     );
   }
+
+  Widget _emptyView() => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.shade300),
+        const SizedBox(height: 16),
+        const Text('재고 데이터가 없습니다',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
+        const SizedBox(height: 8),
+        const Text('상품관리에서 등록된 상품을\n재고DB에 동기화해 주세요.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: Colors.grey)),
+        const SizedBox(height: 20),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6A1B9A),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+          onPressed: _syncing ? null : _syncFromProducts,
+          icon: _syncing
+              ? const SizedBox(width: 18, height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Icon(Icons.sync),
+          label: Text(_syncing ? '동기화 중...' : '상품관리에서 동기화'),
+        ),
+      ]),
+    ),
+  );
 
   Widget _summaryRow() {
     final total      = _list.length;
@@ -1048,4 +1122,331 @@ class _LogTabState extends State<_LogTab> {
   }
 
   String _p(int v) => v.toString().padLeft(2, '0');
+}
+
+// ════════════════════════════════════════════════════════════
+//  교환/반품 바코드 처리 탭
+// ════════════════════════════════════════════════════════════
+class _ExchangeReturnTab extends StatefulWidget {
+  final String adminId;
+  const _ExchangeReturnTab({required this.adminId});
+  @override
+  State<_ExchangeReturnTab> createState() => _ExchangeReturnTabState();
+}
+
+class _ExchangeReturnTabState extends State<_ExchangeReturnTab>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tc;
+  @override
+  void initState() { super.initState(); _tc = TabController(length: 2, vsync: this); }
+  @override
+  void dispose() { _tc.dispose(); super.dispose(); }
+
+  @override
+  Widget build(BuildContext context) => Column(children: [
+    TabBar(
+      controller: _tc,
+      labelColor: Colors.red.shade700,
+      unselectedLabelColor: Colors.grey,
+      indicatorColor: Colors.red.shade700,
+      tabs: const [Tab(text: '반품 처리'), Tab(text: '교환 처리')],
+    ),
+    const Divider(height: 1),
+    Expanded(child: TabBarView(
+      controller: _tc,
+      children: [
+        _ExchangeReturnForm(type: _ErType.returnItem, adminId: widget.adminId),
+        _ExchangeReturnForm(type: _ErType.exchange,   adminId: widget.adminId),
+      ],
+    )),
+  ]);
+}
+
+enum _ErType { returnItem, exchange }
+
+class _ExchangeReturnForm extends StatefulWidget {
+  final _ErType type;
+  final String adminId;
+  const _ExchangeReturnForm({required this.type, required this.adminId});
+  @override
+  State<_ExchangeReturnForm> createState() => _ExchangeReturnFormState();
+}
+
+class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
+  final _scanCtrl    = TextEditingController();
+  final _memoCtrl    = TextEditingController();
+  final _scanFocus   = FocusNode();
+  InventoryModel? _inv;
+  String? _size;
+  String? _color;
+  // 교환일 때 교환할 사이즈/색상
+  String? _newSize;
+  String? _newColor;
+  bool _processing = false;
+
+  @override
+  void dispose() {
+    _scanCtrl.dispose(); _memoCtrl.dispose(); _scanFocus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onScan(String barcode) async {
+    _scanCtrl.clear();
+    final inv = await InventoryService.fetchByBarcode(barcode.trim());
+    if (!mounted) return;
+    if (inv == null) {
+      _snack('바코드를 찾을 수 없습니다: $barcode', error: true);
+      return;
+    }
+    setState(() {
+      _inv   = inv;
+      _size  = inv.stock.keys.firstOrNull;
+      _color = (_size != null) ? inv.stock[_size]?.keys.firstOrNull : null;
+      _newSize  = _size;
+      _newColor = _color;
+    });
+    _snack('${inv.productName} 스캔됨');
+  }
+
+  Future<void> _process() async {
+    if (_inv == null || _size == null || _color == null) {
+      _snack('상품·사이즈·색상을 선택하세요', error: true); return;
+    }
+    if (widget.type == _ErType.exchange && (_newSize == null || _newColor == null)) {
+      _snack('교환 후 사이즈·색상을 선택하세요', error: true); return;
+    }
+    setState(() => _processing = true);
+    try {
+      final memo = _memoCtrl.text.trim();
+      if (widget.type == _ErType.returnItem) {
+        // 반품 → 출고된 재고를 다시 입고
+        await InventoryService.incoming(
+          productId: _inv!.productId,
+          size: _size!, color: _color!, quantity: 1,
+          memo: '반품 처리${memo.isNotEmpty ? ': $memo' : ''}',
+          adminId: widget.adminId,
+        );
+        _snack('반품 처리 완료 — 재고 +1 반영');
+      } else {
+        // 교환 → 구 사이즈 입고 + 신 사이즈 출고
+        await InventoryService.incoming(
+          productId: _inv!.productId,
+          size: _size!, color: _color!, quantity: 1,
+          memo: '교환 반납(${ _size}/${ _color})${memo.isNotEmpty ? ': $memo' : ''}',
+          adminId: widget.adminId,
+        );
+        await InventoryService.outgoing(
+          productId: _inv!.productId,
+          size: _newSize!, color: _newColor!, quantity: 1,
+          memo: '교환 출고($_newSize/$_newColor)${memo.isNotEmpty ? ': $memo' : ''}',
+          adminId: widget.adminId,
+        );
+        _snack('교환 처리 완료 — $_size/$_color → $_newSize/$_newColor');
+      }
+      // 재고 갱신
+      final refreshed = await InventoryService.fetchOne(_inv!.productId);
+      if (mounted) setState(() { _inv = refreshed ?? _inv; _processing = false; });
+    } catch (e) {
+      if (mounted) setState(() => _processing = false);
+      _snack('오류: $e', error: true);
+    }
+  }
+
+  void _snack(String msg, {bool error = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg),
+      backgroundColor: error ? Colors.red : const Color(0xFF6A1B9A),
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isExchange = widget.type == _ErType.exchange;
+    final sizes      = _inv?.stock.keys.toList() ?? [];
+    final colors     = (_size != null ? _inv?.stock[_size]?.keys.toList() : null) ?? [];
+    final newColors  = (_newSize != null ? _inv?.stock[_newSize]?.keys.toList() : null) ?? [];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // ── 안내
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isExchange ? Colors.blue.shade50 : Colors.orange.shade50,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: isExchange ? Colors.blue.shade200 : Colors.orange.shade200),
+          ),
+          child: Row(children: [
+            Icon(isExchange ? Icons.swap_horiz : Icons.assignment_return,
+                color: isExchange ? Colors.blue : Colors.orange),
+            const SizedBox(width: 10),
+            Expanded(child: Text(
+              isExchange
+                  ? '교환: 반납 상품을 입고 처리하고\n교환 상품을 출고 처리합니다.'
+                  : '반품: 반납 상품을 입고 처리합니다.\n재고가 자동으로 +1 반영됩니다.',
+              style: TextStyle(fontSize: 12,
+                  color: isExchange ? Colors.blue.shade800 : Colors.orange.shade800),
+            )),
+          ]),
+        ),
+        const SizedBox(height: 16),
+
+        // ── 바코드 스캔
+        Row(children: [
+          const Icon(Icons.qr_code_scanner, color: Color(0xFF6A1B9A)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _scanCtrl,
+              focusNode: _scanFocus,
+              decoration: InputDecoration(
+                hintText: '바코드 스캔 or 번호 입력 후 Enter',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              ),
+              onSubmitted: _onScan,
+            ),
+          ),
+        ]),
+        const SizedBox(height: 8),
+
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 4),
+          child: Row(children: [
+            Expanded(child: Divider()),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Text('또는 직접 선택', style: TextStyle(fontSize: 11, color: Colors.grey)),
+            ),
+            Expanded(child: Divider()),
+          ]),
+        ),
+
+        // ── 상품 선택
+        _ProductPicker(onPicked: (inv) => setState(() {
+          _inv = inv;
+          _size  = inv?.stock.keys.firstOrNull;
+          _color = (_size != null) ? inv?.stock[_size]?.keys.firstOrNull : null;
+          _newSize  = _size;
+          _newColor = _color;
+        })),
+
+        if (_inv != null) ...[
+          const SizedBox(height: 12),
+          // ── 반납 상품 사이즈/색상 (항상)
+          Text(isExchange ? '반납 상품 (입고될 사이즈/색상)'
+              : '반품 상품 사이즈/색상',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          Wrap(spacing: 16, children: [
+            _dropdownRow('사이즈', sizes, _size,
+                (v) => setState(() { _size = v; _color = _inv?.stock[v]?.keys.firstOrNull; })),
+            _dropdownRow('색상', colors, _color,
+                (v) => setState(() => _color = v)),
+          ]),
+
+          // ── 재고 현황 표시
+          if (_size != null && _color != null)
+            _stockBadge(_inv!.stockForSizeColor(_size!, _color!)),
+
+          // ── 교환: 교환 후 사이즈/색상
+          if (isExchange) ...[
+            const SizedBox(height: 12),
+            const Text('교환 상품 (출고될 사이즈/색상)',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                    color: Colors.blue)),
+            const SizedBox(height: 6),
+            Wrap(spacing: 16, children: [
+              _dropdownRow('사이즈', sizes, _newSize,
+                  (v) => setState(() { _newSize = v; _newColor = _inv?.stock[v]?.keys.firstOrNull; })),
+              _dropdownRow('색상', newColors, _newColor,
+                  (v) => setState(() => _newColor = v)),
+            ]),
+            if (_newSize != null && _newColor != null)
+              _stockBadge(_inv!.stockForSizeColor(_newSize!, _newColor!),
+                  label: '교환 후 재고'),
+          ],
+
+          const SizedBox(height: 12),
+          // ── 메모
+          TextField(
+            controller: _memoCtrl,
+            decoration: InputDecoration(
+              labelText: '메모 (주문번호, 고객명 등)',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            maxLines: 2,
+          ),
+          const SizedBox(height: 16),
+
+          // ── 처리 버튼
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isExchange ? Colors.blue.shade700 : Colors.orange.shade700,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              onPressed: _processing ? null : _process,
+              icon: _processing
+                  ? const SizedBox(width: 18, height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Icon(isExchange ? Icons.swap_horiz : Icons.assignment_return),
+              label: Text(_processing ? '처리 중...'
+                  : isExchange ? '교환 처리' : '반품 처리'),
+            ),
+          ),
+        ],
+      ]),
+    );
+  }
+
+  Widget _dropdownRow(String label, List<String> items, String? value, void Function(String) onChange) =>
+    Row(mainAxisSize: MainAxisSize.min, children: [
+      Text(label, style: const TextStyle(fontSize: 13)),
+      const SizedBox(width: 8),
+      DropdownButton<String>(
+        value: value,
+        hint: const Text('선택'),
+        isDense: true,
+        items: items.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+        onChanged: (v) { if (v != null) onChange(v); },
+      ),
+    ]);
+
+  Widget _stockBadge(int qty, {String label = '현재 재고'}) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 6),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: qty == 0 ? Colors.red.shade50 : Colors.grey.shade50,
+        border: Border.all(color: qty == 0 ? Colors.red.shade200 : Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.inventory_2, size: 14,
+            color: qty == 0 ? Colors.red : Colors.grey),
+        const SizedBox(width: 6),
+        Text('$label: $qty 개',
+            style: TextStyle(
+              fontSize: 12,
+              color: qty == 0 ? Colors.red : Colors.black87,
+              fontWeight: FontWeight.w500,
+            )),
+        if (qty == 0) ...[
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(3)),
+            child: const Text('품절', style: TextStyle(color: Colors.white, fontSize: 10)),
+          ),
+        ],
+      ]),
+    ),
+  );
 }
