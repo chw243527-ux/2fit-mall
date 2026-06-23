@@ -44,6 +44,10 @@ class ProductModel {
   /// 비어있으면 stockCount를 전체 재고로 사용
   final Map<String, int> sizeStocks;
 
+  /// 사이즈×색상별 재고 (예: {'M': {'Black': 10, 'White': 5}})
+  /// inventory 컬렉션 대체 — products 문서에 직접 저장
+  final Map<String, Map<String, int>> stockData;
+
   ProductModel({
     required this.id,
     required this.name,
@@ -75,6 +79,7 @@ class ProductModel {
     this.descriptionTranslations = const {},
     this.bottomLength = '',
     this.sizeStocks = const {},
+    this.stockData = const {},
   });
 
   /// 현재 언어에 맞는 상품명 반환 (번역 없으면 원본 한국어 사용)
@@ -138,6 +143,7 @@ class ProductModel {
       descriptionTranslations: descriptionTranslations ?? this.descriptionTranslations,
       bottomLength: bottomLength,
       sizeStocks: sizeStocks,
+      stockData: stockData,
     );
   }
 
@@ -207,6 +213,15 @@ class ProductModel {
       sizeStocks: (json['sizeStocks'] as Map<String, dynamic>?)
               ?.map((k, v) => MapEntry(k, (v as num).toInt())) ??
           const {},
+      stockData: () {
+        final raw = json['stockData'] as Map<String, dynamic>?;
+        if (raw == null) return const <String, Map<String, int>>{};
+        return raw.map((size, colorRaw) {
+          final colorMap = (colorRaw as Map<String, dynamic>)
+              .map((c, q) => MapEntry(c, (q as num).toInt()));
+          return MapEntry(size, colorMap);
+        });
+      }(),
       salesCount: json['salesCount'] as int? ?? 0,
       isActive: json['isActive'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -246,6 +261,8 @@ class ProductModel {
       'stockCount': stockCount,
       'soldOutSizes': soldOutSizes,
       'sizeStocks': sizeStocks,
+      'stockData': stockData.map((size, colorMap) =>
+          MapEntry(size, Map<String, dynamic>.from(colorMap))),
       'salesCount': salesCount,
       'isActive': isActive,
       'createdAt': createdAt.toIso8601String(),
@@ -268,6 +285,7 @@ class ProductModel {
       rating: rating, reviewCount: reviewCount, stockCount: stockCount,
       soldOutSizes: soldOutSizes,
       sizeStocks: sizeStocks,
+      stockData: stockData,
       salesCount: salesCount,
       isActive: isActive, createdAt: createdAt,
       productCode: productCode,

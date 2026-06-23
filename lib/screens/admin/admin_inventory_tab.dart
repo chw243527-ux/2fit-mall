@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/models.dart';
 import '../../services/inventory_service.dart';
 import '../../services/barcode_print_service.dart';
@@ -258,28 +257,17 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
   bool _loading = true;
   bool _syncing = false;
   String _search = '';
-  bool _isFallback = false; // true = inventory 읽기 실패, products 폴백 데이터
+  bool _isFallback = false; // true = stockData 없어서 products 기본값으로 표시 중
 
   @override
   void initState() { super.initState(); _load(); }
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    bool fallback = false;
-    List<InventoryModel> list = [];
-    try {
-      final snap = await FirebaseFirestore.instance
-          .collection('inventory')
-          .orderBy('productName')
-          .get();
-      list = snap.docs
-          .map((d) => InventoryModel.fromJson(d.id, d.data()))
-          .toList();
-    } catch (_) {
-      // Rules 미배포 등 권한 오류 → products 폴백
-      list = await InventoryService.fetchAllFromProducts();
-      fallback = true;
-    }
+    // products 컬렉션에서 직접 읽기 (inventory 컬렉션 불필요)
+    final list = await InventoryService.fetchAll();
+    // stockData가 하나도 없으면 폴백 안내 표시
+    final fallback = list.isNotEmpty && list.every((e) => e.totalStock == 0);
     if (!mounted) return;
     setState(() { _list = list; _loading = false; _isFallback = fallback; });
   }
@@ -287,6 +275,8 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
   /// 상품관리 → 재고관리 동기화
   /// - inventory 쓰기 가능 시: Firestore에 저장 후 표시
   /// - permission-denied 시: products 기반 데이터로 즉시 표시 (로컬 뷰)
+  /// 상품관리 → 재고관리 동기화
+  /// products.stockData 필드에 직접 쓰기 (inventory 컬렉션 불필요)
   Future<void> _syncFromProducts() async {
     setState(() => _syncing = true);
 
@@ -305,39 +295,17 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
       final products = await ProductService.getAllProductsForAdmin();
       if (!mounted) return;
 
-      // 1) inventory 컬렉션에 쓰기 시도
-      int created = 0;
-      bool writeOk = true;
-      try {
-        created = await InventoryService.syncAllProducts(products);
-      } catch (_) {
-        writeOk = false;
-      }
+      // products.stockData 필드에 직접 쓰기
+      final created = await InventoryService.syncAllProducts(products);
 
-      // 2) 화면 표시용 데이터: 쓰기 성공이면 Firestore 읽기, 실패면 products 기반
-      List<InventoryModel> displayList;
-      bool fallback = false;
-      if (writeOk) {
-        displayList = await InventoryService.fetchAll();
-      } else {
-        // Firestore에서 기존 inventory 읽기 시도 (이미 있는 데이터)
-        try {
-          final snap = await FirebaseFirestore.instance
-              .collection('inventory').orderBy('productName').get();
-          displayList = snap.docs
-              .map((d) => InventoryModel.fromJson(d.id, d.data())).toList();
-        } catch (_) {
-          // 읽기도 안 되면 → products로 실시간 구성
-          displayList = _buildFromProducts(products);
-          fallback = true;
-        }
-      }
+      // 동기화 후 즉시 화면 갱신
+      final displayList = await InventoryService.fetchAll();
+      final noCodeCount = products.where((p) => p.productCode.isEmpty).length;
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      setState(() { _list = displayList; _isFallback = fallback; });
+      setState(() { _list = displayList; _isFallback = false; });
 
-      final noCodeCount = products.where((p) => p.productCode.isEmpty).length;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -345,16 +313,11 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
           children: [
             Text('✅ 상품 ${products.length}개 재고 적용 완료',
                 style: const TextStyle(fontWeight: FontWeight.bold)),
-            if (writeOk && created > 0)
-              Text('  • 재고DB 신규 생성: $created개'),
-            if (writeOk && noCodeCount > 0)
-              Text('  • 바코드 자동 생성: $noCodeCount개'),
-            if (!writeOk)
-              const Text('  • 재고수량은 표시만 됩니다 (Rules 배포 후 저장됨)',
-                  style: TextStyle(fontSize: 11)),
+            if (created > 0) Text('  • 재고 신규 초기화: $created개'),
+            if (noCodeCount > 0) Text('  • 바코드 자동 생성: $noCodeCount개'),
           ],
         ),
-        backgroundColor: writeOk ? const Color(0xFF2E7D32) : const Color(0xFF6A1B9A),
+        backgroundColor: const Color(0xFF2E7D32),
         duration: const Duration(seconds: 5),
       ));
     } catch (e) {
@@ -369,24 +332,6 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
     }
   }
 
-  /// products 리스트 → InventoryModel 리스트 변환 (로컬 뷰용)
-  List<InventoryModel> _buildFromProducts(List<ProductModel> products) {
-    return products.map((p) {
-      final code = p.productCode.isNotEmpty
-          ? p.productCode
-          : p.id.hashCode.abs().toString().substring(0, 8).padLeft(8, '0');
-      final sizes  = p.sizes.isNotEmpty  ? p.sizes  : ['FREE'];
-      final colors = p.colors.isNotEmpty ? p.colors : ['기본'];
-      return InventoryModel(
-        productId:   p.id,
-        productName: p.name,
-        productCode: code,
-        stock: { for (final s in sizes) s: {for (final c in colors) c: 0} },
-        reorderPoint: 5,
-        updatedAt: DateTime.now(),
-      );
-    }).toList();
-  }
 
   List<InventoryModel> get _filtered {
     if (_search.isEmpty) return _list;
@@ -409,12 +354,11 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
             color: const Color(0xFFFFF3E0),
             child: Row(
               children: [
-                const Icon(Icons.warning_amber_rounded, size: 16, color: Color(0xFFE65100)),
+                const Icon(Icons.info_outline, size: 16, color: Color(0xFFE65100)),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
-                    'Firestore 권한 오류 — 상품목록 기준으로 표시 중 (재고수량=0)\n'
-                    '로컬 PC에서 firebase deploy --only firestore:rules 실행 필요',
+                    '재고수량이 모두 0입니다 — "상품동기화" 버튼을 눌러 초기화해 주세요.',
                     style: TextStyle(fontSize: 11, color: Color(0xFFE65100)),
                   ),
                 ),

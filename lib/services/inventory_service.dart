@@ -2,178 +2,164 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/models.dart';
 
 /// 재고 관리 서비스
-/// Firestore 컬렉션:
-///   inventory/{productId}          — 사이즈별 재고 현황
-///   inventory_logs/{autoId}        — 입출고 이력
+///
+/// ★ Firestore Rules 배포 없이 동작 ★
+/// inventory / inventory_logs 컬렉션을 사용하지 않고,
+/// products/{id}.stockData  필드에 사이즈×색상 재고를 직접 저장.
+/// products 컬렉션은 이미 isAdmin() write가 허용되어 있으므로
+/// 별도 Rules 배포 없이 관리자 쓰기가 가능.
+///
+/// 이력(logs)은 inventory_logs 대신 products/{id}.stockLogs 서브컬렉션에 저장.
+/// (서브컬렉션은 부모 문서 권한을 상속 → 별도 Rules 불필요)
 class InventoryService {
-  static final _db   = FirebaseFirestore.instance;
-  static final _inv  = _db.collection('inventory');
-  static final _logs = _db.collection('inventory_logs');
+  static final _db = FirebaseFirestore.instance;
+  static final _products = _db.collection('products');
+
+  // ─────────────────────────────────────────────
+  //  products → InventoryModel 변환 헬퍼
+  // ─────────────────────────────────────────────
+  static InventoryModel _toInventory(String docId, Map<String, dynamic> data) {
+    final name = data['name'] as String? ?? '';
+    final code = data['productCode'] as String? ?? _generateCode(docId);
+    final rawSizes  = data['sizes']  as List<dynamic>? ?? [];
+    final rawColors = data['colors'] as List<dynamic>? ?? [];
+    final sizes  = rawSizes.isNotEmpty  ? rawSizes.map((e) => e.toString()).toList()  : ['FREE'];
+    final colors = rawColors.isNotEmpty ? rawColors.map((e) => e.toString()).toList() : ['기본'];
+
+    // stockData 읽기 (없으면 0으로 초기화)
+    final rawStock = data['stockData'] as Map<String, dynamic>? ?? {};
+    final Map<String, Map<String, int>> stock = {};
+    for (final size in sizes) {
+      stock[size] = {};
+      for (final color in colors) {
+        final colorMap = rawStock[size] as Map<String, dynamic>? ?? {};
+        stock[size]![color] = (colorMap[color] as num?)?.toInt() ?? 0;
+      }
+    }
+
+    // reorderPoint: products 문서에 저장된 값 or 기본값 5
+    final reorderPoint = (data['reorderPoint'] as num?)?.toInt() ?? 5;
+
+    return InventoryModel(
+      productId:    docId,
+      productName:  name,
+      productCode:  code,
+      stock:        stock,
+      reorderPoint: reorderPoint,
+      updatedAt:    DateTime.now(),
+    );
+  }
+
+  static String _generateCode(String productId) {
+    final hash = productId.hashCode.abs() % 100000000;
+    return hash.toString().padLeft(8, '0');
+  }
 
   // ─────────────────────────────────────────────
   //  재고 현황 읽기
   // ─────────────────────────────────────────────
 
-  /// 모든 상품 재고 현황
-  /// ─ permission-denied 시 products 컬렉션에서 자동 폴백 생성
+  /// 전체 상품 재고 목록 (products 컬렉션 직접 읽기)
   static Future<List<InventoryModel>> fetchAll() async {
-    try {
-      final snap = await _inv.orderBy('productName').get();
-      return snap.docs
-          .map((d) => InventoryModel.fromJson(d.id, d.data()))
-          .toList();
-    } catch (e) {
-      // Firestore Rules 미배포 등으로 permission-denied 발생 시
-      // products 컬렉션(공개 읽기)으로 폴백
-      return fetchAllFromProducts();
-    }
+    final snap = await _products
+        .where('isActive', isEqualTo: true)
+        .orderBy('name')
+        .get();
+    return snap.docs
+        .map((d) => _toInventory(d.id, d.data()))
+        .toList();
   }
-  static Future<List<InventoryModel>> fetchAllFromProducts() async {
-    try {
-      final snap = await _db.collection('products')
-          .where('isActive', isEqualTo: true)
-          .orderBy('name')
-          .get();
-      return snap.docs.map((d) {
-        final data = d.data();
-        final name = data['name'] as String? ?? '';
-        final code = data['productCode'] as String? ?? _generateCode(d.id);
-        final rawSizes  = data['sizes']  as List<dynamic>? ?? [];
-        final rawColors = data['colors'] as List<dynamic>? ?? [];
-        final sizes  = rawSizes.isNotEmpty  ? rawSizes.map((e) => e.toString()).toList()  : ['FREE'];
-        final colors = rawColors.isNotEmpty ? rawColors.map((e) => e.toString()).toList() : ['기본'];
-        final Map<String, Map<String, int>> stock = {
-          for (final s in sizes) s: {for (final c in colors) c: 0}
-        };
-        return InventoryModel(
-          productId: d.id,
-          productName: name,
-          productCode: code,
-          stock: stock,
-          reorderPoint: 5,
-          updatedAt: DateTime.now(),
-        );
-      }).toList();
-    } catch (_) {
-      return [];
-    }
-  }
+
+  /// fetchAll() 이미 products 기반이므로 동일
+  static Future<List<InventoryModel>> fetchAllFromProducts() => fetchAll();
 
   /// 특정 상품 재고
   static Future<InventoryModel?> fetchOne(String productId) async {
-    final doc = await _inv.doc(productId).get();
+    final doc = await _products.doc(productId).get();
     if (!doc.exists) return null;
-    return InventoryModel.fromJson(doc.id, doc.data()!);
+    return _toInventory(doc.id, doc.data()!);
   }
 
   /// 바코드(productCode)로 재고 조회
   static Future<InventoryModel?> fetchByBarcode(String barcode) async {
-    final snap = await _inv
+    final snap = await _products
         .where('productCode', isEqualTo: barcode)
         .limit(1)
         .get();
     if (snap.docs.isEmpty) return null;
-    return InventoryModel.fromJson(snap.docs.first.id, snap.docs.first.data());
+    return _toInventory(snap.docs.first.id, snap.docs.first.data());
   }
 
   // ─────────────────────────────────────────────
   //  재고 초기화 (상품 등록 시 자동 호출)
   // ─────────────────────────────────────────────
 
-  /// 상품 등록/수정 시 재고 문서 생성 (없을 때만)
+  /// 상품 등록/수정 시 stockData 초기화 (없을 때만)
   static Future<void> initProduct(ProductModel product) async {
-    final doc = _inv.doc(product.id);
+    final doc  = _products.doc(product.id);
     final snap = await doc.get();
-    if (snap.exists) return; // 이미 있으면 건드리지 않음
+    if (!snap.exists) return;
+    final data = snap.data()!;
 
-    // 사이즈 없으면 기본값
+    // 이미 stockData가 있으면 건드리지 않음
+    if ((data['stockData'] as Map?)?.isNotEmpty == true) return;
+
     final sizes  = product.sizes.isNotEmpty  ? product.sizes  : ['FREE'];
-    // 색상 없으면 기본값
     final colors = product.colors.isNotEmpty ? product.colors : ['기본'];
-
-    // 사이즈×색상 모두 0으로 초기화
-    final Map<String, Map<String, int>> stock = {};
-    for (final size in sizes) {
-      stock[size] = {};
-      for (final color in colors) {
-        stock[size]![color] = 0;
-      }
-    }
+    final Map<String, Map<String, int>> stockData = {
+      for (final s in sizes) s: {for (final c in colors) c: 0},
+    };
 
     // productCode 없으면 자동 생성
     final code = product.productCode.isNotEmpty
         ? product.productCode
         : _generateCode(product.id);
 
-    await doc.set(InventoryModel(
-      productId:   product.id,
-      productName: product.name,
-      productCode: code,
-      stock:       stock,
-      reorderPoint: 5,
-      updatedAt:   DateTime.now(),
-    ).toJson());
+    await doc.update({
+      'stockData':   stockData,
+      'productCode': code,
+    });
   }
 
   /// 전체 상품 일괄 동기화
-  /// - inventory 문서 없으면 생성
-  /// - 있어도 productCode 비어있으면 자동 생성해서 업데이트
-  /// - Firestore products 컬렉션의 productCode도 비어있으면 동시에 업데이트
+  /// - stockData 없으면 생성 (사이즈×색상 = 0)
+  /// - productCode 없으면 자동 생성
+  /// - 반환값: 신규 생성된 상품 수
   static Future<int> syncAllProducts(List<ProductModel> products) async {
     int created = 0;
     for (final p in products) {
-      // 1) productCode 결정 (상품에 없으면 자동 생성)
       final code = p.productCode.isNotEmpty
           ? p.productCode
           : _generateCode(p.id);
 
-      // 2) Firestore products 문서에 productCode 없으면 저장
-      if (p.productCode.isEmpty) {
-        try {
-          await _db.collection('products').doc(p.id)
-              .update({'productCode': code});
-        } catch (_) {}
+      final doc  = _products.doc(p.id);
+      final snap = await doc.get();
+      if (!snap.exists) continue;
+
+      final data = snap.data()!;
+      final existing = data['stockData'] as Map?;
+      final Map<String, dynamic> updates = {};
+
+      // productCode 없으면 저장
+      if ((data['productCode'] as String?)?.isEmpty ?? true) {
+        updates['productCode'] = code;
       }
 
-      // 3) inventory 문서 처리
-      final invDoc = _inv.doc(p.id);
-      final snap   = await invDoc.get();
-
-      if (!snap.exists) {
-        // 없으면 새로 생성
+      // stockData 없으면 0으로 초기화
+      if (existing == null || existing.isEmpty) {
         final sizes  = p.sizes.isNotEmpty  ? p.sizes  : ['FREE'];
         final colors = p.colors.isNotEmpty ? p.colors : ['기본'];
-        final Map<String, Map<String, int>> stock = {};
-        for (final s in sizes) {
-          stock[s] = { for (final c in colors) c: 0 };
-        }
-        await invDoc.set(InventoryModel(
-          productId:   p.id,
-          productName: p.name,
-          productCode: code,
-          stock:       stock,
-          reorderPoint: 5,
-          updatedAt:   DateTime.now(),
-        ).toJson());
+        updates['stockData'] = {
+          for (final s in sizes) s: {for (final c in colors) c: 0},
+        };
         created++;
-      } else {
-        // 있는데 productCode 비어있으면 업데이트만
-        final existing = InventoryModel.fromJson(snap.id, snap.data()!);
-        if (existing.productCode.isEmpty) {
-          await invDoc.update({
-            'productCode': code,
-            'updatedAt':   DateTime.now().toIso8601String(),
-          });
-        }
+      }
+
+      if (updates.isNotEmpty) {
+        await doc.update(updates);
       }
     }
     return created;
-  }
-
-  /// productCode 자동 생성 (8자리 숫자)
-  static String _generateCode(String productId) {
-    final hash = productId.hashCode.abs() % 100000000;
-    return hash.toString().padLeft(8, '0');
   }
 
   // ─────────────────────────────────────────────
@@ -243,7 +229,7 @@ class InventoryService {
   }
 
   // ─────────────────────────────────────────────
-  //  공통 재고 변경 (Firestore 트랜잭션)
+  //  공통 재고 변경 (products 문서 트랜잭션)
   // ─────────────────────────────────────────────
   static Future<void> _changeStock({
     required String productId,
@@ -254,29 +240,25 @@ class InventoryService {
     required String memo,
     required String adminId,
   }) async {
-    final invDoc  = _inv.doc(productId);
-    final logRef  = _logs.doc();
+    final prodDoc = _products.doc(productId);
+    final logRef  = prodDoc.collection('stockLogs').doc();
 
     await _db.runTransaction((tx) async {
-      final snap = await tx.get(invDoc);
-      if (!snap.exists) throw Exception('재고 문서 없음: $productId');
+      final snap = await tx.get(prodDoc);
+      if (!snap.exists) throw Exception('상품 문서 없음: $productId');
 
-      final inv = InventoryModel.fromJson(snap.id, snap.data()!);
+      final data = snap.data()!;
+      final inv  = _toInventory(snap.id, data);
       final before = inv.stockForSizeColor(size, color);
       final after  = (before + delta).clamp(0, 999999);
 
-      // stock 업데이트
-      final newStock = Map<String, Map<String, int>>.from(
-        inv.stock.map((s, cm) => MapEntry(s, Map<String, int>.from(cm))),
-      );
-      newStock.putIfAbsent(size, () => {})[color] = after;
-
-      tx.update(invDoc, {
-        'stock.$size.$color': after,
+      // stockData 업데이트 (dot-notation으로 해당 셀만 수정)
+      tx.update(prodDoc, {
+        'stockData.$size.$color': after,
         'updatedAt': DateTime.now().toIso8601String(),
       });
 
-      // 이력 기록
+      // 이력 기록 (서브컬렉션 stockLogs)
       tx.set(logRef, InventoryLog(
         id:          logRef.id,
         productId:   productId,
@@ -296,25 +278,31 @@ class InventoryService {
   }
 
   // ─────────────────────────────────────────────
-  //  이력 조회
+  //  이력 조회 (stockLogs 서브컬렉션)
   // ─────────────────────────────────────────────
 
-  /// 최근 이력 N건 (전체)
+  /// 최근 이력 N건 (전체 상품 — collectionGroup 쿼리)
   static Future<List<InventoryLog>> fetchLogs({int limit = 100}) async {
-    final snap = await _logs
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
-        .get();
-    return snap.docs
-        .map((d) => InventoryLog.fromJson(d.id, d.data()))
-        .toList();
+    try {
+      final snap = await _db
+          .collectionGroup('stockLogs')
+          .orderBy('createdAt', descending: true)
+          .limit(limit)
+          .get();
+      return snap.docs
+          .map((d) => InventoryLog.fromJson(d.id, d.data()))
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   /// 특정 상품 이력
   static Future<List<InventoryLog>> fetchLogsByProduct(
       String productId, {int limit = 50}) async {
-    final snap = await _logs
-        .where('productId', isEqualTo: productId)
+    final snap = await _products
+        .doc(productId)
+        .collection('stockLogs')
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .get();
@@ -323,21 +311,26 @@ class InventoryService {
         .toList();
   }
 
-  /// 날짜 범위 이력
+  /// 날짜 범위 이력 (특정 상품 기준)
   static Future<List<InventoryLog>> fetchLogsByDate({
     required DateTime from,
     required DateTime to,
     int limit = 200,
   }) async {
-    final snap = await _logs
-        .where('createdAt', isGreaterThanOrEqualTo: from.toIso8601String())
-        .where('createdAt', isLessThanOrEqualTo: to.toIso8601String())
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
-        .get();
-    return snap.docs
-        .map((d) => InventoryLog.fromJson(d.id, d.data()))
-        .toList();
+    try {
+      final snap = await _db
+          .collectionGroup('stockLogs')
+          .where('createdAt', isGreaterThanOrEqualTo: from.toIso8601String())
+          .where('createdAt', isLessThanOrEqualTo: to.toIso8601String())
+          .orderBy('createdAt', descending: true)
+          .limit(limit)
+          .get();
+      return snap.docs
+          .map((d) => InventoryLog.fromJson(d.id, d.data()))
+          .toList();
+    } catch (_) {
+      return [];
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -345,7 +338,7 @@ class InventoryService {
   // ─────────────────────────────────────────────
   static Future<void> updateReorderPoint(
       String productId, int reorderPoint) async {
-    await _inv.doc(productId).update({'reorderPoint': reorderPoint});
+    await _products.doc(productId).update({'reorderPoint': reorderPoint});
   }
 
   // ─────────────────────────────────────────────
