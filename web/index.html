@@ -205,6 +205,27 @@
   </style>
 
   <!-- ═══════════════════════════════════════════════
+       카메라 권한 헬퍼 (mobile_scanner Web 지원)
+       Flutter에서 카메라 다이얼로그 열기 전 권한 요청 시
+       브라우저 권한 프롬프트가 정상 표시되도록 처리
+  ═══════════════════════════════════════════════ -->
+  <script>
+    // Flutter → JS 카메라 권한 요청 브릿지
+    window.requestCameraPermission = function() {
+      return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(function(stream) {
+          // 스트림 즉시 해제 (권한 확인 목적만)
+          stream.getTracks().forEach(function(t) { t.stop(); });
+          return 'granted';
+        })
+        .catch(function(err) {
+          console.warn('[Camera] 권한 거부:', err.name);
+          return 'denied';
+        });
+    };
+  </script>
+
+  <!-- ═══════════════════════════════════════════════
        네이버 OAuth 2.0 팝업 로그인 헬퍼
        팝업창에서 콜백을 받아 Flutter로 전달
   ═══════════════════════════════════════════════ -->
