@@ -188,11 +188,21 @@ class _AdminScreenState extends State<AdminScreen>
     if (!mounted) return;
     final status = AdminWebNotifier.permissionStatus;
     if (status == 'granted') return; // 이미 허용됨
-    if (status == 'denied') return;  // 사용자가 명시적으로 거부함
+    // denied 상태에도 안내 배너는 표시 (기기 설정은 됐지만 브라우저 설정 안 된 경우 대비)
 
-    // 'default' 상태일 때만 배너 표시
+    // 'default' 또는 'denied' 상태일 때 배너 표시
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
+
+    final currentStatus = AdminWebNotifier.permissionStatus;
+
+    // denied 상태면 바로 상세 안내 다이얼로그 표시
+    if (currentStatus == 'denied') {
+      _showNotificationDeniedDialog();
+      return;
+    }
+
+    // default 상태: 허용 요청 배너
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: const Color(0xFF1A1A2E),
@@ -216,51 +226,13 @@ class _AdminScreenState extends State<AdminScreen>
             final status = AdminWebNotifier.permissionStatus;
             if (status == 'denied') {
               if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                backgroundColor: Color(0xFF5D4037),
-                duration: Duration(seconds: 6),
-                content: Text(
-                  '브라우저에서 알림이 차단됐습니다.\n주소창 자물쇠 아이콘 → 알림 → 허용으로 변경해 주세요.',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
-                ),
-              ));
+              _showNotificationDeniedDialog();
               return;
             }
             final ok = await AdminWebNotifier.requestPermission();
             if (!mounted) return;
             if (!ok) {
-              showDialog(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Row(children: [
-                    Icon(Icons.notifications_off, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('알림 권한 거부됨'),
-                  ]),
-                  content: const Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('브라우저에서 알림이 차단되었습니다.\n아래 방법으로 허용해 주세요.',
-                          style: TextStyle(fontSize: 13)),
-                      SizedBox(height: 12),
-                      Text('구글 크롬:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                      Text('주소창 자물쇠 클릭 → 사이트 설정 → 알림 → 허용',
-                          style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      SizedBox(height: 6),
-                      Text('삼성 브라우저:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                      Text('메뉴(⋮) → 설정 → 사이트 설정 → 알림 → 허용',
-                          style: TextStyle(fontSize: 12, color: Colors.grey)),
-                    ],
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('확인'),
-                    ),
-                  ],
-                ),
-              );
+              _showNotificationDeniedDialog();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -276,6 +248,113 @@ class _AdminScreenState extends State<AdminScreen>
       ),
     );
   }
+
+  /// 브라우저 알림 권한 거부 시 상세 안내 다이얼로그
+  void _showNotificationDeniedDialog() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(children: [
+          Icon(Icons.notifications_off, color: Colors.red),
+          SizedBox(width: 8),
+          Text('브라우저 알림 차단됨', style: TextStyle(fontSize: 16)),
+        ]),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: const Row(children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 16),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '기기 알림은 허용되었지만,\n브라우저 알림은 별도로 허용해야 합니다.',
+                      style: TextStyle(fontSize: 12, color: Colors.orange),
+                    ),
+                  ),
+                ]),
+              ),
+              const SizedBox(height: 14),
+              const Text('삼성 인터넷 (파란 지구본):',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 4),
+              _notifStep('1', '주소창 왼쪽 자물쇠 아이콘 탭'),
+              _notifStep('2', '\'알림\' 항목 → \'허용\'으로 변경'),
+              _notifStep('3', '페이지 새로고침 후 재시도'),
+              const SizedBox(height: 10),
+              const Text('구글 크롬:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 4),
+              _notifStep('1', '주소창 자물쇠 아이콘 탭'),
+              _notifStep('2', '사이트 설정 → 알림 → 허용'),
+              _notifStep('3', '페이지 새로고침 후 재시도'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('닫기'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6A1B9A),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              // 재시도: default 상태가 됐을 수 있으므로 다시 요청
+              final ok = await AdminWebNotifier.requestPermission();
+              if (!mounted) return;
+              if (ok) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: Color(0xFF2E7D32),
+                    content: Text('✅ 알림이 활성화되었습니다!',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: Colors.red,
+                    content: Text('아직 차단 상태입니다. 위 안내대로 브라우저 설정을 변경해 주세요.',
+                        style: TextStyle(color: Colors.white, fontSize: 12)),
+                    duration: Duration(seconds: 5),
+                  ),
+                );
+              }
+            },
+            child: const Text('다시 시도'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _notifStep(String num, String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 3),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Container(
+        width: 18, height: 18,
+        margin: const EdgeInsets.only(right: 6, top: 1),
+        decoration: const BoxDecoration(
+            color: Color(0xFF6A1B9A), shape: BoxShape.circle),
+        child: Center(child: Text(num,
+            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold))),
+      ),
+      Expanded(child: Text(text, style: const TextStyle(fontSize: 12, color: Colors.black87))),
+    ]),
+  );
 
   /// 앱 시작 시 주요 데이터를 미리 로드해 탭 전환 시 즉시 표시
   Future<void> _prefetchData() async {
@@ -7241,34 +7320,26 @@ class _AdminScreenState extends State<AdminScreen>
                   onPressed: () async {
                     final status = AdminWebNotifier.permissionStatus;
                     if (status == 'denied') {
-                      // 브라우저가 이미 거부 — 설정에서 직접 변경해야 함
-                      if (ctx.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: const Color(0xFF5D4037),
-                            duration: const Duration(seconds: 6),
-                            content: const Text(
-                              '브라우저에서 알림이 차단됐습니다.\n주소창 자물쇠 아이콘 → 알림 → 허용으로 변경해 주세요.',
-                              style: TextStyle(color: Colors.white, fontSize: 12),
-                            ),
-                          ),
-                        );
-                      }
+                      Navigator.pop(ctx);
+                      _showNotificationDeniedDialog();
                       return;
                     }
                     final ok = await AdminWebNotifier.requestPermission();
                     setDlgState(() {});
                     if (!ctx.mounted || !context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: ok ? const Color(0xFF2E7D32) : const Color(0xFFB71C1C),
-                        content: Text(
-                          ok ? '✅ 브라우저 알림이 활성화되었습니다!' : '❌ 알림 권한이 거부되었습니다.\n주소창 자물쇠 → 알림 → 허용으로 변경해 주세요.',
-                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                    if (!ok) {
+                      Navigator.pop(ctx);
+                      _showNotificationDeniedDialog();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: Color(0xFF2E7D32),
+                          content: Text('✅ 브라우저 알림이 활성화되었습니다!',
+                              style: TextStyle(color: Colors.white)),
+                          duration: Duration(seconds: 3),
                         ),
-                        duration: const Duration(seconds: 5),
-                      ),
-                    );
+                      );
+                    }
                   },
                   icon: Icon(
                     AdminWebNotifier.isGranted ? Icons.notifications_active_rounded : Icons.notifications_off_rounded,
