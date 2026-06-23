@@ -124,11 +124,13 @@ class InventoryService {
   }
 
   /// 전체 상품 일괄 동기화
-  /// - stockData 없으면 생성 (사이즈×색상 = 0)
+  /// - stockData를 sizeStocks(상품등록 재고) 기반으로 생성/덮어쓰기
+  /// - sizeStocks 있으면 → 각 사이즈 수량을 색상 수로 균등 분배
+  /// - sizeStocks 없고 stockCount 있으면 → 전체 수량을 사이즈×색상에 균등 분배
   /// - productCode 없으면 자동 생성
-  /// - 반환값: 신규 생성된 상품 수
+  /// - 반환값: 처리된 상품 수
   static Future<int> syncAllProducts(List<ProductModel> products) async {
-    int created = 0;
+    int synced = 0;
     for (final p in products) {
       final code = p.productCode.isNotEmpty
           ? p.productCode
@@ -138,8 +140,9 @@ class InventoryService {
       final snap = await doc.get();
       if (!snap.exists) continue;
 
-      final data = snap.data()!;
-      final existing = data['stockData'] as Map?;
+      final data     = snap.data()!;
+      final sizes    = p.sizes.isNotEmpty  ? p.sizes  : ['FREE'];
+      final colors   = p.colors.isNotEmpty ? p.colors : ['기본'];
       final Map<String, dynamic> updates = {};
 
       // productCode 없으면 저장
@@ -147,21 +150,27 @@ class InventoryService {
         updates['productCode'] = code;
       }
 
-      // stockData 없으면 0으로 초기화
-      if (existing == null || existing.isEmpty) {
-        final sizes  = p.sizes.isNotEmpty  ? p.sizes  : ['FREE'];
-        final colors = p.colors.isNotEmpty ? p.colors : ['기본'];
-        updates['stockData'] = {
-          for (final s in sizes) s: {for (final c in colors) c: 0},
-        };
-        created++;
+      // stockData 생성: sizeStocks 기반으로 실제 재고 반영
+      final Map<String, Map<String, int>> stockData = {};
+      for (final size in sizes) {
+        stockData[size] = {};
+        // 해당 사이즈 재고: sizeStocks에 있으면 사용, 없으면 stockCount ÷ 사이즈수
+        final sizeQty = p.sizeStocks.containsKey(size)
+            ? p.sizeStocks[size]!
+            : (p.stockCount / sizes.length).floor();
+        // 색상별로 균등 분배 (나머지는 첫 번째 색상에 추가)
+        final perColor = colors.isNotEmpty ? (sizeQty / colors.length).floor() : 0;
+        final remainder = colors.isNotEmpty ? sizeQty - perColor * colors.length : 0;
+        for (int i = 0; i < colors.length; i++) {
+          stockData[size]![colors[i]] = perColor + (i == 0 ? remainder : 0);
+        }
       }
+      updates['stockData'] = stockData;
+      synced++;
 
-      if (updates.isNotEmpty) {
-        await doc.update(updates);
-      }
+      await doc.update(updates);
     }
-    return created;
+    return synced;
   }
 
   // ─────────────────────────────────────────────
