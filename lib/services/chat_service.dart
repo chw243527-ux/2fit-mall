@@ -71,6 +71,8 @@ class ChatRoom {
   final int unreadCount;
   final bool isActive;
   final String language;
+  final bool isCompleted;
+  final bool isBlocked;
 
   ChatRoom({
     required this.id,
@@ -82,6 +84,8 @@ class ChatRoom {
     this.unreadCount = 0,
     this.isActive = true,
     this.language = 'ko',
+    this.isCompleted = false,
+    this.isBlocked = false,
   }) : lastTime = lastTime ?? lastMessageAt;
 
   factory ChatRoom.fromMap(String id, Map<String, dynamic> data) {
@@ -96,6 +100,8 @@ class ChatRoom {
       unreadCount: data['unreadCount'] as int? ?? 0,
       isActive: data['isActive'] as bool? ?? true,
       language: data['language'] as String? ?? 'ko',
+      isCompleted: data['isCompleted'] as bool? ?? false,
+      isBlocked: data['isBlocked'] as bool? ?? false,
     );
   }
 }
@@ -321,6 +327,67 @@ class ChatService {
       }
       return total;
     }).handleError((e) => 0);
+  }
+
+  /// 채팅방 삭제 (관리자)
+  static Future<void> deleteRoom(String roomId) async {
+    try {
+      // 메시지 일괄 삭제
+      final msgs = await _db.collection('chats').doc(roomId).collection('messages').get();
+      final batch = _db.batch();
+      for (final doc in msgs.docs) {
+        batch.delete(doc.reference);
+      }
+      batch.delete(_db.collection('chat_rooms').doc(roomId));
+      batch.delete(_db.collection('chats').doc(roomId));
+      await batch.commit();
+    } catch (e) {
+      if (kDebugMode) debugPrint('deleteRoom error: $e');
+      rethrow;
+    }
+  }
+
+  /// 사용자 차단 (채팅방 비활성화)
+  static Future<void> blockUser(String roomId) async {
+    try {
+      await _db.collection('chat_rooms').doc(roomId).update({
+        'isBlocked': true,
+        'isActive': false,
+        'blockedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint('blockUser error: $e');
+      rethrow;
+    }
+  }
+
+  /// 사용자 차단 해제
+  static Future<void> unblockUser(String roomId) async {
+    try {
+      await _db.collection('chat_rooms').doc(roomId).update({
+        'isBlocked': false,
+        'isActive': true,
+        'blockedAt': FieldValue.delete(),
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint('unblockUser error: $e');
+      rethrow;
+    }
+  }
+
+  /// 상담 완료 해제 (다시 진행 중으로)
+  static Future<void> reopenRoom(String roomId) async {
+    try {
+      await _db.collection('chat_rooms').doc(roomId).update({
+        'isActive': true,
+        'isCompleted': false,
+        'completedAt': FieldValue.delete(),
+        'completedBy': FieldValue.delete(),
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint('reopenRoom error: $e');
+      rethrow;
+    }
   }
 }
 

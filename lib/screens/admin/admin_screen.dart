@@ -518,7 +518,6 @@ class _AdminScreenState extends State<AdminScreen>
       {'icon': Icons.image_rounded, 'label': '배너관리'},
       {'icon': Icons.people_alt_rounded, 'label': '회원관리'},
       {'icon': Icons.layers_rounded, 'label': '섹션관리'},
-      {'icon': Icons.palette_rounded, 'label': '색상관리'},
       {'icon': Icons.design_services_rounded, 'label': '디자인요청'},
       {'icon': Icons.chat_rounded, 'label': '채팅상담'},
       {'icon': Icons.bar_chart_rounded, 'label': '매출통계'},
@@ -611,7 +610,7 @@ class _AdminScreenState extends State<AdminScreen>
                     itemCount: tabs.length,
                     itemBuilder: (ctx, i) {
                       final isSelected = _tabCtrl.index == i;
-                      final hasNotif = i == 8 && _pendingChatCount > 0;
+                      final hasNotif = i == 7 && _pendingChatCount > 0;
                       return GestureDetector(
                         onTap: () => setState(() => _tabCtrl.animateTo(i)),
                         child: Container(
@@ -933,7 +932,6 @@ class _AdminScreenState extends State<AdminScreen>
             const Tab(icon: Icon(Icons.image_rounded, size: 14), text: '배너관리'),
             const Tab(icon: Icon(Icons.people_alt_rounded, size: 14), text: '회원관리'),
             const Tab(icon: Icon(Icons.layers_rounded, size: 14), text: '섹션관리'),
-            const Tab(icon: Icon(Icons.palette_rounded, size: 14), text: '색상관리'),
             const Tab(icon: Icon(Icons.design_services_rounded, size: 14), text: '디자인요청'),
             Tab(
               icon: Stack(
@@ -995,18 +993,17 @@ class _AdminScreenState extends State<AdminScreen>
         Offstage(offstage: index != 3, child: _buildBannerManagement()),
         Offstage(offstage: index != 4, child: _buildMemberManagement()),
         Offstage(offstage: index != 5, child: _buildSectionManagement()),
-        Offstage(offstage: index != 6, child: _buildColorManagement()),
-        Offstage(offstage: index != 7, child: _buildDesignRequests()),
-        Offstage(offstage: index != 8, child: _buildChatManagement()),
-        Offstage(offstage: index != 9, child: const AdminSalesStatsTab()),
-        Offstage(offstage: index != 10, child: AdminInventoryTab(
+        Offstage(offstage: index != 6, child: _buildDesignRequests()),
+        Offstage(offstage: index != 7, child: _buildChatManagement()),
+        Offstage(offstage: index != 8, child: const AdminSalesStatsTab()),
+        Offstage(offstage: index != 9, child: AdminInventoryTab(
           adminId: FirebaseAuth.instance.currentUser?.uid ?? 'admin')),
-        Offstage(offstage: index != 11, child: const AdminStaffTab()),
-        Offstage(offstage: index != 12, child: _buildNoticeManagement()),
-        Offstage(offstage: index != 13, child: const AdminDeliveryTab()),
-        Offstage(offstage: index != 14, child: const _CategoryManagementTab()),
-        Offstage(offstage: index != 15, child: const AdminExchangeTab()),
-        Offstage(offstage: index != 16, child: const AdminReviewTab()),
+        Offstage(offstage: index != 10, child: const AdminStaffTab()),
+        Offstage(offstage: index != 11, child: _buildNoticeManagement()),
+        Offstage(offstage: index != 12, child: const AdminDeliveryTab()),
+        Offstage(offstage: index != 13, child: const _CategoryManagementTab()),
+        Offstage(offstage: index != 14, child: const AdminExchangeTab()),
+        Offstage(offstage: index != 15, child: const AdminReviewTab()),
       ],
     );
   }
@@ -7565,6 +7562,8 @@ class _AdminScreenState extends State<AdminScreen>
   // ignore: unused_field
   int _selectedChatIdx = -1; // -1 = 목록 보기
   String? _selectedRoomId;   // 선택된 채팅방 ID
+  // 채팅 필터: 'all' | 'active' | 'completed' | 'blocked'
+  String _chatFilterTab = 'active';
 
   Widget _buildChatManagement() {
     final width = MediaQuery.of(context).size.width;
@@ -7628,7 +7627,8 @@ class _AdminScreenState extends State<AdminScreen>
               StreamBuilder<List<ChatRoomModel>>(
                 stream: ChatService.watchAllRooms(),
                 builder: (_, snap) {
-                  final unread = (snap.data ?? []).fold(0, (s, r) => s + r.unreadCount);
+                  final unread = (snap.data ?? []).where((r) => !r.isCompleted && !r.isBlocked).fold(0, (s, r) => s + r.unreadCount);
+                  if (unread == 0) return const SizedBox.shrink();
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(10)),
@@ -7639,11 +7639,27 @@ class _AdminScreenState extends State<AdminScreen>
             ],
           ),
         ),
+        // ── 필터 탭 (미완료 | 완료 | 차단)
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            children: [
+              _chatFilterChip('active', '상담중', Icons.chat_bubble_rounded, const Color(0xFF2E7D32)),
+              const SizedBox(width: 6),
+              _chatFilterChip('completed', '완료', Icons.check_circle_rounded, const Color(0xFF888888)),
+              const SizedBox(width: 6),
+              _chatFilterChip('blocked', '차단', Icons.block_rounded, const Color(0xFFE53935)),
+              const SizedBox(width: 6),
+              _chatFilterChip('all', '전체', Icons.list_rounded, AppColors.primary),
+            ],
+          ),
+        ),
         // 알림 배너
-        if (_notifyNewChat)
+        if (_notifyNewChat && _chatFilterTab == 'active')
           Container(
-            margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: const Color(0xFFE3F2FD),
               borderRadius: BorderRadius.circular(8),
@@ -7651,11 +7667,9 @@ class _AdminScreenState extends State<AdminScreen>
             ),
             child: Row(
               children: [
-                const Icon(Icons.notifications_active_rounded, size: 14, color: Color(0xFF1565C0)),
+                const Icon(Icons.notifications_active_rounded, size: 13, color: Color(0xFF1565C0)),
                 const SizedBox(width: 6),
                 const Expanded(child: Text('실시간 채팅 알림 활성화됨', style: TextStyle(fontSize: 11, color: Color(0xFF1565C0)))),
-                if (_adminPhone.isNotEmpty)
-                  Text('📱 $_adminPhone', style: const TextStyle(fontSize: 10, color: Color(0xFF1565C0))),
               ],
             ),
           ),
@@ -7667,7 +7681,15 @@ class _AdminScreenState extends State<AdminScreen>
               if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
-              final rooms = snapshot.data ?? [];
+              final allRooms = snapshot.data ?? [];
+              // 필터 적용
+              final rooms = allRooms.where((r) {
+                if (_chatFilterTab == 'active') return !r.isCompleted && !r.isBlocked;
+                if (_chatFilterTab == 'completed') return r.isCompleted && !r.isBlocked;
+                if (_chatFilterTab == 'blocked') return r.isBlocked;
+                return true; // all
+              }).toList();
+
               if (rooms.isEmpty) {
                 return Center(
                   child: Column(
@@ -7675,7 +7697,12 @@ class _AdminScreenState extends State<AdminScreen>
                     children: [
                       Icon(Icons.chat_bubble_outline_rounded, size: 48, color: AppColors.textHint.withValues(alpha: 0.4)),
                       const SizedBox(height: 12),
-                      const Text('아직 채팅 문의가 없습니다', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                      Text(
+                        _chatFilterTab == 'completed' ? '완료된 상담이 없습니다' :
+                        _chatFilterTab == 'blocked' ? '차단된 사용자가 없습니다' :
+                        '아직 채팅 문의가 없습니다',
+                        style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                      ),
                     ],
                   ),
                 );
@@ -7690,25 +7717,64 @@ class _AdminScreenState extends State<AdminScreen>
                   return InkWell(
                     onTap: () {
                       setState(() => _selectedRoomId = room.id);
-                      ChatService.markAsRead(room.id);
+                      if (!room.isBlocked) ChatService.markAsRead(room.id);
                     },
+                    onLongPress: () => _showChatRoomActions(room),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary.withValues(alpha: 0.05) : Colors.white,
+                        color: room.isBlocked
+                            ? const Color(0xFFFFF3F3)
+                            : room.isCompleted
+                                ? const Color(0xFFF5F5F5)
+                                : isSelected
+                                    ? AppColors.primary.withValues(alpha: 0.05)
+                                    : Colors.white,
                         border: Border(bottom: BorderSide(color: AppColors.border.withValues(alpha: 0.5))),
                       ),
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 22,
-                            backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                            child: Text(
-                              room.userName.characters.first,
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primary),
-                            ),
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: room.isBlocked
+                                    ? const Color(0xFFE53935).withValues(alpha: 0.15)
+                                    : room.isCompleted
+                                        ? Colors.grey.withValues(alpha: 0.15)
+                                        : AppColors.primary.withValues(alpha: 0.15),
+                                child: Text(
+                                  room.userName.characters.first,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: room.isBlocked
+                                        ? const Color(0xFFE53935)
+                                        : room.isCompleted
+                                            ? Colors.grey
+                                            : AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                              if (room.isBlocked)
+                                Positioned(right: 0, bottom: 0,
+                                  child: Container(
+                                    width: 14, height: 14,
+                                    decoration: const BoxDecoration(color: Color(0xFFE53935), shape: BoxShape.circle),
+                                    child: const Icon(Icons.block, size: 9, color: Colors.white),
+                                  ),
+                                ),
+                              if (room.isCompleted && !room.isBlocked)
+                                Positioned(right: 0, bottom: 0,
+                                  child: Container(
+                                    width: 14, height: 14,
+                                    decoration: const BoxDecoration(color: Color(0xFF888888), shape: BoxShape.circle),
+                                    child: const Icon(Icons.check, size: 9, color: Colors.white),
+                                  ),
+                                ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -7718,19 +7784,25 @@ class _AdminScreenState extends State<AdminScreen>
                                     Expanded(
                                       child: Text(
                                         room.userName,
-                                        style: TextStyle(fontSize: 14, fontWeight: room.unreadCount > 0 ? FontWeight.w700 : FontWeight.w500),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: room.unreadCount > 0 ? FontWeight.w700 : FontWeight.w500,
+                                          color: room.isBlocked ? const Color(0xFFE53935) : null,
+                                        ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    Text(timeStr, style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
+                                    Text(timeStr, style: const TextStyle(fontSize: 10, color: AppColors.textHint)),
                                   ],
                                 ),
-                                const SizedBox(height: 3),
+                                const SizedBox(height: 2),
                                 Text(
+                                  room.isBlocked ? '차단된 사용자' :
                                   room.lastMessage.isEmpty ? '새 채팅이 시작됐습니다' : room.lastMessage,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: room.unreadCount > 0 ? AppColors.textPrimary : AppColors.textSecondary,
+                                    color: room.isBlocked ? const Color(0xFFE53935).withValues(alpha: 0.7) :
+                                           room.unreadCount > 0 ? AppColors.textPrimary : AppColors.textSecondary,
                                     fontWeight: room.unreadCount > 0 ? FontWeight.w600 : FontWeight.w400,
                                   ),
                                   maxLines: 1,
@@ -7739,15 +7811,26 @@ class _AdminScreenState extends State<AdminScreen>
                               ],
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
+                          // 액션 버튼
+                          GestureDetector(
+                            onTap: () => _showChatRoomActions(room),
+                            child: Container(
+                              width: 28, height: 28,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF0F0F0),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(Icons.more_vert_rounded, size: 16, color: Color(0xFF666666)),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
                           if (room.unreadCount > 0)
                             Container(
-                              width: 22, height: 22,
+                              width: 20, height: 20,
                               decoration: const BoxDecoration(color: Color(0xFFE53935), shape: BoxShape.circle),
-                              child: Center(child: Text('${room.unreadCount}', style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700))),
-                            )
-                          else
-                            const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textHint),
+                              child: Center(child: Text('${room.unreadCount}', style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700))),
+                            ),
                         ],
                       ),
                     ),
@@ -7758,6 +7841,183 @@ class _AdminScreenState extends State<AdminScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _chatFilterChip(String value, String label, IconData icon, Color color) {
+    final isSelected = _chatFilterTab == value;
+    return GestureDetector(
+      onTap: () => setState(() => _chatFilterTab = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.12) : const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: isSelected ? color.withValues(alpha: 0.5) : Colors.transparent),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: isSelected ? color : const Color(0xFF888888)),
+            const SizedBox(width: 4),
+            Text(label, style: TextStyle(fontSize: 11, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400, color: isSelected ? color : const Color(0xFF888888))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChatRoomActions(ChatRoom room) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 8, bottom: 4),
+              width: 36, height: 4,
+              decoration: BoxDecoration(color: const Color(0xFFDDDDDD), borderRadius: BorderRadius.circular(2)),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+              child: Row(
+                children: [
+                  CircleAvatar(radius: 16, backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                    child: Text(room.userName.characters.first, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary))),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(room.userName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700))),
+                  if (room.isCompleted)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(color: const Color(0xFF888888).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+                      child: const Text('상담완료', style: TextStyle(fontSize: 10, color: Color(0xFF888888), fontWeight: FontWeight.w700)),
+                    )
+                  else if (room.isBlocked)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(color: const Color(0xFFE53935).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+                      child: const Text('차단됨', style: TextStyle(fontSize: 10, color: Color(0xFFE53935), fontWeight: FontWeight.w700)),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(color: const Color(0xFF2E7D32).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+                      child: const Text('상담중', style: TextStyle(fontSize: 10, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
+                    ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            // 완료/재개 토글
+            if (!room.isBlocked)
+              ListTile(
+                leading: Icon(
+                  room.isCompleted ? Icons.replay_rounded : Icons.check_circle_outline_rounded,
+                  color: room.isCompleted ? const Color(0xFF2E7D32) : const Color(0xFF888888),
+                ),
+                title: Text(room.isCompleted ? '상담 재개 (미완료로 변경)' : '상담 완료 처리'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  if (room.isCompleted) {
+                    await ChatService.reopenRoom(room.id);
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('상담을 재개했습니다.'), backgroundColor: Color(0xFF2E7D32)),
+                    );
+                  } else {
+                    await ChatService.completeRoom(room.id, completedBy: 'admin');
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('상담을 완료 처리했습니다.'), backgroundColor: Color(0xFF888888)),
+                    );
+                  }
+                },
+              ),
+            // 차단/차단해제 토글
+            ListTile(
+              leading: Icon(
+                room.isBlocked ? Icons.lock_open_rounded : Icons.block_rounded,
+                color: room.isBlocked ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
+              ),
+              title: Text(room.isBlocked ? '차단 해제' : '사용자 차단'),
+              subtitle: room.isBlocked ? null : const Text('차단 시 해당 사용자의 메시지를 받지 않습니다', style: TextStyle(fontSize: 11)),
+              onTap: () async {
+                Navigator.pop(context);
+                if (room.isBlocked) {
+                  await ChatService.unblockUser(room.id);
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('${room.userName} 차단을 해제했습니다.'), backgroundColor: const Color(0xFF2E7D32)),
+                  );
+                } else {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('사용자 차단'),
+                      content: Text('${room.userName}님을 차단하시겠습니까?\n차단 후에도 이전 대화 내용은 유지됩니다.'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text('차단', style: TextStyle(color: Color(0xFFE53935))),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirm == true) {
+                    await ChatService.blockUser(room.id);
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('${room.userName}님을 차단했습니다.'), backgroundColor: const Color(0xFFE53935)),
+                    );
+                  }
+                }
+              },
+            ),
+            // 삭제
+            ListTile(
+              leading: const Icon(Icons.delete_outline_rounded, color: Color(0xFFE53935)),
+              title: const Text('채팅 삭제', style: TextStyle(color: Color(0xFFE53935))),
+              subtitle: const Text('모든 대화 내용이 영구 삭제됩니다', style: TextStyle(fontSize: 11)),
+              onTap: () async {
+                Navigator.pop(context);
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('채팅 삭제'),
+                    content: Text('${room.userName}님과의 모든 채팅을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('삭제', style: TextStyle(color: Color(0xFFE53935), fontWeight: FontWeight.w700)),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  try {
+                    await ChatService.deleteRoom(room.id);
+                    if (!mounted) return;
+                    if (_selectedRoomId == room.id) setState(() => _selectedRoomId = null);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('${room.userName}님의 채팅을 삭제했습니다.'), backgroundColor: const Color(0xFFE53935)),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('삭제 실패: $e'), backgroundColor: const Color(0xFFE53935)),
+                    );
+                  }
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
     );
   }
 
@@ -7838,14 +8098,30 @@ class _AdminScreenState extends State<AdminScreen>
                     builder: (_, snap) {
                       final isCompleted = snap.data ?? false;
                       return isCompleted
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF888888).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFF888888).withValues(alpha: 0.3)),
+                        ? GestureDetector(
+                            onTap: () async {
+                              await ChatService.reopenRoom(roomId);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('상담을 재개했습니다.'), backgroundColor: Color(0xFF2E7D32)),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF888888).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFF888888).withValues(alpha: 0.3)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('상담완료', style: TextStyle(fontSize: 10, color: Color(0xFF888888), fontWeight: FontWeight.w700)),
+                                  SizedBox(width: 4),
+                                  Text('·재개', style: TextStyle(fontSize: 9, color: Color(0xFF555555))),
+                                ],
+                              ),
                             ),
-                            child: const Text('상담완료', style: TextStyle(fontSize: 10, color: Color(0xFF888888), fontWeight: FontWeight.w700)),
                           )
                         : GestureDetector(
                             onTap: () async {
@@ -7872,6 +8148,26 @@ class _AdminScreenState extends State<AdminScreen>
                               ),
                             ),
                           );
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  // 채팅방 액션 메뉴
+                  StreamBuilder<List<ChatRoomModel>>(
+                    stream: ChatService.watchAllRooms(),
+                    builder: (_, snap) {
+                      final room = (snap.data ?? []).where((r) => r.id == roomId).firstOrNull;
+                      if (room == null) return const SizedBox.shrink();
+                      return GestureDetector(
+                        onTap: () => _showChatRoomActions(room),
+                        child: Container(
+                          width: 30, height: 30,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0F0F0),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.more_vert_rounded, size: 16, color: Color(0xFF666666)),
+                        ),
+                      );
                     },
                   ),
                 ],
