@@ -268,24 +268,54 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
     setState(() { _list = list; _loading = false; });
   }
 
-  /// 기존 상품 전체를 inventory 콜렉션에 동기화
+  /// 기존 상품 전체를 inventory 컬렉션에 동기화 + 바코드 자동 생성
   Future<void> _syncFromProducts() async {
     setState(() => _syncing = true);
+
+    // 진행 중 스낵바
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Row(children: [
+        SizedBox(width: 18, height: 18,
+            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+        SizedBox(width: 12),
+        Text('상품 동기화 중... 잠시 기다려 주세요'),
+      ]),
+      backgroundColor: Color(0xFF6A1B9A),
+      duration: Duration(seconds: 30),
+    ));
+
     try {
-      // getAllProductsForAdmin — 숨김 상품 포함 전체
       final products = await ProductService.getAllProductsForAdmin();
-      final count    = await InventoryService.syncAllProducts(products);
+      final created  = await InventoryService.syncAllProducts(products);
+
       if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      // 바코드 없던 상품 수 계산 (참고용)
+      final noCodeCount = products.where((p) => p.productCode.isEmpty).length;
+
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(count == 0
-            ? '모든 상품(${products.length}개)이 이미 재고DB에 있습니다.'
-            : '동기화 완료: ${products.length}개 중 $count개 재고 초기화됨'),
-        backgroundColor: const Color(0xFF6A1B9A),
-        duration: const Duration(seconds: 4),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('✅ 동기화 완료 (전체 ${products.length}개)',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            if (created > 0)
+              Text('  • 재고 신규 생성: $created개'),
+            if (noCodeCount > 0)
+              Text('  • 바코드 자동 생성: $noCodeCount개'),
+            if (created == 0 && noCodeCount == 0)
+              const Text('  • 이미 모두 최신 상태입니다'),
+          ],
+        ),
+        backgroundColor: const Color(0xFF2E7D32),
+        duration: const Duration(seconds: 5),
       ));
       await _load();
     } catch (e) {
       if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('동기화 실패: $e'),
         backgroundColor: Colors.red,

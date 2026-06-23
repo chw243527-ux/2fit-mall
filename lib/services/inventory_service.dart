@@ -78,15 +78,56 @@ class InventoryService {
     ).toJson());
   }
 
-  /// 전체 상품 일괄 동기화 — 없는 상품만 생성, 이미 있는 것은 건드리지 않음
+  /// 전체 상품 일괄 동기화
+  /// - inventory 문서 없으면 생성
+  /// - 있어도 productCode 비어있으면 자동 생성해서 업데이트
+  /// - Firestore products 컬렉션의 productCode도 비어있으면 동시에 업데이트
   static Future<int> syncAllProducts(List<ProductModel> products) async {
     int created = 0;
     for (final p in products) {
-      final doc  = _inv.doc(p.id);
-      final snap = await doc.get();
+      // 1) productCode 결정 (상품에 없으면 자동 생성)
+      final code = p.productCode.isNotEmpty
+          ? p.productCode
+          : _generateCode(p.id);
+
+      // 2) Firestore products 문서에 productCode 없으면 저장
+      if (p.productCode.isEmpty) {
+        try {
+          await _db.collection('products').doc(p.id)
+              .update({'productCode': code});
+        } catch (_) {}
+      }
+
+      // 3) inventory 문서 처리
+      final invDoc = _inv.doc(p.id);
+      final snap   = await invDoc.get();
+
       if (!snap.exists) {
-        await initProduct(p);
+        // 없으면 새로 생성
+        final sizes  = p.sizes.isNotEmpty  ? p.sizes  : ['FREE'];
+        final colors = p.colors.isNotEmpty ? p.colors : ['기본'];
+        final Map<String, Map<String, int>> stock = {};
+        for (final s in sizes) {
+          stock[s] = { for (final c in colors) c: 0 };
+        }
+        await invDoc.set(InventoryModel(
+          productId:   p.id,
+          productName: p.name,
+          productCode: code,
+          stock:       stock,
+          reorderPoint: 5,
+          updatedAt:   DateTime.now(),
+        ).toJson());
         created++;
+      } else {
+        // 있는데 productCode 비어있으면 업데이트만
+        final existing = InventoryModel.fromJson(snap.id, snap.data()!);
+        if (existing.productCode.isEmpty) {
+          await invDoc.update({
+            'productCode': code,
+            'updatedAt':   DateTime.now().toIso8601String(),
+          });
+        }
       }
     }
     return created;
