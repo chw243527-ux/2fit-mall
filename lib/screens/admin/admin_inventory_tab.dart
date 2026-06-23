@@ -284,11 +284,12 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
     setState(() { _list = list; _loading = false; _isFallback = fallback; });
   }
 
-  /// 기존 상품 전체를 inventory 컬렉션에 동기화 + 바코드 자동 생성
+  /// 상품관리 → 재고관리 동기화
+  /// - inventory 쓰기 가능 시: Firestore에 저장 후 표시
+  /// - permission-denied 시: products 기반 데이터로 즉시 표시 (로컬 뷰)
   Future<void> _syncFromProducts() async {
     setState(() => _syncing = true);
 
-    // 진행 중 스낵바
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
       content: Row(children: [
         SizedBox(width: 18, height: 18,
@@ -302,56 +303,89 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
 
     try {
       final products = await ProductService.getAllProductsForAdmin();
-      final created  = await InventoryService.syncAllProducts(products);
+      if (!mounted) return;
+
+      // 1) inventory 컬렉션에 쓰기 시도
+      int created = 0;
+      bool writeOk = true;
+      try {
+        created = await InventoryService.syncAllProducts(products);
+      } catch (_) {
+        writeOk = false;
+      }
+
+      // 2) 화면 표시용 데이터: 쓰기 성공이면 Firestore 읽기, 실패면 products 기반
+      List<InventoryModel> displayList;
+      bool fallback = false;
+      if (writeOk) {
+        displayList = await InventoryService.fetchAll();
+      } else {
+        // Firestore에서 기존 inventory 읽기 시도 (이미 있는 데이터)
+        try {
+          final snap = await FirebaseFirestore.instance
+              .collection('inventory').orderBy('productName').get();
+          displayList = snap.docs
+              .map((d) => InventoryModel.fromJson(d.id, d.data())).toList();
+        } catch (_) {
+          // 읽기도 안 되면 → products로 실시간 구성
+          displayList = _buildFromProducts(products);
+          fallback = true;
+        }
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      setState(() { _list = displayList; _isFallback = fallback; });
 
-      // 바코드 없던 상품 수 계산 (참고용)
       final noCodeCount = products.where((p) => p.productCode.isEmpty).length;
-
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('✅ 동기화 완료 (전체 ${products.length}개)',
+            Text('✅ 상품 ${products.length}개 재고 적용 완료',
                 style: const TextStyle(fontWeight: FontWeight.bold)),
-            if (created > 0)
-              Text('  • 재고 신규 생성: $created개'),
-            if (noCodeCount > 0)
+            if (writeOk && created > 0)
+              Text('  • 재고DB 신규 생성: $created개'),
+            if (writeOk && noCodeCount > 0)
               Text('  • 바코드 자동 생성: $noCodeCount개'),
-            if (created == 0 && noCodeCount == 0)
-              const Text('  • 이미 모두 최신 상태입니다'),
+            if (!writeOk)
+              const Text('  • 재고수량은 표시만 됩니다 (Rules 배포 후 저장됨)',
+                  style: TextStyle(fontSize: 11)),
           ],
         ),
-        backgroundColor: const Color(0xFF2E7D32),
+        backgroundColor: writeOk ? const Color(0xFF2E7D32) : const Color(0xFF6A1B9A),
         duration: const Duration(seconds: 5),
       ));
-      await _load();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      final isPermission = e.toString().contains('permission-denied');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(isPermission
-                ? '⚠️ Firestore 권한 오류 — 관리자에게 Rules 배포를 요청하세요'
-                : '동기화 실패: $e'),
-            if (isPermission)
-              const Text('firebase deploy --only firestore:rules',
-                  style: TextStyle(fontSize: 11, fontFamily: 'monospace')),
-          ],
-        ),
+        content: Text('동기화 실패: $e'),
         backgroundColor: Colors.red,
-        duration: const Duration(seconds: 8),
       ));
     } finally {
       if (mounted) setState(() => _syncing = false);
     }
+  }
+
+  /// products 리스트 → InventoryModel 리스트 변환 (로컬 뷰용)
+  List<InventoryModel> _buildFromProducts(List<ProductModel> products) {
+    return products.map((p) {
+      final code = p.productCode.isNotEmpty
+          ? p.productCode
+          : p.id.hashCode.abs().toString().substring(0, 8).padLeft(8, '0');
+      final sizes  = p.sizes.isNotEmpty  ? p.sizes  : ['FREE'];
+      final colors = p.colors.isNotEmpty ? p.colors : ['기본'];
+      return InventoryModel(
+        productId:   p.id,
+        productName: p.name,
+        productCode: code,
+        stock: { for (final s in sizes) s: {for (final c in colors) c: 0} },
+        reorderPoint: 5,
+        updatedAt: DateTime.now(),
+      );
+    }).toList();
   }
 
   List<InventoryModel> get _filtered {
