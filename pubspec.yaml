@@ -67,6 +67,7 @@ dependencies:
 
   # ── 바코드 생성 ───────────────────────────────
   barcode_widget: ^2.0.4
+  mobile_scanner: ^7.2.0
 
 dev_dependencies:
   flutter_test:

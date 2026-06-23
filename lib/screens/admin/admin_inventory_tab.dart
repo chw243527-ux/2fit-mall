@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
+// mobile_scanner의 Barcode가 barcode 패키지의 Barcode와 충돌 → hide로 제외
+import 'package:mobile_scanner/mobile_scanner.dart' hide Barcode;
 import '../../models/models.dart';
 import '../../services/inventory_service.dart';
 import '../../services/barcode_print_service.dart';
@@ -877,7 +879,7 @@ class _StockFormTabState extends State<_StockFormTab> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         _SectionTitle(widget.type.label),
 
-        // ── USB 바코드 스캔 입력
+        // ── 바코드 스캔 (USB 리더기 입력 + 카메라 스캔)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Row(children: [
@@ -888,12 +890,31 @@ class _StockFormTabState extends State<_StockFormTab> {
                 controller: _scanCtrl,
                 focusNode: _scanFocus,
                 decoration: InputDecoration(
-                  hintText: '바코드 리더기 or 바코드 번호 입력 후 Enter',
+                  hintText: '바코드 번호 입력 후 Enter',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 ),
                 onSubmitted: _onScan,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // 카메라 스캔 버튼
+            Tooltip(
+              message: '카메라로 스캔',
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => showBarcodeScannerDialog(context, _onScan),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6A1B9A).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF6A1B9A).withOpacity(0.3)),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded,
+                      color: Color(0xFF6A1B9A), size: 22),
+                ),
               ),
             ),
           ]),
@@ -1554,12 +1575,30 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
               controller: _scanCtrl,
               focusNode: _scanFocus,
               decoration: InputDecoration(
-                hintText: '바코드 스캔 or 번호 입력 후 Enter',
+                hintText: '바코드 번호 입력 후 Enter',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               ),
               onSubmitted: _onScan,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Tooltip(
+            message: '카메라로 스캔',
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => showBarcodeScannerDialog(context, _onScan),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6A1B9A).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF6A1B9A).withOpacity(0.3)),
+                ),
+                child: const Icon(Icons.camera_alt_rounded,
+                    color: Color(0xFF6A1B9A), size: 22),
+              ),
             ),
           ),
         ]),
@@ -1700,5 +1739,140 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
         ],
       ]),
     ),
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+//  카메라 바코드 스캔 다이얼로그
+// ════════════════════════════════════════════════════════════
+class _BarcodeScannerDialog extends StatefulWidget {
+  final void Function(String barcode) onScanned;
+  const _BarcodeScannerDialog({required this.onScanned});
+  @override
+  State<_BarcodeScannerDialog> createState() => _BarcodeScannerDialogState();
+}
+
+class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
+  late final MobileScannerController _ctrl;
+  bool _detected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = MobileScannerController(
+      detectionSpeed: DetectionSpeed.normal,
+      formats: const [BarcodeFormat.code128, BarcodeFormat.ean13,
+                      BarcodeFormat.ean8, BarcodeFormat.qrCode,
+                      BarcodeFormat.dataMatrix, BarcodeFormat.all],
+    );
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_detected) return;
+    final raw = capture.barcodes.firstOrNull?.rawValue;
+    if (raw == null || raw.isEmpty) return;
+    _detected = true;
+    Navigator.pop(context);
+    widget.onScanned(raw);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding: const EdgeInsets.all(16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        // 헤더
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
+          child: Row(children: [
+            const Icon(Icons.qr_code_scanner, color: Color(0xFF6A1B9A)),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text('바코드 스캔',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ]),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Text('카메라를 바코드에 가까이 대주세요',
+              style: TextStyle(fontSize: 12, color: Colors.grey)),
+        ),
+        const SizedBox(height: 8),
+        // 카메라 뷰
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          height: 260,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.black,
+          ),
+          clipBehavior: Clip.hardEdge,
+          child: Stack(children: [
+            MobileScanner(
+              controller: _ctrl,
+              onDetect: _onDetect,
+            ),
+            // 스캔 가이드 오버레이
+            Center(
+              child: Container(
+                width: 200, height: 120,
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFF6A1B9A), width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ]),
+        ),
+        // 하단 버튼
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            // 플래시 토글
+            ValueListenableBuilder(
+              valueListenable: _ctrl,
+              builder: (_, state, __) {
+                final torchOn = state.torchState == TorchState.on;
+                return IconButton(
+                  tooltip: torchOn ? '플래시 끄기' : '플래시 켜기',
+                  icon: Icon(torchOn ? Icons.flash_on : Icons.flash_off,
+                      color: torchOn ? Colors.amber : Colors.grey),
+                  onPressed: () => _ctrl.toggleTorch(),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+            // 카메라 전환
+            IconButton(
+              tooltip: '카메라 전환',
+              icon: const Icon(Icons.flip_camera_ios_outlined, color: Colors.grey),
+              onPressed: () => _ctrl.switchCamera(),
+            ),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+/// 카메라 스캔 다이얼로그 열기 헬퍼
+Future<void> showBarcodeScannerDialog(
+    BuildContext context, void Function(String) onScanned) {
+  return showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (_) => _BarcodeScannerDialog(onScanned: onScanned),
   );
 }
