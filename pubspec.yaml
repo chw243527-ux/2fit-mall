@@ -65,6 +65,9 @@ dependencies:
   # ── 동영상 플레이어 ───────────────────────────
   video_player: ^2.9.2
 
+  # ── 바코드 생성 ───────────────────────────────
+  barcode_widget: ^2.0.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

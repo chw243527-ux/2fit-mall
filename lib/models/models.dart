@@ -992,3 +992,187 @@ class AuthResult {
     this.error,
   });
 }
+
+// ════════════════════════════════════════════════════════════
+//  재고 관리 모델
+// ════════════════════════════════════════════════════════════
+
+/// 입출고 유형
+enum InventoryLogType {
+  incoming,   // 입고
+  outgoing,   // 출고
+  adjustment, // 재고조정
+  reorder,    // 발주
+}
+
+extension InventoryLogTypeExt on InventoryLogType {
+  String get label {
+    switch (this) {
+      case InventoryLogType.incoming:   return '입고';
+      case InventoryLogType.outgoing:   return '출고';
+      case InventoryLogType.adjustment: return '재고조정';
+      case InventoryLogType.reorder:    return '발주';
+    }
+  }
+  String get value {
+    switch (this) {
+      case InventoryLogType.incoming:   return 'incoming';
+      case InventoryLogType.outgoing:   return 'outgoing';
+      case InventoryLogType.adjustment: return 'adjustment';
+      case InventoryLogType.reorder:    return 'reorder';
+    }
+  }
+  static InventoryLogType fromString(String v) {
+    switch (v) {
+      case 'incoming':   return InventoryLogType.incoming;
+      case 'outgoing':   return InventoryLogType.outgoing;
+      case 'adjustment': return InventoryLogType.adjustment;
+      case 'reorder':    return InventoryLogType.reorder;
+      default:           return InventoryLogType.incoming;
+    }
+  }
+}
+
+/// 사이즈별 재고 현황 (Firestore: inventory/{productId})
+class InventoryModel {
+  final String productId;
+  final String productName;
+  final String productCode; // 바코드용 코드
+  /// 사이즈 → 색상 → 수량  예: {'S': {'블랙': 10, '화이트': 5}}
+  final Map<String, Map<String, int>> stock;
+  final int reorderPoint;   // 발주 기준 수량 (이하이면 경고)
+  final DateTime updatedAt;
+
+  const InventoryModel({
+    required this.productId,
+    required this.productName,
+    required this.productCode,
+    required this.stock,
+    this.reorderPoint = 5,
+    required this.updatedAt,
+  });
+
+  /// 전체 재고 합산
+  int get totalStock => stock.values
+      .expand((colorMap) => colorMap.values)
+      .fold(0, (sum, qty) => sum + qty);
+
+  /// 특정 사이즈 전체 재고
+  int stockForSize(String size) =>
+      (stock[size] ?? {}).values.fold(0, (s, v) => s + v);
+
+  /// 특정 사이즈+색상 재고
+  int stockForSizeColor(String size, String color) =>
+      stock[size]?[color] ?? 0;
+
+  bool get needsReorder => totalStock <= reorderPoint;
+
+  InventoryModel copyWith({
+    Map<String, Map<String, int>>? stock,
+    int? reorderPoint,
+    DateTime? updatedAt,
+  }) => InventoryModel(
+    productId:   productId,
+    productName: productName,
+    productCode: productCode,
+    stock:        stock        ?? this.stock,
+    reorderPoint: reorderPoint ?? this.reorderPoint,
+    updatedAt:    updatedAt    ?? this.updatedAt,
+  );
+
+  factory InventoryModel.fromJson(String id, Map<String, dynamic> json) {
+    final rawStock = json['stock'] as Map<String, dynamic>? ?? {};
+    final stock = rawStock.map((size, colorRaw) {
+      final colorMap = (colorRaw as Map<String, dynamic>).map(
+        (color, qty) => MapEntry(color, (qty as num).toInt()),
+      );
+      return MapEntry(size, colorMap);
+    });
+    return InventoryModel(
+      productId:   id,
+      productName: json['productName'] as String? ?? '',
+      productCode: json['productCode'] as String? ?? '',
+      stock:        stock,
+      reorderPoint: json['reorderPoint'] as int? ?? 5,
+      updatedAt:    (json['updatedAt'] != null)
+          ? DateTime.parse(json['updatedAt'] as String)
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'productName': productName,
+    'productCode': productCode,
+    'stock': stock.map((size, colorMap) =>
+        MapEntry(size, colorMap.map((c, q) => MapEntry(c, q)))),
+    'reorderPoint': reorderPoint,
+    'updatedAt': updatedAt.toIso8601String(),
+  };
+}
+
+/// 입출고 이력 (Firestore: inventory_logs/)
+class InventoryLog {
+  final String id;
+  final String productId;
+  final String productName;
+  final String productCode;
+  final String size;
+  final String color;
+  final InventoryLogType type;
+  final int quantity;       // 변경 수량 (항상 양수)
+  final int beforeQty;      // 변경 전 재고
+  final int afterQty;       // 변경 후 재고
+  final String memo;
+  final String adminId;
+  final DateTime createdAt;
+
+  const InventoryLog({
+    required this.id,
+    required this.productId,
+    required this.productName,
+    required this.productCode,
+    required this.size,
+    required this.color,
+    required this.type,
+    required this.quantity,
+    required this.beforeQty,
+    required this.afterQty,
+    this.memo = '',
+    required this.adminId,
+    required this.createdAt,
+  });
+
+  factory InventoryLog.fromJson(String id, Map<String, dynamic> json) =>
+      InventoryLog(
+        id:          id,
+        productId:   json['productId']   as String? ?? '',
+        productName: json['productName'] as String? ?? '',
+        productCode: json['productCode'] as String? ?? '',
+        size:        json['size']        as String? ?? '',
+        color:       json['color']       as String? ?? '',
+        type:        InventoryLogTypeExt.fromString(json['type'] as String? ?? ''),
+        quantity:    json['quantity']    as int? ?? 0,
+        beforeQty:   json['beforeQty']   as int? ?? 0,
+        afterQty:    json['afterQty']    as int? ?? 0,
+        memo:        json['memo']        as String? ?? '',
+        adminId:     json['adminId']     as String? ?? '',
+        createdAt:   (json['createdAt'] != null)
+            ? DateTime.parse(json['createdAt'] as String)
+            : DateTime.now(),
+      );
+
+  Map<String, dynamic> toJson() => {
+    'productId':   productId,
+    'productName': productName,
+    'productCode': productCode,
+    'size':        size,
+    'color':       color,
+    'type':        type.value,
+    'quantity':    quantity,
+    'beforeQty':   beforeQty,
+    'afterQty':    afterQty,
+    'memo':        memo,
+    'adminId':     adminId,
+    'createdAt':   createdAt.toIso8601String(),
+  };
+}

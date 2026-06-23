@@ -23,6 +23,8 @@ import '../../services/translation_service.dart';
 import '../../services/banner_service.dart';
 import '../../services/category_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'admin_inventory_tab.dart';
 import '../../utils/constants.dart';
 import '../../widgets/image_lightbox.dart';
 import '../auth/login_screen.dart';
@@ -884,7 +886,8 @@ class _AdminScreenState extends State<AdminScreen>
         Offstage(offstage: index != 7, child: _buildDesignRequests()),
         Offstage(offstage: index != 8, child: _buildChatManagement()),
         Offstage(offstage: index != 9, child: const AdminSalesStatsTab()),
-        Offstage(offstage: index != 10, child: const AdminInventoryTab()),
+        Offstage(offstage: index != 10, child: AdminInventoryTab(
+          adminId: FirebaseAuth.instance.currentUser?.uid ?? 'admin')),
         Offstage(offstage: index != 11, child: const AdminStaffTab()),
         Offstage(offstage: index != 12, child: _buildNoticeManagement()),
         Offstage(offstage: index != 13, child: const AdminDeliveryTab()),
