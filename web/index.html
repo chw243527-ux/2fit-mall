@@ -206,23 +206,41 @@
 
   <!-- ═══════════════════════════════════════════════
        ZXing-js 바코드 스캐너 (Flutter Web 카메라 스캔)
-       - ZXing TypeScript 라이브러리를 UMD 빌드로 로드
-       - window.startBarcodeScanner(containerId, onResult, onError)
-       - window.stopBarcodeScanner()
-       - Flutter Dart → JS Interop으로 호출
+       JS가 <video> 태그를 직접 생성/관리 → Flutter PlatformView 불필요
+       API:
+         window.startBarcodeScanner(onResult, onError)
+         window.stopBarcodeScanner()
   ═══════════════════════════════════════════════ -->
   <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
   <script>
     (function() {
       var _reader = null;
+      var _videoEl = null;
       var _active = false;
 
-      // ── 스캐너 시작 ──────────────────────────────────────────
-      window.startBarcodeScanner = function(videoId, onResult, onError) {
-        if (_active) window.stopBarcodeScanner();
+      // ── 스캐너 시작: JS가 <video> 직접 생성 ─────────────────────
+      window.startBarcodeScanner = function(onResult, onError) {
+        window.stopBarcodeScanner(); // 기존 정리
+
+        // <video> 태그 생성 — id로 ZXing이 찾음
+        _videoEl = document.createElement('video');
+        _videoEl.id = '__zxing_video__';
+        _videoEl.setAttribute('playsinline', 'true');
+        _videoEl.setAttribute('muted', 'true');
+        _videoEl.autoplay = true;
+        _videoEl.style.cssText = [
+          'position:fixed',
+          'top:0', 'left:0',
+          'width:100%', 'height:100%',
+          'object-fit:cover',
+          'z-index:-1',          // Flutter 캔버스 뒤에 숨김
+          'opacity:0',           // 완전히 숨김 (ZXing은 캡처만 함)
+          'pointer-events:none',
+        ].join(';');
+        document.body.appendChild(_videoEl);
 
         var hints = new Map();
-        var formats = [
+        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
           ZXing.BarcodeFormat.CODE_128,
           ZXing.BarcodeFormat.CODE_39,
           ZXing.BarcodeFormat.EAN_13,
@@ -231,50 +249,76 @@
           ZXing.BarcodeFormat.DATA_MATRIX,
           ZXing.BarcodeFormat.UPC_A,
           ZXing.BarcodeFormat.UPC_E,
-        ];
-        hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+        ]);
         hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
 
         _reader = new ZXing.BrowserMultiFormatReader(hints, {
-          delayBetweenScanAttempts: 100,
+          delayBetweenScanAttempts: 150,
           delayBetweenScanSuccess: 500,
         });
 
         _active = true;
-        var videoEl = document.getElementById(videoId);
-        if (!videoEl) { if (onError) onError('video element not found'); return; }
 
-        _reader.decodeFromVideoDevice(null, videoEl, function(result, err) {
+        _reader.decodeFromVideoDevice(null, _videoEl, function(result, err) {
           if (!_active) return;
           if (result) {
             var text = result.getText();
             if (text && text.length > 0) {
               _active = false;
-              _reader.reset();
+              try { _reader.reset(); } catch(e) {}
               if (onResult) onResult(text);
             }
           }
-          // err는 매 프레임마다 발생하는 NotFoundException이므로 무시
+          // NotFoundException은 매 프레임 정상 발생 → 무시
         }).catch(function(e) {
           _active = false;
-          var msg = e.message || e.toString();
+          var msg = (e && e.message) ? e.message : String(e);
+          console.warn('[ZXing] error:', msg);
+          var code = 'unknown';
           if (msg.indexOf('NotAllowed') >= 0 || msg.indexOf('Permission') >= 0) {
-            if (onError) onError('permission_denied');
+            code = 'permission_denied';
           } else if (msg.indexOf('NotReadable') >= 0 || msg.indexOf('Could not start') >= 0) {
-            if (onError) onError('camera_busy');
-          } else {
-            if (onError) onError(msg);
+            code = 'camera_busy';
+          } else if (msg.indexOf('NotFound') >= 0 || msg.indexOf('DevicesNotFound') >= 0) {
+            code = 'no_camera';
           }
+          if (onError) onError(code + '|' + msg);
         });
       };
 
-      // ── 스캐너 중지 ──────────────────────────────────────────
+      // ── 스캐너 중지 ──────────────────────────────────────────────
       window.stopBarcodeScanner = function() {
         _active = false;
         if (_reader) {
           try { _reader.reset(); } catch(e) {}
           _reader = null;
         }
+        if (_videoEl && _videoEl.parentNode) {
+          _videoEl.parentNode.removeChild(_videoEl);
+        }
+        _videoEl = null;
+      };
+
+      // ── 카메라 미리보기: Flutter Canvas 위에 띄우기 ──────────────
+      // Flutter가 그리는 Dialog 위에 실제 카메라 영상을 보이게 함
+      window.showCameraPreview = function(x, y, w, h) {
+        if (!_videoEl) return;
+        _videoEl.style.position = 'fixed';
+        _videoEl.style.left   = x + 'px';
+        _videoEl.style.top    = y + 'px';
+        _videoEl.style.width  = w + 'px';
+        _videoEl.style.height = h + 'px';
+        _videoEl.style.objectFit = 'cover';
+        _videoEl.style.zIndex = '999';   // Flutter 위로
+        _videoEl.style.opacity = '1';
+        _videoEl.style.borderRadius = '12px';
+        _videoEl.style.pointerEvents = 'none';
+      };
+
+      window.hideCameraPreview = function() {
+        if (!_videoEl) return;
+        _videoEl.style.zIndex  = '-1';
+        _videoEl.style.opacity = '0';
       };
     })();
   </script>

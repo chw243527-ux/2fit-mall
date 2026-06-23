@@ -1,9 +1,7 @@
 import 'dart:js_interop';
-import 'dart:ui_web' as ui_web;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
-import 'package:web/web.dart' as web;
 import '../../models/models.dart';
 import '../../services/inventory_service.dart';
 import '../../services/barcode_print_service.dart';
@@ -1746,15 +1744,21 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
 
 
 // ════════════════════════════════════════════════════════════
-//  카메라 바코드 스캔 다이얼로그 (ZXing-js Web 기반)
+//  카메라 바코드 스캔 다이얼로그 (ZXing-js — JS 직접 video 관리)
 // ════════════════════════════════════════════════════════════
 
-/// JS 함수 바인딩
+/// JS 함수 바인딩 — video 태그 포함 모든 것을 JS가 직접 처리
 @JS('startBarcodeScanner')
-external void _jsStartScanner(String videoId, JSFunction onResult, JSFunction onError);
+external void _jsStart(JSFunction onResult, JSFunction onError);
 
 @JS('stopBarcodeScanner')
-external void _jsStopScanner();
+external void _jsStop();
+
+@JS('showCameraPreview')
+external void _jsShowPreview(num x, num y, num w, num h);
+
+@JS('hideCameraPreview')
+external void _jsHidePreview();
 
 class _BarcodeScannerDialog extends StatefulWidget {
   final void Function(String barcode) onScanned;
@@ -1764,26 +1768,26 @@ class _BarcodeScannerDialog extends StatefulWidget {
 }
 
 class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
-  static const _videoId = 'zxing-video-preview';
-  bool _started = false;
+  bool _scanning = false;
   String? _errorMsg;
+
+  // Dialog 내 카메라 영역의 GlobalKey → 실제 화면 좌표 계산
+  final _cameraKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
-    // 위젯 빌드 후 video 엘리먼트가 DOM에 생긴 다음 스캐너 시작
     WidgetsBinding.instance.addPostFrameCallback((_) => _startScanner());
   }
 
   void _startScanner() {
     if (!mounted) return;
-    setState(() { _started = true; _errorMsg = null; });
+    setState(() { _scanning = true; _errorMsg = null; });
 
     final onResult = (JSString raw) {
       final barcode = raw.toDart;
-      if (barcode.isEmpty) return;
-      if (!mounted) return;
-      _jsStopScanner();
+      if (barcode.isEmpty || !mounted) return;
+      _jsStop();
       Navigator.pop(context);
       widget.onScanned(barcode);
     }.toJS;
@@ -1791,23 +1795,48 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
     final onError = (JSString raw) {
       final err = raw.toDart;
       if (!mounted) return;
+      final parts = err.split('|');
+      final code = parts[0];
       String msg;
-      if (err == 'permission_denied') {
-        msg = '카메라 권한이 거부되었습니다.\n브라우저 주소창 🔒 → 카메라 허용 후 다시 시도해주세요.';
-      } else if (err == 'camera_busy') {
-        msg = '카메라를 사용할 수 없습니다.\n다른 앱이 카메라를 사용 중일 수 있습니다.';
-      } else {
-        msg = '카메라 오류: $err\n잠시 후 다시 시도해주세요.';
+      switch (code) {
+        case 'permission_denied':
+          msg = '카메라 권한이 거부되었습니다.\n'
+              '브라우저 주소창 🔒 → 카메라 허용 후\n다시 시도해주세요.';
+          break;
+        case 'camera_busy':
+          msg = '카메라를 사용할 수 없습니다.\n'
+              '다른 앱이 카메라를 사용 중일 수 있습니다.';
+          break;
+        case 'no_camera':
+          msg = '카메라를 찾을 수 없습니다.\n'
+              '카메라가 연결되어 있는지 확인해주세요.';
+          break;
+        default:
+          msg = '카메라 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
       }
-      setState(() { _started = false; _errorMsg = msg; });
+      setState(() { _scanning = false; _errorMsg = msg; });
     }.toJS;
 
-    _jsStartScanner(_videoId, onResult, onError);
+    _jsStart(onResult, onError);
+
+    // 카메라 영역 좌표 계산 후 JS 오버레이 표시
+    WidgetsBinding.instance.addPostFrameCallback((_) => _positionPreview());
+  }
+
+  void _positionPreview() {
+    if (!mounted || _errorMsg != null) return;
+    final ctx = _cameraKey.currentContext;
+    if (ctx == null) return;
+    final box = ctx.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final pos = box.localToGlobal(Offset.zero);
+    final size = box.size;
+    _jsShowPreview(pos.dx, pos.dy, size.width, size.height);
   }
 
   @override
   void dispose() {
-    _jsStopScanner();
+    _jsStop();
     super.dispose();
   }
 
@@ -1817,7 +1846,8 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
       insetPadding: const EdgeInsets.all(16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        // ── 헤더 ──────────────────────────────────────────
+
+        // ── 헤더 ───────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
           child: Row(children: [
@@ -1829,10 +1859,11 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
             ),
             IconButton(
               icon: const Icon(Icons.close),
-              onPressed: () { _jsStopScanner(); Navigator.pop(context); },
+              onPressed: () { _jsStop(); Navigator.pop(context); },
             ),
           ]),
         ),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
@@ -1842,56 +1873,49 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
         ),
         const SizedBox(height: 8),
 
-        // ── 카메라 뷰 영역 ────────────────────────────────
+        // ── 카메라 영역 ────────────────────────────────────────
+        // JS <video>가 이 영역 좌표에 오버레이됨
         Container(
+          key: _cameraKey,
           margin: const EdgeInsets.symmetric(horizontal: 16),
           height: 260,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: Colors.black,
+            color: Colors.black87,
           ),
           clipBehavior: Clip.hardEdge,
           child: _errorMsg != null
               ? _buildErrorView(_errorMsg!)
-              : Stack(children: [
-                  // ZXing이 직접 접근하는 <video> 엘리먼트
-                  const HtmlElementView(viewType: _videoId),
-                  // 스캔 가이드 오버레이
-                  if (_started)
-                    Center(
-                      child: Container(
-                        width: 220, height: 120,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: const Color(0xFF6A1B9A), width: 2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+              : Stack(alignment: Alignment.center, children: [
+                  // 로딩 표시 (카메라 뜨기 전)
+                  if (_scanning)
+                    const CircularProgressIndicator(color: Colors.white54),
+                  // 스캔 가이드 오버레이 (항상 표시)
+                  if (_scanning)
+                    Container(
+                      width: 220, height: 120,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: const Color(0xFF6A1B9A), width: 2.5),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                    ),
-                  // 시작 전 로딩
-                  if (!_started)
-                    const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
                     ),
                 ]),
         ),
 
-        // ── 하단 안내 ─────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.info_outline, size: 14, color: Colors.grey),
-              const SizedBox(width: 6),
-              const Expanded(
-                child: Text(
-                  'USB 바코드 리더기도 아래 입력란에 직접 사용 가능합니다',
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
-                ),
+        // ── 하단 안내 ─────────────────────────────────────────
+        const Padding(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Row(children: [
+            Icon(Icons.info_outline, size: 13, color: Colors.grey),
+            SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                'USB 바코드 리더기는 아래 입력란에서 바로 사용 가능합니다',
+                style: TextStyle(fontSize: 11, color: Colors.grey),
               ),
-            ],
-          ),
+            ),
+          ]),
         ),
       ]),
     );
@@ -1921,43 +1945,21 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
   }
 }
 
-/// 카메라 스캔 다이얼로그 열기 헬퍼
+/// 카메라 스캔 다이얼로그 열기
 Future<void> showBarcodeScannerDialog(
     BuildContext context, void Function(String) onScanned) {
-  // Web 전용 — ZXing-js 기반
-  if (kIsWeb) {
-    // <video> 엘리먼트를 Flutter PlatformView로 등록
-    _registerVideoViewFactory();
-    return showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) => _BarcodeScannerDialog(onScanned: onScanned),
+  if (!kIsWeb) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('카메라 스캔은 웹 브라우저에서만 지원됩니다.')),
     );
+    return Future.value();
   }
-  // Non-web: 기능 미지원 안내
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('카메라 스캔은 웹 브라우저에서만 지원됩니다.')),
-  );
-  return Future.value();
-}
-
-bool _videoViewFactoryRegistered = false;
-void _registerVideoViewFactory() {
-  if (_videoViewFactoryRegistered) return;
-  _videoViewFactoryRegistered = true;
-  // ignore: undefined_prefixed_name
-  ui_web.platformViewRegistry.registerViewFactory(
-    'zxing-video-preview',
-    (int viewId) {
-      final video = web.HTMLVideoElement()
-        ..id = 'zxing-video-preview'
-        ..style.width = '100%'
-        ..style.height = '100%'
-        ..style.objectFit = 'cover'
-        ..autoplay = true
-        ..setAttribute('playsinline', 'true')  // iOS Safari 인라인 재생
-        ..muted = true;
-      return video;
-    },
-  );
+  return showDialog(
+    context: context,
+    barrierDismissible: true,
+    builder: (_) => _BarcodeScannerDialog(onScanned: onScanned),
+  ).then((_) {
+    // 다이얼로그 닫힐 때 반드시 정리
+    _jsStop();
+  });
 }
