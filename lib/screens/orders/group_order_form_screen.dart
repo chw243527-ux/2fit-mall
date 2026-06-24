@@ -5179,7 +5179,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         // ── 인원수 곱하기 ──
         _sumRow(context.loc.t('총_인원', '총 인원'), '$_totalCount' + context.loc.t('명', '명')),
         const Divider(height: 20),
-        _sumRow(context.loc.t('상품_합계', '상품 합계'), '${_fmt(_subTotal)}원'),
+        _sumRow(context.loc.t('상품_합계', '상품 합계'), '${_fmt(_subTotal)}' + context.loc.t('원', '원')),
         _sumRow(
           context.loc.t('배송비', '배송비'),
           _totalCount >= AppConstants.groupMinFreeShipping

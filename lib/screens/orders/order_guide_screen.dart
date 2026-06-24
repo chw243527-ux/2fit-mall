@@ -876,6 +876,8 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           const SizedBox(height: 12),
           _buildInfoRow(Icons.attach_money_rounded, context.loc.t('배송비', '배송비'), context.loc.t('4_000원_30만원_이상_무료배송', '4,000원 (30만원 이상 무료배송)'), AppColors.success),
           const SizedBox(height: 12),
+          _buildInfoRow(Icons.public_rounded, context.loc.t('해외_배송비', '해외 배송비'), context.loc.t('국가_및_무게에_따라_상이', '국가 및 무게에 따라 상이'), const Color(0xFF1565C0)),
+          const SizedBox(height: 12),
           _buildInfoRow(Icons.access_time_rounded, context.loc.t('일반_배송', '일반 배송'), context.loc.t('결제_완료_후_2_3_영업일', '결제 완료 후 2~3 영업일'), AppColors.info),
           const SizedBox(height: 12),
           _buildInfoRow(Icons.design_services_rounded, context.loc.t('커스텀_제작', '커스텀 제작'), context.loc.t('주문_확정_후_14_21일', '주문 확정 후 14~21일'), AppColors.warning),
@@ -890,7 +892,8 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
             ),
             child: Text(
-              context.loc.t('도서_산간_지역_추가_배송비_배송_관련_문의_고객', '※ 도서/산간 지역은 추가 배송비가 발생할 수 있습니다.\n※ 배송 관련 문의는 고객센터로 연락해주세요.'),
+              context.loc.t('도서_산간_지역_추가_배송비_배송_관련_문의_고객', '※ 도서/산간 지역은 추가 배송비가 발생할 수 있습니다.\n※ 배송 관련 문의는 고객센터로 연락해주세요.') +
+              '\n' + context.loc.t('해외_배송비_국가별_상이_안내_주문후_카톡', '※ 해외 배송비는 국가 및 무게에 따라 상이하며, 주문 완료 후 카카오톡(@2fit-mall)으로 안내드립니다.'),
               style: TextStyle(fontSize: 12, height: 1.6, color: AppColors.textSecondary),
             ),
           ),

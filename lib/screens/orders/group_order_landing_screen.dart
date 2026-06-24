@@ -404,7 +404,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   Widget _buildConditionTable() {
     final items = [
       {'icon': Icons.group_outlined,           'title': context.loc.t('최소_주문_수량', '최소 주문 수량'), 'desc': context.loc.t('k_5벌_이상', '5벌 이상')},
-      {'icon': Icons.local_shipping_outlined,   'title': context.loc.t('배송', '배송'),                  'desc': context.loc.t('k_30만원_이상_무료_미만_별도', '30만원 이상 무료 (미만 별도)')},
+      {'icon': Icons.local_shipping_outlined,   'title': context.loc.t('배송', '배송'),                  'desc': context.loc.t('k_30만원_이상_무료_미만_별도_해외_국가별', '국내: 30만원 이상 무료 (미만 4,000원)\n해외: 국가별 상이')},
       {'icon': Icons.schedule_outlined,         'title': context.loc.t('제작_기간', '제작 기간'),         'desc': context.loc.t('주문_확정_후_1421일', '주문 확정 후 14~21일')},
     ];
     return Container(
@@ -427,9 +427,12 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _kBlack),
                 ),
                 const Spacer(),
-                Text(
-                  item['desc'] as String,
-                  style: const TextStyle(fontSize: 12, color: _kGrey4),
+                Flexible(
+                  child: Text(
+                    item['desc'] as String,
+                    style: const TextStyle(fontSize: 12, color: _kGrey4),
+                    textAlign: TextAlign.right,
+                  ),
                 ),
               ]),
             ),

@@ -357,16 +357,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             padding: const EdgeInsets.all(3),
             child: Row(
               children: [
-                _addrTab('🇰🇷  국내 배송', !_isOverseas, () => setState(() {
+                _addrTab('🇰🇷  ' + context.loc.t('국내_배송', '국내 배송'), !_isOverseas, () => setState(() {
                   _isOverseas = false;
                 })),
-                _addrTab('🌏  해외 배송', _isOverseas, () => setState(() {
+                _addrTab('🌏  ' + context.loc.t('해외_배송', '해외 배송'), _isOverseas, () => setState(() {
                   _isOverseas = true;
                 })),
               ],
             ),
           ),
           const SizedBox(height: 14),
+
+          // ── 해외 배송 안내 배너 ──
+          if (_isOverseas) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1565C0).withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.25)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF1565C0)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.loc.t(
+                        '해외_배송비_국가별_상이_안내',
+                        '해외 배송비는 국가 및 무게에 따라 상이합니다.\n주문 완료 후 카카오톡(@2fit-mall)으로 배송비를 안내드립니다.',
+                      ),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF1565C0), height: 1.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           // ── 국내 주소 ──
           if (!_isOverseas) ...[
@@ -1396,6 +1425,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final isFreeShipping = shippingFee == 0;
     final remaining = (threshold - subtotal).clamp(0.0, threshold);
     final progress = (subtotal / threshold).clamp(0.0, 1.0);
+    // 해외 배송 여부
+    final isOverseas = _isOverseas;
 
     return _buildSection(
       loc.paymentAmountTitle,
@@ -1433,9 +1464,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        isFreeShipping
-                            ? context.loc.t('무료배송_조건_달성', '🎉 무료배송 조건 달성!')
-                            : '${_formatPrice(remaining)}원 더 담으면 무료배송!',
+                        isOverseas
+                            ? context.loc.t('해외_배송비_안내_뱃지', '🌏 해외 배송비는 국가별 상이')
+                            : isFreeShipping
+                                ? context.loc.t('무료배송_조건_달성', '🎉 무료배송 조건 달성!')
+                                : '${_formatPrice(remaining)}' + context.loc.t('원_더_담으면_무료배송', '원 더 담으면 무료배송!'),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
@@ -1489,7 +1522,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           _buildPriceRow(loc.productAmount, subtotal),
-          // 배송비 행 (무료배송 시 강조)
+          // 배송비 행 (무료배송 시 강조 / 해외 시 국가별 상이 안내)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(
@@ -1499,26 +1532,46 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: const TextStyle(fontSize: 14, color: Color(0xFF555555))),
                 Row(
                   children: [
-                    if (isFreeShipping) ...[
+                    if (isOverseas) ...[
+                      // 해외: 국가별 상이 배지
                       Container(
                         margin: const EdgeInsets.only(right: 6),
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF43A047).withValues(alpha: 0.1),
+                          color: const Color(0xFF1565C0).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text(loc.freeShippingThreshold,
-                            style: const TextStyle(fontSize: 9, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
+                        child: Text(
+                          context.loc.t('국가별_상이', '국가별 상이'),
+                          style: const TextStyle(fontSize: 9, color: Color(0xFF1565C0), fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      Text(
+                        context.loc.t('별도_안내', '별도 안내'),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1565C0)),
+                      ),
+                    ] else ...[
+                      if (isFreeShipping) ...[
+                        Container(
+                          margin: const EdgeInsets.only(right: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF43A047).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(loc.freeShippingThreshold,
+                              style: const TextStyle(fontSize: 9, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
+                        ),
+                      ],
+                      Text(
+                        isFreeShipping ? loc.freeLabel : '${_formatPrice(shippingFee)}' + context.loc.t('원', '원'),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: isFreeShipping ? const Color(0xFF43A047) : const Color(0xFF333333),
+                        ),
                       ),
                     ],
-                    Text(
-                      isFreeShipping ? loc.freeLabel : '${_formatPrice(shippingFee)}원',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: isFreeShipping ? const Color(0xFF43A047) : const Color(0xFF333333),
-                      ),
-                    ),
                   ],
                 ),
               ],
