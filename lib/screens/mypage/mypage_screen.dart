@@ -5567,7 +5567,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                           color: const Color(0xFFE3F2FD),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Row(
+                        child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Icon(Icons.info_outline_rounded, color: Color(0xFF0277BD), size: 16),
@@ -7229,7 +7229,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
             border: Border.all(color: Colors.grey[200]!),
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text(
+            Text(
               context.loc.t('이유를_자세히_알려주면_더_빠르게_교환할_수_있어요_n_사진은_0ecbe2', '· 이유를 자세히 알려주면 더 빠르게 교환할 수 있어요.\n· 사진은 3장까지 올릴 수 있어요. (각 10MB 이하)'),
               style: TextStyle(fontSize: 12, color: Color(0xFF555555), height: 1.6),
             ),

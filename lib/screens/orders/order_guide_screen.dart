@@ -234,7 +234,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    const Row(
+                    Row(
                       children: [
                         Icon(Icons.phone_rounded, size: 13, color: Color(0xFF888888)),
                         SizedBox(width: 5),
@@ -889,7 +889,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
             ),
-            child: const Text(
+            child: Text(
               context.loc.t('도서_산간_지역_추가_배송비_배송_관련_문의_고객', '※ 도서/산간 지역은 추가 배송비가 발생할 수 있습니다.\n※ 배송 관련 문의는 고객센터로 연락해주세요.'),
               style: TextStyle(fontSize: 12, height: 1.6, color: AppColors.textSecondary),
             ),

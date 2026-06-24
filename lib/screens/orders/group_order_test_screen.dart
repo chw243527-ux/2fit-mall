@@ -566,7 +566,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       borderRadius: BorderRadius.circular(10),
       border: Border.all(color: const Color(0xFFFFCC02), width: 1.2),
     ),
-    child: const Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Icon(Icons.info_outline_rounded, color: Color(0xFFF57F17), size: 16),
       SizedBox(width: 8),
       Expanded(child: Text(

@@ -4234,7 +4234,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             borderRadius: BorderRadius.circular(6),
             border: Border.all(color: Colors.orange.shade200),
           ),
-          child: const Row(children: [
+          child: Row(children: [
             Icon(Icons.info_outline, size: 12, color: Colors.orange),
             SizedBox(width: 5),
             Expanded(child: Text(
@@ -4808,8 +4808,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 const SizedBox(width: 8),
                 Expanded(
                   child: RichText(
-                    text: const TextSpan(
-                      style: TextStyle(fontSize: 12, color: Color(0xFF5D4037), height: 1.5),
+                    text: TextSpan(
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF5D4037), height: 1.5),
                       children: [
                         TextSpan(
                           text: context.loc.t('인쇄_안내', '인쇄 안내: '),
@@ -4973,15 +4973,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             color: _exclusiveDesign ? _purple : const Color(0xFF2E7D32),
                           ),
                         ),
-                        const TextSpan(
+                        TextSpan(
                           text: context.loc.t('1년간_해당_디자인을_타인에게_배포하지_않습니다', '· 1년간 해당 디자인을 타인에게 배포하지 않습니다.'),
                           style: TextStyle(fontSize: 11, color: Color(0xFF666666), fontWeight: FontWeight.w400),
                         ),
-                        const TextSpan(
+                        TextSpan(
                           text: context.loc.t('별도_이야기_없으면_매년_2월_1일_홈페이지에_업로드_됩니다', '· 별도 이야기 없으면 매년 2월 1일 홈페이지에 업로드 됩니다.'),
                           style: TextStyle(fontSize: 11, color: Color(0xFF666666), fontWeight: FontWeight.w400),
                         ),
-                        const TextSpan(
+                        TextSpan(
                           text: context.loc.t('같은_디자인_희망_시_색상만_변경_가능_같은_색상_제작_불가', '· 같은 디자인 희망 시 색상만 변경 가능 (같은 색상 제작 불가)'),
                           style: TextStyle(fontSize: 11, color: Color(0xFF880E4F), fontWeight: FontWeight.w600),
                         ),
