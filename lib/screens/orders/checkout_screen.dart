@@ -14,6 +14,7 @@ import '../../widgets/address_search_widget.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
 import '../../widgets/overseas_rate_sheet.dart';
+import '../chat/chat_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final CartProvider cart;
@@ -371,66 +372,97 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           // ── 해외 배송 안내 배너 ──
           if (_isOverseas) ...[
-            GestureDetector(
-              onTap: _showOverseasShippingRates,
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1565C0).withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.25)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF1565C0)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1565C0).withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.22)),
+              ),
+              child: Column(
+                children: [
+                  // 상단: 안내 문구
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.info_outline_rounded, size: 15, color: Color(0xFF1565C0)),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Text(
                             context.loc.t(
                               '해외_배송비_국가별_상이_안내',
-                              '해외 배송비는 국가 및 무게에 따라 상이합니다.\n주문 완료 후 카카오톡(@2fit-mall)으로 배송비를 안내드립니다.',
+                              '해외 배송비는 국가 및 무게에 따라 상이합니다.\n정확한 배송비는 채팅상담으로 확인해 주세요.',
                             ),
                             style: const TextStyle(fontSize: 12, color: Color(0xFF1565C0), height: 1.5),
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF1565C0),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.table_chart_outlined, size: 10, color: Colors.white),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      context.loc.t('국가별_요금표_보기', '국가별 요금표 보기'),
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 2),
-                                    const Icon(Icons.chevron_right_rounded, size: 12, color: Colors.white),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  // 하단: 버튼 2개
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    child: Row(
+                      children: [
+                        // 요금표 보기
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: _showOverseasShippingRates,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 7),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.4)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.table_chart_outlined, size: 12, color: Color(0xFF1565C0)),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    context.loc.t('국가별_요금표_보기', '국가별 요금표'),
+                                    style: const TextStyle(fontSize: 11, color: Color(0xFF1565C0), fontWeight: FontWeight.w700),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // 채팅상담
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const ChatScreen()),
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 7),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1565C0),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.chat_bubble_outline_rounded, size: 12, color: Colors.white),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    context.loc.t('채팅상담', '채팅상담'),
+                                    style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

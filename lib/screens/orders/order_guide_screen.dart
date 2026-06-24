@@ -7,6 +7,7 @@ import 'group_order_landing_screen.dart';
 import 'group_order_form_screen.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
+import '../chat/chat_screen.dart';
 
 class OrderGuideScreen extends StatefulWidget {
   const OrderGuideScreen({super.key});
@@ -891,10 +892,51 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
             ),
-            child: Text(
-              context.loc.t('도서_산간_지역_추가_배송비_배송_관련_문의_고객', '※ 도서/산간 지역은 추가 배송비가 발생할 수 있습니다.\n※ 배송 관련 문의는 고객센터로 연락해주세요.') +
-              '\n' + context.loc.t('해외_배송비_국가별_상이_안내_주문후_카톡', '※ 해외 배송비는 국가 및 무게에 따라 상이하며, 주문 완료 후 카카오톡(@2fit-mall)으로 안내드립니다.'),
-              style: TextStyle(fontSize: 12, height: 1.6, color: AppColors.textSecondary),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.loc.t('도서_산간_지역_추가_배송비_배송_관련_문의_고객', '※ 도서/산간 지역은 추가 배송비가 발생할 수 있습니다.\n※ 배송 관련 문의는 고객센터로 연락해주세요.'),
+                  style: TextStyle(fontSize: 12, height: 1.6, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 6),
+                // 해외 배송비 채팅상담 연결
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        context.loc.t('해외_배송비_국가별_상이_채팅안내', '※ 해외 배송비는 국가 및 무게에 따라 상이합니다.'),
+                        style: TextStyle(fontSize: 12, height: 1.6, color: AppColors.textSecondary),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ChatScreen()),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1565C0),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.chat_bubble_outline_rounded, size: 11, color: Colors.white),
+                            const SizedBox(width: 4),
+                            Text(
+                              context.loc.t('채팅상담', '채팅상담'),
+                              style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
