@@ -96,6 +96,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     // 스크롤 위치에 따라 탭 자동 추적
     _scrollCtrl.addListener(_updateTabByScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+
       // GA4: 상품 조회 이벤트
       AnalyticsService.logViewItem(
         itemId: widget.product.id,

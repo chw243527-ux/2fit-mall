@@ -104,6 +104,10 @@ class _AppDrawerState extends State<AppDrawer> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+    });
     // CategoryService가 아직 로드되지 않은 경우 로드 후 rebuild
     if (CategoryService.mainCategories == CategoryService.defaultMainCategories &&
         CategoryService.mainCategories.length == CategoryService.defaultMainCategories.length) {

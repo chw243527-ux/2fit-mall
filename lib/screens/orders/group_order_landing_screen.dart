@@ -4,6 +4,8 @@ import '../../utils/navigation_helper.dart';
 import '../../models/models.dart';
 import 'group_order_form_screen.dart';
 import '../../utils/app_localizations.dart';
+import 'package:provider/provider.dart';
+import '../../providers/providers.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // GroupOrderLandingScreen — 사이드바 "단체주문하기" 전용 랜딩 페이지
@@ -35,6 +37,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+    });
     _tabCtrl = TabController(length: 1, vsync: this);
   }
 

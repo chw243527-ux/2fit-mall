@@ -246,6 +246,10 @@ class _EditSheetState extends State<_EditSheet> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+    });
     if (widget.existing != null) {
       final e = widget.existing!;
       _nameCtrl.text   = e.profileName;

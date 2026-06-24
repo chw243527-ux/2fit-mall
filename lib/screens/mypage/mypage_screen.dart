@@ -67,6 +67,9 @@ class _MyPageScreenState extends State<MyPageScreen>
     _tabController = TabController(length: 4, vsync: this);
     // 앱 시작 시 실제 주문 데이터 로드 + 이전 화면의 스낵바 큐 클리어
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+
       if (!mounted) return;
       // 이전 화면(결제 완료 등)에서 남아있는 스낵바 제거
       ScaffoldMessenger.of(context).clearSnackBars();

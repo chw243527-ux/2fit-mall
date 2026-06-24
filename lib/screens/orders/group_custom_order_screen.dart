@@ -72,6 +72,10 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+    });
     // 팔레트의 첫 번째 색상(K 블랙)으로 기본값 설정
     final first = AppColorPalette.registeredColors.first;
     _selectedColor = first['name'] as String;

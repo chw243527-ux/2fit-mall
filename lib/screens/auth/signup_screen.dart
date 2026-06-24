@@ -133,6 +133,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+    });
     _passwordCtrl.addListener(_onPasswordChanged);
     _emailCtrl.addListener(_onEmailChanged);
   }

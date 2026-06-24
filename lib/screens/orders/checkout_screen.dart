@@ -303,6 +303,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       });
       // 주소 선택 직후 상세주소 입력란으로 자동 포커스
       WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+
         if (mounted) {
           FocusScope.of(context).requestFocus(_detailAddressFocusNode);
         }

@@ -45,6 +45,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+
       final pp = context.read<ProductProvider>();
       // 항상 최신 단체주문 상품 재로드 (화면 진입 시마다)
       pp.loadGroupOnlyProducts().then((_) {

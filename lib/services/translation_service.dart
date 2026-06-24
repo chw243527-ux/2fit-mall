@@ -57,6 +57,21 @@ class TranslationService {
     return result;
   }
 
+  /// 단일 언어 번역 (LanguageProvider 런타임 번역용 — 불필요한 언어 호출 없음)
+  static Future<String?> translateSingle(String koreanText, String targetLangCode) async {
+    final key = koreanText.trim();
+    if (key.isEmpty) return null;
+    // 캐시에 해당 언어 번역이 있으면 즉시 반환
+    if (_cache[key]?[targetLangCode] != null) return _cache[key]![targetLangCode];
+    final langPair = _langCodes[targetLangCode];
+    if (langPair == null) return null;
+    final result = await _translate(key, langPair);
+    if (result != null && result.isNotEmpty) {
+      _cache.putIfAbsent(key, () => <String, String>{})[targetLangCode] = result;
+    }
+    return result;
+  }
+
   /// 긴 텍스트 번역 (설명 등, 500자씩 분할 처리)
   static Future<Map<String, String>> translateLongText(String koreanText) async {
     if (koreanText.trim().isEmpty) return {};

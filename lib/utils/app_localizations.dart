@@ -90,6 +90,15 @@ class AppLocalizations {
   // 번역 대기 목록 (외부에서 읽기 가능)
   static Set<String> get pendingKeys => Set.unmodifiable(_pending);
 
+  // 캐시 여부 확인
+  static bool isCached(String key, String langCode) =>
+      _runtimeCache[key]?[langCode] != null;
+
+  // pending에서 제거 (실패 시 무한 루프 방지)
+  static void removePending(String key, String langCode) {
+    _pending.remove('$key:$langCode');
+  }
+
   // 키에 해당하는 한국어 기본값 저장소
   static final Map<String, String> _koreanTexts = {};
 
@@ -102,6 +111,9 @@ class AppLocalizations {
     _pending.clear();
     // _koreanTexts는 유지 (한국어 원문은 항상 필요)
   }
+
+  // 전체 한국어 키 목록 반환 (사전 번역용)
+  static Map<String, String> get allKoreanTexts => Map.unmodifiable(_koreanTexts);
 
   // ── 공통 ──
   String get appName {

@@ -45,6 +45,10 @@ class MainScreenState extends State<MainScreen> {
       _myPageKey.currentState?.resetToFirstTab();
     }
     setState(() => _currentIndex = index);
+    // 탭 전환 시 번역 트리거 (새 화면 텍스트 번역)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<LanguageProvider>().triggerTranslation();
+    });
   }
 
   @override
@@ -57,12 +61,14 @@ class MainScreenState extends State<MainScreen> {
       final uid         = userProv.user?.id;
       _lastUid = uid;
       // MainScreen 진입 시 항상 dismiss 상태를 새로 로드
-      // (onUserChanged의 _currentUid 중복 가드를 우회)
       await noticeProv.forceLoadDismissState(uid);
-      // Firestore 공지 로드 완료 후 팝업 표시 (홈탭에서만)
       await noticeProv.loadFromFirestore();
       if (mounted && _currentIndex == 0) {
         Future.delayed(const Duration(milliseconds: 300), _showNoticePopup);
+      }
+      // 언어가 한국어가 아닌 경우 화면 첫 빌드 후 번역 트리거
+      if (mounted) {
+        context.read<LanguageProvider>().triggerTranslation();
       }
     });
   }
@@ -458,14 +464,19 @@ class _PcLanguageBtn extends StatelessWidget {
 }
 
 // ─── 언어 선택 다이얼로그 (Consumer 분리) ───
-class _LangDialog extends StatelessWidget {
+class _LangDialog extends StatefulWidget {
   const _LangDialog();
+  @override
+  State<_LangDialog> createState() => _LangDialogState();
+}
 
+class _LangDialogState extends State<_LangDialog> {
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
     final langProv = context.watch<LanguageProvider>();
     final loc = langProv.loc;
+    final isTranslating = langProv.isTranslating;
     return Dialog(
       backgroundColor: Colors.transparent,
       child: ConstrainedBox(
@@ -506,10 +517,32 @@ class _LangDialog extends StatelessWidget {
                 ],
               ),
               SizedBox(height: r.h(16)),
+              // ── 번역 진행 표시 ──
+              if (isTranslating && langProv.language != AppLanguage.korean)
+                Padding(
+                  padding: EdgeInsets.only(bottom: r.h(12)),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(8)),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F7FF),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF90CAF9)),
+                    ),
+                    child: Row(
+                      children: [
+                        const SizedBox(
+                          width: 13, height: 13,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1565C0)),
+                        ),
+                        SizedBox(width: r.w(8)),
+                        Text('번역 중...', style: TextStyle(fontSize: r.sp(12), color: const Color(0xFF1565C0))),
+                      ],
+                    ),
+                  ),
+                ),
               // ── 언어 목록 ──
               ...AppLanguage.values.map((lang) {
                 final r = Responsive.of(context);
-
                 final isSel = langProv.language == lang;
                 return Padding(
                   padding: EdgeInsets.only(bottom: r.h(8)),

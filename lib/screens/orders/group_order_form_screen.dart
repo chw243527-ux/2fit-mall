@@ -299,6 +299,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+    });
     _printType = widget.initialPrintType.clamp(0, 3);
     // 추가제작: 1장부터 가능 / 신규 단체: 최소 5장
     final minCount = widget.isAdditionalOrder ? 1 : 5;

@@ -35,6 +35,10 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+    });
     _animCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),

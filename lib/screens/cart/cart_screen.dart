@@ -679,6 +679,9 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     super.initState();
     // 로그인된 사용자 정보 자동 채우기 + 결제수단 초기화
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+
       if (!mounted) return;
       final user = context.read<UserProvider>().user;
       final l = context.read<LanguageProvider>().loc;

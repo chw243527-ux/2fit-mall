@@ -65,6 +65,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
     if (widget.initialOnlyNew) _onlyNew = true;
     if (widget.initialOnlyBest) { _onlyBest = true; _sortBy = '인기순'; }
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+
       // initialCategory='단체주문'이면 GroupOrderOnlyScreen으로 자동 리다이렉트
       if (_selectedCategory == '단체주문') {
         Navigator.pushReplacement(

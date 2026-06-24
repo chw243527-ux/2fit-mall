@@ -68,6 +68,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       vsync: this,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 언어 변경 시 번역 트리거
+      context.read<LanguageProvider>().triggerTranslation();
+
       if (!mounted) return;
       context.read<ProductProvider>().refreshAll();
     });
