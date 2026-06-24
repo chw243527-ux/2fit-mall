@@ -443,7 +443,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '저장된 배송지 ${savedList.length}개',
+                      context.loc.t('저장된_배송지', '저장된 배송지') + ' ${savedList.length}' + context.loc.t('개', '개'),
                       style: const TextStyle(
                           fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0064FF)),
                     ),
@@ -886,9 +886,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final opts = _groupOrderOpts;
     if (opts == null) return const SizedBox.shrink();
 
-    final printTypeLabels = ['색상변경 (단체명 없음)', '단체명 변경 (전면)', '단체명 + 색상 변경', '디자인 + 단체명 + 색상', '디자인 + 색상 + 단체명 + 이름(후면)'];
+    final printTypeLabels = [context.loc.t('색상변경_단체명_없음', '색상변경 (단체명 없음)'), context.loc.t('단체명_변경_전면', '단체명 변경 (전면)'), context.loc.t('단체명_색상_변경', '단체명 + 색상 변경'), context.loc.t('디자인_단체명_색상', '디자인 + 단체명 + 색상'), context.loc.t('디자인_색상_단체명_이름_후면', '디자인 + 색상 + 단체명 + 이름(후면)')];
     final printType = opts['printType'] as int? ?? 0;
-    final printLabel = printType < printTypeLabels.length ? printTypeLabels[printType] : '알 수 없음';
+    final printLabel = printType < printTypeLabels.length ? printTypeLabels[printType] : context.loc.t('알_수_없음', '알 수 없음');
 
     final teamName    = opts['teamName'] as String? ?? '';
     final manager     = opts['manager'] as String? ?? '';
@@ -965,24 +965,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (teamName.isNotEmpty) infoRow(Icons.group_work_rounded, '단체명', teamName),
-                if (manager.isNotEmpty) infoRow(Icons.person_outline_rounded, '담당자', manager),
-                if (phone.isNotEmpty) infoRow(Icons.phone_outlined, '연락처', phone),
-                if (email.isNotEmpty) infoRow(Icons.email_outlined, '이메일', email),
-                if (fullAddress.isNotEmpty) infoRow(Icons.location_on_outlined, '배송 주소', fullAddress),
-                infoRow(Icons.print_rounded, '인쇄타입', printLabel, color: Color(0xFF4A148C)),
-                if (mainColor.isNotEmpty) infoRow(Icons.palette_outlined, '색상', mainColor),
-                if (fabric.isNotEmpty) infoRow(Icons.texture_rounded, '원단', fabric),
-                if (waistband.isNotEmpty) infoRow(Icons.style_rounded, '허리밴드', waistband),
-                if (exclusive) infoRow(Icons.star_rounded, '독점 디자인', '1년간 동일 디자인/색상 미판매 · 1년 후 2FIT몰 단독 판매', color: Color(0xFF6A1B9A)),
-                if (memo.isNotEmpty) infoRow(Icons.notes_rounded, '메모', memo),
+                if (teamName.isNotEmpty) infoRow(Icons.group_work_rounded, context.loc.t('단체명', '단체명'), teamName),
+                if (manager.isNotEmpty) infoRow(Icons.person_outline_rounded, context.loc.t('담당자', '담당자'), manager),
+                if (phone.isNotEmpty) infoRow(Icons.phone_outlined, context.loc.t('연락처', '연락처'), phone),
+                if (email.isNotEmpty) infoRow(Icons.email_outlined, context.loc.t('이메일', '이메일'), email),
+                if (fullAddress.isNotEmpty) infoRow(Icons.location_on_outlined, context.loc.t('배송_주소', '배송 주소'), fullAddress),
+                infoRow(Icons.print_rounded, context.loc.t('인쇄타입', '인쇄타입'), printLabel, color: Color(0xFF4A148C)),
+                if (mainColor.isNotEmpty) infoRow(Icons.palette_outlined, context.loc.t('색상', '색상'), mainColor),
+                if (fabric.isNotEmpty) infoRow(Icons.texture_rounded, context.loc.t('원단', '원단'), fabric),
+                if (waistband.isNotEmpty) infoRow(Icons.style_rounded, context.loc.t('허리밴드', '허리밴드'), waistband),
+                if (exclusive) infoRow(Icons.star_rounded, context.loc.t('독점_디자인', '독점 디자인'), context.loc.t('1년간_동일_디자인_색상_미판매_1년_후_2FIT몰_단독_판매', '1년간 동일 디자인/색상 미판매 · 1년 후 2FIT몰 단독 판매'), color: Color(0xFF6A1B9A)),
+                if (memo.isNotEmpty) infoRow(Icons.notes_rounded, context.loc.t('메모', '메모'), memo),
                 // 팀원 명단 요약
                 if (persons.isNotEmpty) ...[
                   const Divider(height: 16),
                   Row(children: [
                     const Icon(Icons.people_alt_rounded, size: 14, color: Color(0xFF6A1B9A)),
                     const SizedBox(width: 8),
-                    Text('팀원 명단 (${persons.length}명)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+                    Text(context.loc.t('팀원_명단', '팀원 명단') + ' (${persons.length}명)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
                   ]),
                   const SizedBox(height: 8),
                   // 팀원 요약 칩
@@ -1335,12 +1335,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '무통장입금 시 반드시 담당자 이름으로 입금해 주세요',
+                      context.loc.t('무통장입금_시_반드시_담당자_이름으로_입금해_주세요', '무통장입금 시 반드시 담당자 이름으로 입금해 주세요'),
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFFF57F17)),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '• 입금자명이 주문자명과 다를 경우 입금 확인이 지연될 수 있습니다.\n• 주문 완료 후 표시되는 계좌로 24시간 이내 입금해 주세요.',
+                      context.loc.t('입금자명_주문자명_다를_경우_지연_24시간', '• 입금자명이 주문자명과 다를 경우 입금 확인이 지연될 수 있습니다.\n• 주문 완료 후 표시되는 계좌로 24시간 이내 입금해 주세요.'),
                       style: const TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.5),
                     ),
                   ],
@@ -2656,7 +2656,7 @@ class _BankTransferDialog extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      '무통장입금 안내',
+                      context.loc.t('무통장입금_안내', '무통장입금 안내'),
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
                     ),
                   ),
@@ -2702,7 +2702,7 @@ class _BankTransferDialog extends StatelessWidget {
 
                   // ── 입금 계좌 정보 ──
                   Text(
-                    '입금 계좌',
+                    context.loc.t('입금_계좌', '입금 계좌'),
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF333333)),
                   ),
                   const SizedBox(height: 8),
@@ -2716,13 +2716,13 @@ class _BankTransferDialog extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _infoRow('은행', _bankName, isBold: true),
+                        _infoRow(context.loc.t('은행', '은행'), _bankName, isBold: true),
                         const SizedBox(height: 8),
-                        _infoRow('계좌번호', _accountNo, isBold: true, highlight: true),
+                        _infoRow(context.loc.t('계좌번호', '계좌번호'), _accountNo, isBold: true, highlight: true),
                         const SizedBox(height: 8),
-                        _infoRow('예금주', _accountHolder),
+                        _infoRow(context.loc.t('예금주', '예금주'), _accountHolder),
                         const SizedBox(height: 8),
-                        _infoRow('입금기한', _depositDeadline),
+                        _infoRow(context.loc.t('입금기한', '입금기한'), _depositDeadline),
                       ],
                     ),
                   ),
@@ -2746,14 +2746,12 @@ class _BankTransferDialog extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '입금 시 주의사항',
+                                context.loc.t('입금_시_주의사항', '입금 시 주의사항'),
                                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFF57F17)),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '• 입금자명을 반드시 "$customerName"으로 입력해 주세요.\n'
-                                '• 입금 확인 후 주문이 처리됩니다 (영업일 기준 1일 이내).\n'
-                                '• 기한 내 미입금 시 주문이 자동 취소됩니다.',
+                                context.loc.t('입금_안내_주의사항', '• 입금자명을 반드시 "$customerName"으로 입력해 주세요.\n• 입금 확인 후 주문이 처리됩니다 (영업일 기준 1일 이내).\n• 기한 내 미입금 시 주문이 자동 취소됩니다.'),
                                 style: const TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.6),
                               ),
                             ],

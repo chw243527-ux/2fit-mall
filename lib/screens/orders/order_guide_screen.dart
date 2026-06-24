@@ -159,7 +159,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '주문 안내 내용을 모두 확인했습니다.',
+                        context.loc.t('주문_안내_내용을_모두_확인했습니다', '주문 안내 내용을 모두 확인했습니다.'),
                         style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -421,7 +421,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 const SizedBox(height: 5),
                 _additionalGuideRow('🎨', loc.orderGuideAdditionalOption, loc.orderGuideAdditionalOptionDesc),
                 const SizedBox(height: 5),
-                _additionalGuideRow('🚚', '배송', '추가구매 물품은 별도 배송됩니다'),
+                _additionalGuideRow('🚚', context.loc.t('배송', '배송'), context.loc.t('추가구매_물품은_별도_배송됩니다', '추가구매 물품은 별도 배송됩니다')),
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
@@ -431,9 +431,9 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: Colors.orange.shade200),
                   ),
-                  child: const Text(
-                    '⚠️ 추가구매는 마이페이지 > 기존 주문내역에서 신청하실 수 있습니다.',
-                    style: TextStyle(fontSize: 11, color: Color(0xFFE65100)),
+                  child: Text(
+                    context.loc.t('추가구매_마이페이지_기존_주문내역_신청', '⚠️ 추가구매는 마이페이지 > 기존 주문내역에서 신청하실 수 있습니다.'),
+                    style: const TextStyle(fontSize: 11, color: Color(0xFFE65100)),
                   ),
                 ),
               ],
@@ -586,7 +586,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   onPressed: onGuide,
                   icon: Icon(Icons.info_outline_rounded, size: 15, color: color),
                   label: Text(
-                    '주문 안내',
+                    context.loc.t('주문_안내', '주문 안내'),
                     style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -607,7 +607,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   onPressed: onForm,
                   icon: const Icon(Icons.assignment_rounded, size: 15),
                   label: Text(
-                    onGuideCheckChanged != null && !guideChecked ? '확인 후 작성 가능' : '주문서 작성',
+                    onGuideCheckChanged != null && !guideChecked ? context.loc.t('확인_후_작성_가능', '확인 후 작성 가능') : context.loc.t('주문서_작성', '주문서 작성'),
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                   ),
                   style: ElevatedButton.styleFrom(
@@ -631,12 +631,12 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
 
   Widget _buildOrderFlowSection() {
     final steps = [
-      {'icon': Icons.search_rounded, 'title': '상품 선택', 'desc': '원하는 상품과 카테고리 선택'},
-      {'icon': Icons.tune_rounded, 'title': '옵션 선택', 'desc': '사이즈, 컬러, 커스텀 옵션 선택'},
-      {'icon': Icons.assignment_rounded, 'title': '주문서 작성', 'desc': '주문자 정보 및 배송지 입력'},
-      {'icon': Icons.payment_rounded, 'title': '결제', 'desc': '다양한 결제 수단 지원'},
-      {'icon': Icons.local_shipping_rounded, 'title': '제작 & 배송', 'desc': '커스텀 14~21일 소요'},
-      {'icon': Icons.check_circle_rounded, 'title': '수령', 'desc': '배송 완료 후 검수'},
+      {'icon': Icons.search_rounded, 'title': context.loc.t('상품_선택', '상품 선택'), 'desc': context.loc.t('원하는_상품과_카테고리_선택', '원하는 상품과 카테고리 선택')},
+      {'icon': Icons.tune_rounded, 'title': context.loc.t('옵션_선택', '옵션 선택'), 'desc': context.loc.t('사이즈_컬러_커스텀_옵션_선택', '사이즈, 컬러, 커스텀 옵션 선택')},
+      {'icon': Icons.assignment_rounded, 'title': context.loc.t('주문서_작성', '주문서 작성'), 'desc': context.loc.t('주문자_정보_및_배송지_입력', '주문자 정보 및 배송지 입력')},
+      {'icon': Icons.payment_rounded, 'title': context.loc.t('결제', '결제'), 'desc': context.loc.t('다양한_결제_수단_지원', '다양한 결제 수단 지원')},
+      {'icon': Icons.local_shipping_rounded, 'title': context.loc.t('제작_배송', '제작 & 배송'), 'desc': context.loc.t('커스텀_14_21일_소요', '커스텀 14~21일 소요')},
+      {'icon': Icons.check_circle_rounded, 'title': context.loc.t('수령', '수령'), 'desc': context.loc.t('배송_완료_후_검수', '배송 완료 후 검수')},
     ];
 
     return Container(
@@ -713,7 +713,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderFormTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
           const SizedBox(height: 12),
           _buildFormCard(
-            '단체 주문서',
+            context.loc.t('단체_주문서', '단체 주문서'),
             Icons.groups_outlined,
             AppColors.accent,
             _groupOrderFields,
@@ -807,11 +807,11 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         children: [
           Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.cancelRefundPolicy, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
           const SizedBox(height: 16),
-          _buildPolicyItem(Icons.cancel_outlined, '취소', AppColors.error, '결제 후 1시간 이내 취소 가능\n커스텀 제작 시작 후 취소 불가'),
+          _buildPolicyItem(Icons.cancel_outlined, context.loc.t('취소', '취소'), AppColors.error, context.loc.t('결제_후_1시간_이내_취소_가능_n커스텀_제작_시작_후_취소_불가', '결제 후 1시간 이내 취소 가능\n커스텀 제작 시작 후 취소 불가')),
           const SizedBox(height: 12),
-          _buildPolicyItem(Icons.swap_horiz_rounded, '교환', AppColors.info, '수령 후 7일 이내 교환 가능\n착용 흔적이 없는 상품에 한함'),
+          _buildPolicyItem(Icons.swap_horiz_rounded, context.loc.t('교환', '교환'), AppColors.info, context.loc.t('수령_후_7일_이내_교환_가능_n착용_흔적이_없는_상품에_한함', '수령 후 7일 이내 교환 가능\n착용 흔적이 없는 상품에 한함')),
           const SizedBox(height: 12),
-          _buildPolicyItem(Icons.replay_rounded, '환불', AppColors.warning, '수령 후 7일 이내 환불 가능\n커스텀 제작 상품은 환불 불가'),
+          _buildPolicyItem(Icons.replay_rounded, context.loc.t('환불', '환불'), AppColors.warning, context.loc.t('수령_후_7일_이내_환불_가능_n커스텀_제작_상품은_환불_불가', '수령 후 7일 이내 환불 가능\n커스텀 제작 상품은 환불 불가')),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(14),
@@ -872,15 +872,15 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         children: [
           Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.shippingGuide, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
           const SizedBox(height: 16),
-          _buildInfoRow(Icons.local_shipping_rounded, '배송 방법', '택배 (한진택배)', AppColors.primary),
+          _buildInfoRow(Icons.local_shipping_rounded, context.loc.t('배송_방법', '배송 방법'), context.loc.t('택배_한진택배', '택배 (한진택배)'), AppColors.primary),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.attach_money_rounded, '배송비', '4,000원 (30만원 이상 무료배송)', AppColors.success),
+          _buildInfoRow(Icons.attach_money_rounded, context.loc.t('배송비', '배송비'), context.loc.t('4_000원_30만원_이상_무료배송', '4,000원 (30만원 이상 무료배송)'), AppColors.success),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.access_time_rounded, '일반 배송', '결제 완료 후 2~3 영업일', AppColors.info),
+          _buildInfoRow(Icons.access_time_rounded, context.loc.t('일반_배송', '일반 배송'), context.loc.t('결제_완료_후_2_3_영업일', '결제 완료 후 2~3 영업일'), AppColors.info),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.design_services_rounded, '커스텀 제작', '주문 확정 후 14~21일', AppColors.warning),
+          _buildInfoRow(Icons.design_services_rounded, context.loc.t('커스텀_제작', '커스텀 제작'), context.loc.t('주문_확정_후_14_21일', '주문 확정 후 14~21일'), AppColors.warning),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.groups_rounded, '단체 주문', '주문 확인 후 10~21 영업일', AppColors.accent),
+          _buildInfoRow(Icons.groups_rounded, context.loc.t('단체_주문', '단체 주문'), context.loc.t('주문_확인_후_10_21_영업일', '주문 확인 후 10~21 영업일'), AppColors.accent),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
@@ -890,7 +890,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               border: Border.all(color: AppColors.info.withValues(alpha: 0.2)),
             ),
             child: const Text(
-              '※ 도서/산간 지역은 추가 배송비가 발생할 수 있습니다.\n※ 배송 관련 문의는 고객센터로 연락해주세요.',
+              context.loc.t('도서_산간_지역_추가_배송비_배송_관련_문의_고객', '※ 도서/산간 지역은 추가 배송비가 발생할 수 있습니다.\n※ 배송 관련 문의는 고객센터로 연락해주세요.'),
               style: TextStyle(fontSize: 12, height: 1.6, color: AppColors.textSecondary),
             ),
           ),
@@ -925,10 +925,10 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
 
   Widget _buildFAQSection() {
     final faqs = [
-      {'q': '사이즈 변경이 가능한가요?', 'a': '커스텀 제작 시작 전까지 변경 가능합니다. 주문 후 1시간 이내 고객센터로 연락해주세요.'},
-      {'q': '커스텀 인쇄 색상 선택이 가능한가요?', 'a': '네, 주문서 작성 시 원하는 인쇄 색상을 기재해주세요. 기본 색상(흰색, 검정)은 무료이며 특수 색상은 추가 비용이 발생합니다.'},
-      {'q': '단체 주문 최소 수량은 몇 개인가요?', 'a': '최소 5개부터 단체 주문이 가능합니다.'},
-      {'q': '팀 로고 파일은 어떻게 보내나요?', 'a': '주문 완료 후 카카오톡(@2fit-mall)으로 AI/PNG 형식 파일을 전송해주세요.'},
+      {'q': context.loc.t('사이즈_변경이_가능한가요', '사이즈 변경이 가능한가요?'), 'a': context.loc.t('커스텀_제작_시작_전까지_변경_가능합니다_주문_후_1시간_이내_3fa1fc', '커스텀 제작 시작 전까지 변경 가능합니다. 주문 후 1시간 이내 고객센터로 연락해주세요.')},
+      {'q': context.loc.t('커스텀_인쇄_색상_선택이_가능한가요', '커스텀 인쇄 색상 선택이 가능한가요?'), 'a': context.loc.t('네_주문서_작성_시_원하는_인쇄_색상을_기재해주세요_기본_색상_cdf445', '네, 주문서 작성 시 원하는 인쇄 색상을 기재해주세요. 기본 색상(흰색, 검정)은 무료이며 특수 색상은 추가 비용이 발생합니다.')},
+      {'q': context.loc.t('단체_주문_최소_수량은_몇_개인가요', '단체 주문 최소 수량은 몇 개인가요?'), 'a': context.loc.t('최소_5개부터_단체_주문이_가능합니다', '최소 5개부터 단체 주문이 가능합니다.')},
+      {'q': context.loc.t('팀_로고_파일은_어떻게_보내나요', '팀 로고 파일은 어떻게 보내나요?'), 'a': context.loc.t('주문_완료_후_카카오톡_2fit_mall_으로_AI_PNG_형_2989d6', '주문 완료 후 카카오톡(@2fit-mall)으로 AI/PNG 형식 파일을 전송해주세요.')},
     ];
 
     return Container(

@@ -155,7 +155,7 @@ if(document.readyState==='loading'){
         onPageFinished: (_) => setState(() => _isLoading = false),
         onWebResourceError: (err) => setState(() {
           _isLoading = false;
-          _errMsg = '주소 검색 로딩 실패\n인터넷 연결을 확인해주세요.';
+          _errMsg = context.loc.t('주소_검색_로딩_실패', '주소 검색 로딩 실패\n인터넷 연결을 확인해주세요.');
           if (kDebugMode) debugPrint('WebView error: ${err.description}');
         }),
       ))

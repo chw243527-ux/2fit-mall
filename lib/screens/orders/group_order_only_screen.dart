@@ -498,7 +498,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         _heroCta(
                           icon: Icons.local_shipping_rounded,
                           label: context.loc.t('무료배송', '무료배송'),
-                          sub: '단체전용',
+                          sub: context.loc.t('단체전용', '단체전용'),
                           color: const Color(0xFF2E7D32),
                         ),
                         const SizedBox(width: 12),
@@ -512,7 +512,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         _heroCta(
                           icon: Icons.palette_rounded,
                           label: context.loc.t('맞춤_제작', '맞춤 제작'),
-                          sub: '컬러·로고·마킹',
+                          sub: context.loc.t('컬러_로고_마킹', '컬러·로고·마킹'),
                           color: const Color(0xFF1565C0),
                         ),
                       ],
@@ -658,7 +658,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  _isGridView ? '그리드' : '리스트',
+                  _isGridView ? context.loc.t('그리드', '그리드') : context.loc.t('리스트', '리스트'),
                   style: const TextStyle(
                       fontSize: 12, color: Color(0xFF666666)),
                 ),

@@ -387,7 +387,7 @@ class _EditSheetState extends State<_EditSheet> {
 
   // ── 사이즈표 토글 ────────────────────────────────────
   Widget _buildSizeTableToggle() {
-    final headers = ['사이즈', '키(cm)', '몸무게(kg)', '가슴(cm)', '허리(cm)'];
+    final headers = [context.loc.t('사이즈', '사이즈'), context.loc.t('키_cm', '키(cm)'), context.loc.t('몸무게_kg', '몸무게(kg)'), context.loc.t('가슴_cm', '가슴(cm)'), context.loc.t('허리_cm', '허리(cm)')];
     return Column(children: [
       GestureDetector(
         onTap: () => setState(() => _tableExpanded = !_tableExpanded),

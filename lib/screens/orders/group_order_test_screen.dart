@@ -511,7 +511,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
                 const SizedBox(height: 14),
 
                 // ── 프리셋 ──
-                _sectionTitle('빠른 프리셋', Icons.flash_on_rounded),
+                _sectionTitle(context.loc.t('빠른_프리셋', '빠른 프리셋'), Icons.flash_on_rounded),
                 const SizedBox(height: 8),
                 ..._kPresets.map((p) => _presetCard(p)),
                 const SizedBox(height: 8),
@@ -519,14 +519,14 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
                 const SizedBox(height: 20),
 
                 // ── 커스텀 ──
-                _sectionTitle('커스텀 주문 생성', Icons.tune_rounded),
+                _sectionTitle(context.loc.t('커스텀_주문_생성', '커스텀 주문 생성'), Icons.tune_rounded),
                 const SizedBox(height: 8),
                 _customPanel(),
                 const SizedBox(height: 20),
 
                 // ── 로그 ──
                 if (_results.isNotEmpty) ...[
-                  _sectionTitle('결과 로그', Icons.list_alt_rounded),
+                  _sectionTitle(context.loc.t('결과_로그', '결과 로그'), Icons.list_alt_rounded),
                   const SizedBox(height: 8),
                   _logPanel(),
                 ],
@@ -570,7 +570,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       Icon(Icons.info_outline_rounded, color: Color(0xFFF57F17), size: 16),
       SizedBox(width: 8),
       Expanded(child: Text(
-        '• 생성된 주문은 로그인 유저 ID로 저장 → 마이페이지에서 즉시 확인 가능\n• 기성품/단체주문 둘 다 생성 가능 · 상태(배송중/완료 등) 선택 가능\n• 주문번호 TEST_GRP_ / TEST_PERS_ 로 시작 → 상단 🗑 버튼으로 일괄 삭제',
+        context.loc.t('생성된_주문_로그인_유저_ID_마이페이지_확인', '• 생성된 주문은 로그인 유저 ID로 저장 → 마이페이지에서 즉시 확인 가능\n• 기성품/단체주문 둘 다 생성 가능 · 상태(배송중/완료 등) 선택 가능\n• 주문번호 TEST_GRP_ / TEST_PERS_ 로 시작 → 상단 🗑 버튼으로 일괄 삭제'),
         style: TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.6),
       )),
     ]),
@@ -613,7 +613,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
               const SizedBox(height: 3),
               Row(children: [
-                _chip(p.orderType == 'personal' ? '기성품' : '단체', p.color),
+                _chip(p.orderType == 'personal' ? context.loc.t('기성품', '기성품') : context.loc.t('단체', '단체'), p.color),
                 const SizedBox(width: 4),
                 _chip('${p.count}${p.orderType == "personal" ? "개" : "인"}', const Color(0xFF1565C0)),
                 const SizedBox(width: 4),
@@ -664,10 +664,10 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       _labelText(context.loc.t('주문_유형', '주문 유형')),
       const SizedBox(height: 6),
       Row(children: [
-        _toggleBtn('기성품 (personal)', _customOrderType == 'personal',
+        _toggleBtn(context.loc.t('기성품_personal', '기성품 (personal)'), _customOrderType == 'personal',
             () => setState(() { _customOrderType = 'personal'; _customCount = 1; })),
         const SizedBox(width: 8),
-        _toggleBtn('단체주문 (group)', _customOrderType == 'group',
+        _toggleBtn(context.loc.t('단체주문_group', '단체주문 (group)'), _customOrderType == 'group',
             () => setState(() { _customOrderType = 'group'; _customCount = 5; })),
       ]),
       const SizedBox(height: 12),
@@ -697,15 +697,15 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
 
       // 팀명/담당자
       Row(children: [
-        Expanded(child: _field('팀명 / 구매자명', _teamNameCtrl)),
+        Expanded(child: _field(context.loc.t('팀명_구매자명', '팀명 / 구매자명'), _teamNameCtrl)),
         const SizedBox(width: 8),
-        Expanded(child: _field('담당자', _managerCtrl)),
+        Expanded(child: _field(context.loc.t('담당자', '담당자'), _managerCtrl)),
       ]),
       const SizedBox(height: 8),
       Row(children: [
-        Expanded(child: _field('연락처', _phoneCtrl, keyboard: TextInputType.phone)),
+        Expanded(child: _field(context.loc.t('연락처', '연락처'), _phoneCtrl, keyboard: TextInputType.phone)),
         const SizedBox(width: 8),
-        Expanded(child: _field('이메일', _emailCtrl, keyboard: TextInputType.emailAddress)),
+        Expanded(child: _field(context.loc.t('이메일', '이메일'), _emailCtrl, keyboard: TextInputType.emailAddress)),
       ]),
       const SizedBox(height: 12),
 
@@ -735,11 +735,11 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
 
       // 색상 / 결제수단
       Row(children: [
-        Expanded(child: _dropdown('색상', _customColor,
+        Expanded(child: _dropdown(context.loc.t('색상', '색상'), _customColor,
             ['블랙', '화이트', '네이비', '그레이', '레드', '블루'],
             (v) => setState(() => _customColor = v!))),
         const SizedBox(width: 8),
-        Expanded(child: _dropdown('결제수단', _customPay,
+        Expanded(child: _dropdown(context.loc.t('결제수단', '결제수단'), _customPay,
             ['계좌이체', '카드', '기타'],
             (v) => setState(() => _customPay = v!))),
       ]),
@@ -747,7 +747,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       // 원단 (단체만)
       if (_customOrderType == 'group') ...[
         const SizedBox(height: 8),
-        _dropdown('원단', _customFabric,
+        _dropdown(context.loc.t('원단', '원단'), _customFabric,
             ['일반 봉제', '심리스', '나일론', '폴리에스터'],
             (v) => setState(() => _customFabric = v!)),
       ],

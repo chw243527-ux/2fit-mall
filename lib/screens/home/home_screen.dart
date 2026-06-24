@@ -65,13 +65,13 @@ class _HomeScreenState extends State<HomeScreen>
   // 카테고리 정의 (key 기반, 다국어 텍스트는 loc에서)
   List<Map<String, dynamic>> _getCategoryItems(AppLocalizations loc) => [
     {'key': 'all',       'label': loc.catAll,       'icon': Icons.grid_view_rounded,        'color': const Color(0xFF1A1A1A)},
-    {'key': context.loc.t('상의', '상의'),      'label': loc.catTop,       'icon': Icons.dry_cleaning_rounded,     'color': Color(0xFF1565C0)},
-    {'key': context.loc.t('하의', '하의'),      'label': loc.catBottom,    'icon': Icons.style_rounded,            'color': Color(0xFF2E7D32)},
-    {'key': context.loc.t('세트', '세트'),      'label': loc.catSet,       'icon': Icons.checkroom_rounded,        'color': Color(0xFFE53935)},
-    {'key': context.loc.t('아우터', '아우터'),    'label': loc.catOuter,     'icon': Icons.layers_rounded,           'color': Color(0xFF37474F)},
-    {'key': context.loc.t('스킨슈트', '스킨슈트'),  'label': context.loc.t('스킨슈트', '스킨슈트'),        'icon': Icons.accessibility_new_rounded, 'color': Color(0xFF00838F)},
-    {'key': context.loc.t('악세사리', '악세사리'),  'label': loc.catAccessory, 'icon': Icons.backpack_rounded,         'color': Color(0xFF6A1B9A)},
-    {'key': context.loc.t('이벤트', '이벤트'),    'label': context.loc.t('이벤트', '이벤트'),          'icon': Icons.local_offer_rounded,      'color': Color(0xFFFF6B35)},
+    {'key': '상의',      'label': loc.catTop,       'icon': Icons.dry_cleaning_rounded,     'color': Color(0xFF1565C0)},
+    {'key': '하의',      'label': loc.catBottom,    'icon': Icons.style_rounded,            'color': Color(0xFF2E7D32)},
+    {'key': '세트',      'label': loc.catSet,       'icon': Icons.checkroom_rounded,        'color': Color(0xFFE53935)},
+    {'key': '아우터',    'label': loc.catOuter,     'icon': Icons.layers_rounded,           'color': Color(0xFF37474F)},
+    {'key': '스킨슈트',  'label': context.loc.t('스킨슈트', '스킨슈트'),        'icon': Icons.accessibility_new_rounded, 'color': Color(0xFF00838F)},
+    {'key': '악세사리',  'label': loc.catAccessory, 'icon': Icons.backpack_rounded,         'color': Color(0xFF6A1B9A)},
+    {'key': '이벤트',    'label': context.loc.t('이벤트', '이벤트'),          'icon': Icons.local_offer_rounded,      'color': Color(0xFFFF6B35)},
   ];
 
   @override
@@ -247,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen>
       englishTitle: 'GROUP ORDER',
       accentColor: const Color(0xFF4A148C),
       products: groupProds.take(10).toList(),
-      category: context.loc.t('단체주문', '단체주문'),
+      category: '단체주문',
       viewAllLabel: loc.viewAll,
       isHorizontal: true,
     );
@@ -1112,7 +1112,7 @@ class _HomeScreenState extends State<HomeScreen>
                 switch (b.btnAction) {
                   case 1:
                     Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => ProductListScreen(initialCategory: context.loc.t('전체', '전체')),
+                      builder: (_) => ProductListScreen(initialCategory: '전체'),
                     ));
                     break;
                   case 2:
@@ -1122,7 +1122,7 @@ class _HomeScreenState extends State<HomeScreen>
                     break;
                   default:
                     Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => ProductListScreen(initialCategory: context.loc.t('전체', '전체')),
+                      builder: (_) => ProductListScreen(initialCategory: '전체'),
                     ));
                 }
               }
@@ -1185,7 +1185,7 @@ class _HomeScreenState extends State<HomeScreen>
                       thumbnailUrl: b.imageUrl,
                       onTap: onTap,
                       onProductTap: () => Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => ProductListScreen(initialCategory: context.loc.t('전체', '전체')))),
+                          builder: (_) => ProductListScreen(initialCategory: '전체'))),
                     )
                   else if (b.imageUrl.isNotEmpty)
                     GestureDetector(
@@ -1257,7 +1257,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildPcLocalBanner(AppLocalizations loc) {
     final r = Responsive.of(context);
     void goShop() => Navigator.push(context,
-        MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: context.loc.t('전체', '전체'))));
+        MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: '전체')));
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -2144,7 +2144,7 @@ class _HomeScreenState extends State<HomeScreen>
               const Spacer(),
               GestureDetector(
                 onTap: () => Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => ProductListScreen(initialCategory: context.loc.t('단체주문', '단체주문')))),
+                    builder: (_) => ProductListScreen(initialCategory: '단체주문'))),
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(8)),
                   decoration: BoxDecoration(
@@ -2268,7 +2268,7 @@ class _HomeScreenState extends State<HomeScreen>
               SizedBox(height: r.h(10)),
               OutlinedButton(
                 onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: context.loc.t('이벤트', '이벤트')))),
+                    MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: '이벤트'))),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white38),
@@ -2886,7 +2886,7 @@ class _HomeScreenState extends State<HomeScreen>
       final r = Responsive.of(context);
 
       void goShop() => Navigator.push(context,
-          MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: context.loc.t('전체', '전체'))));
+          MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: '전체')));
       // 배너 높이 비례 텍스트 크기 (스크린샷 기준: bannerH≈580 → title≈62px)
       final titleSize = (bannerH * 0.107).clamp(28.0, 72.0);
       final tagSize   = (bannerH * 0.018).clamp(8.0, 14.0);
@@ -3459,7 +3459,7 @@ class _HomeScreenState extends State<HomeScreen>
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => ProductListScreen(initialCategory: context.loc.t('단체주문', '단체주문')),
+                      builder: (_) => ProductListScreen(initialCategory: '단체주문'),
                     ),
                   ),
                   child: Container(
@@ -3609,7 +3609,7 @@ class _HomeScreenState extends State<HomeScreen>
               onTap: () {
                 switch (e.key) {
                   case 0:
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: context.loc.t('이벤트', '이벤트'))));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: '이벤트')));
                     break;
                   case 1:
                     widget.onNavigate?.call(1);
@@ -3789,7 +3789,7 @@ class _HomeScreenState extends State<HomeScreen>
           SizedBox(height: r.h(2)),
           // ── 배너 2: 이벤트 특가 ──
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: context.loc.t('이벤트', '이벤트')))),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: '이벤트'))),
             child: Container(
               color: const Color(0xFF1A0A0A),
               padding: EdgeInsets.all(r.w(20)),
@@ -4222,7 +4222,7 @@ class _HomeScreenState extends State<HomeScreen>
       final r = Responsive.of(context);
 
       void goShop() => Navigator.push(context,
-          MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: context.loc.t('전체', '전체'))));
+          MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: '전체')));
       return SizedBox(
         width: double.infinity,
         height: bannerHeight,
@@ -4364,7 +4364,7 @@ class _HomeScreenState extends State<HomeScreen>
       switch (banner.btnAction) {
         case 1:
           Navigator.push(context, MaterialPageRoute(
-            builder: (_) => ProductListScreen(initialCategory: context.loc.t('전체', '전체')),
+            builder: (_) => ProductListScreen(initialCategory: '전체'),
           ));
           break;
         case 2:
@@ -4374,7 +4374,7 @@ class _HomeScreenState extends State<HomeScreen>
           break;
         default:
           Navigator.push(context, MaterialPageRoute(
-            builder: (_) => ProductListScreen(initialCategory: context.loc.t('전체', '전체')),
+            builder: (_) => ProductListScreen(initialCategory: '전체'),
           ));
       }
     }
@@ -4399,7 +4399,7 @@ class _HomeScreenState extends State<HomeScreen>
             thumbnailUrl: imageUrl,
             onTap: onTap,
             onProductTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => ProductListScreen(initialCategory: context.loc.t('전체', '전체')))),
+                builder: (_) => ProductListScreen(initialCategory: '전체'))),
           ),
           // ── 텍스트/CTA: 비디오 로딩과 무관하게 즉시 표시 ──
           overlayWidget,
@@ -4536,7 +4536,7 @@ class _HomeScreenState extends State<HomeScreen>
       'gradient2': const Color(0xFF3D3D3D),
     },
     {
-      'title': 'BEST SELLER\n인기 상품',
+      'title': context.loc.t('BEST_SELLER_n인기_상품', 'BEST SELLER\n인기 상품'),
       'subtitle': loc.homeBanner2Subtitle,
       'badge': context.loc.t('베스트', '🔥 베스트'),
       'btn': loc.homeBanner2Btn,

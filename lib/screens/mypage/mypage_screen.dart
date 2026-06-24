@@ -1785,7 +1785,7 @@ class _PcSettingsTab extends StatelessWidget {
                       title: context.loc.t('현금영수증_번호', '현금영수증 번호'),
                       subtitle: user?.cashReceiptNum?.isNotEmpty == true
                           ? user!.cashReceiptNum!
-                          : '미등록 — 결제 시 자동 발행',
+                          : context.loc.t('미등록_결제_시_자동_발행', '미등록 — 결제 시 자동 발행'),
                       onTap: () => _showCashReceiptDialog(context, userProvider),
                     ),
                   ],
@@ -1987,17 +1987,17 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   border: Border.all(color: const Color(0xFFEEEEEE)),
                 ),
                 child: Column(children: [
-                  row('상호', AppConstants.companyName),
+                  row(context.loc.t('상호', '상호'), AppConstants.companyName),
                   divider(),
-                  row('대표자', AppConstants.ceoName),
+                  row(context.loc.t('대표자', '대표자'), AppConstants.ceoName),
                   divider(),
-                  row('사업자등록번호', AppConstants.businessRegNumber),
+                  row(context.loc.t('사업자등록번호', '사업자등록번호'), AppConstants.businessRegNumber),
                   divider(),
-                  row('전화번호', AppConstants.customerServicePhone),
+                  row(context.loc.t('전화번호', '전화번호'), AppConstants.customerServicePhone),
                   divider(),
                   row('URL', 'www.2fit-mall.co.kr'),
                   divider(),
-                  row('주소', AppConstants.companyAddress, multiLine: true),
+                  row(context.loc.t('주소', '주소'), AppConstants.companyAddress, multiLine: true),
                 ]),
               ),
 
@@ -2018,15 +2018,15 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   divider(),
                   row('부가세', '${fmtPrice(vatAmt)}원'),
                   divider(),
-                  row('봉사료', '0원'),
+                  row(context.loc.t('봉사료', '봉사료'), '0원'),
                   divider(),
-                  row('결제수단', o.paymentMethod.isNotEmpty ? o.paymentMethod : '-'),
+                  row(context.loc.t('결제수단', '결제수단'), o.paymentMethod.isNotEmpty ? o.paymentMethod : '-'),
                   divider(),
-                  row('구매자', o.userName.isNotEmpty ? o.userName : '-'),
+                  row(context.loc.t('구매자', '구매자'), o.userName.isNotEmpty ? o.userName : '-'),
                   divider(),
-                  row('상품명', itemSummary, multiLine: true),
+                  row(context.loc.t('상품명', '상품명'), itemSummary, multiLine: true),
                   divider(),
-                  row('거래일시\n(취소일시)', fmtDateTime(o.createdAt), multiLine: true),
+                  row(context.loc.t('거래일시_n_취소일시', '거래일시\n(취소일시)'), fmtDateTime(o.createdAt), multiLine: true),
                 ]),
               ),
 
@@ -2041,13 +2041,13 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                 ),
                 child: Column(children: [
                   Text(
-                    '본 거래확인서는 세금계산서 대용으로 사용할 수 없습니다.',
+                    context.loc.t('본_거래확인서는_세금계산서_대용으로_사용할_수_없습니다', '본 거래확인서는 세금계산서 대용으로 사용할 수 없습니다.'),
                     style: TextStyle(fontSize: 10, color: Color(0xFF888888)),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 4),
                   Text(
-                    '현금영수증 문의: 126-1-1',
+                    context.loc.t('현금영수증_문의_126_1_1', '현금영수증 문의: 126-1-1'),
                     style: TextStyle(fontSize: 10, color: Color(0xFF888888)),
                     textAlign: TextAlign.center,
                   ),
@@ -2193,15 +2193,15 @@ void _showCashReceiptDetailDialog(
                         border: Border.all(color: const Color(0xFFA5D6A7)),
                       ),
                       child: Column(children: [
-                        row('발행일시', fmtDateTime(o.createdAt)),
+                        row(context.loc.t('발행일시', '발행일시'), fmtDateTime(o.createdAt)),
                         divider(),
-                        row('승인번호', approvalNum,
+                        row(context.loc.t('승인번호', '승인번호'), approvalNum,
                             bold: true,
                             valueColor: const Color(0xFF1B5E20)),
                         divider(),
-                        row('용도', cashReceiptType),
+                        row(context.loc.t('용도', '용도'), cashReceiptType),
                         divider(),
-                        row('발행정보', o.cashReceiptNum!),
+                        row(context.loc.t('발행정보', '발행정보'), o.cashReceiptNum!),
                       ]),
                     ),
                     const SizedBox(height: 14),
@@ -2215,14 +2215,14 @@ void _showCashReceiptDetailDialog(
                       ),
                       child: Column(children: [
                         Text(
-                          '현금영수증 승인번호는 국세청에서\n익일 13시 이후 확인됩니다.',
+                          context.loc.t('현금영수증_승인번호는_국세청에서_n익일_13시_이후_확인됩니다', '현금영수증 승인번호는 국세청에서\n익일 13시 이후 확인됩니다.'),
                           style: TextStyle(
                               fontSize: 11, color: Color(0xFF888888)),
                           textAlign: TextAlign.center,
                         ),
                         SizedBox(height: 4),
                         Text(
-                          '현금영수증 문의: 126-1-1',
+                          context.loc.t('현금영수증_문의_126_1_1', '현금영수증 문의: 126-1-1'),
                           style: TextStyle(
                               fontSize: 11, color: Color(0xFF888888)),
                           textAlign: TextAlign.center,
@@ -2239,7 +2239,7 @@ void _showCashReceiptDetailDialog(
                           color: Color(0xFFBBBBBB), size: 40),
                       const SizedBox(height: 10),
                       Text(
-                        '현금영수증 번호가 등록되지 않았습니다.',
+                        context.loc.t('현금영수증_번호가_등록되지_않았습니다', '현금영수증 번호가 등록되지 않았습니다.'),
                         style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -2248,7 +2248,7 @@ void _showCashReceiptDetailDialog(
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '마이페이지 → 현금영수증 번호 등록 후\n결제하시면 자동으로 발급됩니다.',
+                        context.loc.t('마이페이지_현금영수증_번호_등록_후_n결제하시면_자동으로_발급됩니다', '마이페이지 → 현금영수증 번호 등록 후\n결제하시면 자동으로 발급됩니다.'),
                         style: TextStyle(
                             fontSize: 12, color: Color(0xFF999999)),
                         textAlign: TextAlign.center,
@@ -3703,7 +3703,7 @@ class _MobileSettingsTab extends StatelessWidget {
             title: context.loc.t('현금영수증_번호', '현금영수증 번호'),
             subtitle: user?.cashReceiptNum?.isNotEmpty == true
                 ? user!.cashReceiptNum!
-                : '미등록 — 결제 시 자동 발행',
+                : context.loc.t('미등록_결제_시_자동_발행', '미등록 — 결제 시 자동 발행'),
             onTap: () => _showCashReceiptDialog(context, userProvider),
           ),
         ]),
@@ -4141,7 +4141,7 @@ class _AdditionalOrderSheetState extends State<_AdditionalOrderSheet> {
                           TextSpan(
                             text: isFreeShip
                                 ? context.loc.t('k_5장_이상', '  (5장 이상)')
-                                : '  — 5장 이상 주문 시 무료',
+                                : context.loc.t('5장_이상_주문_시_무료', '  — 5장 이상 주문 시 무료'),
                             style: const TextStyle(
                               color: Color(0xFF757575),
                               fontWeight: FontWeight.w500,
@@ -4774,11 +4774,11 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                   children: [
 
                     // 주문자 정보
-                    sectionBox('주문자 정보', [
-                      detailRow(Icons.person_outline, '이름', o.userName.isNotEmpty ? o.userName : '-'),
-                      detailRow(Icons.phone_outlined, '연락처', o.userPhone.isNotEmpty ? o.userPhone : '-'),
-                      detailRow(Icons.email_outlined, '이메일', o.userEmail.isNotEmpty ? o.userEmail : '-'),
-                      detailRow(Icons.location_on_outlined, '배송지', o.userAddress.isNotEmpty ? o.userAddress : '-'),
+                    sectionBox(context.loc.t('주문자_정보', '주문자 정보'), [
+                      detailRow(Icons.person_outline, context.loc.t('이름', '이름'), o.userName.isNotEmpty ? o.userName : '-'),
+                      detailRow(Icons.phone_outlined, context.loc.t('연락처', '연락처'), o.userPhone.isNotEmpty ? o.userPhone : '-'),
+                      detailRow(Icons.email_outlined, context.loc.t('이메일', '이메일'), o.userEmail.isNotEmpty ? o.userEmail : '-'),
+                      detailRow(Icons.location_on_outlined, context.loc.t('배송지', '배송지'), o.userAddress.isNotEmpty ? o.userAddress : '-'),
                     ]),
                     const SizedBox(height: 14),
 
@@ -5042,15 +5042,15 @@ Future<void> _showUserOrderDetail(BuildContext context, OrderModel order) async 
                     ],
 
                     // 결제 정보
-                    sectionBox('결제 정보', [
-                      detailRow(Icons.payments_outlined, '결제방법', o.paymentMethod.isNotEmpty ? o.paymentMethod : '-'),
-                      detailRow(Icons.local_shipping_outlined, '배송비',
+                    sectionBox(context.loc.t('결제_정보', '결제 정보'), [
+                      detailRow(Icons.payments_outlined, context.loc.t('결제방법', '결제방법'), o.paymentMethod.isNotEmpty ? o.paymentMethod : '-'),
+                      detailRow(Icons.local_shipping_outlined, context.loc.t('배송비', '배송비'),
                           o.shippingFee == 0 ? context.loc.t('무료', '무료') : '${fmtPrice(o.shippingFee)}원'),
                       detailRow(Icons.receipt_outlined, '합계', '${fmtPrice(o.totalAmount)}원'),
                       if ((o.cashReceiptNum ?? '').isNotEmpty)
-                        detailRow(Icons.receipt_long_rounded, '현금영수증', o.cashReceiptNum!),
+                        detailRow(Icons.receipt_long_rounded, context.loc.t('현금영수증', '현금영수증'), o.cashReceiptNum!),
                       if ((o.memo ?? '').isNotEmpty)
-                        detailRow(Icons.notes_outlined, '메모', o.memo!),
+                        detailRow(Icons.notes_outlined, context.loc.t('메모', '메모'), o.memo!),
                     ]),
                     // 영수증 보기 버튼 (항상 표시)
                     const SizedBox(height: 10),
@@ -5199,7 +5199,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
           ],
         ),
         content: Text(
-          '수정 완료 디자인을 확정하시겠습니까?\n\n확정 후에는 디자인 수정 요청이 불가하며, 즉시 제작이 시작됩니다.',
+          context.loc.t('수정_완료_디자인을_확정하시겠습니까_n_n확정_후에는_디자인__cf9296', '수정 완료 디자인을 확정하시겠습니까?\n\n확정 후에는 디자인 수정 요청이 불가하며, 즉시 제작이 시작됩니다.'),
           style: TextStyle(fontSize: 14, height: 1.6),
         ),
         actions: [
@@ -5268,12 +5268,12 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
 
     // 변경 항목 목록 구성
     final changeItems = <Map<String, String>>[];
-    if (colorName?.isNotEmpty == true) changeItems.add({'label': '색상', 'value': colorName!});
-    if (teamName?.isNotEmpty  == true) changeItems.add({'label': '단체명', 'value': teamName!});
-    if (fabricName?.isNotEmpty == true) changeItems.add({'label': '원단', 'value': fabricName!});
-    if (printType?.isNotEmpty  == true) changeItems.add({'label': '인쇄 방식', 'value': printType!});
+    if (colorName?.isNotEmpty == true) changeItems.add({'label': context.loc.t('색상', '색상'), 'value': colorName!});
+    if (teamName?.isNotEmpty  == true) changeItems.add({'label': context.loc.t('단체명', '단체명'), 'value': teamName!});
+    if (fabricName?.isNotEmpty == true) changeItems.add({'label': context.loc.t('원단', '원단'), 'value': fabricName!});
+    if (printType?.isNotEmpty  == true) changeItems.add({'label': context.loc.t('인쇄_방식', '인쇄 방식'), 'value': printType!});
     if (personChanges.isNotEmpty) changeItems.add({'label': '사이즈 변경', 'value': '${personChanges.length}명 변경'});
-    if (memo?.isNotEmpty == true) changeItems.add({'label': '추가 메모', 'value': memo!});
+    if (memo?.isNotEmpty == true) changeItems.add({'label': context.loc.t('추가_메모', '추가 메모'), 'value': memo!});
 
     // ScaffoldMessenger로 감싸 SnackBar가 시트 내부에만 표시되도록
     return ScaffoldMessenger(
@@ -5573,7 +5573,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                             Icon(Icons.info_outline_rounded, color: Color(0xFF0277BD), size: 16),
                             SizedBox(width: 6),
                             Expanded(child: Text(
-                              '이미지를 탭하면 핀치줌으로 확대확인할 수 있습니다. 이상이 없으면 아래 디자인 확정하기를 눌러 제작을 시작해 주세요.',
+                              context.loc.t('이미지를_탭하면_핀치줌으로_확대확인할_수_있습니다_이상이_없으_e9c46b', '이미지를 탭하면 핀치줌으로 확대확인할 수 있습니다. 이상이 없으면 아래 디자인 확정하기를 눌러 제작을 시작해 주세요.'),
                               style: TextStyle(fontSize: 12, color: Color(0xFF01579B), height: 1.5),
                             )),
                           ],
@@ -5667,7 +5667,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
             backgroundColor: Colors.black,
             foregroundColor: Colors.white,
             title: Text(
-              '수정 완료 디자인',
+              context.loc.t('수정_완료_디자인', '수정 완료 디자인'),
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             leading: IconButton(
@@ -5834,11 +5834,11 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
   // printType int → 라벨 문자열
   String _printTypeLabel(int id) {
     final labels = {
-      0: '디자인 유지 + 색상 변경',
-      1: '디자인 유지 + 단체명 + 색상 변경',
-      2: '디자인 변경 + 단체명 + 색상 변경',
-      3: '디자인 유지 + 색상변경 + 단체명 + 이름(후면)',
-      4: '디자인 변경 + 색상변경 + 단체명 + 이름(후면)',
+      0: context.loc.t('디자인_유지_색상_변경', '디자인 유지 + 색상 변경'),
+      1: context.loc.t('디자인_유지_단체명_색상_변경', '디자인 유지 + 단체명 + 색상 변경'),
+      2: context.loc.t('디자인_변경_단체명_색상_변경', '디자인 변경 + 단체명 + 색상 변경'),
+      3: context.loc.t('디자인_유지_색상변경_단체명_이름_후면', '디자인 유지 + 색상변경 + 단체명 + 이름(후면)'),
+      4: context.loc.t('디자인_변경_색상변경_단체명_이름_후면', '디자인 변경 + 색상변경 + 단체명 + 이름(후면)'),
     };
     return labels[id] ?? context.loc.t('정보 없음', '정보 없음');
   }
@@ -6036,7 +6036,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                 ],
 
                 // ══ 1. 색상 변경 ══
-                _sectionLabel(Icons.palette_outlined, '색상', purple),
+                _sectionLabel(Icons.palette_outlined, context.loc.t('색상', '색상'), purple),
                 const SizedBox(height: 6),
 
                 // ── 선택된 색상 미리보기 패널 ──
@@ -6411,7 +6411,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                               SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  '원하시는 색상의 HEX 코드를 6자리로 입력하세요.\n예) 빨강: FF0000 / 파랑: 0000FF / 노랑: FFFF00',
+                                  context.loc.t('원하시는_색상의_HEX_코드를_6자리로_입력하세요_n예_빨강__bc66fc', '원하시는 색상의 HEX 코드를 6자리로 입력하세요.\n예) 빨강: FF0000 / 파랑: 0000FF / 노랑: FFFF00'),
                                   style: TextStyle(fontSize: 10, color: Colors.orange, height: 1.4),
                                 ),
                               ),
@@ -6424,12 +6424,12 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                           Wrap(
                             spacing: 8, runSpacing: 6,
                             children: [
-                              {'name': '코발트블루', 'hex': '0047AB'},
-                              {'name': '라벤더',    'hex': 'E6CCFF'},
-                              {'name': '카멜',      'hex': 'C19A6B'},
-                              {'name': '민트',      'hex': '26C9A0'},
-                              {'name': '버건디',    'hex': '6D0E19'},
-                              {'name': '골드',      'hex': 'D4AF37'},
+                              {'name': context.loc.t('코발트블루', '코발트블루'), 'hex': '0047AB'},
+                              {'name': context.loc.t('라벤더', '라벤더'), 'hex': 'E6CCFF'},
+                              {'name': context.loc.t('카멜', '카멜'), 'hex': 'C19A6B'},
+                              {'name': context.loc.t('민트', '민트'), 'hex': '26C9A0'},
+                              {'name': context.loc.t('버건디', '버건디'), 'hex': '6D0E19'},
+                              {'name': context.loc.t('골드', '골드'), 'hex': 'D4AF37'},
                             ].map((item) {
                               final hexStr = item['hex']!;
                               final c      = Color(int.parse('FF$hexStr', radix: 16));
@@ -6488,7 +6488,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                   // 원단
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      _sectionLabel(Icons.texture_rounded, '원단', Color(0xFF757575)),
+                      _sectionLabel(Icons.texture_rounded, context.loc.t('원단', '원단'), Color(0xFF757575)),
                       const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -6502,7 +6502,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              _currentFabric.isNotEmpty ? _currentFabric : '정보 없음',
+                              _currentFabric.isNotEmpty ? _currentFabric : context.loc.t('정보_없음', '정보 없음'),
                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF424242)),
                             ),
                           ),
@@ -6524,7 +6524,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                   // 인쇄타입
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      _sectionLabel(Icons.print_rounded, '인쇄타입', Color(0xFF757575)),
+                      _sectionLabel(Icons.print_rounded, context.loc.t('인쇄타입', '인쇄타입'), Color(0xFF757575)),
                       const SizedBox(height: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -6538,7 +6538,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              _currentPrintType.isNotEmpty ? _currentPrintType : '정보 없음',
+                              _currentPrintType.isNotEmpty ? _currentPrintType : context.loc.t('정보_없음', '정보 없음'),
                               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF424242)),
                               maxLines: 3,
                             ),
@@ -6561,7 +6561,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                 const SizedBox(height: 20),
 
                 // ══ 3. 단체명 변경 ══
-                _sectionLabel(Icons.groups_outlined, '단체명', Color(0xFF2E7D32)),
+                _sectionLabel(Icons.groups_outlined, context.loc.t('단체명', '단체명'), Color(0xFF2E7D32)),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _teamNameCtrl,
@@ -6671,7 +6671,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                 ],
 
                 // ══ 5. 추가 요청사항 ══
-                _sectionLabel(Icons.chat_bubble_outline_rounded, '추가 요청사항', Color(0xFF616161)),
+                _sectionLabel(Icons.chat_bubble_outline_rounded, context.loc.t('추가_요청사항', '추가 요청사항'), Color(0xFF616161)),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _memoCtrl,
@@ -6922,7 +6922,7 @@ void _showConfirmPurchaseDialog(BuildContext context, OrderModel order) {
         Text(context.loc.t('구매_확정', '구매 확정'), style: TextStyle(fontWeight: FontWeight.w800)),
       ]),
       content: Text(
-        '구매를 확정하시겠습니까?\n\n확정 후에는 교환/반품 신청이 어려울 수 있습니다.',
+        context.loc.t('구매를_확정하시겠습니까_n_n확정_후에는_교환_반품_신청이_어_7ea6e9', '구매를 확정하시겠습니까?\n\n확정 후에는 교환/반품 신청이 어려울 수 있습니다.'),
         style: TextStyle(fontSize: 14, height: 1.6),
       ),
       actions: [
@@ -6985,16 +6985,17 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
   int _step = 1; // 1=사유선택, 2=수거방법, 3=결제/완료
 
   // ── 1단계: 사유 ──
-  static const _selfReasons = [
-    '색상, 사이즈를 바꾸고 싶어요',
-    '다른 이유가 있어요',
+  // static const → 런타임 번역 불가, 일반 getter로 대체
+  List<String> get _selfReasons => [
+    context.loc.t('색상_사이즈를_바꾸고_싶어요', '색상, 사이즈를 바꾸고 싶어요'),
+    context.loc.t('다른_이유가_있어요', '다른 이유가 있어요'),
   ];
-  static const _sellerReasons = [
-    '상품 정보와 실제 상품이 달라요',
-    '구성품, 부속품이 없어요',
-    '파손된 상품을 받았어요',
-    '주문한 상품과 다른 상품을 받았어요',
-    '상품에 문제가 있어요',
+  List<String> get _sellerReasons => [
+    context.loc.t('상품_정보와_실제_상품이_달라요', '상품 정보와 실제 상품이 달라요'),
+    context.loc.t('구성품_부속품이_없어요', '구성품, 부속품이 없어요'),
+    context.loc.t('파손된_상품을_받았어요', '파손된 상품을 받았어요'),
+    context.loc.t('주문한_상품과_다른_상품을_받았어요', '주문한 상품과 다른 상품을 받았어요'),
+    context.loc.t('상품에_문제가_있어요', '상품에 문제가 있어요'),
   ];
   String? _selectedReason;
   final _reasonCtrl = TextEditingController();
@@ -7148,7 +7149,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
 
   // ── 스텝 인디케이터 ──
   Widget _buildStepIndicator() {
-    final labels = ['교환 사유', '수거 방법', _shippingBySelf ? '비용 결제' : '신청 확인'];
+    final labels = [context.loc.t('교환_사유', '교환 사유'), context.loc.t('수거_방법', '수거 방법'), _shippingBySelf ? context.loc.t('비용_결제', '비용 결제') : context.loc.t('신청_확인', '신청 확인')];
     return Container(
       color: const Color(0xFFF8F9FA),
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -7229,7 +7230,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text(
-              '· 이유를 자세히 알려주면 더 빠르게 교환할 수 있어요.\n· 사진은 3장까지 올릴 수 있어요. (각 10MB 이하)',
+              context.loc.t('이유를_자세히_알려주면_더_빠르게_교환할_수_있어요_n_사진은_0ecbe2', '· 이유를 자세히 알려주면 더 빠르게 교환할 수 있어요.\n· 사진은 3장까지 올릴 수 있어요. (각 10MB 이하)'),
               style: TextStyle(fontSize: 12, color: Color(0xFF555555), height: 1.6),
             ),
             const SizedBox(height: 12),
@@ -7341,7 +7342,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
         ),
         const SizedBox(height: 4),
         Text(
-          '· 사진은 최대 3장, 각 10MB 이하',
+          context.loc.t('사진은_최대_3장_각_10MB_이하', '· 사진은 최대 3장, 각 10MB 이하'),
           style: TextStyle(fontSize: 11, color: Colors.grey[500]),
         ),
       ],
@@ -7396,7 +7397,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
       _pickupOption(
         value: 1,
         label: context.loc.t('상품을_직접_수거해주세요', '상품을 직접 수거해주세요'),
-        subLabel: '택배사가 2~5일 이내 방문 예정',
+        subLabel: context.loc.t('택배사가_2_5일_이내_방문_예정', '택배사가 2~5일 이내 방문 예정'),
       ),
 
       // 이미 발송 선택 시 운송장 입력
@@ -7466,7 +7467,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
-              '교환 요청이 확인되면 2~5일 이내 택배사가 방문할 예정이에요.\n아래 주소가 맞는지 확인해주세요.',
+              context.loc.t('교환_요청이_확인되면_2_5일_이내_택배사가_방문할_예정이에요_54912a', '교환 요청이 확인되면 2~5일 이내 택배사가 방문할 예정이에요.\n아래 주소가 맞는지 확인해주세요.'),
               style: TextStyle(fontSize: 12, color: Color(0xFF555555), height: 1.6),
             ),
             const SizedBox(height: 10),
@@ -7492,7 +7493,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
       _pickupOption(
         value: 2,
         label: context.loc.t('상품을_이미_판매자에게_택배_845c77', '상품을 이미 판매자에게 택배로 보냈어요'),
-        subLabel: '운송장 번호를 고객센터에 전달해주세요',
+        subLabel: context.loc.t('운송장_번호를_고객센터에_전달해주세요', '운송장 번호를 고객센터에 전달해주세요'),
       ),
     ]);
   }
@@ -7653,7 +7654,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
       const SizedBox(height: 16),
 
       // 사유 확인
-      _confirmRow('교환 사유', _selectedReason ?? ''),
+      _confirmRow(context.loc.t('교환_사유', '교환 사유'), _selectedReason ?? ''),
       const SizedBox(height: 10),
       // 수거 방법 확인
       _confirmRow('수거 방법', _pickupMethod == 1 ? context.loc.t('직접 수거', '직접 수거') : context.loc.t('이미 발송', '이미 발송')),
@@ -7792,7 +7793,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
 
   void _onNext(BuildContext context) {
     if (!_canProceed) {
-      final msgs = ['사유를 선택해주세요.', '수거 방법을 선택해주세요.', '결제수단을 선택해주세요.'];
+      final msgs = [context.loc.t('사유를_선택해주세요', '사유를 선택해주세요.'), context.loc.t('수거_방법을_선택해주세요', '수거 방법을 선택해주세요.'), context.loc.t('결제수단을_선택해주세요', '결제수단을 선택해주세요.')];
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(msgs[_step - 1]), duration: const Duration(seconds: 2)),
       );
@@ -7845,7 +7846,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
     if (!context.mounted) return;
     Navigator.pop(context);
 
-    final label = widget.isReturn ? '반품' : '교환';
+    final label = widget.isReturn ? context.loc.t('반품', '반품') : context.loc.t('교환', '교환');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('✅ $label 요청이 접수됐어요. 담당자가 확인 후 처리해드립니다.'),

@@ -155,11 +155,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   /// 농도 설명 텍스트
   String get _lightnessLabel {
-    if (_colorLightness < 0.25) return '매우 진하게';
-    if (_colorLightness < 0.4)  return '진하게';
-    if (_colorLightness < 0.6)  return '기본';
-    if (_colorLightness < 0.75) return '밝게';
-    return '매우 밝게';
+    if (_colorLightness < 0.25) return context.loc.t('매우_진하게', '매우 진하게');
+    if (_colorLightness < 0.4)  return context.loc.t('진하게', '진하게');
+    if (_colorLightness < 0.6)  return context.loc.t('기본', '기본');
+    if (_colorLightness < 0.75) return context.loc.t('밝게', '밝게');
+    return context.loc.t('매우_밝게', '매우 밝게');
   }
 
   // ── 원단 ──
@@ -226,7 +226,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   /// 허리밴드 옵션 레이블 (중복 선택 반영)
   String get _waistbandOptionLabel {
-    if (_waistbandOptions.isEmpty) return '기본 (변경없음)';
+    if (_waistbandOptions.isEmpty) return context.loc.t('기본_변경없음', '기본 (변경없음)');
     final labels = <String>[];
     if (_waistbandOptions.contains(1)) labels.add('디자인 변경');
     if (_waistbandOptions.contains(2)) labels.add('색상 변경');
@@ -415,12 +415,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   void _showLoadSizeSheet(_PersonEntry p) {
     final user = context.read<UserProvider>().user;
     if (user == null) {
-      _showSnack('로그인 후 사이즈 프로필을 불러올 수 있습니다.');
+      _showSnack(context.loc.t('로그인_후_사이즈_프로필을_불러올_수_있습니다', '로그인 후 사이즈 프로필을 불러올 수 있습니다.'));
       return;
     }
     final profiles = context.read<SizeProfileProvider>().profiles;
     if (profiles.isEmpty) {
-      _showSnack('저장된 사이즈 프로필이 없습니다. 마이페이지에서 먼저 저장해 주세요.');
+      _showSnack(context.loc.t('저장된_사이즈_프로필이_없습니다_마이페이지에서_먼저_저장해_주세요', '저장된 사이즈 프로필이 없습니다. 마이페이지에서 먼저 저장해 주세요.'));
       return;
     }
     showModalBottomSheet(
@@ -529,7 +529,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     showDialog(
       context: context,
       builder: (ctx) {
-        final nameCtrl = TextEditingController(text: '내 사이즈');
+        final nameCtrl = TextEditingController(text: context.loc.t('내_사이즈', '내 사이즈'));
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(children: [
@@ -565,7 +565,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 final profile = SizeProfile(
                   id: '',
                   userId: user.id,
-                  profileName: nameCtrl.text.trim().isEmpty ? '내 사이즈' : nameCtrl.text.trim(),
+                  profileName: nameCtrl.text.trim().isEmpty ? context.loc.t('내_사이즈', '내 사이즈') : nameCtrl.text.trim(),
                   gender: me.gender ?? 'male',
                   sizeType: me.sizeType,
                   topSize: me.effectiveTopSize,
@@ -618,31 +618,31 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       return false;
     }
     if (_mainColorName == null || _mainColorName!.isEmpty) {
-      _showSnack('색상을 선택해 주세요.');
+      _showSnack(context.loc.t('색상을_선택해_주세요', '색상을 선택해 주세요.'));
       return false;
     }
     if (_teamNameCtrl.text.trim().isEmpty) {
-      _showSnack('단체명을 입력해 주세요.');
+      _showSnack(context.loc.t('단체명을_입력해_주세요', '단체명을 입력해 주세요.'));
       return false;
     }
     if (_phoneCtrl.text.trim().isEmpty) {
-      _showSnack('연락처를 입력해 주세요.');
+      _showSnack(context.loc.t('연락처를_입력해_주세요', '연락처를 입력해 주세요.'));
       return false;
     }
     if (_address.isEmpty) {
-      _showSnack('배송 주소를 입력해 주세요.');
+      _showSnack(context.loc.t('배송_주소를_입력해_주세요', '배송 주소를 입력해 주세요.'));
       return false;
     }
     if (_addressDetailCtrl.text.trim().isEmpty) {
-      _showSnack('상세주소를 입력해 주세요.');
+      _showSnack(context.loc.t('상세주소를_입력해_주세요', '상세주소를 입력해 주세요.'));
       return false;
     }
     if (!_isTopOnly && _maleLengthSel == null) {
-      _showSnack('남성 하의 길이를 선택해 주세요.');
+      _showSnack(context.loc.t('남성_하의_길이를_선택해_주세요', '남성 하의 길이를 선택해 주세요.'));
       return false;
     }
     if (!_isTopOnly && _femaleLengthSel == null) {
-      _showSnack('여성 하의 길이를 선택해 주세요.');
+      _showSnack(context.loc.t('여성_하의_길이를_선택해_주세요', '여성 하의 길이를 선택해 주세요.'));
       return false;
     }
     for (int i = 0; i < _persons.length; i++) {
@@ -664,7 +664,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     }
     // 디자인 요청 사항 필수 확인
     if (_memoCtrl.text.trim().isEmpty) {
-      _showSnack('디자인 요청 사항을 입력해 주세요.');
+      _showSnack(context.loc.t('디자인_요청_사항을_입력해_주세요', '디자인 요청 사항을 입력해 주세요.'));
       return false;
     }
     return true;
@@ -842,7 +842,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══ build ══
   @override
   Widget build(BuildContext context) {
-    final title = _isAdditional ? '추가 제작 주문서' : '단체 주문서';
+    final title = _isAdditional ? context.loc.t('추가_제작_주문서', '추가 제작 주문서') : context.loc.t('단체_주문서', '단체 주문서');
     return Scaffold(
       backgroundColor: _bg,
       appBar: AppBar(
@@ -1176,43 +1176,43 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     final options = [
       {
         'id': 0,
-        'title': '디자인 유지 + 색상 변경',
-        'desc': '2FIT 로고 적용(전면) + 색상 변경 (단체명 인쇄 없음)',
+        'title': context.loc.t('디자인_유지_색상_변경', '디자인 유지 + 색상 변경'),
+        'desc': context.loc.t('2FIT_로고_적용_전면_색상_변경_단체명_인쇄_없음', '2FIT 로고 적용(전면) + 색상 변경 (단체명 인쇄 없음)'),
         'badgeColor': const Color(0xFF1565C0), // 파랑
         'condMin': 5,
-        'condLabel': '5명↑',
+        'condLabel': context.loc.t('5명', '5명↑'),
       },
       {
         'id': 1,
-        'title': '디자인 유지 + 단체명 + 색상 변경',
-        'desc': '기존 디자인 유지 + 단체명(전면) + 색상 변경',
+        'title': context.loc.t('디자인_유지_단체명_색상_변경', '디자인 유지 + 단체명 + 색상 변경'),
+        'desc': context.loc.t('기존_디자인_유지_단체명_전면_색상_변경', '기존 디자인 유지 + 단체명(전면) + 색상 변경'),
         'badgeColor': const Color(0xFF1A1A1A), // 블랙
         'condMin': 5,
-        'condLabel': '5명↑',
+        'condLabel': context.loc.t('5명', '5명↑'),
       },
       {
         'id': 2,
-        'title': '디자인 변경 + 단체명 + 색상 변경',
-        'desc': '새 디자인 변경 + 단체명(전면) + 색상 변경',
+        'title': context.loc.t('디자인_변경_단체명_색상_변경', '디자인 변경 + 단체명 + 색상 변경'),
+        'desc': context.loc.t('새_디자인_변경_단체명_전면_색상_변경', '새 디자인 변경 + 단체명(전면) + 색상 변경'),
         'badgeColor': const Color(0xFF00838F), // 청록
         'condMin': 5,
-        'condLabel': '5명↑',
+        'condLabel': context.loc.t('5명', '5명↑'),
       },
       {
         'id': 3,
-        'title': '디자인 유지 + 색상변경 + 단체명 + 이름(후면)',
-        'desc': '기존 디자인 유지 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)',
+        'title': context.loc.t('디자인_유지_색상변경_단체명_이름_후면', '디자인 유지 + 색상변경 + 단체명 + 이름(후면)'),
+        'desc': context.loc.t('기존_디자인_유지_색상_변경_단체명_전면_개인_이름_후면_등', '기존 디자인 유지 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)'),
         'badgeColor': const Color(0xFF6A1B9A), // 보라
         'condMin': 10,
-        'condLabel': '10명↑',
+        'condLabel': context.loc.t('10명', '10명↑'),
       },
       {
         'id': 4,
-        'title': '디자인 변경 + 색상변경 + 단체명 + 이름(후면)',
-        'desc': '새 디자인 변경 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)',
+        'title': context.loc.t('디자인_변경_색상변경_단체명_이름_후면', '디자인 변경 + 색상변경 + 단체명 + 이름(후면)'),
+        'desc': context.loc.t('새_디자인_변경_색상_변경_단체명_전면_개인_이름_후면_등', '새 디자인 변경 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)'),
         'badgeColor': const Color(0xFFC62828), // 빨강
         'condMin': 10,
-        'condLabel': '10명↑',
+        'condLabel': context.loc.t('10명', '10명↑'),
       },
     ];
 
@@ -1745,9 +1745,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══════════════════════════════════════════════
   Widget _buildWaistbandSection() {
     // 1: 디자인 변경(+50,000), 2: 색상 변경(+50,000) — 중복 선택 가능
-    const options = [
-      {'id': 1, 'label': '디자인 변경', 'sub': '무료', 'icon': Icons.brush_outlined},
-      {'id': 2, 'label': '색상 변경',   'sub': '무료', 'icon': Icons.palette_outlined},
+    final options = [
+      {'id': 1, 'label': context.loc.t('디자인_변경', '디자인 변경'), 'sub': context.loc.t('무료', '무료'), 'icon': Icons.brush_outlined},
+      {'id': 2, 'label': context.loc.t('색상_변경', '색상 변경'), 'sub': context.loc.t('무료', '무료'), 'icon': Icons.palette_outlined},
     ];
     final needsColor = _waistbandOptions.contains(2);
 
@@ -1769,7 +1769,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             const Icon(Icons.check_circle_outline, size: 14, color: Color(0xFF2E7D32)),
             const SizedBox(width: 6),
             Expanded(child: Text(
-              '허리밴드 디자인·색상 변경 전부 무료',
+              context.loc.t('허리밴드_디자인_색상_변경_전부_무료', '허리밴드 디자인·색상 변경 전부 무료'),
               style: const TextStyle(fontSize: 12, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700),
             )),
           ]),
@@ -2093,7 +2093,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '포인트 색상 또는 전체 색상이 선택한 색상으로 변경됩니다.',
+                      context.loc.t('포인트_색상_또는_전체_색상이_선택한_색상으로_변경됩니다', '포인트 색상 또는 전체 색상이 선택한 색상으로 변경됩니다.'),
                       style: TextStyle(fontSize: 11, color: Color(0xFF333333), height: 1.5),
                     ),
                   ),
@@ -2114,7 +2114,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '골지 느낌의 선택한 색상으로 제작됩니다.',
+                      context.loc.t('골지_느낌의_선택한_색상으로_제작됩니다', '골지 느낌의 선택한 색상으로 제작됩니다.'),
                       style: TextStyle(fontSize: 11, color: Color(0xFF333333), height: 1.5),
                     ),
                   ),
@@ -2155,9 +2155,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             dividerColor: Colors.transparent,
             padding: const EdgeInsets.all(4),
             tabs: [
-              Tab(text: '기성 19색'),
-              Tab(text: '추가 색상'),
-              Tab(text: 'HEX 입력'),
+              Tab(text: context.loc.t('기성_19색', '기성 19색')),
+              Tab(text: context.loc.t('추가_색상', '추가 색상')),
+              Tab(text: context.loc.t('HEX_입력', 'HEX 입력')),
             ],
           ),
         ),
@@ -2565,7 +2565,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     _hexError   = null;
                   });
                 } catch (_) {
-                  setState(() => _hexError = '올바른 HEX 코드를 입력하세요');
+                  setState(() => _hexError = context.loc.t('올바른_HEX_코드를_입력하세요', '올바른 HEX 코드를 입력하세요'));
                 }
               } else {
                 setState(() => _hexError = null);
@@ -2601,7 +2601,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           SizedBox(width: 6),
           Expanded(
             child: Text(
-              '원하시는 색상의 HEX 코드를 6자리로 입력하세요.\n예) 빨강: FF0000 / 파랑: 0000FF / 노랑: FFFF00',
+              context.loc.t('원하시는_색상의_HEX_코드를_6자리로_입력하세요_n예_빨강__bc66fc', '원하시는 색상의 HEX 코드를 6자리로 입력하세요.\n예) 빨강: FF0000 / 파랑: 0000FF / 노랑: FFFF00'),
               style: TextStyle(fontSize: 11, color: Colors.orange, height: 1.5),
             ),
           ),
@@ -2614,12 +2614,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       Wrap(
         spacing: 8, runSpacing: 6,
         children: [
-          {'name': '코발트블루', 'hex': '0047AB'},
-          {'name': '라벤더',    'hex': 'E6CCFF'},
-          {'name': '카멜',      'hex': 'C19A6B'},
-          {'name': '민트',      'hex': '26C9A0'},
-          {'name': '버건디',    'hex': '6D0E19'},
-          {'name': '골드',      'hex': 'D4AF37'},
+          {'name': context.loc.t('코발트블루', '코발트블루'), 'hex': '0047AB'},
+          {'name': context.loc.t('라벤더', '라벤더'), 'hex': 'E6CCFF'},
+          {'name': context.loc.t('카멜', '카멜'), 'hex': 'C19A6B'},
+          {'name': context.loc.t('민트', '민트'), 'hex': '26C9A0'},
+          {'name': context.loc.t('버건디', '버건디'), 'hex': '6D0E19'},
+          {'name': context.loc.t('골드', '골드'), 'hex': 'D4AF37'},
         ].map((item) {
           final hexStr = item['hex']!;
           final color  = Color(int.parse('FF$hexStr', radix: 16));
@@ -2666,7 +2666,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   void _applyHex() {
     final v = _hexCtrl.text.trim().replaceAll('#', '');
     if (v.length != 6) {
-      setState(() => _hexError = 'HEX 코드는 6자리입니다 (예: FF6B35)');
+      setState(() => _hexError = context.loc.t('HEX_코드는_6자리입니다_예_FF6B35', 'HEX 코드는 6자리입니다 (예: FF6B35)'));
       return;
     }
     try {
@@ -2679,7 +2679,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _hexError       = null;
       });
     } catch (_) {
-      setState(() => _hexError = '올바른 HEX 코드를 입력하세요');
+      setState(() => _hexError = context.loc.t('올바른_HEX_코드를_입력하세요', '올바른 HEX 코드를 입력하세요'));
     }
   }
 
@@ -2761,7 +2761,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '숏사각(숏쇼츠) 선택 시 주머니 추가가 불가합니다.',
+                  context.loc.t('숏사각_숏쇼츠_선택_시_주머니_추가가_불가합니다', '숏사각(숏쇼츠) 선택 시 주머니 추가가 불가합니다.'),
                   style: TextStyle(fontSize: 11, color: Color(0xFFBF360C),
                       fontWeight: FontWeight.w600),
                 ),
@@ -2785,7 +2785,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '타이즈 9부 선택 시 인당 +20,000원이 추가됩니다.',
+                  context.loc.t('타이즈_9부_선택_시_인당_20_000원이_추가됩니다', '타이즈 9부 선택 시 인당 +20,000원이 추가됩니다.'),
                   style: TextStyle(fontSize: 11, color: Color(0xFFBF360C),
                       fontWeight: FontWeight.w600),
                 ),
@@ -2906,7 +2906,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '여성 숏사각(숏쇼츠) 선택 시 주머니 추가가 불가합니다.',
+                  context.loc.t('여성_숏사각_숏쇼츠_선택_시_주머니_추가가_불가합니다', '여성 숏사각(숏쇼츠) 선택 시 주머니 추가가 불가합니다.'),
                   style: TextStyle(fontSize: 11, color: Color(0xFFBF360C), fontWeight: FontWeight.w600),
                 ),
               ),
@@ -2927,7 +2927,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                '주머니 선택 시 인원당 +10,000원이 추가됩니다.',
+                context.loc.t('주머니_선택_시_인원당_10_000원이_추가됩니다', '주머니 선택 시 인원당 +10,000원이 추가됩니다.'),
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade700, height: 1.4),
               ),
             ),
@@ -2999,7 +2999,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             ? Colors.grey.shade400
                             : (_hasPocket ? Colors.white : Colors.black87),
                       )),
-                  Text(disabled ? '선택 불가' : '+10,000원/인',
+                  Text(disabled ? context.loc.t('선택_불가', '선택 불가') : context.loc.t('10_000원_인', '+10,000원/인'),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -3046,9 +3046,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 _dotRow(context.loc.t('앞면뒷면_디자인을_모두_첨부', '앞면·뒷면 디자인을 모두 첨부하시면 더욱 정확하게 제작됩니다.'), Colors.purple.shade600),
                 const SizedBox(height: 3),
-                _dotRow('지원 형식: PNG · JPG · PDF · AI · PSD · SVG 등', Colors.purple.shade600),
+                _dotRow(context.loc.t('지원_형식_PNG_JPG_PDF_AI_PSD_SVG_등', '지원 형식: PNG · JPG · PDF · AI · PSD · SVG 등'), Colors.purple.shade600),
                 const SizedBox(height: 3),
-                _dotRow('파일이 여러 개일 경우 ZIP으로 압축 후 업로드해 주세요.', Colors.purple.shade600),
+                _dotRow(context.loc.t('파일이_여러_개일_경우_ZIP으로_압축_후_업로드해_주세요', '파일이 여러 개일 경우 ZIP으로 압축 후 업로드해 주세요.'), Colors.purple.shade600),
               ]),
             ),
           ]),
@@ -3092,7 +3092,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · EPS · SVG · PDF 권장 / JPG·PNG는 품질 저하 가능',
+              context.loc.t('로고_인쇄_품질을_위해_AI_원본_파일_벡터_을_첨부해_주세요_080bc3', '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · EPS · SVG · PDF 권장 / JPG·PNG는 품질 저하 가능'),
               style: TextStyle(fontSize: 11, color: Colors.orange.shade700, height: 1.5, fontWeight: FontWeight.w600),
             ),
           ),
@@ -3431,7 +3431,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · SVG · PDF · EPS 파일만 첨부 가능합니다.',
+                context.loc.t('로고_인쇄_품질을_위해_AI_원본_파일_벡터_을_첨부해_주세요_b65465', '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · SVG · PDF · EPS 파일만 첨부 가능합니다.'),
                 style: TextStyle(
                   fontSize: 11, color: Colors.orange.shade700,
                   height: 1.5, fontWeight: FontWeight.w600,
@@ -3540,7 +3540,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · EPS · SVG · PDF 권장 / JPG·PNG는 품질 저하 가능',
+                context.loc.t('로고_인쇄_품질을_위해_AI_원본_파일_벡터_을_첨부해_주세요_080bc3', '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · EPS · SVG · PDF 권장 / JPG·PNG는 품질 저하 가능'),
                 style: TextStyle(
                   fontSize: 11, color: Colors.orange.shade700,
                   height: 1.5, fontWeight: FontWeight.w600,
@@ -3680,7 +3680,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 SizedBox(width: 5),
                 Expanded(
                   child: Text(
-                    '로고를 첨부하실 경우 AI 원본 파일(벡터 파일)이 필요합니다.\n(JPG·PNG 등 래스터 이미지로는 로고 인쇄 품질 보장이 어렵습니다.)',
+                    context.loc.t('로고를_첨부하실_경우_AI_원본_파일_벡터_파일_이_필요합니다_917818', '로고를 첨부하실 경우 AI 원본 파일(벡터 파일)이 필요합니다.\n(JPG·PNG 등 래스터 이미지로는 로고 인쇄 품질 보장이 어렵습니다.)'),
                     style: TextStyle(fontSize: 11, color: Color(0xFFE65100), height: 1.5, fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -3802,7 +3802,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   Row(
                     children: [
                       Text(
-                        isConfirmed ? '디자인 확정 이미지' : '주문 당시 디자인 이미지',
+                        isConfirmed ? context.loc.t('디자인_확정_이미지', '디자인 확정 이미지') : context.loc.t('주문_당시_디자인_이미지', '주문 당시 디자인 이미지'),
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF5D4037)),
                       ),
                       const SizedBox(width: 6),
@@ -3820,7 +3820,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           ),
                         ),
                         child: Text(
-                          isConfirmed ? '수정 완료' : '수정 전',
+                          isConfirmed ? context.loc.t('수정_완료', '수정 완료') : context.loc.t('수정_전', '수정 전'),
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
@@ -3979,7 +3979,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 const SizedBox(width: 3),
                 Text(context.loc.t('남성', '남성: '), style: TextStyle(fontSize: 11, color: Colors.blue.shade700, fontWeight: FontWeight.w600)),
                 Text(
-                  _maleLengthSel ?? '미선택',
+                  _maleLengthSel ?? context.loc.t('미선택', '미선택'),
                   style: TextStyle(
                     fontSize: 12, fontWeight: FontWeight.w900,
                     color: _maleLengthSel != null ? Colors.teal.shade800 : Colors.orange.shade700,
@@ -3990,7 +3990,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 const SizedBox(width: 3),
                 Text(context.loc.t('여성', '여성: '), style: TextStyle(fontSize: 11, color: Colors.pink.shade700, fontWeight: FontWeight.w600)),
                 Text(
-                  _femaleLengthSel ?? '미선택',
+                  _femaleLengthSel ?? context.loc.t('미선택', '미선택'),
                   style: TextStyle(
                     fontSize: 12, fontWeight: FontWeight.w900,
                     color: _femaleLengthSel != null ? Colors.teal.shade800 : Colors.orange.shade700,
@@ -4031,7 +4031,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   Widget _buildSizeTable() {
     // 성인 사이즈 표
-    final adultHeaders = ['사이즈', '키(cm)', '몸무게(kg)', '가슴(cm)', '허리(cm)'];
+    final adultHeaders = [context.loc.t('사이즈', '사이즈'), context.loc.t('키_cm', '키(cm)'), context.loc.t('몸무게_kg', '몸무게(kg)'), context.loc.t('가슴_cm', '가슴(cm)'), context.loc.t('허리_cm', '허리(cm)')];
     final adultRows = [
       ['XS',  '154~159', '44~51',  '85 cm',  '68 cm'],
       ['S',   '160~165', '52~60',  '90 cm',  '72 cm'],
@@ -4042,7 +4042,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       ['3XL', '187~191', '91~96',  '115 cm', '92 cm'],
     ];
     // 주니어 사이즈 표
-    final juniorHeaders = ['사이즈', '키(cm)', '몸무게(kg)', '가슴(cm)', '허리(cm)'];
+    final juniorHeaders = [context.loc.t('사이즈', '사이즈'), context.loc.t('키_cm', '키(cm)'), context.loc.t('몸무게_kg', '몸무게(kg)'), context.loc.t('가슴_cm', '가슴(cm)'), context.loc.t('허리_cm', '허리(cm)')];
     final juniorRows = [
       ['XXS(80)',  '75~85',   '11~13',  '54 cm',  '48 cm'],
       ['XS(90)',   '85~95',   '13~15',  '58 cm',  '51 cm'],
@@ -4291,7 +4291,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             // 이름 (10명 이상일 때만 입력 가능)
             Expanded(
               child: Tooltip(
-                message: _nameEnabled ? '' : '10명 이상일 때 이름 입력 가능',
+                message: _nameEnabled ? '' : context.loc.t('10명_이상일_때_이름_입력_가능', '10명 이상일 때 이름 입력 가능'),
                 child: TextField(
                   controller: p.nameCtrl,
                   enabled: _nameEnabled,
@@ -4329,9 +4329,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               if (p.gender == null)
                 Text(context.loc.t('필수', '필수*'), style: TextStyle(fontSize: 9, color: Colors.red.shade600, fontWeight: FontWeight.w700)),
               Row(mainAxisSize: MainAxisSize.min, children: [
-                _genderBtn('남', isMale, Colors.blue, () => setState(() => p.gender = 'male')),
+                _genderBtn(context.loc.t('남', '남'), isMale, Colors.blue, () => setState(() => p.gender = 'male')),
                 const SizedBox(width: 5),
-                _genderBtn('여', isFemale, Colors.pink, () => setState(() => p.gender = 'female')),
+                _genderBtn(context.loc.t('여', '여'), isFemale, Colors.pink, () => setState(() => p.gender = 'female')),
               ]),
             ]),
             const SizedBox(width: 6),
@@ -4408,9 +4408,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               const SizedBox(width: 5),
               Text(context.loc.t('사이즈_구분', '사이즈 구분'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E))),
               const SizedBox(width: 10),
-              _sizeTypeBtn('성인', p, Colors.indigo),
+              _sizeTypeBtn(context.loc.t('성인', '성인'), p, Colors.indigo),
               const SizedBox(width: 6),
-              _sizeTypeBtn('주니어', p, Colors.teal),
+              _sizeTypeBtn(context.loc.t('주니어', '주니어'), p, Colors.teal),
             ]),
             const SizedBox(height: 10),
 
@@ -4433,7 +4433,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             // ④ 하의 사이즈 선택 (상의 카테고리일 때 숨김)
             if (!_isTopOnly) ...[
               _buildPersonSizeSelector(
-                label: _isBottomOnly ? '사이즈 *' : '하의 사이즈 *',
+                label: _isBottomOnly ? context.loc.t('사이즈', '사이즈 *') : context.loc.t('하의_사이즈', '하의 사이즈 *'),
                 icon: Icons.accessibility_new_rounded,
                 selected: p.bottomSize,
                 sizeType: p.sizeType,
@@ -4483,7 +4483,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             Builder(builder: (_) {
               final isFemale = p.gender == 'female';
               final lenSel   = isFemale ? _femaleLengthSel : _maleLengthSel;
-              final lenLabel = lenSel ?? '미선택 (위에서 선택해 주세요)';
+              final lenLabel = lenSel ?? context.loc.t('미선택_위에서_선택해_주세요', '미선택 (위에서 선택해 주세요)');
               final selected = lenSel != null;
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -4570,7 +4570,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ── 팀원별 사이즈표 토글 ─────────────────────────────
   Widget _buildPersonSizeTable(_PersonEntry p) {
     final tableRows = p.sizeType == '성인' ? _kAdultSizeRows : _kJuniorSizeRows;
-    final headers = ['사이즈', '키(cm)', '몸무게(kg)', '가슴(cm)', '허리(cm)'];
+    final headers = [context.loc.t('사이즈', '사이즈'), context.loc.t('키_cm', '키(cm)'), context.loc.t('몸무게_kg', '몸무게(kg)'), context.loc.t('가슴_cm', '가슴(cm)'), context.loc.t('허리_cm', '허리(cm)')];
     return Column(children: [
       GestureDetector(
         onTap: () => setState(() => p.showSizeTable = !p.showSizeTable),
@@ -4697,15 +4697,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         const SizedBox(height: 10),
         // 2열 그리드: 키, 몸무게, 허리, 허벅지
         Row(children: [
-          Expanded(child: _measureField(p.heightCtrl, '키', 'cm', Icons.height_rounded)),
+          Expanded(child: _measureField(p.heightCtrl, context.loc.t('키', '키'), 'cm', Icons.height_rounded)),
           const SizedBox(width: 8),
-          Expanded(child: _measureField(p.weightCtrl, '몸무게', 'kg', Icons.monitor_weight_outlined)),
+          Expanded(child: _measureField(p.weightCtrl, context.loc.t('몸무게', '몸무게'), 'kg', Icons.monitor_weight_outlined)),
         ]),
         const SizedBox(height: 8),
         Row(children: [
-          Expanded(child: _measureField(p.waistCtrl, '허리', 'cm', Icons.radio_button_unchecked)),
+          Expanded(child: _measureField(p.waistCtrl, context.loc.t('허리', '허리'), 'cm', Icons.radio_button_unchecked)),
           const SizedBox(width: 8),
-          Expanded(child: _measureField(p.thighCtrl, '허벅지', 'cm', Icons.airline_seat_legroom_normal_rounded)),
+          Expanded(child: _measureField(p.thighCtrl, context.loc.t('허벅지', '허벅지'), 'cm', Icons.airline_seat_legroom_normal_rounded)),
         ]),
       ]),
     );
@@ -4790,7 +4790,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       title: context.loc.t('기본_정보', '기본 정보'),
       icon: Icons.info_outline_rounded,
       child: Column(children: [
-        _inputField('단체명 *', _teamNameCtrl, '단체명을 입력해 주세요'),
+        _inputField(context.loc.t('단체명', '단체명 *'), _teamNameCtrl, context.loc.t('단체명을_입력해_주세요', '단체명을 입력해 주세요')),
         // ── 인쇄타입 '전면 단체명 변경' 선택 시 안내문구 ──
         if (_hasTeamName)
           Container(
@@ -4812,11 +4812,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       style: TextStyle(fontSize: 12, color: Color(0xFF5D4037), height: 1.5),
                       children: [
                         TextSpan(
-                          text: '인쇄 안내: ',
+                          text: context.loc.t('인쇄_안내', '인쇄 안내: '),
                           style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFF57C00)),
                         ),
                         TextSpan(
-                          text: '현재 전면 단체명 인쇄 옵션이 선택되어 있습니다.\n위 단체명 입력칸에 입력한 단체명으로 전면에 단체명이 인쇄됩니다.',
+                          text: context.loc.t('현재_전면_단체명_인쇄_옵션이_선택되어_있습니다_n위_단체명__53b3f0', '현재 전면 단체명 인쇄 옵션이 선택되어 있습니다.\n위 단체명 입력칸에 입력한 단체명으로 전면에 단체명이 인쇄됩니다.'),
                         ),
                       ],
                     ),
@@ -4825,10 +4825,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               ],
             ),
           ),
-        _inputField('담당자 이름', _managerNameCtrl, '담당자 이름'),
-        _inputField('연락처 *', _phoneCtrl, '010-0000-0000',
+        _inputField(context.loc.t('담당자_이름', '담당자 이름'), _managerNameCtrl, context.loc.t('담당자_이름', '담당자 이름')),
+        _inputField(context.loc.t('연락처', '연락처 *'), _phoneCtrl, '010-0000-0000',
             keyboardType: TextInputType.phone),
-        _inputField('이메일', _emailCtrl, 'example@email.com',
+        _inputField(context.loc.t('이메일', '이메일'), _emailCtrl, 'example@email.com',
             keyboardType: TextInputType.emailAddress),
         // 주소 (카카오 주소검색)
         Padding(
@@ -4880,7 +4880,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _address.isEmpty ? '주소 검색 (카카오)' : _address,
+                      _address.isEmpty ? context.loc.t('주소_검색_카카오', '주소 검색 (카카오)') : _address,
                       style: TextStyle(
                           fontSize: 13,
                           color: _address.isEmpty ? Colors.grey : Colors.black87),
@@ -4955,18 +4955,18 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       style: const TextStyle(fontSize: 12, color: Color(0xFF333333), height: 1.5),
                       children: [
                         TextSpan(
-                          text: '1년 독점 디자인 소유  ',
+                          text: context.loc.t('1년_독점_디자인_소유', '1년 독점 디자인 소유  '),
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
                             color: _exclusiveDesign ? _purple : const Color(0xFF333333),
                           ),
                         ),
                         TextSpan(
-                          text: '(선택 · 무료)  ',
+                          text: context.loc.t('선택_무료', '(선택 · 무료)  '),
                           style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF2E7D32)),
                         ),
                         TextSpan(
-                          text: '무료 제공\n',
+                          text: context.loc.t('무료_제공', '무료 제공'),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
@@ -4974,15 +4974,15 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           ),
                         ),
                         const TextSpan(
-                          text: '· 1년간 해당 디자인을 타인에게 배포하지 않습니다.\n',
+                          text: context.loc.t('1년간_해당_디자인을_타인에게_배포하지_않습니다', '· 1년간 해당 디자인을 타인에게 배포하지 않습니다.'),
                           style: TextStyle(fontSize: 11, color: Color(0xFF666666), fontWeight: FontWeight.w400),
                         ),
                         const TextSpan(
-                          text: '· 별도 이야기 없으면 매년 2월 1일 홈페이지에 업로드 됩니다.\n',
+                          text: context.loc.t('별도_이야기_없으면_매년_2월_1일_홈페이지에_업로드_됩니다', '· 별도 이야기 없으면 매년 2월 1일 홈페이지에 업로드 됩니다.'),
                           style: TextStyle(fontSize: 11, color: Color(0xFF666666), fontWeight: FontWeight.w400),
                         ),
                         const TextSpan(
-                          text: '· 같은 디자인 희망 시 색상만 변경 가능 (같은 색상 제작 불가)',
+                          text: context.loc.t('같은_디자인_희망_시_색상만_변경_가능_같은_색상_제작_불가', '· 같은 디자인 희망 시 색상만 변경 가능 (같은 색상 제작 불가)'),
                           style: TextStyle(fontSize: 11, color: Color(0xFF880E4F), fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -5180,9 +5180,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         const Divider(height: 20),
         _sumRow(context.loc.t('상품_합계', '상품 합계'), '${_fmt(_subTotal)}원'),
         _sumRow(
-          '배송비',
+          context.loc.t('배송비', '배송비'),
           _totalCount >= AppConstants.groupMinFreeShipping
-              ? '무료 (5장 이상)'
+              ? context.loc.t('무료_5장_이상', '무료 (5장 이상)')
               : '+${_fmt(_shipping)}원 (5장 미만)',
           valueColor: _totalCount >= AppConstants.groupMinFreeShipping
               ? Colors.green.shade700
@@ -5193,7 +5193,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               '+${_fmt(_waistbandExtra)}원',
               valueColor: const Color(0xFFE65100)),
         if (_exclusiveDesign)
-          _sumRow('1년 독점 디자인', '무료',
+          _sumRow(context.loc.t('1년_독점_디자인', '1년 독점 디자인'), context.loc.t('무료', '무료'),
               valueColor: const Color(0xFF2E7D32)),
         const Divider(height: 20),
         _sumRow(context.loc.t('최종_결제금액', '최종 결제금액'), '${_fmt(_finalPrice)}원',

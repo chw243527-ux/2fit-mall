@@ -672,7 +672,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '※ 모든 착상 이미지는 AI 생성 이미지입니다',
+                    context.loc.t('모든_착상_이미지는_AI_생성_이미지입니다', '※ 모든 착상 이미지는 AI 생성 이미지입니다'),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: r.sp(10),
@@ -682,7 +682,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   ),
                   SizedBox(height: r.h(3)),
                   Text(
-                    '▶ 디자인 이미지를 반드시 확인해주세요 [확인 필수]',
+                    context.loc.t('디자인_이미지를_반드시_확인해주세요_확인_필수', '▶ 디자인 이미지를 반드시 확인해주세요 [확인 필수]'),
                     style: TextStyle(
                       color: Color(0xFFFFD966),
                       fontSize: r.sp(10),
@@ -1019,17 +1019,17 @@ $productUrl
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
               child: Row(children: [
-                _toptenTabChip('기성품', true, activeColor: Colors.teal),
+                _toptenTabChip(context.loc.t('기성품', '기성품'), true, activeColor: Colors.teal),
               ]),
             ),
           if (product.isGroupOnly)
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
               child: Row(children: [
-                _toptenTabChip('단체전용', true, activeColor: Color(0xFF6A1B9A)),
+                _toptenTabChip(context.loc.t('단체전용', '단체전용'), true, activeColor: Color(0xFF6A1B9A)),
                 if (product.isReadyMade) ...[
                   SizedBox(width: r.w(8)),
-                  _toptenTabChip('기성품', true, activeColor: Colors.teal),
+                  _toptenTabChip(context.loc.t('기성품', '기성품'), true, activeColor: Colors.teal),
                 ],
               ]),
             ),
@@ -1322,7 +1322,7 @@ $productUrl
                 SizedBox(width: r.w(4)),
                 Expanded(
                   child: Text(
-                    '화면에 표시된 색상은 모니터 환경에 따라 실제 제품과 약간의 차이가 있을 수 있습니다.',
+                    context.loc.t('화면에_표시된_색상은_모니터_환경에_따라_실제_제품과_약간의__21558e', '화면에 표시된 색상은 모니터 환경에 따라 실제 제품과 약간의 차이가 있을 수 있습니다.'),
                     style: TextStyle(fontSize: r.sp(10), color: Color(0xFFBBBBBB), height: 1.45),
                   ),
                 ),
@@ -1372,7 +1372,7 @@ $productUrl
                   Text(
                     product.isFreeShipping
                         ? context.loc.t('무료배송', '무료배송')
-                        : '4,000원 (300,000원 이상 구매시 무료)',
+                        : context.loc.t('4_000원_300_000원_이상_구매시_무료', '4,000원 (300,000원 이상 구매시 무료)'),
                     style: TextStyle(
                       fontSize: r.sp(13),
                       color: product.isFreeShipping ? const Color(0xFF2E7D32) : const Color(0xFF1A1A1A),
@@ -1381,7 +1381,7 @@ $productUrl
                   ),
                   if (!product.isFreeShipping)
                     Text(
-                      '(도서산간 배송시 3,000원 추가)',
+                      context.loc.t('도서산간_배송시_3_000원_추가', '(도서산간 배송시 3,000원 추가)'),
                       style: TextStyle(fontSize: r.sp(11), color: Color(0xFFAAAAAA)),
                     ),
                   // 포인트 섹션 제거됨 (요청 반영)
@@ -1483,10 +1483,10 @@ $productUrl
 
   Widget _buildToptenTabBar() {
     final tabs = [
-      ('상품정보', 0, _keyInfo),
-      ('사이즈',   1, _keySize),
-      ('세탁',     2, _keyWashing),
-      ('리뷰',     3, _keyReview),
+      (context.loc.t('상품정보', '상품정보'), 0, _keyInfo),
+      (context.loc.t('사이즈', '사이즈'), 1, _keySize),
+      (context.loc.t('세탁', '세탁'), 2, _keyWashing),
+      (context.loc.t('리뷰', '리뷰'), 3, _keyReview),
     ];
     return Container(
       color: Colors.white,
@@ -1565,7 +1565,7 @@ $productUrl
     if (hasCustomMaterial) {
       materialText = product.material;
     } else if (isSingletSet) {
-      materialText = '상의: 폴리에스터 92% / 라이크라 8%\n하의: 나일론 75% / 라이크라 25%';
+      materialText = context.loc.t('상의_폴리에스터_92_라이크라_8_n하의_나일론_75_라이크라_25', '상의: 폴리에스터 92% / 라이크라 8%\n하의: 나일론 75% / 라이크라 25%');
     } else if (isSingletTop) {
       materialText = context.loc.t('폴리에스터_92_라이크라_8', '폴리에스터 92% / 라이크라 8%');
     } else if (isTaiz) {
@@ -1593,7 +1593,7 @@ $productUrl
           _infoColorBadge(
             label: context.loc.t('단체주문_전용', '단체주문 전용'),
             labelColor: const Color(0xFF4A148C),
-            text: '골지원단 19가지 기본 색상 중 원하는 색상으로 자유롭게 제작 가능',
+            text: context.loc.t('골지원단_19가지_기본_색상_중_원하는_색상으로_자유롭게_제작_가능', '골지원단 19가지 기본 색상 중 원하는 색상으로 자유롭게 제작 가능'),
           ),
           SizedBox(height: r.h(10)),
           _infoColorChipRow(['K','N','W','G','DG','SB','B','DB','SP','LP','IO','LG','R','PP','ND','BB','FP','FO','FG'], useRib: true),
@@ -1627,12 +1627,12 @@ $productUrl
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '19가지 기본 색상 외에도 제작 가능',
+                        context.loc.t('19가지_기본_색상_외에도_제작_가능', '19가지 기본 색상 외에도 제작 가능'),
                         style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w700, color: Color(0xFF4A148C), height: 1.3),
                       ),
                       SizedBox(height: r.h(2)),
                       Text(
-                        '원하시는 색상이 있다면 주문 시 별도로 알려주세요.',
+                        context.loc.t('원하시는_색상이_있다면_주문_시_별도로_알려주세요', '원하시는 색상이 있다면 주문 시 별도로 알려주세요.'),
                         style: TextStyle(fontSize: r.sp(10.5), color: Color(0xFF6A1B9A), height: 1.45),
                       ),
                     ],
@@ -1695,7 +1695,7 @@ $productUrl
           _toptenInfoBlock(
             num: '01',
             label: 'INFO',
-            labelSub: '제품 설명',
+            labelSub: context.loc.t('제품_설명', '제품 설명'),
             content: Text(
               product.localizedDescription(_lang),
               style: TextStyle(
@@ -1712,14 +1712,14 @@ $productUrl
           _toptenInfoBlock(
             num: productBlockNum.toString().padLeft(2, '0'),
             label: 'PRODUCT',
-            labelSub: '제품 기본 정보',
+            labelSub: context.loc.t('제품_기본_정보', '제품 기본 정보'),
             content: _toptenInfoTable([
-              ('제품명', product.localizedName(_lang)),
-              if (product.subCategory.isNotEmpty) ('분류', product.subCategory),
-              ('상품코드', productCode),
-              ('시즌', 'SS26'),
+              (context.loc.t('제품명', '제품명'), product.localizedName(_lang)),
+              if (product.subCategory.isNotEmpty) (context.loc.t('분류', '분류'), product.subCategory),
+              (context.loc.t('상품코드', '상품코드'), productCode),
+              (context.loc.t('시즌', '시즌'), 'SS26'),
               // 하의길이 행: 해당 카테고리만
-              if (bottomLengthValue != null) ('하의길이', bottomLengthValue),
+              if (bottomLengthValue != null) (context.loc.t('하의길이', '하의길이'), bottomLengthValue),
             ]),
           ),
 
@@ -1727,7 +1727,7 @@ $productUrl
           _toptenInfoBlock(
             num: materialBlockNum.toString().padLeft(2, '0'),
             label: 'MATERIAL',
-            labelSub: '소재 정보',
+            labelSub: context.loc.t('소재_정보', '소재 정보'),
             content: Text(
               materialText,
               style: TextStyle(
@@ -1743,7 +1743,7 @@ $productUrl
           _toptenInfoBlock(
             num: colorBlockNum.toString().padLeft(2, '0'),
             label: 'COLOR',
-            labelSub: '색상 안내',
+            labelSub: context.loc.t('색상_안내', '색상 안내'),
             content: colorContent,
             isLast: true,
           ),
@@ -2003,14 +2003,15 @@ $productUrl
   }
 
   // 세탁 주의사항 리스트
-  static const List<String> _washingTips = [
-    '세제를 풀어 놓은 물에 담가 두지 마시고 세탁 시 수축 및 변형 방지를 위해 찬물 세탁을 권장합니다.',
-    '땀과 물에 젖었을 경우 즉시 세탁하십시오.',
-    '세탁 시 지퍼나 단추를 잠근 상태에서 세탁하여 주십시오.',
-    '흰색 제품과 유색 제품은 반드시 구분하여 별도 세탁하십시오.',
-    '이염 방지를 위해 색상이 있는 옷은 단독 세탁 권장 드리며, 염소, xs백 제품은 사용하지 않는 것을 권장 드립니다.',
-    '탈수 시 약하게 짜시고 탈수 후 뭉친 상태로 두시면 이염이 될 수 있으니 바로 건조하여 주십시오.',
-    '열풍 건조는 제품 수축의 원인이 될 수 있으므로 열풍 건조를 하지 마십시오.',
+  // static const → runtime loc.t 사용, getter로 대체
+  List<String> get _washingTips => [
+    context.loc.t('세제를_풀어_놓은_물에_담가_두지_마시고', '세제를 풀어 놓은 물에 담가 두지 마시고 세탁 시 수축 및 변형 방지를 위해 찬물 세탁을 권장합니다.'),
+    context.loc.t('땀과_물에_젖었을_경우_즉시_세탁', '땀과 물에 젖었을 경우 즉시 세탁하십시오.'),
+    context.loc.t('세탁_시_지퍼나_단추를_잠근_상태', '세탁 시 지퍼나 단추를 잠근 상태에서 세탁하여 주십시오.'),
+    context.loc.t('흰색_제품과_유색_제품은_반드시', '흰색 제품과 유색 제품은 반드시 구분하여 별도 세탁하십시오.'),
+    context.loc.t('이염_방지를_위해_색상이_있는_옷', '이염 방지를 위해 색상이 있는 옷은 단독 세탁 권장 드리며, 염소, xs백 제품은 사용하지 않는 것을 권장 드립니다.'),
+    context.loc.t('탈수_시_약하게_짜시고_탈수_후', '탈수 시 약하게 짜시고 탈수 후 뭉친 상태로 두시면 이염이 될 수 있으니 바로 건조하여 주십시오.'),
+    context.loc.t('열풍_건조는_제품_수축의_원인', '열풍 건조는 제품 수축의 원인이 될 수 있으므로 열풍 건조를 하지 마십시오.'),
   ];
 
   // ── 최하단 WASHING TIP 독립 섹션 (탑텐 스타일) ──
@@ -2018,7 +2019,7 @@ $productUrl
     final r = Responsive.of(context);
     // 아이콘+설명 세탁 가이드 항목
     final washGuide = [
-      (Icons.water_drop_outlined,      '찬물 세탁',    '30°C 이하 찬물 사용 권장'),
+      (Icons.water_drop_outlined, context.loc.t('찬물_세탁', '찬물 세탁'), context.loc.t('30_C_이하_찬물_사용_권장', '30°C 이하 찬물 사용 권장')),
       (Icons.front_hand_outlined,      '손세탁 권장',  context.loc.t('세탁기 사용 시 단독 세탁', '세탁기 사용 시 단독 세탁')),
       (Icons.air_outlined,             '자연 건조',    context.loc.t('열풍 건조 금지  수축 원인', '열풍 건조 금지 — 수축 원인')),
       (Icons.lock_outline_rounded,     '지퍼/단추 잠금', context.loc.t('세탁 전 지퍼·단추를 잠근 후 세탁', '세탁 전 지퍼·단추를 잠근 후 세탁')),
@@ -2139,7 +2140,7 @@ $productUrl
                     ),
                   ),
                   child: Text(
-                    '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.',
+                    context.loc.t('재고는_조기_소진될_수_있으며_소비자_부주의로_인한_제품_손상_dc3ff0', '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.'),
                     style: TextStyle(fontSize: r.sp(11), color: Color(0xFF666666), height: 1.65),
                   ),
                 ),
@@ -2373,7 +2374,7 @@ $productUrl
     final isTaiz = product.category == '하의' ||
         product.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
         product.name.contains(context.loc.t('타이즈', '타이즈'));
-    final label = isTaiz ? '타이즈' : '기성품';
+    final label = isTaiz ? context.loc.t('타이즈', '타이즈') : context.loc.t('기성품', '기성품');
     final subtitle = isTaiz
         ? context.loc.t('색상을 선택하세요 19가지', '색상을 선택하세요 (19가지)')
         : context.loc.t('상의는 디자인 색상 그대로 제작 하의 색상은 선택 가능합니다', '상의는 디자인 색상 그대로 제작, 하의 색상은 선택 가능합니다.');
@@ -2954,7 +2955,7 @@ $productUrl
                                 Text(
                                   isSingletSet
                                       ? context.loc.t('k_19가지_색상_중_하의_색상을_선택하세요', '19가지 색상 중 하의 색상을 선택하세요')
-                                      : '19가지 색상 중 자유롭게 선택하세요',
+                                      : context.loc.t('19가지_색상_중_자유롭게_선택하세요', '19가지 색상 중 자유롭게 선택하세요'),
                                   style: TextStyle(fontSize: r.sp(11), color: Color(0xFF1B5E20).withValues(alpha: 0.8), height: 1.3)),
                               ],
                             ),
@@ -2981,7 +2982,7 @@ $productUrl
                           SizedBox(width: r.w(6)),
                           Expanded(
                             child: Text(
-                              '하의 색상 선택은 장바구니 / 바로구매 버튼을 눌러 진행하세요',
+                              context.loc.t('하의_색상_선택은_장바구니_바로구매_버튼을_눌러_진행하세요', '하의 색상 선택은 장바구니 / 바로구매 버튼을 눌러 진행하세요'),
                               style: TextStyle(fontSize: r.sp(10.5), color: Color(0xFF666666), height: 1.4),
                             ),
                           ),
@@ -3093,9 +3094,9 @@ $productUrl
                 style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
             SizedBox(height: r.h(8)),
             Row(children: [
-              _fabricTypeBtn('일반원단', '기본 기능성 원단', Icons.layers_outlined),
+              _fabricTypeBtn(context.loc.t('일반원단', '일반원단'), context.loc.t('기본_기능성_원단', '기본 기능성 원단'), Icons.layers_outlined),
               SizedBox(width: r.w(8)),
-              _fabricTypeBtn('심리스', '봉제선 없는 심리스', Icons.auto_awesome_outlined),
+              _fabricTypeBtn(context.loc.t('심리스', '심리스'), context.loc.t('봉제선_없는_심리스', '봉제선 없는 심리스'), Icons.auto_awesome_outlined),
             ]),
             SizedBox(height: r.h(10)),
           ],
@@ -3324,7 +3325,7 @@ $productUrl
             ),
           ),
           SizedBox(height: r.h(10)),
-          _buildAdminImageSection('s2_length', '하의길이 참조 이미지', isAdmin),
+          _buildAdminImageSection('s2_length', context.loc.t('하의길이_참조_이미지', '하의길이 참조 이미지'), isAdmin),
         ] else ...[
           // 일반 유저: 업로드된 이미지 표시
           _buildStaticImageList(effectiveImgs),
@@ -3348,7 +3349,7 @@ $productUrl
                   const Icon(Icons.straighten_rounded, size: 14, color: Color(0xFF555555)),
                   SizedBox(width: r.w(6)),
                   Text(
-                    '왼쪽부터',
+                    context.loc.t('왼쪽부터', '왼쪽부터'),
                     style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF555555)),
                   ),
                   SizedBox(width: r.w(8)),
@@ -3400,7 +3401,7 @@ $productUrl
                   SizedBox(width: r.w(8)),
                   Expanded(
                     child: Text(
-                      '주머니 추가 불가',
+                      context.loc.t('주머니_추가_불가', '주머니 추가 불가'),
                       style: TextStyle(fontSize: r.sp(12), color: Color(0xFFE65100), height: 1.5, fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -3424,7 +3425,7 @@ $productUrl
                   SizedBox(width: r.w(8)),
                   Expanded(
                     child: Text(
-                      '9부 · 5부 · 4부 · 3부까지 적용 가능',
+                      context.loc.t('9부_5부_4부_3부까지_적용_가능', '9부 · 5부 · 4부 · 3부까지 적용 가능'),
                       style: TextStyle(fontSize: r.sp(12), color: Color(0xFF444444), height: 1.5),
                     ),
                   ),
@@ -3446,7 +3447,7 @@ $productUrl
                   SizedBox(width: r.w(8)),
                   Expanded(
                     child: Text(
-                      '9부 · 5부 · 4부 · 3부 · 2.5부 · 숏사각까지 적용 가능',
+                      context.loc.t('9부_5부_4부_3부_2_5부_숏사각까지_적용_가능', '9부 · 5부 · 4부 · 3부 · 2.5부 · 숏사각까지 적용 가능'),
                       style: TextStyle(fontSize: r.sp(12), color: Color(0xFF444444), height: 1.5),
                     ),
                   ),
@@ -3962,7 +3963,7 @@ $productUrl
             ),
             SizedBox(width: r.w(8)),
             Text(
-              '디자인 이미지',
+              context.loc.t('디자인_이미지', '디자인 이미지'),
               style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800,
                   color: Color(0xFF1A1A1A), letterSpacing: -0.2),
             ),
@@ -3979,7 +3980,7 @@ $productUrl
               const Spacer(),
               // 업로드 버튼
               GestureDetector(
-                onTap: () => _pickAndUploadImages('design', '디자인 이미지', imgs),
+                onTap: () => _pickAndUploadImages('design', context.loc.t('디자인_이미지', '디자인 이미지'), imgs),
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
                   decoration: BoxDecoration(
@@ -4250,7 +4251,7 @@ $productUrl
         _sectionHeaderBanner(
           engTitle: 'PERFORMANCE',
           engSub: 'SECTION 01',
-          korSub: '고성능 스포츠 소재와 기술이 만든\n최상위 퍼포먼스 웨어',
+          korSub: context.loc.t('고성능_스포츠_소재와_기술이_만든_n최상위_퍼포먼스_웨어', '고성능 스포츠 소재와 기술이 만든\n최상위 퍼포먼스 웨어'),
           trailingIcon: const Icon(Icons.bolt_rounded, size: 36, color: Color(0x55FFFFFF)),
         ),
         const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
@@ -4262,7 +4263,7 @@ $productUrl
             child: isAdmin
                 ? Padding(
                     padding: EdgeInsets.symmetric(horizontal: r.w(16)),
-                    child: _buildAdminImageSection('s1', '섹션1 메인 배너', isAdmin),
+                    child: _buildAdminImageSection('s1', context.loc.t('섹션1_메인_배너', '섹션1 메인 배너'), isAdmin),
                   )
                 : _buildSectionImageSlider('s1'),
           ),
@@ -4292,7 +4293,7 @@ $productUrl
         _sectionHeaderBanner(
           engTitle: 'MATERIAL',
           engSub: 'SECTION 02',
-          korSub: '고급 원단과 기능성 소재로 완성한\n쾌적하고 지속 가능한 착용감',
+          korSub: context.loc.t('고급_원단과_기능성_소재로_완성한_n쾌적하고_지속_가능한_착용감', '고급 원단과 기능성 소재로 완성한\n쾌적하고 지속 가능한 착용감'),
           bgColor: const Color(0xFF212121),
           trailingIcon: const Icon(Icons.layers_rounded, size: 36, color: Color(0x55FFFFFF)),
         ),
@@ -4316,7 +4317,7 @@ $productUrl
               child: isAdmin
                   ? Padding(
                       padding: EdgeInsets.symmetric(horizontal: r.w(16)),
-                      child: _buildAdminImageSection('s2_fabric_extra', '원단 추가 이미지', isAdmin),
+                      child: _buildAdminImageSection('s2_fabric_extra', context.loc.t('원단_추가_이미지', '원단 추가 이미지'), isAdmin),
                     )
                   : _buildSectionImageSlider('s2_fabric_extra'),
             ),
@@ -4393,7 +4394,7 @@ $productUrl
           isAdmin
               ? Padding(
                   padding: EdgeInsets.fromLTRB(r.w(16), r.h(0), r.w(16), r.h(0)),
-                  child: _buildAdminImageSection('s2_fiber', '소재혼용율 이미지', isAdmin),
+                  child: _buildAdminImageSection('s2_fiber', context.loc.t('소재혼용율_이미지', '소재혼용율 이미지'), isAdmin),
                 )
               : _buildSectionImageSlider('s2_fiber'),
 
@@ -4545,7 +4546,7 @@ $productUrl
         _sectionHeaderBanner(
           engTitle: 'POCKET\nSYSTEM',
           engSub: 'SECTION 03',
-          korSub: '실용적인 수납 설계와 방수 기능으로\n운동 중에도 완벽한 편의성',
+          korSub: context.loc.t('실용적인_수납_설계와_방수_기능으로_n운동_중에도_완벽한_편의성', '실용적인 수납 설계와 방수 기능으로\n운동 중에도 완벽한 편의성'),
           bgColor: const Color(0xFF1C2B3A),
           trailingIcon: const Icon(Icons.inventory_2_rounded, size: 36, color: Color(0x55FFFFFF)),
         ),
@@ -4555,7 +4556,7 @@ $productUrl
           isAdmin
               ? Padding(
                   padding: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
-                  child: _buildAdminImageSection('s3', '섹션3 포켓 특성', isAdmin),
+                  child: _buildAdminImageSection('s3', context.loc.t('섹션3_포켓_특성', '섹션3 포켓 특성'), isAdmin),
                 )
               : _buildSectionImageSlider('s3'),
 
@@ -4661,7 +4662,7 @@ $productUrl
           Container(
             color: const Color(0xFFF5F5F5),
             padding: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
-            child: _buildAdminImageSection('s6', '섹션6 사이즈 차트', isAdmin),
+            child: _buildAdminImageSection('s6', context.loc.t('섹션6_사이즈_차트', '섹션6 사이즈 차트'), isAdmin),
           ),
 
         // ── 메인 사이즈 차트 컨테이너 ──
@@ -4715,7 +4716,7 @@ $productUrl
                       ),
                       SizedBox(height: r.h(6)),
                       Text(
-                        '투핏 사이즈 조건표 기준',
+                        context.loc.t('투핏_사이즈_조건표_기준', '투핏 사이즈 조건표 기준'),
                         style: TextStyle(
                           fontSize: r.sp(10),
                           color: Colors.black.withValues(alpha: 0.45),
@@ -4795,7 +4796,7 @@ $productUrl
                         SizedBox(width: r.w(6)),
                         Expanded(
                           child: Text(
-                            '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.',
+                            context.loc.t('제품_이미지와_색상은_모니터의_상태에_따라_다소_다르게_보일_수_있습니다', '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.'),
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
                           ),
                         ),
@@ -4809,7 +4810,7 @@ $productUrl
                         SizedBox(width: r.w(6)),
                         Expanded(
                           child: Text(
-                            '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.',
+                            context.loc.t('측정_위치에_따라_1_2cm_정도의_오차가_발생할_수_있습니다', '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.'),
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
                           ),
                         ),
@@ -4823,7 +4824,7 @@ $productUrl
                         SizedBox(width: r.w(6)),
                         Expanded(
                           child: Text(
-                            '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.',
+                            context.loc.t('제품_생산_시기_및_생산지에_따라서_동일_상품_간_컬러_및_혼_98c440', '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.'),
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
                           ),
                         ),
@@ -4840,7 +4841,7 @@ $productUrl
           Container(
             color: const Color(0xFFF5F5F5),
             padding: EdgeInsets.fromLTRB(r.w(20), r.h(0), r.w(20), r.h(20)),
-            child: _buildAdminImageSection('s6', '섹션6 사이즈 차트', isAdmin),
+            child: _buildAdminImageSection('s6', context.loc.t('섹션6_사이즈_차트', '섹션6 사이즈 차트'), isAdmin),
           ),
 
         // ── WASH TIP 헤더만 ──
@@ -4863,7 +4864,7 @@ $productUrl
               ),
               SizedBox(height: r.h(6)),
               Text(
-                '올바른 세탁으로 제품을 오래, 깨끗하게',
+                context.loc.t('올바른_세탁으로_제품을_오래_깨끗하게', '올바른 세탁으로 제품을 오래, 깨끗하게'),
                 style: TextStyle(
                   fontSize: r.sp(11),
                   color: Colors.white.withValues(alpha: 0.55),
@@ -5163,7 +5164,7 @@ $productUrl
                           ),
                           icon: const Icon(Icons.shopping_bag_outlined, size: 18, color: Color(0xFF1A1A1A)),
                           label: Text(
-                            '장바구니',
+                            context.loc.t('장바구니', '장바구니'),
                             style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(14), color: Color(0xFF1A1A1A)),
                           ),
                           onPressed: () => _addToCart(product),
@@ -5185,7 +5186,7 @@ $productUrl
                           ),
                           onPressed: () => _showBuyNowSheet(product),
                           child: Text(
-                            '바로구매',
+                            context.loc.t('바로구매', '바로구매'),
                             style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(16), color: Colors.white),
                           ),
                         ),
@@ -5474,7 +5475,7 @@ $productUrl
                 _orderTypeBtn(
                   emoji: '📦',
                   title: context.loc.t('기성품_단체주문', '기성품 단체주문'),
-                  description: '기성 디자인 그대로 단체 수량으로 주문',
+                  description: context.loc.t('기성_디자인_그대로_단체_수량으로_주문', '기성 디자인 그대로 단체 수량으로 주문'),
                   tags: ['기성품', context.loc.t('빠른납기', '빠른납기')],
                   color: Colors.teal,
                   onTap: () {
@@ -6371,7 +6372,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             Icon(Icons.info_outline_rounded, size:14, color:Color(0xFF7A5000)),
             SizedBox(width: r.w(6)),
             Expanded(child: Text(
-              '남성 → 하의 5부 자동 적용\n여성 → 하의 2.5부 자동 적용',
+              context.loc.t('남성_하의_5부_자동_적용_n여성_하의_2_5부_자동_적용', '남성 → 하의 5부 자동 적용\n여성 → 하의 2.5부 자동 적용'),
               style: TextStyle(fontSize: r.sp(12), color:Color(0xFF7A5000), height:1.5),
             )),
           ]),
@@ -6484,7 +6485,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                 Text(
                   _isSingletASet
                       ? context.loc.t('사이즈 · 색상 선택  _  남  남성  여성 · 하의 _', '사이즈 · 색상 선택  (${_gender == "남" ? "남성" : "여성"} · 하의 ${_autoLength ?? ""})')
-                      : '사이즈 · 색상 · 수량 선택',
+                      : context.loc.t('사이즈_색상_수량_선택', '사이즈 · 색상 · 수량 선택'),
                   style: TextStyle(fontSize: r.sp(15), fontWeight:FontWeight.w900, color:Color(0xFF1A1A1A)),
                 ),
               ],
@@ -6777,7 +6778,7 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
           Text(
             widget.isBuyNow
                 ? context.loc.t('사이즈를 선택하고 바로 결제로 이동합니다', '사이즈를 선택하고 바로 결제로 이동합니다')
-                : '사이즈를 선택하고 장바구니에 담습니다',
+                : context.loc.t('사이즈를_선택하고_장바구니에_담습니다', '사이즈를 선택하고 장바구니에 담습니다'),
             style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888)),
           ),
           SizedBox(height: r.h(18)),
@@ -7272,7 +7273,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             ),
                             SizedBox(height: r.h(2)),
                             Text(
-                              '옵션을 선택하고 추가하면 한 번에 담을 수 있어요',
+                              context.loc.t('옵션을_선택하고_추가하면_한_번에_담을_수_있어요', '옵션을 선택하고 추가하면 한 번에 담을 수 있어요'),
                               style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888)),
                             ),
                           ],
@@ -7301,7 +7302,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // [1] 싱글렛 A타입 세트: 성별 선택 → 기장 고정
                   // ══════════════════════════════
                   if (_needsGender) ...[
-                    _sectionTitle('성별 선택', required: true),
+                    _sectionTitle(context.loc.t('성별_선택', '성별 선택'), required: true),
                     SizedBox(height: r.h(8)),
                     // 안내 배지
                     Container(
@@ -7315,7 +7316,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF7A5000)),
                         SizedBox(width: r.w(5)),
                         Text(
-                          '남성 → 5부 자동선택  •  여성 → 2.5부 자동선택',
+                          context.loc.t('남성_5부_자동선택_여성_2_5부_자동선택', '남성 → 5부 자동선택  •  여성 → 2.5부 자동선택'),
                           style: TextStyle(fontSize: r.sp(11), color: Color(0xFF7A5000), fontWeight: FontWeight.w600),
                         ),
                       ]),
@@ -7416,7 +7417,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // [2] 타이즈: 하의길이 모두 선택 가능 (성별 선택 없음)
                   // ══════════════════════════════
                   if (_isTaiz && !_needsGender) ...[
-                    _sectionTitle('하의 기장 선택', required: true),
+                    _sectionTitle(context.loc.t('하의_기장_선택', '하의 기장 선택'), required: true),
                     SizedBox(height: r.h(8)),
                     Wrap(
                       spacing: 8, runSpacing: 8,
@@ -7456,10 +7457,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   if (_isSetProduct) ...[
                     // 상의 사이즈
-                    _sectionTitle('상의 사이즈', required: true),
+                    _sectionTitle(context.loc.t('상의_사이즈', '상의 사이즈'), required: true),
                     SizedBox(height: r.h(8)),
                     if (_hasBothGroups) ...[
-                      _sizeSectionLabel('성인', Icons.person_outline_rounded, Color(0xFF1A1A2E)),
+                      _sizeSectionLabel(context.loc.t('성인', '성인'), Icons.person_outline_rounded, Color(0xFF1A1A2E)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7472,7 +7473,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         }).toList(),
                       ),
                       SizedBox(height: r.h(10)),
-                      _sizeSectionLabel('주니어', Icons.child_care_rounded, Color(0xFF1565C0)),
+                      _sizeSectionLabel(context.loc.t('주니어', '주니어'), Icons.child_care_rounded, Color(0xFF1565C0)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7498,10 +7499,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     ],
                     SizedBox(height: r.h(16)),
                     // 하의 사이즈
-                    _sectionTitle('하의 사이즈', required: true),
+                    _sectionTitle(context.loc.t('하의_사이즈', '하의 사이즈'), required: true),
                     SizedBox(height: r.h(8)),
                     if (_hasBothGroups) ...[
-                      _sizeSectionLabel('성인', Icons.person_outline_rounded, Color(0xFF5C6BC0)),
+                      _sizeSectionLabel(context.loc.t('성인', '성인'), Icons.person_outline_rounded, Color(0xFF5C6BC0)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7514,7 +7515,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         }).toList(),
                       ),
                       SizedBox(height: r.h(10)),
-                      _sizeSectionLabel('주니어', Icons.child_care_rounded, Color(0xFF1565C0)),
+                      _sizeSectionLabel(context.loc.t('주니어', '주니어'), Icons.child_care_rounded, Color(0xFF1565C0)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7541,13 +7542,13 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     SizedBox(height: r.h(16)),
                   ] else ...[
                     // 단품 사이즈 — 성인/주니어 구분 표시
-                    _sectionTitle('사이즈', required: true),
+                    _sectionTitle(context.loc.t('사이즈', '사이즈'), required: true),
                     SizedBox(height: r.h(8)),
 
                     // ── 성인/주니어 혼합 상품: 그룹 구분 표시 ──
                     if (_hasBothGroups) ...[
                       // 성인 그룹 라벨
-                      _sizeSectionLabel('성인', Icons.person_outline_rounded, Color(0xFF1A1A2E)),
+                      _sizeSectionLabel(context.loc.t('성인', '성인'), Icons.person_outline_rounded, Color(0xFF1A1A2E)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7564,7 +7565,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       ),
                       SizedBox(height: r.h(14)),
                       // 주니어 그룹 라벨
-                      _sizeSectionLabel('주니어', Icons.child_care_rounded, Color(0xFF1565C0)),
+                      _sizeSectionLabel(context.loc.t('주니어', '주니어'), Icons.child_care_rounded, Color(0xFF1565C0)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7621,12 +7622,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           ]),
                           SizedBox(height: r.h(5)),
                           Text(
-                            '목록에 없는 사이즈는 채팅 문의를 통해 별도 주문 가능합니다.',
+                            context.loc.t('목록에_없는_사이즈는_채팅_문의를_통해_별도_주문_가능합니다', '목록에 없는 사이즈는 채팅 문의를 통해 별도 주문 가능합니다.'),
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF7A5000), height: 1.4),
                           ),
                           SizedBox(height: r.h(4)),
                           Text(
-                            '⚠️ 단, 별도 주문 시 제작 소요 기간이 최소 1주일 이상 걸리며,\n    경우에 따라 더 길어질 수 있습니다.',
+                            context.loc.t('별도_주문_시_제작_소요_기간_최소_1주일', '⚠️ 단, 별도 주문 시 제작 소요 기간이 최소 1주일 이상 걸리며,\n    경우에 따라 더 길어질 수 있습니다.'),
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFFD84315),
                               fontWeight: FontWeight.w700, height: 1.5),
                           ),
@@ -7639,7 +7640,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // [3-B] 기성품 하의 전용: 주머니 옵션
                   // ══════════════════════════════
                   if (_isReadyMadeBottom) ...[
-                    _sectionTitle('주머니 옵션', required: false),
+                    _sectionTitle(context.loc.t('주머니_옵션', '주머니 옵션'), required: false),
                     SizedBox(height: r.h(8)),
                     Container(
                       padding: EdgeInsets.all(r.w(12)),
@@ -7654,7 +7655,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           SizedBox(width: r.w(6)),
                           Expanded(
                             child: Text(
-                              '기본 옵션: 주머니 포함\n주머니 제거 선택 시 10,000원 할인됩니다.',
+                              context.loc.t('기본_옵션_주머니_포함_n주머니_제거_선택_시_10_000원_할인됩니다', '기본 옵션: 주머니 포함\n주머니 제거 선택 시 10,000원 할인됩니다.'),
                               style: TextStyle(fontSize: r.sp(11), color: Color(0xFF6A1B9A),
                                 fontWeight: FontWeight.w600, height: 1.5),
                             ),
@@ -7734,7 +7735,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   //   - 상의, 그 외 카테고리는 색상 선택 없음
                   // ══════════════════════════════
                   if (_isSingletATypeSet || _isTaiz) ...[
-                    _sectionTitle('하의 색상', required: true),
+                    _sectionTitle(context.loc.t('하의_색상', '하의 색상'), required: true),
                     SizedBox(height: r.h(6)),
                     _ColorSelectionWidget(
                       isBottomCategory: true,
@@ -7749,7 +7750,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   Row(
                     children: [
-                      _sectionTitle('수량', required: false),
+                      _sectionTitle(context.loc.t('수량', '수량'), required: false),
                       const Spacer(),
                       Container(
                         decoration: BoxDecoration(
@@ -7877,7 +7878,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                       if ((item['length'] as String) != '-')
                                         _optionChip(item['length'] as String, const Color(0xFF1565C0)),
                                       if (item['removePocket'] == true)
-                                        _optionChip('주머니 제거', Color(0xFF6A1B9A)),
+                                        _optionChip(context.loc.t('주머니_제거', '주머니 제거'), Color(0xFF6A1B9A)),
                                     ],
                                   ),
                                   SizedBox(height: r.h(8)),
@@ -7989,7 +7990,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           elevation: 0,
                         ),
                         child: Text(
-                          '위에서 옵션을 선택하고 추가해주세요',
+                          context.loc.t('위에서_옵션을_선택하고_추가해주세요', '위에서 옵션을 선택하고 추가해주세요'),
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
                         ),
                       ),
@@ -8035,7 +8036,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               child: Text(
                                 widget.isBuyNow
                                     ? context.loc.t('바로구매 __totalPrice원', '바로구매 (${_fmt(_totalPrice())}원)')
-                                    : '바로구매',
+                                    : context.loc.t('바로구매', '바로구매'),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w800,
                                   fontSize: r.sp(14),
@@ -8173,7 +8174,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
             if (isSoldOut) ...[
               SizedBox(height: r.h(2)),
               Text(
-                '품절',
+                context.loc.t('품절', '품절'),
                 style: TextStyle(
                   fontSize: r.sp(8),
                   fontWeight: FontWeight.w700,
@@ -8899,11 +8900,11 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                 padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(8)),
                 child: Row(
                   children: [
-                    _sortBtn('최신순', 'latest'),
+                    _sortBtn(context.loc.t('최신순', '최신순'), 'latest'),
                     SizedBox(width: r.w(8)),
-                    _sortBtn('평점 높은순', 'highest'),
+                    _sortBtn(context.loc.t('평점_높은순', '평점 높은순'), 'highest'),
                     SizedBox(width: r.w(8)),
-                    _sortBtn('평점 낮은순', 'lowest'),
+                    _sortBtn(context.loc.t('평점_낮은순', '평점 낮은순'), 'lowest'),
                     const Spacer(),
                     if (currentUid != null)
                       GestureDetector(
@@ -9642,14 +9643,14 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                 children: [
 
                   // ─── 1. 기본 안내 ───────────────────────────────
-                  _sheetSectionTitle(Icons.info_outline_rounded, '단체 주문 안내', Color(0xFF1565C0)),
+                  _sheetSectionTitle(Icons.info_outline_rounded, context.loc.t('단체_주문_안내', '단체 주문 안내'), Color(0xFF1565C0)),
                   SizedBox(height: r.h(10)),
                   _infoCard(
                     icon: Icons.people_outline_rounded,
                     iconBg: const Color(0xFFE8EAF6),
                     iconColor: _purple,
                     title: context.loc.t('최소_수량', '최소 수량'),
-                    content: '단체 커스텀 제작은 최소 5명부터 가능합니다.',
+                    content: context.loc.t('단체_커스텀_제작은_최소_5명부터_가능합니다', '단체 커스텀 제작은 최소 5명부터 가능합니다.'),
                   ),
                   SizedBox(height: r.h(8)),
                   _infoCard(
@@ -9657,7 +9658,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     iconBg: const Color(0xFFF3E5F5),
                     iconColor: const Color(0xFF6A1B9A),
                     title: context.loc.t('제작_기간', '제작 기간'),
-                    content: '주문 확정 후 14~21일 소요됩니다.\n• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작\n(시즌/물량에 따라 변동될 수 있습니다)',
+                    content: context.loc.t('주문_확정_후_14_21일_소요됩니다_n_디자인_수정_1회당__ec8820', '주문 확정 후 14~21일 소요됩니다.\n• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작\n(시즌/물량에 따라 변동될 수 있습니다)'),
                   ),
                   SizedBox(height: r.h(8)),
                   _infoCardWidget(
@@ -9678,7 +9679,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   SizedBox(height: r.h(20)),
 
                   // ─── 3. 사이즈 안내 ──────────────────────────────
-                  _sheetSectionTitle(null, '사이즈 안내', Color(0xFF1A1A1A), emoji: '📏'),
+                  _sheetSectionTitle(null, context.loc.t('사이즈_안내', '사이즈 안내'), Color(0xFF1A1A1A), emoji: '📏'),
                   SizedBox(height: r.h(10)),
                   _sizeTable(
                     title: context.loc.t('성인_사이즈__XS_XXXL', '성인 사이즈 (XS~XXXL)'),
@@ -9729,7 +9730,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                   style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700)),
                               SizedBox(height: r.h(4)),
                               Text(
-                                '주문 양식에 키와 체중을 입력해주세요',
+                                context.loc.t('주문_양식에_키와_체중을_입력해주세요', '주문 양식에 키와 체중을 입력해주세요'),
                                 style: TextStyle(fontSize: r.sp(13), height: 1.5),
                               ),
                             ],
@@ -9741,7 +9742,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   SizedBox(height: r.h(20)),
 
                   // ─── 4. 교환·환불 정책 ───────────────────────────
-                  _sheetSectionTitle(null, '교환·환불 정책', Color(0xFFE65100), emoji: '⚠️'),
+                  _sheetSectionTitle(null, context.loc.t('교환_환불_정책', '교환·환불 정책'), Color(0xFFE65100), emoji: '⚠️'),
                   SizedBox(height: r.h(10)),
                   Container(
                     padding: EdgeInsets.all(r.w(14)),
@@ -9798,7 +9799,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                           SizedBox(width: r.w(10)),
                           Expanded(
                             child: Text(
-                              '주문 안내 내용을 모두 확인하였습니다',
+                              context.loc.t('주문_안내_내용을_모두_확인하였습니다', '주문 안내 내용을 모두 확인하였습니다'),
                               style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
                             ),
                           ),
@@ -9962,7 +9963,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
     required List<List<String>> rows,
   }) {
     final r = Responsive.of(context);
-    final headers = ['사이즈', '가슴(cm)', '허리(cm)', '엉덩이(cm)', '키(cm)'];
+    final headers = [context.loc.t('사이즈', '사이즈'), context.loc.t('가슴_cm', '가슴(cm)'), context.loc.t('허리_cm', '허리(cm)'), context.loc.t('엉덩이_cm', '엉덩이(cm)'), context.loc.t('키_cm', '키(cm)')];
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
@@ -10312,7 +10313,7 @@ class _Section2FabricTabsWidgetState
         color: const Color(0xFFF9F9F9),
         child: Center(
           child: Text(
-            '등록된 이미지가 없습니다.',
+            context.loc.t('등록된_이미지가_없습니다', '등록된 이미지가 없습니다.'),
             style: TextStyle(fontSize: r.sp(13), color: Color(0xFFAAAAAA)),
           ),
         ),

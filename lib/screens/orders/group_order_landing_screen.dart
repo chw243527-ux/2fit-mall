@@ -74,7 +74,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             onPressed: () => goBackOrHome(context),
           ),
           title: Text(
-            '단체주문하기',
+            context.loc.t('단체주문하기', '단체주문하기'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
 
@@ -101,7 +101,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             onPressed: () => goBackOrHome(context),
           ),
           title: Text(
-            '단체주문하기',
+            context.loc.t('단체주문하기', '단체주문하기'),
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
           ),
         ),
@@ -496,7 +496,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             Icon(Icons.chat_rounded, size: 16, color: Colors.white),
             SizedBox(width: 8),
             Text(
-              '카카오톡 채널: @2fit-mall',
+              context.loc.t('카카오톡_채널_2fit_mall', '카카오톡 채널: @2fit-mall'),
               style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
             ),
           ]),
@@ -505,7 +505,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             Icon(Icons.email_rounded, size: 16, color: Colors.white),
             SizedBox(width: 8),
             Text(
-              '이메일: chw243527@gmail.com',
+              context.loc.t('이메일_chw243527_gmail_com', '이메일: chw243527@gmail.com'),
               style: TextStyle(color: Colors.white, fontSize: 12),
             ),
           ]),
@@ -514,7 +514,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             Icon(Icons.schedule_rounded, size: 16, color: Colors.white),
             SizedBox(width: 8),
             Text(
-              '운영시간: 평일 10:00 ~ 18:00',
+              context.loc.t('운영시간_평일_10_00_18_00', '운영시간: 평일 10:00 ~ 18:00'),
               style: TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ]),
