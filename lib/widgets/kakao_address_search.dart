@@ -13,6 +13,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 // 웹 전용 구현은 별도 파일로 분리 (조건부 import)
 import 'kakao_address_web_stub.dart'
+import '../utils/app_localizations.dart';
     if (dart.library.html) 'kakao_address_web_impl.dart' as web_impl;
 
 class KakaoAddressResult {
@@ -169,7 +170,7 @@ if(document.readyState==='loading'){
           );
           if (mounted) Navigator.pop(context, result);
         } catch (e) {
-          if (kDebugMode) debugPrint('주소 파싱 오류: $e');
+          if (kDebugMode) debugPrint(context.loc.t('주소 파싱 오류 _', '주소 파싱 오류: $e'));
         }
       })
       ..loadHtmlString(_pageHtml);

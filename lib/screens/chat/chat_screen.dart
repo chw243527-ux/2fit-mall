@@ -321,18 +321,18 @@ class _ChatScreenState extends State<ChatScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(children: [
+        title: Row(children: [
           Icon(Icons.check_circle_outline_rounded, color: Color(0xFF2E7D32), size: 22),
           SizedBox(width: 8),
-          Text('상담 종료', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text(context.loc.t('상담 종료', '상담 종료'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ]),
-        content: const Text('상담을 완료로 처리하시겠습니까?\n종료 후에는 새 채팅을 시작하셔야 합니다.', style: TextStyle(fontSize: 14)),
+        content: Text(context.loc.t('상담을 완료로 처리하시겠습니까 종료 후에는 새 채팅을 시작하셔야 합니다', '상담을 완료로 처리하시겠습니까?\n종료 후에는 새 채팅을 시작하셔야 합니다.'), style: TextStyle(fontSize: 14)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.loc.t('취소', '취소'))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32), foregroundColor: Colors.white),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('종료하기'),
+            child: Text(context.loc.t('종료하기', '종료하기')),
           ),
         ],
       ),
@@ -342,8 +342,8 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
       setState(() => _isChatCompleted = true);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('상담이 완료되었습니다. 감사합니다!'),
+        SnackBar(
+          content: Text(context.loc.t('상담이 완료되었습니다 감사합니다', '상담이 완료되었습니다. 감사합니다!')),
           backgroundColor: Color(0xFF2E7D32),
           duration: Duration(seconds: 3),
         ),
@@ -520,7 +520,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text('상담종료', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                    child: Text(context.loc.t('상담종료', '상담종료'), style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
                   ),
                 ),
               IconButton(
@@ -893,7 +893,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             const Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 18),
             const SizedBox(width: 6),
-            const Text('상담이 완료되었습니다', style: TextStyle(fontSize: 13, color: Color(0xFF2E7D32), fontWeight: FontWeight.w600)),
+            Text(context.loc.t('상담이 완료되었습니다', '상담이 완료되었습니다'), style: TextStyle(fontSize: 13, color: Color(0xFF2E7D32), fontWeight: FontWeight.w600)),
           ],
         ),
       );
@@ -976,13 +976,13 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(height: 4),
           _footerInfoRow(Icons.person_outline_rounded,
-              '대표자: ${AppConstants.ceoName}'),
+              context.loc.t('대표자 _', '대표자: ${AppConstants.ceoName}')),
           _footerInfoRow(Icons.location_on_outlined,
               AppConstants.companyAddress),
           _footerInfoRow(Icons.business_outlined,
-              '사업자등록번호: ${AppConstants.businessRegNumber}'),
+              context.loc.t('사업자등록번호 _', '사업자등록번호: ${AppConstants.businessRegNumber}')),
           _footerInfoRow(Icons.storefront_outlined,
-              '통신판매업신고번호: 심사 중'),
+              context.loc.t('통신판매업신고번호 심사 중', '통신판매업신고번호: 심사 중')),
           _footerInfoRow(Icons.phone_outlined,
               AppConstants.customerServicePhone),
           _footerInfoRow(Icons.email_outlined,

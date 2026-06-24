@@ -237,8 +237,8 @@ class ProductCard extends StatelessWidget {
                     color: const Color(0xFF888888),
                     borderRadius: BorderRadius.circular(3),
                   ),
-                  child: const Text(
-                    '단체주문 전용',
+                  child: Text(
+                    context.loc.t('단체주문 전용', '단체주문 전용'),
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 9,
@@ -255,8 +255,8 @@ class ProductCard extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(3),
                   ),
-                  child: const Text(
-                    '기성품',
+                  child: Text(
+                    context.loc.t('기성품', '기성품'),
                     style: TextStyle(
                       color: Color(0xFF111111),
                       fontSize: 9,
@@ -381,5 +381,4 @@ class ProductCard extends StatelessWidget {
         .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
   }
 }
-
 

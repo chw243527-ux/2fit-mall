@@ -1112,7 +1112,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
             cashNum.isNotEmpty &&
             result.paymentKey != null &&
             PaymentService.needsCashReceiptApiCall(_selectedPayment)) {
-          final receiptType = _isBusiness(cashNum) ? '지출증빙' : '소득공제';
+          final receiptType = _isBusiness(cashNum) ? context.loc.t('지출증빙', '지출증빙') : context.loc.t('소득공제', '소득공제');
           final receiptResult = await PaymentService.issueCashReceipt(
             paymentKey: result.paymentKey!,
             customerIdentityNumber: cashNum,
@@ -1306,7 +1306,7 @@ class _OrderCompleteDialog extends StatelessWidget {
                   _infoRow(loc.cartPayAmount, '${_fmt(total)}${loc.wonUnit2}'),
                   if (shippingFee == 0) ...[
                     const SizedBox(height: 6),
-                    _infoRow(loc.cartShipping, '무료'),
+                    _infoRow(loc.cartShipping, context.loc.t('무료', '무료')),
                   ],
                 ],
               ),
@@ -1391,5 +1391,4 @@ class _OrderCompleteDialog extends StatelessWidget {
     );
   }
 }
-
 

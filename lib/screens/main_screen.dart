@@ -359,7 +359,7 @@ class _PcLayoutState extends State<_PcLayout> {
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ProductListScreen(initialCategory: '전체')));
+                  MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: context.loc.t('전체', '전체'))));
             },
           ),
           const Divider(height: 1, indent: 16, endIndent: 16),
@@ -1020,7 +1020,7 @@ class _PcFooter extends StatelessWidget {
                                       children: [
                                         const Icon(Icons.phone_rounded, size: 12, color: Colors.black87),
                                         SizedBox(width: r.w(3)),
-                                        Text('전화', style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Colors.black87)),
+                                        Text(context.loc.t('전화', '전화'), style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Colors.black87)),
                                       ],
                                     ),
                                   ),

@@ -3,6 +3,7 @@
 // 404 에러 페이지 — 잘못된 URL 접근 시 표시
 // ══════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
+import '../utils/app_localizations.dart';
 
 class NotFoundScreen extends StatelessWidget {
   const NotFoundScreen({super.key});
@@ -48,8 +49,8 @@ class NotFoundScreen extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 // 메인 메시지
-                const Text(
-                  '페이지를 찾을 수 없어요',
+                Text(
+                  context.loc.t('페이지를 찾을 수 없어요', '페이지를 찾을 수 없어요'),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -60,7 +61,7 @@ class NotFoundScreen extends StatelessWidget {
 
                 // 서브 메시지
                 Text(
-                  '요청하신 페이지가 존재하지 않거나\n이동되었을 수 있습니다.',
+                  context.loc.t('요청하신 페이지가 존재하지 않거나 이동되었을 수 있습니다', '요청하신 페이지가 존재하지 않거나\n이동되었을 수 있습니다.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -83,8 +84,8 @@ class NotFoundScreen extends StatelessWidget {
                       );
                     },
                     icon: const Icon(Icons.home_rounded, size: 20),
-                    label: const Text(
-                      '홈으로 돌아가기',
+                    label: Text(
+                      context.loc.t('홈으로 돌아가기', '홈으로 돌아가기'),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -118,8 +119,8 @@ class NotFoundScreen extends StatelessWidget {
                       }
                     },
                     icon: const Icon(Icons.arrow_back_rounded, size: 20),
-                    label: const Text(
-                      '이전 페이지',
+                    label: Text(
+                      context.loc.t('이전 페이지', '이전 페이지'),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,

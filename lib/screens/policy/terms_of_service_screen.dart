@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/navigation_helper.dart';
+import '../../utils/app_localizations.dart';
 
 class TermsOfServiceScreen extends StatelessWidget {
   const TermsOfServiceScreen({super.key});
@@ -15,7 +16,7 @@ class TermsOfServiceScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
           onPressed: () => goBackOrHome(context),
         ),
-        title: const Text('이용약관',
+        title: Text('이용약관',
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
         centerTitle: true,
         elevation: 0,
@@ -30,7 +31,7 @@ class TermsOfServiceScreen extends StatelessWidget {
               color: const Color(0xFF1A1A2E),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('2FIT MALL 이용약관',
@@ -55,7 +56,7 @@ class TermsOfServiceScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: const Color(0xFF6C63FF).withValues(alpha: 0.3)),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('사업자 정보',
@@ -143,7 +144,7 @@ class TermsOfServiceScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Text('이용약관 관련 문의',
+                Text('이용약관 관련 문의',
                     style: TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A2E))),

@@ -81,7 +81,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
   Future<void> _exportOrdersToExcel(List<OrderModel> orders) async {
     if (orders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('내보낼 주문이 없습니다.'), backgroundColor: Colors.orange),
+        SnackBar(content: Text('내보낼 주문이 없습니다.'), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -291,12 +291,12 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
             children: [
               Row(
                 children: [
-                  const Text('매출 통계', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                  Text('매출 통계', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                   const Spacer(),
                   ElevatedButton.icon(
                     onPressed: () => _exportOrdersToExcel(orders),
                     icon: const Icon(Icons.download_rounded, size: 16),
-                    label: const Text('엑셀 다운로드'),
+                    label: Text('엑셀 다운로드'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF217346),
                       foregroundColor: Colors.white,
@@ -316,10 +316,10 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                 mainAxisSpacing: 10,
                 childAspectRatio: 2.6,
                 children: [
-                  _statsKpiCard('총 매출', '₩${_fmtMillions(totalRevenue)}', Icons.monetization_on_rounded, const Color(0xFF4CAF50)),
-                  _statsKpiCard('총 주문', '${orders.length}건', Icons.receipt_long_rounded, const Color(0xFF2196F3)),
-                  _statsKpiCard('오늘 주문', '${todayOrders}건', Icons.today_rounded, const Color(0xFFFF9800)),
-                  _statsKpiCard('평균 주문액', orders.isEmpty ? '₩0' : '₩${_fmtMillions(totalRevenue / orders.length)}', Icons.analytics_rounded, const Color(0xFF9C27B0)),
+                  _statsKpiCard('총 매출', '₩${_fmtMillions(totalRevenue)}', Icons.monetization_on_rounded, Color(0xFF4CAF50)),
+                  _statsKpiCard('총 주문', '${orders.length}건', Icons.receipt_long_rounded, Color(0xFF2196F3)),
+                  _statsKpiCard('오늘 주문', '${todayOrders}건', Icons.today_rounded, Color(0xFFFF9800)),
+                  _statsKpiCard('평균 주문액', orders.isEmpty ? '₩0' : '₩${_fmtMillions(totalRevenue / orders.length)}', Icons.analytics_rounded, Color(0xFF9C27B0)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -335,7 +335,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('월별 매출', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    Text('월별 매출', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 16),
                     SizedBox(
                       height: 200,
@@ -419,12 +419,12 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('주문 상태 분포', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                          Text('주문 상태 분포', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 16),
                           SizedBox(
                             height: 180,
                             child: orders.isEmpty
-                                ? const Center(child: Text('주문 없음'))
+                                ? Center(child: Text('주문 없음'))
                                 : PieChart(
                                     PieChartData(
                                       sections: statusCount.entries.map((e) {
@@ -468,7 +468,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('주문 유형별', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                          Text('주문 유형별', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 16),
                           ...['personal', 'group'].map((type) {
                             final count = orders.where((o) => o.orderType == type).length;
@@ -534,17 +534,17 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('직원 계정에 관리자 권한 부여'),
+        title: Text('직원 계정에 관리자 권한 부여'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('이미 가입된 회원의 이메일을 입력하면 관리자 권한을 부여합니다.',
+            Text('이미 가입된 회원의 이메일을 입력하면 관리자 권한을 부여합니다.',
                 style: TextStyle(fontSize: 13, color: Colors.grey)),
             const SizedBox(height: 12),
             TextField(
               controller: emailCtrl,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: '이메일',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.email_rounded),
@@ -553,7 +553,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
           ElevatedButton(
             onPressed: () async {
               final email = emailCtrl.text.trim().toLowerCase();
@@ -576,7 +576,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               } else {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('해당 이메일의 회원을 찾을 수 없습니다')),
+                    SnackBar(content: Text('해당 이메일의 회원을 찾을 수 없습니다')),
                   );
                 }
               }
@@ -585,7 +585,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               backgroundColor: const Color(0xFF1A1A2E),
               foregroundColor: Colors.white,
             ),
-            child: const Text('권한 부여'),
+            child: Text('권한 부여'),
           ),
         ],
       ),
@@ -599,7 +599,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
         title: Text('관리자 권한 해제: ${staff['name'] ?? ''}'),
         content: Text('${staff['email']} 님의 관리자 권한을 해제하시겠습니까?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
           ElevatedButton(
             onPressed: () async {
               await FirebaseFirestore.instance
@@ -617,7 +617,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('해제'),
+            child: Text('해제'),
           ),
         ],
       ),
@@ -640,12 +640,12 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
             children: [
               Row(
                 children: [
-                  const Text('직원 계정 관리', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                  Text('직원 계정 관리', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                   const Spacer(),
                   ElevatedButton.icon(
                     onPressed: _showAddStaffDialog,
                     icon: const Icon(Icons.person_add_rounded, size: 16),
-                    label: const Text('직원 추가'),
+                    label: Text('직원 추가'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A1A2E),
                       foregroundColor: Colors.white,
@@ -697,7 +697,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                                     color: Colors.red.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: const Text('관리자',
+                                  child: Text('관리자',
                                       style: TextStyle(color: Colors.red, fontSize: 11, fontWeight: FontWeight.w600)),
                                 ),
                                 if (memberTier.isNotEmpty) ...[
@@ -745,7 +745,7 @@ Future<void> exportDesignRequestsToExcel(
 ) async {
   if (requests.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('내보낼 디자인 요청이 없습니다.'), backgroundColor: Colors.orange),
+      SnackBar(content: Text('내보낼 디자인 요청이 없습니다.'), backgroundColor: Colors.orange),
     );
     return;
   }

@@ -4,6 +4,7 @@ import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../services/size_profile_service.dart';
 import '../../utils/navigation_helper.dart';
+import '../../utils/app_localizations.dart';
 
 const Color _purple = Color(0xFF6A1B9A);
 // ignore: unused_element
@@ -39,12 +40,12 @@ class SizeProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
     if (user == null) {
-      return const Scaffold(body: Center(child: Text('로그인이 필요합니다.')));
+      return Scaffold(body: Center(child: Text('로그인이 필요합니다.')));
     }
     return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF7F5FB),
       appBar: AppBar(
-        title: const Text('내 사이즈 관리',
+        title: Text('내 사이즈 관리',
             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
         backgroundColor: _purple,
         foregroundColor: Colors.white,
@@ -66,7 +67,7 @@ class SizeProfileScreen extends StatelessWidget {
                     ),
             backgroundColor: canAdd ? _purple : Colors.grey,
             icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text('새 사이즈 추가',
+            label: Text('새 사이즈 추가',
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
           );
         },
@@ -187,10 +188,10 @@ class _ProfileCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('프로필 삭제', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text('프로필 삭제', style: TextStyle(fontWeight: FontWeight.w800)),
         content: Text('"${profile.profileName}" 프로필을 삭제할까요?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소', style: TextStyle(color: Colors.grey))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소', style: TextStyle(color: Colors.grey))),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -199,7 +200,7 @@ class _ProfileCard extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err), backgroundColor: Colors.red));
               }
             },
-            child: const Text('삭제', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700)),
+            child: Text('삭제', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -371,7 +372,7 @@ class _EditSheetState extends State<_EditSheet> {
                 child: _saving
                     ? const SizedBox(height: 18, width: 18,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('저장하기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                    : Text('저장하기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
               ),
             ),
           ]),
@@ -557,11 +558,11 @@ class _EditSheetState extends State<_EditSheet> {
   Future<void> _save() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('프로필 이름을 입력해 주세요.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('프로필 이름을 입력해 주세요.')));
       return;
     }
     if (_topSize == null || _bottomSize == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('상의/하의 사이즈를 선택해 주세요.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('상의/하의 사이즈를 선택해 주세요.')));
       return;
     }
     setState(() => _saving = true);
@@ -585,7 +586,7 @@ class _EditSheetState extends State<_EditSheet> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err), backgroundColor: Colors.red));
     } else {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('사이즈 프로필이 저장되었습니다.'),
         backgroundColor: _purple,
         behavior: SnackBarBehavior.floating,

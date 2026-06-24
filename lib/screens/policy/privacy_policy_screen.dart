@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/navigation_helper.dart';
+import '../../utils/app_localizations.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -15,7 +16,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
           onPressed: () => goBackOrHome(context),
         ),
-        title: const Text('개인정보처리방침',
+        title: Text('개인정보처리방침',
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
         centerTitle: true,
         elevation: 0,
@@ -30,7 +31,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               color: const Color(0xFF1A1A2E),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('2FIT MALL 개인정보처리방침',
@@ -123,7 +124,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                const Text('개인정보 관련 문의',
+                Text('개인정보 관련 문의',
                     style: TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A2E))),

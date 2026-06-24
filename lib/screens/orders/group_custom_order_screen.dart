@@ -27,7 +27,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
   // ── 색상 ──
-  String? _selectedColor;      // 색상 이름 (예: 'K (블랙)' 또는 '커스텀 (#FF3366)')
+  String? _selectedColor;      //// 색상 이름 (예: 'K (블랙)' 또는 '커스텀 (#FF3366)')
   Color?  _selectedColorValue; // 실제 Color 값
 
   // ── 하의 길이 ──
@@ -548,7 +548,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                     color: const Color(0xFF6A1B9A),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.palette_rounded, size: 14, color: Colors.white),
@@ -564,7 +564,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
         const SizedBox(height: 10),
 
         // ── 골지 19색 빠른 선택 그리드 ──
-        Text('골지 기본 19색', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
+        Text('골지 기본 19색', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
@@ -632,7 +632,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.3)),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.color_lens_rounded, size: 16, color: Color(0xFF6A1B9A)),
@@ -1076,7 +1076,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 '상품 디자인 참고 이미지입니다. 이미지를 탭하면 확대됩니다.',
                 style: TextStyle(fontSize: 12, color: Color(0xFF888888), height: 1.5),
               ),
@@ -1140,7 +1140,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
 // ══════════════════════════════════════════════════════════════
 class _PersonEntry {
   int index;
-  String gender;                // '남' | '여'
+  String gender;                //// '남' | '여'
   bool useBodyMeasure;
   final TextEditingController nameCtrl      = TextEditingController();
   final TextEditingController memoCtrl      = TextEditingController(); // 특이사항
@@ -1342,7 +1342,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                         children: [
                           const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF7A5000)),
                           const SizedBox(width: 6),
-                          const Text(
+                          Text(
                             '사이즈 입력 안내',
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF7A5000)),
                           ),

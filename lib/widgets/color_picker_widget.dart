@@ -255,7 +255,7 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
     if (raw.length == 6) {
       try {
         final color = Color(int.parse('FF$raw', radix: 16));
-        _select('커스텀 (#$raw)', color);
+        _select(context.loc.t('커스텀 _', '커스텀 (#$raw)'), color);
         Navigator.pop(context);
       } catch (_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -454,7 +454,7 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
               return GestureDetector(
                 onTap: () {
                   final hex = _colorToHex(color);
-                  _select('커스텀 (#$hex)', color);
+                  _select(context.loc.t('커스텀 _', '커스텀 (#$hex)'), color);
                   Navigator.pop(context);
                 },
                 child: RibColorSwatch(
@@ -483,7 +483,7 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
           _HueBar(
             onColorSelected: (color) {
               final hex = _colorToHex(color);
-              _select('커스텀 (#$hex)', color);
+              _select(context.loc.t('커스텀 _', '커스텀 (#$hex)'), color);
               Navigator.pop(context);
             },
           ),
@@ -701,7 +701,7 @@ class _HueBarState extends State<_HueBar> {
                     painter: RibTexturePainter(baseColor: _current)),
                 Center(
                   child: Text(
-                    '탭하여 이 색상 선택',
+                    context.loc.t('탭하여 이 색상 선택', '탭하여 이 색상 선택'),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -716,10 +716,10 @@ class _HueBarState extends State<_HueBar> {
           ),
         ),
         const SizedBox(height: 10),
-        _slider('색조', _hue, 0, 360, (v) => setState(() => _hue = v),
+        _slider(context.loc.t('색조', '색조'), _hue, 0, 360, (v) => setState(() => _hue = v),
             isHue: true),
-        _slider('채도', _sat, 0, 1, (v) => setState(() => _sat = v)),
-        _slider('명도', _val, 0, 1, (v) => setState(() => _val = v)),
+        _slider(context.loc.t('채도', '채도'), _sat, 0, 1, (v) => setState(() => _sat = v)),
+        _slider(context.loc.t('명도', '명도'), _val, 0, 1, (v) => setState(() => _val = v)),
       ],
     );
   }
@@ -920,7 +920,7 @@ class _InlineColorChartState extends State<InlineColorChart>
   void _applyHSL() {
     final c = HSLColor.fromAHSL(1.0, _hue, _sat.clamp(0.0, 1.0), _lit.clamp(0.05, 0.95)).toColor();
     final hex = c.toARGB32().toRadixString(16).substring(2).toUpperCase();
-    widget.onColorSelected('커스텀 (#$hex)', c);
+    widget.onColorSelected(context.loc.t('커스텀 _', '커스텀 (#$hex)'), c);
   }
 
   void _selectBaseColor(Color color, String name) {
@@ -977,7 +977,7 @@ class _InlineColorChartState extends State<InlineColorChart>
       final hex = int.tryParse('FF$raw', radix: 16);
       if (hex != null) {
         final color = Color(hex);
-        widget.onColorSelected('커스텀 (#$raw)', color);
+        widget.onColorSelected(context.loc.t('커스텀 _', '커스텀 (#$raw)'), color);
         setState(() => _hexPreview = color);
         return;
       }
@@ -1185,7 +1185,7 @@ class _InlineColorChartState extends State<InlineColorChart>
                   style: const TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w600),
                   decoration: InputDecoration(
-                    hintText: '코드 입력 (예: K, N, FP)',
+                    hintText: context.loc.t('코드 입력 예 K N FP', '코드 입력 (예: K, N, FP)'),
                     hintStyle: const TextStyle(
                         fontSize: 12, color: Color(0xFFAAAAAA)),
                     isDense: true,
@@ -1247,7 +1247,7 @@ class _InlineColorChartState extends State<InlineColorChart>
         final isLight = color.computeLuminance() > 0.5;
         final isSel = _showAdjust && _baseColor.toARGB32() == color.toARGB32();
         return GestureDetector(
-          onTap: () => _selectBaseColor(color, '커스텀 (#${_colorToHex(color)})'),
+          onTap: () => _selectBaseColor(color, context.loc.t('커스텀 _color', '커스텀 (#${_colorToHex(color)})')),
           child: RibColorSwatch(
             color: color,
             size: 26,
@@ -1305,7 +1305,7 @@ class _InlineColorChartState extends State<InlineColorChart>
                     color: widget.accentColor,
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text('적용',
+                  child: Text(context.loc.t('적용', '적용'),
                       style: TextStyle(color: Colors.white,
                           fontSize: 11, fontWeight: FontWeight.w700)),
                 ),

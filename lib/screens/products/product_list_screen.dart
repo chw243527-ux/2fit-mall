@@ -75,8 +75,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
       }
       // 베스트/신상품 탭은 전체 상품을 로드해야 함
       final cat = (_onlyBest || _onlyNew)
-          ? '전체'
-          : (_selectedCategory.isEmpty ? '전체' : _selectedCategory);
+          ? context.loc.t('전체', '전체')
+          : (_selectedCategory.isEmpty ? context.loc.t('전체', '전체') : _selectedCategory);
       context.read<ProductProvider>().setCategory(cat);
     });
   }
@@ -252,7 +252,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 // ── 순서: 전체 → 베스트 → 신상품 → 단체주문 → 나머지 카테고리 ──
 
                 // [1] 전체 탭
-                _buildCatTab('전체', provider),
+                _buildCatTab(context.loc.t('전체', '전체'), provider),
 
                 // [2] 베스트 탭
                 GestureDetector(
@@ -266,7 +266,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       _searchQuery = '';
                       _searchController.clear();
                     });
-                    provider.setCategory('전체');
+                    provider.setCategory(context.loc.t('전체', '전체'));
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
@@ -286,7 +286,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           size: 13,
                           color: _onlyBest ? Colors.white : const Color(0xFF888888)),
                         const SizedBox(width: 3),
-                        Text('베스트',
+                        Text(context.loc.t('베스트', '베스트'),
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
@@ -309,7 +309,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       _searchQuery = '';
                       _searchController.clear();
                     });
-                    provider.setCategory('전체');
+                    provider.setCategory(context.loc.t('전체', '전체'));
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
@@ -329,7 +329,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           size: 13,
                           color: _onlyNew ? Colors.white : const Color(0xFF888888)),
                         const SizedBox(width: 3),
-                        Text('신상품',
+                        Text(context.loc.t('신상품', '신상품'),
                           style: TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w800,
@@ -341,7 +341,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
 
                 // [4] 단체주문 탭 (항상 보라색 고정)
-                _buildCatTab('단체주문', provider),
+                _buildCatTab(context.loc.t('단체주문', '단체주문'), provider),
 
                 // [5] 나머지 카테고리 탭 (전체·단체주문 제외)
                 ...AppConstants.categories
@@ -375,7 +375,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               children: [
                 // 전체 칩
-                _buildSubCatChip('전체', ''),
+                _buildSubCatChip(context.loc.t('전체', '전체'), ''),
                 ...subs.map((sub) => _buildSubCatChip(sub, sub)),
               ],
             ),
@@ -506,11 +506,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 ),
               ),
               // 타이틀
-              const Padding(
+              Padding(
                 padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('정렬', style: TextStyle(
+                  child: Text(context.loc.t('정렬', '정렬'), style: TextStyle(
                     fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A),
                   )),
                 ),
@@ -604,7 +604,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 color: const Color(0xFF1A1A2E),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text('베스트', style: TextStyle(
+              child: Text(context.loc.t('베스트', '베스트'), style: TextStyle(
                 fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
             ),
           ],
@@ -616,7 +616,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 color: const Color(0xFF1A1A2E).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text('신상품', style: TextStyle(
+              child: Text(context.loc.t('신상품', '신상품'), style: TextStyle(
                 fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
             ),
           ],
@@ -673,7 +673,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     color: _activeFilterCount > 0 || _showPriceFilter
                         ? Colors.white : const Color(0xFF888888)),
                 const SizedBox(width: 5),
-                Text('필터', style: TextStyle(
+                Text(context.loc.t('필터', '필터'), style: TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w600,
                   color: _activeFilterCount > 0 || _showPriceFilter
                       ? Colors.white : const Color(0xFF777777),
@@ -841,7 +841,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       ),
                       // 배지들
                       if (p.isGroupOnly) Positioned(top: 8, left: 8,
-                        child: _badge('단체전용', const Color(0xFF555555))),
+                        child: _badge(context.loc.t('단체전용', '단체전용'), Color(0xFF555555))),
                       if (p.isNewActive) Positioned(top: p.isGroupOnly ? 32 : 8, left: 8,
                         child: _badge('NEW', const Color(0xFF1A1A2E))),
                       if (discount > 0) Positioned(
@@ -879,7 +879,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             color: const Color(0xFF1A1A2E).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(3),
                           ),
-                          child: const Text('단체주문 전용',
+                          child: Text(context.loc.t('단체주문 전용', '단체주문 전용'),
                             style: TextStyle(color: Color(0xFF1A1A2E), fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.2)),
                         ),
                       ],
@@ -974,7 +974,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      if (p.isGroupOnly) _badge('단체전용', const Color(0xFF555555)),
+                      if (p.isGroupOnly) _badge(context.loc.t('단체전용', '단체전용'), Color(0xFF555555)),
                       if (p.isGroupOnly) const SizedBox(width: 4),
                       if (p.isNewActive) _badge('NEW', const Color(0xFF1A1A2E)),
                       if (p.isNewActive) const SizedBox(width: 4),

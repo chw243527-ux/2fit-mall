@@ -528,8 +528,8 @@ class _LoginScreenState extends State<LoginScreen>
                                 style: const TextStyle(fontSize: 15),
                                 decoration: _inputDeco(hint: 'example@2fit.co.kr', icon: Icons.email_outlined),
                                 validator: (v) {
-                                  if (v == null || v.trim().isEmpty) return '이메일을 입력해주세요';
-                                  if (!v.contains('@')) return '올바른 이메일 형식을 입력해주세요';
+                                  if (v == null || v.trim().isEmpty) return context.loc.t('이메일을 입력해주세요', '이메일을 입력해주세요');
+                                  if (!v.contains('@')) return context.loc.t('올바른 이메일 형식을 입력해주세요', '올바른 이메일 형식을 입력해주세요');
                                   return null;
                                 },
                               ),
@@ -549,8 +549,8 @@ class _LoginScreenState extends State<LoginScreen>
                                   ),
                                 ),
                                 validator: (v) {
-                                  if (v == null || v.isEmpty) return '비밀번호를 입력해주세요';
-                                  if (v.length < 4) return '비밀번호가 너무 짧습니다';
+                                  if (v == null || v.isEmpty) return context.loc.t('비밀번호를 입력해주세요', '비밀번호를 입력해주세요');
+                                  if (v.length < 4) return context.loc.t('비밀번호가 너무 짧습니다', '비밀번호가 너무 짧습니다');
                                   return null;
                                 },
                                 onFieldSubmitted: (_) => _login(),
@@ -890,7 +890,7 @@ class _LoginScreenState extends State<LoginScreen>
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error ?? '카카오 로그인에 실패했습니다'),
+            content: Text(result.error ?? context.loc.t('카카오 로그인에 실패했습니다', '카카오 로그인에 실패했습니다')),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -902,7 +902,7 @@ class _LoginScreenState extends State<LoginScreen>
         userProv.setLoading(false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('카카오 로그인 오류: $e'),
+            content: Text(context.loc.t('카카오 로그인 오류 _', '카카오 로그인 오류: $e')),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -932,7 +932,7 @@ class _LoginScreenState extends State<LoginScreen>
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error ?? '네이버 로그인에 실패했습니다'),
+            content: Text(result.error ?? context.loc.t('네이버 로그인에 실패했습니다', '네이버 로그인에 실패했습니다')),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -944,7 +944,7 @@ class _LoginScreenState extends State<LoginScreen>
         userProv.setLoading(false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('네이버 로그인 오류: $e'),
+            content: Text(context.loc.t('네이버 로그인 오류 _', '네이버 로그인 오류: $e')),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -958,7 +958,7 @@ class _LoginScreenState extends State<LoginScreen>
   void _showSocialLoginDialog(String provider) {
     final isKakao = provider == '카카오';
     final nameCtrl = TextEditingController(
-      text: isKakao ? '카카오 사용자' : 'Google 사용자',
+      text: isKakao ? context.loc.t('카카오 사용자', '카카오 사용자') : 'Google 사용자',
     );
     final emailCtrl = TextEditingController(
       text: isKakao ? 'user@kakao.com' : 'user@gmail.com',
@@ -1005,7 +1005,7 @@ class _LoginScreenState extends State<LoginScreen>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '데모 모드: 아래 정보로 체험 로그인',
+                      context.loc.t('데모 모드 아래 정보로 체험 로그인', '데모 모드: 아래 정보로 체험 로그인'),
                       style: TextStyle(fontSize: 12, color: Colors.orange.shade800),
                     ),
                   ),
@@ -1062,7 +1062,7 @@ class _LoginScreenState extends State<LoginScreen>
               userProv.setLoading(true);
               final result = await AuthService.socialLogin(
                 provider: isKakao ? 'kakao' : 'google',
-                name: nameCtrl.text.trim().isEmpty ? (isKakao ? '카카오 사용자' : 'Google 사용자') : nameCtrl.text.trim(),
+                name: nameCtrl.text.trim().isEmpty ? (isKakao ? context.loc.t('카카오 사용자', '카카오 사용자') : 'Google 사용자') : nameCtrl.text.trim(),
                 email: emailCtrl.text.trim().isEmpty ? (isKakao ? 'user@kakao.com' : 'user@gmail.com') : emailCtrl.text.trim(),
               );
               userProv.setLoading(false);
@@ -1143,7 +1143,7 @@ class _LoginScreenState extends State<LoginScreen>
                       controller: emailCtrl,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        labelText: '이메일',
+                        labelText: context.loc.t('이메일', '이메일'),
                         prefixIcon: const Icon(Icons.email_outlined, size: 20),
                         filled: true,
                         fillColor: const Color(0xFFF5F5F5),

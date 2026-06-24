@@ -15,6 +15,7 @@ import 'services/fcm_service.dart';
 import 'utils/theme.dart';
 import 'utils/responsive.dart';
 import 'providers/providers.dart';
+import 'utils/app_localizations.dart';
 import 'services/auth_service.dart';
 import 'screens/home/splash_screen.dart';
 import 'screens/cart/cart_screen.dart';
@@ -115,7 +116,11 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
-        ChangeNotifierProvider(create: (_) => LanguageProvider()),
+        ChangeNotifierProvider<LanguageProvider>(create: (_) => LanguageProvider()),
+        // LanguageProviderBridge로도 접근 가능하게 (context.loc 사용)
+        ProxyProvider<LanguageProvider, LanguageProviderBridge>(
+          update: (ctx, lp, _) => lp,
+        ),
         ChangeNotifierProvider(create: (_) => CouponProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),

@@ -12,6 +12,7 @@ import 'address_search_web_stub.dart'
 
 // 모바일 전용
 import 'package:webview_flutter/webview_flutter.dart';
+import '../utils/app_localizations.dart';
 
 // ── 결과 모델 ──
 class AddressResult {
@@ -71,8 +72,8 @@ class _AddressSearchSheet extends StatelessWidget {
                 const Icon(Icons.location_on_rounded,
                     color: Color(0xFF6A1B9A), size: 20),
                 const SizedBox(width: 8),
-                const Expanded(
-                  child: Text('주소 검색',
+                Expanded(
+                  child: Text(context.loc.t('주소 검색', '주소 검색'),
                       style: TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w800)),
                 ),
@@ -91,8 +92,8 @@ class _AddressSearchSheet extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             color: const Color(0xFFF3E5F5),
-            child: const Text(
-              '도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다.',
+            child: Text(
+              context.loc.t('도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다', '도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다.'),
               style: TextStyle(
                   fontSize: 12,
                   color: Color(0xFF6A1B9A),

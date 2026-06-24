@@ -92,7 +92,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     } else {
       all = allCached.where((p) => p.category == filter).toList();
       if (subName != null && subName.isNotEmpty &&
-          !subName.startsWith('전체') && subName != filter) {
+          !subName.startsWith(context.loc.t('전체', '전체')) && subName != filter) {
         all = all.where((p) {
           final sub = p.subCategory;
           if (sub.isEmpty) return false;
@@ -226,11 +226,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                               context,
                               MaterialPageRoute(
                                 builder: (_) => CategoryDetailScreen(
-                                  categoryName: '전체',
+                                  categoryName: context.loc.t('전체', '전체'),
                                   categoryColor: const Color(0xFF888888),
                                   categoryIcon: Icons.grid_view_rounded,
-                                  subCategories: const [
-                                    SubCategory(name: '전체 상품', filter: '전체'),
+                                  subCategories: [
+                                    SubCategory(name: context.loc.t('전체 상품', '전체 상품'), filter: context.loc.t('전체', '전체')),
                                   ],
                                 ),
                               ),
@@ -252,7 +252,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                                   color: isActive ? _white : _grey),
                               const SizedBox(width: 12),
                               Text(
-                                '전체 상품',
+                                context.loc.t('전체 상품', '전체 상품'),
                                 style: TextStyle(
                                   color: isActive ? _white : _grey,
                                   fontSize: 14,
@@ -586,7 +586,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         });
                         setState(() {});
                       },
-                      child: const Text('초기화',
+                      child: Text(context.loc.t('초기화', '초기화'),
                         style: TextStyle(fontSize: 12, color: _greyDim)),
                     ),
                     IconButton(
@@ -971,7 +971,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 _selectedSize = null; _minPrice = 0; _maxPrice = 300000;
                 _onlySale = false; _onlyFreeShipping = false;
               }),
-              child: const Text('초기화',
+              child: Text(context.loc.t('초기화', '초기화'),
                 style: TextStyle(fontSize: 12, color: _greyDim,
                     decoration: TextDecoration.underline)),
             ),
@@ -1170,7 +1170,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                           children: [
                             if (product.isNewActive) _tag('NEW'),
                             if (product.isSale) _tag('SALE'),
-                            if (product.isFreeShipping) _tag('무료배송'),
+                            if (product.isFreeShipping) _tag(context.loc.t('무료배송', '무료배송')),
                           ],
                         ),
                       ),

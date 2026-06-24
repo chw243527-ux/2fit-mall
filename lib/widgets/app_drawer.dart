@@ -699,14 +699,14 @@ class _AppDrawerState extends State<AppDrawer> {
               children: [
                 const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFFAAAAAA)),
                 const SizedBox(width: 8),
-                const Text('평일 10:00-18:00  |  토·일·공휴일 휴무', style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                Text(context.loc.t('평일 10001800    토·일·공휴일 휴무', '평일 10:00-18:00  |  토·일·공휴일 휴무'), style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
               ],
             ),
             const SizedBox(height: 4),
             Row(
               children: [
                 const SizedBox(width: 22),
-                const Text('점심시간 12:00-14:00 제외', style: TextStyle(fontSize: 10, color: Color(0xFFAAAAAA))),
+                Text(context.loc.t('점심시간 12001400 제외', '점심시간 12:00-14:00 제외'), style: TextStyle(fontSize: 10, color: Color(0xFFAAAAAA))),
               ],
             ),
             const SizedBox(height: 10),

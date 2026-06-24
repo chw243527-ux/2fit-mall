@@ -157,7 +157,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                       size: 20,
                     ),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         '주문 안내 내용을 모두 확인했습니다.',
                         style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
@@ -176,7 +176,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                           MaterialPageRoute(builder: (_) => const GroupOrderFormScreen(initialCount: 5)))
                       : null,
                   icon: const Icon(Icons.assignment_outlined, size: 18),
-                  label: const Text('단체주문서 바로가기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                  label: Text('단체주문서 바로가기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _guideChecked ? Colors.white : Colors.white38,
                     foregroundColor: const Color(0xFF6A1B9A),
@@ -568,7 +568,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                     color: guideChecked ? color : const Color(0xFFFFA000),
                   ),
                   const SizedBox(width: 8),
-                  const Expanded(
+                  Expanded(
                     child: Text('주문 안내 내용을 모두 확인했습니다.',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A))),
                   ),
@@ -971,4 +971,3 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
     );
   }
 }
-

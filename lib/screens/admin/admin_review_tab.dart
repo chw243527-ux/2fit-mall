@@ -1,5 +1,6 @@
 // admin_review_tab.dart — 리뷰 관리 탭
 import 'package:flutter/material.dart';
+import '../../utils/app_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/models.dart';
 import '../../services/review_service.dart';
@@ -86,26 +87,26 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: const Text('리뷰 삭제', style: TextStyle(fontWeight: FontWeight.w700)),
+        title: Text(context.loc.t('리뷰 삭제', '리뷰 삭제'), style: TextStyle(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('작성자: ${r.userName}', style: const TextStyle(fontSize: 13)),
+            Text(context.loc.t('작성자 _', '작성자: ${r.userName}'), style: TextStyle(fontSize: 13)),
             const SizedBox(height: 4),
             Text(r.content, maxLines: 2, overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 13, color: Color(0xFF555555))),
             const SizedBox(height: 10),
-            const Text('이 리뷰를 삭제하시겠습니까?',
+            Text(context.loc.t('이 리뷰를 삭제하시겠습니까', '이 리뷰를 삭제하시겠습니까?'),
                 style: TextStyle(fontSize: 13, color: Colors.red)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.loc.t('취소', '취소'))),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-            child: const Text('삭제'),
+            child: Text(context.loc.t('삭제', '삭제')),
           ),
         ],
       ),
@@ -114,7 +115,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
     await ReviewService.deleteReview(r.id, r.productId);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('리뷰가 삭제되었습니다'), backgroundColor: Colors.red),
+        SnackBar(content: Text(context.loc.t('리뷰가 삭제되었습니다', '리뷰가 삭제되었습니다')), backgroundColor: Colors.red),
       );
       await _loadReviews();
     }
@@ -144,12 +145,12 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _DetailRow('상품', productName),
-                _DetailRow('사이즈', r.size.isNotEmpty ? r.size : '-'),
-                _DetailRow('색상', r.color.isNotEmpty ? r.color : '-'),
-                _DetailRow('작성일', _fmtDate(r.createdAt)),
+                _DetailRow(context.loc.t('상품', '상품'), productName),
+                _DetailRow(context.loc.t('사이즈', '사이즈'), r.size.isNotEmpty ? r.size : '-'),
+                _DetailRow(context.loc.t('색상', '색상'), r.color.isNotEmpty ? r.color : '-'),
+                _DetailRow(context.loc.t('작성일', '작성일'), _fmtDate(r.createdAt)),
                 const SizedBox(height: 10),
-                const Text('내용', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
+                Text(context.loc.t('내용', '내용'), style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Container(
                   width: double.infinity,
@@ -162,7 +163,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                 ),
                 if (r.images.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  const Text('첨부 이미지', style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
+                  Text(context.loc.t('첨부 이미지', '첨부 이미지'), style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   SizedBox(
                     height: 80,
@@ -185,9 +186,9 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
           TextButton(
             onPressed: () { Navigator.pop(context); _deleteReview(r); },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('삭제'),
+            child: Text(context.loc.t('삭제', '삭제')),
           ),
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('닫기')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(context.loc.t('닫기', '닫기'))),
         ],
       ),
     );
@@ -231,7 +232,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                       style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: Color(0xFFF57F17))),
                     _StarRow(avgRating),
                     const SizedBox(height: 4),
-                    Text('총 ${_reviews.length}개 리뷰',
+                    Text(context.loc.t('총 _개 리뷰', '총 ${_reviews.length}개 리뷰'),
                       style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
                   ],
                 ),
@@ -287,7 +288,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                   child: TextField(
                     controller: _searchCtrl,
                     decoration: InputDecoration(
-                      hintText: '작성자, 상품명, 내용 검색',
+                      hintText: context.loc.t('작성자 상품명 내용 검색', '작성자, 상품명, 내용 검색'),
                       hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
                       prefixIcon: const Icon(Icons.search, size: 16, color: Color(0xFFAAAAAA)),
                       suffixIcon: _searchQuery.isNotEmpty
@@ -324,7 +325,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.refresh_rounded, size: 18),
-                tooltip: '새로고침',
+                tooltip: context.loc.t('새로고침', '새로고침'),
                 onPressed: _loadReviews,
               ),
             ],
@@ -342,7 +343,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                         children: [
                           Icon(Icons.rate_review_outlined, size: 48, color: Colors.grey[300]),
                           const SizedBox(height: 12),
-                          Text('리뷰가 없습니다', style: TextStyle(color: Colors.grey[400], fontSize: 14)),
+                          Text(context.loc.t('리뷰가 없습니다', '리뷰가 없습니다'), style: TextStyle(color: Colors.grey[400], fontSize: 14)),
                         ],
                       ),
                     )
@@ -410,7 +411,7 @@ class _ReviewCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
-                  tooltip: '삭제',
+                  tooltip: context.loc.t('삭제', '삭제'),
                   constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                   padding: EdgeInsets.zero,
                   onPressed: onDelete,
@@ -434,7 +435,7 @@ class _ReviewCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(color: const Color(0xFFF0F4FF), borderRadius: BorderRadius.circular(6)),
-                    child: Text('사이즈: ${review.size}',
+                    child: Text(context.loc.t('사이즈 _', '사이즈: ${review.size}'),
                       style: const TextStyle(fontSize: 11, color: Color(0xFF1565C0))),
                   ),
                 ],
@@ -443,7 +444,7 @@ class _ReviewCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(color: const Color(0xFFFFF3E0), borderRadius: BorderRadius.circular(6)),
-                    child: Text('색상: ${review.color}',
+                    child: Text(context.loc.t('색상 _', '색상: ${review.color}'),
                       style: const TextStyle(fontSize: 11, color: Color(0xFFE65100))),
                   ),
                 ],

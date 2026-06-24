@@ -6,6 +6,9 @@ import '../../models/models.dart';
 import '../../services/inventory_service.dart';
 import '../../services/barcode_print_service.dart';
 import '../../services/product_service.dart';
+import '../../utils/app_localizations.dart';
+import 'package:provider/provider.dart';
+import '../../providers/providers.dart';
 
 // ════════════════════════════════════════════════════════════
 //  관리자 재고관리 탭
@@ -144,9 +147,9 @@ class _ProductPickerState extends State<_ProductPicker> {
   Widget build(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_all.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(16),
-        child: Text('등록된 상품 재고가 없습니다.\n상품관리에서 상품을 먼저 등록해 주세요.',
+        child: Text(context.loc.t('등록된 상품 재고가 없습니다 상품관리에서 상품을 먼저 등록해 주세요', '등록된 상품 재고가 없습니다.\n상품관리에서 상품을 먼저 등록해 주세요.'),
             style: TextStyle(color: Colors.grey)),
       );
     }
@@ -157,7 +160,7 @@ class _ProductPickerState extends State<_ProductPicker> {
           controller: _searchCtrl,
           onChanged: _filter,
           decoration: InputDecoration(
-            hintText: '상품명 또는 코드로 검색',
+            hintText: context.loc.t('상품명 또는 코드로 검색', '상품명 또는 코드로 검색'),
             prefixIcon: const Icon(Icons.search, size: 18),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             isDense: true,
@@ -217,11 +220,11 @@ class _SizeColorRow extends StatelessWidget {
       child: Wrap(spacing: 16, runSpacing: 8, children: [
         // 사이즈
         Row(mainAxisSize: MainAxisSize.min, children: [
-          const Text('사이즈', style: TextStyle(fontSize: 13)),
+          Text(context.loc.t('사이즈', '사이즈'), style: TextStyle(fontSize: 13)),
           const SizedBox(width: 8),
           DropdownButton<String>(
             value: selectedSize,
-            hint: const Text('선택'),
+            hint: Text(context.loc.t('선택', '선택')),
             isDense: true,
             items: sizes.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
             onChanged: (v) { if (v != null) onSizeChanged(v); },
@@ -229,11 +232,11 @@ class _SizeColorRow extends StatelessWidget {
         ]),
         // 색상
         Row(mainAxisSize: MainAxisSize.min, children: [
-          const Text('색상', style: TextStyle(fontSize: 13)),
+          Text(context.loc.t('색상', '색상'), style: TextStyle(fontSize: 13)),
           const SizedBox(width: 8),
           DropdownButton<String>(
             value: selectedColor,
-            hint: const Text('선택'),
+            hint: Text(context.loc.t('선택', '선택')),
             isDense: true,
             items: colors.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
             onChanged: (v) { if (v != null) onColorChanged(v); },
@@ -282,12 +285,12 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
   Future<void> _syncFromProducts() async {
     setState(() => _syncing = true);
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Row(children: [
         SizedBox(width: 18, height: 18,
             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
         SizedBox(width: 12),
-        Text('상품 동기화 중... 잠시 기다려 주세요'),
+        Text(context.loc.t('상품 동기화 중 잠시 기다려 주세요', '상품 동기화 중... 잠시 기다려 주세요')),
       ]),
       backgroundColor: Color(0xFF6A1B9A),
       duration: Duration(seconds: 30),
@@ -328,7 +331,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('동기화 실패: $e'),
+        content: Text(context.loc.t('동기화 실패 _', '동기화 실패: $e')),
         backgroundColor: Colors.red,
       ));
     } finally {
@@ -360,21 +363,21 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
               children: [
                 const Icon(Icons.info_outline, size: 16, color: Color(0xFFE65100)),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    '재고수량이 모두 0입니다 — "상품동기화" 버튼을 눌러 초기화해 주세요.',
+                    context.loc.t('재고수량이 모두 0입니다  상품동기화 버튼을 눌러 초기화해 주세요', '재고수량이 모두 0입니다 — "상품동기화" 버튼을 눌러 초기화해 주세요.'),
                     style: TextStyle(fontSize: 11, color: Color(0xFFE65100)),
                   ),
                 ),
                 TextButton(
                   onPressed: _syncFromProducts,
                   style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(40, 24)),
-                  child: const Text('동기화', style: TextStyle(fontSize: 11, color: Color(0xFFE65100))),
+                  child: Text(context.loc.t('동기화', '동기화'), style: TextStyle(fontSize: 11, color: Color(0xFFE65100))),
                 ),
               ],
             ),
           ),
-        _SectionTitle('전체 재고 현황',
+        _SectionTitle(context.loc.t('전체 재고 현황', '전체 재고 현황'),
           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
             // 상품관리 동기화 버튼
             _syncing
@@ -383,7 +386,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
               : TextButton.icon(
                   onPressed: _syncFromProducts,
                   icon: const Icon(Icons.sync, size: 16),
-                  label: const Text('상품동기화', style: TextStyle(fontSize: 12)),
+                  label: Text(context.loc.t('상품동기화', '상품동기화'), style: TextStyle(fontSize: 12)),
                 ),
             IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
           ])),
@@ -395,7 +398,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
           child: TextField(
             onChanged: (v) => setState(() => _search = v),
             decoration: InputDecoration(
-              hintText: '상품명 / 코드 검색',
+              hintText: context.loc.t('상품명  코드 검색', '상품명 / 코드 검색'),
               prefixIcon: const Icon(Icons.search, size: 18),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               isDense: true,
@@ -424,10 +427,10 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.shade300),
         const SizedBox(height: 16),
-        const Text('재고 데이터가 없습니다',
+        Text(context.loc.t('재고 데이터가 없습니다', '재고 데이터가 없습니다'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
         const SizedBox(height: 8),
-        const Text('상품관리에서 등록된 상품을\n재고DB에 동기화해 주세요.',
+        Text(context.loc.t('상품관리에서 등록된 상품을 재고DB에 동기화해 주세요', '상품관리에서 등록된 상품을\n재고DB에 동기화해 주세요.'),
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 13, color: Colors.grey)),
         const SizedBox(height: 20),
@@ -442,7 +445,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
               ? const SizedBox(width: 18, height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
               : const Icon(Icons.sync),
-          label: Text(_syncing ? '동기화 중...' : '상품관리에서 동기화'),
+          label: Text(_syncing ? context.loc.t('동기화 중', '동기화 중...') : context.loc.t('상품관리에서 동기화', '상품관리에서 동기화')),
         ),
       ]),
     ),
@@ -455,11 +458,11 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(children: [
-        _chip('전체 상품', total.toString(), Colors.blue),
+        _chip(context.loc.t('전체 상품', '전체 상품'), total.toString(), Colors.blue),
         const SizedBox(width: 8),
-        _chip('부족 재고', lowStock.toString(), Colors.orange),
+        _chip(context.loc.t('부족 재고', '부족 재고'), lowStock.toString(), Colors.orange),
         const SizedBox(width: 8),
-        _chip('재고 없음', outOfStock.toString(), Colors.red),
+        _chip(context.loc.t('재고 없음', '재고 없음'), outOfStock.toString(), Colors.red),
       ]),
     );
   }
@@ -505,7 +508,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
         title: Text(inv.productName,
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         subtitle: Row(children: [
-          Text('코드: ${inv.productCode}',
+          Text(context.loc.t('코드 _', '코드: ${inv.productCode}'),
               style: const TextStyle(fontSize: 11, color: Colors.grey)),
           const SizedBox(width: 6),
           Container(
@@ -514,7 +517,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
               color: isLow ? Colors.orange.shade100 : Colors.purple.shade50,
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text('재고 ${inv.totalStock}',
+            child: Text(context.loc.t('재고 _', '재고 ${inv.totalStock}'),
                 style: TextStyle(
                   fontSize: 10, fontWeight: FontWeight.bold,
                   color: isLow ? Colors.orange : const Color(0xFF6A1B9A))),
@@ -525,14 +528,14 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
               decoration: BoxDecoration(
                   color: Colors.orange, borderRadius: BorderRadius.circular(4)),
-              child: const Text('부족', style: TextStyle(color: Colors.white, fontSize: 10)),
+              child: Text(context.loc.t('부족', '부족'), style: TextStyle(color: Colors.white, fontSize: 10)),
             ),
           ],
         ]),
         // ── 바코드 출력 버튼 (trailing)
         trailing: Row(mainAxisSize: MainAxisSize.min, children: [
           IconButton(
-            tooltip: '바코드 출력',
+            tooltip: context.loc.t('바코드 출력', '바코드 출력'),
             icon: const Icon(Icons.qr_code_2_rounded,
                 color: Color(0xFF6A1B9A), size: 22),
             onPressed: () => _showBarcodeSheet(inv),
@@ -611,7 +614,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
                         style: const TextStyle(
                             fontSize: 15, fontWeight: FontWeight.bold),
                         maxLines: 2, overflow: TextOverflow.ellipsis),
-                    Text('코드: ${inv.productCode}',
+                    Text(context.loc.t('코드 _', '코드: ${inv.productCode}'),
                         style: const TextStyle(fontSize: 11, color: Colors.grey)),
                   ]),
                 ),
@@ -627,7 +630,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
                 padding: const EdgeInsets.all(16),
                 children: [
                   // 사이즈 선택
-                  const Text('사이즈',
+                  Text(context.loc.t('사이즈', '사이즈'),
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   Wrap(spacing: 8, children: sizes.map((s) {
@@ -643,7 +646,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
                   }).toList()),
                   const SizedBox(height: 12),
                   // 색상 선택
-                  const Text('색상',
+                  Text(context.loc.t('색상', '색상'),
                       style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   Wrap(spacing: 8, children: colors.map((c) {
@@ -660,7 +663,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
                   const SizedBox(height: 12),
                   // 출력 매수
                   Row(children: [
-                    const Text('라벨 매수',
+                    Text(context.loc.t('라벨 매수', '라벨 매수'),
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                     const SizedBox(width: 16),
                     IconButton(
@@ -701,7 +704,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
                               );
                             },
                       icon: const Icon(Icons.print_rounded),
-                      label: Text('바코드 라벨 $copies매 출력'),
+                      label: Text(context.loc.t('바코드 라벨 _ 출력', '바코드 라벨 $copies매 출력')),
                     ),
                   ),
                 ],
@@ -715,7 +718,7 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
 
   Widget _stockTable(InventoryModel inv) {
     final sizes = inv.stock.keys.toList();
-    if (sizes.isEmpty) return const Text('사이즈 정보 없음', style: TextStyle(color: Colors.grey));
+    if (sizes.isEmpty) return Text(context.loc.t('사이즈 정보 없음', '사이즈 정보 없음'), style: TextStyle(color: Colors.grey));
 
     // 모든 색상 수집
     final allColors = <String>{};
@@ -730,10 +733,10 @@ class _InventoryDashboardState extends State<_InventoryDashboard> {
         dataRowMaxHeight: 36,
         columnSpacing: 20,
         columns: [
-          const DataColumn(label: Text('사이즈', style: TextStyle(fontSize: 12))),
+          DataColumn(label: Text(context.loc.t('사이즈', '사이즈'), style: TextStyle(fontSize: 12))),
           ...colors.map((c) => DataColumn(
               label: Text(c, style: const TextStyle(fontSize: 12)))),
-          const DataColumn(label: Text('합계', style: TextStyle(fontSize: 12))),
+          DataColumn(label: Text(context.loc.t('합계', '합계'), style: TextStyle(fontSize: 12))),
         ],
         rows: sizes.map((size) {
           final total = inv.stockForSize(size);
@@ -811,7 +814,7 @@ class _StockFormTabState extends State<_StockFormTab> {
     final inv = await InventoryService.fetchByBarcode(barcode.trim());
     if (!mounted) return;
     if (inv == null) {
-      _snack('바코드를 찾을 수 없습니다: $barcode', error: true);
+      _snack(context.loc.t('바코드를 찾을 수 없습니다 _', '바코드를 찾을 수 없습니다: $barcode'), error: true);
       return;
     }
     setState(() {
@@ -825,11 +828,11 @@ class _StockFormTabState extends State<_StockFormTab> {
 
   Future<void> _submit() async {
     if (_inv == null || _size == null || _color == null) {
-      _snack('상품·사이즈·색상을 선택하세요', error: true);
+      _snack(context.loc.t('상품·사이즈·색상을 선택하세요', '상품·사이즈·색상을 선택하세요'), error: true);
       return;
     }
     final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 0;
-    if (qty <= 0) { _snack('수량을 올바르게 입력하세요', error: true); return; }
+    if (qty <= 0) { _snack(context.loc.t('수량을 올바르게 입력하세요', '수량을 올바르게 입력하세요'), error: true); return; }
 
     setState(() => _saving = true);
     try {
@@ -860,7 +863,7 @@ class _StockFormTabState extends State<_StockFormTab> {
       }
     } catch (e) {
       if (mounted) setState(() => _saving = false);
-      _snack('오류: $e', error: true);
+      _snack(context.loc.t('오류 _', '오류: $e'), error: true);
     }
   }
 
@@ -890,7 +893,7 @@ class _StockFormTabState extends State<_StockFormTab> {
                 controller: _scanCtrl,
                 focusNode: _scanFocus,
                 decoration: InputDecoration(
-                  hintText: '바코드 번호 입력 후 Enter',
+                  hintText: context.loc.t('바코드 번호 입력 후 Enter', '바코드 번호 입력 후 Enter'),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -901,7 +904,7 @@ class _StockFormTabState extends State<_StockFormTab> {
             const SizedBox(width: 8),
             // 카메라 스캔 버튼
             Tooltip(
-              message: '카메라로 스캔',
+              message: context.loc.t('카메라로 스캔', '카메라로 스캔'),
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () => showBarcodeScannerDialog(context, _onScan),
@@ -920,13 +923,13 @@ class _StockFormTabState extends State<_StockFormTab> {
           ]),
         ),
 
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Row(children: [
             Expanded(child: Divider()),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Text('또는 직접 선택', style: TextStyle(fontSize: 11, color: Colors.grey)),
+              child: Text(context.loc.t('또는 직접 선택', '또는 직접 선택'), style: TextStyle(fontSize: 11, color: Colors.grey)),
             ),
             Expanded(child: Divider()),
           ]),
@@ -967,7 +970,7 @@ class _StockFormTabState extends State<_StockFormTab> {
               child: Row(children: [
                 const Icon(Icons.inventory_2, size: 16, color: Colors.grey),
                 const SizedBox(width: 6),
-                Text('현재 재고: ',
+                Text(context.loc.t('현재 재고', '현재 재고: '),
                     style: const TextStyle(fontSize: 13, color: Colors.grey)),
                 Text(_currentStock.toString(),
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -983,9 +986,9 @@ class _StockFormTabState extends State<_StockFormTab> {
             controller: _qtyCtrl,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
-              labelText: isAdjust ? '조정 후 수량' : '${widget.type.label} 수량',
+              labelText: isAdjust ? context.loc.t('조정 후 수량', '조정 후 수량') : '${widget.type.label} 수량',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              suffixText: '개',
+              suffixText: context.loc.t('개', '개'),
             ),
           ),
         ),
@@ -996,7 +999,7 @@ class _StockFormTabState extends State<_StockFormTab> {
           child: TextField(
             controller: _memoCtrl,
             decoration: InputDecoration(
-              labelText: '메모 (선택)',
+              labelText: context.loc.t('메모 선택', '메모 (선택)'),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             ),
             maxLines: 2,
@@ -1024,7 +1027,7 @@ class _StockFormTabState extends State<_StockFormTab> {
                   : Icon(widget.type == InventoryLogType.incoming
                       ? Icons.add_box : widget.type == InventoryLogType.outgoing
                           ? Icons.remove_circle : Icons.tune),
-              label: Text(_saving ? '처리 중...' : '${widget.type.label} 저장'),
+              label: Text(_saving ? context.loc.t('처리 중', '처리 중...') : '${widget.type.label} 저장'),
             ),
           ),
         ),
@@ -1108,7 +1111,7 @@ class _BarcodeTabState extends State<_BarcodeTab> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('바코드 출력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(context.loc.t('바코드 출력', '바코드 출력'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
 
         // ── 상품 선택
@@ -1117,7 +1120,7 @@ class _BarcodeTabState extends State<_BarcodeTab> {
 
         if (_inv != null) ...[
           // ── 사이즈 선택
-          const Text('사이즈 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          Text(context.loc.t('사이즈 선택', '사이즈 선택'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Wrap(spacing: 8, children: sizes.map((s) {
             final sel = _selSizes.contains(s);
@@ -1132,7 +1135,7 @@ class _BarcodeTabState extends State<_BarcodeTab> {
           const SizedBox(height: 12),
 
           // ── 색상 선택
-          const Text('색상 선택', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+          Text(context.loc.t('색상 선택', '색상 선택'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Wrap(spacing: 8, children: colors.map((c) {
             final sel = _selColors.contains(c);
@@ -1148,7 +1151,7 @@ class _BarcodeTabState extends State<_BarcodeTab> {
 
           // ── 출력 매수
           Row(children: [
-            const Text('라벨 매수', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            Text(context.loc.t('라벨 매수', '라벨 매수'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
             const SizedBox(width: 16),
             IconButton(
               onPressed: () => setState(() { if (_copies > 1) _copies--; }),
@@ -1162,7 +1165,7 @@ class _BarcodeTabState extends State<_BarcodeTab> {
 
           // ── 미리보기
           if (_selSizes.isNotEmpty && _selColors.isNotEmpty) ...[
-            const Text('미리보기', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            Text(context.loc.t('미리보기', '미리보기'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             SizedBox(
               height: 160,
@@ -1197,7 +1200,7 @@ class _BarcodeTabState extends State<_BarcodeTab> {
                         copies: _copies,
                       ),
               icon: const Icon(Icons.print),
-              label: Text('바코드 라벨 $_copies매 출력'),
+              label: Text(context.loc.t('바코드 라벨 _ 출력', '바코드 라벨 $_copies매 출력')),
             ),
           ),
         ],
@@ -1300,7 +1303,7 @@ class _LogTabState extends State<_LogTab> {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      _SectionTitle('입출고 이력',
+      _SectionTitle(context.loc.t('입출고 이력', '입출고 이력'),
         trailing: IconButton(icon: const Icon(Icons.refresh), onPressed: _load)),
       // 필터
       Padding(
@@ -1310,7 +1313,7 @@ class _LogTabState extends State<_LogTab> {
             child: TextField(
               onChanged: (v) => setState(() => _search = v),
               decoration: InputDecoration(
-                hintText: '상품명 / 코드 검색',
+                hintText: context.loc.t('상품명  코드 검색', '상품명 / 코드 검색'),
                 prefixIcon: const Icon(Icons.search, size: 18),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 isDense: true,
@@ -1321,10 +1324,10 @@ class _LogTabState extends State<_LogTab> {
           const SizedBox(width: 8),
           DropdownButton<InventoryLogType?>(
             value: _typeFilter,
-            hint: const Text('전체', style: TextStyle(fontSize: 12)),
+            hint: Text(context.loc.t('전체', '전체'), style: TextStyle(fontSize: 12)),
             isDense: true,
             items: [
-              const DropdownMenuItem(value: null, child: Text('전체')),
+              DropdownMenuItem(value: null, child: Text(context.loc.t('전체', '전체'))),
               ...InventoryLogType.values.map((t) =>
                   DropdownMenuItem(value: t, child: Text(t.label))),
             ],
@@ -1336,7 +1339,7 @@ class _LogTabState extends State<_LogTab> {
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : _filtered.isEmpty
-                ? const Center(child: Text('이력이 없습니다'))
+                ? Center(child: Text(context.loc.t('이력이 없습니다', '이력이 없습니다')))
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: _filtered.length,
@@ -1387,7 +1390,7 @@ class _LogTabState extends State<_LogTab> {
           Text('${log.size} / ${log.color}  |  ${log.beforeQty} → ${log.afterQty} (${log.type == InventoryLogType.outgoing ? '-' : '+'}${log.quantity})',
               style: const TextStyle(fontSize: 11)),
           if (log.memo.isNotEmpty)
-            Text('메모: ${log.memo}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+            Text(context.loc.t('메모 _', '메모: ${log.memo}'), style: TextStyle(fontSize: 10, color: Colors.grey)),
         ]),
         trailing: Text(dtStr, style: const TextStyle(fontSize: 10, color: Colors.grey)),
       ),
@@ -1468,7 +1471,7 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
     final inv = await InventoryService.fetchByBarcode(barcode.trim());
     if (!mounted) return;
     if (inv == null) {
-      _snack('바코드를 찾을 수 없습니다: $barcode', error: true);
+      _snack(context.loc.t('바코드를 찾을 수 없습니다 _', '바코드를 찾을 수 없습니다: $barcode'), error: true);
       return;
     }
     setState(() {
@@ -1483,10 +1486,10 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
 
   Future<void> _process() async {
     if (_inv == null || _size == null || _color == null) {
-      _snack('상품·사이즈·색상을 선택하세요', error: true); return;
+      _snack(context.loc.t('상품·사이즈·색상을 선택하세요', '상품·사이즈·색상을 선택하세요'), error: true); return;
     }
     if (widget.type == _ErType.exchange && (_newSize == null || _newColor == null)) {
-      _snack('교환 후 사이즈·색상을 선택하세요', error: true); return;
+      _snack(context.loc.t('교환 후 사이즈·색상을 선택하세요', '교환 후 사이즈·색상을 선택하세요'), error: true); return;
     }
     setState(() => _processing = true);
     try {
@@ -1499,13 +1502,13 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
           memo: '반품 처리${memo.isNotEmpty ? ': $memo' : ''}',
           adminId: widget.adminId,
         );
-        _snack('반품 처리 완료 — 재고 +1 반영');
+        _snack(context.loc.t('반품 처리 완료  재고 1 반영', '반품 처리 완료 — 재고 +1 반영'));
       } else {
         // 교환 → 구 사이즈 입고 + 신 사이즈 출고
         await InventoryService.incoming(
           productId: _inv!.productId,
           size: _size!, color: _color!, quantity: 1,
-          memo: '교환 반납(${ _size}/${ _color})${memo.isNotEmpty ? ': $memo' : ''}',
+          memo: '교환 반납(${_size}/${_color})${memo.isNotEmpty ? ': $memo' : ''}',
           adminId: widget.adminId,
         );
         await InventoryService.outgoing(
@@ -1514,14 +1517,14 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
           memo: '교환 출고($_newSize/$_newColor)${memo.isNotEmpty ? ': $memo' : ''}',
           adminId: widget.adminId,
         );
-        _snack('교환 처리 완료 — $_size/$_color → $_newSize/$_newColor');
+        _snack(context.loc.t('교환 처리 완료  __  __', '교환 처리 완료 — $_size/$_color → $_newSize/$_newColor'));
       }
       // 재고 갱신
       final refreshed = await InventoryService.fetchOne(_inv!.productId);
       if (mounted) setState(() { _inv = refreshed ?? _inv; _processing = false; });
     } catch (e) {
       if (mounted) setState(() => _processing = false);
-      _snack('오류: $e', error: true);
+      _snack(context.loc.t('오류 _', '오류: $e'), error: true);
     }
   }
 
@@ -1557,8 +1560,8 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
             const SizedBox(width: 10),
             Expanded(child: Text(
               isExchange
-                  ? '교환: 반납 상품을 입고 처리하고\n교환 상품을 출고 처리합니다.'
-                  : '반품: 반납 상품을 입고 처리합니다.\n재고가 자동으로 +1 반영됩니다.',
+                  ? context.loc.t('교환 반납 상품을 입고 처리하고 교환 상품을 출고 처리합니다', '교환: 반납 상품을 입고 처리하고\n교환 상품을 출고 처리합니다.')
+                  : context.loc.t('반품 반납 상품을 입고 처리합니다 재고가 자동으로 1 반영됩니다', '반품: 반납 상품을 입고 처리합니다.\n재고가 자동으로 +1 반영됩니다.'),
               style: TextStyle(fontSize: 12,
                   color: isExchange ? Colors.blue.shade800 : Colors.orange.shade800),
             )),
@@ -1575,7 +1578,7 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
               controller: _scanCtrl,
               focusNode: _scanFocus,
               decoration: InputDecoration(
-                hintText: '바코드 번호 입력 후 Enter',
+                hintText: context.loc.t('바코드 번호 입력 후 Enter', '바코드 번호 입력 후 Enter'),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -1585,7 +1588,7 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
           ),
           const SizedBox(width: 8),
           Tooltip(
-            message: '카메라로 스캔',
+            message: context.loc.t('카메라로 스캔', '카메라로 스캔'),
             child: InkWell(
               borderRadius: BorderRadius.circular(8),
               onTap: () => showBarcodeScannerDialog(context, _onScan),
@@ -1604,13 +1607,13 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
         ]),
         const SizedBox(height: 8),
 
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(vertical: 4),
           child: Row(children: [
             Expanded(child: Divider()),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Text('또는 직접 선택', style: TextStyle(fontSize: 11, color: Colors.grey)),
+              child: Text(context.loc.t('또는 직접 선택', '또는 직접 선택'), style: TextStyle(fontSize: 11, color: Colors.grey)),
             ),
             Expanded(child: Divider()),
           ]),
@@ -1628,14 +1631,14 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
         if (_inv != null) ...[
           const SizedBox(height: 12),
           // ── 반납 상품 사이즈/색상 (항상)
-          Text(isExchange ? '반납 상품 (입고될 사이즈/색상)'
-              : '반품 상품 사이즈/색상',
+          Text(isExchange ? context.loc.t('반납 상품 입고될 사이즈색상', '반납 상품 (입고될 사이즈/색상)')
+              : context.loc.t('반품 상품 사이즈색상', '반품 상품 사이즈/색상'),
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Wrap(spacing: 16, children: [
-            _dropdownRow('사이즈', sizes, _size,
+            _dropdownRow(context.loc.t('사이즈', '사이즈'), sizes, _size,
                 (v) => setState(() { _size = v; _color = _inv?.stock[v]?.keys.firstOrNull; })),
-            _dropdownRow('색상', colors, _color,
+            _dropdownRow(context.loc.t('색상', '색상'), colors, _color,
                 (v) => setState(() => _color = v)),
           ]),
 
@@ -1646,14 +1649,14 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
           // ── 교환: 교환 후 사이즈/색상
           if (isExchange) ...[
             const SizedBox(height: 12),
-            const Text('교환 상품 (출고될 사이즈/색상)',
+            Text(context.loc.t('교환 상품 출고될 사이즈색상', '교환 상품 (출고될 사이즈/색상)'),
                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
                     color: Colors.blue)),
             const SizedBox(height: 6),
             Wrap(spacing: 16, children: [
-              _dropdownRow('사이즈', sizes, _newSize,
+              _dropdownRow(context.loc.t('사이즈', '사이즈'), sizes, _newSize,
                   (v) => setState(() { _newSize = v; _newColor = _inv?.stock[v]?.keys.firstOrNull; })),
-              _dropdownRow('색상', newColors, _newColor,
+              _dropdownRow(context.loc.t('색상', '색상'), newColors, _newColor,
                   (v) => setState(() => _newColor = v)),
             ]),
             if (_newSize != null && _newColor != null)
@@ -1666,7 +1669,7 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
           TextField(
             controller: _memoCtrl,
             decoration: InputDecoration(
-              labelText: '메모 (주문번호, 고객명 등)',
+              labelText: context.loc.t('메모 주문번호 고객명 등', '메모 (주문번호, 고객명 등)'),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             ),
             maxLines: 2,
@@ -1688,8 +1691,8 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
                   ? const SizedBox(width: 18, height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                   : Icon(isExchange ? Icons.swap_horiz : Icons.assignment_return),
-              label: Text(_processing ? '처리 중...'
-                  : isExchange ? '교환 처리' : '반품 처리'),
+              label: Text(_processing ? context.loc.t('처리 중', '처리 중...')
+                  : isExchange ? context.loc.t('교환 처리', '교환 처리') : context.loc.t('반품 처리', '반품 처리')),
             ),
           ),
         ],
@@ -1703,7 +1706,7 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
       const SizedBox(width: 8),
       DropdownButton<String>(
         value: value,
-        hint: const Text('선택'),
+        hint: Text(context.loc.t('선택', '선택')),
         isDense: true,
         items: items.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
         onChanged: (v) { if (v != null) onChange(v); },
@@ -1734,7 +1737,7 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(3)),
-            child: const Text('품절', style: TextStyle(color: Colors.white, fontSize: 10)),
+            child: Text(context.loc.t('품절', '품절'), style: TextStyle(color: Colors.white, fontSize: 10)),
           ),
         ],
       ]),
@@ -1800,16 +1803,13 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
       String msg;
       switch (code) {
         case 'permission_denied':
-          msg = '카메라 권한이 거부되었습니다.\n'
-              '브라우저 주소창 🔒 → 카메라 허용 후\n다시 시도해주세요.';
+          msg = '카메라 권한이 거부되었습니다.\n브라우저 주소창 🔒 → 카메라 허용 후\n다시 시도해주세요.';
           break;
         case 'camera_busy':
-          msg = '카메라를 사용할 수 없습니다.\n'
-              '다른 앱이 카메라를 사용 중일 수 있습니다.';
+          msg = '카메라를 사용할 수 없습니다.\n다른 앱이 카메라를 사용 중일 수 있습니다.';
           break;
         case 'no_camera':
-          msg = '카메라를 찾을 수 없습니다.\n'
-              '카메라가 연결되어 있는지 확인해주세요.';
+          msg = '카메라를 찾을 수 없습니다.\n카메라가 연결되어 있는지 확인해주세요.';
           break;
         default:
           msg = '카메라 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
@@ -1853,8 +1853,8 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
           child: Row(children: [
             const Icon(Icons.qr_code_scanner, color: Color(0xFF6A1B9A)),
             const SizedBox(width: 8),
-            const Expanded(
-              child: Text('바코드 스캔',
+            Expanded(
+              child: Text(context.loc.t('바코드 스캔', '바코드 스캔'),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ),
             IconButton(
@@ -1867,7 +1867,7 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            _errorMsg == null ? '카메라를 바코드에 가까이 대주세요' : '',
+            _errorMsg == null ? context.loc.t('카메라를 바코드에 가까이 대주세요', '카메라를 바코드에 가까이 대주세요') : '',
             style: const TextStyle(fontSize: 12, color: Colors.grey),
           ),
         ),
@@ -1936,7 +1936,7 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
           TextButton.icon(
             onPressed: _startScanner,
             icon: const Icon(Icons.refresh, color: Colors.white70),
-            label: const Text('다시 시도',
+            label: Text(context.loc.t('다시 시도', '다시 시도'),
                 style: TextStyle(color: Colors.white70)),
           ),
         ]),
@@ -1950,7 +1950,7 @@ Future<void> showBarcodeScannerDialog(
     BuildContext context, void Function(String) onScanned) {
   if (!kIsWeb) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('카메라 스캔은 웹 브라우저에서만 지원됩니다.')),
+      SnackBar(content: Text(context.loc.t('카메라 스캔은 웹 브라우저에서만 지원됩니다', '카메라 스캔은 웹 브라우저에서만 지원됩니다.'))),
     );
     return Future.value();
   }

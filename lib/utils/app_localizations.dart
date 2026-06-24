@@ -1,6 +1,13 @@
 // ─────────────────────────────────────────────────────────
 // 다국어 번역 데이터 (영어 · 일본어 · 중국어 · 몽골어)
 // ─────────────────────────────────────────────────────────
+// 사용법:
+//   context.watch<LanguageProvider>().loc.t('키', '한국어 기본값')
+//   또는 BuildContext extension: context.loc.t('키', '한국어 기본값')
+//   → 한국어이면 기본값 그대로, 외국어이면 캐시된 번역 또는 API 번역
+// ─────────────────────────────────────────────────────────
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 enum AppLanguage {
   korean,
@@ -45,6 +52,56 @@ extension AppLanguageExt on AppLanguage {
 class AppLocalizations {
   final AppLanguage language;
   const AppLocalizations(this.language);
+
+  // ── 동적 번역 (하드코딩 한국어 → 선택 언어 자동 변환) ──────────
+  // 사용법: loc.t('키', '기본한국어텍스트')
+  // - 한국어: 즉시 반환
+  // - 외국어: _runtimeCache에서 찾거나 없으면 한국어 반환 후 백그라운드 번역
+  static final Map<String, Map<String, String>> _runtimeCache = {};
+
+  String t(String key, String korean) {
+    // 한국어 원문 항상 저장 (번역 요청 시 사용)
+    _koreanTexts[key] = korean;
+    if (language == AppLanguage.korean) return korean;
+    final langCode = language.code.toLowerCase();
+    final cached = _runtimeCache[key]?[langCode];
+    if (cached != null) return cached;
+    // 캐시에 없으면 한국어 반환 후 백그라운드 번역 등록
+    _requestTranslation(key, korean, langCode);
+    return korean;
+  }
+
+  // 백그라운드 번역 요청 등록
+  static final Set<String> _pending = {};
+  static void _requestTranslation(String key, String korean, String langCode) {
+    _koreanTexts[key] = korean;
+    final cacheKey = '$key:$langCode';
+    if (_pending.contains(cacheKey)) return;
+    if (_runtimeCache[key]?[langCode] != null) return;
+    _pending.add(cacheKey);
+  }
+
+  // 번역 결과 저장 (LanguageProvider에서 호출)
+  static void cacheTranslation(String key, String langCode, String translated) {
+    _runtimeCache.putIfAbsent(key, () => {})[langCode] = translated;
+    _pending.remove('$key:$langCode');
+  }
+
+  // 번역 대기 목록 (외부에서 읽기 가능)
+  static Set<String> get pendingKeys => Set.unmodifiable(_pending);
+
+  // 키에 해당하는 한국어 기본값 저장소
+  static final Map<String, String> _koreanTexts = {};
+
+  // 한국어 기본값 조회
+  static String? koreanFor(String key) => _koreanTexts[key];
+
+  // 전체 캐시 초기화 (언어 변경 시)
+  static void clearCache() {
+    _runtimeCache.clear();
+    _pending.clear();
+    // _koreanTexts는 유지 (한국어 원문은 항상 필요)
+  }
 
   // ── 공통 ──
   String get appName {
@@ -15402,4 +15459,34 @@ class AppLocalizations {
     default: return '무료 (5장 이상)';
   }}
 
+}
+
+// ─────────────────────────────────────────────────────────
+// BuildContext extension — 어디서든 context.loc 으로 접근
+// ─────────────────────────────────────────────────────────
+extension AppLocalizationsContext on BuildContext {
+  /// context.loc — 현재 언어의 AppLocalizations 반환
+  /// watch()를 사용하므로 언어 변경 시 위젯 자동 리빌드
+  AppLocalizations get loc {
+    try {
+      return watch<LanguageProviderBridge>().loc;
+    } catch (_) {
+      // Provider 없는 환경 (테스트 등) 대비
+      return const AppLocalizations(AppLanguage.korean);
+    }
+  }
+
+  /// context.locRead — 리빌드 없이 현재 언어 읽기 (onPressed 등)
+  AppLocalizations get locRead {
+    try {
+      return read<LanguageProviderBridge>().loc;
+    } catch (_) {
+      return const AppLocalizations(AppLanguage.korean);
+    }
+  }
+}
+
+// LanguageProvider에 대한 브릿지 인터페이스 (public)
+abstract class LanguageProviderBridge {
+  AppLocalizations get loc;
 }

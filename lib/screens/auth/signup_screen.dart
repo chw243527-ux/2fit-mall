@@ -379,7 +379,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             Container(width: 40, height: 4,
                 decoration: BoxDecoration(color: Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(2))),
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(16),
               child: Text('개인정보처리방침',
                   style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800,
@@ -758,7 +758,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       child: _emailChecking
                           ? const SizedBox(width: 16, height: 16,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Text('중복확인',
+                          : Text('중복확인',
                               style: TextStyle(fontSize: 12, color: Colors.white)),
                     ),
                   ),
@@ -910,7 +910,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Row(children: [
                         const Icon(Icons.sms_outlined, size: 16, color: Color(0xFF1A1A2E)),
                         const SizedBox(width: 6),
-                        const Expanded(
+                        Expanded(
                           child: Text('문자로 발송된 6자리 인증번호를 입력하세요.',
                               style: TextStyle(fontSize: 12, color: Color(0xFF1A1A2E),
                                   fontWeight: FontWeight.w600)),
@@ -987,7 +987,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 ? const SizedBox(width: 16, height: 16,
                                     child: CircularProgressIndicator(
                                         color: Colors.white, strokeWidth: 2))
-                                : const Text('확인',
+                                : Text('확인',
                                     style: TextStyle(fontSize: 14,
                                         fontWeight: FontWeight.w700,
                                         color: Colors.white)),
@@ -1275,7 +1275,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
           decoration: BoxDecoration(color: const Color(0xFF1A1A2E),
               borderRadius: BorderRadius.circular(4)),
-          child: const Text('필수',
+          child: Text('필수',
               style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
         ),
       Expanded(
@@ -1287,7 +1287,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
       GestureDetector(
         onTap: onViewTap,
-        child: const Text('전문보기',
+        child: Text('전문보기',
             style: TextStyle(fontSize: 12, color: Color(0xFF1A1A2E),
                 fontWeight: FontWeight.w600, decoration: TextDecoration.underline)),
       ),
@@ -1319,7 +1319,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
             decoration: BoxDecoration(color: const Color(0xFF1A1A2E),
                 borderRadius: BorderRadius.circular(4)),
-            child: const Text('필수',
+            child: Text('필수',
                 style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         if (isOptional)
@@ -1327,7 +1327,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
             decoration: BoxDecoration(color: Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(4)),
-            child: const Text('선택',
+            child: Text('선택',
                 style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         Expanded(child: Text(label,

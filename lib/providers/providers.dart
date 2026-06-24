@@ -16,9 +16,10 @@ import '../services/size_profile_service.dart';
 import '../services/banner_service.dart';
 
 // ── 언어 Provider ──────────────────────────────────────
-class LanguageProvider extends ChangeNotifier {
+class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge {
   static const _kLangKey = 'selected_language';
   AppLanguage _language = AppLanguage.korean;
+  Timer? _translateTimer;
 
   AppLanguage get language => _language;
   AppLocalizations get loc => AppLocalizations(_language);
@@ -43,9 +44,55 @@ class LanguageProvider extends ChangeNotifier {
 
   void setLanguage(AppLanguage lang) {
     if (_language == lang) return;
+    AppLocalizations.clearCache();   // 이전 언어 캐시 초기화
     _language = lang;
     notifyListeners();
     _saveLanguage(lang);
+    // 언어 변경 후 대기 중인 번역 처리
+    if (lang != AppLanguage.korean) {
+      _schedulePendingTranslations();
+    }
+  }
+
+  // 백그라운드 번역: 화면에 노출된 한국어 키들을 일괄 번역하여 캐시에 저장
+  void _schedulePendingTranslations() {
+    _translateTimer?.cancel();
+    _translateTimer = Timer(const Duration(milliseconds: 300), () async {
+      final langCode = _language.code.toLowerCase();
+      // _pending에서 번역이 필요한 항목들을 모아 API 요청
+      // (AppLocalizations._pending은 t() 호출 시 자동 누적됨)
+      await _processPendingTranslations(langCode);
+    });
+  }
+
+  Future<void> _processPendingTranslations(String langCode) async {
+    // _pending Set을 복사하여 순회 (최대 20개씩 배치 처리)
+    final pendingCopy = Set<String>.from(AppLocalizations.pendingKeys);
+    if (pendingCopy.isEmpty) return;
+
+    final entries = pendingCopy.take(20).toList();
+    for (final entry in entries) {
+      final parts = entry.split(':');
+      if (parts.length < 2) continue;
+      final key = parts[0];
+      final lang = parts[1];
+      if (lang != langCode) continue;
+
+      // 번역 키에서 한국어 기본값 조회
+      final korean = AppLocalizations.koreanFor(key);
+      if (korean == null || korean.isEmpty) continue;
+
+      try {
+        final langPair = 'ko|$lang';
+        final result = await TranslationService.translateWithCache(korean);
+        final translated = result[lang];
+        if (translated != null && translated.isNotEmpty) {
+          AppLocalizations.cacheTranslation(key, lang, translated);
+          // 번역 완료 후 UI 갱신
+          notifyListeners();
+        }
+      } catch (_) {}
+    }
   }
 
   Future<void> _saveLanguage(AppLanguage lang) async {
@@ -53,6 +100,12 @@ class LanguageProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_kLangKey, lang.code);
     } catch (_) {}
+  }
+
+  @override
+  void dispose() {
+    _translateTimer?.cancel();
+    super.dispose();
   }
 }
 

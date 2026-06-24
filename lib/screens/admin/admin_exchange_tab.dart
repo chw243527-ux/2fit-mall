@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_localizations.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/fcm_service.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -89,7 +90,7 @@ class _ExchangeList extends StatelessWidget {
                   : Icons.assignment_return_outlined,
                   size: 48, color: Colors.grey[300]),
               const SizedBox(height: 12),
-              Text(type == 'exchange' ? '교환 요청이 없습니다.' : '반품 요청이 없습니다.',
+              Text(type == 'exchange' ? context.loc.t('교환 요청이 없습니다', '교환 요청이 없습니다.') : context.loc.t('반품 요청이 없습니다', '반품 요청이 없습니다.'),
                   style: TextStyle(color: Colors.grey[500], fontSize: 14)),
             ]),
           );
@@ -192,7 +193,7 @@ class _ExchangeCard extends StatelessWidget {
                       : Colors.orange).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(type == 'exchange' ? '교환' : '반품',
+                child: Text(type == 'exchange' ? context.loc.t('교환', '교환') : context.loc.t('반품', '반품'),
                     style: TextStyle(
                       fontSize: 11, fontWeight: FontWeight.w700,
                       color: type == 'exchange' ? const Color(0xFF1565C0) : Colors.orange,
@@ -208,18 +209,18 @@ class _ExchangeCard extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               // 주문번호 + 신청자
-              _infoRow('주문번호', orderId, isBold: true),
-              if (userName.isNotEmpty) _infoRow('신청자', userName),
+              _infoRow(context.loc.t('주문번호', '주문번호'), orderId, isBold: true),
+              if (userName.isNotEmpty) _infoRow(context.loc.t('신청자', '신청자'), userName),
               const SizedBox(height: 8),
               const Divider(height: 1),
               const SizedBox(height: 8),
               // 사유
-              _infoRow('사유', reason),
-              if (detail.isNotEmpty) _infoRow('상세', detail),
+              _infoRow(context.loc.t('사유', '사유'), reason),
+              if (detail.isNotEmpty) _infoRow(context.loc.t('상세', '상세'), detail),
               // 첨부 사진
               if (imageUrls.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                Text('첨부 사진 (${imageUrls.length}장)',
+                Text(context.loc.t('첨부 사진 _장', '첨부 사진 (${imageUrls.length}장)'),
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
                 const SizedBox(height: 6),
                 SizedBox(
@@ -256,17 +257,17 @@ class _ExchangeCard extends StatelessWidget {
                 ),
               ],
               // 수거방법
-              _infoRow('수거방법', pickupMethod == 'pickup' ? '직접수거 (택배사 방문)' : '이미 발송'),
+              _infoRow(context.loc.t('수거방법', '수거방법'), pickupMethod == 'pickup' ? context.loc.t('직접수거 택배사 방문', '직접수거 (택배사 방문)') : context.loc.t('이미 발송', '이미 발송')),
               // 운송장 (이미 발송한 경우)
               if (returnTracking.isNotEmpty) ...[
-                _infoRow('반송 택배사', returnCompany.isNotEmpty ? returnCompany : '-'),
-                _infoRow('반송 운송장', returnTracking),
+                _infoRow(context.loc.t('반송 택배사', '반송 택배사'), returnCompany.isNotEmpty ? returnCompany : '-'),
+                _infoRow(context.loc.t('반송 운송장', '반송 운송장'), returnTracking),
               ],
               // 배송비
-              _infoRow('배송비', shippingBySelf ? '고객 부담' : '판매자 부담 (무료)'),
+              _infoRow(context.loc.t('배송비', '배송비'), shippingBySelf ? context.loc.t('고객 부담', '고객 부담') : context.loc.t('판매자 부담 무료', '판매자 부담 (무료)')),
               // 결제수단 (고객부담인 경우)
               if (shippingBySelf && payMethod.isNotEmpty)
-                _infoRow('결제수단', _payLabel(payMethod)),
+                _infoRow(context.loc.t('결제수단', '결제수단'), _payLabel(payMethod)),
               // 관리자 메모
               if (adminNote.isNotEmpty) ...[
                 const SizedBox(height: 6),
@@ -321,7 +322,7 @@ class _ExchangeCard extends StatelessWidget {
               child: Row(children: [
                 const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF16A34A)),
                 const SizedBox(width: 6),
-                Text('처리 완료', style: const TextStyle(fontSize: 13, color: Color(0xFF16A34A), fontWeight: FontWeight.w700)),
+                Text(context.loc.t('처리 완료', '처리 완료'), style: TextStyle(fontSize: 13, color: Color(0xFF16A34A), fontWeight: FontWeight.w700)),
               ]),
             ),
         ],
@@ -330,7 +331,7 @@ class _ExchangeCard extends StatelessWidget {
   }
 
   String _payLabel(String key) {
-    const map = {'card': '신용카드', 'kakao': '카카오페이', 'payco': '페이코', 'toss': '토스페이'};
+    final map = {'card': '신용카드', 'kakao': '카카오페이', 'payco': '페이코', 'toss': '토스페이'};
     return map[key] ?? key;
   }
 
@@ -359,8 +360,8 @@ class _ExchangeCard extends StatelessWidget {
         .doc(docId)
         .update({'status': newStatus});
 
-    final typeLabel = type == 'exchange' ? '교환' : '반품';
-    final statusLabel = newStatus == 'processing' ? '처리중' : '완료';
+    final typeLabel = type == 'exchange' ? context.loc.t('교환', '교환') : context.loc.t('반품', '반품');
+    final statusLabel = newStatus == 'processing' ? context.loc.t('처리중', '처리중') : context.loc.t('완료', '완료');
 
     // FCM 알림
     if (userId.isNotEmpty) {
@@ -452,7 +453,7 @@ class _CompleteDialogState extends State<_CompleteDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final typeLabel = widget.type == 'exchange' ? '교환' : '반품';
+    final typeLabel = widget.type == 'exchange' ? context.loc.t('교환', '교환') : context.loc.t('반품', '반품');
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(children: [
@@ -470,7 +471,7 @@ class _CompleteDialogState extends State<_CompleteDialog> {
           maxLines: 3,
           style: const TextStyle(fontSize: 13),
           decoration: InputDecoration(
-            hintText: '고객에게 전달할 메시지 (선택사항)\n예: $typeLabel 상품이 발송되었습니다. 운송장: 1234567890',
+            hintText: context.loc.t('고객에게 전달할 메시지 선택사항 예 _ 상품이 발송되었습니다 운송장 1234567890', '고객에게 전달할 메시지 (선택사항)\n예: $typeLabel 상품이 발송되었습니다. 운송장: 1234567890'),
             hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
             contentPadding: const EdgeInsets.all(12),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -480,7 +481,7 @@ class _CompleteDialogState extends State<_CompleteDialog> {
       actions: [
         TextButton(
           onPressed: _loading ? null : () => Navigator.pop(context),
-          child: const Text('취소'),
+          child: Text(context.loc.t('취소', '취소')),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -491,7 +492,7 @@ class _CompleteDialogState extends State<_CompleteDialog> {
           child: _loading
               ? const SizedBox(width: 16, height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('완료 처리 + 알림 발송'),
+              : Text(context.loc.t('완료 처리  알림 발송', '완료 처리 + 알림 발송')),
         ),
       ],
     );
@@ -499,7 +500,7 @@ class _CompleteDialogState extends State<_CompleteDialog> {
 
   Future<void> _submit() async {
     setState(() => _loading = true);
-    final typeLabel = widget.type == 'exchange' ? '교환' : '반품';
+    final typeLabel = widget.type == 'exchange' ? context.loc.t('교환', '교환') : context.loc.t('반품', '반품');
     final note = _noteCtrl.text.trim();
 
     try {

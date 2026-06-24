@@ -3,6 +3,7 @@ import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
 import '../../models/models.dart';
 import 'group_order_form_screen.dart';
+import '../../utils/app_localizations.dart';
 
 // ═══════════════════════════════════════════════════════════════
 // GroupOrderLandingScreen — 사이드바 "단체주문하기" 전용 랜딩 페이지
@@ -66,7 +67,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             onPressed: () => goBackOrHome(context),
           ),
-          title: const Text(
+          title: Text(
             '단체주문하기',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
@@ -93,7 +94,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             onPressed: () => goBackOrHome(context),
           ),
-          title: const Text(
+          title: Text(
             '단체주문하기',
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
           ),
@@ -184,7 +185,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text(
+                Text(
                   '단체주문 안내',
                   style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
                 ),
@@ -248,7 +249,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             child: ElevatedButton.icon(
               onPressed: _goToForm,
               icon: const Icon(Icons.edit_note_rounded, size: 20),
-              label: const Text(
+              label: Text(
                 '단체주문서 바로 작성하기',
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
               ),
@@ -277,9 +278,8 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
         children: [
           _buildSectionTitle(Icons.edit_note_outlined, '단체주문서 작성'),
           const SizedBox(height: 12),
-          const Text(
-            '상품을 선택하지 않고 바로 단체주문서를 작성할 수 있습니다.\n'
-            '아래 카테고리에서 원하는 상품 유형을 선택해주세요.',
+          Text(
+            '상품을 선택하지 않고 바로 단체주문서를 작성할 수 있습니다.\n아래 카테고리에서 원하는 상품 유형을 선택해주세요.',
             style: TextStyle(fontSize: 12, color: _kGrey6, height: 1.6),
           ),
           const SizedBox(height: 20),
@@ -323,9 +323,8 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               color: Color(0xFFF8F8F8),
               border: Border(left: BorderSide(color: _kBlack, width: 3)),
             ),
-            child: const Text(
-              '상품 상세 페이지에서 단체주문서 작성 시 상품 정보가 자동으로 입력됩니다.\n'
-              '더 빠른 주문을 원하시면 상품을 먼저 선택해주세요.',
+            child: Text(
+              '상품 상세 페이지에서 단체주문서 작성 시 상품 정보가 자동으로 입력됩니다.\n더 빠른 주문을 원하시면 상품을 먼저 선택해주세요.',
               style: TextStyle(fontSize: 11, color: _kGrey4, height: 1.5),
             ),
           ),
@@ -485,7 +484,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     return Container(
       padding: const EdgeInsets.all(14),
       color: _kBlack,
-      child: const Column(
+      child: Column(
         children: [
           Row(children: [
             Icon(Icons.chat_rounded, size: 16, color: Colors.white),
