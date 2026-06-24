@@ -1819,8 +1819,10 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
 
     _jsStart(onResult, onError);
 
-    // 카메라 영역 좌표 계산 후 JS 오버레이 표시
-    WidgetsBinding.instance.addPostFrameCallback((_) => _positionPreview());
+    // Dialog 열림 애니메이션(300ms) 완료 후 좌표 계산 → JS 오버레이 표시
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (mounted) _positionPreview();
+    });
   }
 
   void _positionPreview() {

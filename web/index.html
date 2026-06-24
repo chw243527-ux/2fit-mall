@@ -206,39 +206,80 @@
 
   <!-- ═══════════════════════════════════════════════
        ZXing-js 바코드 스캐너 (Flutter Web 카메라 스캔)
-       JS가 <video> 태그를 직접 생성/관리 → Flutter PlatformView 불필요
+       getUserMedia 직접 제어 + canvas 디코딩 루프
        API:
          window.startBarcodeScanner(onResult, onError)
          window.stopBarcodeScanner()
+         window.showCameraPreview(x, y, w, h)
+         window.hideCameraPreview()
   ═══════════════════════════════════════════════ -->
   <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
   <script>
     (function() {
-      var _reader = null;
-      var _videoEl = null;
-      var _active = false;
+      var _videoEl   = null;
+      var _canvasEl  = null;
+      var _stream    = null;
+      var _reader    = null;
+      var _active    = false;
+      var _rafId     = null;
+      var _lastScan  = 0;          // 마지막 디코딩 시각 (ms)
+      var SCAN_INTERVAL = 200;     // 디코딩 최소 간격 (ms) — 200ms = 5fps 분석
 
-      // ── 스캐너 시작: JS가 <video> 직접 생성 ─────────────────────
+      // ── 모든 리소스 정리 ────────────────────────────────────────
+      window.stopBarcodeScanner = function() {
+        _active = false;
+
+        // rAF 루프 중지
+        if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
+
+        // ZXing reader 리셋
+        if (_reader) { try { _reader.reset(); } catch(e) {} _reader = null; }
+
+        // MediaStream 트랙 모두 stop
+        if (_stream) {
+          _stream.getTracks().forEach(function(t) { t.stop(); });
+          _stream = null;
+        }
+
+        // DOM에서 video 제거
+        if (_videoEl && _videoEl.parentNode) {
+          _videoEl.parentNode.removeChild(_videoEl);
+        }
+        _videoEl = null;
+
+        // canvas 제거
+        if (_canvasEl && _canvasEl.parentNode) {
+          _canvasEl.parentNode.removeChild(_canvasEl);
+        }
+        _canvasEl = null;
+      };
+
+      // ── 스캐너 시작 ──────────────────────────────────────────────
       window.startBarcodeScanner = function(onResult, onError) {
         window.stopBarcodeScanner(); // 기존 정리
 
-        // <video> 태그 생성 — id로 ZXing이 찾음
+        // ── video 태그 생성 (숨김 상태로 시작) ──────────────────
         _videoEl = document.createElement('video');
-        _videoEl.id = '__zxing_video__';
         _videoEl.setAttribute('playsinline', 'true');
         _videoEl.setAttribute('muted', 'true');
         _videoEl.autoplay = true;
         _videoEl.style.cssText = [
           'position:fixed',
           'top:0', 'left:0',
-          'width:100%', 'height:100%',
+          'width:1px', 'height:1px',  // 초기에는 1px (showCameraPreview로 크기 설정)
           'object-fit:cover',
-          'z-index:-1',          // Flutter 캔버스 뒤에 숨김
-          'opacity:0',           // 완전히 숨김 (ZXing은 캡처만 함)
+          'z-index:-1',
+          'opacity:0',
           'pointer-events:none',
         ].join(';');
         document.body.appendChild(_videoEl);
 
+        // ── 오프스크린 canvas (ZXing 디코딩용) ──────────────────
+        _canvasEl = document.createElement('canvas');
+        _canvasEl.style.cssText = 'position:fixed;top:-9999px;left:-9999px;pointer-events:none;';
+        document.body.appendChild(_canvasEl);
+
+        // ── ZXing reader 초기화 ──────────────────────────────────
         var hints = new Map();
         hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
           ZXing.BarcodeFormat.CODE_128,
@@ -251,66 +292,119 @@
           ZXing.BarcodeFormat.UPC_E,
         ]);
         hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+        _reader = new ZXing.MultiFormatReader();
+        _reader.setHints(hints);
 
-        _reader = new ZXing.BrowserMultiFormatReader(hints, {
-          delayBetweenScanAttempts: 150,
-          delayBetweenScanSuccess: 500,
-        });
+        // ── 후면 카메라 우선 getUserMedia ────────────────────────
+        // facingMode: 'environment' = 후면, 없으면 기본 카메라로 폴백
+        var constraints = {
+          video: {
+            facingMode: { ideal: 'environment' },
+            width:  { ideal: 1280 },
+            height: { ideal: 720 },
+          }
+        };
+
+        navigator.mediaDevices.getUserMedia(constraints)
+          .catch(function() {
+            // 후면 카메라 실패 → 제약 없이 재시도
+            return navigator.mediaDevices.getUserMedia({ video: true });
+          })
+          .then(function(stream) {
+            if (!_active) {
+              // stopBarcodeScanner가 이미 호출된 경우
+              stream.getTracks().forEach(function(t) { t.stop(); });
+              return;
+            }
+            _stream = stream;
+            _videoEl.srcObject = stream;
+
+            return _videoEl.play().then(function() {
+              if (!_active) return;
+              // ── 디코딩 rAF 루프 시작 ──────────────────────────
+              function decode() {
+                if (!_active) return;
+
+                var now = performance.now();
+                if (now - _lastScan < SCAN_INTERVAL) {
+                  _rafId = requestAnimationFrame(decode);
+                  return;
+                }
+                _lastScan = now;
+
+                var vw = _videoEl.videoWidth;
+                var vh = _videoEl.videoHeight;
+                if (!vw || !vh) {
+                  _rafId = requestAnimationFrame(decode);
+                  return;
+                }
+
+                _canvasEl.width  = vw;
+                _canvasEl.height = vh;
+                var ctx = _canvasEl.getContext('2d');
+                ctx.drawImage(_videoEl, 0, 0, vw, vh);
+
+                try {
+                  var imageData = ctx.getImageData(0, 0, vw, vh);
+                  var luminance = new ZXing.RGBLuminanceSource(
+                    imageData.data, vw, vh);
+                  var binary = new ZXing.HybridBinarizer(luminance);
+                  var bitmap = new ZXing.BinaryBitmap(binary);
+                  var result = _reader.decode(bitmap);
+
+                  if (result) {
+                    var text = result.getText();
+                    if (text && text.length > 0) {
+                      _active = false;
+                      cancelAnimationFrame(_rafId); _rafId = null;
+                      console.log('[ZXing] decoded:', text);
+                      if (onResult) onResult(text);
+                      return;
+                    }
+                  }
+                } catch(e) {
+                  // NotFoundException 등 — 정상, 무시하고 계속
+                }
+
+                _rafId = requestAnimationFrame(decode);
+              }
+
+              _rafId = requestAnimationFrame(decode);
+            });
+          })
+          .catch(function(e) {
+            if (!_active) return;
+            _active = false;
+            var msg = (e && e.message) ? e.message : String(e);
+            console.warn('[ZXing] getUserMedia error:', msg);
+            var code = 'unknown';
+            if (msg.indexOf('NotAllowed') >= 0 || msg.indexOf('Permission') >= 0
+                || (e && e.name === 'NotAllowedError')) {
+              code = 'permission_denied';
+            } else if (msg.indexOf('NotReadable') >= 0 || msg.indexOf('Could not start') >= 0
+                       || (e && e.name === 'NotReadableError')) {
+              code = 'camera_busy';
+            } else if (msg.indexOf('NotFound') >= 0 || msg.indexOf('DevicesNotFound') >= 0
+                       || (e && e.name === 'NotFoundError')) {
+              code = 'no_camera';
+            }
+            if (onError) onError(code + '|' + msg);
+          });
 
         _active = true;
-
-        _reader.decodeFromVideoDevice(null, _videoEl, function(result, err) {
-          if (!_active) return;
-          if (result) {
-            var text = result.getText();
-            if (text && text.length > 0) {
-              _active = false;
-              try { _reader.reset(); } catch(e) {}
-              if (onResult) onResult(text);
-            }
-          }
-          // NotFoundException은 매 프레임 정상 발생 → 무시
-        }).catch(function(e) {
-          _active = false;
-          var msg = (e && e.message) ? e.message : String(e);
-          console.warn('[ZXing] error:', msg);
-          var code = 'unknown';
-          if (msg.indexOf('NotAllowed') >= 0 || msg.indexOf('Permission') >= 0) {
-            code = 'permission_denied';
-          } else if (msg.indexOf('NotReadable') >= 0 || msg.indexOf('Could not start') >= 0) {
-            code = 'camera_busy';
-          } else if (msg.indexOf('NotFound') >= 0 || msg.indexOf('DevicesNotFound') >= 0) {
-            code = 'no_camera';
-          }
-          if (onError) onError(code + '|' + msg);
-        });
       };
 
-      // ── 스캐너 중지 ──────────────────────────────────────────────
-      window.stopBarcodeScanner = function() {
-        _active = false;
-        if (_reader) {
-          try { _reader.reset(); } catch(e) {}
-          _reader = null;
-        }
-        if (_videoEl && _videoEl.parentNode) {
-          _videoEl.parentNode.removeChild(_videoEl);
-        }
-        _videoEl = null;
-      };
-
-      // ── 카메라 미리보기: Flutter Canvas 위에 띄우기 ──────────────
-      // Flutter가 그리는 Dialog 위에 실제 카메라 영상을 보이게 함
+      // ── 카메라 미리보기: Flutter Dialog 위에 띄우기 ──────────────
       window.showCameraPreview = function(x, y, w, h) {
         if (!_videoEl) return;
-        _videoEl.style.position = 'fixed';
-        _videoEl.style.left   = x + 'px';
-        _videoEl.style.top    = y + 'px';
-        _videoEl.style.width  = w + 'px';
-        _videoEl.style.height = h + 'px';
-        _videoEl.style.objectFit = 'cover';
-        _videoEl.style.zIndex = '999';   // Flutter 위로
-        _videoEl.style.opacity = '1';
+        _videoEl.style.position    = 'fixed';
+        _videoEl.style.left        = x + 'px';
+        _videoEl.style.top         = y + 'px';
+        _videoEl.style.width       = w + 'px';
+        _videoEl.style.height      = h + 'px';
+        _videoEl.style.objectFit   = 'cover';
+        _videoEl.style.zIndex      = '999';
+        _videoEl.style.opacity     = '1';
         _videoEl.style.borderRadius = '12px';
         _videoEl.style.pointerEvents = 'none';
       };
