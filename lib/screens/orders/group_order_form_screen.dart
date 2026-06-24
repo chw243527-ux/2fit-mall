@@ -468,7 +468,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   }
                 });
                 Navigator.pop(context);
-                _showSnack('"${profile.profileName}" 사이즈가 적용되었습니다.');
+                _showSnack('"${profile.profileName}" ' + context.loc.t('사이즈가_적용되었습니다', '사이즈가 적용되었습니다.'));
               },
               child: Container(
                 margin: const EdgeInsets.only(bottom: 8),
@@ -614,7 +614,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   bool _validate() {
     final minQty = _isAdditional ? 1 : 5;
     if (_totalCount < minQty) {
-      _showSnack('최소 $minQty명 이상 주문 가능합니다.');
+      _showSnack(context.loc.t('최소_minQty명_이상_주문_가능', '최소 ') + minQty.toString() + context.loc.t('명_이상_주문_가능합니다', '명 이상 주문 가능합니다.'));
       return false;
     }
     if (_mainColorName == null || _mainColorName!.isEmpty) {
@@ -648,17 +648,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     for (int i = 0; i < _persons.length; i++) {
       final p = _persons[i];
       if (p.gender == null) {
-        _showSnack('${i + 1}번 인원의 성별을 선택해 주세요.');
+        _showSnack((i + 1).toString() + context.loc.t('번_인원의_성별을_선택해_주세요', '번 인원의 성별을 선택해 주세요.'));
         return false;
       }
       // 상의 사이즈 확인 (하의/타이즈 단체주문 시 생략)
       if (!_isBottomOnly && p.effectiveTopSize.isEmpty) {
-        _showSnack('${i + 1}번 인원의 상의 사이즈를 입력해 주세요.');
+        _showSnack((i + 1).toString() + context.loc.t('번_인원의_상의_사이즈를_입력해_주세요', '번 인원의 상의 사이즈를 입력해 주세요.'));
         return false;
       }
       // 하의 사이즈 확인 (상의 카테고리 단체주문 시 생략)
       if (!_isTopOnly && p.effectiveBottomSize.isEmpty) {
-        _showSnack('${i + 1}번 인원의 사이즈를 입력해 주세요.');
+        _showSnack((i + 1).toString() + context.loc.t('번_인원의_사이즈를_입력해_주세요', '번 인원의 사이즈를 입력해 주세요.'));
         return false;
       }
     }
@@ -819,7 +819,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           content: Row(children: [
             const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
             const SizedBox(width: 8),
-            Expanded(child: Text('장바구니에 담았습니다. ($_totalCount명 / ${_fmt(_finalPrice)}원)')),
+            Expanded(child: Text(context.loc.t('장바구니에_담았습니다', '장바구니에 담았습니다.') + ' ($_totalCount명 / ${_fmt(_finalPrice)}원)')),  
           ]),
           backgroundColor: const Color(0xFF1A1A1A),
           behavior: SnackBarBehavior.floating,
@@ -1231,7 +1231,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           return GestureDetector(
             onTap: enabled
                 ? () => setState(() => _printType = id)
-                : () => _showSnack('${condMin}명 이상부터 선택 가능한 옵션입니다.'),
+                : () => _showSnack(condMin.toString() + context.loc.t('명_이상부터_선택_가능한_옵션', '명 이상부터 선택 가능한 옵션입니다.')),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               margin: const EdgeInsets.only(bottom: 8),
@@ -1711,7 +1711,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     color: isSel ? Colors.white : _purple,
                   ),
                   const SizedBox(width: 6),
-                  Text(t, style: TextStyle(
+                  Text(context.loc.t(t, t), style: TextStyle(
                     fontSize: 13, fontWeight: FontWeight.w800,
                     color: isSel ? Colors.white : Colors.black87,
                   )),
@@ -1880,7 +1880,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             child: Row(children: [
               Icon(Icons.receipt_long_rounded, size: 14, color: _purple),
               const SizedBox(width: 6),
-              Text('선택: $_waistbandOptionLabel',
+              Text(context.loc.t('선택', '선택: ') + _waistbandOptionLabel,
                   style: TextStyle(fontSize: 12, color: _purple, fontWeight: FontWeight.w600)),
               const Spacer(),
               Text('+${_fmt(_waistbandExtra)}원',
@@ -1996,7 +1996,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       if (!mounted) return;
       setState(() => _waistbandRefImages.add(b64));
     } catch (e) {
-      _showSnack('이미지 선택 오류: $e');
+      _showSnack(context.loc.t('이미지_선택_오류', '이미지 선택 오류: ') + e.toString());
     }
   }
 
@@ -2017,7 +2017,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _waistbandLogoBytes    = file.bytes != null ? List<int>.from(file.bytes!) : null;
       });
     } catch (e) {
-      _showSnack('파일 선택 오류: $e\nAI·SVG·PDF·EPS 파일만 첨부 가능합니다.');
+      _showSnack(context.loc.t('파일_선택_오류', '파일 선택 오류: ') + e.toString() + context.loc.t('_AI_SVG_PDF_EPS_파일만_첨부', '\nAI·SVG·PDF·EPS 파일만 첨부 가능합니다.'));
     }
   }
 
@@ -2429,7 +2429,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         // 하단: 선택 안내
         Center(
           child: Text(
-            '총 ${colors.length}가지 기성 색상 • 탭하여 선택',
+            context.loc.t('총_색상_탭선택', '총 ') + '\${colors.length}' + context.loc.t('가지_기성_색상_탭하여_선택', '가지 기성 색상 • 탭하여 선택'),
             style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
           ),
         ),
@@ -2469,7 +2469,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             final isLight = color.computeLuminance() > 0.6;
             return GestureDetector(
               onTap: () => setState(() {
-                _mainColorName  = '확장 ($hexStr)';
+                _mainColorName  = context.loc.t('확장_색상', '확장') + ' ($hexStr)';
                 _mainColor      = color;
                 _colorLightness = HSLColor.fromColor(color).lightness.clamp(0.05, 0.95);
               }),
@@ -2673,7 +2673,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       final color = Color(int.parse('FF$v', radix: 16));
       setState(() {
         _hexPreview     = color;
-        _mainColorName  = '커스텀 (#${v.toUpperCase()})';
+        _mainColorName  = context.loc.t('커스텀_색상', '커스텀') + ' (#${v.toUpperCase()})';
         _mainColor      = color;
         _colorLightness = HSLColor.fromColor(color).lightness.clamp(0.05, 0.95);
         _hexError       = null;
@@ -2816,7 +2816,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             color: genderBg,
             borderRadius: BorderRadius.circular(6),
           ),
-          child: Text(gender,
+          child: Text(context.loc.t(gender, gender),
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: genderColor)),
         ),
         const SizedBox(height: 8),
@@ -2847,7 +2847,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   ),
                 ),
                 child: Column(children: [
-                  Text(label,
+                  Text(context.loc.t(label, label),
                       style: TextStyle(
                           fontWeight: FontWeight.w800, fontSize: 13,
                           color: isSel ? Colors.white : Colors.black87)),
@@ -3273,7 +3273,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       setState(() => _refBase64 = b64);
       await _saveImage(base64: b64);
     } catch (e) {
-      _showSnack('이미지 선택 오류: $e');
+      _showSnack(context.loc.t('이미지_선택_오류', '이미지 선택 오류: ') + e.toString());
     }
   }
 
@@ -3294,7 +3294,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _designLogoBytes    = file.bytes != null ? List<int>.from(file.bytes!) : null;
       });
     } catch (e) {
-      _showSnack('파일 선택 오류: $e\nAI·SVG·PDF·EPS 파일만 첨부 가능합니다.');
+      _showSnack(context.loc.t('파일_선택_오류', '파일 선택 오류: ') + e.toString() + context.loc.t('_AI_SVG_PDF_EPS_파일만_첨부', '\nAI·SVG·PDF·EPS 파일만 첨부 가능합니다.'));
     }
   }
 
@@ -3879,7 +3879,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             Icon(Icons.content_cut_outlined, size: 15, color: Colors.teal.shade600),
             const SizedBox(width: 8),
             Text(context.loc.t('재봉방법', '재봉방법: '), style: TextStyle(fontSize: 11, color: Colors.teal.shade700, fontWeight: FontWeight.w600)),
-            Text(_fabricType, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.teal.shade800)),
+            Text(context.loc.t(_fabricType, _fabricType), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.teal.shade800)),
             if (_fabricExtra > 0) ...[
               const SizedBox(width: 6),
               Container(
@@ -3946,7 +3946,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         style: const TextStyle(fontSize: 10, color: Colors.black45, fontFamily: 'monospace', fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(width: 6),
-                      Text('· $_lightnessLabel',
+                      Text('· ' + _lightnessLabel,
                           style: const TextStyle(fontSize: 10, color: Colors.black38, fontWeight: FontWeight.w500)),
                     ]),
                   ],
@@ -4238,7 +4238,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             Icon(Icons.info_outline, size: 12, color: Colors.orange),
             SizedBox(width: 5),
             Expanded(child: Text(
-              "위 사이즈에 해당하지 않으면 '상세치수 입력'을 선택해 주세요.",
+              context.loc.t('위_사이즈에_해당하지_않으면_상세치수', "위 사이즈에 해당하지 않으면 '상세치수 입력'을 선택해 주세요."),
               style: TextStyle(fontSize: 10, color: Colors.orange),
             )),
           ]),
@@ -5164,14 +5164,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       child: Column(children: [
         // ── 인원당 단가 구성 ──
         if (_hasPocket)
-          _sumRow('주머니 추가', '+${_fmt(_pocketPrice)}원/인',
+          _sumRow(context.loc.t('주머니_추가', '주머니 추가'), '+${_fmt(_pocketPrice)}원/인',
               valueColor: const Color(0xFFE65100)),
         _sumRow(context.loc.t('기본_단가', '기본 단가'), '${_fmt(_basePrice)}원/인'),
         if (_fabricExtra > 0)
-          _sumRow('  ↳ 심리스(무봉제) 추가', '+${_fmt(_fabricExtra)}원/인',
+          _sumRow('  ↳ ' + context.loc.t('심리스무봉제_추가', '심리스(무봉제) 추가'), '+${_fmt(_fabricExtra)}원/인',
               valueColor: const Color(0xFFE65100)),
         if (_isTights9)
-          _sumRow('  ↳ 타이즈 9부 추가', '+${_fmt(_tights9Price)}원/인',
+          _sumRow('  ↳ ' + context.loc.t('타이즈_9부_추가', '타이즈 9부 추가'), '+${_fmt(_tights9Price)}원/인',
               valueColor: const Color(0xFFE65100)),
         _sumRow(context.loc.t('인원당_단가_합계', '인원당 단가 합계'), '${_fmt(_unitPrice)}원/인', isSub: true),
         const SizedBox(height: 4),
@@ -5189,7 +5189,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               : const Color(0xFFF57F17),
         ),
         if (_waistbandExtra > 0)
-          _sumRow('허리밴드 ${_waistbandOptionLabel}',
+          _sumRow(context.loc.t('허리밴드', '허리밴드 ') + _waistbandOptionLabel,
               '+${_fmt(_waistbandExtra)}원',
               valueColor: const Color(0xFFE65100)),
         if (_exclusiveDesign)
