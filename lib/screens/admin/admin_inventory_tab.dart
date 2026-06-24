@@ -814,7 +814,7 @@ class _StockFormTabState extends State<_StockFormTab> {
     final inv = await InventoryService.fetchByBarcode(barcode.trim());
     if (!mounted) return;
     if (inv == null) {
-      _snack(context.loc.t('바코드를 찾을 수 없습니다 _', '바코드를 찾을 수 없습니다: $barcode'), error: true);
+      await _showBarcodeNotFoundDialog(context, barcode.trim());
       return;
     }
     setState(() {
@@ -1471,7 +1471,7 @@ class _ExchangeReturnFormState extends State<_ExchangeReturnForm> {
     final inv = await InventoryService.fetchByBarcode(barcode.trim());
     if (!mounted) return;
     if (inv == null) {
-      _snack(context.loc.t('바코드를 찾을 수 없습니다 _', '바코드를 찾을 수 없습니다: $barcode'), error: true);
+      await _showBarcodeNotFoundDialog(context, barcode.trim());
       return;
     }
     setState(() {
@@ -1943,6 +1943,89 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
       ),
     );
   }
+}
+
+// ════════════════════════════════════════════════════════════
+//  미등록 바코드 안내 다이얼로그
+// ════════════════════════════════════════════════════════════
+
+/// 스캔된 바코드가 등록된 상품과 일치하지 않을 때 보여주는 안내 다이얼로그
+Future<void> _showBarcodeNotFoundDialog(BuildContext context, String barcode) {
+  return showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      title: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF3E0),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(Icons.search_off_rounded,
+              color: Color(0xFFF57C00), size: 22),
+        ),
+        const SizedBox(width: 12),
+        const Text('등록된 상품 없음',
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+      ]),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        const SizedBox(height: 4),
+        // 스캔된 코드 표시 박스
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFE0E0E0)),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('스캔된 코드',
+                style: TextStyle(fontSize: 11, color: Colors.grey)),
+            const SizedBox(height: 4),
+            Text(barcode,
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'monospace',
+                    letterSpacing: 1.2)),
+          ]),
+        ),
+        const SizedBox(height: 14),
+        const Text(
+          '해당 코드로 등록된 상품을 찾을 수 없습니다.\n상품 코드를 확인하거나 새 상품을 등록해 주세요.',
+          style: TextStyle(fontSize: 13, color: Color(0xFF555555), height: 1.5),
+        ),
+        const SizedBox(height: 16),
+      ]),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.grey[700],
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          ),
+          child: const Text('닫기', style: TextStyle(fontSize: 14)),
+        ),
+        ElevatedButton.icon(
+          onPressed: () => Navigator.pop(ctx),
+          icon: const Icon(Icons.add_circle_outline, size: 16),
+          label: const Text('상품 등록하러 가기',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF6A1B9A),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 /// 카메라 스캔 다이얼로그 열기
