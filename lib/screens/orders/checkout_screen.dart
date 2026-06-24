@@ -370,29 +370,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
           // ── 해외 배송 안내 배너 ──
           if (_isOverseas) ...[
-            Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1565C0).withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.25)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF1565C0)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      context.loc.t(
-                        '해외_배송비_국가별_상이_안내',
-                        '해외 배송비는 국가 및 무게에 따라 상이합니다.\n주문 완료 후 카카오톡(@2fit-mall)으로 배송비를 안내드립니다.',
+            GestureDetector(
+              onTap: _showOverseasShippingRates,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1565C0).withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF1565C0).withValues(alpha: 0.25)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF1565C0)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.loc.t(
+                              '해외_배송비_국가별_상이_안내',
+                              '해외 배송비는 국가 및 무게에 따라 상이합니다.\n주문 완료 후 카카오톡(@2fit-mall)으로 배송비를 안내드립니다.',
+                            ),
+                            style: const TextStyle(fontSize: 12, color: Color(0xFF1565C0), height: 1.5),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF1565C0),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.table_chart_outlined, size: 10, color: Colors.white),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      context.loc.t('국가별_요금표_보기', '국가별 요금표 보기'),
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    const Icon(Icons.chevron_right_rounded, size: 12, color: Colors.white),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF1565C0), height: 1.5),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -1533,19 +1570,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Row(
                   children: [
                     if (isOverseas) ...[
-                      // 해외: 국가별 상이 배지
-                      Container(
-                        margin: const EdgeInsets.only(right: 6),
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1565C0).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          context.loc.t('국가별_상이', '국가별 상이'),
-                          style: const TextStyle(fontSize: 9, color: Color(0xFF1565C0), fontWeight: FontWeight.w700),
+                      // 해외: 요금표 보기 버튼
+                      GestureDetector(
+                        onTap: _showOverseasShippingRates,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1565C0),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.table_chart_outlined, size: 11, color: Colors.white),
+                              const SizedBox(width: 3),
+                              Text(
+                                context.loc.t('요금표', '요금표'),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 6),
                       Text(
                         context.loc.t('별도_안내', '별도 안내'),
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1565C0)),
@@ -1601,6 +1652,302 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  // ── 해외 배송비 요금표 모달 ──
+  void _showOverseasShippingRates() {
+    final loc = context.loc;
+
+    // 요금 데이터 (EMS 비서류 기준 2025)
+    final mainCountries = [
+      {'flag': '🇯🇵', 'name': loc.t('일본', '일본'), 'kg1': '25,500', 'kg2': '33,000', 'kg5': '43,000', 'kg10': '60,000'},
+      {'flag': '🇨🇳', 'name': loc.t('중국', '중국'), 'kg1': '25,500', 'kg2': '32,000', 'kg5': '45,000', 'kg10': '72,000'},
+      {'flag': '🇻🇳', 'name': loc.t('베트남', '베트남'), 'kg1': '20,500', 'kg2': '26,000', 'kg5': '40,000', 'kg10': '62,000'},
+      {'flag': '🇲🇾', 'name': loc.t('말레이시아', '말레이시아'), 'kg1': '20,500', 'kg2': '26,000', 'kg5': '40,000', 'kg10': '62,000'},
+      {'flag': '🇸🇬', 'name': loc.t('싱가포르', '싱가포르'), 'kg1': '20,500', 'kg2': '26,000', 'kg5': '40,000', 'kg10': '62,000'},
+      {'flag': '🇹🇭', 'name': loc.t('태국', '태국'), 'kg1': '20,500', 'kg2': '26,000', 'kg5': '40,000', 'kg10': '62,000'},
+      {'flag': '🇦🇺', 'name': loc.t('호주', '호주'), 'kg1': '29,000', 'kg2': '40,500', 'kg5': '70,000', 'kg10': '118,000'},
+      {'flag': '🇺🇸', 'name': loc.t('미국', '미국'), 'kg1': '33,500', 'kg2': '51,000', 'kg5': '88,000', 'kg10': '156,000'},
+      {'flag': '🇨🇦', 'name': loc.t('캐나다', '캐나다'), 'kg1': '33,000', 'kg2': '43,000', 'kg5': '64,500', 'kg10': '105,500'},
+      {'flag': '🇩🇪', 'name': loc.t('독일_유럽', '독일/유럽'), 'kg1': '34,500', 'kg2': '45,000', 'kg5': '72,000', 'kg10': '120,000'},
+      {'flag': '🇬🇧', 'name': loc.t('영국', '영국'), 'kg1': '34,500', 'kg2': '45,000', 'kg5': '72,000', 'kg10': '120,000'},
+      {'flag': '🇫🇷', 'name': loc.t('프랑스', '프랑스'), 'kg1': '34,500', 'kg2': '45,000', 'kg5': '72,000', 'kg10': '120,000'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.88,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (_, controller) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Column(
+                children: [
+                  // 핸들
+                  Container(
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDDDDDD),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  // 헤더
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: Row(
+                      children: [
+                        const Text('🌏', style: TextStyle(fontSize: 22)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                loc.t('해외_배송비_요금표', '해외 배송비 요금표'),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF1A1A2E),
+                                ),
+                              ),
+                              Text(
+                                loc.t('ems_기준_비서류_2025', 'EMS(우체국 국제특급) 비서류 기준 · 2025년'),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF888888),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.of(ctx).pop(),
+                          icon: const Icon(Icons.close_rounded, color: Color(0xFF888888)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 안내 배너
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF8E1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFFFFCC02).withValues(alpha: 0.6)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('💡', style: TextStyle(fontSize: 14)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            loc.t(
+                              '배송비_안내_상세',
+                              '부피·무게·국가에 따라 실제 요금이 다를 수 있습니다.\n주문 후 카카오톡(@2fit-mall)으로 정확한 배송비를 안내드립니다.',
+                            ),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF7B6000),
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // 의류 예상 무게 안내
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3E5F5),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF9C27B0).withValues(alpha: 0.25)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Text('👕', style: TextStyle(fontSize: 14)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            loc.t(
+                              '운동복_무게_참고',
+                              '운동복 1세트 약 300~500g · 3세트 ≈ 1~1.5kg · 10세트 ≈ 3~5kg',
+                            ),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF6A1B9A),
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // 테이블 헤더
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1565C0),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Text(
+                            loc.t('국가', '국가'),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        _tableHeader('1kg'),
+                        _tableHeader('2kg'),
+                        _tableHeader('5kg'),
+                        _tableHeader('10kg'),
+                      ],
+                    ),
+                  ),
+                  // 테이블 바디
+                  Expanded(
+                    child: ListView.builder(
+                      controller: controller,
+                      itemCount: mainCountries.length,
+                      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                      itemBuilder: (_, i) {
+                        final c = mainCountries[i];
+                        final isEven = i % 2 == 0;
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isEven ? const Color(0xFFF8F9FA) : Colors.white,
+                            border: const Border(
+                              left: BorderSide(color: Color(0xFFE0E0E0)),
+                              right: BorderSide(color: Color(0xFFE0E0E0)),
+                              bottom: BorderSide(color: Color(0xFFEEEEEE)),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Row(
+                                  children: [
+                                    Text(c['flag']!, style: const TextStyle(fontSize: 16)),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        c['name']!,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF333333),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              _tableCell('${c['kg1']}${loc.t('원', '원')}'),
+                              _tableCell('${c['kg2']}${loc.t('원', '원')}'),
+                              _tableCell('${c['kg5']}${loc.t('원', '원')}'),
+                              _tableCell('${c['kg10']}${loc.t('원', '원')}'),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // 하단 부피중량 안내
+                  Container(
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F5F5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          loc.t('부피중량_안내_제목', '⚠️ 부피중량 계산'),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF555555),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          loc.t(
+                            '부피중량_계산식',
+                            '가로(cm) × 세로(cm) × 높이(cm) ÷ 6,000\n실무게와 부피중량 중 더 큰 값으로 요금 적용',
+                          ),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF777777),
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _tableHeader(String text) {
+    return Expanded(
+      flex: 2,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _tableCell(String text) {
+    return Expanded(
+      flex: 2,
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontSize: 11,
+          color: Color(0xFF444444),
+        ),
       ),
     );
   }
