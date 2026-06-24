@@ -39,6 +39,7 @@ class SizeProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
+    context.watch<LanguageProvider>();
     if (user == null) {
       return Scaffold(body: Center(child: Text(context.loc.t('로그인이_필요합니다', '로그인이 필요합니다.'))));
     }

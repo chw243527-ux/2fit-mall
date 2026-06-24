@@ -1,12 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../utils/navigation_helper.dart';
 import '../../utils/app_localizations.dart';
+import '../../providers/providers.dart';
 
-class PrivacyPolicyScreen extends StatelessWidget {
+class PrivacyPolicyScreen extends StatefulWidget {
   const PrivacyPolicyScreen({super.key});
 
   @override
+  State<PrivacyPolicyScreen> createState() => _PrivacyPolicyScreenState();
+}
+
+class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<LanguageProvider>().triggerTranslation();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // LanguageProvider를 watch → 번역 완료 시 자동 rebuild
+    context.watch<LanguageProvider>();
+
     return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
       appBar: AppBar(

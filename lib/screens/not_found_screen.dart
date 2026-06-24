@@ -3,13 +3,16 @@
 // 404 에러 페이지 — 잘못된 URL 접근 시 표시
 // ══════════════════════════════════════════════════════════════
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/app_localizations.dart';
+import '../providers/providers.dart';
 
 class NotFoundScreen extends StatelessWidget {
   const NotFoundScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(

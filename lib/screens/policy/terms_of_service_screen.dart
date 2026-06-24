@@ -1,12 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../utils/navigation_helper.dart';
 import '../../utils/app_localizations.dart';
+import '../../providers/providers.dart';
 
-class TermsOfServiceScreen extends StatelessWidget {
+class TermsOfServiceScreen extends StatefulWidget {
   const TermsOfServiceScreen({super.key});
 
   @override
+  State<TermsOfServiceScreen> createState() => _TermsOfServiceScreenState();
+}
+
+class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<LanguageProvider>().triggerTranslation();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // LanguageProvider를 watch → 번역 완료 시 자동 rebuild
+    context.watch<LanguageProvider>();
+
     return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF8F8F8),
       appBar: AppBar(
@@ -63,9 +81,9 @@ class TermsOfServiceScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A2E))),
                 SizedBox(height: 10),
-                _InfoRow(context.loc.t('회사명', '회사명'), '주식회사 2FIT Korea'),
-                _InfoRow(context.loc.t('대표자', '대표자'), '최혜원'),
-                _InfoRow(context.loc.t('사업장_주소', '사업장 주소'), '전북 남원시 오들1길 97, 205-303'),
+                _InfoRow(context.loc.t('회사명', '회사명'), context.loc.t('주식회사_2FIT_Korea', '주식회사 2FIT Korea')),
+                _InfoRow(context.loc.t('대표자', '대표자'), context.loc.t('최혜원', '최혜원')),
+                _InfoRow(context.loc.t('사업장_주소', '사업장 주소'), context.loc.t('전북_남원시_오들1길_97_205_303', '전북 남원시 오들1길 97, 205-303')),
                 _InfoRow(context.loc.t('사업자등록번호', '사업자등록번호'), '787-19-02539'),
                 _InfoRow(context.loc.t('통신판매업신고', '통신판매업신고'), context.loc.t('심사_중', '심사 중')),
                 _InfoRow(context.loc.t('고객센터', '고객센터'), '010-7227-6914'),

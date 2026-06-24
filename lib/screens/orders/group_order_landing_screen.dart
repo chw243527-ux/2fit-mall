@@ -52,6 +52,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
 
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
     if (isPcWeb(context)) return _buildPcLayout();
     return _buildMobileLayout();
   }

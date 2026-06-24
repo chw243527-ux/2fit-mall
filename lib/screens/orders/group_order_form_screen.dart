@@ -842,6 +842,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   // ══ build ══
   @override
   Widget build(BuildContext context) {
+    context.watch<LanguageProvider>();
     final title = _isAdditional ? context.loc.t('추가_제작_주문서', '추가 제작 주문서') : context.loc.t('단체_주문서', '단체 주문서');
     return Scaffold(
       backgroundColor: _bg,
