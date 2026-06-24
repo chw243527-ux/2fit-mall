@@ -1966,40 +1966,65 @@ Future<void> _showBarcodeNotFoundDialog(BuildContext context, String barcode) {
             color: const Color(0xFFFFF3E0),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.search_off_rounded,
+          child: const Icon(Icons.barcode_reader,
               color: Color(0xFFF57C00), size: 22),
         ),
         const SizedBox(width: 12),
-        const Text('등록된 상품 없음',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+        const Text('상품 바코드가 아닙니다',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ]),
       content: Column(mainAxisSize: MainAxisSize.min, children: [
-        const SizedBox(height: 4),
+        const SizedBox(height: 12),
         // 스캔된 코드 표시 박스
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: const Color(0xFFFFF8E1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE0E0E0)),
+            border: Border.all(color: const Color(0xFFFFCC02)),
           ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('스캔된 코드',
-                style: TextStyle(fontSize: 11, color: Colors.grey)),
-            const SizedBox(height: 4),
-            Text(barcode,
-                style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'monospace',
-                    letterSpacing: 1.2)),
+          child: Row(children: [
+            const Icon(Icons.qr_code, size: 16, color: Color(0xFFF57C00)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(barcode,
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'monospace',
+                      letterSpacing: 1.0),
+                  overflow: TextOverflow.ellipsis),
+            ),
           ]),
         ),
         const SizedBox(height: 14),
+        // 안내 문구
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Row(children: [
+              Icon(Icons.info_outline, size: 14, color: Color(0xFF6A1B9A)),
+              SizedBox(width: 6),
+              Text('이런 경우일 수 있어요',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold,
+                      color: Color(0xFF6A1B9A))),
+            ]),
+            const SizedBox(height: 8),
+            _bulletText('멤버십 카드 · 신용카드 바코드'),
+            _bulletText('택배 운송장 바코드'),
+            _bulletText('2fit-mall에 등록되지 않은 상품'),
+          ]),
+        ),
+        const SizedBox(height: 12),
         const Text(
-          '해당 코드로 등록된 상품을 찾을 수 없습니다.\n상품 코드를 확인하거나 새 상품을 등록해 주세요.',
-          style: TextStyle(fontSize: 13, color: Color(0xFF555555), height: 1.5),
+          '2fit-mall 상품 바코드를 스캔하거나\n상품 코드를 직접 입력해 주세요.',
+          style: TextStyle(fontSize: 12, color: Color(0xFF777777), height: 1.5),
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: 16),
       ]),
@@ -2014,8 +2039,8 @@ Future<void> _showBarcodeNotFoundDialog(BuildContext context, String barcode) {
         ),
         ElevatedButton.icon(
           onPressed: () => Navigator.pop(ctx),
-          icon: const Icon(Icons.add_circle_outline, size: 16),
-          label: const Text('상품 등록하러 가기',
+          icon: const Icon(Icons.camera_alt_outlined, size: 16),
+          label: const Text('다시 스캔',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF6A1B9A),
@@ -2029,6 +2054,18 @@ Future<void> _showBarcodeNotFoundDialog(BuildContext context, String barcode) {
     ),
   );
 }
+
+/// 불릿 안내 항목 위젯
+Widget _bulletText(String text) => Padding(
+  padding: const EdgeInsets.only(top: 4),
+  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    const Text('• ', style: TextStyle(fontSize: 12, color: Color(0xFF888888))),
+    Expanded(
+      child: Text(text,
+          style: const TextStyle(fontSize: 12, color: Color(0xFF666666))),
+    ),
+  ]),
+);
 
 /// 카메라 스캔 다이얼로그 열기
 Future<void> showBarcodeScannerDialog(

@@ -207,6 +207,7 @@
   <!-- ═══════════════════════════════════════════════
        ZXing-js 바코드 스캐너 (Flutter Web 카메라 스캔)
        getUserMedia 직접 제어 + canvas 디코딩 루프
+       인식률 강화: 원본 + 중앙 crop + 밝기 보정 3단 시도
        API:
          window.startBarcodeScanner(onResult, onError)
          window.stopBarcodeScanner()
@@ -222,64 +223,71 @@
       var _reader    = null;
       var _active    = false;
       var _rafId     = null;
-      var _lastScan  = 0;          // 마지막 디코딩 시각 (ms)
-      var SCAN_INTERVAL = 200;     // 디코딩 최소 간격 (ms) — 200ms = 5fps 분석
+      var _lastScan  = 0;
+      var SCAN_INTERVAL = 150;   // 150ms = ~6fps 분석
 
       // ── 모든 리소스 정리 ────────────────────────────────────────
       window.stopBarcodeScanner = function() {
         _active = false;
-
-        // rAF 루프 중지
         if (_rafId) { cancelAnimationFrame(_rafId); _rafId = null; }
-
-        // ZXing reader 리셋
         if (_reader) { try { _reader.reset(); } catch(e) {} _reader = null; }
-
-        // MediaStream 트랙 모두 stop
         if (_stream) {
           _stream.getTracks().forEach(function(t) { t.stop(); });
           _stream = null;
         }
-
-        // DOM에서 video 제거
         if (_videoEl && _videoEl.parentNode) {
           _videoEl.parentNode.removeChild(_videoEl);
         }
         _videoEl = null;
-
-        // canvas 제거
         if (_canvasEl && _canvasEl.parentNode) {
           _canvasEl.parentNode.removeChild(_canvasEl);
         }
         _canvasEl = null;
       };
 
+      // ── canvas imageData → ZXing 디코딩 시도 (내부 헬퍼) ────────
+      function tryDecode(imageData, w, h) {
+        try {
+          var lum    = new ZXing.RGBLuminanceSource(imageData.data, w, h);
+          var binary = new ZXing.HybridBinarizer(lum);
+          var bitmap = new ZXing.BinaryBitmap(binary);
+          var result = _reader.decode(bitmap);
+          if (result) return result.getText();
+        } catch(e) { /* NotFoundException 등 정상 */ }
+        return null;
+      }
+
+      // ── 밝기/대비 보정 후 imageData 반환 ────────────────────────
+      function brightenImageData(imageData) {
+        var d = new Uint8ClampedArray(imageData.data);
+        for (var i = 0; i < d.length; i += 4) {
+          d[i]   = Math.min(255, (d[i]   - 128) * 1.2 + 128 + 30);
+          d[i+1] = Math.min(255, (d[i+1] - 128) * 1.2 + 128 + 30);
+          d[i+2] = Math.min(255, (d[i+2] - 128) * 1.2 + 128 + 30);
+        }
+        return new ImageData(d, imageData.width, imageData.height);
+      }
+
       // ── 스캐너 시작 ──────────────────────────────────────────────
       window.startBarcodeScanner = function(onResult, onError) {
-        window.stopBarcodeScanner(); // 기존 정리
+        window.stopBarcodeScanner();
 
-        // ── video 태그 생성 (숨김 상태로 시작) ──────────────────
         _videoEl = document.createElement('video');
         _videoEl.setAttribute('playsinline', 'true');
         _videoEl.setAttribute('muted', 'true');
         _videoEl.autoplay = true;
         _videoEl.style.cssText = [
-          'position:fixed',
-          'top:0', 'left:0',
-          'width:1px', 'height:1px',  // 초기에는 1px (showCameraPreview로 크기 설정)
-          'object-fit:cover',
-          'z-index:-1',
-          'opacity:0',
-          'pointer-events:none',
+          'position:fixed', 'top:0', 'left:0',
+          'width:1px', 'height:1px',
+          'object-fit:cover', 'z-index:-1',
+          'opacity:0', 'pointer-events:none',
         ].join(';');
         document.body.appendChild(_videoEl);
 
-        // ── 오프스크린 canvas (ZXing 디코딩용) ──────────────────
         _canvasEl = document.createElement('canvas');
         _canvasEl.style.cssText = 'position:fixed;top:-9999px;left:-9999px;pointer-events:none;';
         document.body.appendChild(_canvasEl);
 
-        // ── ZXing reader 초기화 ──────────────────────────────────
         var hints = new Map();
         hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
           ZXing.BarcodeFormat.CODE_128,
@@ -295,24 +303,23 @@
         _reader = new ZXing.MultiFormatReader();
         _reader.setHints(hints);
 
-        // ── 후면 카메라 우선 getUserMedia ────────────────────────
-        // facingMode: 'environment' = 후면, 없으면 기본 카메라로 폴백
+        // 후면 카메라 우선, 고해상도 요청
         var constraints = {
           video: {
             facingMode: { ideal: 'environment' },
-            width:  { ideal: 1280 },
-            height: { ideal: 720 },
+            width:  { ideal: 1920 },
+            height: { ideal: 1080 },
           }
         };
 
+        _active = true;
+
         navigator.mediaDevices.getUserMedia(constraints)
           .catch(function() {
-            // 후면 카메라 실패 → 제약 없이 재시도
             return navigator.mediaDevices.getUserMedia({ video: true });
           })
           .then(function(stream) {
             if (!_active) {
-              // stopBarcodeScanner가 이미 호출된 경우
               stream.getTracks().forEach(function(t) { t.stop(); });
               return;
             }
@@ -321,7 +328,7 @@
 
             return _videoEl.play().then(function() {
               if (!_active) return;
-              // ── 디코딩 rAF 루프 시작 ──────────────────────────
+
               function decode() {
                 if (!_active) return;
 
@@ -339,31 +346,42 @@
                   return;
                 }
 
+                var ctx = _canvasEl.getContext('2d');
+                var text = null;
+
+                // 시도 1: 원본 전체 프레임
                 _canvasEl.width  = vw;
                 _canvasEl.height = vh;
-                var ctx = _canvasEl.getContext('2d');
                 ctx.drawImage(_videoEl, 0, 0, vw, vh);
+                text = tryDecode(ctx.getImageData(0, 0, vw, vh), vw, vh);
 
-                try {
-                  var imageData = ctx.getImageData(0, 0, vw, vh);
-                  var luminance = new ZXing.RGBLuminanceSource(
-                    imageData.data, vw, vh);
-                  var binary = new ZXing.HybridBinarizer(luminance);
-                  var bitmap = new ZXing.BinaryBitmap(binary);
-                  var result = _reader.decode(bitmap);
+                // 시도 2: 중앙 60% crop
+                if (!text) {
+                  var cw = Math.floor(vw * 0.6);
+                  var ch = Math.floor(vh * 0.6);
+                  var cx = Math.floor((vw - cw) / 2);
+                  var cy = Math.floor((vh - ch) / 2);
+                  _canvasEl.width  = cw;
+                  _canvasEl.height = ch;
+                  ctx.drawImage(_videoEl, cx, cy, cw, ch, 0, 0, cw, ch);
+                  text = tryDecode(ctx.getImageData(0, 0, cw, ch), cw, ch);
+                }
 
-                  if (result) {
-                    var text = result.getText();
-                    if (text && text.length > 0) {
-                      _active = false;
-                      cancelAnimationFrame(_rafId); _rafId = null;
-                      console.log('[ZXing] decoded:', text);
-                      if (onResult) onResult(text);
-                      return;
-                    }
-                  }
-                } catch(e) {
-                  // NotFoundException 등 — 정상, 무시하고 계속
+                // 시도 3: 밝기 보정 후 전체 프레임
+                if (!text) {
+                  _canvasEl.width  = vw;
+                  _canvasEl.height = vh;
+                  ctx.drawImage(_videoEl, 0, 0, vw, vh);
+                  text = tryDecode(
+                    brightenImageData(ctx.getImageData(0, 0, vw, vh)), vw, vh);
+                }
+
+                if (text) {
+                  _active = false;
+                  cancelAnimationFrame(_rafId); _rafId = null;
+                  console.log('[ZXing] decoded:', text);
+                  if (onResult) onResult(text);
+                  return;
                 }
 
                 _rafId = requestAnimationFrame(decode);
@@ -390,21 +408,19 @@
             }
             if (onError) onError(code + '|' + msg);
           });
-
-        _active = true;
       };
 
       // ── 카메라 미리보기: Flutter Dialog 위에 띄우기 ──────────────
       window.showCameraPreview = function(x, y, w, h) {
         if (!_videoEl) return;
-        _videoEl.style.position    = 'fixed';
-        _videoEl.style.left        = x + 'px';
-        _videoEl.style.top         = y + 'px';
-        _videoEl.style.width       = w + 'px';
-        _videoEl.style.height      = h + 'px';
-        _videoEl.style.objectFit   = 'cover';
-        _videoEl.style.zIndex      = '999';
-        _videoEl.style.opacity     = '1';
+        _videoEl.style.position     = 'fixed';
+        _videoEl.style.left         = x + 'px';
+        _videoEl.style.top          = y + 'px';
+        _videoEl.style.width        = w + 'px';
+        _videoEl.style.height       = h + 'px';
+        _videoEl.style.objectFit    = 'cover';
+        _videoEl.style.zIndex       = '999';
+        _videoEl.style.opacity      = '1';
         _videoEl.style.borderRadius = '12px';
         _videoEl.style.pointerEvents = 'none';
       };
