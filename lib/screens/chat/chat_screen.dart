@@ -8,6 +8,7 @@ import '../../services/notification_service.dart';
 import '../../services/chat_service.dart';
 import '../../services/email_service.dart';
 import '../../utils/navigation_helper.dart';
+import '../../widgets/overseas_rate_sheet.dart';
 
 class ChatMessage {
   final String text;
@@ -16,6 +17,7 @@ class ChatMessage {
   final DateTime time;
   final bool isSystem;
   bool showOriginal; // 원문 보기 토글
+  final bool showRateSheet; // 해외배송비 요금표 버튼 표시 여부
 
   ChatMessage({
     required this.text,
@@ -24,6 +26,7 @@ class ChatMessage {
     required this.time,
     this.isSystem = false,
     this.showOriginal = false,
+    this.showRateSheet = false,
   }) : originalText = originalText ?? text;
 }
 
@@ -139,13 +142,14 @@ class _ChatScreenState extends State<ChatScreen> {
   /// FAQ 키 -> 답변 맵 (현재 언어 기준)
   List<Map<String, String>> _getFaqItems(AppLocalizations loc) {
     return [
-      {'q': loc.faqOrderStatus,     'a': loc.faqOrderStatusAns,   'icon': '📦'},
-      {'q': loc.faqShipping,        'a': loc.faqShippingAns,      'icon': '🚚'},
-      {'q': loc.faqSize,            'a': loc.faqSizeAns,          'icon': '📏'},
-      {'q': loc.faqCustomOrder,     'a': loc.faqCustomOrderAns,   'icon': '🎨'},
-      {'q': loc.faqReturn,          'a': loc.faqReturnAns,        'icon': '🔄'},
-      {'q': loc.faqGroupOrder,      'a': loc.faqGroupOrderAns,    'icon': '👥'},
-      {'q': loc.faqEliteAthlete,    'a': '',                      'icon': '🏆'},
+      {'q': loc.faqOrderStatus,        'a': loc.faqOrderStatusAns,       'icon': '📦'},
+      {'q': loc.faqShipping,           'a': loc.faqShippingAns,          'icon': '🚚'},
+      {'q': loc.faqOverseasShipping,   'a': loc.faqOverseasShippingAns,  'icon': '🌏'},
+      {'q': loc.faqSize,               'a': loc.faqSizeAns,              'icon': '📏'},
+      {'q': loc.faqCustomOrder,        'a': loc.faqCustomOrderAns,       'icon': '🎨'},
+      {'q': loc.faqReturn,             'a': loc.faqReturnAns,            'icon': '🔄'},
+      {'q': loc.faqGroupOrder,         'a': loc.faqGroupOrderAns,        'icon': '👥'},
+      {'q': loc.faqEliteAthlete,       'a': '',                          'icon': '🏆'},
     ];
   }
 
@@ -154,6 +158,9 @@ class _ChatScreenState extends State<ChatScreen> {
       _showEliteDialog(loc);
       return;
     }
+
+    // 해외배송비 FAQ: 채팅 답변 전송 후 요금표 모달도 함께 열기
+    final isOverseasShipping = questionText == loc.faqOverseasShipping;
 
     // ignore: unused_local_variable
         final isKorean = loc.language == AppLanguage.korean;
@@ -197,6 +204,7 @@ class _ChatScreenState extends State<ChatScreen> {
             text: answerText,
             isUser: false,
             time: DateTime.now(),
+            showRateSheet: isOverseasShipping,
           ));
         });
         _scrollToBottom();
@@ -220,6 +228,14 @@ class _ChatScreenState extends State<ChatScreen> {
       message: displayQuestion,
       language: loc.language.code,
     );
+
+    // 해외배송비 FAQ: 답변 표시 후 요금표 모달 열기
+    if (isOverseasShipping) {
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (!mounted) return;
+        showOverseasRateSheet(context);
+      });
+    }
   }
 
   void _sendMessage(String text, AppLocalizations loc) {
@@ -795,6 +811,37 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       ),
                     ),
+                    // 해외배송비 요금표 보기 버튼
+                    if (message.showRateSheet) ...[
+                      const SizedBox(height: 6),
+                      GestureDetector(
+                        onTap: () => showOverseasRateSheet(context),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1565C0),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.table_chart_outlined, size: 13, color: Colors.white),
+                              const SizedBox(width: 5),
+                              Text(
+                                loc.t('국가별_요금표_보기', '국가별 요금표 보기'),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              const Icon(Icons.chevron_right_rounded, size: 14, color: Colors.white),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 3),
                     Row(
                       mainAxisSize: MainAxisSize.min,
