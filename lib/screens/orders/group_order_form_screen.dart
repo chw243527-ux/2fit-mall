@@ -1719,7 +1719,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 ]),
                 if (extra > 0) ...[
                   const SizedBox(height: 2),
-                  Text('+${_fmt(extra)}원', style: TextStyle(
+                  Text('+${_fmt(extra)}' + context.loc.t('원', '원'), style: TextStyle(
                     fontSize: 11,
                     color: isSel ? Colors.white70 : Colors.orange.shade700,
                     fontWeight: FontWeight.w600,
@@ -3889,7 +3889,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   color: Colors.orange.shade100,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: Text('+${_fmt(_fabricExtra)}원', style: TextStyle(fontSize: 10, color: Colors.orange.shade800, fontWeight: FontWeight.w700)),
+                child: Text('+${_fmt(_fabricExtra)}' + context.loc.t('원', '원'), style: TextStyle(fontSize: 10, color: Colors.orange.shade800, fontWeight: FontWeight.w700)),
               ),
             ],
           ]),
@@ -5191,13 +5191,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ),
         if (_waistbandExtra > 0)
           _sumRow(context.loc.t('허리밴드', '허리밴드 ') + _waistbandOptionLabel,
-              '+${_fmt(_waistbandExtra)}원',
+              '+${_fmt(_waistbandExtra)}' + context.loc.t('원', '원'),
               valueColor: const Color(0xFFE65100)),
         if (_exclusiveDesign)
           _sumRow(context.loc.t('1년_독점_디자인', '1년 독점 디자인'), context.loc.t('무료', '무료'),
               valueColor: const Color(0xFF2E7D32)),
         const Divider(height: 20),
-        _sumRow(context.loc.t('최종_결제금액', '최종 결제금액'), '${_fmt(_finalPrice)}원',
+        _sumRow(context.loc.t('최종_결제금액', '최종 결제금액'), '${_fmt(_finalPrice)}' + context.loc.t('원', '원'),
             isTotal: true),
 
         const SizedBox(height: 20),
