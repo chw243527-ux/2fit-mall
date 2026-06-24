@@ -228,8 +228,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   String get _waistbandOptionLabel {
     if (_waistbandOptions.isEmpty) return context.loc.t('기본_변경없음', '기본 (변경없음)');
     final labels = <String>[];
-    if (_waistbandOptions.contains(1)) labels.add('디자인 변경');
-    if (_waistbandOptions.contains(2)) labels.add('색상 변경');
+    if (_waistbandOptions.contains(1)) labels.add(context.loc.t('디자인_변경', '디자인 변경'));
+    if (_waistbandOptions.contains(2)) labels.add(context.loc.t('색상_변경', '색상 변경'));
     return labels.join(' + ');
   }
 
@@ -501,7 +501,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
                       const SizedBox(height: 2),
                       Text(
-                        '상의 ${profile.topSize} · 하의 ${profile.bottomSize}${profile.height.isNotEmpty ? " · 키 ${profile.height}cm" : ""}',
+                        context.loc.t('상의', '상의') + ' ${profile.topSize} · ' + context.loc.t('하의', '하의') + ' ${profile.bottomSize}${profile.height.isNotEmpty ? " · " + context.loc.t('키', '키') + " ${profile.height}cm" : ""}',
                         style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                       ),
                     ]),
@@ -819,7 +819,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           content: Row(children: [
             const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
             const SizedBox(width: 8),
-            Expanded(child: Text(context.loc.t('장바구니에_담았습니다', '장바구니에 담았습니다.') + ' ($_totalCount명 / ${_fmt(_finalPrice)}원)')),  
+            Expanded(child: Text(context.loc.t('장바구니에_담았습니다', '장바구니에 담았습니다.') + ' ($_totalCount' + context.loc.t('명', '명') + ' / ${_fmt(_finalPrice)}원)')),  
           ]),
           backgroundColor: const Color(0xFF1A1A1A),
           behavior: SnackBarBehavior.floating,
@@ -1059,7 +1059,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           Container(
             width: 80,
             alignment: Alignment.center,
-            child: Text('$_count명',
+            child: Text('$_count' + context.loc.t('명', '명'),
                 style: const TextStyle(
                     fontSize: 22, fontWeight: FontWeight.w900,
                     color: _purple)),
@@ -1100,7 +1100,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 elevation: 0,
               ),
-              child: Text('$_count명으로 주문서 작성하기',
+              child: Text('$_count' + context.loc.t('명으로_주문서_작성하기', '명으로 주문서 작성하기'),
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
             ),
           )
@@ -1114,7 +1114,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               const Icon(Icons.check_circle_rounded, color: _purple, size: 18),
               const SizedBox(width: 8),
-              Text('$_totalCount명 확정',
+              Text('$_totalCount' + context.loc.t('명_확정', '명 확정'),
                   style: const TextStyle(color: _purple,
                       fontWeight: FontWeight.w800, fontSize: 14)),
             ]),
@@ -1507,7 +1507,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade500)),
                 const SizedBox(height: 4),
                 Row(children: [
-                  Text('${_fmt(p.price)}원',
+                  Text('${_fmt(p.price)}' + context.loc.t('원', '원'),
                       style: const TextStyle(
                           fontWeight: FontWeight.w900, color: _purple, fontSize: 15)),
                   Text(context.loc.t('인', '/인'),
@@ -1540,7 +1540,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   color: _purple.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text('${designImgs.length}장',
+                child: Text('${designImgs.length}' + context.loc.t('장', '장'),
                     style: const TextStyle(fontSize: 10, color: _purple, fontWeight: FontWeight.w700)),
               ),
               const Spacer(),
@@ -1884,7 +1884,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               Text(context.loc.t('선택', '선택: ') + _waistbandOptionLabel,
                   style: TextStyle(fontSize: 12, color: _purple, fontWeight: FontWeight.w600)),
               const Spacer(),
-              Text('+${_fmt(_waistbandExtra)}원',
+              Text('+${_fmt(_waistbandExtra)}' + context.loc.t('원', '원'),
                   style: const TextStyle(fontSize: 13, color: Color(0xFFE65100), fontWeight: FontWeight.w700)),
             ]),
           ),
@@ -2446,7 +2446,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Text(
-          '${extended.length}가지 확장 색상 팔레트 • 원하는 색상을 탭하세요',
+          '${extended.length}' + context.loc.t('가지_확장_색상_팔레트_원하는_색상을_탭하세요', '가지 확장 색상 팔레트 • 원하는 색상을 탭하세요'),
           style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
         ),
       ),
@@ -3760,7 +3760,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
 
   Widget _buildPersonListSection() {
     return _card(
-      title: '${context.loc.t('인원별_사이즈', '인원별 사이즈')} (총 ${_totalCount}명)',
+      title: '${context.loc.t('인원별_사이즈', '인원별 사이즈')} (${context.loc.t('총', '총')} ${_totalCount}${context.loc.t('명', '명')})',
       icon: Icons.format_list_numbered_rounded,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
@@ -5177,14 +5177,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         _sumRow(context.loc.t('인원당_단가_합계', '인원당 단가 합계'), '${_fmt(_unitPrice)}원/인', isSub: true),
         const SizedBox(height: 4),
         // ── 인원수 곱하기 ──
-        _sumRow(context.loc.t('총_인원', '총 인원'), '$_totalCount명'),
+        _sumRow(context.loc.t('총_인원', '총 인원'), '$_totalCount' + context.loc.t('명', '명')),
         const Divider(height: 20),
         _sumRow(context.loc.t('상품_합계', '상품 합계'), '${_fmt(_subTotal)}원'),
         _sumRow(
           context.loc.t('배송비', '배송비'),
           _totalCount >= AppConstants.groupMinFreeShipping
               ? context.loc.t('무료_5장_이상', '무료 (5장 이상)')
-              : '+${_fmt(_shipping)}원 (5장 미만)',
+              : '+${_fmt(_shipping)}' + context.loc.t('원_5장_미만', '원 (5장 미만)'),
           valueColor: _totalCount >= AppConstants.groupMinFreeShipping
               ? Colors.green.shade700
               : const Color(0xFFF57F17),

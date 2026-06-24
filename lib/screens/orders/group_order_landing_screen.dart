@@ -403,9 +403,9 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   // 주문 조건 테이블
   Widget _buildConditionTable() {
     final items = [
-      {'icon': Icons.group_outlined,           'title': '최소 주문 수량', 'desc': context.loc.t('k_5벌_이상', '5벌 이상')},
-      {'icon': Icons.local_shipping_outlined,   'title': '배송',          'desc': context.loc.t('k_30만원_이상_무료_미만_별도', '30만원 이상 무료 (미만 별도)')},
-      {'icon': Icons.schedule_outlined,         'title': '제작 기간',     'desc': context.loc.t('주문_확정_후_1421일', '주문 확정 후 14~21일')},
+      {'icon': Icons.group_outlined,           'title': context.loc.t('최소_주문_수량', '최소 주문 수량'), 'desc': context.loc.t('k_5벌_이상', '5벌 이상')},
+      {'icon': Icons.local_shipping_outlined,   'title': context.loc.t('배송', '배송'),                  'desc': context.loc.t('k_30만원_이상_무료_미만_별도', '30만원 이상 무료 (미만 별도)')},
+      {'icon': Icons.schedule_outlined,         'title': context.loc.t('제작_기간', '제작 기간'),         'desc': context.loc.t('주문_확정_후_1421일', '주문 확정 후 14~21일')},
     ];
     return Container(
       decoration: BoxDecoration(
