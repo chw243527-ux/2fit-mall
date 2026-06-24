@@ -37,11 +37,14 @@ class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge 
       if (code != null) {
         final found = AppLanguage.values.where((l) => l.code == code).firstOrNull;
         if (found != null && found != _language) {
-          _language = found;
-          notifyListeners();
-          // 저장된 언어 복원 후 번역 트리거
-          if (found != AppLanguage.korean) {
-            _schedulePendingTranslations(delay: const Duration(milliseconds: 800));
+          if (found == AppLanguage.korean) {
+            _language = found;
+            notifyListeners();
+          } else {
+            // 저장된 외국어 복원: pending 키 등록 대기 후 번역
+            _language = found;
+            notifyListeners();
+            _schedulePendingTranslations(delay: const Duration(milliseconds: 600));
           }
         }
       }
@@ -50,79 +53,101 @@ class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge 
 
   void setLanguage(AppLanguage lang) {
     if (_language == lang) return;
-    AppLocalizations.clearCache();   // 이전 언어 캐시 초기화
-    _language = lang;
-    notifyListeners();
     _saveLanguage(lang);
-    if (lang != AppLanguage.korean) {
-      // 첫 번째: UI rebuild 후 pending 등록 대기 (100ms)
-      // 이후 계속 pending이 있으면 반복 처리
-      _schedulePendingTranslations(delay: const Duration(milliseconds: 150));
+    if (lang == AppLanguage.korean) {
+      // 한국어 전환은 캐시 초기화 불필요 — 즉시 반영
+      AppLocalizations.clearCache();
+      _language = lang;
+      notifyListeners();
+      return;
     }
+    // ── 외국어 전환: 현재 등록된 모든 키를 먼저 번역 완료 후 한 번만 UI 갱신 ──
+    _preTranslateAll(lang);
+  }
+
+  /// 언어 전환 시 현재 화면의 모든 키를 미리 번역 후 단 한 번 notifyListeners()
+  Future<void> _preTranslateAll(AppLanguage lang) async {
+    if (_isTranslating) {
+      // 이전 번역 진행 중이면 취소하고 새 언어로 재시작
+      _translateTimer?.cancel();
+      _isTranslating = false;
+    }
+    _isTranslating = true;
+    AppLocalizations.clearCache();
+    final langCode = lang.code.toLowerCase();
+
+    // 현재 등록된 모든 한국어 키 스냅샷
+    final allTexts = Map<String, String>.from(AppLocalizations.allKoreanTexts);
+
+    // 20개씩 병렬 처리 (MyMemory rate limit 여유)
+    const batchSize = 20;
+    final keys = allTexts.keys.toList();
+    for (int i = 0; i < keys.length; i += batchSize) {
+      final batch = keys.skip(i).take(batchSize).toList();
+      await Future.wait(batch.map((key) async {
+        final korean = allTexts[key]!;
+        if (korean.isEmpty) return;
+        if (AppLocalizations.isCached(key, langCode)) return;
+        try {
+          final translated = await TranslationService.translateSingle(korean, langCode);
+          if (translated != null && translated.isNotEmpty) {
+            AppLocalizations.cacheTranslation(key, langCode, translated);
+          }
+        } catch (_) {}
+      }));
+    }
+
+    // 모든 번역 완료 후 언어 변경 + 단 한 번 UI 갱신
+    _language = lang;
+    _isTranslating = false;
+    notifyListeners();
+
+    // 이후 새로 진입하는 화면의 pending 키도 처리 (짧은 딜레이)
+    _schedulePendingTranslations(delay: const Duration(milliseconds: 300));
   }
 
   /// 외부(화면)에서 번역 트리거 가능 — initState, 페이지 진입 시 호출
   void triggerTranslation() {
     if (_language == AppLanguage.korean) return;
-    _schedulePendingTranslations(delay: const Duration(milliseconds: 100));
+    _schedulePendingTranslations(delay: const Duration(milliseconds: 80));
   }
 
-  // 백그라운드 번역 스케줄러
+  // 백그라운드 번역 스케줄러 (신규 pending 키용)
   void _schedulePendingTranslations({Duration delay = const Duration(milliseconds: 150)}) {
     _translateTimer?.cancel();
     _translateTimer = Timer(delay, () async {
-      await _processAllPendingTranslations();
+      await _processNewPendingTranslations();
     });
   }
 
-  /// pending 번역 전부 처리 (병렬 배치, 반복 루프)
-  Future<void> _processAllPendingTranslations() async {
+  /// 새로 등록된 pending 키만 처리 (페이지 전환 후 추가 키용)
+  Future<void> _processNewPendingTranslations() async {
     if (_isTranslating) return;
+    final langCode = _language.code.toLowerCase();
+    final pending = AppLocalizations.pendingKeys
+        .where((e) => e.endsWith(':$langCode'))
+        .toList();
+    if (pending.isEmpty) return;
+
     _isTranslating = true;
     try {
-      final langCode = _language.code.toLowerCase();
-      int rounds = 0;
-      // pending이 모두 소진될 때까지 반복 (최대 20라운드)
-      while (AppLocalizations.pendingKeys.isNotEmpty && rounds < 20) {
-        rounds++;
-        final pendingCopy = Set<String>.from(AppLocalizations.pendingKeys);
-        // 현재 언어에 해당하는 항목만 추출
-        final entries = pendingCopy
-            .where((e) => e.endsWith(':$langCode'))
-            .toList();
-        if (entries.isEmpty) break;
-
-        // 10개씩 병렬 처리
-        final batchSize = 10;
-        for (int i = 0; i < entries.length; i += batchSize) {
-          final batch = entries.skip(i).take(batchSize).toList();
-          await Future.wait(batch.map((entry) async {
-            final key = entry.substring(0, entry.lastIndexOf(':'));
-            final korean = AppLocalizations.koreanFor(key);
-            if (korean == null || korean.isEmpty) return;
-            // 이미 캐시된 경우 스킵
-            if (AppLocalizations.isCached(key, langCode)) return;
-            try {
-              // 단일 언어 번역 (불필요한 다른 언어 API 호출 없음)
-              final translated = await TranslationService.translateSingle(korean, langCode);
-              if (translated != null && translated.isNotEmpty) {
-                AppLocalizations.cacheTranslation(key, langCode, translated);
-              }
-            } catch (_) {
-              // 번역 실패 시 pending에서 제거 (무한 루프 방지)
-              AppLocalizations.removePending(key, langCode);
+      const batchSize = 20;
+      for (int i = 0; i < pending.length; i += batchSize) {
+        final batch = pending.skip(i).take(batchSize).toList();
+        await Future.wait(batch.map((entry) async {
+          final key = entry.substring(0, entry.lastIndexOf(':'));
+          final korean = AppLocalizations.koreanFor(key);
+          if (korean == null || korean.isEmpty) return;
+          if (AppLocalizations.isCached(key, langCode)) return;
+          try {
+            final translated = await TranslationService.translateSingle(korean, langCode);
+            if (translated != null && translated.isNotEmpty) {
+              AppLocalizations.cacheTranslation(key, langCode, translated);
             }
-          }));
-          // 배치 완료 후 UI 갱신
-          notifyListeners();
-          // 너무 빠른 API 호출 방지 (rate limit)
-          await Future.delayed(const Duration(milliseconds: 50));
-        }
-        // 아직 pending이 남아있으면 잠시 대기 후 재시도
-        // (UI rebuild로 새 pending이 등록되었을 수 있음)
-        if (AppLocalizations.pendingKeys.isNotEmpty) {
-          await Future.delayed(const Duration(milliseconds: 200));
-        }
+          } catch (_) {
+            AppLocalizations.removePending(key, langCode);
+          }
+        }));
       }
     } finally {
       _isTranslating = false;
