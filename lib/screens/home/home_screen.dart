@@ -43,6 +43,14 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
+
+  /// 상품명: Firestore 번역 있으면 사용, 없으면 loc.t()로 런타임 번역 등록
+  String _pName(ProductModel p) {
+    final translated = p.localizedName(_lang);
+    if (translated != p.name) return translated;
+    return loc.t('product_name_\${p.id}', p.name);
+  }
+
   int _bannerIndex = 0;
   String _selectedCategoryKey = 'all'; // 카테고리 key (언어 무관)
   String? _expandedCatName;            // 사이드바 펼쳐진 카테고리 이름
@@ -2153,9 +2161,9 @@ class _HomeScreenState extends State<HomeScreen>
           Wrap(
             spacing: 8,
             children: [
-              _groupBadge('👥 5명 이상'),
+              _groupBadge(context.loc.t('👥 5명 이상', '👥 5명 이상')),
               _groupBadge(loc.homeGroupBadge),
-              _groupBadge('🚀 빠른 제작'),
+              _groupBadge(context.loc.t('🚀 빠른 제작', '🚀 빠른 제작')),
             ],
           ),
           SizedBox(height: r.h(16)),
@@ -2460,7 +2468,7 @@ class _HomeScreenState extends State<HomeScreen>
                               // 상품명
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: r.w(8)),
-                                child: Text(p.name,
+                                child: Text(_pName(p),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w600,
@@ -2669,7 +2677,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(p.name,
+                                    Text(_pName(p),
                                       maxLines: 2, overflow: TextOverflow.ellipsis,
                                       style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700,
                                         color: Color(0xFF111111), height: 1.3)),
@@ -3037,7 +3045,7 @@ class _HomeScreenState extends State<HomeScreen>
               Text(context.loc.t('단체주문 전용 상품', '단체주문 전용 상품'),
                 style: TextStyle(fontSize: r.sp(20), fontWeight: FontWeight.w900, color: Color(0xFF111111), letterSpacing: -0.3)),
               SizedBox(height: r.h(2)),
-              Text('5명 이상 · 팀 맞춤 제작 · 무료배송',
+              Text(context.loc.t('5명 이상 · 팀 맞춤 제작 · 무료배송', '5명 이상 · 팀 맞춤 제작 · 무료배송'),
                 style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888))),
               SizedBox(height: r.h(6)),
               // 엘리트 선수 안내
@@ -3059,7 +3067,7 @@ class _HomeScreenState extends State<HomeScreen>
                     children: [
                       const Icon(Icons.emoji_events_rounded, size: 12, color: Color(0xFF7B1FA2)),
                       SizedBox(width: r.w(4)),
-                      Text('🏅 엘리트 선수 주문: ${AppConstants.eliteAthletePhone}',
+                      Text(context.loc.t('🏅 엘리트 선수 주문', '🏅 엘리트 선수 주문: ${AppConstants.eliteAthletePhone}'),
                         style: TextStyle(fontSize: r.sp(10.5), color: const Color(0xFF4A148C), fontWeight: FontWeight.w700)),
                     ],
                   ),
@@ -3173,7 +3181,7 @@ class _HomeScreenState extends State<HomeScreen>
                           style: TextStyle(fontSize: r.sp(10), color: Color(0xFF888888), fontWeight: FontWeight.w500),
                           maxLines: 1, overflow: TextOverflow.ellipsis),
                       SizedBox(height: r.h(2)),
-                      Text(p.name,
+                      Text(_pName(p),
                         style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF111111)),
                         maxLines: 2, overflow: TextOverflow.ellipsis),
                       SizedBox(height: r.h(4)),
@@ -3481,9 +3489,9 @@ class _HomeScreenState extends State<HomeScreen>
             child: Wrap(
               spacing: 8,
               children: [
-                _groupBadge('👥 5명 이상'),
+                _groupBadge(context.loc.t('👥 5명 이상', '👥 5명 이상')),
                 _groupBadge(loc.homeGroupBadge),
-                _groupBadge('🚀 빠른 제작'),
+                _groupBadge(context.loc.t('🚀 빠른 제작', '🚀 빠른 제작')),
               ],
             ),
           ),
@@ -3570,7 +3578,7 @@ class _HomeScreenState extends State<HomeScreen>
           Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 14),
           SizedBox(width: r.w(6)),
           Text(
-            '🎉 단체 맞춤 제작 · 3만원 이상 무료배송',
+            context.loc.t('🎉 단체 맞춤 제작 · 3만원 이상 무료배송', '🎉 단체 맞춤 제작 · 3만원 이상 무료배송'),
             style: TextStyle(color: Colors.white, fontSize: r.sp(12), fontWeight: FontWeight.w700, letterSpacing: 0.3),
           ),
           SizedBox(width: r.w(6)),
@@ -3711,7 +3719,7 @@ class _HomeScreenState extends State<HomeScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis,
+                              Text(_pName(p), maxLines: 1, overflow: TextOverflow.ellipsis,
                                   style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w600, color: Color(0xFF222222))),
                               SizedBox(height: r.h(2)),
                               if (p.originalPrice != null)

@@ -3848,8 +3848,8 @@ $productUrl
 
       if (!ok) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Firestore 저장 실패. 잠시 후 다시 시도해 주세요.'),
+          SnackBar(
+            content: Text(context.loc.t('Firestore_저장_실패_잠시_후_다시_시도해_주세요', 'Firestore 저장 실패. 잠시 후 다시 시도해 주세요.')),
             backgroundColor: Colors.red,
           ),
         );
@@ -9668,10 +9668,10 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     contentWidget: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('• 30만원 이상 구매 시: 무료배송', style: TextStyle(fontSize: r.sp(13), height: 1.6)),
-                        Text('• 30만원 미만: 배송비 별도', style: TextStyle(fontSize: r.sp(13), height: 1.6)),
-                        Text('• 추가 제작 (5장 미만): 배송비 4,000원 추가', style: TextStyle(fontSize: r.sp(13), height: 1.6)),
-                        Text('• 단체 주문은 일괄 배송이 원칙입니다.', style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(context.loc.t('30만원_이상_구매_시_무료배송', '• 30만원 이상 구매 시: 무료배송'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(context.loc.t('30만원_미만_배송비_별도', '• 30만원 미만: 배송비 별도'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(context.loc.t('추가_제작_5장_미만_배송비_4_000원_추가', '• 추가 제작 (5장 미만): 배송비 4,000원 추가'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(context.loc.t('단체_주문은_일괄_배송이_원칙입니다', '• 단체 주문은 일괄 배송이 원칙입니다.'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
                       ],
                     ),
                   ),
@@ -9753,13 +9753,13 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('• 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불은 불가합니다.',
+                        Text(context.loc.t('커스텀_단체_주문_의류_자체_불량_외_교환_환불은_불가합니다', '• 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불은 불가합니다.'),
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text('• 기성품: 제품 수령 후 3일 이내 교환·환불 가능합니다.',
+                        Text(context.loc.t('기성품_제품_수령_후_3일_이내_교환_환불_가능합니다', '• 기성품: 제품 수령 후 3일 이내 교환·환불 가능합니다.'),
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text('• 주문 확정 후 제작 착수 전까지만 취소 가능합니다.',
+                        Text(context.loc.t('주문_확정_후_제작_착수_전까지만_취소_가능합니다', '• 주문 확정 후 제작 착수 전까지만 취소 가능합니다.'),
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text('• 색상은 모니터 환경에 따라 실제와 다소 다를 수 있습니다.',
+                        Text(context.loc.t('색상은_모니터_환경에_따라_실제와_다소_다를_수_있습니다', '• 색상은 모니터 환경에 따라 실제와 다소 다를 수 있습니다.'),
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
                       ],
                     ),

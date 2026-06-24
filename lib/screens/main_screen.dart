@@ -535,7 +535,7 @@ class _LangDialogState extends State<_LangDialog> {
                           child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1565C0)),
                         ),
                         SizedBox(width: r.w(8)),
-                        Text('번역 중...', style: TextStyle(fontSize: r.sp(12), color: const Color(0xFF1565C0))),
+                        Text(loc.t('번역_중', '번역 중...'), style: TextStyle(fontSize: r.sp(12), color: const Color(0xFF1565C0))),
                       ],
                     ),
                   ),

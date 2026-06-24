@@ -2312,7 +2312,7 @@ void _showCashReceiptDialog(BuildContext context, UserProvider userProvider) {  
           ),
         ),
         const SizedBox(height: 8),
-        const Text('· 소득공제용: 전화번호\n· 지출증빙용: 사업자번호',
+        Text(context.loc.t('소득공제용_전화번호_n_지출증빙용_사업자번호', '· 소득공제용: 전화번호\n· 지출증빙용: 사업자번호'),
           style: TextStyle(fontSize: 11, color: Color(0xFF888888), height: 1.6)),
       ]),
       actions: [
@@ -7554,7 +7554,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
       Text(context.loc.t('교환배송비', '교환배송비'),
           style: TextStyle(fontSize: 13, color: Colors.grey)),
       const SizedBox(height: 4),
-      const Text('6,000원',
+      Text(context.loc.t('6_000원', '6,000원'),
           style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
       const SizedBox(height: 4),
       Text(context.loc.t('교환비용을 결제하면 교환 요청이 완료돼요', '교환비용을 결제하면 교환 요청이 완료돼요.'),

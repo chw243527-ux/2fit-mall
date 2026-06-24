@@ -557,7 +557,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                     children: [
                       Icon(Icons.palette_rounded, size: 14, color: Colors.white),
                       SizedBox(width: 4),
-                      Text('색상 선택', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w700)),
+                      Text(context.loc.t('색상_선택', '색상 선택'), style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),
@@ -568,7 +568,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
         const SizedBox(height: 10),
 
         // ── 골지 19색 빠른 선택 그리드 ──
-        Text('골지 기본 19색', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
+        Text(context.loc.t('골지_기본_19색', '골지 기본 19색'), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,

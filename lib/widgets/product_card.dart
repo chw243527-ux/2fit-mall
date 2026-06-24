@@ -272,7 +272,10 @@ class ProductCard extends StatelessWidget {
           SizedBox(
             height: 11 * 1.3 * 2, // fontSize(11) × lineHeight(1.3) × 2줄
             child: Text(
-              product.localizedName(lang),
+              // Firestore 번역 데이터 우선, 없으면 loc.t()로 런타임 번역 등록
+              product.localizedName(lang) != product.name
+                  ? product.localizedName(lang)
+                  : loc.t('product_name_${product.id}', product.name),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(

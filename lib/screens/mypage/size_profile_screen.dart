@@ -40,12 +40,12 @@ class SizeProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
     if (user == null) {
-      return Scaffold(body: Center(child: Text('로그인이 필요합니다.')));
+      return Scaffold(body: Center(child: Text(context.loc.t('로그인이_필요합니다', '로그인이 필요합니다.'))));
     }
     return wrapWithPopScope(context, Scaffold(
       backgroundColor: const Color(0xFFF7F5FB),
       appBar: AppBar(
-        title: Text('내 사이즈 관리',
+        title: Text(context.loc.t('내_사이즈_관리', '내 사이즈 관리'),
             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
         backgroundColor: _purple,
         foregroundColor: Colors.white,
@@ -67,7 +67,7 @@ class SizeProfileScreen extends StatelessWidget {
                     ),
             backgroundColor: canAdd ? _purple : Colors.grey,
             icon: const Icon(Icons.add, color: Colors.white),
-            label: Text('새 사이즈 추가',
+            label: Text(context.loc.t('새_사이즈_추가', '새 사이즈 추가'),
                 style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
           );
         },
@@ -92,10 +92,10 @@ class _SizeProfileBody extends StatelessWidget {
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Icons.straighten_rounded, size: 64, color: Colors.grey.shade300),
               const SizedBox(height: 16),
-              Text('저장된 사이즈 프로필이 없습니다.',
+              Text(context.loc.t('저장된_사이즈_프로필이_없습니다', '저장된 사이즈 프로필이 없습니다.'),
                   style: TextStyle(fontSize: 15, color: Colors.grey.shade500, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              Text('+ 버튼을 눌러 나의 사이즈를 저장해 보세요.',
+              Text(context.loc.t('버튼을_눌러_나의_사이즈를_저장해_보세요', '+ 버튼을 눌러 나의 사이즈를 저장해 보세요.'),
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade400)),
             ]),
           );
@@ -188,10 +188,10 @@ class _ProfileCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('프로필 삭제', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(context.loc.t('프로필_삭제', '프로필 삭제'), style: TextStyle(fontWeight: FontWeight.w800)),
         content: Text('"${profile.profileName}" 프로필을 삭제할까요?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소', style: TextStyle(color: Colors.grey))),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.loc.t('취소', '취소'), style: TextStyle(color: Colors.grey))),
           TextButton(
             onPressed: () async {
               Navigator.pop(ctx);
@@ -200,7 +200,7 @@ class _ProfileCard extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err), backgroundColor: Colors.red));
               }
             },
-            child: Text('삭제', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700)),
+            child: Text(context.loc.t('삭제', '삭제'), style: TextStyle(color: Colors.red, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -340,10 +340,10 @@ class _EditSheetState extends State<_EditSheet> {
                 Row(children: [
                   Icon(Icons.straighten_rounded, size: 14, color: Colors.orange.shade700),
                   const SizedBox(width: 6),
-                  Text('상세 치수 (선택)',
+                  Text(context.loc.t('상세_치수_선택', '상세 치수 (선택)'),
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.orange.shade800)),
                   const SizedBox(width: 4),
-                  Text('사이즈 미해당 시 입력',
+                  Text(context.loc.t('사이즈_미해당_시_입력', '사이즈 미해당 시 입력'),
                       style: TextStyle(fontSize: 10, color: Colors.orange.shade500)),
                 ]),
                 const SizedBox(height: 10),
@@ -376,7 +376,7 @@ class _EditSheetState extends State<_EditSheet> {
                 child: _saving
                     ? const SizedBox(height: 18, width: 18,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text('저장하기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                    : Text(context.loc.t('저장하기', '저장하기'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
               ),
             ),
           ]),
@@ -402,7 +402,7 @@ class _EditSheetState extends State<_EditSheet> {
             Icon(Icons.table_chart_outlined, size: 15,
                 color: _tableExpanded ? _purple : Colors.grey.shade500),
             const SizedBox(width: 6),
-            Text('사이즈 참고표',
+            Text(context.loc.t('사이즈_참고표', '사이즈 참고표'),
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
                     color: _tableExpanded ? _purple : Colors.grey.shade600)),
             const Spacer(),
@@ -562,11 +562,11 @@ class _EditSheetState extends State<_EditSheet> {
   Future<void> _save() async {
     final name = _nameCtrl.text.trim();
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('프로필 이름을 입력해 주세요.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.loc.t('프로필_이름을_입력해_주세요', '프로필 이름을 입력해 주세요.'))));
       return;
     }
     if (_topSize == null || _bottomSize == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('상의/하의 사이즈를 선택해 주세요.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(context.loc.t('상의_하의_사이즈를_선택해_주세요', '상의/하의 사이즈를 선택해 주세요.'))));
       return;
     }
     setState(() => _saving = true);
@@ -591,7 +591,7 @@ class _EditSheetState extends State<_EditSheet> {
     } else {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('사이즈 프로필이 저장되었습니다.'),
+        content: Text(context.loc.t('사이즈_프로필이_저장되었습니다', '사이즈 프로필이 저장되었습니다.')),
         backgroundColor: _purple,
         behavior: SnackBarBehavior.floating,
       ));

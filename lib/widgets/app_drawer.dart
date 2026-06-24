@@ -70,14 +70,15 @@ Color _colorFor(String cat) {
 List<CategoryData> getCategories(AppLocalizations loc) {
   return CategoryService.mainCategories.map((mainCat) {
     final subs = CategoryService.subCatsFor(mainCat);
-    // 전체탭 (subName=null 역할 → name을 "전체 {mainCat}"로 세팅)
-    final allTabName = '전체 $mainCat';
+    // 카테고리명 번역 적용
+    final translatedMain = loc.t(mainCat, mainCat);
+    final allTabName = loc.t('전체 $mainCat', '전체 $mainCat');
     final subList = <SubCategory>[
       SubCategory(name: allTabName, filter: mainCat), // 전체탭
-      ...subs.map((s) => SubCategory(name: s, filter: mainCat)),
+      ...subs.map((s) => SubCategory(name: loc.t(s, s), filter: mainCat)),
     ];
     return CategoryData(
-      name: mainCat,
+      name: translatedMain,
       icon: _iconFor(mainCat),
       color: _colorFor(mainCat),
       subCategories: subList,
@@ -142,7 +143,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 _buildMenuTile(
                   context,
                   icon: Icons.edit_note_rounded,
-                  label: '단체주문하기',
+                  label: loc.t('단체주문하기', '단체주문하기'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context,

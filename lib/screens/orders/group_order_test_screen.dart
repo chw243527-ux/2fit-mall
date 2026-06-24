@@ -404,16 +404,16 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
         title: Row(children: [
           Icon(Icons.warning_amber_rounded, color: Color(0xFFE53935), size: 20),
           SizedBox(width: 8),
-          Text('테스트 주문 삭제', style: TextStyle(fontSize: 15)),
+          Text(context.loc.t('테스트_주문_삭제', '테스트 주문 삭제'), style: TextStyle(fontSize: 15)),
         ]),
         content: const Text('TEST_GRP_ / TEST_PERS_ 로 시작하는\n테스트 주문을 모두 삭제합니다.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.loc.t('취소', '취소'))),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFE53935), foregroundColor: Colors.white),
-            child: Text('삭제'),
+            child: Text(context.loc.t('삭제', '삭제')),
           ),
         ],
       ),
@@ -483,7 +483,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
         title: Row(children: [
           Icon(Icons.science_rounded, size: 18),
           SizedBox(width: 8),
-          Text('주문 테스트', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text(context.loc.t('주문_테스트', '주문 테스트'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ]),
         actions: [
           IconButton(
@@ -497,7 +497,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
           ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
               CircularProgressIndicator(color: Color(0xFF1A1A2E)),
               SizedBox(height: 12),
-              Text('처리 중...', style: TextStyle(color: Color(0xFF666666))),
+              Text(context.loc.t('처리_중', '처리 중...'), style: TextStyle(color: Color(0xFF666666))),
             ]))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(12),
@@ -552,7 +552,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
         child: user != null
             ? Text('생성 대상: ${user.name} (${user.id})',
                 style: const TextStyle(fontSize: 12, color: Color(0xFF1B5E20), fontWeight: FontWeight.w600))
-            : Text('로그인 필요 — 로그인 후 사용하세요',
+            : Text(context.loc.t('로그인_필요__로그인_후_사용하세요', '로그인 필요 — 로그인 후 사용하세요'),
                 style: TextStyle(fontSize: 12, color: Color(0xFFE65100), fontWeight: FontWeight.w600)),
       ),
     ]),
@@ -628,7 +628,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(color: p.color, borderRadius: BorderRadius.circular(6)),
-            child: Text('실행', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700)),
+            child: Text(context.loc.t('실행', '실행'), style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         ]),
       ),
@@ -663,7 +663,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
     ),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       // 주문 유형 토글
-      _labelText('주문 유형'),
+      _labelText(context.loc.t('주문_유형', '주문 유형')),
       const SizedBox(height: 6),
       Row(children: [
         _toggleBtn('기성품 (personal)', _customOrderType == 'personal',
@@ -675,7 +675,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       const SizedBox(height: 12),
 
       // 주문 상태
-      _labelText('주문 상태'),
+      _labelText(context.loc.t('주문_상태', '주문 상태')),
       const SizedBox(height: 6),
       Wrap(spacing: 6, runSpacing: 6,
         children: OrderStatus.values.map((s) => GestureDetector(
@@ -729,7 +729,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
 
       // 인쇄타입 (단체주문만)
       if (_customOrderType == 'group') ...[
-        _labelText('인쇄 타입'),
+        _labelText(context.loc.t('인쇄_타입', '인쇄 타입')),
         const SizedBox(height: 6),
         _printSelector(),
         const SizedBox(height: 12),
@@ -788,7 +788,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
             unitPrice    : _customPrice,
           ),
           icon: const Icon(Icons.send_rounded, size: 15),
-          label: Text('마이페이지에 주문 생성',
+          label: Text(context.loc.t('마이페이지에_주문_생성', '마이페이지에 주문 생성'),
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFF1A1A2E),
@@ -810,11 +810,11 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       Row(children: [
         const Icon(Icons.terminal_rounded, color: Colors.white54, size: 13),
         const SizedBox(width: 5),
-        Text('실행 로그', style: TextStyle(color: Colors.white54, fontSize: 11)),
+        Text(context.loc.t('실행_로그', '실행 로그'), style: TextStyle(color: Colors.white54, fontSize: 11)),
         const Spacer(),
         GestureDetector(
           onTap: () => setState(() => _results.clear()),
-          child: Text('지우기', style: TextStyle(color: Color(0xFF90CAF9), fontSize: 11)),
+          child: Text(context.loc.t('지우기', '지우기'), style: TextStyle(color: Color(0xFF90CAF9), fontSize: 11)),
         ),
       ]),
       const SizedBox(height: 8),
