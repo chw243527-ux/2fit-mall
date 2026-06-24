@@ -5491,7 +5491,7 @@ class _DesignConfirmSheetState extends State<_DesignConfirmSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('인원별 사이즈 변경 상세 (${personChanges.length}명)',
+                              Text('${context.loc.t('인원별_사이즈', '인원별 사이즈')} 변경 상세 (${personChanges.length}명)',
                                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.grey[700])),
                               const SizedBox(height: 6),
                               ...personChanges.map((p) {
@@ -6582,7 +6582,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
 
                 // ══ 4. 인원별 사이즈 수정 ══
                 if (_persons.isNotEmpty) ...[
-                  _sectionLabel(Icons.straighten_rounded, '인원별 사이즈', Color(0xFF00695C)),
+                  _sectionLabel(Icons.straighten_rounded, context.loc.t('인원별_사이즈', '인원별 사이즈'), Color(0xFF00695C)),
                   const SizedBox(height: 4),
                   Text(context.loc.t('변경할_사이즈를_직접_수정해_e9e851', '변경할 사이즈를 직접 수정해주세요.'),
                     style: TextStyle(fontSize: 11, color: Color(0xFF888888))),

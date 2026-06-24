@@ -782,7 +782,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Text(f['field']!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                    child: Text(context.loc.t('order_field_${f['field']!.replaceAll(' ', '_').replaceAll('/', '_')}', f['field']!), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 5),

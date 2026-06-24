@@ -192,12 +192,12 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  '단체주문 안내',
+                  context.loc.t('단체주문_안내', '단체주문 안내'),
                   style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  '5명 이상 단체 맞춤 제작 전문\n최고의 품질로 특별한 유니폼을 만들어드립니다.',
+                Text(
+                  context.loc.t('5명_이상_단체_맞춤_제작__a802bf', '5명 이상 단체 맞춤 제작 전문\n최고의 품질로 특별한 유니폼을 만들어드립니다.'),
                   style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.5),
                 ),
               ],
@@ -208,10 +208,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           // 주문 절차
           _buildSectionTitle(Icons.assignment_outlined, context.loc.t('주문_절차', '주문 절차')),
           const SizedBox(height: 12),
-          _buildStepCard('1', '상품 선택 & 주문서 작성', context.loc.t('원하는_상품을_선택하고_단체주문서를_작성합니다', '원하는 상품을 선택하고 단체주문서를 작성합니다.')),
-          _buildStepCard('2', '디자인 협의', context.loc.t('컬러_로고_마킹_등_맞춤_디자인을_협의합니다', '컬러, 로고, 마킹 등 맞춤 디자인을 협의합니다.')),
-          _buildStepCard('3', '견적 확인 & 결제', context.loc.t('수량별_최종_견적을_확인하고_주문을_확정합니다', '수량별 최종 견적을 확인하고 주문을 확정합니다.')),
-          _buildStepCard('4', '제작 & 배송', '제작 후 일괄 배송 또는 분배 배송을 선택합니다.', isLast: true),
+          _buildStepCard('1', context.loc.t('상품_선택___주문서_작성', '상품 선택 & 주문서 작성'), context.loc.t('원하는_상품을_선택하고_단체주문서를_작성합니다', '원하는 상품을 선택하고 단체주문서를 작성합니다.')),
+          _buildStepCard('2', context.loc.t('디자인_협의', '디자인 협의'), context.loc.t('컬러_로고_마킹_등_맞춤_디자인을_협의합니다', '컬러, 로고, 마킹 등 맞춤 디자인을 협의합니다.')),
+          _buildStepCard('3', context.loc.t('견적_확인___결제', '견적 확인 & 결제'), context.loc.t('수량별_최종_견적을_확인하고_주문을_확정합니다', '수량별 최종 견적을 확인하고 주문을 확정합니다.')),
+          _buildStepCard('4', context.loc.t('제작___배송', '제작 & 배송'), context.loc.t('제작_후_일괄_배송_또는_분_c0067b', '제작 후 일괄 배송 또는 분배 배송을 선택합니다.'), isLast: true),
           const SizedBox(height: 20),
 
           // 주문 조건
@@ -223,22 +223,22 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           // 커스텀 옵션
           _buildSectionTitle(Icons.palette_outlined, context.loc.t('커스텀_옵션', '커스텀 옵션')),
           const SizedBox(height: 12),
-          _buildInfoLines(const [
-            '• 팀명 / 로고 / 번호 마킹 가능',
-            '• 원하는 컬러로 제작 가능',
-            '• 허리밴드 디자인·색상 변경 무료',
-            '• 1년 독점 사용권 무료 제공',
+          _buildInfoLines([
+            context.loc.t('팀명___로고___번호_마킹_ae11e1', '• 팀명 / 로고 / 번호 마킹 가능'),
+            context.loc.t('원하는_컬러로_제작_가능', '• 원하는 컬러로 제작 가능'),
+            context.loc.t('허리밴드_디자인_색상_변경__141532', '• 허리밴드 디자인·색상 변경 무료'),
+            context.loc.t('1년_독점_사용권_무료_제공', '• 1년 독점 사용권 무료 제공'),
           ]),
           const SizedBox(height: 20),
 
           // 주의사항
           _buildSectionTitle(Icons.warning_amber_outlined, context.loc.t('주의사항', '주의사항')),
           const SizedBox(height: 12),
-          _buildNoticeBox(const [
-            '주문 확정 후 디자인 변경 시 추가 비용이 발생할 수 있습니다.',
-            '색상은 모니터 환경에 따라 실제와 다소 차이가 있을 수 있습니다.',
-            '단체주문 상품은 교환/환불이 불가합니다.',
-            '사이즈 측정은 주문서 작성 전 반드시 확인해주세요.',
+          _buildNoticeBox([
+            context.loc.t('주문_확정_후_디자인_변경__628958', '주문 확정 후 디자인 변경 시 추가 비용이 발생할 수 있습니다.'),
+            context.loc.t('색상은_모니터_환경에_따라__a7b8cd', '색상은 모니터 환경에 따라 실제와 다소 차이가 있을 수 있습니다.'),
+            context.loc.t('단체주문_상품은_교환_환불이_61f5d0', '단체주문 상품은 교환/환불이 불가합니다.'),
+            context.loc.t('사이즈_측정은_주문서_작성__0081c8', '사이즈 측정은 주문서 작성 전 반드시 확인해주세요.'),
           ]),
           const SizedBox(height: 20),
 
@@ -256,7 +256,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               onPressed: _goToForm,
               icon: const Icon(Icons.edit_note_rounded, size: 20),
               label: Text(
-                '단체주문서 바로 작성하기',
+                context.loc.t('단체주문서_바로_작성하기', '단체주문서 바로 작성하기'),
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
               ),
               style: ElevatedButton.styleFrom(
@@ -285,7 +285,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           _buildSectionTitle(Icons.edit_note_outlined, context.loc.t('단체주문서_작성', '단체주문서 작성')),
           const SizedBox(height: 12),
           Text(
-            '상품을 선택하지 않고 바로 단체주문서를 작성할 수 있습니다.\n아래 카테고리에서 원하는 상품 유형을 선택해주세요.',
+            context.loc.t('상품을_선택하지_않고_바로__efb285', '상품을 선택하지 않고 바로 단체주문서를 작성할 수 있습니다.\n아래 카테고리에서 원하는 상품 유형을 선택해주세요.'),
             style: TextStyle(fontSize: 12, color: _kGrey6, height: 1.6),
           ),
           const SizedBox(height: 20),
@@ -330,7 +330,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               border: Border(left: BorderSide(color: _kBlack, width: 3)),
             ),
             child: Text(
-              '상품 상세 페이지에서 단체주문서 작성 시 상품 정보가 자동으로 입력됩니다.\n더 빠른 주문을 원하시면 상품을 먼저 선택해주세요.',
+              context.loc.t('상품_상세_페이지에서_단체주_e5e1e7', '상품 상세 페이지에서 단체주문서 작성 시 상품 정보가 자동으로 입력됩니다.\n더 빠른 주문을 원하시면 상품을 먼저 선택해주세요.'),
               style: TextStyle(fontSize: 11, color: _kGrey4, height: 1.5),
             ),
           ),

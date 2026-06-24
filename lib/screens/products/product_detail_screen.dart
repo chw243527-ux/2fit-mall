@@ -3992,7 +3992,7 @@ $productUrl
                       const Icon(Icons.add_photo_alternate_outlined, color: Colors.white, size: 14),
                       SizedBox(width: r.w(4)),
                       Text(
-                        imgs.isEmpty ? context.loc.t('이미지 업로드', '이미지 업로드') : '이미지 추가 (${imgs.length}장)',
+                        imgs.isEmpty ? context.loc.t('이미지_업로드', '이미지 업로드') : '${context.loc.t('이미지_추가', '이미지 추가')} (${imgs.length}장)',
                         style: TextStyle(color: Colors.white, fontSize: r.sp(11), fontWeight: FontWeight.w700),
                       ),
                     ],

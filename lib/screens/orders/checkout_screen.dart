@@ -2776,7 +2776,7 @@ class _BankTransferDialog extends StatelessWidget {
                         elevation: 0,
                       ),
                       child: Text(
-                        '입금 정보 확인 완료 → 주문하기',
+                        context.loc.t('입금_정보_확인_완료_주문하기', '입금 정보 확인 완료 → 주문하기'),
                         style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800),
                       ),
                     ),

@@ -499,7 +499,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        hasColor ? _selectedColor! : '색상을 선택하세요',
+                        hasColor ? _selectedColor! : context.loc.t('색상을_선택하세요', '색상을 선택하세요'),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -642,7 +642,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                 Icon(Icons.color_lens_rounded, size: 16, color: Color(0xFF6A1B9A)),
                 SizedBox(width: 6),
                 Text(
-                  '더 많은 색상 보기 · HEX 코드 직접 입력',
+                  context.loc.t('더_많은_색상_보기_HEX_코드_입력', '더 많은 색상 보기 · HEX 코드 직접 입력'),
                   style: TextStyle(fontSize: 12, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700),
                 ),
                 SizedBox(width: 4),
@@ -1081,7 +1081,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '상품 디자인 참고 이미지입니다. 이미지를 탭하면 확대됩니다.',
+                context.loc.t('상품_디자인_참고_이미지입니다', '상품 디자인 참고 이미지입니다. 이미지를 탭하면 확대됩니다.'),
                 style: TextStyle(fontSize: 12, color: Color(0xFF888888), height: 1.5),
               ),
               const SizedBox(height: 12),
@@ -1259,7 +1259,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                         decoration: InputDecoration(
                           hintText: widget.nameRequired
                               ? loc.customNameRequiredHint
-                              : '10명 이상 시 입력',
+                              : context.loc.t('10명_이상_시_입력', '10명 이상 시 입력'),
                           hintStyle: TextStyle(
                             color: Colors.white.withValues(alpha: widget.nameRequired ? 0.6 : 0.35),
                             fontSize: 12,
@@ -1347,18 +1347,18 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                           const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF7A5000)),
                           const SizedBox(width: 6),
                           Text(
-                            '사이즈 입력 안내',
+                            context.loc.t('사이즈_입력_안내', '사이즈 입력 안내'),
                             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF7A5000)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 5),
-                      const Text(
-                        '• 성인: S, M, L, XL, 2XL, 3XL',
+                      Text(
+                        context.loc.t('성인_사이즈_목록', '• 성인: S, M, L, XL, 2XL, 3XL'),
                         style: TextStyle(fontSize: 11, color: Color(0xFF7A5000), height: 1.5),
                       ),
-                      const Text(
-                        '• 주니어: J-S, J-M, J-L, J-XL (앞에 J- 를 붙여주세요)',
+                      Text(
+                        context.loc.t('주니어_사이즈_목록', '• 주니어: J-S, J-M, J-L, J-XL (앞에 J- 를 붙여주세요)'),
                         style: TextStyle(fontSize: 11, color: Color(0xFF7A5000), height: 1.5),
                       ),
                     ],
@@ -1370,7 +1370,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                   _sizeTextField(
                     label: loc.groupFormBottomSizeLabel,
                     ctrl: e.bottomSizeCtrl,
-                    hint: '예) M, L, J-M',
+                    hint: context.loc.t('사이즈_예시_M_L_JM', '예) M, L, J-M'),
                     accent: accent,
                   ),
                 ] else ...[
@@ -1382,7 +1382,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                         child: _sizeTextField(
                           label: loc.groupFormTopSizeLabel,
                           ctrl: e.topSizeCtrl,
-                          hint: '예) M, J-M',
+                          hint: context.loc.t('사이즈_예시_M_JM', '예) M, J-M'),
                           accent: accent,
                         ),
                       ),
