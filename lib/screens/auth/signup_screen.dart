@@ -292,12 +292,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _sendOtp() async {
     final phoneRaw = _phoneCtrl.text.trim();
     if (phoneRaw.isEmpty) {
-      _showSnack('전화번호를 먼저 입력해주세요.');
+      _showSnack(context.loc.t('전화번호를_먼저_입력해주세요', '전화번호를 먼저 입력해주세요.'));
       return;
     }
     final digits = phoneRaw.replaceAll(RegExp(r'[^0-9]'), '');
     if (_selectedCountry.code == '+82' && (digits.length < 9 || digits.length > 11)) {
-      _showSnack('올바른 한국 휴대폰 번호를 입력해주세요.');
+      _showSnack(context.loc.t('올바른_한국_휴대폰_번호를_입력해주세요', '올바른 한국 휴대폰 번호를 입력해주세요.'));
       return;
     }
     final e164 = _toE164(_selectedCountry.code, phoneRaw);
@@ -313,12 +313,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _resendToken = result['resendToken'] as int?;
       setState(() { _otpSent = true; _otpRemaining = 60; });
       _startOtpTimer();
-      _showSnack('인증번호가 발송되었습니다. 60초 내에 입력해주세요.', isSuccess: true);
+      _showSnack(context.loc.t('인증번호가_발송되었습니다_60초_내에_입력해주세요', '인증번호가 발송되었습니다. 60초 내에 입력해주세요.'), isSuccess: true);
     } else if (result['status'] == 'auto_verified') {
       setState(() { _phoneVerified = true; _otpSent = false; });
-      _showSnack('전화번호가 자동으로 인증되었습니다.', isSuccess: true);
+      _showSnack(context.loc.t('전화번호가_자동으로_인증되었습니다', '전화번호가 자동으로 인증되었습니다.'), isSuccess: true);
     } else {
-      _showSnack(result['message'] as String? ?? 'SMS 발송에 실패했습니다.');
+      _showSnack(result['message'] as String? ?? context.loc.t('sms_발송에_실패했습니다', 'SMS 발송에 실패했습니다.'));
     }
   }
 
@@ -331,7 +331,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (_otpRemaining <= 0) {
         t.cancel();
         setState(() { _otpSent = false; _verificationId = null; });
-        _showSnack('인증번호가 만료되었습니다. 다시 발송해주세요.');
+        _showSnack(context.loc.t('인증번호가_만료되었습니다_다시_발송해주세요', '인증번호가 만료되었습니다. 다시 발송해주세요.'));
       }
     });
   }
@@ -340,11 +340,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Future<void> _verifyOtp() async {
     final code = _otpCtrl.text.trim();
     if (code.length != 6) {
-      _showSnack('6자리 인증번호를 입력해주세요.');
+      _showSnack(context.loc.t('k_6자리_인증번호를_입력해주세요', '6자리 인증번호를 입력해주세요.'));
       return;
     }
     if (_verificationId == null) {
-      _showSnack('인증번호를 다시 발송해주세요.');
+      _showSnack(context.loc.t('인증번호를_다시_발송해주세요', '인증번호를 다시 발송해주세요.'));
       return;
     }
     setState(() => _otpVerifying = true);
@@ -358,9 +358,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (result['status'] == 'verified') {
       _otpTimer?.cancel();
       setState(() { _phoneVerified = true; _otpSent = false; });
-      _showSnack('전화번호 인증이 완료되었습니다.', isSuccess: true);
+      _showSnack(context.loc.t('전화번호_인증이_완료되었습니다', '전화번호 인증이 완료되었습니다.'), isSuccess: true);
     } else {
-      _showSnack(result['message'] as String? ?? '인증에 실패했습니다.');
+      _showSnack(result['message'] as String? ?? context.loc.t('인증에_실패했습니다', '인증에 실패했습니다.'));
     }
   }
 
@@ -394,41 +394,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
               child: ListView(
                 controller: controller,
                 padding: const EdgeInsets.all(20),
-                children: const [
-                  _PolicySection(title: '제1조 (수집하는 개인정보 항목)',
-                    content: '2FIT MALL은 회원가입 및 서비스 이용을 위해 아래와 같은 개인정보를 수집합니다.\n\n'
-                        '• 필수항목: 이름, 이메일 주소, 비밀번호, 휴대폰 번호\n'
-                        '• 선택항목: 마케팅 수신 동의\n'
-                        '• 자동수집: 서비스 이용기록, 접속 로그, 쿠키, IP 주소'),
-                  _PolicySection(title: '제2조 (개인정보의 수집 및 이용목적)',
-                    content: '• 회원가입 및 본인 확인\n'
-                        '• 서비스 제공 및 계약 이행\n'
-                        '• 주문/배송/결제 처리\n'
-                        '• 고객 문의 및 불만 처리\n'
-                        '• 마케팅 및 광고 활용 (동의 시)'),
-                  _PolicySection(title: '제3조 (개인정보 보유 및 이용기간)',
-                    content: '회원 탈퇴 시 즉시 삭제합니다. 단, 관련 법령에 따라 아래 기간 동안 보관합니다.\n\n'
-                        '• 계약/청약철회 기록: 5년 (전자상거래법)\n'
-                        '• 소비자 불만/분쟁처리 기록: 3년\n'
-                        '• 접속 로그: 3개월 (통신비밀보호법)'),
-                  _PolicySection(title: '제4조 (개인정보 제3자 제공)',
-                    content: '2FIT MALL은 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. '
-                        '단, 배송 처리를 위해 택배사에 최소한의 정보(수령인, 주소, 연락처)를 제공합니다.'),
-                  _PolicySection(title: '제5조 (개인정보처리 위탁)',
-                    content: '• Firebase (Google): 회원 인증 및 데이터 저장\n'
-                        '• EmailJS: 이메일 발송 서비스\n'
-                        '• 택배사: 배송 처리'),
-                  _PolicySection(title: '제6조 (이용자의 권리)',
-                    content: '이용자는 언제든지 아래 권리를 행사할 수 있습니다.\n\n'
-                        '• 개인정보 열람 요청\n'
-                        '• 오류 정정 요청\n'
-                        '• 삭제 요청 (회원 탈퇴)\n'
-                        '• 처리 정지 요청\n\n'
-                        '문의: chw243527@gmail.com'),
-                  _PolicySection(title: '제7조 (개인정보 보호책임자)',
-                    content: '• 책임자: 2FIT MALL 운영팀\n'
-                        '• 이메일: chw243527@gmail.com\n\n'
-                        '본 방침은 2025년 3월 21일부터 적용됩니다.'),
+                children: [
+                  _PolicySection(title: context.loc.t('제1조_수집하는_개인정보_항목', '제1조 (수집하는 개인정보 항목)'),
+                    content: context.loc.t('개인정보_수집항목_전체', '2FIT MALL은 회원가입 및 서비스 이용을 위해 아래와 같은 개인정보를 수집합니다.\n\n• 필수항목: 이름, 이메일 주소, 비밀번호, 휴대폰 번호\n• 선택항목: 마케팅 수신 동의\n• 자동수집: 서비스 이용기록, 접속 로그, 쿠키, IP 주소')),
+                  _PolicySection(title: context.loc.t('제2조_개인정보의_수집_및_이용목적', '제2조 (개인정보의 수집 및 이용목적)'),
+                    content: context.loc.t('개인정보_이용목적_전체', '• 회원가입 및 본인 확인\n• 서비스 제공 및 계약 이행\n• 주문/배송/결제 처리\n• 고객 문의 및 불만 처리\n• 마케팅 및 광고 활용 (동의 시)')),
+                  _PolicySection(title: context.loc.t('제3조_개인정보_보유_및_이용기간', '제3조 (개인정보 보유 및 이용기간)'),
+                    content: context.loc.t('개인정보_보유기간_전체', '회원 탈퇴 시 즉시 삭제합니다. 단, 관련 법령에 따라 아래 기간 동안 보관합니다.\n\n• 계약/청약철회 기록: 5년 (전자상거래법)\n• 소비자 불만/분쟁처리 기록: 3년\n• 접속 로그: 3개월 (통신비밀보호법)')),
+                  _PolicySection(title: context.loc.t('제4조_개인정보_제3자_제공', '제4조 (개인정보 제3자 제공)'),
+                    content: context.loc.t('k_2fit_mall은_원칙적으로_이용자의_개인정보를_외부', '2FIT MALL은 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 단, 배송 처리를 위해 택배사에 최소한의 정보(수령인, 주소, 연락처)를 제공합니다.')),
+                  _PolicySection(title: context.loc.t('제5조_개인정보처리_위탁', '제5조 (개인정보처리 위탁)'),
+                    content: context.loc.t('개인정보_처리위탁_전체', '• Firebase (Google): 회원 인증 및 데이터 저장\n• EmailJS: 이메일 발송 서비스\n• 택배사: 배송 처리')),
+                  _PolicySection(title: context.loc.t('제6조_이용자의_권리', '제6조 (이용자의 권리)'),
+                    content: context.loc.t('이용자_권리_전체', '이용자는 언제든지 아래 권리를 행사할 수 있습니다.\n\n• 개인정보 열람 요청\n• 오류 정정 요청\n• 삭제 요청 (회원 탈퇴)\n• 처리 정지 요청\n\n문의: chw243527@gmail.com')),
+                  _PolicySection(title: context.loc.t('제7조_개인정보_보호책임자', '제7조 (개인정보 보호책임자)'),
+                    content: context.loc.t('개인정보_보호책임자_전체', '• 책임자: 2FIT MALL 운영팀\n• 이메일: chw243527@gmail.com\n\n본 방침은 2025년 3월 21일부터 적용됩니다.')),
                 ],
               ),
             ),
@@ -471,28 +451,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
               child: ListView(
                 controller: controller,
                 padding: const EdgeInsets.all(20),
-                children: const [
-                  _PolicySection(title: '제1조 (목적)',
-                    content: '본 약관은 2FIT MALL(이하 "회사")이 제공하는 쇼핑몰 서비스의 이용조건 및 절차, '
-                        '회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.'),
-                  _PolicySection(title: '제2조 (회원가입)',
-                    content: '• 만 14세 이상 이용 가능합니다.\n'
-                        '• 타인의 정보 도용 가입은 금지됩니다.\n'
-                        '• 허위 정보 제공 시 서비스 이용이 제한될 수 있습니다.'),
-                  _PolicySection(title: '제3조 (서비스 이용)',
-                    content: '• 서비스는 연중무휴 24시간 제공을 원칙으로 합니다.\n'
-                        '• 시스템 정기점검, 천재지변 등 불가피한 경우 서비스가 중단될 수 있습니다.'),
-                  _PolicySection(title: '제4조 (구매 및 결제)',
-                    content: '• 주문 후 입금 확인 시 배송이 시작됩니다.\n'
-                        '• 단순 변심에 의한 반품은 수령 후 7일 이내 가능합니다.\n'
-                        '• 상품 하자의 경우 수령 후 3개월 이내 교환/환불이 가능합니다.'),
-                  _PolicySection(title: '제5조 (금지행위)',
-                    content: '• 타인의 계정 무단 사용\n'
-                        '• 서비스 운영 방해\n'
-                        '• 허위 리뷰 작성\n'
-                        '• 불법 콘텐츠 유포'),
-                  _PolicySection(title: '제6조 (면책조항)',
-                    content: '천재지변, 전쟁 등 불가항력으로 인한 서비스 중단에 대해 회사는 책임을 지지 않습니다.'),
+                children: [
+                  _PolicySection(title: context.loc.t('제1조_목적', '제1조 (목적)'),
+                    content: context.loc.t('본_약관은_2fit_mall이하_회사이_제공하는_쇼핑몰', '본 약관은 2FIT MALL(이하 "회사")이 제공하는 쇼핑몰 서비스의 이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.')),
+                  _PolicySection(title: context.loc.t('제2조_회원가입', '제2조 (회원가입)'),
+                    content: context.loc.t('회원가입조건_전체', '• 만 14세 이상 이용 가능합니다.\n• 타인의 정보 도용 가입은 금지됩니다.\n• 허위 정보 제공 시 서비스 이용이 제한될 수 있습니다.')),
+                  _PolicySection(title: context.loc.t('제3조_서비스_이용', '제3조 (서비스 이용)'),
+                    content: context.loc.t('서비스는_연중무휴_24시간_제공을_원칙으로_합니다n_시', '• 서비스는 연중무휴 24시간 제공을 원칙으로 합니다.\n• 시스템 정기점검, 천재지변 등 불가피한 경우 서비스가 중단될 수 있습니다.')),
+                  _PolicySection(title: context.loc.t('제4조_구매_및_결제', '제4조 (구매 및 결제)'),
+                    content: context.loc.t('구매결제조건_전체', '• 주문 후 입금 확인 시 배송이 시작됩니다.\n• 단순 변심에 의한 반품은 수령 후 7일 이내 가능합니다.\n• 상품 하자의 경우 수령 후 3개월 이내 교환/환불이 가능합니다.')),
+                  _PolicySection(title: context.loc.t('제5조_금지행위', '제5조 (금지행위)'),
+                    content: context.loc.t('금지행위_전체', '• 타인의 계정 무단 사용\n• 서비스 운영 방해\n• 허위 리뷰 작성\n• 불법 콘텐츠 유포')),
+                  _PolicySection(title: context.loc.t('제6조_면책조항', '제6조 (면책조항)'),
+                    content: context.loc.t('천재지변_전쟁_등_불가항력으로_인한_서비스_중단에_대해', '천재지변, 전쟁 등 불가항력으로 인한 서비스 중단에 대해 회사는 책임을 지지 않습니다.')),
                 ],
               ),
             ),
@@ -533,7 +504,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
     // 전화번호 인증 필수 확인
     if (!_phoneVerified) {
-      _showSnack('전화번호 인증을 완료해주세요.');
+      _showSnack(context.loc.t('전화번호_인증을_완료해주세요', '전화번호 인증을 완료해주세요.'));
       return;
     }
 
@@ -770,12 +741,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 16),
 
                 // ── 휴대폰 (국제번호 + SMS 인증) ──
-                _buildLabel('휴대폰 번호 * (SMS 인증 필수)'),
+                _buildLabel(context.loc.t('휴대폰_번호_sms_인증_필수', '휴대폰 번호 * (SMS 인증 필수)')),
                 const SizedBox(height: 4),
                 Text(
                   _selectedCountry.code == '+82'
-                      ? '한국: 010-0000-0000 형식으로 자동 입력됩니다.'
-                      : '국가 코드 선택 후 번호를 입력해주세요.',
+                      ? context.loc.t('한국_01000000000_형식으로_자동_입력됩니다', '한국: 010-0000-0000 형식으로 자동 입력됩니다.')
+                      : context.loc.t('국가_코드_선택_후_번호를_입력해주세요', '국가 코드 선택 후 번호를 입력해주세요.'),
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                 ),
                 const SizedBox(height: 8),
@@ -857,15 +828,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       ),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return '휴대폰 번호는 필수입니다.';
+                        if (v == null || v.trim().isEmpty) return context.loc.t('휴대폰_번호는_필수입니다', '휴대폰 번호는 필수입니다.');
                         final digits = v.replaceAll(RegExp(r'[^0-9]'), '');
                         if (_selectedCountry.code == '+82') {
                           if (digits.length < 9 || digits.length > 11) {
-                            return '올바른 한국 휴대폰 번호를 입력해주세요.';
+                            return context.loc.t('올바른_한국_휴대폰_번호를_입력해주세요', '올바른 한국 휴대폰 번호를 입력해주세요.');
                           }
                         } else {
                           if (digits.length < 6 || digits.length > 15) {
-                            return '올바른 전화번호를 입력해주세요. (6~15자리)';
+                            return context.loc.t('올바른_전화번호를_입력해주세요_615자리', '올바른 전화번호를 입력해주세요. (6~15자리)');
                           }
                         }
                         return null;
@@ -893,7 +864,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           : _phoneVerified
                               ? const Icon(Icons.check, color: Colors.white, size: 18)
                               : Text(
-                                  _otpSent ? '재발송' : '인증받기',
+                                  _otpSent ? context.loc.t('재발송', '재발송') : context.loc.t('인증받기', '인증받기'),
                                   style: const TextStyle(fontSize: 12, color: Colors.white),
                                 ),
                     ),
@@ -1021,7 +992,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 8),
                 _buildField(
                   controller: _passwordCtrl,
-                  hint: '8자 이상, 대/소문자, 숫자, 특수문자',
+                  hint: context.loc.t('k_8자_이상_대소문자_숫자_특수문자', '8자 이상, 대/소문자, 숫자, 특수문자'),
                   icon: Icons.lock_outline_rounded,
                   obscure: _obscurePass,
                   suffixIcon: IconButton(
@@ -1030,10 +1001,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     onPressed: () => setState(() => _obscurePass = !_obscurePass),
                   ),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return '비밀번호를 입력해주세요.';
-                    if (v.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
+                    if (v == null || v.isEmpty) return context.loc.t('비밀번호를_입력해주세요', '비밀번호를 입력해주세요.');
+                    if (v.length < 8) return context.loc.t('비밀번호는_8자_이상이어야_합니다', '비밀번호는 8자 이상이어야 합니다.');
                     if (_passwordChecks.where((c) => c).length < 3) {
-                      return '비밀번호 강도가 부족합니다.';
+                      return context.loc.t('비밀번호_강도가_부족합니다', '비밀번호 강도가 부족합니다.');
                     }
                     return null;
                   },

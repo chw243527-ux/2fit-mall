@@ -89,8 +89,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     _sectionImages = Map<String, List<String>>.from(widget.product.sectionImages);
     _mainImages = List<String>.from(widget.product.images);
     // 성별 기본값: 남성 → 하의 5부 자동 설정
-    _singletGender = '남';
-    _selectedBottomLength = '5부';
+    _singletGender = context.loc.t('남', '남');
+    _selectedBottomLength = context.loc.t('k_5부', '5부');
     // 패럴랙스 비활성화: 이미지 잘림 방지를 위해 오프셋 항상 0 유지
     _imageOffsetNotifier.value = 0;
     // 스크롤 위치에 따라 탭 자동 추적
@@ -746,7 +746,7 @@ $productUrl
                 _shareOption(
                   icon: Icons.link_rounded,
                   color: const Color(0xFF6C63FF),
-                  label: '링크 복사',
+                  label: context.loc.t('링크_복사', '링크 복사'),
                   onTap: () {
                     Navigator.pop(context);
                     Clipboard.setData(ClipboardData(text: productUrl));
@@ -760,7 +760,7 @@ $productUrl
                   icon: Icons.chat_bubble_rounded,
                   color: const Color(0xFFFFE812),
                   iconColor: const Color(0xFF3A1D1D),
-                  label: '카카오톡',
+                  label: context.loc.t('카카오톡', '카카오톡'),
                   onTap: () async {
                     Navigator.pop(context);
                     await _shareViaKakao(product, productUrl);
@@ -770,7 +770,7 @@ $productUrl
                 _shareOption(
                   icon: Icons.share_rounded,
                   color: const Color(0xFF1A1A1A),
-                  label: '기타 공유',
+                  label: context.loc.t('기타_공유', '기타 공유'),
                   onTap: () {
                     Navigator.pop(context);
                     SharePlus.instance.share(ShareParams(text: text, subject: product.name));
@@ -780,7 +780,7 @@ $productUrl
                 _shareOption(
                   icon: Icons.support_agent_rounded,
                   color: const Color(0xFF2DB400),
-                  label: '채널 문의',
+                  label: context.loc.t('채널_문의', '채널 문의'),
                   onTap: () {
                     Navigator.pop(context);
                     _openKakaoChannel();
@@ -1019,17 +1019,17 @@ $productUrl
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
               child: Row(children: [
-                _toptenTabChip(context.loc.t('기성품', '기성품'), true, activeColor: Colors.teal),
+                _toptenTabChip('기성품', true, activeColor: Colors.teal),
               ]),
             ),
           if (product.isGroupOnly)
             Padding(
               padding: EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(0)),
               child: Row(children: [
-                _toptenTabChip(context.loc.t('단체전용', '단체전용'), true, activeColor: Color(0xFF6A1B9A)),
+                _toptenTabChip('단체전용', true, activeColor: Color(0xFF6A1B9A)),
                 if (product.isReadyMade) ...[
                   SizedBox(width: r.w(8)),
-                  _toptenTabChip(context.loc.t('기성품', '기성품'), true, activeColor: Colors.teal),
+                  _toptenTabChip('기성품', true, activeColor: Colors.teal),
                 ],
               ]),
             ),
@@ -1119,7 +1119,7 @@ $productUrl
                 ),
                 SizedBox(width: r.w(4)),
                 Text(
-                  context.loc.t('리뷰 _  0  productreviewCount  0건', '리뷰 ${product.reviewCount > 0 ? product.reviewCount : 0}건'),
+                  '리뷰 ${product.reviewCount > 0 ? product.reviewCount : 0}건',
                   style: TextStyle(fontSize: r.sp(13), color: Color(0xFF888888), fontWeight: FontWeight.w500),
                 ),
                 const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF888888)),
@@ -1205,7 +1205,7 @@ $productUrl
           Padding(
             padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(10)),
             child: Text(
-              context.loc.t('시즌  SS26    상품번호  _  productproductCodetoU_d88869', '시즌 : SS26  |  상품번호 : ${product.productCode.isNotEmpty ? product.productCode.toUpperCase() : product.id.toUpperCase()}'),
+              '시즌 : SS26  |  상품번호 : ${product.productCode.isNotEmpty ? product.productCode.toUpperCase() : product.id.toUpperCase()}',
               style: TextStyle(fontSize: r.sp(11), color: Color(0xFFAAAAAA), fontWeight: FontWeight.w400),
             ),
           ),
@@ -1217,10 +1217,10 @@ $productUrl
             padding: EdgeInsets.fromLTRB(r.w(16), r.h(0), r.w(16), r.h(14)),
             child: Wrap(spacing: 6, runSpacing: 6, children: [
               _hashtagChip('#2fit'),
-              _hashtagChip('#스포츠웨어'),
-              if (product.isFreeShipping) _hashtagChip('#무료배송'),
-              if (product.isNewActive) _hashtagChip('#신상품'),
-              if (product.isSale) _hashtagChip('#세일'),
+              _hashtagChip(context.loc.t('스포츠웨어', '#스포츠웨어')),
+              if (product.isFreeShipping) _hashtagChip(context.loc.t('무료배송', '#무료배송')),
+              if (product.isNewActive) _hashtagChip(context.loc.t('신상품', '#신상품')),
+              if (product.isSale) _hashtagChip(context.loc.t('세일', '#세일')),
               _hashtagChip('#${product.category}'),
             ]),
           ),
@@ -1266,8 +1266,8 @@ $productUrl
     final name = product.name;
     final showRib = product.isGroupOnly && product.category == '하의'
         || sub.contains(context.loc.t('타이즈', '타이즈')) || name.contains(context.loc.t('타이즈', '타이즈'))
-        || sub.contains('5부')    || name.contains('5부')
-        || sub.contains('2.5부')  || name.contains('2.5부');
+        || sub.contains(context.loc.t('k_5부', '5부'))    || name.contains(context.loc.t('k_5부', '5부'))
+        || sub.contains(context.loc.t('k_25부', '2.5부'))  || name.contains(context.loc.t('k_25부', '2.5부'));
 
     return StatefulBuilder(builder: (ctx, setSt) {
       final r = Responsive.of(context);
@@ -1322,7 +1322,7 @@ $productUrl
                 SizedBox(width: r.w(4)),
                 Expanded(
                   child: Text(
-                    context.loc.t('화면에 표시된 색상은 모니터 환경에 따라 실제 제품과 약간의 차이가 있을 수 있습니다', '화면에 표시된 색상은 모니터 환경에 따라 실제 제품과 약간의 차이가 있을 수 있습니다.'),
+                    '화면에 표시된 색상은 모니터 환경에 따라 실제 제품과 약간의 차이가 있을 수 있습니다.',
                     style: TextStyle(fontSize: r.sp(10), color: Color(0xFFBBBBBB), height: 1.45),
                   ),
                 ),
@@ -1483,10 +1483,10 @@ $productUrl
 
   Widget _buildToptenTabBar() {
     final tabs = [
-      (context.loc.t('상품정보', '상품정보'), 0, _keyInfo),
-      (context.loc.t('사이즈', '사이즈'),   1, _keySize),
-      (context.loc.t('세탁', '세탁'),     2, _keyWashing),
-      (context.loc.t('리뷰', '리뷰'),     3, _keyReview),
+      ('상품정보', 0, _keyInfo),
+      ('사이즈',   1, _keySize),
+      ('세탁',     2, _keyWashing),
+      ('리뷰',     3, _keyReview),
     ];
     return Container(
       color: Colors.white,
@@ -1544,15 +1544,15 @@ $productUrl
 
     // ── 카테고리 판별 헬퍼 ──────────────────────────────────────
     final isSingletSet =
-        cat == '세트' ||
+        cat == context.loc.t('세트', '세트') ||
         sub.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         name.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         name.contains(context.loc.t('싱글렛 세트', '싱글렛 세트'));
     final isSingletTop =
         !isSingletSet &&
-        (cat == '상의' || sub.contains('싱글렛') || name.contains('싱글렛'));
+        (cat == context.loc.t('상의', '상의') || sub.contains(context.loc.t('싱글렛', '싱글렛')) || name.contains(context.loc.t('싱글렛', '싱글렛')));
     final isTaiz =
-        sub.contains('타이즈') || name.contains('타이즈') || cat == '하의';
+        sub.contains(context.loc.t('타이즈', '타이즈')) || name.contains(context.loc.t('타이즈', '타이즈')) || cat == context.loc.t('하의', '하의');
     final isGroupOnly = product.isGroupOnly;
 
     // ── 1) MATERIAL: 카테고리별 소재 텍스트 ─────────────────────
@@ -1567,9 +1567,9 @@ $productUrl
     } else if (isSingletSet) {
       materialText = '상의: 폴리에스터 92% / 라이크라 8%\n하의: 나일론 75% / 라이크라 25%';
     } else if (isSingletTop) {
-      materialText = '폴리에스터 92% / 라이크라 8%';
+      materialText = context.loc.t('폴리에스터_92_라이크라_8', '폴리에스터 92% / 라이크라 8%');
     } else if (isTaiz) {
-      materialText = '나일론 75% / 라이크라 25%';
+      materialText = context.loc.t('나일론_75_라이크라_25', '나일론 75% / 라이크라 25%');
     } else if (product.material.isNotEmpty) {
       materialText = product.material;
     } else {
@@ -1591,7 +1591,7 @@ $productUrl
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _infoColorBadge(
-            label: '단체주문 전용',
+            label: context.loc.t('단체주문_전용', '단체주문 전용'),
             labelColor: const Color(0xFF4A148C),
             text: '골지원단 19가지 기본 색상 중 원하는 색상으로 자유롭게 제작 가능',
           ),
@@ -1632,7 +1632,7 @@ $productUrl
                       ),
                       SizedBox(height: r.h(2)),
                       Text(
-                        context.loc.t('원하시는 색상이 있다면 주문 시 별도로 알려주세요', '원하시는 색상이 있다면 주문 시 별도로 알려주세요.'),
+                        '원하시는 색상이 있다면 주문 시 별도로 알려주세요.',
                         style: TextStyle(fontSize: r.sp(10.5), color: Color(0xFF6A1B9A), height: 1.45),
                       ),
                     ],
@@ -1647,12 +1647,12 @@ $productUrl
       // 기성품: 타이즈·5부·2.5부는 골지, 그 외(숏츠 등)는 단색
       final isRibBottom =
           sub.contains(context.loc.t('타이즈', '타이즈')) || name.contains(context.loc.t('타이즈', '타이즈')) ||
-          sub.contains('5부')    || name.contains('5부')    ||
-          sub.contains('2.5부')  || name.contains('2.5부');
+          sub.contains(context.loc.t('k_5부', '5부'))    || name.contains(context.loc.t('k_5부', '5부'))    ||
+          sub.contains(context.loc.t('k_25부', '2.5부'))  || name.contains(context.loc.t('k_25부', '2.5부'));
       final useRib = isRibBottom;
       colorContent = product.colors.isNotEmpty
           ? _infoColorChipRow(product.colors, useRib: useRib)
-          : Text(context.loc.t('등록된 색상 정보가 없습니다', '등록된 색상 정보가 없습니다.'),
+          : Text(context.loc.t('등록된_색상_정보가_없습니다', '등록된 색상 정보가 없습니다.'),
               style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888)));
     }
 
@@ -1664,14 +1664,14 @@ $productUrl
       bottomLengthValue = product.bottomLength;
     } else if (!isGroupOnly && isSingletSet) {
       // 싱글렛세트 기성품 기본값
-      bottomLengthValue = '남성: 5부 고정  /  여성: 2.5부 고정';
+      bottomLengthValue = context.loc.t('남성_5부_고정_여성_25부_고정', '남성: 5부 고정  /  여성: 2.5부 고정');
     } else if (!isGroupOnly && isTaiz) {
       // 하의 타이즈 기성품: subCategory에 길이 정보 있으면 사용
       final lengthLabel = sub.contains('9부') ? '9부'
-          : sub.contains('5부') ? '5부'
-          : sub.contains('4부') ? '4부'
-          : sub.contains('3부') ? '3부'
-          : sub.contains('2.5부') ? '2.5부'
+          : sub.contains(context.loc.t('k_5부', '5부')) ? '5부'
+          : sub.contains(context.loc.t('k_4부', '4부')) ? '4부'
+          : sub.contains(context.loc.t('k_3부', '3부')) ? '3부'
+          : sub.contains(context.loc.t('k_25부', '2.5부')) ? '2.5부'
           : sub.contains(context.loc.t('숏쇼츠', '숏쇼츠')) ? context.loc.t('숏쇼츠', '숏쇼츠')
           : null;
       if (lengthLabel != null) bottomLengthValue = lengthLabel;
@@ -1695,7 +1695,7 @@ $productUrl
           _toptenInfoBlock(
             num: '01',
             label: 'INFO',
-            labelSub: context.loc.t('제품 설명', '제품 설명'),
+            labelSub: '제품 설명',
             content: Text(
               product.localizedDescription(_lang),
               style: TextStyle(
@@ -1712,14 +1712,14 @@ $productUrl
           _toptenInfoBlock(
             num: productBlockNum.toString().padLeft(2, '0'),
             label: 'PRODUCT',
-            labelSub: context.loc.t('제품 기본 정보', '제품 기본 정보'),
+            labelSub: '제품 기본 정보',
             content: _toptenInfoTable([
-              (context.loc.t('제품명', '제품명'), product.localizedName(_lang)),
-              if (product.subCategory.isNotEmpty) (context.loc.t('분류', '분류'), product.subCategory),
-              (context.loc.t('상품코드', '상품코드'), productCode),
-              (context.loc.t('시즌', '시즌'), 'SS26'),
+              ('제품명', product.localizedName(_lang)),
+              if (product.subCategory.isNotEmpty) ('분류', product.subCategory),
+              ('상품코드', productCode),
+              ('시즌', 'SS26'),
               // 하의길이 행: 해당 카테고리만
-              if (bottomLengthValue != null) (context.loc.t('하의길이', '하의길이'), bottomLengthValue),
+              if (bottomLengthValue != null) ('하의길이', bottomLengthValue),
             ]),
           ),
 
@@ -1727,7 +1727,7 @@ $productUrl
           _toptenInfoBlock(
             num: materialBlockNum.toString().padLeft(2, '0'),
             label: 'MATERIAL',
-            labelSub: context.loc.t('소재 정보', '소재 정보'),
+            labelSub: '소재 정보',
             content: Text(
               materialText,
               style: TextStyle(
@@ -1743,7 +1743,7 @@ $productUrl
           _toptenInfoBlock(
             num: colorBlockNum.toString().padLeft(2, '0'),
             label: 'COLOR',
-            labelSub: context.loc.t('색상 안내', '색상 안내'),
+            labelSub: '색상 안내',
             content: colorContent,
             isLast: true,
           ),
@@ -1820,32 +1820,32 @@ $productUrl
     'Orange':   Color(0xFFFE6502),
     'Mint':     Color(0xFF26C9A0),
     // ── 한글 색상명 매핑 ──────────────────────────────────
-    '블랙':       Color(0xFF3A3A3A),
-    '화이트':     Color(0xFFF2F2F2),
-    '네이비':     Color(0xFF2A3668),
-    '그레이':     Color(0xFF9E9E9E),
-    '다크그레이':  Color(0xFF424242),
-    '스카이블루':  Color(0xFF92C9F8),
-    '블루':       Color(0xFF3A6ACD),
+    '블랙':   Color(0xFF3A3A3A),
+    '화이트':   Color(0xFFF2F2F2),
+    '네이비':   Color(0xFF2A3668),
+    '그레이':   Color(0xFF9E9E9E),
+    '다크그레이':   Color(0xFF424242),
+    '스카이블루':   Color(0xFF92C9F8),
+    '블루':   Color(0xFF3A6ACD),
     '다크블루':   Color(0xFF485685),
     '스킨핑크':   Color(0xFFE7C6BF),
-    '라이트핑크':  Color(0xFFE6A8B1),
+    '라이트핑크':   Color(0xFFE6A8B1),
     '아이보리':   Color(0xFFD2CEC3),
-    '라이트그레이': Color(0xFFBDBDBD),
-    '레드':       Color(0xFFE03430),
-    '퍼플네이비':  Color(0xFF363752),
-    '올리브그린':  Color(0xFF4B5441),
-    '틸블루':     Color(0xFF116977),
+    '라이트그레이':   Color(0xFFBDBDBD),
+    '레드':   Color(0xFFE03430),
+    '퍼플네이비':   Color(0xFF363752),
+    '올리브그린':   Color(0xFF4B5441),
+    '틸블루':   Color(0xFF116977),
     '형광핑크':   Color(0xFFFD1691),
-    '형광오렌지':  Color(0xFFFE6502),
+    '형광오렌지':   Color(0xFFFE6502),
     '형광그린':   Color(0xFF7FD905),
-    '퍼플':       Color(0xFF363752),
-    '핑크':       Color(0xFFE6A8B1),
-    '그린':       Color(0xFF4B5441),
-    '옐로우':     Color(0xFFFFD600),
-    '브라운':     Color(0xFF795548),
-    '베이지':     Color(0xFFD2CEC3),
-    '민트':       Color(0xFF26C9A0),
+    '퍼플':   Color(0xFF363752),
+    '핑크':   Color(0xFFE6A8B1),
+    '그린':   Color(0xFF4B5441),
+    '옐로우':   Color(0xFFFFD600),
+    '브라운':   Color(0xFF795548),
+    '베이지':   Color(0xFFD2CEC3),
+    '민트':   Color(0xFF26C9A0),
   };
 
   // ── 색상 칩: 원형 스와치 (useRib=true 이면 골지 텍스처, false 이면 단색)
@@ -2018,12 +2018,12 @@ $productUrl
     final r = Responsive.of(context);
     // 아이콘+설명 세탁 가이드 항목
     final washGuide = [
-      (Icons.water_drop_outlined,      context.loc.t('찬물 세탁', '찬물 세탁'),    '30°C 이하 찬물 사용 권장'),
-      (Icons.front_hand_outlined,      context.loc.t('손세탁 권장', '손세탁 권장'),  context.loc.t('세탁기 사용 시 단독 세탁', '세탁기 사용 시 단독 세탁')),
-      (Icons.air_outlined,             context.loc.t('자연 건조', '자연 건조'),    context.loc.t('열풍 건조 금지  수축 원인', '열풍 건조 금지 — 수축 원인')),
-      (Icons.lock_outline_rounded,     context.loc.t('지퍼단추 잠금', '지퍼/단추 잠금'), context.loc.t('세탁 전 지퍼·단추를 잠근 후 세탁', '세탁 전 지퍼·단추를 잠근 후 세탁')),
-      (Icons.color_lens_outlined,      context.loc.t('색상 분리', '색상 분리'),    context.loc.t('흰색·유색 제품 반드시 분리 세탁', '흰색·유색 제품 반드시 분리 세탁')),
-      (Icons.timer_outlined,           context.loc.t('즉시 세탁', '즉시 세탁'),    context.loc.t('땀·물에 젖은 즉시 세탁', '땀·물에 젖은 즉시 세탁')),
+      (Icons.water_drop_outlined,      '찬물 세탁',    '30°C 이하 찬물 사용 권장'),
+      (Icons.front_hand_outlined,      '손세탁 권장',  context.loc.t('세탁기 사용 시 단독 세탁', '세탁기 사용 시 단독 세탁')),
+      (Icons.air_outlined,             '자연 건조',    context.loc.t('열풍 건조 금지  수축 원인', '열풍 건조 금지 — 수축 원인')),
+      (Icons.lock_outline_rounded,     '지퍼/단추 잠금', context.loc.t('세탁 전 지퍼·단추를 잠근 후 세탁', '세탁 전 지퍼·단추를 잠근 후 세탁')),
+      (Icons.color_lens_outlined,      '색상 분리',    context.loc.t('흰색·유색 제품 반드시 분리 세탁', '흰색·유색 제품 반드시 분리 세탁')),
+      (Icons.timer_outlined,           '즉시 세탁',    context.loc.t('땀·물에 젖은 즉시 세탁', '땀·물에 젖은 즉시 세탁')),
     ];
 
     return Container(
@@ -2139,7 +2139,7 @@ $productUrl
                     ),
                   ),
                   child: Text(
-                    context.loc.t('재고는 조기 소진될 수 있으며 소비자 부주의로 인한 제품 손상은 보상이 되지_0f2108', '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.'),
+                    '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.',
                     style: TextStyle(fontSize: r.sp(11), color: Color(0xFF666666), height: 1.65),
                   ),
                 ),
@@ -2373,7 +2373,7 @@ $productUrl
     final isTaiz = product.category == '하의' ||
         product.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
         product.name.contains(context.loc.t('타이즈', '타이즈'));
-    final label = isTaiz ? context.loc.t('타이즈', '타이즈') : context.loc.t('기성품', '기성품');
+    final label = isTaiz ? '타이즈' : '기성품';
     final subtitle = isTaiz
         ? context.loc.t('색상을 선택하세요 19가지', '색상을 선택하세요 (19가지)')
         : context.loc.t('상의는 디자인 색상 그대로 제작 하의 색상은 선택 가능합니다', '상의는 디자인 색상 그대로 제작, 하의 색상은 선택 가능합니다.');
@@ -2412,7 +2412,7 @@ $productUrl
                         style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w800, color: Colors.white)),
                     ),
                     SizedBox(width: r.w(6)),
-                    Text(context.loc.t('하의 색상 선택', '하의 색상 선택'),
+                    Text(context.loc.t('하의_색상_선택', '하의 색상 선택'),
                       style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800, color: Color(0xFF1565C0))),
                   ],
                 ),
@@ -2452,7 +2452,7 @@ $productUrl
         product.category.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         product.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
-        (product.category == '세트' && product.name.contains('싱글렛'));
+        (product.category == context.loc.t('세트', '세트') && product.name.contains(context.loc.t('싱글렛', '싱글렛')));
 
     // 싱글렛세트: 남/여 선택 → 5부/2.5부 자동고정 UI
     if (isSingletSet) {
@@ -2497,9 +2497,9 @@ $productUrl
             // 남/여 선택 버튼
             Row(
               children: [
-                _inlineGenderBtn(context.loc.t('남', '남'), loc.male, loc.maleBottomSub),
+                _inlineGenderBtn('남', loc.male, loc.maleBottomSub),
                 SizedBox(width: r.w(8)),
-                _inlineGenderBtn(context.loc.t('여', '여'), loc.female, loc.femaleBottomSub),
+                _inlineGenderBtn('여', loc.female, loc.femaleBottomSub),
               ],
             ),
             SizedBox(height: r.h(8)),
@@ -2518,7 +2518,7 @@ $productUrl
                   const Icon(Icons.straighten_rounded, size: 14, color: Color(0xFF6A1B9A)),
                   SizedBox(width: r.w(6)),
                   Text(
-                    context.loc.t('하의 기장 _  남  5부 55cm  25부 30cm 확정', '하의 기장 ${_singletGender == "남" ? "5부 (~55cm)" : "2.5부 (~30cm)"} 확정'),
+                    '하의 기장 ${_singletGender == "남" ? "5부 (~55cm)" : "2.5부 (~30cm)"} 확정',
                     style: TextStyle(
                         fontSize: r.sp(12),
                         fontWeight: FontWeight.w700,
@@ -2645,7 +2645,7 @@ $productUrl
         onTap: () => setState(() {
           _singletGender = code;
           // 성별 선택 시 하의길이 자동 선택 (싱글렛세트: 남=5부, 여=2.5부)
-          _selectedBottomLength = code == '남' ? '5부' : '2.5부';
+          _selectedBottomLength = code == context.loc.t('남', '남') ? '5부' : '2.5부';
         }),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
@@ -2662,7 +2662,7 @@ $productUrl
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                code == '남' ? Icons.male_rounded : Icons.female_rounded,
+                code == context.loc.t('남', '남') ? Icons.male_rounded : Icons.female_rounded,
                 size: 20,
                 color: isSel ? Colors.white : const Color(0xFF888888),
               ),
@@ -2786,20 +2786,20 @@ $productUrl
     // ── 카테고리 판별 ──────────────────────────────────────────────
     // 싱글렛 A타입세트: 세트 카테고리 + subCategory/name에 싱글렛+A타입 포함
     final isSingletATypeSet =
-        (product.category == '세트' && product.subCategory.contains('싱글렛 A타입세트')) ||
+        (product.category == context.loc.t('세트', '세트') && product.subCategory.contains(context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트'))) ||
         product.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
-        (product.category == '세트' && product.name.contains('싱글렛') && product.name.contains('A타입'));
+        (product.category == context.loc.t('세트', '세트') && product.name.contains(context.loc.t('싱글렛', '싱글렛')) && product.name.contains(context.loc.t('a타입', 'A타입')));
 
     // 타이즈 / 하의 전체 (싱글렛세트 제외)
     final isTaiz = !isSingletATypeSet && (
-        product.category == '하의' ||
+        product.category == context.loc.t('하의', '하의') ||
         product.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
         product.name.contains(context.loc.t('타이즈', '타이즈')));
 
     // 트레이닝세트: 세트 카테고리 + 트레이닝 포함
     final isTrainingSet = !isSingletATypeSet && (
-        (product.category == '세트' && product.subCategory.contains('트레이닝세트')) ||
-        (product.category == '세트' && product.name.contains('트레이닝')));
+        (product.category == context.loc.t('세트', '세트') && product.subCategory.contains(context.loc.t('트레이닝세트', '트레이닝세트'))) ||
+        (product.category == context.loc.t('세트', '세트') && product.name.contains(context.loc.t('트레이닝', '트레이닝'))));
 
     // 하의 길이 선택 표시 여부: 타이즈 or 싱글렛 A타입세트
     // ignore: unused_local_variable
@@ -2818,7 +2818,7 @@ $productUrl
     // 싱글렛세트 초기 길이 자동 설정 (남=5부, 여=2.5부)
     if (isSingletATypeSet) {
       final autoLength = _singletGender == '남' ? '5부' : '2.5부';
-      if (_selectedBottomLength != '5부' && _selectedBottomLength != '2.5부') {
+      if (_selectedBottomLength != context.loc.t('k_5부', '5부') && _selectedBottomLength != '2.5부') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) setState(() => _selectedBottomLength = autoLength);
         });
@@ -2867,7 +2867,7 @@ $productUrl
                           SizedBox(width: r.w(8)),
                           Expanded(
                             child: Text(
-                              isSingletSet ? context.loc.t('하의 색상 선택 안내', '하의 색상 선택 안내') : context.loc.t('기성품 색상 안내', '기성품 색상 안내'),
+                              isSingletSet ? context.loc.t('하의 색상 선택 안내', '하의 색상 선택 안내') : '기성품 색상 안내',
                               style: TextStyle(
                                 fontSize: r.sp(14),
                                 fontWeight: FontWeight.w900,
@@ -2907,10 +2907,10 @@ $productUrl
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(context.loc.t('상의 색상  변경 불가', '상의 색상 — 변경 불가'),
+                                Text(context.loc.t('상의_색상___변경_불가', '상의 색상 — 변경 불가'),
                                   style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFFBF360C))),
                                 SizedBox(height: r.h(2)),
-                                Text(context.loc.t('디자인 색상 그대로 제작됩니다', '디자인 색상 그대로 제작됩니다'),
+                                Text(context.loc.t('디자인_색상_그대로_제작됩니_62921a', '디자인 색상 그대로 제작됩니다'),
                                   style: TextStyle(fontSize: r.sp(11), color: Color(0xFFBF360C).withValues(alpha: 0.8), height: 1.3)),
                               ],
                             ),
@@ -2948,12 +2948,12 @@ $productUrl
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(context.loc.t('하의 색상  선택 가능', '하의 색상 — 선택 가능'),
+                                Text(context.loc.t('하의_색상___선택_가능', '하의 색상 — 선택 가능'),
                                   style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFF1B5E20))),
                                 SizedBox(height: r.h(2)),
                                 Text(
                                   isSingletSet
-                                      ? '19가지 색상 중 하의 색상을 선택하세요'
+                                      ? context.loc.t('k_19가지_색상_중_하의_색상을_선택하세요', '19가지 색상 중 하의 색상을 선택하세요')
                                       : '19가지 색상 중 자유롭게 선택하세요',
                                   style: TextStyle(fontSize: r.sp(11), color: Color(0xFF1B5E20).withValues(alpha: 0.8), height: 1.3)),
                               ],
@@ -2981,7 +2981,7 @@ $productUrl
                           SizedBox(width: r.w(6)),
                           Expanded(
                             child: Text(
-                              context.loc.t('하의 색상 선택은 장바구니  바로구매 버튼을 눌러 진행하세요', '하의 색상 선택은 장바구니 / 바로구매 버튼을 눌러 진행하세요'),
+                              '하의 색상 선택은 장바구니 / 바로구매 버튼을 눌러 진행하세요',
                               style: TextStyle(fontSize: r.sp(10.5), color: Color(0xFF666666), height: 1.4),
                             ),
                           ),
@@ -3089,13 +3089,13 @@ $productUrl
             SizedBox(height: r.h(4)),
             const Divider(height: 1, color: Color(0xFFF0F0F0)),
             SizedBox(height: r.h(10)),
-            Text(context.loc.t('원단 선택', '원단 선택'),
+            Text(context.loc.t('원단_선택', '원단 선택'),
                 style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
             SizedBox(height: r.h(8)),
             Row(children: [
-              _fabricTypeBtn(context.loc.t('일반원단', '일반원단'), context.loc.t('기본 기능성 원단', '기본 기능성 원단'), Icons.layers_outlined),
+              _fabricTypeBtn('일반원단', '기본 기능성 원단', Icons.layers_outlined),
               SizedBox(width: r.w(8)),
-              _fabricTypeBtn(context.loc.t('심리스', '심리스'), context.loc.t('봉제선 없는 심리스', '봉제선 없는 심리스'), Icons.auto_awesome_outlined),
+              _fabricTypeBtn('심리스', '봉제선 없는 심리스', Icons.auto_awesome_outlined),
             ]),
             SizedBox(height: r.h(10)),
           ],
@@ -3168,9 +3168,9 @@ $productUrl
               style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
           SizedBox(height: r.h(8)),
           Row(children: [
-            _inlineGenderBtn(context.loc.t('남', '남'), loc.male, isSingletATypeSet ? loc.maleBottomSub : '', autoLength: isSingletATypeSet),
+            _inlineGenderBtn('남', loc.male, isSingletATypeSet ? loc.maleBottomSub : '', autoLength: isSingletATypeSet),
             SizedBox(width: r.w(8)),
-            _inlineGenderBtn(context.loc.t('여', '여'), loc.female, isSingletATypeSet ? loc.femaleBottomSub : '', autoLength: isSingletATypeSet),
+            _inlineGenderBtn('여', loc.female, isSingletATypeSet ? loc.femaleBottomSub : '', autoLength: isSingletATypeSet),
           ]),
 
           // ── 싱글렛 A타입세트: 성별에 따라 하의 길이 1개만 표시 ──
@@ -3181,10 +3181,10 @@ $productUrl
             Text(loc.bottomLengthTitle,
                 style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
             SizedBox(height: r.h(8)),
-            if (_singletGender == '남') ...[
-              _singletLengthOnlyBtn(label: '5부', desc: '~55 cm'),
+            if (_singletGender == context.loc.t('남', '남')) ...[
+              _singletLengthOnlyBtn(label: context.loc.t('5부', '5부'), desc: '~55 cm'),
             ] else ...[
-              _singletLengthOnlyBtn(label: '2.5부', desc: '~30 cm'),
+              _singletLengthOnlyBtn(label: context.loc.t('2_5부', '2.5부'), desc: '~30 cm'),
             ],
           ],
 
@@ -3324,7 +3324,7 @@ $productUrl
             ),
           ),
           SizedBox(height: r.h(10)),
-          _buildAdminImageSection('s2_length', context.loc.t('하의길이 참조 이미지', '하의길이 참조 이미지'), isAdmin),
+          _buildAdminImageSection('s2_length', '하의길이 참조 이미지', isAdmin),
         ] else ...[
           // 일반 유저: 업로드된 이미지 표시
           _buildStaticImageList(effectiveImgs),
@@ -3348,7 +3348,7 @@ $productUrl
                   const Icon(Icons.straighten_rounded, size: 14, color: Color(0xFF555555)),
                   SizedBox(width: r.w(6)),
                   Text(
-                    context.loc.t('왼쪽부터', '왼쪽부터'),
+                    '왼쪽부터',
                     style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w700, color: Color(0xFF555555)),
                   ),
                   SizedBox(width: r.w(8)),
@@ -3357,14 +3357,14 @@ $productUrl
                       spacing: 4,
                       runSpacing: 4,
                       children: [
-                        for (final label in ['9부', '5부', '4부', '3부', '2.5부', context.loc.t('숏사각', '숏사각')])
+                        for (final label in ['9부', '5부', '4부', '3부', '2.5부', '숏사각'])
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(2)),
                             decoration: BoxDecoration(
-                              color: label == '숏사각' ? const Color(0xFFFFF3E0) : Colors.white,
+                              color: label == context.loc.t('숏사각', '숏사각') ? const Color(0xFFFFF3E0) : Colors.white,
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
-                                color: label == '숏사각' ? const Color(0xFFFF8F00) : const Color(0xFFCCCCCC),
+                                color: label == context.loc.t('숏사각', '숏사각') ? const Color(0xFFFF8F00) : const Color(0xFFCCCCCC),
                               ),
                             ),
                             child: Text(
@@ -3372,7 +3372,7 @@ $productUrl
                               style: TextStyle(
                                 fontSize: r.sp(11),
                                 fontWeight: FontWeight.w600,
-                                color: label == '숏사각' ? const Color(0xFFE65100) : const Color(0xFF333333),
+                                color: label == context.loc.t('숏사각', '숏사각') ? const Color(0xFFE65100) : const Color(0xFF333333),
                               ),
                             ),
                           ),
@@ -3400,7 +3400,7 @@ $productUrl
                   SizedBox(width: r.w(8)),
                   Expanded(
                     child: Text(
-                      context.loc.t('주머니 추가 불가', '주머니 추가 불가'),
+                      '주머니 추가 불가',
                       style: TextStyle(fontSize: r.sp(12), color: Color(0xFFE65100), height: 1.5, fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -3962,7 +3962,7 @@ $productUrl
             ),
             SizedBox(width: r.w(8)),
             Text(
-              context.loc.t('디자인 이미지', '디자인 이미지'),
+              '디자인 이미지',
               style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w800,
                   color: Color(0xFF1A1A1A), letterSpacing: -0.2),
             ),
@@ -3979,7 +3979,7 @@ $productUrl
               const Spacer(),
               // 업로드 버튼
               GestureDetector(
-                onTap: () => _pickAndUploadImages('design', context.loc.t('디자인 이미지', '디자인 이미지'), imgs),
+                onTap: () => _pickAndUploadImages('design', '디자인 이미지', imgs),
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
                   decoration: BoxDecoration(
@@ -3992,7 +3992,7 @@ $productUrl
                       const Icon(Icons.add_photo_alternate_outlined, color: Colors.white, size: 14),
                       SizedBox(width: r.w(4)),
                       Text(
-                        imgs.isEmpty ? context.loc.t('이미지 업로드', '이미지 업로드') : context.loc.t('이미지 추가 _장', '이미지 추가 (${imgs.length}장)'),
+                        imgs.isEmpty ? context.loc.t('이미지 업로드', '이미지 업로드') : '이미지 추가 (${imgs.length}장)',
                         style: TextStyle(color: Colors.white, fontSize: r.sp(11), fontWeight: FontWeight.w700),
                       ),
                     ],
@@ -4054,7 +4054,7 @@ $productUrl
                                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                                     Icon(Icons.broken_image_outlined, color: Colors.grey[400], size: 28),
                                     const SizedBox(height: 4),
-                                    Text(context.loc.t('이미지 로드 실패', '이미지 로드 실패'), style: TextStyle(fontSize: 10, color: Colors.grey[400])),
+                                    Text(context.loc.t('이미지_로드_실패', '이미지 로드 실패'), style: TextStyle(fontSize: 10, color: Colors.grey[400])),
                                   ]),
                                 ),
                               ),
@@ -4128,7 +4128,7 @@ $productUrl
               children: [
                 Icon(Icons.image_outlined, size: 28, color: Color(0xFF9E9E9E)),
                 SizedBox(height: r.h(6)),
-                Text(context.loc.t('디자인 이미지를 업로드하세요', '디자인 이미지를 업로드하세요'),
+                Text(context.loc.t('디자인_이미지를_업로드하세요', '디자인 이미지를 업로드하세요'),
                     style: TextStyle(fontSize: r.sp(12), color: Color(0xFF9E9E9E))),
               ],
             ),
@@ -4161,7 +4161,7 @@ $productUrl
       case AppLanguage.mongolian:
         return ['Голжи хачиг (Доод)', 'Нейлон 75%', 'Лайкра 25%'];
       default:
-        return [context.loc.t('골지 타이즈 하의', '골지 타이즈 (하의)'), context.loc.t('나일론 75', '나일론 75%'), context.loc.t('라이크라 25', '라이크라 25%')];
+        return ['골지 타이즈 (하의)', '나일론 75%', context.loc.t('라이크라 25', '라이크라 25%')];
     }
   }
 
@@ -4178,7 +4178,7 @@ $productUrl
       case AppLanguage.mongolian:
         return ['Сингэлет (Дээд)', 'Полиэстер 92%', 'Лайкра 8%'];
       default:
-        return [context.loc.t('싱글렛 상의', '싱글렛 상의'), context.loc.t('폴리에스터 92', '폴리에스터 92%'), context.loc.t('라이크라 8', '라이크라 8%')];
+        return ['싱글렛 상의', '폴리에스터 92%', context.loc.t('라이크라 8', '라이크라 8%')];
     }
   }
 
@@ -4250,7 +4250,7 @@ $productUrl
         _sectionHeaderBanner(
           engTitle: 'PERFORMANCE',
           engSub: 'SECTION 01',
-          korSub: context.loc.t('고성능 스포츠 소재와 기술이 만든 최상위 퍼포먼스 웨어', '고성능 스포츠 소재와 기술이 만든\n최상위 퍼포먼스 웨어'),
+          korSub: '고성능 스포츠 소재와 기술이 만든\n최상위 퍼포먼스 웨어',
           trailingIcon: const Icon(Icons.bolt_rounded, size: 36, color: Color(0x55FFFFFF)),
         ),
         const Divider(height: 8, thickness: 8, color: Color(0xFFF5F5F5)),
@@ -4262,7 +4262,7 @@ $productUrl
             child: isAdmin
                 ? Padding(
                     padding: EdgeInsets.symmetric(horizontal: r.w(16)),
-                    child: _buildAdminImageSection('s1', context.loc.t('섹션1 메인 배너', '섹션1 메인 배너'), isAdmin),
+                    child: _buildAdminImageSection('s1', '섹션1 메인 배너', isAdmin),
                   )
                 : _buildSectionImageSlider('s1'),
           ),
@@ -4292,7 +4292,7 @@ $productUrl
         _sectionHeaderBanner(
           engTitle: 'MATERIAL',
           engSub: 'SECTION 02',
-          korSub: context.loc.t('고급 원단과 기능성 소재로 완성한 쾌적하고 지속 가능한 착용감', '고급 원단과 기능성 소재로 완성한\n쾌적하고 지속 가능한 착용감'),
+          korSub: '고급 원단과 기능성 소재로 완성한\n쾌적하고 지속 가능한 착용감',
           bgColor: const Color(0xFF212121),
           trailingIcon: const Icon(Icons.layers_rounded, size: 36, color: Color(0x55FFFFFF)),
         ),
@@ -4302,7 +4302,7 @@ $productUrl
         // 하의 카테고리일 때는 숨김
         // 관리자: 두 슬롯 각각 업로드 버튼 표시
         // 일반 사용자: 이미지가 하나라도 있으면 탭 UI로 표시
-        if (product.category != '하의') ...[
+        if (product.category != context.loc.t('하의', '하의')) ...[
           if (isAdmin)
             _buildSection2FabricAdmin(generalImgs, seamlessImgs, isAdmin)
           else if (generalImgs.isNotEmpty || seamlessImgs.isNotEmpty)
@@ -4316,7 +4316,7 @@ $productUrl
               child: isAdmin
                   ? Padding(
                       padding: EdgeInsets.symmetric(horizontal: r.w(16)),
-                      child: _buildAdminImageSection('s2_fabric_extra', context.loc.t('원단 추가 이미지', '원단 추가 이미지'), isAdmin),
+                      child: _buildAdminImageSection('s2_fabric_extra', '원단 추가 이미지', isAdmin),
                     )
                   : _buildSectionImageSlider('s2_fabric_extra'),
             ),
@@ -4329,7 +4329,7 @@ $productUrl
           padding: EdgeInsets.fromLTRB(r.w(20), r.h(8), r.w(20), r.h(0)),
           child: Column(
             children: techRows
-                .where((t) => product.category != '하의' || t['label'] != 'SEAMLESS')
+                .where((t) => product.category != context.loc.t('하의', '하의') || t['label'] != 'SEAMLESS')
                 .toList()
                 .asMap().entries.map((entry) {
                 final r = Responsive.of(context);
@@ -4393,7 +4393,7 @@ $productUrl
           isAdmin
               ? Padding(
                   padding: EdgeInsets.fromLTRB(r.w(16), r.h(0), r.w(16), r.h(0)),
-                  child: _buildAdminImageSection('s2_fiber', context.loc.t('소재혼용율 이미지', '소재혼용율 이미지'), isAdmin),
+                  child: _buildAdminImageSection('s2_fiber', '소재혼용율 이미지', isAdmin),
                 )
               : _buildSectionImageSlider('s2_fiber'),
 
@@ -4417,7 +4417,7 @@ $productUrl
           // 일반봉제 슬롯
           _buildFabricAdminSlot(
             key: 's2_general',
-            label: '일반봉제',
+            label: context.loc.t('일반봉제', '일반봉제'),
             icon: Icons.straighten_rounded,
             color: const Color(0xFF1565C0),
             bgColor: const Color(0xFFE3F2FD),
@@ -4428,7 +4428,7 @@ $productUrl
           // 심리스 슬롯
           _buildFabricAdminSlot(
             key: 's2_seamless',
-            label: '심리스',
+            label: context.loc.t('심리스', '심리스'),
             icon: Icons.blur_circular_rounded,
             color: const Color(0xFF6A1B9A),
             bgColor: const Color(0xFFF3E5F5),
@@ -4477,7 +4477,7 @@ $productUrl
               ),
               SizedBox(width: r.w(6)),
               Text(
-                context.loc.t('이미지 _장', '이미지 ${imgs.length}장'),
+                '이미지 ${imgs.length}장',
                 style: TextStyle(
                   fontSize: r.sp(11),
                   fontWeight: FontWeight.w500,
@@ -4518,10 +4518,10 @@ $productUrl
     // 단체주문은 항상 표시
     if (product.isGroupOnly) return true;
     // 하의 카테고리이면서 타이즈·5부·2.5부 포함 시만 표시
-    if (cat == '하의') {
+    if (cat == context.loc.t('하의', '하의')) {
       return sub.contains(context.loc.t('타이즈', '타이즈')) || name.contains(context.loc.t('타이즈', '타이즈')) ||
-             sub.contains('5부')    || name.contains('5부')    ||
-             sub.contains('2.5부')  || name.contains('2.5부');
+             sub.contains(context.loc.t('k_5부', '5부'))    || name.contains(context.loc.t('k_5부', '5부'))    ||
+             sub.contains(context.loc.t('k_25부', '2.5부'))  || name.contains(context.loc.t('k_25부', '2.5부'));
     }
     // 상의·세트 등 나머지는 숨김
     return false;
@@ -4545,7 +4545,7 @@ $productUrl
         _sectionHeaderBanner(
           engTitle: 'POCKET\nSYSTEM',
           engSub: 'SECTION 03',
-          korSub: context.loc.t('실용적인 수납 설계와 방수 기능으로 운동 중에도 완벽한 편의성', '실용적인 수납 설계와 방수 기능으로\n운동 중에도 완벽한 편의성'),
+          korSub: '실용적인 수납 설계와 방수 기능으로\n운동 중에도 완벽한 편의성',
           bgColor: const Color(0xFF1C2B3A),
           trailingIcon: const Icon(Icons.inventory_2_rounded, size: 36, color: Color(0x55FFFFFF)),
         ),
@@ -4555,7 +4555,7 @@ $productUrl
           isAdmin
               ? Padding(
                   padding: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
-                  child: _buildAdminImageSection('s3', context.loc.t('섹션3 포켓 특성', '섹션3 포켓 특성'), isAdmin),
+                  child: _buildAdminImageSection('s3', '섹션3 포켓 특성', isAdmin),
                 )
               : _buildSectionImageSlider('s3'),
 
@@ -4661,7 +4661,7 @@ $productUrl
           Container(
             color: const Color(0xFFF5F5F5),
             padding: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
-            child: _buildAdminImageSection('s6', context.loc.t('섹션6 사이즈 차트', '섹션6 사이즈 차트'), isAdmin),
+            child: _buildAdminImageSection('s6', '섹션6 사이즈 차트', isAdmin),
           ),
 
         // ── 메인 사이즈 차트 컨테이너 ──
@@ -4715,7 +4715,7 @@ $productUrl
                       ),
                       SizedBox(height: r.h(6)),
                       Text(
-                        context.loc.t('투핏 사이즈 조건표 기준', '투핏 사이즈 조건표 기준'),
+                        '투핏 사이즈 조건표 기준',
                         style: TextStyle(
                           fontSize: r.sp(10),
                           color: Colors.black.withValues(alpha: 0.45),
@@ -4795,7 +4795,7 @@ $productUrl
                         SizedBox(width: r.w(6)),
                         Expanded(
                           child: Text(
-                            context.loc.t('제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다', '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.'),
+                            '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.',
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
                           ),
                         ),
@@ -4809,7 +4809,7 @@ $productUrl
                         SizedBox(width: r.w(6)),
                         Expanded(
                           child: Text(
-                            context.loc.t('측정 위치에 따라 12cm 정도의 오차가 발생할 수 있습니다', '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.'),
+                            '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.',
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
                           ),
                         ),
@@ -4823,7 +4823,7 @@ $productUrl
                         SizedBox(width: r.w(6)),
                         Expanded(
                           child: Text(
-                            context.loc.t('제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발_b31f72', '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.'),
+                            '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.',
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), height: 1.5),
                           ),
                         ),
@@ -4840,7 +4840,7 @@ $productUrl
           Container(
             color: const Color(0xFFF5F5F5),
             padding: EdgeInsets.fromLTRB(r.w(20), r.h(0), r.w(20), r.h(20)),
-            child: _buildAdminImageSection('s6', context.loc.t('섹션6 사이즈 차트', '섹션6 사이즈 차트'), isAdmin),
+            child: _buildAdminImageSection('s6', '섹션6 사이즈 차트', isAdmin),
           ),
 
         // ── WASH TIP 헤더만 ──
@@ -4863,7 +4863,7 @@ $productUrl
               ),
               SizedBox(height: r.h(6)),
               Text(
-                context.loc.t('올바른 세탁으로 제품을 오래 깨끗하게', '올바른 세탁으로 제품을 오래, 깨끗하게'),
+                '올바른 세탁으로 제품을 오래, 깨끗하게',
                 style: TextStyle(
                   fontSize: r.sp(11),
                   color: Colors.white.withValues(alpha: 0.55),
@@ -5085,7 +5085,7 @@ $productUrl
                             children: [
                               Icon(Icons.remove_shopping_cart_outlined, size: 15, color: Color(0xFFAAAAAA)),
                               SizedBox(width: r.w(6)),
-                              Text(context.loc.t('현재 품절된 상품입니다', '현재 품절된 상품입니다'), style: TextStyle(fontSize: r.sp(13), color: Color(0xFFAAAAAA), fontWeight: FontWeight.w600)),
+                              Text(context.loc.t('현재_품절된_상품입니다', '현재 품절된 상품입니다'), style: TextStyle(fontSize: r.sp(13), color: Color(0xFFAAAAAA), fontWeight: FontWeight.w600)),
                             ],
                           ),
                         ),
@@ -5095,7 +5095,7 @@ $productUrl
                           height: 50,
                           child: ElevatedButton.icon(
                             icon: const Icon(Icons.notifications_active_rounded, size: 17, color: Colors.white),
-                            label: Text(context.loc.t('재입고 알림 신청', '재입고 알림 신청'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(14), color: Colors.white)),
+                            label: Text(context.loc.t('재입고_알림_신청', '재입고 알림 신청'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(14), color: Colors.white)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF1A1A1A),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -5163,7 +5163,7 @@ $productUrl
                           ),
                           icon: const Icon(Icons.shopping_bag_outlined, size: 18, color: Color(0xFF1A1A1A)),
                           label: Text(
-                            context.loc.t('장바구니', '장바구니'),
+                            '장바구니',
                             style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(14), color: Color(0xFF1A1A1A)),
                           ),
                           onPressed: () => _addToCart(product),
@@ -5185,7 +5185,7 @@ $productUrl
                           ),
                           onPressed: () => _showBuyNowSheet(product),
                           child: Text(
-                            context.loc.t('바로구매', '바로구매'),
+                            '바로구매',
                             style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(16), color: Colors.white),
                           ),
                         ),
@@ -5241,12 +5241,12 @@ $productUrl
   // ignore: unused_element
   String _getLengthDesc(String label) {
     switch (label) {
-      case '9부': return '발목 바로 위까지 오는 풀 레깅스 스타일';
-      case '5부': return '무릎 약간 위, 가장 범용적인 기장';
-      case '4부': return '무릎 바로 위, 활동적인 스타일';
-      case '3부': return '허벅지 중간, 경쾌한 움직임';
-      case '2.5부': return '허벅지 상단, 스피드 특화';
-      case '숏쇼츠': return '2.5부보다 짧은 초단 디자인, 스피드 경기용';
+      case '9부': return context.loc.t('발목_바로_위까지_오는_풀_레깅스_스타일', '발목 바로 위까지 오는 풀 레깅스 스타일');
+      case '5부': return context.loc.t('무릎_약간_위_가장_범용적인_기장', '무릎 약간 위, 가장 범용적인 기장');
+      case '4부': return context.loc.t('무릎_바로_위_활동적인_스타일', '무릎 바로 위, 활동적인 스타일');
+      case '3부': return context.loc.t('허벅지_중간_경쾌한_움직임', '허벅지 중간, 경쾌한 움직임');
+      case '2.5부': return context.loc.t('허벅지_상단_스피드_특화', '허벅지 상단, 스피드 특화');
+      case '숏쇼츠': return context.loc.t('k_25부보다_짧은_초단_디자인_스피드_경기용', '2.5부보다 짧은 초단 디자인, 스피드 경기용');
       default: return '';
     }
   }
@@ -5261,36 +5261,36 @@ $productUrl
 
     // 1) 타이즈 / 하의 카테고리 전체
     final isTights =
-        p.category == '하의' ||
+        p.category == context.loc.t('하의', '하의') ||
         p.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
         p.name.contains(context.loc.t('타이즈', '타이즈'));
 
     // 2) 싱글렛 A타입세트 (세트 카테고리)
     final isSingletATypeSet =
-        (p.category == '세트' && p.subCategory.contains('싱글렛 A타입세트')) ||
+        (p.category == context.loc.t('세트', '세트') && p.subCategory.contains(context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트'))) ||
         p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
-        (p.category == '세트' && p.name.contains('싱글렛') && p.name.contains('A타입'));
+        (p.category == context.loc.t('세트', '세트') && p.name.contains(context.loc.t('싱글렛', '싱글렛')) && p.name.contains(context.loc.t('a타입', 'A타입')));
 
     // 3) 트레이닝세트 (세트 카테고리)
     final isTrainingSet =
-        (p.category == '세트' && p.subCategory.contains('트레이닝세트')) ||
+        (p.category == context.loc.t('세트', '세트') && p.subCategory.contains(context.loc.t('트레이닝세트', '트레이닝세트'))) ||
         p.subCategory.contains(context.loc.t('트레이닝세트', '트레이닝세트')) ||
-        (p.category == '세트' && p.name.contains('트레이닝'));
+        (p.category == context.loc.t('세트', '세트') && p.name.contains(context.loc.t('트레이닝', '트레이닝')));
 
     // 4) 싱글렛 A타입 (상의 카테고리)
     final isSingletA =
-        (p.category == '상의' && p.subCategory.contains('싱글렛 A타입')) ||
-        (p.category == '상의' && p.name.contains('싱글렛') && p.name.contains('A타입'));
+        (p.category == context.loc.t('상의', '상의') && p.subCategory.contains(context.loc.t('싱글렛_a타입', '싱글렛 A타입'))) ||
+        (p.category == context.loc.t('상의', '상의') && p.name.contains(context.loc.t('싱글렛', '싱글렛')) && p.name.contains(context.loc.t('a타입', 'A타입')));
 
     // 5) 싱글렛 B타입 (상의 카테고리)
     final isSingletB =
-        (p.category == '상의' && p.subCategory.contains('싱글렛 B타입')) ||
-        (p.category == '상의' && p.name.contains('싱글렛') && p.name.contains('B타입'));
+        (p.category == context.loc.t('상의', '상의') && p.subCategory.contains(context.loc.t('싱글렛_b타입', '싱글렛 B타입'))) ||
+        (p.category == context.loc.t('상의', '상의') && p.name.contains(context.loc.t('싱글렛', '싱글렛')) && p.name.contains(context.loc.t('b타입', 'B타입')));
 
     // 6) 라운드티 (상의 카테고리)
     final isRoundTee =
-        (p.category == '상의' && p.subCategory.contains('라운드')) ||
-        (p.category == '상의' && p.name.contains('라운드') && p.name.contains('티'));
+        (p.category == context.loc.t('상의', '상의') && p.subCategory.contains(context.loc.t('라운드', '라운드'))) ||
+        (p.category == context.loc.t('상의', '상의') && p.name.contains(context.loc.t('라운드', '라운드')) && p.name.contains(context.loc.t('티', '티')));
 
     return isTights || isSingletATypeSet || isTrainingSet ||
            isSingletA || isSingletB || isRoundTee;
@@ -5300,7 +5300,7 @@ $productUrl
   void _showOrderModal(ProductModel product) {
     final r = Responsive.of(context);
 
-    final isSingletProduct = product.name.contains(context.loc.t('싱글렛', '싱글렛'));
+    final isSingletProduct = product.name.contains('싱글렛');
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -5353,14 +5353,14 @@ $productUrl
                     Text(context.watch<LanguageProvider>().loc.gender, style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w700, color: Color(0xFF555555))),
                     SizedBox(height: r.h(8)),
                     Row(
-                      children: [context.loc.t('남성', '남성'), context.loc.t('여성', '여성')].map((g) {
+                      children: ['남성', context.loc.t('여성', '여성')].map((g) {
                         final r = Responsive.of(context);
 
                         final isSelected = _singletGender == (g == '남성' ? '남' : '여');
                         return Expanded(
                           child: GestureDetector(
                             onTap: () => setSheetState(() {
-                              setState(() => _singletGender = g == '남성' ? '남' : '여');
+                              setState(() => _singletGender = g == context.loc.t('남성', '남성') ? '남' : '여');
                             }),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 150),
@@ -5378,7 +5378,7 @@ $productUrl
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    g == '남성' ? Icons.male_rounded : Icons.female_rounded,
+                                    g == context.loc.t('남성', '남성') ? Icons.male_rounded : Icons.female_rounded,
                                     size: 16,
                                     color: isSelected ? Colors.white : const Color(0xFF888888),
                                   ),
@@ -5473,9 +5473,9 @@ $productUrl
               if (product.isReadyMade && product.isGroupOnly) ...[
                 _orderTypeBtn(
                   emoji: '📦',
-                  title: context.loc.t('기성품 단체주문', '기성품 단체주문'),
-                  description: context.loc.t('기성 디자인 그대로 단체 수량으로 주문', '기성 디자인 그대로 단체 수량으로 주문'),
-                  tags: [context.loc.t('기성품', '기성품'), context.loc.t('빠른납기', '빠른납기')],
+                  title: context.loc.t('기성품_단체주문', '기성품 단체주문'),
+                  description: '기성 디자인 그대로 단체 수량으로 주문',
+                  tags: ['기성품', context.loc.t('빠른납기', '빠른납기')],
                   color: Colors.teal,
                   onTap: () {
                     Navigator.pop(context);
@@ -5502,7 +5502,7 @@ $productUrl
                       ? context.loc.t('기성 디자인 그대로 단체 수량으로 주문', '기성 디자인 그대로 단체 수량으로 주문')
                       : loc.orderTypeGroupCustomDesc,
                   tags: product.isReadyMade
-                      ? [context.loc.t('기성품', '기성품'), context.loc.t('빠른납기', '빠른납기')]
+                      ? ['기성품', context.loc.t('빠른납기', '빠른납기')]
                       : [loc.orderTypeGroupCustomTag1, loc.orderTypeGroupCustomTag2],
                   color: product.isReadyMade ? Colors.teal : const Color(0xFFE53935),
                   onTap: () {
@@ -5617,7 +5617,7 @@ $productUrl
           title: Row(children: [
             Icon(Icons.notifications_active_rounded, color: Color(0xFF1565C0), size: 22),
             SizedBox(width: r.w(8)),
-            Text(context.loc.t('재입고 알림 신청 완료', '재입고 알림 신청 완료'), style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800)),
+            Text(context.loc.t('재입고_알림_신청_완료', '재입고 알림 신청 완료'), style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800)),
           ]),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -5625,7 +5625,7 @@ $productUrl
             children: [
               Text('${product.name}', style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
               SizedBox(height: r.h(8)),
-              Text('재입고 시 ${email.isNotEmpty ? email : '등록된 연락처'}로 알림을 보내드립니다.',
+              Text('재입고 시 ${email.isNotEmpty ? email : context.loc.t('등록된_연락처', '등록된 연락처')}로 알림을 보내드립니다.',
                 style: TextStyle(fontSize: r.sp(13), color: Color(0xFF555555), height: 1.5)),
             ],
           ),
@@ -5790,17 +5790,17 @@ $productUrl
   /// 하의길이 비교 섹션 표시 여부: 하의 카테고리 또는 싱글렛세트만 표시
   bool _isBottomOrSingletSetProduct(ProductModel p) {
     final isSingletSet =
-        (p.category == '세트' &&
+        (p.category == context.loc.t('세트', '세트') &&
             (p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
              p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')))) ||
         p.category.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
-        (p.category == '세트' && p.name.contains('싱글렛'));
+        (p.category == context.loc.t('세트', '세트') && p.name.contains(context.loc.t('싱글렛', '싱글렛')));
 
     final isBottom =
-        p.category == '하의' ||
-        p.subCategory == '타이즈' ||
+        p.category == context.loc.t('하의', '하의') ||
+        p.subCategory == context.loc.t('타이즈', '타이즈') ||
         p.name.contains(context.loc.t('타이즈', '타이즈')) ||
         p.subCategory.contains(context.loc.t('레깅스', '레깅스')) ||
         p.subCategory.contains(context.loc.t('팬츠', '팬츠')) ||
@@ -6086,7 +6086,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                   ),
                   SizedBox(width: r.w(10)),
                   Text(
-                    context.loc.t('이미지 변환 중 __  _convertedBase64length', '이미지 변환 중... (${_convertedBase64.length}/${_pendingFiles.length + _convertedBase64.length})'),
+                    '이미지 변환 중... (${_convertedBase64.length}/${_pendingFiles.length + _convertedBase64.length})',
                     style: TextStyle(
                         fontSize: r.sp(12), color: Color(0xFF888888)),
                   ),
@@ -6246,7 +6246,7 @@ class _PickedImagesSheetState extends State<_PickedImagesSheet> {
                             : const Icon(Icons.check_rounded, size: 18),
                         label: Text(
                           _isUploadingSave
-                              ? 'Storage 업로드 중...'
+                              ? context.loc.t('storage_업로드_중', 'Storage 업로드 중...')
                               : _allImages.isEmpty
                                   ? context.loc.t('저장 이미지 없음', '저장 (이미지 없음)')
                                   : '${_allImages.length}장 저장하기',
@@ -6312,12 +6312,12 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
 
   // ── 싱글렛 A타입 세트만 성별선택 스텝 ──
   bool get _isSingletASet =>
-      (widget.product.category == '세트' &&
+      (widget.product.category == context.loc.t('세트', '세트') &&
           (widget.product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
            widget.product.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')))) ||
       widget.product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
       widget.product.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
-      (widget.product.category == '세트' && widget.product.name.contains('싱글렛'));
+      (widget.product.category == context.loc.t('세트', '세트') && widget.product.name.contains(context.loc.t('싱글렛', '싱글렛')));
 
   String _lengthForGender(String g) => g == '남' ? '5부' : '2.5부';
 
@@ -6357,7 +6357,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
         Center(child: Container(width:40, height:4,
             decoration: BoxDecoration(color:const Color(0xFFE0E0E0), borderRadius: BorderRadius.circular(2)))),
         SizedBox(height: r.h(20)),
-        Text(context.loc.t('성별 선택', '성별 선택'),
+        Text(context.loc.t('성별_선택', '성별 선택'),
             style: TextStyle(fontSize: r.sp(16), fontWeight:FontWeight.w900, color:Color(0xFF1A1A1A))),
         SizedBox(height: r.h(10)),
         Container(
@@ -6371,16 +6371,16 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             Icon(Icons.info_outline_rounded, size:14, color:Color(0xFF7A5000)),
             SizedBox(width: r.w(6)),
             Expanded(child: Text(
-              context.loc.t('남성  하의 5부 자동 적용 여성  하의 25부 자동 적용', '남성 → 하의 5부 자동 적용\n여성 → 하의 2.5부 자동 적용'),
+              '남성 → 하의 5부 자동 적용\n여성 → 하의 2.5부 자동 적용',
               style: TextStyle(fontSize: r.sp(12), color:Color(0xFF7A5000), height:1.5),
             )),
           ]),
         ),
         SizedBox(height: r.h(16)),
         Row(children: [
-          _gBtn(context.loc.t('남', '남'), context.loc.t('하의 5부', '하의 5부')),
+          _gBtn('남', context.loc.t('하의 5부', '하의 5부')),
           SizedBox(width: r.w(12)),
-          _gBtn(context.loc.t('여', '여'), context.loc.t('하의 25부', '하의 2.5부')),
+          _gBtn('여', context.loc.t('하의 25부', '하의 2.5부')),
         ]),
         SizedBox(height: r.h(20)),
         SizedBox(
@@ -6400,7 +6400,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             ),
             child: Text(
               _gender == null ? context.loc.t('성별을 선택해주세요', '성별을 선택해주세요')
-                  : context.loc.t('다음  ·  하의 __gender 확정', '다음  ·  하의 ${_lengthForGender(_gender!)} 확정'),
+                  : '다음  ·  하의 ${_lengthForGender(_gender!)} 확정',
               style: TextStyle(fontSize: r.sp(15), fontWeight:FontWeight.w800, color:Colors.white),
             ),
           ),
@@ -6427,10 +6427,10 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             ),
           ),
           child: Column(children: [
-            Icon(gender == '남' ? Icons.male_rounded : Icons.female_rounded,
+            Icon(gender == context.loc.t('남', '남') ? Icons.male_rounded : Icons.female_rounded,
                 size: 32, color: sel ? Colors.white : const Color(0xFF888888)),
             SizedBox(height: r.h(6)),
-            Text(gender == '남' ? '남성' : '여성',
+            Text(gender == context.loc.t('남', '남') ? '남성' : '여성',
                 style: TextStyle(fontSize: r.sp(16), fontWeight:FontWeight.w800,
                     color: sel ? Colors.white : const Color(0xFF1A1A1A))),
             SizedBox(height: r.h(4)),
@@ -6457,8 +6457,8 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
     final hasBoth = adultSizes.isNotEmpty && juniorSizes.isNotEmpty;
 
     final isBottom = _isSingletASet ||
-        widget.product.category == '하의' ||
-        widget.product.subCategory == '타이즈' ||
+        widget.product.category == context.loc.t('하의', '하의') ||
+        widget.product.subCategory == context.loc.t('타이즈', '타이즈') ||
         widget.product.name.contains(context.loc.t('타이즈', '타이즈'));
 
     return SingleChildScrollView(
@@ -6484,7 +6484,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                 Text(
                   _isSingletASet
                       ? context.loc.t('사이즈 · 색상 선택  _  남  남성  여성 · 하의 _', '사이즈 · 색상 선택  (${_gender == "남" ? "남성" : "여성"} · 하의 ${_autoLength ?? ""})')
-                      : context.loc.t('사이즈 · 색상 · 수량 선택', '사이즈 · 색상 · 수량 선택'),
+                      : '사이즈 · 색상 · 수량 선택',
                   style: TextStyle(fontSize: r.sp(15), fontWeight:FontWeight.w900, color:Color(0xFF1A1A1A)),
                 ),
               ],
@@ -6503,7 +6503,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
             child: Row(children: [
               Icon(Icons.check_circle_rounded, size:14, color:Color(0xFF2E7D32)),
               SizedBox(width: r.w(5)),
-              Expanded(child: Text(context.loc.t('기성품 · 23일 이내 배송', '기성품 · 2~3일 이내 배송'),
+              Expanded(child: Text(context.loc.t('기성품___2_3일_이내_배_8ebadd', '기성품 · 2~3일 이내 배송'),
                   style: TextStyle(fontSize: r.sp(12), fontWeight:FontWeight.w700, color:Color(0xFF2E7D32)))),
             ]),
           ),
@@ -6614,7 +6614,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
           SizedBox(height: r.h(16)),
 
           // ── 무게 ──
-          Text(context.loc.t('원단 무게', '원단 무게'), style: TextStyle(fontSize: r.sp(13), fontWeight:FontWeight.w700)),
+          Text(context.loc.t('원단_무게', '원단 무게'), style: TextStyle(fontSize: r.sp(13), fontWeight:FontWeight.w700)),
           SizedBox(height: r.h(8)),
           Row(
             children: AppConstants.fabricWeights.map((w) {
@@ -6637,7 +6637,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                       Text(w, style: TextStyle(fontSize: r.sp(16), fontWeight:FontWeight.w800,
                           color: sel ? Colors.white : const Color(0xFF1A1A1A))),
                       SizedBox(height: r.h(2)),
-                      Text(w == '80g' ? context.loc.t('가볍고 시원함', '가볍고 시원함') : context.loc.t('두툼하고 탄탄함', '두툼하고 탄탄함'),
+                      Text(w == '80g' ? context.loc.t('가볍고 시원함', '가볍고 시원함') : '두툼하고 탄탄함',
                           style: TextStyle(fontSize: r.sp(10),
                               color: sel ? Colors.white70 : const Color(0xFF888888))),
                     ]),
@@ -6681,7 +6681,7 @@ class _ReadyMadePurchaseSheetState extends State<_ReadyMadePurchaseSheet> {
                 elevation: 0,
               ),
               child: Text(
-                _canConfirm ? context.loc.t('확인', '확인') : context.loc.t('사이즈와 색상을 선택해주세요', '사이즈와 색상을 선택해주세요'),
+                _canConfirm ? context.loc.t('확인', '확인') : '사이즈와 색상을 선택해주세요',
                 style: TextStyle(fontSize: r.sp(15), fontWeight:FontWeight.w800, color:Colors.white),
               ),
             ),
@@ -6777,7 +6777,7 @@ class _QuickSizeSelectSheetState extends State<_QuickSizeSelectSheet> {
           Text(
             widget.isBuyNow
                 ? context.loc.t('사이즈를 선택하고 바로 결제로 이동합니다', '사이즈를 선택하고 바로 결제로 이동합니다')
-                : context.loc.t('사이즈를 선택하고 장바구니에 담습니다', '사이즈를 선택하고 장바구니에 담습니다'),
+                : '사이즈를 선택하고 장바구니에 담습니다',
             style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888)),
           ),
           SizedBox(height: r.h(18)),
@@ -7002,12 +7002,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   /// 싱글렛 A타입 세트: 성별 선택 → 하의기장 고정(남=5부, 여=2.5부, 변경불가)
   bool get _isSingletATypeSet =>
-      (widget.product.category == '세트' &&
+      (widget.product.category == context.loc.t('세트', '세트') &&
           (widget.product.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
            widget.product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')))) ||
       widget.product.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
       widget.product.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
-      (widget.product.category == '세트' && widget.product.name.contains('싱글렛 A타입'));
+      (widget.product.category == context.loc.t('세트', '세트') && widget.product.name.contains(context.loc.t('싱글렛_a타입', '싱글렛 A타입')));
 
   /// 타이즈 카테고리: 하의길이 모두 선택 가능
   bool get _isTaiz =>
@@ -7016,21 +7016,21 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
 
   /// 세트 상품 여부 (상의/하의 사이즈 각각 선택)
   bool get _isSetProduct =>
-      widget.product.category == '세트' ||
+      widget.product.category == context.loc.t('세트', '세트') ||
       widget.product.subCategory.contains(context.loc.t('세트', '세트')) ||
       widget.product.name.contains(context.loc.t('세트', '세트'));
 
   /// 기성품 싱글렛 (상의 색상 고정, 하의만 색상 선택 가능)
   // ignore: unused_element
   bool get _isSingletReadyMade =>
-      (widget.product.category == '상의' ||
+      (widget.product.category == context.loc.t('상의', '상의') ||
           widget.product.subCategory.contains(context.loc.t('싱글렛', '싱글렛'))) &&
       !_isSetProduct;
 
   /// 하의류: 색상 선택 시 하의 색상 탭 먼저
   // ignore: unused_element
   bool get _isBottomItem =>
-      widget.product.category == '하의' ||
+      widget.product.category == context.loc.t('하의', '하의') ||
       widget.product.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
       widget.product.subCategory.contains(context.loc.t('레깅스', '레깅스')) ||
       widget.product.subCategory.contains(context.loc.t('팬츠', '팬츠')) ||
@@ -7055,7 +7055,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   /// 기성품 하의 여부: 기성품 + (하의 카테고리 또는 반바지/트레이닝바지/타이즈 서브카테고리)
   bool get _isReadyMadeBottom =>
       widget.product.isReadyMade &&
-      (widget.product.category == '하의' ||
+      (widget.product.category == context.loc.t('하의', '하의') ||
           widget.product.subCategory.contains(context.loc.t('숏츠', '숏츠')) ||
           widget.product.subCategory.contains(context.loc.t('트레이닝바지', '트레이닝바지')) ||
           widget.product.subCategory.contains(context.loc.t('타이즈', '타이즈')));
@@ -7071,7 +7071,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
   List<String> get _allSizes {
     final raw = widget.product.sizes;
     if (raw.isNotEmpty) return raw;
-    final isJunior = widget.product.name.contains(context.loc.t('주니어', '주니어')) ||
+    final isJunior = widget.product.name.contains('주니어') ||
         widget.product.name.contains('Jr') ||
         widget.product.subCategory.contains(context.loc.t('주니어', '주니어'));
     return isJunior ? AppConstants.juniorSizes : AppConstants.adultSizes;
@@ -7194,7 +7194,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         action: SnackBarAction(
-          label: '장바구니 보기',
+          label: context.loc.t('장바구니_보기', '장바구니 보기'),
           textColor: const Color(0xFFFFD600),
           onPressed: () => Navigator.pushNamed(context, '/cart'),
         ),
@@ -7263,7 +7263,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              widget.isBuyNow ? context.loc.t('바로구매 옵션 선택', '바로구매 옵션 선택') : context.loc.t('장바구니 옵션 선택', '장바구니 옵션 선택'),
+                              widget.isBuyNow ? context.loc.t('바로구매 옵션 선택', '바로구매 옵션 선택') : '장바구니 옵션 선택',
                               style: TextStyle(
                                 fontSize: r.sp(17),
                                 fontWeight: FontWeight.w900,
@@ -7272,7 +7272,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             ),
                             SizedBox(height: r.h(2)),
                             Text(
-                              context.loc.t('옵션을 선택하고 추가하면 한 번에 담을 수 있어요', '옵션을 선택하고 추가하면 한 번에 담을 수 있어요'),
+                              '옵션을 선택하고 추가하면 한 번에 담을 수 있어요',
                               style: TextStyle(fontSize: r.sp(12), color: Color(0xFF888888)),
                             ),
                           ],
@@ -7301,7 +7301,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // [1] 싱글렛 A타입 세트: 성별 선택 → 기장 고정
                   // ══════════════════════════════
                   if (_needsGender) ...[
-                    _sectionTitle(context.loc.t('성별 선택', '성별 선택'), required: true),
+                    _sectionTitle('성별 선택', required: true),
                     SizedBox(height: r.h(8)),
                     // 안내 배지
                     Container(
@@ -7315,13 +7315,13 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF7A5000)),
                         SizedBox(width: r.w(5)),
                         Text(
-                          context.loc.t('남성  5부 자동선택    여성  25부 자동선택', '남성 → 5부 자동선택  •  여성 → 2.5부 자동선택'),
+                          '남성 → 5부 자동선택  •  여성 → 2.5부 자동선택',
                           style: TextStyle(fontSize: r.sp(11), color: Color(0xFF7A5000), fontWeight: FontWeight.w600),
                         ),
                       ]),
                     ),
                     Row(
-                      children: [context.loc.t('남', '남'), context.loc.t('여', '여')].map((g) {
+                      children: ['남', context.loc.t('여', '여')].map((g) {
                         final r = Responsive.of(context);
 
                         final isSel = _gender == g;
@@ -7333,7 +7333,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                             }),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 130),
-                              margin: EdgeInsets.only(right: g == '남' ? 8 : 0),
+                              margin: EdgeInsets.only(right: g == context.loc.t('남', '남') ? 8 : 0),
                               padding: EdgeInsets.symmetric(vertical: r.h(14)),
                               decoration: BoxDecoration(
                                 color: isSel ? const Color(0xFF1A1A2E) : const Color(0xFFF8F8F8),
@@ -7346,13 +7346,13 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               child: Column(
                                 children: [
                                   Icon(
-                                    g == '남' ? Icons.male_rounded : Icons.female_rounded,
+                                    g == context.loc.t('남', '남') ? Icons.male_rounded : Icons.female_rounded,
                                     size: 26,
                                     color: isSel ? Colors.white : const Color(0xFF888888),
                                   ),
                                   SizedBox(height: r.h(4)),
                                   Text(
-                                    g == '남' ? '남성' : '여성',
+                                    g == context.loc.t('남', '남') ? '남성' : '여성',
                                     style: TextStyle(
                                       fontSize: r.sp(14),
                                       fontWeight: FontWeight.w700,
@@ -7399,7 +7399,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           const Icon(Icons.lock_outline_rounded, size: 15, color: Color(0xFF2E7D32)),
                           SizedBox(width: r.w(6)),
                           Text(
-                            context.loc.t('하의 기장 _ 고정 · 변경 불가', '하의 기장: ${_length!} (고정 · 변경 불가)'),
+                            '하의 기장: ${_length!} (고정 · 변경 불가)',
                             style: TextStyle(
                               fontSize: r.sp(13),
                               fontWeight: FontWeight.w700,
@@ -7416,7 +7416,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // [2] 타이즈: 하의길이 모두 선택 가능 (성별 선택 없음)
                   // ══════════════════════════════
                   if (_isTaiz && !_needsGender) ...[
-                    _sectionTitle(context.loc.t('하의 기장 선택', '하의 기장 선택'), required: true),
+                    _sectionTitle('하의 기장 선택', required: true),
                     SizedBox(height: r.h(8)),
                     Wrap(
                       spacing: 8, runSpacing: 8,
@@ -7456,10 +7456,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   if (_isSetProduct) ...[
                     // 상의 사이즈
-                    _sectionTitle(context.loc.t('상의 사이즈', '상의 사이즈'), required: true),
+                    _sectionTitle('상의 사이즈', required: true),
                     SizedBox(height: r.h(8)),
                     if (_hasBothGroups) ...[
-                      _sizeSectionLabel(context.loc.t('성인', '성인'), Icons.person_outline_rounded, Color(0xFF1A1A2E)),
+                      _sizeSectionLabel('성인', Icons.person_outline_rounded, Color(0xFF1A1A2E)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7472,7 +7472,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         }).toList(),
                       ),
                       SizedBox(height: r.h(10)),
-                      _sizeSectionLabel(context.loc.t('주니어', '주니어'), Icons.child_care_rounded, Color(0xFF1565C0)),
+                      _sizeSectionLabel('주니어', Icons.child_care_rounded, Color(0xFF1565C0)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7498,10 +7498,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     ],
                     SizedBox(height: r.h(16)),
                     // 하의 사이즈
-                    _sectionTitle(context.loc.t('하의 사이즈', '하의 사이즈'), required: true),
+                    _sectionTitle('하의 사이즈', required: true),
                     SizedBox(height: r.h(8)),
                     if (_hasBothGroups) ...[
-                      _sizeSectionLabel(context.loc.t('성인', '성인'), Icons.person_outline_rounded, Color(0xFF5C6BC0)),
+                      _sizeSectionLabel('성인', Icons.person_outline_rounded, Color(0xFF5C6BC0)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7514,7 +7514,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         }).toList(),
                       ),
                       SizedBox(height: r.h(10)),
-                      _sizeSectionLabel(context.loc.t('주니어', '주니어'), Icons.child_care_rounded, Color(0xFF1565C0)),
+                      _sizeSectionLabel('주니어', Icons.child_care_rounded, Color(0xFF1565C0)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7541,13 +7541,13 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                     SizedBox(height: r.h(16)),
                   ] else ...[
                     // 단품 사이즈 — 성인/주니어 구분 표시
-                    _sectionTitle(context.loc.t('사이즈', '사이즈'), required: true),
+                    _sectionTitle('사이즈', required: true),
                     SizedBox(height: r.h(8)),
 
                     // ── 성인/주니어 혼합 상품: 그룹 구분 표시 ──
                     if (_hasBothGroups) ...[
                       // 성인 그룹 라벨
-                      _sizeSectionLabel(context.loc.t('성인', '성인'), Icons.person_outline_rounded, Color(0xFF1A1A2E)),
+                      _sizeSectionLabel('성인', Icons.person_outline_rounded, Color(0xFF1A1A2E)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7564,7 +7564,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                       ),
                       SizedBox(height: r.h(14)),
                       // 주니어 그룹 라벨
-                      _sizeSectionLabel(context.loc.t('주니어', '주니어'), Icons.child_care_rounded, Color(0xFF1565C0)),
+                      _sizeSectionLabel('주니어', Icons.child_care_rounded, Color(0xFF1565C0)),
                       SizedBox(height: r.h(6)),
                       Wrap(
                         spacing: 8, runSpacing: 8,
@@ -7616,12 +7616,12 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           Row(children: [
                             const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Color(0xFF7A5000)),
                             SizedBox(width: r.w(5)),
-                            Text(context.loc.t('원하는 사이즈가 없으신가요', '원하는 사이즈가 없으신가요?'),
+                            Text(context.loc.t('원하는_사이즈가_없으신가요', '원하는 사이즈가 없으신가요?'),
                               style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w800, color: Color(0xFF7A5000))),
                           ]),
                           SizedBox(height: r.h(5)),
                           Text(
-                            context.loc.t('목록에 없는 사이즈는 채팅 문의를 통해 별도 주문 가능합니다', '목록에 없는 사이즈는 채팅 문의를 통해 별도 주문 가능합니다.'),
+                            '목록에 없는 사이즈는 채팅 문의를 통해 별도 주문 가능합니다.',
                             style: TextStyle(fontSize: r.sp(11), color: Color(0xFF7A5000), height: 1.4),
                           ),
                           SizedBox(height: r.h(4)),
@@ -7639,7 +7639,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // [3-B] 기성품 하의 전용: 주머니 옵션
                   // ══════════════════════════════
                   if (_isReadyMadeBottom) ...[
-                    _sectionTitle(context.loc.t('주머니 옵션', '주머니 옵션'), required: false),
+                    _sectionTitle('주머니 옵션', required: false),
                     SizedBox(height: r.h(8)),
                     Container(
                       padding: EdgeInsets.all(r.w(12)),
@@ -7654,7 +7654,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           SizedBox(width: r.w(6)),
                           Expanded(
                             child: Text(
-                              context.loc.t('기본 옵션 주머니 포함 주머니 제거 선택 시 10000원 할인됩니다', '기본 옵션: 주머니 포함\n주머니 제거 선택 시 10,000원 할인됩니다.'),
+                              '기본 옵션: 주머니 포함\n주머니 제거 선택 시 10,000원 할인됩니다.',
                               style: TextStyle(fontSize: r.sp(11), color: Color(0xFF6A1B9A),
                                 fontWeight: FontWeight.w600, height: 1.5),
                             ),
@@ -7683,10 +7683,10 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                 Icon(Icons.shopping_bag_outlined, size: 20,
                                   color: !_removePocket ? Colors.white : const Color(0xFF888888)),
                                 SizedBox(height: r.h(4)),
-                                Text(context.loc.t('주머니 포함', '주머니 포함'), style: TextStyle(fontSize: r.sp(12),
+                                Text(context.loc.t('주머니_포함', '주머니 포함'), style: TextStyle(fontSize: r.sp(12),
                                   fontWeight: FontWeight.w700,
                                   color: !_removePocket ? Colors.white : const Color(0xFF1A1A1A))),
-                                Text(context.loc.t('기본 옵션', '기본 옵션'), style: TextStyle(fontSize: r.sp(10),
+                                Text(context.loc.t('기본_옵션', '기본 옵션'), style: TextStyle(fontSize: r.sp(10),
                                   color: !_removePocket ? Colors.white70 : const Color(0xFF888888))),
                               ],
                             ),
@@ -7713,7 +7713,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                 Icon(Icons.remove_shopping_cart_outlined, size: 20,
                                   color: _removePocket ? Colors.white : const Color(0xFF888888)),
                                 SizedBox(height: r.h(4)),
-                                Text(context.loc.t('주머니 제거', '주머니 제거'), style: TextStyle(fontSize: r.sp(12),
+                                Text(context.loc.t('주머니_제거', '주머니 제거'), style: TextStyle(fontSize: r.sp(12),
                                   fontWeight: FontWeight.w700,
                                   color: _removePocket ? Colors.white : const Color(0xFF1A1A1A))),
                                 Text('-₩10,000', style: TextStyle(fontSize: r.sp(10),
@@ -7734,7 +7734,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   //   - 상의, 그 외 카테고리는 색상 선택 없음
                   // ══════════════════════════════
                   if (_isSingletATypeSet || _isTaiz) ...[
-                    _sectionTitle(context.loc.t('하의 색상', '하의 색상'), required: true),
+                    _sectionTitle('하의 색상', required: true),
                     SizedBox(height: r.h(6)),
                     _ColorSelectionWidget(
                       isBottomCategory: true,
@@ -7749,7 +7749,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                   // ══════════════════════════════
                   Row(
                     children: [
-                      _sectionTitle(context.loc.t('수량', '수량'), required: false),
+                      _sectionTitle('수량', required: false),
                       const Spacer(),
                       Container(
                         decoration: BoxDecoration(
@@ -7831,7 +7831,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         const Icon(Icons.shopping_bag_outlined, size: 16, color: Color(0xFF1A1A2E)),
                         SizedBox(width: r.w(6)),
                         Text(
-                          context.loc.t('선택된 옵션 _가지', '선택된 옵션 ${_items.length}가지'),
+                          '선택된 옵션 ${_items.length}가지',
                           style: TextStyle(
                             fontSize: r.sp(13),
                             fontWeight: FontWeight.w800,
@@ -7840,7 +7840,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                         ),
                         const Spacer(),
                         Text(
-                          context.loc.t('총 _개 · __totalPrice원', '총 ${_totalQty()}개 · ${_fmt(_totalPrice())}원'),
+                          '총 ${_totalQty()}개 · ${_fmt(_totalPrice())}원',
                           style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w700, color: Color(0xFF555555)),
                         ),
                       ],
@@ -7877,7 +7877,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                       if ((item['length'] as String) != '-')
                                         _optionChip(item['length'] as String, const Color(0xFF1565C0)),
                                       if (item['removePocket'] == true)
-                                        _optionChip(context.loc.t('주머니 제거', '주머니 제거'), Color(0xFF6A1B9A)),
+                                        _optionChip('주머니 제거', Color(0xFF6A1B9A)),
                                     ],
                                   ),
                                   SizedBox(height: r.h(8)),
@@ -7935,7 +7935,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                       ),
                                       if (item['removePocket'] == true) ...[
                                         SizedBox(width: r.w(8)),
-                                        Text(context.loc.t('주머니 제거 10000원', '주머니 제거 -10,000원'),
+                                        Text(context.loc.t('주머니_제거__10_000원', '주머니 제거 -10,000원'),
                                           style: TextStyle(fontSize: r.sp(11), color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700)),
                                       ],
                                     ],
@@ -7989,7 +7989,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                           elevation: 0,
                         ),
                         child: Text(
-                          context.loc.t('위에서 옵션을 선택하고 추가해주세요', '위에서 옵션을 선택하고 추가해주세요'),
+                          '위에서 옵션을 선택하고 추가해주세요',
                           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
                         ),
                       ),
@@ -8007,7 +8007,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                 ),
                                 child: Text(
-                                  context.loc.t('장바구니 담기 _개', '장바구니 담기\n(${_totalQty()}개)'),
+                                  '장바구니 담기\n(${_totalQty()}개)',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontWeight: FontWeight.w700,
@@ -8035,7 +8035,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
                               child: Text(
                                 widget.isBuyNow
                                     ? context.loc.t('바로구매 __totalPrice원', '바로구매 (${_fmt(_totalPrice())}원)')
-                                    : context.loc.t('바로구매', '바로구매'),
+                                    : '바로구매',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w800,
                                   fontSize: r.sp(14),
@@ -8173,7 +8173,7 @@ class _ReadyMadeOptionSheetState extends State<_ReadyMadeOptionSheet> {
             if (isSoldOut) ...[
               SizedBox(height: r.h(2)),
               Text(
-                context.loc.t('품절', '품절'),
+                '품절',
                 style: TextStyle(
                   fontSize: r.sp(8),
                   fontWeight: FontWeight.w700,
@@ -8270,14 +8270,14 @@ class _QuickSizeColorSelectSheetState
     // 골지 텍스처: 싱글렛세트 또는 타이즈(하의) 상품에만 적용
     final p = widget.product;
     final isSingletSetHere =
-        (p.category == '세트' && (p.subCategory.contains('싱글렛세트') || p.subCategory.contains('싱글렛 A타입세트'))) ||
+        (p.category == context.loc.t('세트', '세트') && (p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) || p.subCategory.contains(context.loc.t('싱글렛_a타입세트', '싱글렛 A타입세트')))) ||
         p.category.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         p.subCategory.contains(context.loc.t('싱글렛세트', '싱글렛세트')) ||
         p.subCategory.contains(context.loc.t('싱글렛 A타입세트', '싱글렛 A타입세트')) ||
-        (p.category == '세트' && p.name.contains('싱글렛'));
+        (p.category == context.loc.t('세트', '세트') && p.name.contains(context.loc.t('싱글렛', '싱글렛')));
     final isBottom = isSingletSetHere ||
-        p.category == '하의' ||
-        p.subCategory == '타이즈' ||
+        p.category == context.loc.t('하의', '하의') ||
+        p.subCategory == context.loc.t('타이즈', '타이즈') ||
         p.name.contains(context.loc.t('타이즈', '타이즈'));
 
     return Container(
@@ -8481,7 +8481,7 @@ class _QuickSizeColorSelectSheetState
                     const Icon(Icons.payment_rounded, size: 18),
                     SizedBox(width: r.w(8)),
                     Text(
-                      _canConfirm ? context.loc.t('바로 결제하기', '바로 결제하기') : context.loc.t('사이즈와 컬러를 선택해주세요', '사이즈와 컬러를 선택해주세요'),
+                      _canConfirm ? context.loc.t('바로 결제하기', '바로 결제하기') : '사이즈와 컬러를 선택해주세요',
                       style: TextStyle(fontSize: r.sp(15), fontWeight: FontWeight.w800),
                     ),
                   ],
@@ -8877,7 +8877,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(context.loc.t('리뷰 _개', '리뷰 ${reviews.length}개'), style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w800)),
+                        Text('리뷰 ${reviews.length}개', style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w800)),
                         Row(
                           children: [
                             ...List.generate(5, (i) => Icon(Icons.star_rounded,
@@ -8899,11 +8899,11 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                 padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(8)),
                 child: Row(
                   children: [
-                    _sortBtn(context.loc.t('최신순', '최신순'), 'latest'),
+                    _sortBtn('최신순', 'latest'),
                     SizedBox(width: r.w(8)),
-                    _sortBtn(context.loc.t('평점 높은순', '평점 높은순'), 'highest'),
+                    _sortBtn('평점 높은순', 'highest'),
                     SizedBox(width: r.w(8)),
-                    _sortBtn(context.loc.t('평점 낮은순', '평점 낮은순'), 'lowest'),
+                    _sortBtn('평점 낮은순', 'lowest'),
                     const Spacer(),
                     if (currentUid != null)
                       GestureDetector(
@@ -8919,7 +8919,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                               Icon(myReview != null ? Icons.edit : Icons.rate_review,
                                   size: 14, color: Colors.white),
                               SizedBox(width: r.w(4)),
-                              Text(myReview != null ? context.loc.t('내 리뷰 수정', '내 리뷰 수정') : context.loc.t('리뷰 작성', '리뷰 작성'),
+                              Text(myReview != null ? context.loc.t('내 리뷰 수정', '내 리뷰 수정') : '리뷰 작성',
                                   style: TextStyle(fontSize: r.sp(12), fontWeight: FontWeight.w600, color: Colors.white)),
                             ],
                           ),
@@ -8990,7 +8990,7 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                                   color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
-                                                child: Text(context.loc.t('내 리뷰', '내 리뷰'), style: TextStyle(fontSize: r.sp(10), color: Color(0xFF6C63FF), fontWeight: FontWeight.w700)),
+                                                child: Text(context.loc.t('내_리뷰', '내 리뷰'), style: TextStyle(fontSize: r.sp(10), color: Color(0xFF6C63FF), fontWeight: FontWeight.w700)),
                                               ),
                                             ],
                                           ],
@@ -9225,7 +9225,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                   SizedBox(height: r.h(12)),
                   Row(
                     children: [
-                      Text(widget.existing != null ? context.loc.t('리뷰 수정', '리뷰 수정') : context.loc.t('리뷰 작성', '리뷰 작성'),
+                      Text(widget.existing != null ? context.loc.t('리뷰 수정', '리뷰 수정') : '리뷰 작성',
                           style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w800)),
                       const Spacer(),
                       IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
@@ -9266,13 +9266,13 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                     ),
                     SizedBox(height: r.h(20)),
                     // 리뷰 내용
-                    Text(context.loc.t('리뷰 내용', '리뷰 내용'), style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700)),
+                    Text(context.loc.t('리뷰_내용', '리뷰 내용'), style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700)),
                     SizedBox(height: r.h(8)),
                     TextField(
                       controller: _contentCtrl,
                       maxLines: 5,
                       decoration: InputDecoration(
-                        hintText: context.loc.t('상품에 대한 솔직한 후기를 남겨주세요 최소 10자', '상품에 대한 솔직한 후기를 남겨주세요 (최소 10자)'),
+                        hintText: context.loc.t('상품에_대한_솔직한_후기를__1c42fc', '상품에 대한 솔직한 후기를 남겨주세요 (최소 10자)'),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -9288,7 +9288,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(context.loc.t('구매 사이즈 선택', '구매 사이즈 (선택)'), style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600)),
+                              Text(context.loc.t('구매_사이즈__선택', '구매 사이즈 (선택)'), style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600)),
                               SizedBox(height: r.h(6)),
                               TextField(
                                 controller: _sizeCtrl,
@@ -9310,12 +9310,12 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(context.loc.t('구매 색상 선택', '구매 색상 (선택)'), style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600)),
+                              Text(context.loc.t('구매_색상__선택', '구매 색상 (선택)'), style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600)),
                               SizedBox(height: r.h(6)),
                               TextField(
                                 controller: _colorCtrl,
                                 decoration: InputDecoration(
-                                  hintText: 'ex) 블랙, 화이트',
+                                  hintText: context.loc.t('ex__블랙__화이트', 'ex) 블랙, 화이트'),
                                   isDense: true,
                                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                                   focusedBorder: OutlineInputBorder(
@@ -9344,7 +9344,7 @@ class _WriteReviewSheetState extends State<_WriteReviewSheet> {
                         ),
                         child: _isSubmitting
                             ? SizedBox(width: r.w(20), height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : Text(widget.existing != null ? context.loc.t('리뷰 수정 완료', '리뷰 수정 완료') : context.loc.t('리뷰 등록', '리뷰 등록'),
+                            : Text(widget.existing != null ? context.loc.t('리뷰 수정 완료', '리뷰 수정 완료') : '리뷰 등록',
                                 style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w700)),
                       ),
                     ),
@@ -9623,9 +9623,9 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(context.loc.t('단체 주문 안내', '단체 주문 안내'),
+                    Text(context.loc.t('단체_주문_안내', '단체 주문 안내'),
                         style: TextStyle(fontSize: r.sp(18), fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
-                    Text(context.loc.t('단체 맞춤 제작', '단체 맞춤 제작'),
+                    Text(context.loc.t('단체_맞춤_제작', '단체 맞춤 제작'),
                         style: TextStyle(fontSize: r.sp(11), color: Color(0xFF888888), letterSpacing: 0.5)),
                   ],
                 ),
@@ -9642,46 +9642,46 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                 children: [
 
                   // ─── 1. 기본 안내 ───────────────────────────────
-                  _sheetSectionTitle(Icons.info_outline_rounded, context.loc.t('단체 주문 안내', '단체 주문 안내'), Color(0xFF1565C0)),
+                  _sheetSectionTitle(Icons.info_outline_rounded, '단체 주문 안내', Color(0xFF1565C0)),
                   SizedBox(height: r.h(10)),
                   _infoCard(
                     icon: Icons.people_outline_rounded,
                     iconBg: const Color(0xFFE8EAF6),
                     iconColor: _purple,
-                    title: context.loc.t('최소 수량', '최소 수량'),
-                    content: context.loc.t('단체 커스텀 제작은 최소 5명부터 가능합니다', '단체 커스텀 제작은 최소 5명부터 가능합니다.'),
+                    title: context.loc.t('최소_수량', '최소 수량'),
+                    content: '단체 커스텀 제작은 최소 5명부터 가능합니다.',
                   ),
                   SizedBox(height: r.h(8)),
                   _infoCard(
                     icon: Icons.schedule_outlined,
                     iconBg: const Color(0xFFF3E5F5),
                     iconColor: const Color(0xFF6A1B9A),
-                    title: context.loc.t('제작 기간', '제작 기간'),
-                    content: context.loc.t('주문 확정 후 1421일 소요됩니다  디자인 수정 1회당 3일 이내 수정 요_fdd2e7', '주문 확정 후 14~21일 소요됩니다.\n• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작\n(시즌/물량에 따라 변동될 수 있습니다)'),
+                    title: context.loc.t('제작_기간', '제작 기간'),
+                    content: '주문 확정 후 14~21일 소요됩니다.\n• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작\n(시즌/물량에 따라 변동될 수 있습니다)',
                   ),
                   SizedBox(height: r.h(8)),
                   _infoCardWidget(
                     icon: Icons.local_shipping_outlined,
                     iconBg: const Color(0xFFE3F2FD),
                     iconColor: const Color(0xFF1565C0),
-                    title: context.loc.t('배송 안내', '배송 안내'),
+                    title: context.loc.t('배송_안내', '배송 안내'),
                     contentWidget: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(context.loc.t('30만원_이상_구매_시_무료배송', '• 30만원 이상 구매 시: 무료배송'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
-                        Text(context.loc.t('30만원_미만_배송비_별도', '• 30만원 미만: 배송비 별도'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
-                        Text(context.loc.t('추가_제작_5장_미만_배송비_4_000원_추가', '• 추가 제작 (5장 미만): 배송비 4,000원 추가'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
-                        Text(context.loc.t('단체_주문은_일괄_배송이_원칙입니다', '• 단체 주문은 일괄 배송이 원칙입니다.'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(context.loc.t('30만원_이상_구매_시__무_bf306c', '• 30만원 이상 구매 시: 무료배송'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(context.loc.t('30만원_미만__배송비_별도', '• 30만원 미만: 배송비 별도'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(context.loc.t('추가_제작__5장_미만____934992', '• 추가 제작 (5장 미만): 배송비 4,000원 추가'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
+                        Text(context.loc.t('단체_주문은_일괄_배송이_원_b42f46', '• 단체 주문은 일괄 배송이 원칙입니다.'), style: TextStyle(fontSize: r.sp(13), height: 1.6)),
                       ],
                     ),
                   ),
                   SizedBox(height: r.h(20)),
 
                   // ─── 3. 사이즈 안내 ──────────────────────────────
-                  _sheetSectionTitle(null, context.loc.t('사이즈 안내', '사이즈 안내'), Color(0xFF1A1A1A), emoji: '📏'),
+                  _sheetSectionTitle(null, '사이즈 안내', Color(0xFF1A1A1A), emoji: '📏'),
                   SizedBox(height: r.h(10)),
                   _sizeTable(
-                    title: context.loc.t('성인 사이즈 XSXXXL', '성인 사이즈 (XS~XXXL)'),
+                    title: context.loc.t('성인_사이즈__XS_XXXL', '성인 사이즈 (XS~XXXL)'),
                     emoji: '🧑',
                     headerColor: const Color(0xFF1565C0),
                     headerBg: const Color(0xFFE3F2FD),
@@ -9697,7 +9697,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   ),
                   SizedBox(height: r.h(12)),
                   _sizeTable(
-                    title: context.loc.t('주니어 사이즈 XXSL', '주니어 사이즈 (XXS~L)'),
+                    title: context.loc.t('주니어_사이즈__XXS_L', '주니어 사이즈 (XXS~L)'),
                     emoji: '🧒',
                     headerColor: const Color(0xFF6A1B9A),
                     headerBg: const Color(0xFFF3E5F5),
@@ -9725,11 +9725,11 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(context.loc.t('원하는 사이즈가 없을 경우', '원하는 사이즈가 없을 경우'),
+                              Text(context.loc.t('원하는_사이즈가_없을_경우', '원하는 사이즈가 없을 경우'),
                                   style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700)),
                               SizedBox(height: r.h(4)),
                               Text(
-                                context.loc.t('주문 양식에 키와 체중을 입력해주세요', '주문 양식에 키와 체중을 입력해주세요'),
+                                '주문 양식에 키와 체중을 입력해주세요',
                                 style: TextStyle(fontSize: r.sp(13), height: 1.5),
                               ),
                             ],
@@ -9741,7 +9741,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   SizedBox(height: r.h(20)),
 
                   // ─── 4. 교환·환불 정책 ───────────────────────────
-                  _sheetSectionTitle(null, context.loc.t('교환·환불 정책', '교환·환불 정책'), Color(0xFFE65100), emoji: '⚠️'),
+                  _sheetSectionTitle(null, '교환·환불 정책', Color(0xFFE65100), emoji: '⚠️'),
                   SizedBox(height: r.h(10)),
                   Container(
                     padding: EdgeInsets.all(r.w(14)),
@@ -9753,13 +9753,13 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(context.loc.t('커스텀_단체_주문_의류_자체_불량_외_교환_환불은_불가합니다', '• 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불은 불가합니다.'),
+                        Text(context.loc.t('커스텀_단체__주문__의류__36c0a1', '• 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불은 불가합니다.'),
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text(context.loc.t('기성품_제품_수령_후_3일_이내_교환_환불_가능합니다', '• 기성품: 제품 수령 후 3일 이내 교환·환불 가능합니다.'),
+                        Text(context.loc.t('기성품__제품_수령_후_3일_9149ca', '• 기성품: 제품 수령 후 3일 이내 교환·환불 가능합니다.'),
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text(context.loc.t('주문_확정_후_제작_착수_전까지만_취소_가능합니다', '• 주문 확정 후 제작 착수 전까지만 취소 가능합니다.'),
+                        Text(context.loc.t('주문_확정_후_제작_착수_전_ae7da5', '• 주문 확정 후 제작 착수 전까지만 취소 가능합니다.'),
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text(context.loc.t('색상은_모니터_환경에_따라_실제와_다소_다를_수_있습니다', '• 색상은 모니터 환경에 따라 실제와 다소 다를 수 있습니다.'),
+                        Text(context.loc.t('색상은_모니터_환경에_따라__a8646b', '• 색상은 모니터 환경에 따라 실제와 다소 다를 수 있습니다.'),
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
                       ],
                     ),
@@ -9798,7 +9798,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                           SizedBox(width: r.w(10)),
                           Expanded(
                             child: Text(
-                              context.loc.t('주문 안내 내용을 모두 확인하였습니다', '주문 안내 내용을 모두 확인하였습니다'),
+                              '주문 안내 내용을 모두 확인하였습니다',
                               style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A)),
                             ),
                           ),
@@ -9814,7 +9814,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     height: 54,
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.edit_note_rounded, color: Colors.white, size: 20),
-                      label: Text(context.loc.t('단체 서식 작성하기', '단체 서식 작성하기'),
+                      label: Text(context.loc.t('단체_서식_작성하기', '단체 서식 작성하기'),
                           style: TextStyle(fontSize: r.sp(16), fontWeight: FontWeight.w800, color: Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _checked ? _purple : const Color(0xFFBBBBBB),
@@ -9830,7 +9830,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                                     builder: (_) => GroupOrderFormScreen(
                                       product: widget.product,
                                       initialCount: 5,
-                                      isBottomOrder: widget.product?.category == '하의' ||
+                                      isBottomOrder: widget.product?.category == context.loc.t('하의', '하의') ||
                                           (widget.product?.subCategory.contains(context.loc.t('타이즈', '타이즈')) ?? false) ||
                                           (widget.product?.subCategory.contains(context.loc.t('남성 5부', '남성 5부')) ?? false) ||
                                           (widget.product?.subCategory.contains(context.loc.t('여성 25부', '여성 2.5부')) ?? false) ||
@@ -9962,7 +9962,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
     required List<List<String>> rows,
   }) {
     final r = Responsive.of(context);
-    final headers = [context.loc.t('사이즈', '사이즈'), context.loc.t('가슴cm', '가슴(cm)'), context.loc.t('허리cm', '허리(cm)'), context.loc.t('엉덩이cm', '엉덩이(cm)'), context.loc.t('키cm', '키(cm)')];
+    final headers = ['사이즈', '가슴(cm)', '허리(cm)', '엉덩이(cm)', '키(cm)'];
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
@@ -10268,14 +10268,14 @@ class _Section2FabricTabsWidgetState
           child: Row(
             children: [
               _FabricTab(
-                label: '일반봉제',
+                label: context.loc.t('일반봉제', '일반봉제'),
                 icon: Icons.straighten_rounded,
                 isSelected: _selectedTab == 0,
                 activeColor: const Color(0xFF1565C0),
                 onTap: () => setState(() => _selectedTab = 0),
               ),
               _FabricTab(
-                label: '심리스',
+                label: context.loc.t('심리스', '심리스'),
                 icon: Icons.blur_circular_rounded,
                 isSelected: _selectedTab == 1,
                 activeColor: const Color(0xFF6A1B9A),
@@ -10312,7 +10312,7 @@ class _Section2FabricTabsWidgetState
         color: const Color(0xFFF9F9F9),
         child: Center(
           child: Text(
-            context.loc.t('등록된 이미지가 없습니다', '등록된 이미지가 없습니다.'),
+            '등록된 이미지가 없습니다.',
             style: TextStyle(fontSize: r.sp(13), color: Color(0xFFAAAAAA)),
           ),
         ),

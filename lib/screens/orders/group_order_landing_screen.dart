@@ -141,12 +141,12 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   bool get _isBottomOrder {
     final p = widget.product;
     if (p == null) return false;
-    return p.category == '하의' ||
-        p.subCategory.contains('타이즈') ||
-        p.subCategory.contains('남성 5부') ||
-        p.subCategory.contains('여성 2.5부') ||
-        p.name.contains('타이즈') ||
-        p.name.contains('하의');
+    return p.category == context.loc.t('하의', '하의') ||
+        p.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
+        p.subCategory.contains(context.loc.t('남성_5부', '남성 5부')) ||
+        p.subCategory.contains(context.loc.t('여성_25부', '여성 2.5부')) ||
+        p.name.contains(context.loc.t('타이즈', '타이즈')) ||
+        p.name.contains(context.loc.t('하의', '하의'));
   }
 
   void _goToForm() {
@@ -206,22 +206,22 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           const SizedBox(height: 20),
 
           // 주문 절차
-          _buildSectionTitle(Icons.assignment_outlined, '주문 절차'),
+          _buildSectionTitle(Icons.assignment_outlined, context.loc.t('주문_절차', '주문 절차')),
           const SizedBox(height: 12),
-          _buildStepCard('1', '상품 선택 & 주문서 작성', '원하는 상품을 선택하고 단체주문서를 작성합니다.'),
-          _buildStepCard('2', '디자인 협의', '컬러, 로고, 마킹 등 맞춤 디자인을 협의합니다.'),
-          _buildStepCard('3', '견적 확인 & 결제', '수량별 최종 견적을 확인하고 주문을 확정합니다.'),
+          _buildStepCard('1', '상품 선택 & 주문서 작성', context.loc.t('원하는_상품을_선택하고_단체주문서를_작성합니다', '원하는 상품을 선택하고 단체주문서를 작성합니다.')),
+          _buildStepCard('2', '디자인 협의', context.loc.t('컬러_로고_마킹_등_맞춤_디자인을_협의합니다', '컬러, 로고, 마킹 등 맞춤 디자인을 협의합니다.')),
+          _buildStepCard('3', '견적 확인 & 결제', context.loc.t('수량별_최종_견적을_확인하고_주문을_확정합니다', '수량별 최종 견적을 확인하고 주문을 확정합니다.')),
           _buildStepCard('4', '제작 & 배송', '제작 후 일괄 배송 또는 분배 배송을 선택합니다.', isLast: true),
           const SizedBox(height: 20),
 
           // 주문 조건
-          _buildSectionTitle(Icons.check_circle_outline, '주문 조건'),
+          _buildSectionTitle(Icons.check_circle_outline, context.loc.t('주문_조건', '주문 조건')),
           const SizedBox(height: 12),
           _buildConditionTable(),
           const SizedBox(height: 20),
 
           // 커스텀 옵션
-          _buildSectionTitle(Icons.palette_outlined, '커스텀 옵션'),
+          _buildSectionTitle(Icons.palette_outlined, context.loc.t('커스텀_옵션', '커스텀 옵션')),
           const SizedBox(height: 12),
           _buildInfoLines(const [
             '• 팀명 / 로고 / 번호 마킹 가능',
@@ -232,7 +232,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           const SizedBox(height: 20),
 
           // 주의사항
-          _buildSectionTitle(Icons.warning_amber_outlined, '주의사항'),
+          _buildSectionTitle(Icons.warning_amber_outlined, context.loc.t('주의사항', '주의사항')),
           const SizedBox(height: 12),
           _buildNoticeBox(const [
             '주문 확정 후 디자인 변경 시 추가 비용이 발생할 수 있습니다.',
@@ -243,7 +243,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           const SizedBox(height: 20),
 
           // 문의
-          _buildSectionTitle(Icons.phone_outlined, '문의'),
+          _buildSectionTitle(Icons.phone_outlined, context.loc.t('문의', '문의')),
           const SizedBox(height: 12),
           _buildContactCard(),
           const SizedBox(height: 20),
@@ -282,7 +282,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle(Icons.edit_note_outlined, '단체주문서 작성'),
+          _buildSectionTitle(Icons.edit_note_outlined, context.loc.t('단체주문서_작성', '단체주문서 작성')),
           const SizedBox(height: 12),
           Text(
             '상품을 선택하지 않고 바로 단체주문서를 작성할 수 있습니다.\n아래 카테고리에서 원하는 상품 유형을 선택해주세요.',
@@ -293,32 +293,32 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           // 상품 유형별 주문서 선택
           _buildOrderTypeCard(
             icon: Icons.sports_rounded,
-            title: '싱글렛 A타입 세트',
-            subtitle: '싱글렛 + 타이즈 세트 / 육상·인라인·마라톤',
+            title: context.loc.t('싱글렛_A타입_세트', '싱글렛 A타입 세트'),
+            subtitle: context.loc.t('싱글렛___타이즈_세트____ada1cf', '싱글렛 + 타이즈 세트 / 육상·인라인·마라톤'),
           ),
           const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.fitness_center_rounded,
-            title: '싱글렛 B타입',
-            subtitle: '싱글렛 단품 / 헬스·크로스핏·복싱',
+            title: context.loc.t('싱글렛_B타입', '싱글렛 B타입'),
+            subtitle: context.loc.t('싱글렛_단품___헬스_크로스_1bce31', '싱글렛 단품 / 헬스·크로스핏·복싱'),
           ),
           const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.directions_run_rounded,
-            title: '스킨슈트',
-            subtitle: '원피스 전신 경기복 / 사이클·트라이애슬론',
+            title: context.loc.t('스킨슈트', '스킨슈트'),
+            subtitle: context.loc.t('원피스_전신_경기복___사이_bc1d90', '원피스 전신 경기복 / 사이클·트라이애슬론'),
           ),
           const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.dry_cleaning_rounded,
-            title: '트레이닝복 세트',
-            subtitle: '상의 + 하의 트레이닝 세트 / 팀복·동호회복',
+            title: context.loc.t('트레이닝복_세트', '트레이닝복 세트'),
+            subtitle: context.loc.t('상의___하의_트레이닝_세트_0bebc1', '상의 + 하의 트레이닝 세트 / 팀복·동호회복'),
           ),
           const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.list_alt_rounded,
-            title: '기타 / 직접 작성',
-            subtitle: '위에 없는 상품이나 복합 주문',
+            title: context.loc.t('기타___직접_작성', '기타 / 직접 작성'),
+            subtitle: context.loc.t('위에_없는_상품이나_복합_주_244706', '위에 없는 상품이나 복합 주문'),
           ),
           const SizedBox(height: 24),
 
@@ -402,9 +402,9 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   // 주문 조건 테이블
   Widget _buildConditionTable() {
     final items = [
-      {'icon': Icons.group_outlined,           'title': '최소 주문 수량', 'desc': '5벌 이상'},
-      {'icon': Icons.local_shipping_outlined,   'title': '배송',          'desc': '30만원 이상 무료 (미만 별도)'},
-      {'icon': Icons.schedule_outlined,         'title': '제작 기간',     'desc': '주문 확정 후 14~21일'},
+      {'icon': Icons.group_outlined,           'title': '최소 주문 수량', 'desc': context.loc.t('k_5벌_이상', '5벌 이상')},
+      {'icon': Icons.local_shipping_outlined,   'title': '배송',          'desc': context.loc.t('k_30만원_이상_무료_미만_별도', '30만원 이상 무료 (미만 별도)')},
+      {'icon': Icons.schedule_outlined,         'title': '제작 기간',     'desc': context.loc.t('주문_확정_후_1421일', '주문 확정 후 14~21일')},
     ];
     return Container(
       decoration: BoxDecoration(

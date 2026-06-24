@@ -50,17 +50,15 @@ IconData _iconFor(String cat) {
 }
 
 Color _colorFor(String cat) {
-  switch (cat) {
-    case '상의':    return const Color(0xFF1565C0);
-    case '하의':    return const Color(0xFF2E7D32);
-    case '세트':    return const Color(0xFFE53935);
-    case '아우터':  return const Color(0xFF37474F);
-    case '스킨슈트': return const Color(0xFF00838F);
-    case '악세사리': return const Color(0xFF6A1B9A);
-    case '이벤트':  return const Color(0xFFFF6B35);
-    case '단체주문': return const Color(0xFF1A237E);
-    default:        return const Color(0xFF555555);
-  }
+  if (cat == '상의') return const Color(0xFF1565C0);
+  if (cat == '하의') return const Color(0xFF2E7D32);
+  if (cat == '세트') return const Color(0xFFE53935);
+  if (cat == '아우터') return const Color(0xFF37474F);
+  if (cat == '스킨슈트') return const Color(0xFF00838F);
+  if (cat == '악세사리') return const Color(0xFF6A1B9A);
+  if (cat == '이벤트') return const Color(0xFFFF6B35);
+  if (cat == '단체주문') return const Color(0xFF1A237E);
+  return const Color(0xFF555555);
 }
 
 /// CategoryService 기반 동적 카테고리 목록 생성

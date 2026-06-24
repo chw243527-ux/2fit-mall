@@ -27,7 +27,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
   // ── 색상 ──
-  String? _selectedColor;      //// 색상 이름 (예: 'K (블랙)' 또는 '커스텀 (#FF3366)')
+  String? _selectedColor;      //// 색상 이름 (예: context.loc.t('k_블랙', 'K (블랙)') 또는 context.loc.t('커스텀_ff3366', '커스텀 (#FF3366)'))
   Color?  _selectedColorValue; // 실제 Color 값
 
   // ── 하의 길이 ──
@@ -53,20 +53,20 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   // 하의 길이 필요 여부
   bool get _needsBottomLength {
     final p = widget.product;
-    return p.category == '하의' ||
-        p.subCategory.contains('타이즈') ||
-        p.name.contains('타이즈') ||
-        p.subCategory.contains('싱글렛') ||
-        p.subCategory.contains('세트') ||
-        p.category == '세트' ||
+    return p.category == context.loc.t('하의', '하의') ||
+        p.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
+        p.name.contains(context.loc.t('타이즈', '타이즈')) ||
+        p.subCategory.contains(context.loc.t('싱글렛', '싱글렛')) ||
+        p.subCategory.contains(context.loc.t('세트', '세트')) ||
+        p.category == context.loc.t('세트', '세트') ||
         p.isGroupOnly;
   }
 
   bool get _isBottomProduct {
     final p = widget.product;
-    return p.category == '하의' ||
-        p.subCategory.contains('타이즈') ||
-        p.name.contains('타이즈');
+    return p.category == context.loc.t('하의', '하의') ||
+        p.subCategory.contains(context.loc.t('타이즈', '타이즈')) ||
+        p.name.contains(context.loc.t('타이즈', '타이즈'));
   }
 
   @override
@@ -535,7 +535,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          isFree ? '기본색상 (추가비용 없음)' : '+20,000원 추가',
+                          isFree ? context.loc.t('기본색상_추가비용_없음', '기본색상 (추가비용 없음)') : '+20,000원 추가',
                           style: TextStyle(
                             fontSize: 11, fontWeight: FontWeight.w700,
                             color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFCC0000),
@@ -963,9 +963,9 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   Widget _buildTeamInfoSection() {
     return Column(
       children: [
-        _inputField(loc.teamNameFieldLabel, _teamNameCtrl, hint: '예: 서울마라톤클럽'),
+        _inputField(loc.teamNameFieldLabel, _teamNameCtrl, hint: context.loc.t('예_서울마라톤클럽', '예: 서울마라톤클럽')),
         const SizedBox(height: 10),
-        _inputField(loc.managerNameFieldLabel, _managerNameCtrl, hint: '예: 홍길동'),
+        _inputField(loc.managerNameFieldLabel, _managerNameCtrl, hint: context.loc.t('예_홍길동', '예: 홍길동')),
         const SizedBox(height: 10),
         _inputField(loc.phoneFieldLabel, _phoneCtrl, hint: '010-0000-0000', type: TextInputType.phone),
         const SizedBox(height: 10),
@@ -1076,7 +1076,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionCard(
-          title: '디자인 이미지',
+          title: context.loc.t('디자인_이미지', '디자인 이미지'),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

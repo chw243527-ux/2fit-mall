@@ -1007,7 +1007,7 @@ class _PcFooter extends StatelessWidget {
                           _footerInfoRow('✉ ${AppConstants.customerServiceEmail}', r),
                           _footerInfoRow('💬 카카오톡 ${AppConstants.kakaoTalkId}', r),
                           _footerInfoRow('🕐 ${AppConstants.customerServiceHours.replaceAll("\n", " / ")}', r),
-                          _footerInfoRow('🚫 토·일·공휴일 휴무', r),
+                          _footerInfoRow(context.loc.t('토일공휴일_휴무', '🚫 토·일·공휴일 휴무'), r),
                           SizedBox(height: r.h(12)),
                           // ── 엘리트 선수 전용 안내 ──
                           GestureDetector(
@@ -1034,7 +1034,7 @@ class _PcFooter extends StatelessWidget {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text('🏅 엘리트 선수 주문 전용 상담',
+                                        Text(context.loc.t('엘리트_선수_주문_전용_상담', '🏅 엘리트 선수 주문 전용 상담'),
                                           style: TextStyle(color: Colors.white, fontSize: r.sp(11), fontWeight: FontWeight.w800)),
                                         SizedBox(height: r.h(2)),
                                         Text(AppConstants.eliteAthletePhone,

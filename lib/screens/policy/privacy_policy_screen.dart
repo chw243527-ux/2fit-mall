@@ -16,7 +16,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
           onPressed: () => goBackOrHome(context),
         ),
-        title: Text('개인정보처리방침',
+        title: Text(context.loc.t('개인정보처리방침', '개인정보처리방침'),
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
         centerTitle: true,
         elevation: 0,
@@ -34,13 +34,13 @@ class PrivacyPolicyScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('2FIT MALL 개인정보처리방침',
+                Text(context.loc.t('2FIT_MALL_개인정보처_4e637f', '2FIT MALL 개인정보처리방침'),
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w800)),
                 SizedBox(height: 8),
-                Text('시행일: 2025년 3월 21일  |  최종수정: 2026년 6월 17일',
+                Text(context.loc.t('시행일__2025년_3월_2_62b7e9', '시행일: 2025년 3월 21일  |  최종수정: 2026년 6월 17일'),
                     style: TextStyle(color: Colors.white70, fontSize: 13)),
               ],
             ),
@@ -107,9 +107,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           ),
           _buildSection(
             '제8조 (쿠키 및 자동수집 장치)',
-            '서비스 이용 편의를 위해 쿠키를 사용할 수 있으며, '
-                '브라우저 설정을 통해 거부할 수 있습니다. '
-                '쿠키 거부 시 일부 서비스 이용이 제한될 수 있습니다.',
+            '서비스 이용 편의를 위해 쿠키를 사용할 수 있으며, 브라우저 설정을 통해 거부할 수 있습니다. 쿠키 거부 시 일부 서비스 이용이 제한될 수 있습니다.',
           ),
 
           const SizedBox(height: 24),
@@ -124,7 +122,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Text('개인정보 관련 문의',
+                Text(context.loc.t('개인정보_관련_문의', '개인정보 관련 문의'),
                     style: TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A2E))),
@@ -134,7 +132,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         fontSize: 14, color: Color(0xFF6C63FF),
                         fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
-                Text('운영시간: 평일 10:00 - 18:00',
+                Text(context.loc.t('운영시간__평일_10_00__d8a41f', '운영시간: 평일 10:00 - 18:00'),
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
               ],
             ),

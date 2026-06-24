@@ -88,9 +88,9 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     List<ProductModel> all;
     if (filter == loc.sortNewArrival) {
       all = allCached.where((p) => p.isNewActive).toList();
-    } else if (filter == '세일') {
+    } else if (filter == context.loc.t('세일', '세일')) {
       all = allCached.where((p) => p.isSale).toList();
-    } else if (filter == '전체') {
+    } else if (filter == context.loc.t('전체', '전체')) {
       all = List.from(allCached);
     } else {
       all = allCached.where((p) => p.category == filter).toList();

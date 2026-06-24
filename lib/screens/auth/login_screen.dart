@@ -364,7 +364,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                     // ── 네이버 로그인 (Web + 앱) ──
                     _buildSocialBtn(
-                      label: '네이버로 로그인',
+                      label: context.loc.t('네이버로_로그인', '네이버로 로그인'),
                       bgColor: const Color(0xFF03C75A),
                       textColor: Colors.white,
                       icon: Icons.account_circle_rounded,
@@ -619,7 +619,7 @@ class _LoginScreenState extends State<LoginScreen>
                               _buildSocialBtn(label: loc.kakaoLogin, bgColor: const Color(0xFFFFE500), textColor: const Color(0xFF3C1E1E), icon: Icons.chat_bubble_rounded, iconColor: const Color(0xFF3C1E1E), onTap: () => _loginWithKakao()),
                               const SizedBox(height: 10),
                               // ── 네이버 로그인 (Web + 앱) ──
-                              _buildSocialBtn(label: '네이버로 로그인', bgColor: const Color(0xFF03C75A), textColor: Colors.white, icon: Icons.account_circle_rounded, iconColor: Colors.white, onTap: () => _loginWithNaver()),
+                              _buildSocialBtn(label: context.loc.t('네이버로_로그인', '네이버로 로그인'), bgColor: const Color(0xFF03C75A), textColor: Colors.white, icon: Icons.account_circle_rounded, iconColor: Colors.white, onTap: () => _loginWithNaver()),
                               const SizedBox(height: 10),
                               _buildSocialBtn(label: loc.googleLogin, bgColor: Colors.white, textColor: const Color(0xFF444444), icon: Icons.g_mobiledata_rounded, iconColor: const Color(0xFF4285F4), hasBorder: true, onTap: () => _loginWithGoogle()),
                               const SizedBox(height: 28),
@@ -852,7 +852,7 @@ class _LoginScreenState extends State<LoginScreen>
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result.error ?? 'Google 로그인에 실패했습니다'),
+            content: Text(result.error ?? context.loc.t('google_로그인에_실패했습니다', 'Google 로그인에 실패했습니다')),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

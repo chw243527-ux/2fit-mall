@@ -983,7 +983,7 @@ class _InlineColorChartState extends State<InlineColorChart>
       }
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('6자리 HEX 코드를 입력해주세요')),
+      SnackBar(content: Text(context.loc.t('6자리_HEX_코드를_입력해_21e929', '6자리 HEX 코드를 입력해주세요'))),
     );
   }
 
@@ -1314,7 +1314,7 @@ class _InlineColorChartState extends State<InlineColorChart>
           ),
           const SizedBox(height: 4),
           _SliderRow(
-            label: '색조',
+            label: context.loc.t('색조', '색조'),
             value: _hue / 360,
             trackGradient: const LinearGradient(colors: [
               Color(0xFFFF0000), Color(0xFFFFFF00), Color(0xFF00FF00),
@@ -1323,7 +1323,7 @@ class _InlineColorChartState extends State<InlineColorChart>
             onChanged: (v) => setState(() { _hue = v * 360; _applyHSL(); }),
           ),
           _SliderRow(
-            label: '채도',
+            label: context.loc.t('채도', '채도'),
             value: _sat,
             trackGradient: LinearGradient(colors: [
               HSLColor.fromAHSL(1.0, _hue, 0.0, _lit).toColor(),
@@ -1332,7 +1332,7 @@ class _InlineColorChartState extends State<InlineColorChart>
             onChanged: (v) => setState(() { _sat = v; _applyHSL(); }),
           ),
           _SliderRow(
-            label: '밝기',
+            label: context.loc.t('밝기', '밝기'),
             value: _lit,
             trackGradient: LinearGradient(colors: [
               Colors.black,

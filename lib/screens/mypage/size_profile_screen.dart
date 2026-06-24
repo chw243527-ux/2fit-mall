@@ -148,13 +148,13 @@ class _ProfileCard extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit_outlined, color: _purple, size: 20),
               onPressed: () => _openEditSheet(context, user, profile),
-              tooltip: '수정', padding: EdgeInsets.zero,
+              tooltip: context.loc.t('수정', '수정'), padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
             ),
             IconButton(
               icon: Icon(Icons.delete_outline, color: Colors.red.shade400, size: 20),
               onPressed: () => _confirmDelete(context),
-              tooltip: '삭제', padding: EdgeInsets.zero,
+              tooltip: context.loc.t('삭제', '삭제'), padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
             ),
           ]),
@@ -162,13 +162,13 @@ class _ProfileCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(14),
           child: Column(children: [
-            _infoRow('사이즈 구분', profile.sizeType),
-            _infoRow('상의 사이즈', profile.topSize),
-            _infoRow('하의 사이즈', profile.bottomSize),
-            if (profile.height.isNotEmpty) _infoRow('키', '${profile.height} cm'),
-            if (profile.weight.isNotEmpty) _infoRow('몸무게', '${profile.weight} kg'),
-            if (profile.waist.isNotEmpty) _infoRow('허리', '${profile.waist} cm'),
-            if (profile.thigh.isNotEmpty) _infoRow('허벅지', '${profile.thigh} cm'),
+            _infoRow(context.loc.t('사이즈_구분', '사이즈 구분'), profile.sizeType),
+            _infoRow(context.loc.t('상의_사이즈', '상의 사이즈'), profile.topSize),
+            _infoRow(context.loc.t('하의_사이즈', '하의 사이즈'), profile.bottomSize),
+            if (profile.height.isNotEmpty) _infoRow(context.loc.t('키', '키'), '${profile.height} cm'),
+            if (profile.weight.isNotEmpty) _infoRow(context.loc.t('몸무게', '몸무게'), '${profile.weight} kg'),
+            if (profile.waist.isNotEmpty) _infoRow(context.loc.t('허리', '허리'), '${profile.waist} cm'),
+            if (profile.thigh.isNotEmpty) _infoRow(context.loc.t('허벅지', '허벅지'), '${profile.thigh} cm'),
           ]),
         ),
       ]),
@@ -240,8 +240,8 @@ class _EditSheetState extends State<_EditSheet> {
   bool    _saving     = false;
   bool    _tableExpanded = false;
 
-  List<String> get _sizeOptions => _sizeType == '성인' ? _adultSizes : _juniorSizes;
-  List<List<String>> get _tableRows => _sizeType == '성인' ? _adultSizeRows : _juniorSizeRows;
+  List<String> get _sizeOptions => _sizeType == context.loc.t('성인', '성인') ? _adultSizes : _juniorSizes;
+  List<List<String>> get _tableRows => _sizeType == context.loc.t('성인', '성인') ? _adultSizeRows : _juniorSizeRows;
 
   @override
   void initState() {
@@ -288,29 +288,29 @@ class _EditSheetState extends State<_EditSheet> {
             Center(child: Container(width: 36, height: 4,
               decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 16),
-            Text(widget.existing == null ? '새 사이즈 프로필 추가' : '사이즈 프로필 수정',
+            Text(widget.existing == null ? context.loc.t('새_사이즈_프로필_추가', '새 사이즈 프로필 추가') : context.loc.t('사이즈_프로필_수정', '사이즈 프로필 수정'),
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: Color(0xFF1A1A2E))),
             const SizedBox(height: 16),
 
             // 프로필 이름
-            _field('프로필 이름', '예) 내 기본 사이즈, 겨울 오버핏', _nameCtrl),
+            _field(context.loc.t('프로필_이름', '프로필 이름'), '예) 내 기본 사이즈, 겨울 오버핏', _nameCtrl),
             const SizedBox(height: 12),
 
             // 성별
-            _label('성별'),
+            _label(context.loc.t('성별', '성별')),
             Row(children: [
-              _genderBtn('남성', 'male', Colors.blue),
+              _genderBtn(context.loc.t('남성', '남성'), 'male', Colors.blue),
               const SizedBox(width: 8),
-              _genderBtn('여성', 'female', Colors.pink),
+              _genderBtn(context.loc.t('여성', '여성'), 'female', Colors.pink),
             ]),
             const SizedBox(height: 12),
 
             // 사이즈 구분
-            _label('사이즈 구분'),
+            _label(context.loc.t('사이즈_구분', '사이즈 구분')),
             Row(children: [
-              _typeBtn('성인'),
+              _typeBtn(context.loc.t('성인', '성인')),
               const SizedBox(width: 8),
-              _typeBtn('주니어'),
+              _typeBtn(context.loc.t('주니어', '주니어')),
             ]),
             const SizedBox(height: 14),
 
@@ -319,12 +319,12 @@ class _EditSheetState extends State<_EditSheet> {
             const SizedBox(height: 14),
 
             // 상의 사이즈 선택
-            _label('상의 사이즈 *'),
+            _label(context.loc.t('상의_사이즈', '상의 사이즈 *')),
             _buildSizeSelector(_topSize, (v) => setState(() => _topSize = v)),
             const SizedBox(height: 12),
 
             // 하의 사이즈 선택
-            _label('하의 사이즈 *'),
+            _label(context.loc.t('하의_사이즈', '하의 사이즈 *')),
             _buildSizeSelector(_bottomSize, (v) => setState(() => _bottomSize = v)),
             const SizedBox(height: 14),
 
@@ -348,15 +348,15 @@ class _EditSheetState extends State<_EditSheet> {
                 ]),
                 const SizedBox(height: 10),
                 Row(children: [
-                  Expanded(child: _compactField('키 (cm)', _heightCtrl)),
+                  Expanded(child: _compactField(context.loc.t('키_cm', '키 (cm)'), _heightCtrl)),
                   const SizedBox(width: 8),
-                  Expanded(child: _compactField('몸무게 (kg)', _weightCtrl)),
+                  Expanded(child: _compactField(context.loc.t('몸무게_kg', '몸무게 (kg)'), _weightCtrl)),
                 ]),
                 const SizedBox(height: 8),
                 Row(children: [
-                  Expanded(child: _compactField('허리 (cm)', _waistCtrl)),
+                  Expanded(child: _compactField(context.loc.t('허리_cm', '허리 (cm)'), _waistCtrl)),
                   const SizedBox(width: 8),
-                  Expanded(child: _compactField('허벅지 (cm)', _thighCtrl)),
+                  Expanded(child: _compactField(context.loc.t('허벅지_cm', '허벅지 (cm)'), _thighCtrl)),
                 ]),
               ]),
             ),

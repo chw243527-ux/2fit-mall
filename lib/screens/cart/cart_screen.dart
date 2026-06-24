@@ -1115,7 +1115,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
             cashNum.isNotEmpty &&
             result.paymentKey != null &&
             PaymentService.needsCashReceiptApiCall(_selectedPayment)) {
-          final receiptType = _isBusiness(cashNum) ? context.loc.t('지출증빙', '지출증빙') : context.loc.t('소득공제', '소득공제');
+          final receiptType = _isBusiness(cashNum) ? '지출증빙' : '소득공제';
           final receiptResult = await PaymentService.issueCashReceipt(
             paymentKey: result.paymentKey!,
             customerIdentityNumber: cashNum,
@@ -1127,7 +1127,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                      '현금영수증 발급 실패: ${receiptResult.error ?? '잠시 후 마이페이지에서 재신청하세요.'}'),
+                      '현금영수증 발급 실패: ${receiptResult.error ?? context.loc.t('잠시_후_마이페이지에서_재신청하세요', '잠시 후 마이페이지에서 재신청하세요.')}'),
                   backgroundColor: Colors.orange,
                   duration: const Duration(seconds: 4),
                 ),

@@ -16,7 +16,7 @@ class TermsOfServiceScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
           onPressed: () => goBackOrHome(context),
         ),
-        title: Text('이용약관',
+        title: Text(context.loc.t('이용약관', '이용약관'),
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
         centerTitle: true,
         elevation: 0,
@@ -34,13 +34,13 @@ class TermsOfServiceScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('2FIT MALL 이용약관',
+                Text(context.loc.t('2FIT_MALL_이용약관', '2FIT MALL 이용약관'),
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w800)),
                 SizedBox(height: 8),
-                Text('시행일: 2025년 3월 21일  |  최종수정: 2026년 6월 17일',
+                Text(context.loc.t('시행일__2025년_3월_2_62b7e9', '시행일: 2025년 3월 21일  |  최종수정: 2026년 6월 17일'),
                     style: TextStyle(color: Colors.white70, fontSize: 13)),
               ],
             ),
@@ -59,7 +59,7 @@ class TermsOfServiceScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('사업자 정보',
+                Text(context.loc.t('사업자_정보', '사업자 정보'),
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A2E))),
                 SizedBox(height: 10),
@@ -77,8 +77,7 @@ class TermsOfServiceScreen extends StatelessWidget {
 
           _buildSection(
             '제1조 (목적)',
-            '본 약관은 주식회사 2FIT Korea(이하 "회사")가 운영하는 2FIT MALL 쇼핑몰 서비스의 '
-                '이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.',
+            '본 약관은 주식회사 2FIT Korea(이하 "회사")가 운영하는 2FIT MALL 쇼핑몰 서비스의 이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.',
           ),
           _buildSection(
             '제2조 (회원가입)',
@@ -127,9 +126,7 @@ class TermsOfServiceScreen extends StatelessWidget {
           ),
           _buildSection(
             '제9조 (준거법 및 관할법원)',
-            '본 약관은 대한민국 법률에 따라 규율되며, '
-                '서비스 이용과 관련한 분쟁은 회사 소재지 관할 법원(전주지방법원 남원지원)을 '
-                '전속 관할로 합니다.',
+            '본 약관은 대한민국 법률에 따라 규율되며, 서비스 이용과 관련한 분쟁은 회사 소재지 관할 법원(전주지방법원 남원지원)을 전속 관할로 합니다.',
           ),
 
           const SizedBox(height: 24),
@@ -144,7 +141,7 @@ class TermsOfServiceScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Text('이용약관 관련 문의',
+                Text(context.loc.t('이용약관_관련_문의', '이용약관 관련 문의'),
                     style: TextStyle(
                         fontSize: 15, fontWeight: FontWeight.w700,
                         color: Color(0xFF1A1A2E))),
@@ -154,7 +151,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                         fontSize: 14, color: Color(0xFF6C63FF),
                         fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
-                Text('운영시간: 평일 10:00 - 18:00',
+                Text(context.loc.t('운영시간__평일_10_00__d8a41f', '운영시간: 평일 10:00 - 18:00'),
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
               ],
             ),

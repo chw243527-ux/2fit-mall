@@ -63,13 +63,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
     _searchController.text = _searchQuery;
     if (widget.initialSortBy != null) _sortBy = widget.initialSortBy!;
     if (widget.initialOnlyNew) _onlyNew = true;
-    if (widget.initialOnlyBest) { _onlyBest = true; _sortBy = '인기순'; }
+    if (widget.initialOnlyBest) { _onlyBest = true; _sortBy = context.loc.t('인기순', '인기순'); }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 언어 변경 시 번역 트리거
       context.read<LanguageProvider>().triggerTranslation();
 
       // initialCategory='단체주문'이면 GroupOrderOnlyScreen으로 자동 리다이렉트
-      if (_selectedCategory == '단체주문') {
+      if (_selectedCategory == context.loc.t('단체주문', '단체주문')) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const GroupOrderOnlyScreen()),
@@ -137,7 +137,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       list.sort((a, b) => b.rating.compareTo(a.rating));
     } else if (_sortBy == loc.sortLatest) {
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    } else if (_sortBy == '추천순') {
+    } else if (_sortBy == context.loc.t('추천순', '추천순')) {
       list.sort((a, b) {
         final scoreA = a.rating * (a.reviewCount + 1);
         final scoreB = b.rating * (b.reviewCount + 1);
@@ -265,7 +265,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       _onlyNew = false;
                       _selectedCategory = '';
                       _selectedSubCategory = '';
-                      _sortBy = '인기순';
+                      _sortBy = context.loc.t('인기순', '인기순');
                       _searchQuery = '';
                       _searchController.clear();
                     });
@@ -308,7 +308,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       _onlyBest = false;
                       _selectedCategory = '';
                       _selectedSubCategory = '';
-                      _sortBy = '최신순';
+                      _sortBy = context.loc.t('최신순', '최신순');
                       _searchQuery = '';
                       _searchController.clear();
                     });
@@ -348,7 +348,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
                 // [5] 나머지 카테고리 탭 (전체·단체주문 제외)
                 ...AppConstants.categories
-                    .where((cat) => cat != '전체' && cat != '단체주문')
+                    .where((cat) => cat != context.loc.t('전체', '전체') && cat != '단체주문')
                     .map((cat) => _buildCatTab(cat, provider)),
               ],
             ),
@@ -478,7 +478,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   // ── 정렬 바텀시트 ──
   void _showSortBottomSheet() {
     final sortOptions = [
-      {'key': 'recommend', 'label': '추천순'},
+      {'key': 'recommend', 'label': context.loc.t('추천순', '추천순')},
       {'key': 'priceLow',  'label': loc.sortPriceLow},
       {'key': 'priceHigh', 'label': loc.sortPriceHigh},
       {'key': 'popular',   'label': loc.sortPopular},
@@ -582,7 +582,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   // ── 정렬/필터 바 ──
   Widget _buildSortFilterBar(int count) {
     final sortOptions = [
-      {'key': 'recommend', 'label': '추천순'},
+      {'key': 'recommend', 'label': context.loc.t('추천순', '추천순')},
       {'key': 'priceLow',  'label': loc.sortPriceLow},
       {'key': 'priceHigh', 'label': loc.sortPriceHigh},
       {'key': 'popular',   'label': loc.sortPopular},

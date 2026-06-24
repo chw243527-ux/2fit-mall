@@ -373,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen>
                   final r = Responsive.of(context);
 
                   final isExpanded = _expandedCatName == cat.name;
-                  final subs = cat.subCategories.where((s) => !s.name.startsWith(context.loc.t('전체', '전체'))).toList();
+                  final subs = cat.subCategories.where((s) => !s.name.startsWith('전체')).toList();
                   return Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -582,7 +582,7 @@ class _HomeScreenState extends State<HomeScreen>
             final r = Responsive.of(context);
 
             final isExpanded = _expandedCatName == cat.name;
-            final subs = cat.subCategories.where((s) => !s.name.startsWith(context.loc.t('전체', '전체'))).toList();
+            final subs = cat.subCategories.where((s) => !s.name.startsWith('전체')).toList();
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1344,7 +1344,7 @@ class _HomeScreenState extends State<HomeScreen>
     final banners = [
       {
         'title': 'JUST\nDO IT.',
-        'sub': loc.language == AppLanguage.korean ? '2025 S/S 컬렉션' : '2025 S/S COLLECTION',
+        'sub': loc.language == AppLanguage.korean ? context.loc.t('k_2025_ss_컬렉션', '2025 S/S 컬렉션') : '2025 S/S COLLECTION',
         'tag': 'NEW SEASON',
         'bg1': const Color(0xFF0D0D0D),
         'bg2': const Color(0xFF1A1A1A),
@@ -1353,7 +1353,7 @@ class _HomeScreenState extends State<HomeScreen>
       },
       {
         'title': 'BEST\nSELLER.',
-        'sub': loc.language == AppLanguage.korean ? '2FIT 인기 상품' : 'TOP PRODUCTS',
+        'sub': loc.language == AppLanguage.korean ? context.loc.t('k_2fit_인기_상품', '2FIT 인기 상품') : 'TOP PRODUCTS',
         'tag': 'POPULAR',
         'bg1': const Color(0xFF1A0000),
         'bg2': const Color(0xFF330000),
@@ -2807,7 +2807,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── 카테고리 가로 탭바 ──
   Widget _buildCategoryTabBar(AppLocalizations loc) {
     final r = Responsive.of(context);
-    final cats = [context.loc.t('전체', '전체'), context.loc.t('상의', '상의'), context.loc.t('하의', '하의'), context.loc.t('세트', '세트'), context.loc.t('아우터', '아우터'), context.loc.t('스킨슈트', '스킨슈트'), context.loc.t('악세사리', '악세사리'), context.loc.t('단체주문', '단체주문')];
+    final cats = ['전체', '상의', '하의', '세트', '아우터', '스킨슈트', '악세사리', '단체주문'];
     return Container(
       color: Colors.white,
       height: 44,
@@ -4530,7 +4530,7 @@ class _HomeScreenState extends State<HomeScreen>
     {
       'title': 'NEW SEASON\n2025 S/S',
       'subtitle': loc.homeBanner1Subtitle,
-      'badge': '🆕 신규 컬렉션',
+      'badge': context.loc.t('신규_컬렉션', '🆕 신규 컬렉션'),
       'btn': loc.homeBanner1Btn,
       'gradient1': const Color(0xFF1A1A1A),
       'gradient2': const Color(0xFF3D3D3D),
@@ -4538,7 +4538,7 @@ class _HomeScreenState extends State<HomeScreen>
     {
       'title': 'BEST SELLER\n인기 상품',
       'subtitle': loc.homeBanner2Subtitle,
-      'badge': '🔥 베스트',
+      'badge': context.loc.t('베스트', '🔥 베스트'),
       'btn': loc.homeBanner2Btn,
       'gradient1': const Color(0xFFE53935),
       'gradient2': const Color(0xFFFF6B35),
@@ -4577,7 +4577,7 @@ class _HomeScreenState extends State<HomeScreen>
             final r = Responsive.of(context);
 
             final isExpanded = _expandedCatName == cat.name;
-            final subs = cat.subCategories.where((s) => !s.name.startsWith(context.loc.t('전체', '전체'))).toList();
+            final subs = cat.subCategories.where((s) => !s.name.startsWith('전체')).toList();
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -5251,7 +5251,7 @@ class _HomeScreenState extends State<HomeScreen>
           _footerInfoRow('✉ ${AppConstants.customerServiceEmail}'),
           _footerInfoRow('💬 카카오톡 ${AppConstants.kakaoTalkId}'),
           _footerInfoRow('🕐 ${AppConstants.customerServiceHours.replaceAll("\n", " / ")}'),
-          _footerInfoRow('🚫 토·일·공휴일 휴무'),
+          _footerInfoRow(context.loc.t('토일공휴일_휴무', '🚫 토·일·공휴일 휴무')),
           SizedBox(height: r.h(14)),
           // 소셜 버튼
           Row(
@@ -5274,7 +5274,7 @@ class _HomeScreenState extends State<HomeScreen>
               _footerLink(context.loc.t('상품 목록', '상품 목록'), () => widget.onNavigate?.call(1)),
               _footerLink(loc.footerGroupOrder, () => Navigator.pushNamed(context, '/group-guide')),
               _footerLink(context.loc.t('주문 현황', '주문 현황'), () => widget.onNavigate?.call(3)),
-              _footerLink('1:1 문의', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
+              _footerLink(context.loc.t('k_11_문의', '1:1 문의'), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
               _footerLink(context.loc.t('카카오톡 채널', '카카오톡 채널'), () => _openKakaoChannel()),
             ],
           ),
@@ -5355,7 +5355,7 @@ class _HomeScreenState extends State<HomeScreen>
                           _footerInfoRow('✉ ${AppConstants.customerServiceEmail}'),
                           _footerInfoRow('💬 카카오톡 ${AppConstants.kakaoTalkId}'),
                           _footerInfoRow('🕐 ${AppConstants.customerServiceHours.replaceAll("\n", " / ")}'),
-                          _footerInfoRow('🚫 토·일·공휴일 휴무'),
+                          _footerInfoRow(context.loc.t('토일공휴일_휴무', '🚫 토·일·공휴일 휴무')),
                           SizedBox(height: r.h(16)),
                           Row(
                             children: [
@@ -5406,7 +5406,7 @@ class _HomeScreenState extends State<HomeScreen>
                         children: [
                           Text(loc.homeCustomerSupport, style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: r.sp(14))),
                           SizedBox(height: r.h(14)),
-                          _footerLink('1:1 문의', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
+                          _footerLink(context.loc.t('k_11_문의', '1:1 문의'), () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
                           _footerLink(context.loc.t('자주 묻는 질문', '자주 묻는 질문'), null),
                           _footerLink(loc.myPageLabel, () => widget.onNavigate?.call(3)),
                           _footerLink(context.loc.t('카카오톡 채널', '카카오톡 채널'), () => _openKakaoChannel()),

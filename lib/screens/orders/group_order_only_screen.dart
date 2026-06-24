@@ -418,7 +418,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         fontWeight: FontWeight.w900,
                         height: 1.2)),
                 const SizedBox(height: 4),
-                Text(context.loc.t('10인_이상_팀_맞춤_제작_무료배송', '10인 이상 팀 맞춤 제작 · 무료배송'),
+                Text(context.loc.t('10인_이상_팀_맞춤_제작__bb552f', '10인 이상 팀 맞춤 제작 · 무료배송'),
                     style: TextStyle(
                         color: Colors.white70, fontSize: 11)),
               ],
@@ -486,8 +486,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: -0.5)),
                           const SizedBox(height: 6),
-                          const Text(
-                              '10인 이상 팀 맞춤 제작 전용 · 무료배송 · 14~21일 제작',
+                          Text(context.loc.t('10인_이상_팀_맞춤_제작__d95012', '10인 이상 팀 맞춤 제작 전용 · 무료배송 · 14~21일 제작'),
                               style: TextStyle(
                                   color: Colors.white70, fontSize: 13)),
                         ],
@@ -498,21 +497,21 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                       children: [
                         _heroCta(
                           icon: Icons.local_shipping_rounded,
-                          label: '무료배송',
+                          label: context.loc.t('무료배송', '무료배송'),
                           sub: '단체전용',
                           color: const Color(0xFF2E7D32),
                         ),
                         const SizedBox(width: 12),
                         _heroCta(
                           icon: Icons.discount_rounded,
-                          label: '단체 맞춤',
+                          label: context.loc.t('단체_맞춤', '단체 맞춤'),
                           sub: '5인 이상',
                           color: const Color(0xFFFF6B35),
                         ),
                         const SizedBox(width: 12),
                         _heroCta(
                           icon: Icons.palette_rounded,
-                          label: '맞춤 제작',
+                          label: context.loc.t('맞춤_제작', '맞춤 제작'),
                           sub: '컬러·로고·마킹',
                           color: const Color(0xFF1565C0),
                         ),
@@ -598,7 +597,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF444444))),
               const SizedBox(height: 6),
-              Text(context.loc.t('단체주문_문의는_주문안내를_확인해주세요', '단체주문 문의는 주문안내를 확인해주세요.'),
+              Text(context.loc.t('단체주문_문의는_주문안내를__1ea171', '단체주문 문의는 주문안내를 확인해주세요.'),
                   style: TextStyle(
                       fontSize: 13, color: Color(0xFF888888))),
               const SizedBox(height: 20),

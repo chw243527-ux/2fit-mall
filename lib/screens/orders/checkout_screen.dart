@@ -443,7 +443,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      context.loc.t('저장된 배송지 _개', '저장된 배송지 ${savedList.length}개'),
+                      '저장된 배송지 ${savedList.length}개',
                       style: const TextStyle(
                           fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0064FF)),
                     ),
@@ -459,7 +459,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const Expanded(child: Divider()),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Text(context.loc.t('또는 새 주소 입력', '또는 새 주소 입력'),
+                child: Text(context.loc.t('또는_새_주소_입력', '또는 새 주소 입력'),
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
               ),
               const Expanded(child: Divider()),
@@ -565,7 +565,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   Icon(Icons.bookmark_add_outlined,
                       size: 16, color: Colors.grey.shade600),
                   const SizedBox(width: 6),
-                  Text(context.loc.t('이 주소 저장하기', '이 주소 저장하기'),
+                  Text(context.loc.t('이_주소_저장하기', '이 주소 저장하기'),
                       style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey.shade700,
@@ -649,7 +649,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     final newAddr = AddressModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      label: '배송지',
+      label: context.loc.t('배송지', '배송지'),
       recipient: user.name,
       phone: user.phone,
       zipCode: _zonecode,
@@ -846,7 +846,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isAdditional ? context.loc.t('추가제작 주문', '추가제작 주문') : context.loc.t('단체주문', '단체주문'),
+                  isAdditional ? context.loc.t('추가제작 주문', '추가제작 주문') : '단체주문',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 13,
@@ -868,7 +868,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              isAdditional ? context.loc.t('추가', '추가') : context.loc.t('단체', '단체'),
+              isAdditional ? context.loc.t('추가', '추가') : '단체',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 11,
@@ -886,9 +886,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final opts = _groupOrderOpts;
     if (opts == null) return const SizedBox.shrink();
 
-    final printTypeLabels = [context.loc.t('색상변경 단체명 없음', '색상변경 (단체명 없음)'), context.loc.t('단체명 변경 전면', '단체명 변경 (전면)'), context.loc.t('단체명  색상 변경', '단체명 + 색상 변경'), context.loc.t('디자인  단체명  색상', '디자인 + 단체명 + 색상'), context.loc.t('디자인  색상  단체명  이름후면', '디자인 + 색상 + 단체명 + 이름(후면)')];
+    final printTypeLabels = ['색상변경 (단체명 없음)', '단체명 변경 (전면)', '단체명 + 색상 변경', '디자인 + 단체명 + 색상', '디자인 + 색상 + 단체명 + 이름(후면)'];
     final printType = opts['printType'] as int? ?? 0;
-    final printLabel = printType < printTypeLabels.length ? printTypeLabels[printType] : context.loc.t('알 수 없음', '알 수 없음');
+    final printLabel = printType < printTypeLabels.length ? printTypeLabels[printType] : '알 수 없음';
 
     final teamName    = opts['teamName'] as String? ?? '';
     final manager     = opts['manager'] as String? ?? '';
@@ -948,7 +948,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Icon(isAdditional ? Icons.add_circle_outline_rounded : Icons.groups_rounded,
                 size: 16, color: const Color(0xFF6A1B9A)),
               const SizedBox(width: 8),
-              Text(isAdditional ? context.loc.t('추가제작 기본정보', '추가제작 기본정보') : context.loc.t('단체주문 기본정보', '단체주문 기본정보'),
+              Text(isAdditional ? context.loc.t('추가제작 기본정보', '추가제작 기본정보') : '단체주문 기본정보',
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
               const Spacer(),
               if (totalCount > 0)
@@ -965,24 +965,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (teamName.isNotEmpty) infoRow(Icons.group_work_rounded, context.loc.t('단체명', '단체명'), teamName),
-                if (manager.isNotEmpty) infoRow(Icons.person_outline_rounded, context.loc.t('담당자', '담당자'), manager),
-                if (phone.isNotEmpty) infoRow(Icons.phone_outlined, context.loc.t('연락처', '연락처'), phone),
-                if (email.isNotEmpty) infoRow(Icons.email_outlined, context.loc.t('이메일', '이메일'), email),
-                if (fullAddress.isNotEmpty) infoRow(Icons.location_on_outlined, context.loc.t('배송 주소', '배송 주소'), fullAddress),
-                infoRow(Icons.print_rounded, context.loc.t('인쇄타입', '인쇄타입'), printLabel, color: Color(0xFF4A148C)),
-                if (mainColor.isNotEmpty) infoRow(Icons.palette_outlined, context.loc.t('색상', '색상'), mainColor),
-                if (fabric.isNotEmpty) infoRow(Icons.texture_rounded, context.loc.t('원단', '원단'), fabric),
-                if (waistband.isNotEmpty) infoRow(Icons.style_rounded, context.loc.t('허리밴드', '허리밴드'), waistband),
-                if (exclusive) infoRow(Icons.star_rounded, context.loc.t('독점 디자인', '독점 디자인'), '1년간 동일 디자인/색상 미판매 · 1년 후 2FIT몰 단독 판매', color: Color(0xFF6A1B9A)),
-                if (memo.isNotEmpty) infoRow(Icons.notes_rounded, context.loc.t('메모', '메모'), memo),
+                if (teamName.isNotEmpty) infoRow(Icons.group_work_rounded, '단체명', teamName),
+                if (manager.isNotEmpty) infoRow(Icons.person_outline_rounded, '담당자', manager),
+                if (phone.isNotEmpty) infoRow(Icons.phone_outlined, '연락처', phone),
+                if (email.isNotEmpty) infoRow(Icons.email_outlined, '이메일', email),
+                if (fullAddress.isNotEmpty) infoRow(Icons.location_on_outlined, '배송 주소', fullAddress),
+                infoRow(Icons.print_rounded, '인쇄타입', printLabel, color: Color(0xFF4A148C)),
+                if (mainColor.isNotEmpty) infoRow(Icons.palette_outlined, '색상', mainColor),
+                if (fabric.isNotEmpty) infoRow(Icons.texture_rounded, '원단', fabric),
+                if (waistband.isNotEmpty) infoRow(Icons.style_rounded, '허리밴드', waistband),
+                if (exclusive) infoRow(Icons.star_rounded, '독점 디자인', '1년간 동일 디자인/색상 미판매 · 1년 후 2FIT몰 단독 판매', color: Color(0xFF6A1B9A)),
+                if (memo.isNotEmpty) infoRow(Icons.notes_rounded, '메모', memo),
                 // 팀원 명단 요약
                 if (persons.isNotEmpty) ...[
                   const Divider(height: 16),
                   Row(children: [
                     const Icon(Icons.people_alt_rounded, size: 14, color: Color(0xFF6A1B9A)),
                     const SizedBox(width: 8),
-                    Text(context.loc.t('팀원 명단 _명', '팀원 명단 (${persons.length}명)'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+                    Text('팀원 명단 (${persons.length}명)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
                   ]),
                   const SizedBox(height: 8),
                   // 팀원 요약 칩
@@ -999,10 +999,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: gender == '남' ? const Color(0xFFE3F2FD) : const Color(0xFFFCE4EC),
+                            color: gender == context.loc.t('남', '남') ? const Color(0xFFE3F2FD) : const Color(0xFFFCE4EC),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(label.trim(), style: TextStyle(fontSize: 11, color: gender == '남' ? const Color(0xFF1565C0) : const Color(0xFFC62828), fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+                          child: Text(label.trim(), style: TextStyle(fontSize: 11, color: gender == context.loc.t('남', '남') ? const Color(0xFF1565C0) : const Color(0xFFC62828), fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
                         );
                       }),
                       if (moreCount > 0)
@@ -1316,7 +1316,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           );
         }).toList(),
           // ── 무통장입금 선택 시 즉시 안내문구 ──
-      if (_selectedPayment == '무통장입금' || _selectedPayment.contains('무통장'))
+      if (_selectedPayment == context.loc.t('무통장입금', '무통장입금') || _selectedPayment.contains(context.loc.t('무통장', '무통장')))
         Container(
           margin: const EdgeInsets.only(top: 8),
           padding: const EdgeInsets.all(12),
@@ -1335,7 +1335,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      context.loc.t('무통장입금 시 반드시 담당자 이름으로 입금해 주세요', '무통장입금 시 반드시 담당자 이름으로 입금해 주세요'),
+                      '무통장입금 시 반드시 담당자 이름으로 입금해 주세요',
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFFF57F17)),
                     ),
                     const SizedBox(height: 4),
@@ -1434,7 +1434,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Expanded(
                       child: Text(
                         isFreeShipping
-                            ? '🎉 무료배송 조건 달성!'
+                            ? context.loc.t('무료배송_조건_달성', '🎉 무료배송 조건 달성!')
                             : '${_formatPrice(remaining)}원 더 담으면 무료배송!',
                         style: TextStyle(
                           fontSize: 12,
@@ -1697,7 +1697,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_isOverseas
-              ? 'Street Address, City, Country는 필수입니다.'
+              ? context.loc.t('street_address_city_country는_필', 'Street Address, City, Country는 필수입니다.')
               : loc.checkoutNoAddress),
           backgroundColor: const Color(0xFFE53935),
         ),
@@ -1726,7 +1726,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             : '');
 
     bool? result;
-    if (_selectedPayment == '무통장입금' || _selectedPayment == 'Bank Transfer' || _selectedPayment.contains('무통장')) {
+    if (_selectedPayment == context.loc.t('무통장입금', '무통장입금') || _selectedPayment == 'Bank Transfer' || _selectedPayment.contains(context.loc.t('무통장', '무통장'))) {
       // 무통장입금 전용 다이얼로그
       result = await showDialog<bool>(
         context: context,
@@ -2656,7 +2656,7 @@ class _BankTransferDialog extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      context.loc.t('무통장입금 안내', '무통장입금 안내'),
+                      '무통장입금 안내',
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
                     ),
                   ),
@@ -2702,7 +2702,7 @@ class _BankTransferDialog extends StatelessWidget {
 
                   // ── 입금 계좌 정보 ──
                   Text(
-                    context.loc.t('입금 계좌', '입금 계좌'),
+                    '입금 계좌',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF333333)),
                   ),
                   const SizedBox(height: 8),
@@ -2716,13 +2716,13 @@ class _BankTransferDialog extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _infoRow(context.loc.t('은행', '은행'), _bankName, isBold: true),
+                        _infoRow('은행', _bankName, isBold: true),
                         const SizedBox(height: 8),
-                        _infoRow(context.loc.t('계좌번호', '계좌번호'), _accountNo, isBold: true, highlight: true),
+                        _infoRow('계좌번호', _accountNo, isBold: true, highlight: true),
                         const SizedBox(height: 8),
-                        _infoRow(context.loc.t('예금주', '예금주'), _accountHolder),
+                        _infoRow('예금주', _accountHolder),
                         const SizedBox(height: 8),
-                        _infoRow(context.loc.t('입금기한', '입금기한'), _depositDeadline),
+                        _infoRow('입금기한', _depositDeadline),
                       ],
                     ),
                   ),
@@ -2746,7 +2746,7 @@ class _BankTransferDialog extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                context.loc.t('입금 시 주의사항', '입금 시 주의사항'),
+                                '입금 시 주의사항',
                                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFF57F17)),
                               ),
                               const SizedBox(height: 4),
@@ -2776,7 +2776,7 @@ class _BankTransferDialog extends StatelessWidget {
                         elevation: 0,
                       ),
                       child: Text(
-                        context.loc.t('입금 정보 확인 완료  주문하기', '입금 정보 확인 완료 → 주문하기'),
+                        '입금 정보 확인 완료 → 주문하기',
                         style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800),
                       ),
                     ),
@@ -2878,7 +2878,7 @@ class _SavedAddressSheetState extends State<_SavedAddressSheet> {
                 const Icon(Icons.bookmark_rounded, color: Color(0xFF1A1A2E), size: 20),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(context.loc.t('저장된 배송지', '저장된 배송지'),
+                  child: Text(context.loc.t('저장된_배송지', '저장된 배송지'),
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 ),
                 IconButton(

@@ -569,7 +569,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(context.loc.t('주문_안내_내용을_모두_확인했습니다', '주문 안내 내용을 모두 확인했습니다.'),
+                    child: Text(context.loc.t('주문_안내_내용을_모두_확인_899c8d', '주문 안내 내용을 모두 확인했습니다.'),
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A))),
                   ),
                 ]),

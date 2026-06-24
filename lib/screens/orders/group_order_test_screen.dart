@@ -406,7 +406,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
           SizedBox(width: 8),
           Text(context.loc.t('테스트_주문_삭제', '테스트 주문 삭제'), style: TextStyle(fontSize: 15)),
         ]),
-        content: const Text('TEST_GRP_ / TEST_PERS_ 로 시작하는\n테스트 주문을 모두 삭제합니다.'),
+        content: Text(context.loc.t('TEST_GRP____TES_604fd0', 'TEST_GRP_ / TEST_PERS_ 로 시작하는\n테스트 주문을 모두 삭제합니다.')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.loc.t('취소', '취소'))),
           ElevatedButton(
@@ -488,7 +488,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_sweep_rounded, color: Color(0xFFFF7043)),
-            tooltip: '테스트 주문 전체 삭제',
+            tooltip: context.loc.t('테스트_주문_전체_삭제', '테스트 주문 전체 삭제'),
             onPressed: _isLoading ? null : _deleteAllTestOrders,
           ),
         ],
@@ -552,7 +552,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
         child: user != null
             ? Text('생성 대상: ${user.name} (${user.id})',
                 style: const TextStyle(fontSize: 12, color: Color(0xFF1B5E20), fontWeight: FontWeight.w600))
-            : Text(context.loc.t('로그인_필요__로그인_후_사용하세요', '로그인 필요 — 로그인 후 사용하세요'),
+            : Text(context.loc.t('로그인_필요___로그인_후__9ac61d', '로그인 필요 — 로그인 후 사용하세요'),
                 style: TextStyle(fontSize: 12, color: Color(0xFFE65100), fontWeight: FontWeight.w600)),
       ),
     ]),
@@ -570,9 +570,7 @@ class _GroupOrderTestScreenState extends State<GroupOrderTestScreen> {
       Icon(Icons.info_outline_rounded, color: Color(0xFFF57F17), size: 16),
       SizedBox(width: 8),
       Expanded(child: Text(
-        '• 생성된 주문은 로그인 유저 ID로 저장 → 마이페이지에서 즉시 확인 가능\n'
-        '• 기성품/단체주문 둘 다 생성 가능 · 상태(배송중/완료 등) 선택 가능\n'
-        '• 주문번호 TEST_GRP_ / TEST_PERS_ 로 시작 → 상단 🗑 버튼으로 일괄 삭제',
+        '• 생성된 주문은 로그인 유저 ID로 저장 → 마이페이지에서 즉시 확인 가능\n• 기성품/단체주문 둘 다 생성 가능 · 상태(배송중/완료 등) 선택 가능\n• 주문번호 TEST_GRP_ / TEST_PERS_ 로 시작 → 상단 🗑 버튼으로 일괄 삭제',
         style: TextStyle(fontSize: 11, color: Color(0xFF795548), height: 1.6),
       )),
     ]),
