@@ -6,18 +6,19 @@ import '../models/models.dart';
 class BannerService {
   static final _col = FirebaseFirestore.instance.collection('banners');
 
-  // ── 실시간 스트림 (active만) ──────────────────────────────
-  // NOTE: active+order 복합 쿼리는 Firestore 인덱스 필요 → 클라이언트 정렬로 대체
+  // ── 실시간 스트림 (active + 기간 조건 만족) ──────────────────
+  // active=true이고, 현재 시각이 startDate~endDate 범위 내인 배너만 반환
   static Stream<List<BannerModel>> watchActiveBanners() {
     return _col
         .where('active', isEqualTo: true)
         .snapshots()
         .map((snap) {
+          final now = DateTime.now();
           final list = snap.docs
               .map((d) => BannerModel.fromFirestore(
                   d.data() as Map<String, dynamic>, d.id))
+              .where((b) => b.isInSchedule)   // 기간 필터
               .toList();
-          // 클라이언트 측 order 정렬 (인덱스 불필요)
           list.sort((a, b) => a.order.compareTo(b.order));
           return list;
         });

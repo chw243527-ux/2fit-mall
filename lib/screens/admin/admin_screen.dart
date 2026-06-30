@@ -5240,6 +5240,12 @@ class _AdminScreenState extends State<AdminScreen>
                                               color: isFirst ? Colors.red.shade600 : const Color(0xFF888888),
                                             ),
                                           ),
+                                          // 기간 뱃지
+                                          if (b.startDate != null || b.endDate != null)
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 3),
+                                              child: _buildScheduleBadge(b.startDate, b.endDate),
+                                            ),
                                         ],
                                       ),
                                     ),
@@ -6264,10 +6270,13 @@ class _AdminScreenState extends State<AdminScreen>
     Uint8List? pickedImageBytes;
     Uint8List? pickedVideoBytes;
     String?    pickedVideoName;
-    bool useLocalVideo = false;   // 로컬 편집 영상 사용 여부
+    bool useLocalVideo = false;
     bool isUploading = false;
     double uploadProgress = 0.0;
     final isFirstSlide = banner.order == 0;
+    // ── 기간 설정 ──
+    DateTime? scheduleStart = banner.startDate;
+    DateTime? scheduleEnd   = banner.endDate;
 
     showDialog(
       context: context,
@@ -6586,6 +6595,17 @@ class _AdminScreenState extends State<AdminScreen>
                         style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
                       ),
                     ],
+                    // ── 기간 설정 ──────────────────────────────────
+                    const SizedBox(height: 16),
+                    _buildScheduleSection(
+                      scheduleStart: scheduleStart,
+                      scheduleEnd:   scheduleEnd,
+                      context:       ctx,
+                      onChanged: (s, e) => setDlg(() {
+                        scheduleStart = s;
+                        scheduleEnd   = e;
+                      }),
+                    ),
                   ],
                 ]),
               ),
@@ -6635,7 +6655,7 @@ class _AdminScreenState extends State<AdminScreen>
                     if (uploadedVideoUrl != null) videoUrl = uploadedVideoUrl;
                   }
 
-                  // Firestore 저장
+                  // Firestore 저장 (기간 포함)
                   final fields = <String, dynamic>{
                     'title': titleCtrl.text.trim(),
                     'tag': tagCtrl.text.trim(),
@@ -6645,6 +6665,10 @@ class _AdminScreenState extends State<AdminScreen>
                     'ctaEn': ctaEnCtrl.text,
                     'imageUrl': imageUrl,
                     if (videoUrl != null && videoUrl.isNotEmpty) 'videoUrl': videoUrl,
+                    'startDate': scheduleStart != null
+                        ? Timestamp.fromDate(scheduleStart!) : null,
+                    'endDate':   scheduleEnd   != null
+                        ? Timestamp.fromDate(scheduleEnd!)   : null,
                   };
                   await BannerService.updateBanner(banner.id, fields);
 
@@ -6677,8 +6701,11 @@ class _AdminScreenState extends State<AdminScreen>
     final ctaEnCtrl   = TextEditingController();
 
     Uint8List? pickedImageBytes;
-    bool useLocalVideo = false;   // 로컬 편집 영상 사용 여부
+    bool useLocalVideo = false;
     bool isUploading = false;
+    // ── 기간 설정 ──
+    DateTime? scheduleStart;
+    DateTime? scheduleEnd;
 
     showDialog(
       context: context,
@@ -6816,6 +6843,17 @@ class _AdminScreenState extends State<AdminScreen>
                     child: Text('💡 동영상은 추가 후 편집에서 업로드도 가능합니다.',
                         style: TextStyle(fontSize: 11, color: Color(0xFF999999))),
                   ),
+                // ── 기간 설정 ──────────────────────────────────
+                const SizedBox(height: 16),
+                _buildScheduleSection(
+                  scheduleStart: scheduleStart,
+                  scheduleEnd:   scheduleEnd,
+                  context:       ctx,
+                  onChanged: (s, e) => setDlg(() {
+                    scheduleStart = s;
+                    scheduleEnd   = e;
+                  }),
+                ),
               ]),
             ),
           ),
@@ -6839,7 +6877,7 @@ class _AdminScreenState extends State<AdminScreen>
 
                 final newBanner = BannerModel(
                   id: 'banner_${DateTime.now().millisecondsSinceEpoch}',
-                  order: 99, // 맨 뒤에 추가
+                  order: 99,
                   title: titleCtrl.text.trim(),
                   tag: tagCtrl.text.trim(),
                   titleKo: titleKoCtrl.text,
@@ -6847,10 +6885,11 @@ class _AdminScreenState extends State<AdminScreen>
                   ctaKo: ctaKoCtrl.text,
                   ctaEn: ctaEnCtrl.text,
                   imageUrl: imageUrl,
-                  // 로컬 영상 선택 시 Firestore에 로컬 식별자 저장
                   videoUrl: useLocalVideo ? 'assets/images/banner_video.mp4' : null,
                   accentColor: 0xFFE53935,
                   btnAction: 0,
+                  startDate: scheduleStart,
+                  endDate:   scheduleEnd,
                 );
                 await BannerService.addBanner(newBanner);
 
@@ -6866,6 +6905,220 @@ class _AdminScreenState extends State<AdminScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ── 기간 뱃지 (목록 카드용) ──────────────────────────────────
+  Widget _buildScheduleBadge(DateTime? startDate, DateTime? endDate) {
+    final now = DateTime.now();
+    String label;
+    Color bgColor;
+    Color textColor;
+
+    if (startDate != null && now.isBefore(startDate)) {
+      // 아직 시작 전
+      label = '⏳ ${startDate.month}/${startDate.day} 예정';
+      bgColor = const Color(0xFFE3F2FD);
+      textColor = const Color(0xFF1565C0);
+    } else if (endDate != null && now.isAfter(endDate)) {
+      // 종료됨
+      label = '⛔ 기간 종료';
+      bgColor = const Color(0xFFFFEBEE);
+      textColor = Colors.red.shade700;
+    } else {
+      // 현재 노출 중
+      final endStr = endDate != null
+          ? '~${endDate.month}/${endDate.day}'
+          : '~상시';
+      label = '📅 $endStr';
+      bgColor = const Color(0xFFE8F5E9);
+      textColor = const Color(0xFF2E7D32);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+        ),
+      ),
+    );
+  }
+
+  // ── 기간 설정 공통 UI 섹션 ──────────────────────────────────
+  Widget _buildScheduleSection({
+    required DateTime? scheduleStart,
+    required DateTime? scheduleEnd,
+    required BuildContext context,
+    required void Function(DateTime? s, DateTime? e) onChanged,
+  }) {
+    String _fmt(DateTime? d) => d == null
+        ? '설정 안함'
+        : '${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')}';
+
+    Future<void> pickStart() async {
+      final picked = await showDatePicker(
+        context: context,
+        initialDate: scheduleStart ?? DateTime.now(),
+        firstDate: DateTime(2020),
+        lastDate: DateTime(2030),
+        helpText: '노출 시작일 선택',
+        confirmText: '선택',
+        cancelText: '취소',
+      );
+      if (picked != null) onChanged(picked, scheduleEnd);
+    }
+
+    Future<void> pickEnd() async {
+      final picked = await showDatePicker(
+        context: context,
+        initialDate: scheduleEnd ?? DateTime.now(),
+        firstDate: DateTime(2020),
+        lastDate: DateTime(2030),
+        helpText: '노출 종료일 선택',
+        confirmText: '선택',
+        cancelText: '취소',
+      );
+      if (picked != null) {
+        // 종료일 23:59:59로 설정 (당일 포함)
+        final endOfDay = DateTime(picked.year, picked.month, picked.day, 23, 59, 59);
+        onChanged(scheduleStart, endOfDay);
+      }
+    }
+
+    final bool hasSchedule = scheduleStart != null || scheduleEnd != null;
+    final now = DateTime.now();
+    String statusText = '';
+    Color statusColor = Colors.grey;
+    if (scheduleStart != null && now.isBefore(scheduleStart)) {
+      statusText = '⏳ 노출 예정 (${_fmt(scheduleStart)} 시작)';
+      statusColor = const Color(0xFF1565C0);
+    } else if (scheduleEnd != null && now.isAfter(scheduleEnd)) {
+      statusText = '⛔ 기간 종료됨';
+      statusColor = Colors.red;
+    } else if (hasSchedule) {
+      statusText = '✅ 현재 노출 중';
+      statusColor = const Color(0xFF2E7D32);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3E5F5),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFCE93D8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.date_range_rounded, size: 16, color: Color(0xFF6A1B9A)),
+            const SizedBox(width: 6),
+            const Text('노출 기간 설정',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                    color: Color(0xFF6A1B9A))),
+            const Spacer(),
+            if (hasSchedule)
+              GestureDetector(
+                onTap: () => onChanged(null, null),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Text('기간 초기화',
+                      style: TextStyle(fontSize: 11, color: Colors.red.shade700)),
+                ),
+              ),
+          ]),
+          const SizedBox(height: 4),
+          const Text('설정하지 않으면 상시 노출됩니다',
+              style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: pickStart,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: scheduleStart != null
+                          ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD),
+                      width: scheduleStart != null ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('시작일', style: TextStyle(
+                        fontSize: 10, color: Colors.grey.shade600)),
+                    const SizedBox(height: 2),
+                    Text(_fmt(scheduleStart),
+                        style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600,
+                            color: scheduleStart != null
+                                ? const Color(0xFF6A1B9A) : Colors.grey)),
+                  ]),
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Text('~', style: TextStyle(fontSize: 16, color: Colors.grey)),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: pickEnd,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: scheduleEnd != null
+                          ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD),
+                      width: scheduleEnd != null ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('종료일', style: TextStyle(
+                        fontSize: 10, color: Colors.grey.shade600)),
+                    const SizedBox(height: 2),
+                    Text(_fmt(scheduleEnd),
+                        style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w600,
+                            color: scheduleEnd != null
+                                ? const Color(0xFF6A1B9A) : Colors.grey)),
+                  ]),
+                ),
+              ),
+            ),
+          ]),
+          if (hasSchedule) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(statusText,
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                      color: statusColor)),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -12844,6 +13097,159 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
     if (mounted) setState(() => _loaded = true);
   }
 
+  // ── 기간 설정 공통 UI (공지 탭 전용) ──────────────────────────
+  Widget _buildScheduleSection({
+    required DateTime? scheduleStart,
+    required DateTime? scheduleEnd,
+    required BuildContext context,
+    required void Function(DateTime? s, DateTime? e) onChanged,
+  }) {
+    String fmt(DateTime? d) => d == null
+        ? '설정 안함'
+        : '${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')}';
+
+    Future<void> pickStart() async {
+      final picked = await showDatePicker(
+        context: context,
+        initialDate: scheduleStart ?? DateTime.now(),
+        firstDate: DateTime(2020), lastDate: DateTime(2030),
+        helpText: '노출 시작일 선택', confirmText: '선택', cancelText: '취소',
+      );
+      if (picked != null) onChanged(picked, scheduleEnd);
+    }
+
+    Future<void> pickEnd() async {
+      final picked = await showDatePicker(
+        context: context,
+        initialDate: scheduleEnd ?? DateTime.now(),
+        firstDate: DateTime(2020), lastDate: DateTime(2030),
+        helpText: '노출 종료일 선택', confirmText: '선택', cancelText: '취소',
+      );
+      if (picked != null) {
+        final endOfDay = DateTime(picked.year, picked.month, picked.day, 23, 59, 59);
+        onChanged(scheduleStart, endOfDay);
+      }
+    }
+
+    final bool hasSchedule = scheduleStart != null || scheduleEnd != null;
+    final now = DateTime.now();
+    String statusText = '';
+    Color statusColor = Colors.grey;
+    if (scheduleStart != null && now.isBefore(scheduleStart)) {
+      statusText = '⏳ 노출 예정 (${fmt(scheduleStart)} 시작)';
+      statusColor = const Color(0xFF1565C0);
+    } else if (scheduleEnd != null && now.isAfter(scheduleEnd)) {
+      statusText = '⛔ 기간 종료됨';
+      statusColor = Colors.red;
+    } else if (hasSchedule) {
+      statusText = '✅ 현재 노출 중';
+      statusColor = const Color(0xFF2E7D32);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3E5F5),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFCE93D8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            const Icon(Icons.date_range_rounded, size: 16, color: Color(0xFF6A1B9A)),
+            const SizedBox(width: 6),
+            const Text('노출 기간 설정',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A))),
+            const Spacer(),
+            if (hasSchedule)
+              GestureDetector(
+                onTap: () => onChanged(null, null),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Text('기간 초기화',
+                      style: TextStyle(fontSize: 11, color: Colors.red.shade700)),
+                ),
+              ),
+          ]),
+          const SizedBox(height: 4),
+          const Text('설정하지 않으면 상시 노출됩니다',
+              style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: pickStart,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: scheduleStart != null ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD),
+                      width: scheduleStart != null ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('시작일', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                    const SizedBox(height: 2),
+                    Text(fmt(scheduleStart),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                            color: scheduleStart != null ? const Color(0xFF6A1B9A) : Colors.grey)),
+                  ]),
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Text('~', style: TextStyle(fontSize: 16, color: Colors.grey)),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: pickEnd,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: scheduleEnd != null ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD),
+                      width: scheduleEnd != null ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('종료일', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                    const SizedBox(height: 2),
+                    Text(fmt(scheduleEnd),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                            color: scheduleEnd != null ? const Color(0xFF6A1B9A) : Colors.grey)),
+                  ]),
+                ),
+              ),
+            ),
+          ]),
+          if (hasSchedule) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(statusText,
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: statusColor)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   // ── 등록/수정 다이얼로그 ──
   Future<void> _openEditor({NoticeModel? existing}) async {
     final titleCtrl   = TextEditingController(text: existing?.titleKo ?? '');
@@ -12852,6 +13258,9 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
     bool isActive     = existing?.isActive ?? true;
     String selectedTheme = existing != null ? (existing.theme) : 'auto';
     bool autoImage = existing == null || existing.imageUrl.isEmpty;
+    // ── 기간 설정 ──
+    DateTime? scheduleStart = existing?.startDate;
+    DateTime? scheduleEnd   = existing?.endDate;
 
     // 이미지 직접 업로드 관련
     Uint8List? pickedImageBytes;
@@ -13210,6 +13619,17 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                       ],
                     ),
                   ),
+                  // ── 기간 설정 ──────────────────────────────────
+                  const SizedBox(height: 16),
+                  _buildScheduleSection(
+                    scheduleStart: scheduleStart,
+                    scheduleEnd:   scheduleEnd,
+                    context:       ctx,
+                    onChanged: (s, e) => setD(() {
+                      scheduleStart = s;
+                      scheduleEnd   = e;
+                    }),
+                  ),
                 ],
               ),
             ),
@@ -13256,6 +13676,8 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   createdAt: existing?.createdAt ?? DateTime.now(),
                   theme: finalTheme,
                   imageUrl: finalImageUrl,
+                  startDate: scheduleStart,
+                  endDate:   scheduleEnd,
                 );
                 final noticeProvider = context.read<NoticeProvider>();
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -13559,6 +13981,11 @@ class _NoticeCard extends StatelessWidget {
                     ),
                   ),
                 const Spacer(),
+                // 기간 뱃지
+                if (notice.startDate != null || notice.endDate != null) ...[
+                  _NoticeBadge(startDate: notice.startDate, endDate: notice.endDate),
+                  const SizedBox(width: 6),
+                ],
                 Text(dateStr, style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
               ],
             ),
@@ -13645,6 +14072,54 @@ class _NoticeCard extends StatelessWidget {
         ],
       ),
       ), // GestureDetector
+    );
+  }
+}
+
+// ── 공지 카드 기간 뱃지 ──
+class _NoticeBadge extends StatelessWidget {
+  final DateTime? startDate;
+  final DateTime? endDate;
+  const _NoticeBadge({this.startDate, this.endDate});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    String label;
+    Color bgColor;
+    Color textColor;
+
+    if (startDate != null && now.isBefore(startDate!)) {
+      label = '⏳ ${startDate!.month}/${startDate!.day} 예정';
+      bgColor = const Color(0xFFE3F2FD);
+      textColor = const Color(0xFF1565C0);
+    } else if (endDate != null && now.isAfter(endDate!)) {
+      label = '⛔ 기간 종료';
+      bgColor = const Color(0xFFFFEBEE);
+      textColor = Colors.red.shade700;
+    } else {
+      final endStr = endDate != null
+          ? '~${endDate!.month}/${endDate!.day}'
+          : '~상시';
+      label = '📅 $endStr';
+      bgColor = const Color(0xFFE8F5E9);
+      textColor = const Color(0xFF2E7D32);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: textColor,
+        ),
+      ),
     );
   }
 }

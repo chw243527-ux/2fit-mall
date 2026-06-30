@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/app_localizations.dart';
 
 class ProductModel {
@@ -927,6 +928,8 @@ class BannerModel {
   final String? videoUrl;   // 동영상 URL (1번 슬라이드 전용, null이면 이미지)
   final int accentColor;    // accent 색상 (ARGB int)
   final int btnAction;      // 0=신상, 1=베스트, 2=단체주문
+  final DateTime? startDate; // 노출 시작일 (null=제한없음)
+  final DateTime? endDate;   // 노출 종료일 (null=제한없음)
 
   const BannerModel({
     required this.id,
@@ -942,9 +945,25 @@ class BannerModel {
     this.videoUrl,
     this.accentColor = 0xFFE53935,
     this.btnAction = 0,
+    this.startDate,
+    this.endDate,
   });
 
+  /// 현재 시각 기준 기간 내 노출 여부
+  bool get isInSchedule {
+    final now = DateTime.now();
+    if (startDate != null && now.isBefore(startDate!)) return false;
+    if (endDate   != null && now.isAfter(endDate!))    return false;
+    return true;
+  }
+
   factory BannerModel.fromFirestore(Map<String, dynamic> d, String id) {
+    DateTime? _parseDate(dynamic v) {
+      if (v == null) return null;
+      if (v is Timestamp) return v.toDate();
+      if (v is String) return DateTime.tryParse(v);
+      return null;
+    }
     return BannerModel(
       id: id,
       order: (d['order'] as num?)?.toInt() ?? 99,
@@ -959,6 +978,8 @@ class BannerModel {
       videoUrl: d['videoUrl'] as String?,
       accentColor: (d['accentColor'] as num?)?.toInt() ?? 0xFFE53935,
       btnAction: (d['btnAction'] as num?)?.toInt() ?? 0,
+      startDate: _parseDate(d['startDate']),
+      endDate:   _parseDate(d['endDate']),
     );
   }
 
@@ -975,12 +996,17 @@ class BannerModel {
     if (videoUrl != null && videoUrl!.isNotEmpty) 'videoUrl': videoUrl,
     'accentColor': accentColor,
     'btnAction': btnAction,
+    if (startDate != null) 'startDate': Timestamp.fromDate(startDate!)
+    else 'startDate': null,
+    if (endDate != null)   'endDate':   Timestamp.fromDate(endDate!)
+    else 'endDate': null,
   };
 
   BannerModel copyWith({
     String? id, int? order, bool? active, String? title, String? tag,
     String? titleKo, String? titleEn, String? ctaKo, String? ctaEn,
     String? imageUrl, String? videoUrl, int? accentColor, int? btnAction,
+    Object? startDate = _sentinel, Object? endDate = _sentinel,
   }) => BannerModel(
     id: id ?? this.id,
     order: order ?? this.order,
@@ -995,8 +1021,12 @@ class BannerModel {
     videoUrl: videoUrl ?? this.videoUrl,
     accentColor: accentColor ?? this.accentColor,
     btnAction: btnAction ?? this.btnAction,
+    startDate: startDate == _sentinel ? this.startDate : startDate as DateTime?,
+    endDate:   endDate   == _sentinel ? this.endDate   : endDate   as DateTime?,
   );
 }
+
+const Object _sentinel = Object();
 
 // ── 인증 결과 ────────────────────────────────────────────
 class AuthResult {

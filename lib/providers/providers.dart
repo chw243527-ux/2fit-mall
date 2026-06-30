@@ -880,6 +880,10 @@ class NoticeModel {
   final String theme;
   /// 본문 위에 표시할 이미지 URL (선택)
   final String imageUrl;
+  /// 노출 시작일 (null=제한없음)
+  final DateTime? startDate;
+  /// 노출 종료일 (null=제한없음)
+  final DateTime? endDate;
 
   const NoticeModel({
     required this.id,
@@ -891,7 +895,17 @@ class NoticeModel {
     required this.createdAt,
     this.theme = 'general',
     this.imageUrl = '',
+    this.startDate,
+    this.endDate,
   });
+
+  /// 현재 시각 기준 기간 내 활성 여부
+  bool get isInSchedule {
+    final now = DateTime.now();
+    if (startDate != null && now.isBefore(startDate!)) return false;
+    if (endDate   != null && now.isAfter(endDate!))    return false;
+    return true;
+  }
 
   String localizedTitle(AppLanguage lang) {
     switch (lang) {
@@ -933,6 +947,12 @@ class NoticeModel {
     } else {
       createdAt = DateTime.now();
     }
+    DateTime? _parseDate(dynamic v) {
+      if (v == null) return null;
+      if (v is Timestamp) return v.toDate();
+      if (v is String) return DateTime.tryParse(v);
+      return null;
+    }
     return NoticeModel(
       id: id,
       titleKo: data['titleKo'] as String? ?? data['title'] as String? ?? '',
@@ -947,6 +967,8 @@ class NoticeModel {
       createdAt: createdAt,
       theme: data['theme'] as String? ?? 'general',
       imageUrl: data['imageUrl'] as String? ?? '',
+      startDate: _parseDate(data['startDate']),
+      endDate:   _parseDate(data['endDate']),
     );
   }
 
@@ -959,6 +981,8 @@ class NoticeModel {
     'createdAt': Timestamp.fromDate(createdAt),
     'theme': theme,
     'imageUrl': imageUrl,
+    'startDate': startDate != null ? Timestamp.fromDate(startDate!) : null,
+    'endDate':   endDate   != null ? Timestamp.fromDate(endDate!)   : null,
   };
 }
 
@@ -1026,7 +1050,8 @@ class NoticeProvider extends ChangeNotifier {
 
   final List<NoticeModel> _notices = [];
 
-  List<NoticeModel> get activeNotices => _notices.where((n) => n.isActive).toList();
+  List<NoticeModel> get activeNotices =>
+      _notices.where((n) => n.isActive && n.isInSchedule).toList();
   bool get isLoading => _isLoading;
 
   bool get shouldShow {
