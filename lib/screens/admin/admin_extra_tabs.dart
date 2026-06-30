@@ -97,6 +97,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
 
     final headers = [
       '주문번호', '회원명', '연락처', '배송주소', '주문금액', '배송비', '결제방법', '주문유형', '상태', '주문일시',
+      '내 매출(30%)', '본사 매출(70%)',
       // 단체주문 옵션
       '팀명', '담당자', '총인원', '메인색상', '색상HEX', '밝기',
       '재봉방법', '원단무게', '주머니', '하의기장', '허리밴드옵션', '허리밴드색상HEX',
@@ -120,6 +121,8 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         else if (p == false || p == 'false') pocketVal = '없음';
         else pocketVal = '없음';
       }
+      final myRevenue    = (o.totalAmount * 0.3).roundToDouble();
+      final hqRevenue    = (o.totalAmount * 0.7).roundToDouble();
       final row = [
         o.id,
         o.userName,
@@ -131,6 +134,8 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         isGroup ? '단체' : '개인',
         o.status.label,
         '${o.createdAt.year}-${o.createdAt.month.toString().padLeft(2,'0')}-${o.createdAt.day.toString().padLeft(2,'0')} ${o.createdAt.hour.toString().padLeft(2,'0')}:${o.createdAt.minute.toString().padLeft(2,'0')}',
+        myRevenue.toStringAsFixed(0),
+        hqRevenue.toStringAsFixed(0),
         // 단체주문 옵션 (비단체주문은 '-')
         isGroup ? (opts['teamName'] ?? o.groupName ?? '-') : '-',
         isGroup ? (opts['manager'] ?? '-') : '-',
@@ -162,34 +167,63 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
     // 요약 시트
     final summarySheet = excel['요약'];
     final now = DateTime.now();
-    final totalRevenue = orders.fold<double>(0, (s, o) => s + o.totalAmount);
-    final monthOrders = orders.where((o) =>
+    final totalRevenue  = orders.fold<double>(0, (s, o) => s + o.totalAmount);
+    final myTotalRev    = (totalRevenue * 0.3).roundToDouble();
+    final hqTotalRev    = (totalRevenue * 0.7).roundToDouble();
+    final monthOrders   = orders.where((o) =>
         o.createdAt.year == now.year && o.createdAt.month == now.month).toList();
-    final monthRevenue = monthOrders.fold<double>(0, (s, o) => s + o.totalAmount);
+    final monthRevenue  = monthOrders.fold<double>(0, (s, o) => s + o.totalAmount);
+    final myMonthRev    = (monthRevenue * 0.3).roundToDouble();
+    final hqMonthRev    = (monthRevenue * 0.7).roundToDouble();
+
+    // 매출 분배 스타일
+    final myRevStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#E8F5E9'),
+      fontColorHex: ExcelColor.fromHexString('#1B5E20'),
+    );
+    final hqRevStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#E3F2FD'),
+      fontColorHex: ExcelColor.fromHexString('#0D47A1'),
+    );
 
     final summaryData = [
-      ['총 주문 수', '${orders.length}건'],
-      ['총 매출액', '₩${_fmtPrice(totalRevenue)}'],
-      ['이번 달 주문', '${monthOrders.length}건'],
-      ['이번 달 매출', '₩${_fmtPrice(monthRevenue)}'],
-      ['평균 주문액', orders.isEmpty ? '₩0' : '₩${_fmtPrice(totalRevenue / orders.length)}'],
-      ['개인 주문', '${orders.where((o) => o.orderType != 'group').length}건'],
-      ['단체 주문', '${orders.where((o) => o.orderType == 'group').length}건'],
-      ['다운로드 일시', '${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')} ${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}'],
+      ['총 주문 수',          '${orders.length}건',                          ''],
+      ['총 매출액 (합계)',     '₩${_fmtPrice(totalRevenue)}',                  '100%'],
+      ['  └ 내 매출 (30%)',   '₩${_fmtPrice(myTotalRev)}',                   '30%'],
+      ['  └ 본사 매출 (70%)', '₩${_fmtPrice(hqTotalRev)}',                   '70%'],
+      ['이번 달 주문',         '${monthOrders.length}건',                      ''],
+      ['이번 달 매출 (합계)',  '₩${_fmtPrice(monthRevenue)}',                  '100%'],
+      ['  └ 내 매출 (30%)',   '₩${_fmtPrice(myMonthRev)}',                   '30%'],
+      ['  └ 본사 매출 (70%)', '₩${_fmtPrice(hqMonthRev)}',                   '70%'],
+      ['평균 주문액',          orders.isEmpty ? '₩0' : '₩${_fmtPrice(totalRevenue / orders.length)}', ''],
+      ['개인 주문',            '${orders.where((o) => o.orderType != 'group').length}건', ''],
+      ['단체 주문',            '${orders.where((o) => o.orderType == 'group').length}건',  ''],
+      ['다운로드 일시',        '${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')} ${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}', ''],
     ];
 
-    // 헤더
+    // 요약 시트 헤더 (3컬럼)
     final h0 = summarySheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
     h0.value = TextCellValue('항목');
     h0.cellStyle = headerStyle;
     final h1 = summarySheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0));
-    h1.value = TextCellValue('값');
+    h1.value = TextCellValue('금액 / 값');
     h1.cellStyle = headerStyle;
+    final h2 = summarySheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0));
+    h2.value = TextCellValue('비율');
+    h2.cellStyle = headerStyle;
 
     for (int r = 0; r < summaryData.length; r++) {
+      final label = summaryData[r][0];
+      final isMyRev = label.contains('내 매출');
+      final isHqRev = label.contains('본사 매출');
       for (int c = 0; c < summaryData[r].length; c++) {
-        summarySheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1))
-            .value = TextCellValue(summaryData[r][c]);
+        final cell = summarySheet.cell(
+            CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1));
+        cell.value = TextCellValue(summaryData[r][c]);
+        if (isMyRev) cell.cellStyle = myRevStyle;
+        else if (isHqRev) cell.cellStyle = hqRevStyle;
       }
     }
 
@@ -279,6 +313,8 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         }
 
         final totalRevenue = orders.fold<double>(0, (s, o) => s + o.totalAmount);
+        final myRevenue    = (totalRevenue * 0.3).roundToDouble();
+        final hqRevenue    = (totalRevenue * 0.7).roundToDouble();
         final todayOrders = orders.where((o) =>
             o.createdAt.year == now.year &&
             o.createdAt.month == now.month &&
@@ -307,19 +343,33 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
               ),
               const SizedBox(height: 20),
 
-              // KPI 카드 4개 (2x2 그리드)
+              // KPI 카드 — 총 매출 + 분배 (3열)
               GridView.count(
-                crossAxisCount: 2,
+                crossAxisCount: 3,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 2.6,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 2.2,
                 children: [
-                  _statsKpiCard('총 매출', '₩${_fmtMillions(totalRevenue)}', Icons.monetization_on_rounded, Color(0xFF4CAF50)),
-                  _statsKpiCard('총 주문', '${orders.length}건', Icons.receipt_long_rounded, Color(0xFF2196F3)),
-                  _statsKpiCard('오늘 주문', '${todayOrders}건', Icons.today_rounded, Color(0xFFFF9800)),
-                  _statsKpiCard('평균 주문액', orders.isEmpty ? '₩0' : '₩${_fmtMillions(totalRevenue / orders.length)}', Icons.analytics_rounded, Color(0xFF9C27B0)),
+                  _statsKpiCard('총 매출', '₩${_fmtMillions(totalRevenue)}', Icons.monetization_on_rounded, const Color(0xFF4CAF50)),
+                  _statsKpiCard('내 매출 (30%)', '₩${_fmtMillions(myRevenue)}', Icons.account_balance_wallet_rounded, const Color(0xFF2196F3)),
+                  _statsKpiCard('본사 매출 (70%)', '₩${_fmtMillions(hqRevenue)}', Icons.business_rounded, const Color(0xFF9C27B0)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // KPI 카드 — 주문 현황 (3열)
+              GridView.count(
+                crossAxisCount: 3,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 2.2,
+                children: [
+                  _statsKpiCard('총 주문', '${orders.length}건', Icons.receipt_long_rounded, const Color(0xFF00BCD4)),
+                  _statsKpiCard('오늘 주문', '${todayOrders}건', Icons.today_rounded, const Color(0xFFFF9800)),
+                  _statsKpiCard('평균 주문액', orders.isEmpty ? '₩0' : '₩${_fmtMillions(totalRevenue / orders.length)}', Icons.analytics_rounded, const Color(0xFFE91E63)),
                 ],
               ),
               const SizedBox(height: 24),
