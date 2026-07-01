@@ -9846,7 +9846,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                       children: [
                         _returnPolicyRow('🏷️', '택(tag) 제거 후', '착용 여부 확인 불가'),
                         _returnPolicyRow('👕', '착용 또는 세탁한 경우', '상품 가치 훼손'),
-                        _returnPolicyRow('📦', '포장 훼손 또는 구성품 누락', '재판매 불가'),
+                        _returnPolicyRow('📦', '의류 포장 봉투(쇼핑백) 없는 경우', '택배 봉투는 해당 없음'),
                         SizedBox(height: r.h(4)),
                         Text('※ 수령 즉시 상품 상태를 확인해 주세요.',
                             style: TextStyle(fontSize: r.sp(11), height: 1.6,

@@ -3165,7 +3165,7 @@ class _MobileOrderCard extends StatelessWidget {
 
               // 행2: 단체주문 전용
               // 디자인수정요청 (3일 이내, 2회 미만 + 사용자 미확정)
-              if (order.canRequestDesignRevision && !order.userDesignApproved) row2.add(_ActionBtn(
+              if (isGroup && order.canRequestDesignRevision && !order.userDesignApproved) row2.add(_ActionBtn(
                 icon: Icons.edit_note_rounded,
                 label: context.loc.t('디자인수정', '디자인수정'),
                 color: const Color(0xFF7B1FA2),
