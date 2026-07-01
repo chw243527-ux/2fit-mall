@@ -9801,7 +9801,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     contentWidget: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _refundStepRow('1', '채팅 상담으로 교환·반품 신청'),
+                        _refundStepRow('1', '마이페이지 > 내 주문에서 교환·반품 신청'),
                         _refundStepRow('2', '안내받은 주소로 상품 반송'),
                         _refundStepRow('3', '상품 입고 후 검수 진행'),
                         _refundStepRow('4', '검수 완료 후 환불 처리 (영업일 1~3일)'),
@@ -9857,7 +9857,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   ),
                   SizedBox(height: r.h(8)),
 
-                  // 4-5. 신청 안내
+                  // 4-5. 신청 방법 안내
                   Container(
                     padding: EdgeInsets.all(r.w(12)),
                     decoration: BoxDecoration(
@@ -9868,20 +9868,57 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('💬', style: TextStyle(fontSize: r.sp(16))),
+                        Text('📦', style: TextStyle(fontSize: r.sp(16))),
                         SizedBox(width: r.w(10)),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('채팅 상담으로 신청해 주세요',
+                              Text('마이페이지 → 내 주문에서 신청',
                                   style: TextStyle(fontSize: r.sp(13),
                                       fontWeight: FontWeight.w800,
                                       color: const Color(0xFF1565C0))),
-                              SizedBox(height: r.h(4)),
-                              Text('교환·반품 신청은 채팅 상담을 이용해 주세요.\n주문번호와 사유를 함께 알려주시면 빠르게 처리해 드립니다.',
+                              SizedBox(height: r.h(6)),
+                              Text('교환·반품 신청은 마이페이지 > 내 주문에서 직접 신청해 주세요.',
                                   style: TextStyle(fontSize: r.sp(12), height: 1.6,
                                       color: const Color(0xFF1A1A1A))),
+                              SizedBox(height: r.h(8)),
+                              // 반품 주소 박스
+                              Container(
+                                padding: EdgeInsets.all(r.w(10)),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFF90CAF9)),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(children: [
+                                      Icon(Icons.location_on_rounded,
+                                          size: 13, color: const Color(0xFF1565C0)),
+                                      SizedBox(width: r.w(4)),
+                                      Text('반품·교환 반송 주소',
+                                          style: TextStyle(
+                                              fontSize: r.sp(11),
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFF1565C0))),
+                                    ]),
+                                    SizedBox(height: r.h(4)),
+                                    Text('전북 남원시 오들1길 97, 205-303',
+                                        style: TextStyle(
+                                            fontSize: r.sp(12),
+                                            fontWeight: FontWeight.w600,
+                                            color: const Color(0xFF1A1A1A))),
+                                    SizedBox(height: r.h(2)),
+                                    Text('※ 반드시 운송장 번호를 내 주문에서 입력해 주세요.',
+                                        style: TextStyle(
+                                            fontSize: r.sp(10),
+                                            color: Colors.grey.shade600,
+                                            fontStyle: FontStyle.italic)),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),

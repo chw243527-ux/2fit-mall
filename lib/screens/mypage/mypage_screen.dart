@@ -7400,8 +7400,75 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
         subLabel: context.loc.t('택배사가_2_5일_이내_방문_예정', '택배사가 2~5일 이내 방문 예정'),
       ),
 
-      // 이미 발송 선택 시 운송장 입력
+      // 직접수거 선택 시 수거 주소 표시
+      if (_pickupMethod == 1) ...[
+        const SizedBox(height: 8),
+        Container(
+          margin: const EdgeInsets.only(left: 8),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0F4FF),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFBBD0FF)),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              context.loc.t('교환_요청이_확인되면_2_5일_이내_택배사가_방문할_예정이에요_54912a', '교환 요청이 확인되면 2~5일 이내 택배사가 방문할 예정이에요.\n아래 주소가 맞는지 확인해주세요.'),
+              style: TextStyle(fontSize: 12, color: Color(0xFF555555), height: 1.6),
+            ),
+            const SizedBox(height: 10),
+            Text(user?.name ?? '', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Text(
+              _pickupAddress(user),
+              style: const TextStyle(fontSize: 13, color: Color(0xFF333333), height: 1.4),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Text(context.loc.t('주소변경', '주소변경 >'),
+                  style: TextStyle(fontSize: 13, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w600)),
+            ),
+          ]),
+        ),
+      ],
+
+      // 옵션 2: 이미 발송
+      _pickupOption(
+        value: 2,
+        label: context.loc.t('상품을_이미_판매자에게_택배_845c77', '상품을 이미 판매자에게 택배로 보냈어요'),
+        subLabel: context.loc.t('운송장_번호를_고객센터에_전달해주세요', '운송장 번호를 아래에 입력해 주세요'),
+      ),
+
+      // 이미 발송 선택 시 반품 주소 + 운송장 입력
       if (_pickupMethod == 2) ...[
+        const SizedBox(height: 8),
+        // 반품 주소 안내 박스
+        Container(
+          margin: const EdgeInsets.only(left: 8),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE3F2FD),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFF90CAF9)),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const Icon(Icons.location_on_rounded, size: 14, color: Color(0xFF1565C0)),
+              const SizedBox(width: 6),
+              const Text('반품·교환 반송 주소',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                      color: Color(0xFF1565C0))),
+            ]),
+            const SizedBox(height: 8),
+            const Text('전북 남원시 오들1길 97, 205-303',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A1A1A))),
+            const SizedBox(height: 4),
+            Text('위 주소로 택배 발송 후 아래에 운송장 번호를 입력해 주세요.',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600], height: 1.5)),
+          ]),
+        ),
         const SizedBox(height: 8),
         Container(
           margin: const EdgeInsets.only(left: 8),
@@ -7451,50 +7518,6 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           ]),
         ),
       ],
-
-      const SizedBox(height: 12),
-
-      // 직접수거 선택 시 주소 표시
-      if (_pickupMethod == 1) ...[
-        const SizedBox(height: 8),
-        Container(
-          margin: const EdgeInsets.only(left: 8),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0F4FF),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFBBD0FF)),
-          ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(
-              context.loc.t('교환_요청이_확인되면_2_5일_이내_택배사가_방문할_예정이에요_54912a', '교환 요청이 확인되면 2~5일 이내 택배사가 방문할 예정이에요.\n아래 주소가 맞는지 확인해주세요.'),
-              style: TextStyle(fontSize: 12, color: Color(0xFF555555), height: 1.6),
-            ),
-            const SizedBox(height: 10),
-            Text(user?.name ?? '', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 4),
-            Text(
-              _pickupAddress(user),
-              style: const TextStyle(fontSize: 13, color: Color(0xFF333333), height: 1.4),
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Text(context.loc.t('주소변경', '주소변경 >'),
-                  style: TextStyle(fontSize: 13, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w600)),
-            ),
-          ]),
-        ),
-      ],
-
-      const SizedBox(height: 12),
-
-      // 옵션 2: 이미 발송
-      _pickupOption(
-        value: 2,
-        label: context.loc.t('상품을_이미_판매자에게_택배_845c77', '상품을 이미 판매자에게 택배로 보냈어요'),
-        subLabel: context.loc.t('운송장_번호를_고객센터에_전달해주세요', '운송장 번호를 고객센터에 전달해주세요'),
-      ),
     ]);
   }
 
@@ -7669,14 +7692,72 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(children: [
-          Icon(Icons.check_circle_outline, color: Color(0xFF16A34A), size: 18),
-          SizedBox(width: 8),
+          const Icon(Icons.check_circle_outline, color: Color(0xFF16A34A), size: 18),
+          const SizedBox(width: 8),
           Text(context.loc.t('판매자_귀책_사유___배송비_86912c', '판매자 귀책 사유 — 배송비 무료'),
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF16A34A))),
         ]),
       ),
+      const SizedBox(height: 12),
+
+      // 검수 후 환불 안내
+      Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF8E1),
+          border: Border.all(color: const Color(0xFFFFCC80)),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Icon(Icons.inventory_2_outlined, size: 15, color: Colors.orange.shade700),
+            const SizedBox(width: 6),
+            Text('환불 처리 안내',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800,
+                    color: Colors.orange.shade800)),
+          ]),
+          const SizedBox(height: 8),
+          _refundStepTile('1', '상품 반송'),
+          _refundStepTile('2', '입고 후 상품 검수 진행'),
+          _refundStepTile('3', '검수 완료 후 환불 처리 (영업일 1~3일)'),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Icon(Icons.warning_amber_rounded, size: 13, color: Colors.orange.shade700),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text('상품 검수 결과 반품 불가 조건에 해당하는 경우\n환불 없이 상품이 반송될 수 있습니다.',
+                    style: TextStyle(fontSize: 11, height: 1.6, color: Colors.orange.shade800)),
+              ),
+            ]),
+          ),
+        ]),
+      ),
     ]);
   }
+
+  Widget _refundStepTile(String step, String text) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(children: [
+      Container(
+        width: 18, height: 18,
+        decoration: const BoxDecoration(
+          color: Color(0xFFFF8F00), shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: Text(step,
+            style: const TextStyle(fontSize: 10, color: Colors.white,
+                fontWeight: FontWeight.w800)),
+      ),
+      const SizedBox(width: 8),
+      Text(text, style: const TextStyle(fontSize: 13, height: 1.4)),
+    ]),
+  );
 
   Widget _confirmRow(String label, String value) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,
