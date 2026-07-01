@@ -7319,11 +7319,14 @@ class _AdminScreenState extends State<AdminScreen>
   // ── 배송 정보 입력 다이얼로그 (배송중 상태 변경 시)
   Future<void> _showShippingDialog(String orderId, OrderStatus newStatus) async {
     final trackingCtrl = TextEditingController();
-    final companyCtrl = TextEditingController();
     final memoCtrl = TextEditingController();
+    // 택배사 목록 (기본값: 한진택배)
+    const courierList = ['한진택배', '롯데택배', 'CJ대한통운', '우체국택배', '로젠택배', '경동택배', '대신택배', 'GTX로지스', '직접수령'];
+    String selectedCourier = '한진택배';
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(children: [
           Icon(Icons.local_shipping_outlined, color: Color(0xFF1A1A2E), size: 22),
@@ -7333,14 +7336,16 @@ class _AdminScreenState extends State<AdminScreen>
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: companyCtrl,
+            // 택배사 드롭다운
+            DropdownButtonFormField<String>(
+              value: selectedCourier,
               decoration: InputDecoration(
                 labelText: '택배사',
-                hintText: '예: 한진택배, 롯데택배',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 isDense: true,
               ),
+              items: courierList.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+              onChanged: (v) { if (v != null) setState(() => selectedCourier = v); },
             ),
             const SizedBox(height: 12),
             TextField(
@@ -7371,15 +7376,13 @@ class _AdminScreenState extends State<AdminScreen>
           ElevatedButton(
             onPressed: () async {
               final trackingNum = trackingCtrl.text.trim();
-              final courierName = companyCtrl.text.trim().isEmpty
-                  ? '택배사 미지정'
-                  : companyCtrl.text.trim();
+              final courierName = selectedCourier;
 
               await OrderService.updateOrderStatusWithTracking(
                 orderId: orderId,
                 status: newStatus,
                 trackingNumber: trackingNum.isEmpty ? null : trackingNum,
-                shippingCompany: companyCtrl.text.trim().isEmpty ? null : companyCtrl.text.trim(),
+                shippingCompany: selectedCourier,
                 adminMemo: memoCtrl.text.trim().isEmpty ? null : memoCtrl.text.trim(),
               );
               if (!context.mounted) return;
@@ -7433,9 +7436,9 @@ class _AdminScreenState extends State<AdminScreen>
           ),
         ],
       ),
+      ),  // StatefulBuilder
     );
     trackingCtrl.dispose();
-    companyCtrl.dispose();
     memoCtrl.dispose();
   }
 

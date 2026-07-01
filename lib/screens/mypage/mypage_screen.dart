@@ -1000,6 +1000,9 @@ class _PcOrderCard extends StatelessWidget {
     // 추가제작: 취소/환불 아니면 배송완료 후에도 항상 가능 (같은 디자인 재주문)
     final canAdditional = isGroup && isActive;
     final canDesignRevision = isGroup && isActive && order.canDesignRevision;
+    // 배송조회: 운송장 등록된 경우
+    final trackingNumberMobile = (order.customOptions?['trackingNumber'] as String? ?? '').trim();
+    final hasTrackingMobile = trackingNumberMobile.isNotEmpty;
 
     final canCancelReadyMade = !isGroup && (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed);
     // 단체주문: 디자인 발송 전(designRevisionDeadline == null)이고 pending/confirmed 상태일 때만 취소 가능
@@ -1235,6 +1238,29 @@ class _PcOrderCard extends StatelessWidget {
 
               final btns = <Widget>[];
               btns.add(_ActionBtn(icon: Icons.receipt_long_rounded, label: context.loc.t('주문상세', '주문상세'), onTap: () { _showUserOrderDetail(btnCtx, order); }));
+
+              // ── 배송조회 버튼 (항상 표시 — 운송장 없으면 회색, 있으면 활성) ──
+              btns.add(_ActionBtn(
+                icon: Icons.local_shipping_outlined,
+                label: context.loc.t('배송조회', '배송조회'),
+                color: hasTrackingMobile ? const Color(0xFF00838F) : Colors.grey[400]!,
+                onTap: hasTrackingMobile
+                    ? () {
+                        final company = (order.customOptions?['shippingCompany'] as String? ?? '').trim();
+                        showDialog(
+                          context: btnCtx,
+                          barrierDismissible: true,
+                          builder: (_) => _TrackingDialog(
+                            trackingNumber: trackingNumberMobile,
+                            companyName: company,
+                          ),
+                        );
+                      }
+                    : () => ScaffoldMessenger.of(btnCtx).showSnackBar(
+                        SnackBar(content: Text(context.loc.t('배송 준비 중입니다 운송장 등록 후 조회 가능합니다', '배송 준비 중입니다. 운송장 등록 후 조회 가능합니다.'))),
+                      ),
+              ));
+
               if (canCancel) btns.add(_ActionBtn(icon: Icons.cancel_outlined, label: isGroup ? context.loc.t('취소디자인전', '취소(디자인전)') : '주문취소', color: Colors.red, onTap: doCancel));
               if (cancelBlockedByDesign) btns.add(_ActionBtn(icon: Icons.lock_outline_rounded, label: context.loc.t('취소불가', '취소불가'), color: Colors.red.shade300,
                 onTap: () => ScaffoldMessenger.of(btnCtx).showSnackBar(SnackBar(content: Text(context.loc.t('디자인 수정이 시작된 이후에는 취소가 불가합니다 고객센터로 문의해 주세요', '디자인 수정이 시작된 이후에는 취소가 불가합니다.\n고객센터로 문의해 주세요.'))))));
