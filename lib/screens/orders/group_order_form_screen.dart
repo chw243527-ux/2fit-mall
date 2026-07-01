@@ -711,21 +711,66 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ? product.sectionImages['design']!.first
         : (product.images.isNotEmpty ? product.images.first : '');
 
+    // ── orderId 먼저 생성 (이미지 업로드 경로에 사용) ──
+    final orderId = 'GRP_${DateTime.now().millisecondsSinceEpoch}';
+
     // ── 참고이미지 Storage 업로드 (base64 → URL) ──
     String refImageUrl = '';
     if (_refBase64 != null && _refBase64!.isNotEmpty) {
       try {
         final bytes = base64Decode(_refBase64!);
-        final orderId = 'GRP_${DateTime.now().millisecondsSinceEpoch}';
         final ref = FirebaseStorage.instance
             .ref('group_orders/$orderId/ref_image.jpg');
-        await ref.putData(
-          bytes,
-          SettableMetadata(contentType: 'image/jpeg'),
-        );
+        await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         refImageUrl = await ref.getDownloadURL();
       } catch (e) {
         if (kDebugMode) debugPrint('⚠️ 참고이미지 업로드 실패 (무시): $e');
+      }
+    }
+
+    // ── 상의 디자인 로고 Storage 업로드 ──
+    String designLogoUrl = '';
+    if (_designLogoBytes != null && _designLogoFileName != null) {
+      try {
+        final ext = _designLogoFileName!.contains('.')
+            ? _designLogoFileName!.split('.').last.toLowerCase()
+            : 'ai';
+        final contentTypeMap = {
+          'ai': 'application/postscript', 'svg': 'image/svg+xml',
+          'pdf': 'application/pdf', 'eps': 'application/postscript',
+        };
+        final ref = FirebaseStorage.instance
+            .ref('group_orders/$orderId/design_logo.$ext');
+        await ref.putData(
+          Uint8List.fromList(_designLogoBytes!),
+          SettableMetadata(contentType: contentTypeMap[ext] ?? 'application/octet-stream'),
+        );
+        designLogoUrl = await ref.getDownloadURL();
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ 디자인 로고 업로드 실패 (무시): $e');
+      }
+    }
+
+    // ── 허리밴드 로고 Storage 업로드 ──
+    String waistbandLogoUrl = '';
+    if (_waistbandLogoBytes != null && _waistbandLogoFileName != null) {
+      try {
+        final ext = _waistbandLogoFileName!.contains('.')
+            ? _waistbandLogoFileName!.split('.').last.toLowerCase()
+            : 'ai';
+        final contentTypeMap = {
+          'ai': 'application/postscript', 'svg': 'image/svg+xml',
+          'pdf': 'application/pdf', 'eps': 'application/postscript',
+        };
+        final ref = FirebaseStorage.instance
+            .ref('group_orders/$orderId/waistband_logo.$ext');
+        await ref.putData(
+          Uint8List.fromList(_waistbandLogoBytes!),
+          SettableMetadata(contentType: contentTypeMap[ext] ?? 'application/octet-stream'),
+        );
+        waistbandLogoUrl = await ref.getDownloadURL();
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ 허리밴드 로고 업로드 실패 (무시): $e');
       }
     }
 
@@ -733,7 +778,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       'orderType'      : _isAdditional ? 'additional' : 'group',
       'designFileUrl'  : designImg,
       'productImageUrl': designImg,
-      'refImageUrl'    : refImageUrl,  // 주문 시 업로드한 참고이미지 URL
+      'refImageUrl'    : refImageUrl,         // 참고이미지 URL
+      'designLogoUrl'  : designLogoUrl,       // 상의 디자인 로고 URL
+      'waistbandLogoUrl': waistbandLogoUrl,   // 허리밴드 로고 URL
       'originalOrderId': _isAdditional && _originalOrder != null ? _originalOrder!.id : null,
       'originalOrderDate': _isAdditional && _originalOrder != null ? _originalOrder!.createdAt.toIso8601String() : null,
       'originalTeamName': _isAdditional && _originalOrder != null ? (_originalOrder!.customOptions?['teamName'] ?? _originalOrder!.groupName ?? '') : null,
@@ -783,7 +830,6 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       }).toList(),
     };
 
-    final orderId = 'GRP_${DateTime.now().millisecondsSinceEpoch}';
     // ignore: unused_local_variable
     final order   = OrderModel(
       id: orderId,

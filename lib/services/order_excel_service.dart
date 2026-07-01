@@ -821,13 +821,15 @@ class OrderExcelService {
     // 참고이미지: 주문 시 업로드한 refImageUrl 우선, 없으면 maleRefImageUrl 폴백
     final refImageUrl = opts['refImageUrl']?.toString() ??
         opts['maleRefImageUrl']?.toString() ?? '';
+    final designLogoUrl = opts['designLogoUrl']?.toString() ?? '';
+    final waistbandLogoUrl = opts['waistbandLogoUrl']?.toString() ?? '';
 
     // 1) 기본 xlsx 바이트 생성 (sync)
     final baseBytes = generateGroupOrderExcel(order);
 
     // 2) 다운로드할 이미지 목록
     // generateGroupOrderExcel에서 row 1부터 이미지 행을 생성하므로 동일 위치에 삽입
-    // A열(0)=레이블, B열(1)~D열(3)=이미지 영역(merge됨)
+    // A열(0)=레이블, B열(1)~J열(9)=이미지 영역(merge됨)
     final List<_ImageToInsert> imagesToInsert = [];
     int imgRow = 1; // 1-based Excel row (row 0 = 제목행)
     if (productImageUrl.isNotEmpty) {
@@ -854,6 +856,33 @@ class OrderExcelService {
         heightPx: 195,
         label: '참고이미지',
       ));
+      imgRow++;
+    }
+    if (designLogoUrl.isNotEmpty) {
+      imagesToInsert.add(_ImageToInsert(
+        url: designLogoUrl,
+        sheetName: '주문정보',
+        sheetIndex: 0,
+        row: imgRow,
+        col: 1,
+        widthPx: 260,
+        heightPx: 195,
+        label: '상의디자인로고',
+      ));
+      imgRow++;
+    }
+    if (waistbandLogoUrl.isNotEmpty) {
+      imagesToInsert.add(_ImageToInsert(
+        url: waistbandLogoUrl,
+        sheetName: '주문정보',
+        sheetIndex: 0,
+        row: imgRow,
+        col: 1,
+        widthPx: 260,
+        heightPx: 195,
+        label: '허리밴드로고',
+      ));
+      // imgRow++; // 마지막 항목이므로 증가 불필요
     }
 
     if (imagesToInsert.isEmpty) return baseBytes;
@@ -1303,7 +1332,9 @@ class OrderExcelService {
                   productId: '', productName: '', size: '', color: '', quantity: 0, price: 0,
                 ),
               ).imageUrl ?? '';
-    final designFileUrl = opts['designFileUrl']?.toString() ?? opts['maleRefImageUrl']?.toString() ?? '';
+    final refImageUrl = opts['refImageUrl']?.toString() ?? opts['maleRefImageUrl']?.toString() ?? '';
+    final designLogoUrl = opts['designLogoUrl']?.toString() ?? '';
+    final waistbandLogoUrl = opts['waistbandLogoUrl']?.toString() ?? '';
     final bottomColorName = opts['bottomColorName']?.toString() ?? '';
 
     // 이미지 행: A열=레이블(16pt), B열=이미지 공간(비워둠, async 버전에서 삽입)
@@ -1319,8 +1350,28 @@ class OrderExcelService {
       summarySheet.setRowHeight(imgRow, 200.0);
       imgRow++;
     }
-    if (designFileUrl.isNotEmpty) {
-      _setCell(summarySheet, imgRow, 0, '참조이미지', style: imgLabelStyle);
+    if (refImageUrl.isNotEmpty) {
+      _setCell(summarySheet, imgRow, 0, '참고이미지', style: imgLabelStyle);
+      summarySheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: imgRow),
+        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: imgRow),
+      );
+      _setCell(summarySheet, imgRow, 1, '');
+      summarySheet.setRowHeight(imgRow, 200.0);
+      imgRow++;
+    }
+    if (designLogoUrl.isNotEmpty) {
+      _setCell(summarySheet, imgRow, 0, '상의디자인로고', style: imgLabelStyle);
+      summarySheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: imgRow),
+        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: imgRow),
+      );
+      _setCell(summarySheet, imgRow, 1, '');
+      summarySheet.setRowHeight(imgRow, 200.0);
+      imgRow++;
+    }
+    if (waistbandLogoUrl.isNotEmpty) {
+      _setCell(summarySheet, imgRow, 0, '허리밴드로고', style: imgLabelStyle);
       summarySheet.merge(
         CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: imgRow),
         CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: imgRow),
