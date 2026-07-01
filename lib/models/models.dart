@@ -415,8 +415,16 @@ class OrderModel {
     return DateTime.now().isBefore(designRevisionDeadline!);
   }
 
-  /// 단체주문 디자인수정요청 가능 여부 (주문대기/확인/제작중 상태 + 2회 미만 + 기간 이내)
+  /// 단체주문 여부 (orderType 또는 ID 프리픽스 기준)
+  bool get isGroupOrder =>
+      orderType == 'group' ||
+      orderType == 'additional' ||
+      id.startsWith('GRP_') ||
+      id.startsWith('GROUP-');
+
+  /// 단체주문 디자인수정요청 가능 여부 (단체주문 + 주문대기/확인/제작중 상태 + 2회 미만 + 기간 이내)
   bool get canRequestDesignRevision =>
+      isGroupOrder &&
       (status == OrderStatus.pending ||
        status == OrderStatus.confirmed ||
        status == OrderStatus.processing) &&
