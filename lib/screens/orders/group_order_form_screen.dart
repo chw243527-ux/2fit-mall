@@ -1003,7 +1003,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
             ]),
             const SizedBox(height: 5),
-            Text(context.loc.t('기성품__수령_후_3일_이내_fb7638', '▶  기성품: 수령 후 3일 이내 교환·환불 가능'),
+            Text(context.loc.t('기성품__수령_후_3일_이내_fb7638', '▶  기성품: 수령 후 7일 이내 교환·환불 가능'),
                 style: TextStyle(color: Colors.white60, fontSize: 11, height: 1.5)),
             Text(context.loc.t('커스텀_단체__주문__의류__390058', '▶  커스텀(단체) 주문: 의류 자체 불량 외 교환·환불 불가'),
                 style: TextStyle(color: Colors.white54, fontSize: 11, height: 1.5)),
@@ -5322,7 +5322,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    context.loc.t('수령_후_3일_이내_교환환불_가능', '수령 후 3일 이내 교환·환불 가능'),
+                    context.loc.t('수령_후_3일_이내_교환환불_가능', '수령 후 7일 이내 교환·환불 가능'),
                     style: TextStyle(fontSize: 13, color: Color(0xFF1A1A2E), fontWeight: FontWeight.w600, height: 1.5),
                   ),
                 ),

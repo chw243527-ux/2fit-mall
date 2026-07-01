@@ -1196,11 +1196,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Захиалгат захиалгад нэр/дугаар хэвлэх, багийн лого оруулах боломжтой.\nЗахиалгын маягтыг Захиалгын гарын авлага таб-аас харна уу.';
   }}
   String get faqReturnAns { switch (language) {
-    case AppLanguage.korean:   return '교환/환불은 기성품 기준 수령 후 3일 이내 가능합니다.\n단, 커스텀 인쇄 상품은 교환/환불이 불가합니다.\n신청을 위해 주문번호와 사유를 알려주세요.';
-    case AppLanguage.english:  return 'Exchange/refund is available within 3 days of receipt (ready-made items).\nHowever, custom printed items cannot be exchanged or refunded.\nPlease provide your order number and reason to apply.';
-    case AppLanguage.japanese: return '交換・返品は既製品に限り受領後3日以内に可能です。\nただし、カスタム印刷商品は交換・返品不可です。\n申請のため、注文番号と理由をお知らせください。';
-    case AppLanguage.chinese:  return '收货后3天内可申请换货/退款（现货商品）。\n但定制印刷商品不可换货/退款。\n请提供订单号和原因申请。';
-    case AppLanguage.mongolian:return 'Хүлээн авсанаас хойш 3 хоногийн дотор солилт/буцаалт боломжтой (бэлэн бараа).\nГэхдээ захиалгат хэвлэмэл бараанд хамаарахгүй.\nЗахиалгын дугаар болон шалтгааныг мэдэгдэнэ үү.';
+    case AppLanguage.korean:   return '교환/환불은 기성품 기준 수령 후 7일 이내 가능합니다.\n단, 커스텀(맞춤) 제작 상품은 불량 외 교환/환불이 불가합니다.\n신청을 위해 주문번호와 사유를 알려주세요.';
+    case AppLanguage.english:  return 'Exchange/refund is available within 7 days of receipt (ready-made items).\nHowever, custom (made-to-order) items cannot be exchanged or refunded unless defective.\nPlease provide your order number and reason to apply.';
+    case AppLanguage.japanese: return '交換・返品は既製品に限り受領後7日以内に可能です。\nただし、カスタム（オーダーメイド）商品は不良品以外は交換・返品不可です。\n申請のため、注文番号と理由をお知らせください。';
+    case AppLanguage.chinese:  return '收货后7天内可申请换货/退款（现货商品）。\n但定制（定做）商品除质量问题外不可换货/退款。\n请提供订单号和原因申请。';
+    case AppLanguage.mongolian:return 'Хүлээн авсанаас хойш 7 хоногийн дотор солилт/буцаалт боломжтой (бэлэн бараа).\nГэхдээ захиалгат (тусгай хийсэн) бараанд гологдолоос бусад тохиолдолд хамаарахгүй.\nЗахиалгын дугаар болон шалтгааныг мэдэгдэнэ үү.';
   }}
   String get faqGroupOrderAns { switch (language) {
     case AppLanguage.korean:   return '단체 주문은 5인 이상부터 가능합니다.\n주문서식 > 단체 주문서를 작성하여 문의해 주세요!';
@@ -2761,11 +2761,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Захиалгын дараа 5~7 хоног';
   }}
   String get returnPolicyValue { switch (language) {
-    case AppLanguage.korean:   return '기성품 수령 후 3일 이내';
-    case AppLanguage.english:  return 'Within 3 days of receipt (ready-made)';
-    case AppLanguage.japanese: return '既製品受領後3日以内';
-    case AppLanguage.chinese:  return '现货收货后3天内';
-    case AppLanguage.mongolian:return 'Бэлэн бараа хүлээн авсанаас хойш 3 хоногт';
+    case AppLanguage.korean:   return '기성품 수령 후 7일 이내';
+    case AppLanguage.english:  return 'Within 7 days of receipt (ready-made)';
+    case AppLanguage.japanese: return '既製品受領後7日以内';
+    case AppLanguage.chinese:  return '现货收货后7天内';
+    case AppLanguage.mongolian:return 'Бэлэн бараа хүлээн авсанаас хойш 7 хоногт';
   }}
   String get freeShippingBadge { switch (language) {
     case AppLanguage.korean:   return '무료배송';
@@ -3932,11 +3932,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return '• Захиалгат (бүлгийн) захиалга: Бүтээгдэхүүний гэмтлээс бусад тохиолдолд солих/буцаах боломжгүй.';
   }}
   String get groupOrderGuideExchange2 { switch (language) {
-    case AppLanguage.korean:   return '• 기성품: 제품 수령 후 3일 이내 교환·환불 가능합니다.';
-    case AppLanguage.english:  return '• Ready-made items: Exchange/return available within 3 days of receipt.';
-    case AppLanguage.japanese: return '• 既製品：製品受領後3日以内に交換・返金が可能です。';
-    case AppLanguage.chinese:  return '• 成品：收到产品后3日内可换货·退款。';
-    case AppLanguage.mongolian:return '• Бэлэн бүтээгдэхүүн: Хүлээн авснаас хойш 3 хоногийн дотор солих/буцаах боломжтой.';
+    case AppLanguage.korean:   return '• 기성품: 제품 수령 후 7일 이내 교환·환불 가능합니다.';
+    case AppLanguage.english:  return '• Ready-made items: Exchange/return available within 7 days of receipt.';
+    case AppLanguage.japanese: return '• 既製品：製品受領後7日以内に交換・返金が可能です。';
+    case AppLanguage.chinese:  return '• 成品：收到产品后7日内可换货·退款。';
+    case AppLanguage.mongolian:return '• Бэлэн бүтээгдэхүүн: Хүлээн авснаас хойш 7 хоногийн дотор солих/буцаах боломжтой.';
   }}
   String get groupOrderGuideViewOrderGuide { switch (language) {
     case AppLanguage.korean:   return '주문 안내 보기';
@@ -4532,11 +4532,11 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Солилт/Буцаалт';
   }}
   String get exchangeReturnInfo { switch (language) {
-    case AppLanguage.korean:   return '기성품 수령 후 3일 이내 가능 (단순 변심)';
-    case AppLanguage.english:  return 'Available within 3 days of receipt (ready-made, change of mind)';
-    case AppLanguage.japanese: return '既製品受領後3日以内可能（単純変心）';
-    case AppLanguage.chinese:  return '现货收货后3天内可申请（单纯变心）';
-    case AppLanguage.mongolian:return 'Бэлэн бараа хүлээн авсанаас хойш 3 хоногт боломжтой';
+    case AppLanguage.korean:   return '기성품 수령 후 7일 이내 가능 (단순 변심 포함)';
+    case AppLanguage.english:  return 'Available within 7 days of receipt (ready-made, incl. change of mind)';
+    case AppLanguage.japanese: return '既製品受領後7日以内可能（単純変心含む）';
+    case AppLanguage.chinese:  return '现货收货后7天内可申请（包括单纯变心）';
+    case AppLanguage.mongolian:return 'Бэлэн бараа хүлээн авсанаас хойш 7 хоногт боломжтой';
   }}
   String get groupOrderLabel { switch (language) {
     case AppLanguage.korean:   return '단체주문';
@@ -7011,11 +7011,11 @@ class AppLocalizations {
   }
   String get exchangeReturn7 {
     switch (language) {
-      case AppLanguage.english: return '3-day exchange/return (ready-made)';
-      case AppLanguage.japanese: return '既製品受取後3日以内交換/返品';
-      case AppLanguage.chinese: return '现货收货3天内换货/退货';
-      case AppLanguage.mongolian: return '3 хоногт буцаах (бэлэн бараа)';
-      default: return '기성품 수령 후 3일 내 교환/반품';
+      case AppLanguage.english: return '7-day exchange/return (ready-made)';
+      case AppLanguage.japanese: return '既製品受取後7日以内交換/返品';
+      case AppLanguage.chinese: return '现货收货7天内换货/退货';
+      case AppLanguage.mongolian: return '7 хоногт буцаах (бэлэн бараа)';
+      default: return '기성품 수령 후 7일 내 교환/반품';
     }
   }
   String get qualityGuarantee {
@@ -10917,11 +10917,11 @@ class AppLocalizations {
   }}
 
   String get cartExchangeNote { switch (language) {
-    case AppLanguage.english: return '3-day exchange/return (ready-made)';
-    case AppLanguage.japanese: return '既製品受け取り後3日以内交換/返品';
-    case AppLanguage.chinese: return '现货收货后3天内可换/退货';
-    case AppLanguage.mongolian: return 'Бэлэн бараа хүлээн авснаас 3 хоногийн дотор солих/буцаах';
-    default: return '기성품 수령 후 3일 내 교환/반품';
+    case AppLanguage.english: return '7-day exchange/return (ready-made)';
+    case AppLanguage.japanese: return '既製品受け取り後7日以内交換/返品';
+    case AppLanguage.chinese: return '现货收货后7天内可换/退货';
+    case AppLanguage.mongolian: return 'Бэлэн бараа хүлээн авснаас 7 хоногийн дотор солих/буцаах';
+    default: return '기성품 수령 후 7일 내 교환/반품';
   }}
 
   String get cartSubtotalAmount { switch (language) {
@@ -11993,7 +11993,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return 'お問い合わせありがとうございます！担当者が確認後すぐに回答いたします。😊\n\n営業時間：平日10:00-18:00（昼休み12:00-14:00）\nお問い合わせ：';
     case AppLanguage.chinese: return '感谢您的咨询！工作人员确认后将尽快回复。😊\n\n营业时间：工作日10:00-18:00（午休12:00-14:00）\n客服：';
     case AppLanguage.mongolian: return 'Асуулга тавьсанд баярлалаа! Ажилтан шалгаад хурдан хариулна. 😊\n\nЦаг: Ажлын өдөр 10:00-18:00\nУтас: ';
-    default: return '문의 감사합니다! 담당자가 확인 후 빠르게 답변 드리겠습니다. 😊\n\n📦 교환·환불 안내\n• 기성품: 수령 후 3일 이내 교환·환불 가능\n• 커스텀(단체) 주문: 불량 외 교환·환불 불가\n\n운영시간: 평일 10:00-18:00 (점심 12:00-14:00)\n고객센터: ';
+    default: return '문의 감사합니다! 담당자가 확인 후 빠르게 답변 드리겠습니다. 😊\n\n📦 교환·환불 안내\n• 기성품: 수령 후 7일 이내 교환·환불 가능\n• 커스텀(단체) 주문: 의류 불량·오제작 외 교환·환불 불가\n\n운영시간: 평일 10:00-18:00 (점심 12:00-14:00)\n고객센터: ';
   }}
 
   String get chatOfflineMsg { switch (language) {

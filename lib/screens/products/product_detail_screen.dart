@@ -9744,6 +9744,108 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                   // ─── 4. 교환·환불 정책 ───────────────────────────
                   _sheetSectionTitle(null, context.loc.t('교환_환불_정책', '교환·환불 정책'), Color(0xFFE65100), emoji: '⚠️'),
                   SizedBox(height: r.h(10)),
+
+                  // 4-1. 단체(커스텀) 주문 정책 — 최상단 강조
+                  _infoCardWidget(
+                    icon: Icons.groups_rounded,
+                    iconBg: const Color(0xFFFFEBEE),
+                    iconColor: Colors.red.shade700,
+                    title: '단체(커스텀) 주문',
+                    contentWidget: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('맞춤 제작 상품으로 교환·환불이 불가합니다.',
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7,
+                                fontWeight: FontWeight.w700, color: Colors.red.shade700)),
+                        SizedBox(height: r.h(2)),
+                        Text('단, 아래 경우는 교환·환불 가능합니다:',
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
+                        Text('  ✔ 의류 자체 불량 (봉제 불량, 원단 결함)',
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
+                        Text('  ✔ 주문 내용과 다르게 제작된 경우',
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
+                        Text('  ✔ 배송 중 파손된 경우',
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: r.h(8)),
+
+                  // 4-2. 기성품 교환·환불 가능 조건
+                  _infoCardWidget(
+                    icon: Icons.swap_horiz_rounded,
+                    iconBg: const Color(0xFFE8F5E9),
+                    iconColor: const Color(0xFF2E7D32),
+                    title: '기성품 교환·환불 가능',
+                    contentWidget: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('• 상품 수령 후 7일 이내 신청 (전자상거래법 기준)',
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7,
+                                color: const Color(0xFF2E7D32), fontWeight: FontWeight.w600)),
+                        Text('• 단순 변심, 사이즈 미스, 색상 차이 포함',
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
+                        Text('• 왕복 배송비 고객 부담 (제품 하자·오배송 제외)',
+                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: r.h(8)),
+
+                  // 4-3. 기성품 교환·환불 불가 조건
+                  _infoCardWidget(
+                    icon: Icons.block_rounded,
+                    iconBg: const Color(0xFFFFF3E0),
+                    iconColor: Colors.orange.shade700,
+                    title: '기성품 교환·환불 불가 조건',
+                    contentWidget: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _returnPolicyRow('🏷️', '택(tag) 제거 후', '착용 여부 확인 불가'),
+                        _returnPolicyRow('👕', '착용 또는 세탁한 경우', '상품 가치 훼손'),
+                        _returnPolicyRow('📦', '포장 훼손 또는 구성품 누락', '재판매 불가'),
+                        SizedBox(height: r.h(4)),
+                        Text('※ 수령 즉시 상품 상태를 확인해 주세요.',
+                            style: TextStyle(fontSize: r.sp(11), height: 1.6,
+                                color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: r.h(8)),
+
+                  // 4-4. 교환 우선 안내 (반품보다 교환 유도)
+                  Container(
+                    padding: EdgeInsets.all(r.w(12)),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE3F2FD),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: const Color(0xFF90CAF9)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('💡', style: TextStyle(fontSize: r.sp(16))),
+                        SizedBox(width: r.w(10)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('교환을 먼저 신청해 주세요',
+                                  style: TextStyle(fontSize: r.sp(13),
+                                      fontWeight: FontWeight.w800, color: const Color(0xFF1565C0))),
+                              SizedBox(height: r.h(4)),
+                              Text('사이즈·색상이 맞지 않는 경우,\n반품보다 교환이 더 빠르고 간편합니다.\n채팅 상담으로 신청 시 우선 처리해 드립니다.',
+                                  style: TextStyle(fontSize: r.sp(12), height: 1.6,
+                                      color: const Color(0xFF1A1A1A))),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: r.h(8)),
+
+                  // 4-5. 기타
                   Container(
                     padding: EdgeInsets.all(r.w(14)),
                     decoration: BoxDecoration(
@@ -9754,13 +9856,11 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(context.loc.t('커스텀_단체__주문__의류__36c0a1', '• 커스텀(단체) 주문: 의류 자체 불량 외 교환·환불은 불가합니다.'),
+                        Text('• 단체 주문: 주문 확정 후 제작 착수 전까지만 취소 가능합니다.',
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text(context.loc.t('기성품__제품_수령_후_3일_9149ca', '• 기성품: 제품 수령 후 3일 이내 교환·환불 가능합니다.'),
+                        Text('• 색상은 모니터·기기 환경에 따라 실제와 다소 다를 수 있습니다.',
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text(context.loc.t('주문_확정_후_제작_착수_전_ae7da5', '• 주문 확정 후 제작 착수 전까지만 취소 가능합니다.'),
-                            style: TextStyle(fontSize: r.sp(13), height: 1.7)),
-                        Text(context.loc.t('색상은_모니터_환경에_따라__a8646b', '• 색상은 모니터 환경에 따라 실제와 다소 다를 수 있습니다.'),
+                        Text('• 교환·환불 신청: 채팅 상담으로 문의해 주세요.',
                             style: TextStyle(fontSize: r.sp(13), height: 1.7)),
                       ],
                     ),
@@ -9844,6 +9944,35 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     ),
                   ),
                   SizedBox(height: r.h(24)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 반품불가 조건 행 ─────────────────────────────────────────
+  Widget _returnPolicyRow(String emoji, String reason, String desc) {
+    final r = Responsive.of(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: r.h(4)),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(emoji, style: TextStyle(fontSize: r.sp(13))),
+          SizedBox(width: r.w(6)),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(fontSize: r.sp(13), height: 1.6,
+                    color: const Color(0xFF1A1A1A)),
+                children: [
+                  TextSpan(text: reason,
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                  TextSpan(text: '  ·  $desc',
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: r.sp(11))),
                 ],
               ),
             ),
