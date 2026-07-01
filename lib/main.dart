@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ import 'utils/responsive.dart';
 import 'providers/providers.dart';
 import 'utils/app_localizations.dart';
 import 'services/auth_service.dart';
+import 'services/order_service.dart';
 import 'screens/home/splash_screen.dart';
 import 'screens/cart/cart_screen.dart';
 import 'screens/orders/checkout_screen.dart';
@@ -289,10 +291,30 @@ class _AppInit extends StatefulWidget {
 }
 
 class _AppInitState extends State<_AppInit> {
+  Timer? _deliveryCheckTimer;
+
   @override
   void initState() {
     super.initState();
     _restoreSession();
+    // 앱 시작 후 1분 뒤 첫 번째 배송완료 자동 체크, 이후 30분마다 반복
+    Future.delayed(const Duration(minutes: 1), () {
+      if (!mounted) return;
+      OrderService.autoCheckDelivered().then((n) {
+        if (kDebugMode && n > 0) debugPrint('🚚 자동 배송완료 처리: $n건');
+      });
+    });
+    _deliveryCheckTimer = Timer.periodic(const Duration(minutes: 30), (_) {
+      OrderService.autoCheckDelivered().then((n) {
+        if (kDebugMode && n > 0) debugPrint('🚚 자동 배송완료 처리: $n건');
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _deliveryCheckTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _restoreSession() async {

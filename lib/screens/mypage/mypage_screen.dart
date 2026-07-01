@@ -1019,8 +1019,11 @@ class _PcOrderCard extends StatelessWidget {
     final isPurchaseConfirmed = order.isPurchaseConfirmed;
     // 배송완료 후 3일 이내 → 구매확정 버튼 표시
     final canConfirmPurchase = order.status == OrderStatus.delivered && !isPurchaseConfirmed;
-    // 교환/반품: 배송완료 상태이고 구매확정 전
-    final canExchangeReturn = !isGroup && order.status == OrderStatus.delivered && !isPurchaseConfirmed;
+    // 교환/반품: 배송완료(delivered) 또는 배송중(shipped) + 운송장 있음 + 구매확정 전
+    final canExchangeReturn = !isGroup &&
+        hasTrackingMobile &&
+        (order.status == OrderStatus.delivered || order.status == OrderStatus.shipped) &&
+        !isPurchaseConfirmed;
     // 리뷰쓰기: 구매확정 후
     final canWriteReview = !isGroup && isPurchaseConfirmed;
 

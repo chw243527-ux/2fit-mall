@@ -2,6 +2,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../models/models.dart';
 import '../utils/constants.dart';
 import 'fcm_service.dart';
@@ -361,6 +363,104 @@ class OrderService {
       }
     }
     return count;
+  }
+
+  // ────────────────────────────────────────────
+  // 배송완료 자동 처리 (tracker.delivery API 조회)
+  // shipped 상태의 주문 중 운송장이 등록된 것만 조회
+  // lastEvent.status.code == 'DELIVERED' 이면 delivered 로 자동 전환
+  // ────────────────────────────────────────────
+  static String _carrierIdFromName(String name) {
+    final n = name.trim().toLowerCase();
+    if (n.contains('cj') || n.contains('대한통운')) return 'kr.cjlogistics';
+    if (n.contains('한진')) return 'kr.hanjin';
+    if (n.contains('롯데') || n.contains('lotte')) return 'kr.lotte';
+    if (n.contains('우체국') || n.contains('epost')) return 'kr.epost';
+    if (n.contains('로젠') || n.contains('logen')) return 'kr.logen';
+    if (n.contains('경동')) return 'kr.kdexp';
+    if (n.contains('대신')) return 'kr.daesin';
+    if (n.contains('gtx') || n.contains('로지스')) return 'kr.cjlogistics';
+    return 'kr.hanjin'; // 기본값 한진
+  }
+
+  static Future<int> autoCheckDelivered() async {
+    int updated = 0;
+    try {
+      // shipped 상태 + trackingNumber 있는 주문만 조회
+      final snap = await _db
+          .collection('orders')
+          .where('status', isEqualTo: OrderStatus.shipped.name)
+          .get();
+
+      const endpoint = 'https://apis.tracker.delivery/graphql';
+      const query = r'''
+query Track($carrierId: ID!, $trackingNumber: String!) {
+  track(carrierId: $carrierId, trackingNumber: $trackingNumber) {
+    lastEvent { status { code } }
+  }
+}''';
+
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final trackingNumber = (data['trackingNumber'] as String? ?? '').trim();
+        final shippingCompany = (data['shippingCompany'] as String? ?? '').trim();
+        if (trackingNumber.isEmpty) continue;
+
+        try {
+          final carrierId = _carrierIdFromName(shippingCompany);
+          final resp = await http.post(
+            Uri.parse(endpoint),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'query': query,
+              'variables': {'carrierId': carrierId, 'trackingNumber': trackingNumber},
+            }),
+          ).timeout(const Duration(seconds: 8));
+
+          if (resp.statusCode != 200) continue;
+          final body = jsonDecode(resp.body) as Map<String, dynamic>;
+          if (body.containsKey('errors')) continue;
+
+          final code = body['data']?['track']?['lastEvent']?['status']?['code'] as String?;
+          if (code == null) continue;
+
+          if (code.toUpperCase() == 'DELIVERED') {
+            // Firestore 상태 delivered 로 전환 + deliveredAt 기록
+            await _db.collection('orders').doc(doc.id).update({
+              'status': OrderStatus.delivered.name,
+              'deliveredAt': FieldValue.serverTimestamp(),
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+            // Hive 동기화
+            try {
+              final box = await _getBox();
+              final cached = box.get(doc.id);
+              if (cached != null) {
+                final m = Map<String, dynamic>.from(cached as Map);
+                m['status'] = OrderStatus.delivered.name;
+                await box.put(doc.id, m);
+              }
+            } catch (_) {}
+            // FCM 푸시 알림
+            try {
+              final order = _orderFromFirestore(data, docId: doc.id);
+              await FcmService.sendOrderStatusNotification(
+                order: order,
+                newStatus: OrderStatus.delivered,
+                message: '배송이 완료되었습니다! 구매를 확정해 주세요.',
+              );
+            } catch (_) {}
+            updated++;
+            if (kDebugMode) debugPrint('✅ 자동 배송완료: ${doc.id} ($trackingNumber)');
+          }
+        } catch (e) {
+          if (kDebugMode) debugPrint('⚠️ 배송조회 실패 (${doc.id}): $e');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ autoCheckDelivered 실패: $e');
+    }
+    return updated;
   }
 
   // ────────────────────────────────────────────
