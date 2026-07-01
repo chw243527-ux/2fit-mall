@@ -1019,11 +1019,14 @@ class _PcOrderCard extends StatelessWidget {
     final isPurchaseConfirmed = order.isPurchaseConfirmed;
     // 배송완료 → 구매확정 버튼 표시 (운송장 유무 무관)
     final canConfirmPurchase = order.status == OrderStatus.delivered && !isPurchaseConfirmed;
-    // 교환/반품: 배송완료(delivered)면 운송장 유무 무관하게 활성
-    //            배송중(shipped)은 운송장 있을 때만 활성
+    // 교환/반품 기간 체크: deliveredAt 기준 7일 이내 (null이면 createdAt 기준)
+    final deliveredBase = order.deliveredAt ?? order.createdAt;
+    final isWithin7Days = DateTime.now().isBefore(deliveredBase.add(const Duration(days: 7)));
+    // 교환/반품: 배송완료면 7일 이내 + 구매확정 전
+    //            배송중(shipped)은 운송장 있을 때만 활성 (기간 무관)
     final canExchangeReturn = !isGroup &&
         !isPurchaseConfirmed &&
-        (order.status == OrderStatus.delivered ||
+        (( order.status == OrderStatus.delivered && isWithin7Days) ||
          (order.status == OrderStatus.shipped && hasTrackingMobile));
     // 리뷰쓰기: 구매확정 후
     final canWriteReview = !isGroup && isPurchaseConfirmed;
@@ -2850,12 +2853,15 @@ class _MobileOrderCard extends StatelessWidget {
         (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed ||
          order.status == OrderStatus.processing) &&
         !(order.status == OrderStatus.cancelled || order.status == OrderStatus.refunded);
-    // 교환/반품: 배송완료(delivered)면 운송장 유무 무관하게 활성
-    //            배송중(shipped)은 운송장 있을 때만 활성
+    // 교환/반품 기간 체크: deliveredAt 기준 7일 이내 (null이면 createdAt 기준)
     final isPurchaseConfirmed = order.isPurchaseConfirmed;
+    final deliveredBasePC = order.deliveredAt ?? order.createdAt;
+    final isWithin7DaysPC = DateTime.now().isBefore(deliveredBasePC.add(const Duration(days: 7)));
+    // 교환/반품: 배송완료면 7일 이내 + 구매확정 전
+    //            배송중(shipped)은 운송장 있을 때만 활성 (기간 무관)
     final canExchangeReturn = !isGroup &&
         !isPurchaseConfirmed &&
-        (order.status == OrderStatus.delivered ||
+        ((order.status == OrderStatus.delivered && isWithin7DaysPC) ||
          (order.status == OrderStatus.shipped && hasTracking));
     // 배송조회: 운송장 등록된 경우
     final canTrack = hasTracking;

@@ -818,7 +818,8 @@ class OrderExcelService {
             quantity: 0, price: 0,
           ),
         ).imageUrl ?? '';
-    final designFileUrl = opts['designFileUrl']?.toString() ??
+    // 참고이미지: 주문 시 업로드한 refImageUrl 우선, 없으면 maleRefImageUrl 폴백
+    final refImageUrl = opts['refImageUrl']?.toString() ??
         opts['maleRefImageUrl']?.toString() ?? '';
 
     // 1) 기본 xlsx 바이트 생성 (sync)
@@ -832,7 +833,7 @@ class OrderExcelService {
     if (productImageUrl.isNotEmpty) {
       imagesToInsert.add(_ImageToInsert(
         url: productImageUrl,
-        sheetName: '주문정보',  // sheetName 기준으로 정확히 찾기
+        sheetName: '주문정보',
         sheetIndex: 0,
         row: imgRow,    // 1-based
         col: 1,         // B열 (A열은 레이블)
@@ -842,16 +843,16 @@ class OrderExcelService {
       ));
       imgRow++;
     }
-    if (designFileUrl.isNotEmpty) {
+    if (refImageUrl.isNotEmpty) {
       imagesToInsert.add(_ImageToInsert(
-        url: designFileUrl,
-        sheetName: '주문정보',  // sheetName 기준으로 정확히 찾기
+        url: refImageUrl,
+        sheetName: '주문정보',
         sheetIndex: 0,
         row: imgRow,
         col: 1,         // B열
         widthPx: 260,
         heightPx: 195,
-        label: '참조이미지',
+        label: '참고이미지',
       ));
     }
 

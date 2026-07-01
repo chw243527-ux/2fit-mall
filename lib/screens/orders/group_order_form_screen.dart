@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import '../../models/models.dart';
 import '../../providers/providers.dart';
@@ -710,10 +711,29 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ? product.sectionImages['design']!.first
         : (product.images.isNotEmpty ? product.images.first : '');
 
+    // ── 참고이미지 Storage 업로드 (base64 → URL) ──
+    String refImageUrl = '';
+    if (_refBase64 != null && _refBase64!.isNotEmpty) {
+      try {
+        final bytes = base64Decode(_refBase64!);
+        final orderId = 'GRP_${DateTime.now().millisecondsSinceEpoch}';
+        final ref = FirebaseStorage.instance
+            .ref('group_orders/$orderId/ref_image.jpg');
+        await ref.putData(
+          bytes,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+        refImageUrl = await ref.getDownloadURL();
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ 참고이미지 업로드 실패 (무시): $e');
+      }
+    }
+
     final customOptions = <String, dynamic>{
       'orderType'      : _isAdditional ? 'additional' : 'group',
       'designFileUrl'  : designImg,
       'productImageUrl': designImg,
+      'refImageUrl'    : refImageUrl,  // 주문 시 업로드한 참고이미지 URL
       'originalOrderId': _isAdditional && _originalOrder != null ? _originalOrder!.id : null,
       'originalOrderDate': _isAdditional && _originalOrder != null ? _originalOrder!.createdAt.toIso8601String() : null,
       'originalTeamName': _isAdditional && _originalOrder != null ? (_originalOrder!.customOptions?['teamName'] ?? _originalOrder!.groupName ?? '') : null,
