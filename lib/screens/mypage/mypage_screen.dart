@@ -1017,13 +1017,14 @@ class _PcOrderCard extends StatelessWidget {
         !(order.status == OrderStatus.cancelled || order.status == OrderStatus.refunded);
     // 구매확정 여부 (수동 or 3일 자동)
     final isPurchaseConfirmed = order.isPurchaseConfirmed;
-    // 배송완료 후 3일 이내 → 구매확정 버튼 표시
+    // 배송완료 → 구매확정 버튼 표시 (운송장 유무 무관)
     final canConfirmPurchase = order.status == OrderStatus.delivered && !isPurchaseConfirmed;
-    // 교환/반품: 배송완료(delivered) 또는 배송중(shipped) + 운송장 있음 + 구매확정 전
+    // 교환/반품: 배송완료(delivered)면 운송장 유무 무관하게 활성
+    //            배송중(shipped)은 운송장 있을 때만 활성
     final canExchangeReturn = !isGroup &&
-        hasTrackingMobile &&
-        (order.status == OrderStatus.delivered || order.status == OrderStatus.shipped) &&
-        !isPurchaseConfirmed;
+        !isPurchaseConfirmed &&
+        (order.status == OrderStatus.delivered ||
+         (order.status == OrderStatus.shipped && hasTrackingMobile));
     // 리뷰쓰기: 구매확정 후
     final canWriteReview = !isGroup && isPurchaseConfirmed;
 
@@ -2849,14 +2850,16 @@ class _MobileOrderCard extends StatelessWidget {
         (order.status == OrderStatus.pending || order.status == OrderStatus.confirmed ||
          order.status == OrderStatus.processing) &&
         !(order.status == OrderStatus.cancelled || order.status == OrderStatus.refunded);
-    // 교환/반품: 운송장 등록 후 (배송중 or 배송완료) + 구매확정 전
+    // 교환/반품: 배송완료(delivered)면 운송장 유무 무관하게 활성
+    //            배송중(shipped)은 운송장 있을 때만 활성
     final isPurchaseConfirmed = order.isPurchaseConfirmed;
-    final canExchangeReturn = hasTracking &&
-        (order.status == OrderStatus.shipped || order.status == OrderStatus.delivered) &&
-        !isPurchaseConfirmed;
+    final canExchangeReturn = !isGroup &&
+        !isPurchaseConfirmed &&
+        (order.status == OrderStatus.delivered ||
+         (order.status == OrderStatus.shipped && hasTracking));
     // 배송조회: 운송장 등록된 경우
     final canTrack = hasTracking;
-    // 구매확정: 배송완료 상태이고 구매확정 전
+    // 구매확정: 배송완료 상태이고 구매확정 전 (운송장 유무 무관)
     final canConfirmPurchase = order.status == OrderStatus.delivered && !isPurchaseConfirmed;
     // 리뷰쓰기: 구매확정 후 (개인주문만)
     final canWriteReview = !isGroup && isPurchaseConfirmed;
