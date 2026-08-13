@@ -210,7 +210,6 @@ class _MyPageScreenState extends State<MyPageScreen>
               if (ctx.mounted) {
                 ctx.read<SizeProfileProvider>().clear();
                 ctx.read<CartProvider>().clearCart();
-                ctx.read<CouponProvider>().clear(); // 쿠폰 데이터 초기화
                 Navigator.of(ctx).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (route) => false,
@@ -395,7 +394,6 @@ class _MyPageScreenState extends State<MyPageScreen>
                     if (ctx.mounted) {
                       up.logout();
                       ctx.read<CartProvider>().clearCart();
-                      ctx.read<CouponProvider>().clear();
                       ctx.read<SizeProfileProvider>().clear();
                       Navigator.pop(dialogCtx);
                       ScaffoldMessenger.of(ctx).showSnackBar(
@@ -458,7 +456,6 @@ class _PcMyPage extends StatelessWidget {
     final menuItems = [
       (Icons.receipt_long_rounded,   loc.myOrders),
       (Icons.favorite_rounded,       loc.wishlist),
-      (Icons.local_activity_rounded, loc.mypageCouponBox),
       (Icons.settings_rounded,       loc.settings),
     ];
 
@@ -621,7 +618,6 @@ class _PcMyPage extends StatelessWidget {
                                 onDesignRevision: onShowDesignRevision,
                                 onDesignConfirm: onShowDesignConfirm);
                             case 1: return _PcWishlistTab(userProvider: userProvider, loc: loc);
-                            case 2: return _PcCouponTab(userProvider: userProvider, loc: loc);
                             case 3: return _PcSettingsTab(userProvider: userProvider, loc: loc,
                                 onShowProfileEdit: onShowProfileEdit,
                                 onShowAddressManager: onShowAddressManager,
@@ -723,20 +719,6 @@ class _PcProfileCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha:0.1), borderRadius: BorderRadius.circular(10)),
-            child: Row(
-              children: [
-                Icon(Icons.star_rounded, size: 16, color: Colors.amber[300]),
-                const SizedBox(width: 6),
-                Text('${_fmt(user!.points)} P',
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
-                const Spacer(),
-                Text(loc.mypagePointsTotal, style: const TextStyle(color: Colors.white60, fontSize: 11)),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -778,7 +760,6 @@ class _PcQuickStats extends StatelessWidget {
     final orderProvider = context.watch<OrderProvider>();
     final orders = user != null ? orderProvider.getUserOrders(user!.id) : <OrderModel>[];
     final wishCount = user?.wishlist.length ?? 0;
-    final couponCount = user?.coupons.where((c) => c.isValid).length ?? 0;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -793,7 +774,6 @@ class _PcQuickStats extends StatelessWidget {
           _Divider(),
           _StatItem(label: loc.wishlist, count: wishCount, onTap: () => tabController.animateTo(1)),
           _Divider(),
-          _StatItem(label: loc.mypageCouponBox, count: couponCount, onTap: () => tabController.animateTo(2)),
         ],
       ),
     );
@@ -1599,176 +1579,6 @@ class _PcWishlistTab extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════
-// PC 쿠폰함 탭
-// ═══════════════════════════════════════════════════════
-class _PcCouponTab extends StatelessWidget {
-  final UserProvider userProvider;
-  final AppLocalizations loc;
-
-  const _PcCouponTab({required this.userProvider, required this.loc});
-
-  @override
-  Widget build(BuildContext context) {
-    final user = userProvider.user;
-    final coupons = user?.coupons ?? [];
-    final valid = coupons.where((c) => c.isValid).toList();
-    final used = coupons.where((c) => c.isUsed).toList();
-    final expired = coupons.where((c) => !c.isValid && !c.isUsed).toList();
-
-    return Column(
-      children: [
-        _PcTabHeader(icon: Icons.local_activity_rounded, title: loc.mypageCouponBox,
-          color: const Color(0xFFE65100), badge: '${valid.length}'),
-        Expanded(
-          child: coupons.isEmpty
-            ? _PcEmptyState(icon: Icons.local_activity_outlined, message: loc.mypageNoCoupons)
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (valid.isNotEmpty) ...[
-                      _CouponSectionTitle(title: loc.mypageAvailableCoupon, count: valid.length, color: const Color(0xFF2E7D32)),
-                      const SizedBox(height: 8),
-                      ...valid.map((c) => _PcCouponCard(coupon: c, loc: loc, color: const Color(0xFF2E7D32))),
-                      const SizedBox(height: 20),
-                    ],
-                    if (used.isNotEmpty) ...[
-                      _CouponSectionTitle(title: loc.mypageUsedCoupon, count: used.length, color: Colors.grey),
-                      const SizedBox(height: 8),
-                      ...used.map((c) => _PcCouponCard(coupon: c, loc: loc, color: Colors.grey, dimmed: true)),
-                      const SizedBox(height: 20),
-                    ],
-                    if (expired.isNotEmpty) ...[
-                      _CouponSectionTitle(title: loc.mypageExpiredCoupon, count: expired.length, color: Colors.red),
-                      const SizedBox(height: 8),
-                      ...expired.map((c) => _PcCouponCard(coupon: c, loc: loc, color: Colors.red, dimmed: true)),
-                    ],
-                  ],
-                ),
-              ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CouponSectionTitle extends StatelessWidget {
-  final String title;
-  final int count;
-  final Color color;
-  const _CouponSectionTitle({required this.title, required this.count, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(width: 4, height: 16, color: color, margin: const EdgeInsets.only(right: 8)),
-        Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color)),
-        const SizedBox(width: 6),
-        Text('($count)', style: TextStyle(fontSize: 13, color: color.withValues(alpha:0.7))),
-      ],
-    );
-  }
-}
-
-class _PcCouponCard extends StatelessWidget {
-  final CouponModel coupon;
-  final AppLocalizations loc;
-  final Color color;
-  final bool dimmed;
-
-  const _PcCouponCard({required this.coupon, required this.loc, required this.color, this.dimmed = false});
-
-  @override
-  Widget build(BuildContext context) {
-    final discountText = coupon.type == CouponType.percent
-        ? '${coupon.value.toInt()}% OFF'
-        : '${coupon.value.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '\${m[1]},')}원 할인';
-
-    return Opacity(
-      opacity: dimmed ? 0.55 : 1.0,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: dimmed ? Colors.grey[300]! : color.withValues(alpha:0.3)),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.04), blurRadius: 8)],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 80,
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              decoration: BoxDecoration(
-                color: dimmed ? Colors.grey[200] : color.withValues(alpha:0.1),
-                borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.local_activity_rounded, color: dimmed ? Colors.grey : color, size: 24),
-                  const SizedBox(height: 4),
-                  Text(discountText, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: dimmed ? Colors.grey : color), textAlign: TextAlign.center),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(coupon.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 4),
-                    if (coupon.minOrderAmount > 0)
-                      Text('${loc.mypageMinOrder}: ${coupon.minOrderAmount.toInt()}원 이상',
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.schedule_rounded, size: 12, color: Colors.grey[400]),
-                        const SizedBox(width: 4),
-                        Text('${loc.mypageCouponExpiry}: ${_fmtDate(coupon.expiresAt)}',
-                          style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(right: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: dimmed ? Colors.grey[100] : color.withValues(alpha:0.08),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: dimmed ? Colors.grey[300]! : color.withValues(alpha:0.3)),
-              ),
-              child: Text(
-                dimmed ? (coupon.isUsed ? loc.mypageUsedCoupon : loc.mypageExpiredCoupon) : loc.mypageAvailableCoupon,
-                style: TextStyle(fontSize: 11, color: dimmed ? Colors.grey : color, fontWeight: FontWeight.w700),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _fmtDate(DateTime d) {
-    final y = d.year.toString();
-    final m = d.month.toString().padLeft(2, '0');
-    final dd = d.day.toString().padLeft(2, '0');
-    final hh = d.hour.toString().padLeft(2, '0');
-    final min = d.minute.toString().padLeft(2, '0');
-    return '$y.$m.$dd $hh:$min';
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-// PC 설정 탭
-// ═══════════════════════════════════════════════════════
 class _PcSettingsTab extends StatelessWidget {
   final UserProvider userProvider;
   final AppLocalizations loc;
@@ -2526,7 +2336,6 @@ class _MobileMyPage extends StatelessWidget {
                 tabs: [
                   Tab(text: loc.myOrders),
                   Tab(text: loc.wishlist),
-                  Tab(text: loc.mypageCouponBox),
                   Tab(text: loc.settings),
                 ],
               ),
@@ -2541,7 +2350,6 @@ class _MobileMyPage extends StatelessWidget {
                     onDesignRevision: onShowDesignRevision,
                     onDesignConfirm: onShowDesignConfirm),
                   _MobileWishlistTab(userProvider: userProvider, loc: loc),
-                  _MobileCouponTab(userProvider: userProvider, loc: loc),
                   _MobileSettingsTab(userProvider: userProvider, loc: loc,
                     onShowProfileEdit: onShowProfileEdit,
                     onShowAddressManager: onShowAddressManager,
@@ -2625,7 +2433,6 @@ class _MobileProfileHeader extends StatelessWidget {
             const SizedBox(height: 14),
             Row(
               children: [
-                Expanded(child: _InfoChip(icon: Icons.star_rounded, label: '${_fmt(user!.points)} P', color: Colors.amber)),
                 const SizedBox(width: 10),
                 Expanded(child: GestureDetector(
                   onTap: () => onShowLogout(context, userProvider),
@@ -2697,7 +2504,6 @@ class _MobileQuickStats extends StatelessWidget {
     final orderProvider = context.watch<OrderProvider>();
     final orders = user != null ? orderProvider.getUserOrders(user!.id) : <OrderModel>[];
     final wishCount = user?.wishlist.length ?? 0;
-    final couponCount = user?.coupons.where((c) => c.isValid).length ?? 0;
 
     return Container(
       color: const Color(0xFF1A1A2E),
@@ -2708,9 +2514,7 @@ class _MobileQuickStats extends StatelessWidget {
           _VertDiv(),
           _MobileStatItem(label: loc.wishlist, count: wishCount, onTap: () => tabController.animateTo(1)),
           _VertDiv(),
-          _MobileStatItem(label: loc.mypageCouponBox, count: couponCount, onTap: () => tabController.animateTo(2)),
           _VertDiv(),
-          _MobileStatItem(label: loc.mypagePoints, count: user?.points ?? 0, onTap: () => tabController.animateTo(3)),
         ],
       ),
     );
@@ -3563,142 +3367,6 @@ class _MobileWishlistTab extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════
-// 모바일 쿠폰함 탭
-// ═══════════════════════════════════════════════════════
-class _MobileCouponTab extends StatelessWidget {
-  final UserProvider userProvider;
-  final AppLocalizations loc;
-
-  const _MobileCouponTab({required this.userProvider, required this.loc});
-
-  @override
-  Widget build(BuildContext context) {
-    final user = userProvider.user;
-    final coupons = user?.coupons ?? [];
-
-    if (coupons.isEmpty) return _MobileEmptyState(icon: Icons.local_activity_outlined, message: loc.mypageNoCoupons);
-
-    final valid = coupons.where((c) => c.isValid).toList();
-    final used = coupons.where((c) => c.isUsed).toList();
-    final expired = coupons.where((c) => !c.isValid && !c.isUsed).toList();
-
-    return ListView(
-      padding: const EdgeInsets.all(12),
-      children: [
-        if (valid.isNotEmpty) ...[
-          _MobileCouponSectionTitle(title: loc.mypageAvailableCoupon, count: valid.length, color: const Color(0xFF2E7D32)),
-          const SizedBox(height: 8),
-          ...valid.map((c) => _MobileCouponCard(coupon: c, loc: loc, color: const Color(0xFF2E7D32))),
-          const SizedBox(height: 16),
-        ],
-        if (used.isNotEmpty) ...[
-          _MobileCouponSectionTitle(title: loc.mypageUsedCoupon, count: used.length, color: Colors.grey),
-          const SizedBox(height: 8),
-          ...used.map((c) => _MobileCouponCard(coupon: c, loc: loc, color: Colors.grey, dimmed: true)),
-          const SizedBox(height: 16),
-        ],
-        if (expired.isNotEmpty) ...[
-          _MobileCouponSectionTitle(title: loc.mypageExpiredCoupon, count: expired.length, color: Colors.red),
-          const SizedBox(height: 8),
-          ...expired.map((c) => _MobileCouponCard(coupon: c, loc: loc, color: Colors.red, dimmed: true)),
-        ],
-      ],
-    );
-  }
-}
-
-class _MobileCouponSectionTitle extends StatelessWidget {
-  final String title;
-  final int count;
-  final Color color;
-  const _MobileCouponSectionTitle({required this.title, required this.count, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(width: 3, height: 14, color: color, margin: const EdgeInsets.only(right: 6)),
-        Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
-        const SizedBox(width: 4),
-        Text('($count)', style: TextStyle(fontSize: 12, color: color.withValues(alpha:0.7))),
-      ],
-    );
-  }
-}
-
-class _MobileCouponCard extends StatelessWidget {
-  final CouponModel coupon;
-  final AppLocalizations loc;
-  final Color color;
-  final bool dimmed;
-
-  const _MobileCouponCard({required this.coupon, required this.loc, required this.color, this.dimmed = false});
-
-  @override
-  Widget build(BuildContext context) {
-    final discountText = coupon.type == CouponType.percent
-        ? '${coupon.value.toInt()}%'
-        : '${coupon.value.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '\${m[1]},')}원';
-
-    return Opacity(
-      opacity: dimmed ? 0.55 : 1.0,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.06), blurRadius: 8)],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 70,
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              decoration: BoxDecoration(
-                color: dimmed ? Colors.grey[100] : color.withValues(alpha:0.1),
-                borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.local_activity_rounded, color: dimmed ? Colors.grey : color, size: 20),
-                  const SizedBox(height: 4),
-                  Text(discountText, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: dimmed ? Colors.grey : color)),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(coupon.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 2),
-                    Text('${loc.mypageCouponExpiry}: ${_fmtDate(coupon.expiresAt)}',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _fmtDate(DateTime d) {
-    final y = d.year.toString();
-    final m = d.month.toString().padLeft(2, '0');
-    final dd = d.day.toString().padLeft(2, '0');
-    final hh = d.hour.toString().padLeft(2, '0');
-    final min = d.minute.toString().padLeft(2, '0');
-    return '$y.$m.$dd $hh:$min';
-  }
-}
-
-// ═══════════════════════════════════════════════════════
-// 모바일 설정 탭
 // ═══════════════════════════════════════════════════════
 class _MobileSettingsTab extends StatelessWidget {
   final UserProvider userProvider;

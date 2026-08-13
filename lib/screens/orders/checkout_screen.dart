@@ -30,7 +30,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _addressController = TextEditingController();
   final _detailAddressController = TextEditingController();
   final _memoController = TextEditingController();
-  final _couponCodeController = TextEditingController();
   // 해외 주소 전용 컨트롤러
   final _intlLine1Ctrl   = TextEditingController(); // Street address
   final _intlLine2Ctrl   = TextEditingController(); // Apt/Suite (선택)
@@ -42,8 +41,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isProcessing = false;
   bool _isOverseas = false;   // false=국내, true=해외
   String _zonecode = '';
-
-  CouponModel? _appliedCoupon;
 
   // 번역 헬퍼
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
@@ -97,7 +94,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _addressController.dispose();
     _detailAddressController.dispose();
     _memoController.dispose();
-    _couponCodeController.dispose();
     _intlLine1Ctrl.dispose();
     _intlLine2Ctrl.dispose();
     _intlCityCtrl.dispose();
@@ -131,10 +127,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  double get _couponDiscount =>
-      _appliedCoupon?.calculateDiscount(widget.cart.subtotal) ?? 0;
-  double get _finalTotal =>
-      (widget.cart.total - _couponDiscount).clamp(0, double.infinity);
+  double get _finalTotal => widget.cart.total;
 
   @override
   Widget build(BuildContext context) {
@@ -164,7 +157,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 16),
                   _buildOrderItems(),
                   const SizedBox(height: 16),
-                  _buildCouponSection(),
                   const SizedBox(height: 16),
                   _buildPaymentMethod(),
                   const SizedBox(height: 16),
@@ -217,8 +209,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         const SizedBox(height: 16),
                         _buildOrderItems(),
                         const SizedBox(height: 16),
-                        _buildCouponSection(),
-                        const SizedBox(height: 16),
+                              const SizedBox(height: 16),
                         _buildPaymentMethod(),
                         const SizedBox(height: 80),
                       ],
@@ -1225,178 +1216,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildCouponSection() {
-    return _buildSection(
-      loc.couponApply,
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (_appliedCoupon != null) ...[
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF43A047)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.local_offer_rounded,
-                      color: Color(0xFF43A047), size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_appliedCoupon!.name,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 13)),
-                        Text('${_formatPrice(_couponDiscount)}${loc.wonUnit} 할인',
-                            style: const TextStyle(
-                                color: Color(0xFF43A047), fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 18),
-                    onPressed: () => setState(() {
-                      _appliedCoupon = null;
-                      _couponCodeController.clear();
-                    }),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
-              ),
-            ),
-          ] else ...[
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _couponCodeController,
-                    textCapitalization: TextCapitalization.characters,
-                    decoration: InputDecoration(
-                      hintText: loc.couponInputHint,
-                      prefixIcon: const Icon(Icons.discount_rounded),
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _applyCoupon,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 14),
-                  ),
-                  child: Text(loc.applyBtn, style: const TextStyle(fontSize: 13)),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Consumer<CouponProvider>(
-              builder: (_, couponProv, __) {
-                final valid = couponProv.validCoupons;
-                if (valid.isEmpty) return const SizedBox.shrink();
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(loc.availableCoupons,
-                        style: const TextStyle(
-                            fontSize: 12, color: Color(0xFF888888))),
-                    const SizedBox(height: 6),
-                    ...valid.map((c) => GestureDetector(
-                      onTap: () => setState(() {
-                        _appliedCoupon = c;
-                        _couponCodeController.text = c.code;
-                      }),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 6),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF7F8FA),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFE8E8E8)),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(c.name,
-                                      style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600)),
-                                  Text(
-                                    '${c.typeLabel} | 최소 ${_formatPrice(c.minOrderAmount)}원',
-                                    style: const TextStyle(
-                                        fontSize: 11,
-                                        color: Color(0xFF888888)),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              loc.checkoutCouponApply,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )),
-                  ],
-                );
-              },
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  void _applyCoupon() {
-    final code = _couponCodeController.text.trim();
-    if (code.isEmpty) return;
-    final couponProv =
-        Provider.of<CouponProvider>(context, listen: false);
-    final coupon = couponProv.findByCode(code);
-    if (coupon == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(loc.checkoutCouponInvalid),
-          backgroundColor: const Color(0xFFE53935),
-        ),
-      );
-      return;
-    }
-    if (widget.cart.subtotal < coupon.minOrderAmount) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              loc.minOrderAmountMsg(_formatPrice(coupon.minOrderAmount))),
-
-          backgroundColor: const Color(0xFFE53935),
-        ),
-      );
-      return;
-    }
-    setState(() => _appliedCoupon = coupon);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(loc.checkoutCouponApplied),
-        backgroundColor: const Color(0xFF43A047),
-      ),
-    );
-  }
-
   Widget _buildPaymentMethod() {
     return _buildSection(
       loc.paymentMethod,
@@ -1690,8 +1509,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ],
             ),
           ),
-          if (_couponDiscount > 0)
-            _buildPriceRow(loc.couponDiscount, -_couponDiscount, isDiscount: true),
           const Divider(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2034,12 +1851,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     NotificationService.sendOrderConfirmed(order).catchError(
       (e) { /* 알림톡 실패해도 주문은 진행 */ },
     );
-
-    // 쿠폰 사용 처리
-    if (_appliedCoupon != null) {
-      Provider.of<CouponProvider>(context, listen: false)
-          .useCoupon(_appliedCoupon!.id);
-    }
 
     // 앱 내 알림
     Provider.of<NotificationProvider>(context, listen: false).addNotification(

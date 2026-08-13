@@ -617,67 +617,6 @@ class ReviewModel {
   });
 }
 
-// ── 쿠폰 모델 ────────────────────────────────────────
-enum CouponType { fixed, percent }
-
-class CouponModel {
-  final String id;
-  final String code;
-  final String name;
-  final CouponType type;
-  final double value; // 금액 or 퍼센트
-  final double minOrderAmount;
-  final double? maxDiscountAmount;
-  final DateTime expiresAt;
-  bool isUsed;
-
-  CouponModel({
-    required this.id,
-    required this.code,
-    required this.name,
-    required this.type,
-    required this.value,
-    this.minOrderAmount = 0,
-    this.maxDiscountAmount,
-    required this.expiresAt,
-    this.isUsed = false,
-  });
-
-  bool get isValid =>
-      !isUsed && expiresAt.isAfter(DateTime.now());
-
-  double calculateDiscount(double orderAmount) {
-    if (!isValid || orderAmount < minOrderAmount) return 0;
-    if (type == CouponType.fixed) return value;
-    final discount = orderAmount * value / 100;
-    return maxDiscountAmount != null
-        ? discount.clamp(0, maxDiscountAmount!)
-        : discount;
-  }
-
-  String get typeLabel =>
-      type == CouponType.fixed ? '${value.toInt()}원 할인' : '${value.toInt()}% 할인';
-}
-
-// ── 포인트 내역 모델 ──────────────────────────────────
-enum PointActionType { earn, use, expire, refund }
-
-class PointHistory {
-  final String id;
-  final PointActionType type;
-  final int amount;
-  final String description;
-  final DateTime createdAt;
-
-  PointHistory({
-    required this.id,
-    required this.type,
-    required this.amount,
-    required this.description,
-    required this.createdAt,
-  });
-}
-
 // ── 리뷰 작성 요청 모델 ──────────────────────────────
 class ReviewWriteRequest {
   final String orderId;
@@ -750,8 +689,6 @@ class UserModel {
   String profileImageUrl; // 프로필 이미지 URL (소셜 로그인 등)
   bool isAdmin;
   List<String> wishlist;
-  int points;
-  List<CouponModel> coupons;
   String memberTier; // bronze, silver, gold, vip
   String grade;      // memberTier 별칭 (하위 호환)
   DateTime createdAt;
@@ -768,8 +705,6 @@ class UserModel {
     this.profileImageUrl = '',
     this.isAdmin = false,
     this.wishlist = const [],
-    this.points = 0,
-    this.coupons = const [],
     this.memberTier = 'bronze',
     String? grade,
     required this.createdAt,
@@ -789,7 +724,6 @@ class UserModel {
       profileImageUrl: json['profileImageUrl'] as String? ?? '',
       isAdmin: json['isAdmin'] as bool? ?? false,
       wishlist: List<String>.from(json['wishlist'] as List? ?? []),
-      points: json['points'] as int? ?? 0,
       memberTier: tier,
       grade: tier,
       createdAt: json['createdAt'] != null
@@ -814,7 +748,6 @@ class UserModel {
       'profileImageUrl': profileImageUrl,
       'isAdmin': isAdmin,
       'wishlist': wishlist,
-      'points': points,
       'memberTier': memberTier,
       'grade': memberTier,
       'createdAt': createdAt.toIso8601String(),

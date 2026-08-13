@@ -1208,12 +1208,6 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     // Provider에도 추가 (실시간 반영)
     orderProv.addOrder(order);
 
-    // 포인트 적립 (결제금액의 1%)
-    if (paid && user != null) {
-      final earnedPoints = (widget.cart.total * 0.01).toInt();
-      userProv.addPoints(earnedPoints);
-    }
-
     // 장바구니 비우기
     widget.cart.clearCart();
 
@@ -1315,30 +1309,6 @@ class _OrderCompleteDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            // 포인트 적립 안내
-            if (paid)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF3E0),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    const Text('🎁', style: TextStyle(fontSize: 18)),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${(total * 0.01).toInt()}P ${loc.mypagePointsEarned}',
-                      style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFFE65100)),
-                    ),
-                  ],
-                ),
-              ),
             const SizedBox(height: 20),
             Row(
               children: [

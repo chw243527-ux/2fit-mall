@@ -313,8 +313,6 @@ class UserProvider extends ChangeNotifier {
       address: _user!.address,
       isAdmin: _user!.isAdmin,
       wishlist: _user!.wishlist,
-      points: _user!.points,
-      coupons: _user!.coupons,
       memberTier: _user!.memberTier,
       createdAt: _user!.createdAt,
       addresses: _user!.addresses,
@@ -351,8 +349,6 @@ class UserProvider extends ChangeNotifier {
       address: _user!.address,
       isAdmin: _user!.isAdmin,
       wishlist: _user!.wishlist,
-      points: _user!.points,
-      coupons: _user!.coupons,
       memberTier: _user!.memberTier,
       createdAt: _user!.createdAt,
       addresses: addresses,
@@ -400,18 +396,6 @@ class UserProvider extends ChangeNotifier {
 
   bool isInWishlist(String productId) {
     return _user?.wishlist.contains(productId) ?? false;
-  }
-
-  void addPoints(int amount) {
-    if (_user == null) return;
-    _user!.points += amount;
-    notifyListeners();
-  }
-
-  void usePoints(int amount) {
-    if (_user == null) return;
-    _user!.points = (_user!.points - amount).clamp(0, 999999);
-    notifyListeners();
   }
 }
 
@@ -510,144 +494,6 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-
-// ── 쿠폰 Provider (Firestore 연동) ─────────────────────
-class CouponProvider extends ChangeNotifier {
-  List<CouponModel> _coupons = [];
-  bool _loading = false;
-  String? _userId;
-
-  List<CouponModel> get coupons => List.unmodifiable(_coupons);
-  List<CouponModel> get validCoupons => _coupons.where((c) => c.isValid).toList();
-  bool get isLoading => _loading;
-
-  // 로그인 후 내 쿠폰 로드
-  void loadUserCoupons(String userId) {
-    _userId = userId;
-    _loading = true;
-    notifyListeners();
-    CouponService.watchMyCoupons(userId).listen((coupons) {
-      _coupons = coupons;
-      _loading = false;
-      notifyListeners();
-    }, onError: (e) {
-      _loading = false;
-      notifyListeners();
-      if (kDebugMode) debugPrint('⚠️ 쿠폰 로드 실패: $e');
-    });
-  }
-
-  // 쿠폰 코드 등록
-  Future<String> registerByCode(String code) async {
-    if (_userId == null) return '로그인이 필요합니다.';
-    return await CouponService.registerCoupon(_userId!, code);
-  }
-
-  // 쿠폰 사용
-  Future<void> useCoupon(String couponId) async {
-    if (_userId == null) return;
-    final idx = _coupons.indexWhere((c) => c.id == couponId);
-    if (idx >= 0) {
-      _coupons[idx].isUsed = true;
-      notifyListeners();
-    }
-    await CouponService.useCoupon(_userId!, couponId);
-  }
-
-  // 로컬 추가 (호환성 유지)
-  void addCoupon(CouponModel coupon) {
-    if (!_coupons.any((c) => c.id == coupon.id)) {
-      _coupons.add(coupon);
-      notifyListeners();
-    }
-  }
-
-  CouponModel? findByCode(String code) {
-    try {
-      return _coupons.firstWhere(
-        (c) => c.code.toUpperCase() == code.toUpperCase() && c.isValid,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  // 로그아웃 시 쿠폰 데이터 초기화
-  void clear() {
-    _coupons = [];
-    _userId = null;
-    notifyListeners();
-  }
-}
-
-// ── 포인트 Provider ───────────────────────────────────
-class PointProvider extends ChangeNotifier {
-  final List<PointHistory> _history = [];
-  int _totalPoints = 0;
-
-  int get totalPoints => _totalPoints;
-  List<PointHistory> get history => List.unmodifiable(_history);
-
-  /// Firestore에서 포인트 데이터 로드
-  Future<void> loadFromFirestore(String userId) async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-      if (doc.exists) {
-        final data = doc.data()!;
-        _totalPoints = (data['points'] as num?)?.toInt() ?? 0;
-        final historyList = data['pointHistory'] as List<dynamic>? ?? [];
-        _history
-          ..clear()
-          ..addAll(historyList.map((h) => PointHistory(
-            id: h['id'] ?? '',
-            type: h['type'] == 'earn' ? PointActionType.earn : PointActionType.use,
-            amount: (h['amount'] as num?)?.toInt() ?? 0,
-            description: h['description'] ?? '',
-            createdAt: (h['createdAt'] as dynamic)?.toDate() ?? DateTime.now(),
-          )));
-        notifyListeners();
-      }
-    } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 포인트 로드 실패: $e');
-    }
-  }
-
-  void earnPoints(int amount, String description) {
-    _totalPoints += amount;
-    _history.insert(
-      0,
-      PointHistory(
-        id: 'ph${DateTime.now().millisecondsSinceEpoch}',
-        type: PointActionType.earn,
-        amount: amount,
-        description: description,
-        createdAt: DateTime.now(),
-      ),
-    );
-    notifyListeners();
-  }
-
-  bool usePoints(int amount, String description) {
-    if (_totalPoints < amount) return false;
-    _totalPoints -= amount;
-    _history.insert(
-      0,
-      PointHistory(
-        id: 'ph${DateTime.now().millisecondsSinceEpoch}',
-        type: PointActionType.use,
-        amount: -amount,
-        description: description,
-        createdAt: DateTime.now(),
-      ),
-    );
-    notifyListeners();
-    return true;
-  }
-}
-
 // ── 리뷰 Provider ─────────────────────────────────────
 class ReviewProvider extends ChangeNotifier {
   // 로컬 캐시 (상품별)

@@ -129,12 +129,10 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         ProxyProvider<LanguageProvider, LanguageProviderBridge>(
           update: (ctx, lp, _) => lp,
         ),
-        ChangeNotifierProvider(create: (_) => CouponProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => NoticeProvider()),
         ChangeNotifierProvider(create: (_) => ProductProvider()),
-        ChangeNotifierProvider(create: (_) => PointProvider()),
         ChangeNotifierProvider(create: (_) => SizeProfileProvider()),
         ChangeNotifierProvider(create: (_) => BannerProvider()),
       ],
@@ -417,8 +415,6 @@ class _AppInitState extends State<_AppInit> {
         // 모두 백그라운드 비동기 (await 없음 - 스플래시 차단 방지)
         context.read<OrderProvider>().loadUserOrders(user.id);
         context.read<UserProvider>().syncWishlistFromFirestore();
-        context.read<CouponProvider>().loadUserCoupons(user.id);
-        context.read<PointProvider>().loadFromFirestore(user.id);
         context.read<NotificationProvider>().loadFromFirestore(user.id);
         context.read<SizeProfileProvider>().loadProfiles(user.id);
         FcmService.saveTokenToFirestore(user.id).catchError(

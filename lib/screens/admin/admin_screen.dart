@@ -768,7 +768,6 @@ class _AdminScreenState extends State<AdminScreen>
                             if (!context.mounted) return;
                             context.read<UserProvider>().logout();
                             context.read<CartProvider>().clearCart();
-                            context.read<CouponProvider>().clear();
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false);
                           }
@@ -927,7 +926,6 @@ class _AdminScreenState extends State<AdminScreen>
                 if (!context.mounted) return;
                 context.read<UserProvider>().logout();
                 context.read<CartProvider>().clearCart();
-                context.read<CouponProvider>().clear();
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const LoginScreen()), (r) => false);
               }
