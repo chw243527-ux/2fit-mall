@@ -21,7 +21,14 @@ const double kPcBreakpoint = 900;
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
-  const MainScreen({super.key, this.initialIndex = 0});
+  final String? initialCategory; // /products?category=상의 등 URL 직접 접근용
+  final String? initialSearch;   // /products?search=키워드 URL 직접 접근용
+  const MainScreen({
+    super.key,
+    this.initialIndex = 0,
+    this.initialCategory,
+    this.initialSearch,
+  });
 
   @override
   State<MainScreen> createState() => MainScreenState();
@@ -161,6 +168,8 @@ class MainScreenState extends State<MainScreen> {
       return _PcLayout(
         currentIndex: _currentIndex,
         onTabChanged: (i) => setState(() => _currentIndex = i),
+        initialCategory: widget.initialCategory,
+        initialSearch: widget.initialSearch,
       );
     }
 
@@ -194,6 +203,8 @@ class MainScreenState extends State<MainScreen> {
             ),
             ProductListScreen(
               onBack: () => setState(() => _currentIndex = 0),
+              initialCategory: widget.initialCategory,
+              searchQuery: widget.initialSearch,
             ),
             CartScreen(
               onBack: () => setState(() => _currentIndex = 0),
@@ -216,8 +227,15 @@ class MainScreenState extends State<MainScreen> {
 class _PcLayout extends StatefulWidget {
   final int currentIndex;
   final ValueChanged<int> onTabChanged;
+  final String? initialCategory;
+  final String? initialSearch;
 
-  const _PcLayout({required this.currentIndex, required this.onTabChanged});
+  const _PcLayout({
+    required this.currentIndex,
+    required this.onTabChanged,
+    this.initialCategory,
+    this.initialSearch,
+  });
 
   static const _icons = [
     Icons.home_rounded,
@@ -280,6 +298,8 @@ class _PcLayoutState extends State<_PcLayout> {
                   HomeScreen(onNavigate: widget.onTabChanged),
                   ProductListScreen(
                     onBack: () => widget.onTabChanged(0),
+                    initialCategory: widget.initialCategory,
+                    searchQuery: widget.initialSearch,
                   ),
                   CartScreen(
                     onBack: () => widget.onTabChanged(0),

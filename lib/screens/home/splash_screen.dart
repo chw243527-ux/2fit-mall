@@ -4,8 +4,21 @@ import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
+import '../auth/signup_screen.dart';
 import '../main_screen.dart';
 import '../admin/admin_screen.dart';
+import '../products/product_detail_by_id_screen.dart';
+import '../products/category_by_name_screen.dart';
+import '../policy/terms_of_service_screen.dart';
+import '../policy/privacy_policy_screen.dart';
+import '../orders/group_order_landing_screen.dart';
+import '../orders/group_order_form_screen.dart';
+import '../orders/group_order_only_screen.dart';
+import '../orders/order_guide_screen.dart';
+import '../mypage/size_profile_screen.dart';
+import '../notifications/notification_center_screen.dart';
+import '../not_found_screen.dart';
+import '../chat/chat_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -59,68 +72,219 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted || _navigated) return;
     _navigated = true;
 
-    // ── 웹 URL 파라미터 확인 (이메일 링크에서 진입 시 처리)
-    // 예: https://2fit-mall.co.kr/#/admin?tab=orders
-    String? deepLinkTarget;
+    // ── 웹 URL fragment 파싱 ──────────────────────────────────────────
+    // Flutter Web은 hash-routing: https://2fit-mall.co.kr/#/path?query
+    // uri.fragment = "/path?query"
+    _DeepLink? deepLink;
     if (kIsWeb) {
       try {
-        final uri = Uri.base;
-        final fragment = uri.fragment; // '#/admin?tab=orders' → '/admin?tab=orders'
-        if (fragment.startsWith('/admin')) {
-          deepLinkTarget = fragment; // '/admin?tab=orders'
+        final fragment = Uri.base.fragment; // e.g. "/product?id=abc123"
+        if (fragment.isNotEmpty) {
+          deepLink = _parseDeepLink(fragment);
         }
       } catch (_) {}
     }
 
     try {
-      // AuthService.restoreSession()으로 Firebase 세션 복구
       final result = await AuthService.restoreSession();
 
       if (result.success && result.user != null) {
-        // 세션 복구 성공 → UserProvider에 유저 정보 설정
-        if (mounted) {
-          context.read<UserProvider>().login(result.user!);
-        }
-
-        if (mounted) {
-          // 관리자 딥링크가 있으면 관리자 화면으로 이동
-          if (deepLinkTarget != null && result.user!.isAdmin) {
-            final tabUri = Uri.parse(deepLinkTarget);
-            final tab = tabUri.queryParameters['tab'];
-            int initialTab = 0;
-            if (tab == 'orders') initialTab = 1;
-
-            Navigator.of(context, rootNavigator: true).pushReplacement(
-              PageRouteBuilder(
-                pageBuilder: (_, __, ___) => AdminScreen(initialTab: initialTab),
-                transitionsBuilder: (_, animation, __, child) =>
-                    FadeTransition(opacity: animation, child: child),
-                transitionDuration: const Duration(milliseconds: 500),
-              ),
-            );
-          } else {
-            Navigator.of(context, rootNavigator: true).pushReplacement(
-              PageRouteBuilder(
-                pageBuilder: (_, __, ___) => const MainScreen(),
-                transitionsBuilder: (_, animation, __, child) =>
-                    FadeTransition(opacity: animation, child: child),
-                transitionDuration: const Duration(milliseconds: 500),
-              ),
-            );
-          }
-        }
+        if (mounted) context.read<UserProvider>().login(result.user!);
+        if (mounted) _navigateAfterLogin(deepLink, isLoggedIn: true, isAdmin: result.user!.isAdmin);
       } else {
-        // 세션 없음 → 로그인 화면 (딥링크 정보는 로그인 후 처리)
-        if (deepLinkTarget != null) {
-          _goToLoginWithRedirect(deepLinkTarget);
+        // 세션 없음
+        if (deepLink != null && deepLink.requiresAuth) {
+          // 로그인 필요 페이지 → 로그인 후 리다이렉트
+          _goToLoginWithRedirect(deepLink);
+        } else if (deepLink != null) {
+          // 로그인 불필요 공개 페이지 → 바로 이동
+          if (mounted) _navigateAfterLogin(deepLink, isLoggedIn: false, isAdmin: false);
         } else {
           _goToLogin();
         }
       }
-    } catch (e) {
-      // 오류 발생 시 로그인 화면으로 이동
+    } catch (_) {
       _goToLogin();
     }
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // URL fragment를 파싱해 _DeepLink 객체로 변환
+  // ──────────────────────────────────────────────────────────────────
+  _DeepLink? _parseDeepLink(String fragment) {
+    // fragment = "/product?id=abc" 또는 "/products" 등
+    final uri = Uri.parse(fragment);
+    final path = uri.path;            // "/product"
+    final q    = uri.queryParameters; // {"id": "abc"}
+
+    switch (path) {
+      // 홈
+      case '/':
+      case '/home':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 상품 목록
+      case '/products':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 상품 상세 (/product?id=XXXX)
+      case '/product':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 카테고리 (/category?name=상의)
+      case '/category':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 장바구니
+      case '/cart':
+      case '/cart-tab':
+        return _DeepLink('/cart', q, requiresAuth: false);
+      // 마이페이지
+      case '/mypage':
+        return _DeepLink(path, q, requiresAuth: true);
+      // 로그인
+      case '/login':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 회원가입
+      case '/signup':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 관리자
+      case '/admin':
+        return _DeepLink(path, q, requiresAuth: true, requiresAdmin: true);
+      // 단체주문
+      case '/group-order':
+      case '/group-guide':
+        return _DeepLink(path, q, requiresAuth: false);
+      case '/group-form':
+        return _DeepLink(path, q, requiresAuth: false);
+      case '/group-only':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 주문 가이드
+      case '/order-guide':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 채팅
+      case '/chat':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 이용약관
+      case '/terms-of-service':
+      case '/refund-policy':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 개인정보처리방침
+      case '/privacy-policy':
+        return _DeepLink(path, q, requiresAuth: false);
+      // 사이즈 프로필
+      case '/size-profile':
+        return _DeepLink(path, q, requiresAuth: true);
+      // 알림 센터
+      case '/notifications':
+        return _DeepLink(path, q, requiresAuth: true);
+      default:
+        return null;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // 로그인 여부에 따라 목표 화면으로 이동
+  // ──────────────────────────────────────────────────────────────────
+  void _navigateAfterLogin(_DeepLink? link,
+      {required bool isLoggedIn, required bool isAdmin}) {
+    if (!mounted) return;
+
+    Widget target;
+
+    if (link == null) {
+      target = isLoggedIn ? const MainScreen() : const LoginScreen();
+    } else {
+      switch (link.path) {
+        case '/':
+        case '/home':
+          target = const MainScreen(initialIndex: 0);
+          break;
+        case '/products':
+          target = MainScreen(
+            initialIndex: 1,
+            initialCategory: link.query['category'],
+            initialSearch:   link.query['search'],
+          );
+          break;
+        case '/product':
+          final id = link.query['id'] ?? '';
+          target = id.isNotEmpty
+              ? ProductDetailByIdScreen(productId: id)
+              : const NotFoundScreen();
+          break;
+        case '/category':
+          final name = link.query['name'] ?? '';
+          target = name.isNotEmpty
+              ? CategoryByNameScreen(categoryName: name)
+              : const NotFoundScreen();
+          break;
+        case '/cart':
+          target = const MainScreen(initialIndex: 2);
+          break;
+        case '/mypage':
+          target = isLoggedIn
+              ? const MainScreen(initialIndex: 3)
+              : const LoginScreen();
+          break;
+        case '/login':
+          target = const LoginScreen();
+          break;
+        case '/signup':
+          target = const SignUpScreen();
+          break;
+        case '/admin':
+          if (isLoggedIn && isAdmin) {
+            final tab = link.query['tab'];
+            int initialTab = 0;
+            if (tab == 'orders') initialTab = 1;
+            else if (tab == 'products') initialTab = 2;
+            else if (tab == 'users') initialTab = 3;
+            target = AdminScreen(initialTab: initialTab);
+          } else if (isLoggedIn) {
+            target = const MainScreen();
+          } else {
+            target = const LoginScreen();
+          }
+          break;
+        case '/group-order':
+        case '/group-guide':
+          target = const GroupOrderLandingScreen();
+          break;
+        case '/group-form':
+          target = const GroupOrderFormScreen(initialCount: 5);
+          break;
+        case '/group-only':
+          target = const GroupOrderOnlyScreen();
+          break;
+        case '/order-guide':
+          target = const OrderGuideScreen();
+          break;
+        case '/chat':
+          target = const ChatScreen();
+          break;
+        case '/terms-of-service':
+        case '/refund-policy':
+          target = const TermsOfServiceScreen();
+          break;
+        case '/privacy-policy':
+          target = const PrivacyPolicyScreen();
+          break;
+        case '/size-profile':
+          target = isLoggedIn ? const SizeProfileScreen() : const LoginScreen();
+          break;
+        case '/notifications':
+          target = isLoggedIn ? const NotificationCenterScreen() : const LoginScreen();
+          break;
+        default:
+          target = isLoggedIn ? const MainScreen() : const LoginScreen();
+      }
+    }
+
+    Navigator.of(context, rootNavigator: true).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => target,
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 400),
+      ),
+    );
   }
 
   void _goToLogin() {
@@ -130,22 +294,20 @@ class _SplashScreenState extends State<SplashScreen>
         pageBuilder: (_, __, ___) => const LoginScreen(),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 500),
+        transitionDuration: const Duration(milliseconds: 400),
       ),
     );
   }
 
-  /// 딥링크가 있을 때 로그인 화면으로 이동 (로그인 후 리다이렉트 예정)
-  void _goToLoginWithRedirect(String redirectPath) {
+  void _goToLoginWithRedirect(_DeepLink link) {
     if (!mounted) return;
-    // 로그인 후 관리자 화면으로 이동하도록 LoginScreen에 redirect 정보 전달
-    // 현재는 단순히 로그인 화면으로 이동 (로그인 후 사용자가 직접 관리자 메뉴 접근)
+    // 로그인 후 딥링크로 이동할 수 있도록 arguments 전달
     Navigator.of(context, rootNavigator: true).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const LoginScreen(),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
-        transitionDuration: const Duration(milliseconds: 500),
+        transitionDuration: const Duration(milliseconds: 400),
       ),
     );
   }
@@ -275,4 +437,21 @@ class _SplashScreenState extends State<SplashScreen>
       ],
     );
   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// URL 딥링크 정보를 담는 단순 데이터 클래스
+// ─────────────────────────────────────────────────────────────────────────────
+class _DeepLink {
+  final String path;
+  final Map<String, String> query;
+  final bool requiresAuth;
+  final bool requiresAdmin;
+
+  const _DeepLink(
+    this.path,
+    this.query, {
+    this.requiresAuth = false,
+    this.requiresAdmin = false,
+  });
 }

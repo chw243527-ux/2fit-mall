@@ -36,6 +36,12 @@ import 'screens/policy/privacy_policy_screen.dart';
 import 'screens/admin/admin_screen.dart';
 import 'screens/policy/terms_of_service_screen.dart';
 import 'screens/not_found_screen.dart';
+import 'screens/products/product_detail_by_id_screen.dart';
+import 'screens/products/category_by_name_screen.dart';
+import 'screens/mypage/size_profile_screen.dart';
+import 'screens/auth/signup_screen.dart';
+import 'screens/notifications/notification_center_screen.dart';
+import 'screens/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -239,6 +245,87 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 settings: settings,
               );
             case '/terms-of-service':
+              return MaterialPageRoute(
+                builder: (_) => const TermsOfServiceScreen(),
+                settings: settings,
+              );
+            // ── 신규 URL 직접 접근 라우트 ──────────────────────
+            // 홈
+            case '/':
+            case '/home':
+              return MaterialPageRoute(
+                builder: (_) => const MainScreen(initialIndex: 0),
+                settings: settings,
+              );
+            // 상품 목록
+            case '/products':
+              final args = settings.arguments;
+              final category = args is Map ? args['category'] as String? : null;
+              final search   = args is Map ? args['search']   as String? : null;
+              return MaterialPageRoute(
+                builder: (_) => MainScreen(
+                  initialIndex: 1,
+                  initialCategory: category,
+                  initialSearch: search,
+                ),
+                settings: settings,
+              );
+            // 상품 상세 (/products/:id)
+            case '/product':
+              final pArgs = settings.arguments;
+              final pid = pArgs is Map ? pArgs['id'] as String? : pArgs as String?;
+              if (pid != null && pid.isNotEmpty) {
+                return MaterialPageRoute(
+                  builder: (_) => ProductDetailByIdScreen(productId: pid),
+                  settings: settings,
+                );
+              }
+              return MaterialPageRoute(
+                builder: (_) => const NotFoundScreen(), settings: settings);
+            // 카테고리 (/category/:name)
+            case '/category':
+              final cArgs = settings.arguments;
+              final cname = cArgs is Map ? cArgs['name'] as String? : cArgs as String?;
+              if (cname != null && cname.isNotEmpty) {
+                return MaterialPageRoute(
+                  builder: (_) => CategoryByNameScreen(categoryName: cname),
+                  settings: settings,
+                );
+              }
+              return MaterialPageRoute(
+                builder: (_) => const NotFoundScreen(), settings: settings);
+            // 장바구니
+            case '/cart-tab':
+              return MaterialPageRoute(
+                builder: (_) => const MainScreen(initialIndex: 2),
+                settings: settings,
+              );
+            // 마이페이지
+            case '/mypage':
+              return MaterialPageRoute(
+                builder: (_) => const MainScreen(initialIndex: 3),
+                settings: settings,
+              );
+            // 회원가입
+            case '/signup':
+              return MaterialPageRoute(
+                builder: (_) => const SignUpScreen(),
+                settings: settings,
+              );
+            // 사이즈 프로필
+            case '/size-profile':
+              return MaterialPageRoute(
+                builder: (_) => const SizeProfileScreen(),
+                settings: settings,
+              );
+            // 알림 센터
+            case '/notifications':
+              return MaterialPageRoute(
+                builder: (_) => const NotificationCenterScreen(),
+                settings: settings,
+              );
+            // 환불 정책 (이용약관의 교환/환불 조항 직접 연결)
+            case '/refund-policy':
               return MaterialPageRoute(
                 builder: (_) => const TermsOfServiceScreen(),
                 settings: settings,
