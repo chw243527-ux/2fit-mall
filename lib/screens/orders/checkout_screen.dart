@@ -54,6 +54,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     final user = Provider.of<UserProvider>(context, listen: false).user;
 
+    // 주문 저장 실패 감지 → 사용자 알림
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<OrderProvider>(context, listen: false).addListener(_onOrderSaveError);
+    });
+
     // 단체주문 주소 자동 채우기 (customOptions.address 우선)
     String? groupAddress;
     for (final item in widget.cart.items) {
@@ -88,6 +93,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   void dispose() {
+    Provider.of<OrderProvider>(context, listen: false).removeListener(_onOrderSaveError);
     _addressController.dispose();
     _detailAddressController.dispose();
     _memoController.dispose();
@@ -100,6 +106,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _intlCountryCtrl.dispose();
     _detailAddressFocusNode.dispose();
     super.dispose();
+  }
+
+  // 주문 저장 실패 감지 핸들러
+  void _onOrderSaveError() {
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+    if (orderProvider.orderSaveError != null && mounted) {
+      orderProvider.clearOrderSaveError();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.t(
+            'order_save_failed',
+            '주문 저장에 실패했습니다. 고객센터에 문의하거나 다시 시도해 주세요.',
+          )),
+          backgroundColor: const Color(0xFFE53935),
+          duration: const Duration(seconds: 6),
+          action: SnackBarAction(
+            label: loc.t('retry', '다시 시도'),
+            textColor: Colors.white,
+            onPressed: _processPayment,
+          ),
+        ),
+      );
+    }
   }
 
   double get _couponDiscount =>
@@ -1847,6 +1876,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     final user = Provider.of<UserProvider>(context, listen: false).user;
+
+    // 비로그인 상태 주문 차단
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.t('login_required_to_order', '주문하려면 먼저 로그인해 주세요.')),
+          backgroundColor: const Color(0xFFE53935),
+          action: SnackBarAction(
+            label: loc.t('login', '로그인'),
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.of(context).pushNamed('/login');
+            },
+          ),
+        ),
+      );
+      return;
+    }
 
     // 단체주문 여부 미리 확인 (orderId 접두사 결정용)
     final _isGroupCart = widget.cart.items.any((item) {

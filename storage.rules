@@ -35,6 +35,12 @@ service firebase.storage {
       allow write: if isSignedIn();
     }
 
+    // ─── 단체주문 첨부 이미지 (로그인 사용자 업로드) ─────────
+    match /group_orders/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
     // ─── 채팅 첨부 이미지 (로그인 사용자) ────────────────────
     match /chats/{allPaths=**} {
       allow read: if isSignedIn();

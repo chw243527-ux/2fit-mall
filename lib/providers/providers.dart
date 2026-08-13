@@ -417,6 +417,13 @@ class UserProvider extends ChangeNotifier {
 
 class OrderProvider extends ChangeNotifier {
   final List<OrderModel> _orders = [];
+  String? _orderSaveError; // 주문 저장 실패 시 orderId 저장
+
+  String? get orderSaveError => _orderSaveError;
+  void clearOrderSaveError() {
+    _orderSaveError = null;
+    notifyListeners();
+  }
 
   List<OrderModel> get orders => List.unmodifiable(_orders);
   List<OrderModel> get myOrders => _orders.toList();
@@ -430,6 +437,10 @@ class OrderProvider extends ChangeNotifier {
         await OrderService.saveOrder(order);
       } catch (e) {
         if (kDebugMode) debugPrint('⚠️ 주문 저장 실패: $e');
+        // 저장 실패 시 로컬에서 제거하고 실패 이벤트 발행 → UI에서 처리
+        _orders.removeWhere((o) => o.id == order.id);
+        _orderSaveError = order.id;
+        notifyListeners();
       }
       if (order.userEmail.isNotEmpty) {
         try {

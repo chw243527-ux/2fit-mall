@@ -258,6 +258,17 @@ service cloud.firestore {
 
 
     // ════════════════════════════════════════════════════════
+    // admin_fcm_tokens 컬렉션 (관리자 FCM 토큰 — Cloud Functions용)
+    // ════════════════════════════════════════════════════════
+    match /admin_fcm_tokens/{tokenId} {
+      // 로그인 사용자가 토큰 생성/갱신 가능 (Cloud Functions가 관리자 알림 발송에 사용)
+      allow create, update: if isSignedIn();
+      // 읽기/삭제는 관리자만
+      allow read, delete: if isAdmin();
+    }
+
+
+    // ════════════════════════════════════════════════════════
     // categories 컬렉션 (카테고리 캐시)
     // ════════════════════════════════════════════════════════
     match /categories/{categoryId} {

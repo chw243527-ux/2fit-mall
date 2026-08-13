@@ -310,29 +310,8 @@ class AuthService {
       // Firebase 오류는 상세 메시지 반환
       return AuthResult(success: false, error: _authError(e.code));
     } catch (e) {
-      final errStr = e.toString();
-      // Firebase 미설정/네트워크 오류 시 → 이메일+비밀번호 조합이 맞으면 임시 로컬 허용
-      if (errStr.contains('invalid-api-key') ||
-          errStr.contains('network') ||
-          errStr.contains('CONFIGURATION_NOT_FOUND') ||
-          errStr.contains('APIKeyNotValid')) {
-        if (emailKey.contains('@') && password.length >= 6) {
-          final isAdmin = _adminEmails.contains(emailKey);
-          final user = UserModel(
-            id: 'fallback_${emailKey.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}',
-            name: emailKey.split('@').first,
-            email: emailKey,
-            phone: '',
-            address: '',
-            createdAt: DateTime.now(),
-            isAdmin: isAdmin,
-            wishlist: [],
-          );
-          if (kDebugMode) debugPrint('⚠️ Firebase 연결 실패, 폴백 로그인: $emailKey');
-          return AuthResult(success: true, user: user);
-        }
-      }
-      return const AuthResult(success: false, error: '로그인 중 오류가 발생했습니다.');
+      if (kDebugMode) debugPrint('⚠️ 로그인 예외: $e');
+      return const AuthResult(success: false, error: '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
     }
   }
 
