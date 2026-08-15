@@ -1039,6 +1039,7 @@ class _HomeScreenState extends State<HomeScreen>
                             context.read<UserProvider>().logout();
                             context.read<CartProvider>().clearCart();
                             context.read<CouponProvider>().clear();
+                            context.read<PointProvider>().clear();
                           }
                         }
                       },

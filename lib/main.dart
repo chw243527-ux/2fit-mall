@@ -136,6 +136,7 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         ChangeNotifierProvider(create: (_) => SizeProfileProvider()),
         ChangeNotifierProvider(create: (_) => BannerProvider()),
         ChangeNotifierProvider(create: (_) => CouponProvider()),
+        ChangeNotifierProvider(create: (_) => PointProvider()),
       ],
       child: MaterialApp(
         title: '2FIT MALL',
@@ -419,6 +420,7 @@ class _AppInitState extends State<_AppInit> {
         context.read<NotificationProvider>().loadFromFirestore(user.id);
         context.read<SizeProfileProvider>().loadProfiles(user.id);
         context.read<CouponProvider>().loadValidCoupons();
+        context.read<PointProvider>().loadPoints(user.id);
         FcmService.saveTokenToFirestore(user.id).catchError(
           (e) { if (kDebugMode) debugPrint('⚠️ FCM 토큰 저장 실패: $e'); },
         );

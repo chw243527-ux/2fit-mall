@@ -15,6 +15,7 @@ import '../services/wishlist_coupon_service.dart';
 import '../services/translation_service.dart';
 import '../services/size_profile_service.dart';
 import '../services/banner_service.dart';
+import '../services/point_service.dart';
 
 // ── 언어 Provider ──────────────────────────────────────
 class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge {
@@ -416,10 +417,19 @@ class OrderProvider extends ChangeNotifier {
   void addOrder(OrderModel order) {
     _orders.insert(0, order);
     notifyListeners();
-    // Firestore에 저장 + 이메일 발송 (백그라운드)
+    // Firestore에 저장 + 이메일 발송 + 포인트 적립 (백그라운드)
     Future(() async {
       try {
         await OrderService.saveOrder(order);
+        // ── 1% 포인트 자동 적립 (개인 일반주문만) ──────────────
+        if (order.userId.isNotEmpty && order.userId != 'guest') {
+          await PointService.earnFromOrder(
+            userId: order.userId,
+            orderId: order.id,
+            totalAmount: order.totalAmount,
+            orderType: order.orderType,
+          );
+        }
       } catch (e) {
         if (kDebugMode) debugPrint('⚠️ 주문 저장 실패: $e');
         // 저장 실패 시 로컬에서 제거하고 실패 이벤트 발행 → UI에서 처리
@@ -1603,6 +1613,71 @@ class BannerProvider extends ChangeNotifier {
   @override
   void dispose() {
     _bannerSub?.cancel();
+    super.dispose();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// PointProvider — 포인트 잔액 + 내역 실시간 관리
+// ══════════════════════════════════════════════════════════════
+class PointProvider extends ChangeNotifier {
+  int _balance = 0;
+  List<PointHistory> _history = [];
+  bool _loading = false;
+  StreamSubscription<int>? _balanceSub;
+  StreamSubscription<List<PointHistory>>? _historySub;
+
+  int get balance => _balance;
+  List<PointHistory> get history => List.unmodifiable(_history);
+  bool get isLoading => _loading;
+
+  /// 로그인 후 호출: 잔액 + 내역 실시간 구독
+  void loadPoints(String userId) {
+    _loading = true;
+    notifyListeners();
+
+    // 잔액 구독
+    _balanceSub?.cancel();
+    _balanceSub = PointService.watchBalance(userId).listen(
+      (bal) {
+        _balance = bal;
+        _loading = false;
+        notifyListeners();
+      },
+      onError: (e) {
+        _loading = false;
+        notifyListeners();
+        if (kDebugMode) debugPrint('⚠️ 포인트 잔액 로드 실패: $e');
+      },
+    );
+
+    // 내역 구독
+    _historySub?.cancel();
+    _historySub = PointService.watchHistory(userId).listen(
+      (list) {
+        _history = list;
+        notifyListeners();
+      },
+      onError: (e) {
+        if (kDebugMode) debugPrint('⚠️ 포인트 내역 로드 실패: $e');
+      },
+    );
+  }
+
+  /// 로그아웃 시 초기화
+  void clear() {
+    _balanceSub?.cancel();
+    _historySub?.cancel();
+    _balance = 0;
+    _history = [];
+    _loading = false;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _balanceSub?.cancel();
+    _historySub?.cancel();
     super.dispose();
   }
 }

@@ -736,6 +736,7 @@ class UserModel {
   List<AddressModel> addresses; // 배송지 목록
   String loginProvider; // email, google, kakao, naver
   String? cashReceiptNum; // 현금영수증 번호 (전화번호 or 사업자번호)
+  int points; // 보유 포인트
 
   UserModel({
     required this.id,
@@ -752,6 +753,7 @@ class UserModel {
     this.addresses = const [],
     this.loginProvider = 'email',
     this.cashReceiptNum,
+    this.points = 0,
   }) : grade = grade ?? memberTier;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -776,6 +778,7 @@ class UserModel {
         AddressModel.fromJson(Map<String, dynamic>.from(a as Map))).toList(),
       loginProvider: json['loginProvider'] as String? ?? 'email',
       cashReceiptNum: json['cashReceiptNum'] as String?,
+      points: (json['points'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -794,6 +797,7 @@ class UserModel {
       'createdAt': createdAt.toIso8601String(),
       'addresses': addresses.map((a) => a.toJson()).toList(),
       'loginProvider': loginProvider,
+      'points': points,
       if (cashReceiptNum != null && cashReceiptNum!.isNotEmpty)
         'cashReceiptNum': cashReceiptNum,
     };
