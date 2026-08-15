@@ -2629,6 +2629,59 @@ class _OrderCompleteScreen extends StatelessWidget {
 
               const SizedBox(height: 10),
 
+              // ── 포인트 적립 예정 안내 (개인 일반주문만) ──
+              if (order.orderType == 'personal') Builder(builder: (ctx) {
+                final earnedPt = (order.totalAmount * 0.01).floor();
+                final loc2 = ctx.watch<LanguageProvider>().loc;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF6F00), Color(0xFFFFCA28)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.stars_rounded, color: Colors.white, size: 28),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                ctx.loc.t('포인트_적립_예정', '포인트 적립 예정'),
+                                style: const TextStyle(
+                                    color: Colors.white70, fontSize: 11),
+                              ),
+                              Text(
+                                '+${earnedPt.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} P',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              Text(
+                                ctx.loc.t('구매금액_1%_적립_마이페이지_확인', '구매금액의 1% 자동 적립 · 마이페이지 > 포인트에서 확인'),
+                                style: const TextStyle(
+                                    color: Colors.white70, fontSize: 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+
+              const SizedBox(height: 10),
+
               // ── 배송 안내 ──
               _card(
                 title: loc.checkoutDeliveryGuide,

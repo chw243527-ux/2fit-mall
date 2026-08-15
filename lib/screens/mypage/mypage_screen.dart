@@ -768,6 +768,11 @@ class _PcQuickStats extends StatelessWidget {
     final orderProvider = context.watch<OrderProvider>();
     final orders = user != null ? orderProvider.getUserOrders(user!.id) : <OrderModel>[];
     final wishCount = user?.wishlist.length ?? 0;
+    final couponCount = context.watch<CouponProvider>().validCoupons.length;
+    final pointBalance = context.watch<PointProvider>().balance;
+
+    String _fmtNum(int n) => n.toString()
+        .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -782,6 +787,17 @@ class _PcQuickStats extends StatelessWidget {
           _Divider(),
           _StatItem(label: loc.wishlist, count: wishCount, onTap: () => tabController.animateTo(1)),
           _Divider(),
+          _StatItem(
+            label: context.loc.t('쿠폰', '쿠폰'),
+            countLabel: '$couponCount장',
+            onTap: () => tabController.animateTo(2),
+          ),
+          _Divider(),
+          _StatItem(
+            label: context.loc.t('포인트', '포인트'),
+            countLabel: '${_fmtNum(pointBalance)}P',
+            onTap: () => tabController.animateTo(3),
+          ),
         ],
       ),
     );
@@ -790,18 +806,20 @@ class _PcQuickStats extends StatelessWidget {
 
 class _StatItem extends StatelessWidget {
   final String label;
-  final int count;
+  final int? count;
+  final String? countLabel; // count 대신 직접 문자열 지정 (쿠폰: '3장', 포인트: '1,200P')
   final VoidCallback onTap;
-  const _StatItem({required this.label, required this.count, required this.onTap});
+  const _StatItem({required this.label, this.count, this.countLabel, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final display = countLabel ?? '${count ?? 0}';
     return Expanded(
       child: InkWell(
         onTap: onTap,
         child: Column(
           children: [
-            Text('$count', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
+            Text(display, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFF6A1B9A))),
             const SizedBox(height: 2),
             Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
           ],
@@ -2516,6 +2534,11 @@ class _MobileQuickStats extends StatelessWidget {
     final orderProvider = context.watch<OrderProvider>();
     final orders = user != null ? orderProvider.getUserOrders(user!.id) : <OrderModel>[];
     final wishCount = user?.wishlist.length ?? 0;
+    final couponCount = context.watch<CouponProvider>().validCoupons.length;
+    final pointBalance = context.watch<PointProvider>().balance;
+
+    String _fmtNum(int n) => n.toString()
+        .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
     return Container(
       color: const Color(0xFF1A1A2E),
@@ -2526,7 +2549,17 @@ class _MobileQuickStats extends StatelessWidget {
           _VertDiv(),
           _MobileStatItem(label: loc.wishlist, count: wishCount, onTap: () => tabController.animateTo(1)),
           _VertDiv(),
+          _MobileStatItem(
+            label: context.loc.t('쿠폰', '쿠폰'),
+            countLabel: '$couponCount장',
+            onTap: () => tabController.animateTo(2),
+          ),
           _VertDiv(),
+          _MobileStatItem(
+            label: context.loc.t('포인트', '포인트'),
+            countLabel: '${_fmtNum(pointBalance)}P',
+            onTap: () => tabController.animateTo(3),
+          ),
         ],
       ),
     );
@@ -2535,18 +2568,20 @@ class _MobileQuickStats extends StatelessWidget {
 
 class _MobileStatItem extends StatelessWidget {
   final String label;
-  final int count;
+  final int? count;
+  final String? countLabel;
   final VoidCallback onTap;
-  const _MobileStatItem({required this.label, required this.count, required this.onTap});
+  const _MobileStatItem({required this.label, this.count, this.countLabel, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final display = countLabel ?? '${count ?? 0}';
     return Expanded(
       child: InkWell(
         onTap: onTap,
         child: Column(
           children: [
-            Text('$count', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
+            Text(display, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
             const SizedBox(height: 2),
             Text(label, style: const TextStyle(fontSize: 10, color: Colors.white60)),
           ],
