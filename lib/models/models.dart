@@ -617,6 +617,47 @@ class ReviewModel {
   });
 }
 
+// ── 쿠폰 모델 ────────────────────────────────────────
+enum CouponType { fixed, percent }
+
+class CouponModel {
+  final String id;
+  final String code;
+  final String name;
+  final CouponType type;
+  final double value;           // 고정 금액 or 퍼센트
+  final double minOrderAmount;  // 최소 주문금액 (0 = 제한 없음)
+  final double? maxDiscountAmount; // 최대 할인 금액 (percent 전용)
+  final DateTime expiresAt;
+  bool isUsed;
+
+  CouponModel({
+    required this.id,
+    required this.code,
+    required this.name,
+    required this.type,
+    required this.value,
+    this.minOrderAmount = 0,
+    this.maxDiscountAmount,
+    required this.expiresAt,
+    this.isUsed = false,
+  });
+
+  bool get isValid => !isUsed && expiresAt.isAfter(DateTime.now());
+
+  double calculateDiscount(double orderAmount) {
+    if (!isValid || orderAmount < minOrderAmount) return 0;
+    if (type == CouponType.fixed) return value;
+    final discount = orderAmount * value / 100;
+    return maxDiscountAmount != null
+        ? discount.clamp(0, maxDiscountAmount!)
+        : discount;
+  }
+
+  String get typeLabel =>
+      type == CouponType.fixed ? '${value.toInt()}원 할인' : '${value.toInt()}% 할인';
+}
+
 // ── 리뷰 작성 요청 모델 ──────────────────────────────
 class ReviewWriteRequest {
   final String orderId;

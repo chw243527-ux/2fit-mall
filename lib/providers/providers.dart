@@ -8,6 +8,7 @@ import '../models/models.dart';
 import '../utils/app_localizations.dart';
 import '../services/order_service.dart';
 import '../services/email_service.dart';
+import '../services/wishlist_coupon_service.dart';
 import '../services/product_service.dart';
 import '../services/review_service.dart';
 import '../services/wishlist_coupon_service.dart';
@@ -494,6 +495,52 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+// ── 쿠폰 Provider ─────────────────────────────────────
+class CouponProvider extends ChangeNotifier {
+  List<CouponModel> _coupons = [];
+  bool _loading = false;
+
+  List<CouponModel> get coupons => List.unmodifiable(_coupons);
+  List<CouponModel> get validCoupons =>
+      _coupons.where((c) => c.isValid).toList();
+  bool get isLoading => _loading;
+
+  /// 전체 유효 쿠폰 실시간 로드 (로그인 후 호출)
+  void loadValidCoupons() {
+    _loading = true;
+    notifyListeners();
+    CouponService.watchValidCoupons().listen(
+      (list) {
+        _coupons = list;
+        _loading = false;
+        notifyListeners();
+      },
+      onError: (e) {
+        _loading = false;
+        notifyListeners();
+        if (kDebugMode) debugPrint('⚠️ 쿠폰 로드 실패: $e');
+      },
+    );
+  }
+
+  /// 코드로 보유 쿠폰 검색
+  CouponModel? findByCode(String code) {
+    try {
+      return _coupons.firstWhere(
+        (c) => c.code.toUpperCase() == code.toUpperCase() && c.isValid,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// 로그아웃 시 초기화
+  void clear() {
+    _coupons = [];
+    notifyListeners();
+  }
+}
+
 // ── 리뷰 Provider ─────────────────────────────────────
 class ReviewProvider extends ChangeNotifier {
   // 로컬 캐시 (상품별)

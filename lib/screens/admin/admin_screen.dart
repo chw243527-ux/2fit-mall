@@ -35,6 +35,7 @@ import 'admin_extra_tabs.dart';
 import 'admin_delivery_tab.dart';
 import 'admin_exchange_tab.dart';
 import 'admin_review_tab.dart';
+import 'admin_coupon_tab.dart';
 import '../orders/group_order_test_screen.dart';
 import 'dart:typed_data';
 import '../../services/order_excel_service.dart';
@@ -163,7 +164,7 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 16, vsync: this);
+    _tabCtrl = TabController(length: 17, vsync: this);
     // initialTab이 지정된 경우 해당 탭으로 이동
     if (widget.initialTab > 0 && widget.initialTab < 16) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -828,7 +829,7 @@ class _AdminScreenState extends State<AdminScreen>
   static const _tabLabels = [
     '대시보드', '주문관리', '디자인요청', '배송관리', '채팅상담',
     '재고관리', '상품관리', '교환/반품', '리뷰관리', '배너관리',
-    '직원관리', '회원관리', '공지관리', '매출통계', '카테고리관리', '섹션관리',
+    '직원관리', '회원관리', '공지관리', '매출통계', '카테고리관리', '섹션관리', '쿠폰관리',
   ];
   static const _tabIcons = [
     Icons.dashboard_rounded, Icons.receipt_long_rounded, Icons.design_services_rounded,
@@ -836,7 +837,7 @@ class _AdminScreenState extends State<AdminScreen>
     Icons.inventory_2_rounded, Icons.swap_horiz_rounded, Icons.rate_review_rounded,
     Icons.image_rounded, Icons.badge_rounded, Icons.people_alt_rounded,
     Icons.campaign_rounded, Icons.bar_chart_rounded, Icons.folder_special_rounded,
-    Icons.layers_rounded,
+    Icons.layers_rounded, Icons.local_activity_rounded,
   ];
   // 소분류(들여쓰기) 인덱스
   static const _subTabIndices = {14, 15};
@@ -1129,6 +1130,7 @@ class _AdminScreenState extends State<AdminScreen>
         Offstage(offstage: index != 13, child: const AdminSalesStatsTab()),
         Offstage(offstage: index != 14, child: const _CategoryManagementTab()),
         Offstage(offstage: index != 15, child: _buildSectionManagement()),
+        Offstage(offstage: index != 16, child: const AdminCouponTab()),
       ],
     );
   }

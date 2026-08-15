@@ -8,6 +8,7 @@ import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../services/fcm_service.dart';
 import '../../services/notification_service.dart';
+import '../../services/wishlist_coupon_service.dart';
 import '../../services/auth_service.dart';
 import '../main_screen.dart';
 import '../../widgets/address_search_widget.dart';
@@ -41,6 +42,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isProcessing = false;
   bool _isOverseas = false;   // false=국내, true=해외
   String _zonecode = '';
+
+  // 쿠폰
+  final _couponCodeController = TextEditingController();
+  CouponModel? _appliedCoupon;
+  bool _couponLoading = false;
 
   // 번역 헬퍼
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
@@ -94,6 +100,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _addressController.dispose();
     _detailAddressController.dispose();
     _memoController.dispose();
+    _couponCodeController.dispose();
     _intlLine1Ctrl.dispose();
     _intlLine2Ctrl.dispose();
     _intlCityCtrl.dispose();
@@ -127,7 +134,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  double get _finalTotal => widget.cart.total;
+  // 쿠폰 할인액
+  double get _couponDiscount {
+    if (_appliedCoupon == null) return 0;
+    return _appliedCoupon!.calculateDiscount(widget.cart.total);
+  }
+
+  double get _finalTotal => (widget.cart.total - _couponDiscount).clamp(0, double.infinity);
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +170,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 16),
                   _buildOrderItems(),
                   const SizedBox(height: 16),
+                  _buildCouponSection(),
                   const SizedBox(height: 16),
                   _buildPaymentMethod(),
                   const SizedBox(height: 16),
@@ -209,7 +223,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         const SizedBox(height: 16),
                         _buildOrderItems(),
                         const SizedBox(height: 16),
-                              const SizedBox(height: 16),
+                        _buildCouponSection(),
+                        const SizedBox(height: 16),
                         _buildPaymentMethod(),
                         const SizedBox(height: 80),
                       ],
@@ -1440,6 +1455,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
           _buildPriceRow(loc.productAmount, subtotal),
+          // 쿠폰 할인
+          if (_appliedCoupon != null)
+            _buildPriceRow(
+              context.loc.t('쿠폰_할인', '쿠폰 할인 (${_appliedCoupon!.name})'),
+              -_couponDiscount,
+              isDiscount: true,
+            ),
           // 배송비 행 (무료배송 시 강조 / 해외 시 국가별 상이 안내)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1538,6 +1560,165 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // ── 해외 배송비 요금표 모달 (공용 위젯 위임) ──
   void _showOverseasShippingRates() => showOverseasRateSheet(context);
 
+  // ─── 쿠폰 섹션 ────────────────────────────────────────────────
+  Widget _buildCouponSection() {
+    return _buildSection(
+      context.loc.t('쿠폰_할인', '쿠폰 할인'),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 쿠폰 코드 입력 행
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _couponCodeController,
+                  enabled: _appliedCoupon == null,
+                  decoration: InputDecoration(
+                    hintText: context.loc.t('쿠폰_코드_입력', '쿠폰 코드를 입력하세요'),
+                    prefixIcon: const Icon(Icons.local_activity_rounded),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  ),
+                  textCapitalization: TextCapitalization.characters,
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _couponLoading
+                      ? null
+                      : _appliedCoupon != null
+                          ? _removeCoupon
+                          : _applyCoupon,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _appliedCoupon != null
+                        ? const Color(0xFF888888)
+                        : AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  child: _couponLoading
+                      ? const SizedBox(
+                          width: 18, height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
+                      : Text(
+                          _appliedCoupon != null
+                              ? context.loc.t('취소', '취소')
+                              : context.loc.t('적용', '적용'),
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white),
+                        ),
+                ),
+              ),
+            ],
+          ),
+
+          // 적용된 쿠폰 표시
+          if (_appliedCoupon != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFF43A047).withValues(alpha: 0.5)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded,
+                      color: Color(0xFF43A047), size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _appliedCoupon!.name,
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF2E7D32)),
+                        ),
+                        Text(
+                          _appliedCoupon!.typeLabel +
+                              '  ·  -${_formatPrice(_couponDiscount)}원 할인',
+                          style: const TextStyle(
+                              fontSize: 12, color: Color(0xFF388E3C)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _applyCoupon() async {
+    final code = _couponCodeController.text.trim();
+    if (code.isEmpty) return;
+    setState(() => _couponLoading = true);
+    try {
+      final coupon = await CouponService.validateCode(code);
+      if (!mounted) return;
+      if (coupon == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.loc.t('유효하지_않은_쿠폰', '유효하지 않은 쿠폰 코드입니다.')),
+            backgroundColor: const Color(0xFFE53935),
+          ),
+        );
+      } else if (!coupon.isValid) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.loc.t('만료된_쿠폰', '만료되었거나 이미 사용된 쿠폰입니다.')),
+            backgroundColor: const Color(0xFFE53935),
+          ),
+        );
+      } else if (widget.cart.total < coupon.minOrderAmount) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.loc.t('최소_주문금액_미달',
+                  '최소 주문 금액 ${_formatPrice(coupon.minOrderAmount)}원 이상일 때 사용할 수 있습니다.'),
+            ),
+            backgroundColor: const Color(0xFFE53935),
+          ),
+        );
+      } else {
+        setState(() {
+          _appliedCoupon = coupon;
+          _couponCodeController.clear();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.loc.t('쿠폰_적용됨', '쿠폰이 적용되었습니다!')),
+            backgroundColor: const Color(0xFF43A047),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _couponLoading = false);
+    }
+  }
+
+  void _removeCoupon() {
+    setState(() {
+      _appliedCoupon = null;
+      _couponCodeController.clear();
+    });
+  }
 
   Widget _buildBottomBar() {
     return Container(
@@ -1836,7 +2017,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       shippingFee: widget.cart.shippingFee,
       paymentMethod: _selectedPayment,
       orderType: resolvedOrderType,
-      customOptions: groupCustomOptions,
+      customOptions: groupCustomOptions != null
+          ? {
+              ...groupCustomOptions!,
+              if (_appliedCoupon != null) 'couponCode': _appliedCoupon!.code,
+              if (_appliedCoupon != null) 'couponDiscount': _couponDiscount,
+            }
+          : _appliedCoupon != null
+              ? {'couponCode': _appliedCoupon!.code, 'couponDiscount': _couponDiscount}
+              : null,
       groupName: groupName,
       groupCount: groupCount,
       createdAt: DateTime.now(),

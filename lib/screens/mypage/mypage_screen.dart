@@ -17,6 +17,7 @@ import '../../models/models.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/email_service.dart';
+import '../../services/wishlist_coupon_service.dart';
 // order_excel_service: 마이페이지 엑셀 기능 제거 — 관리자 대시보드에서만 관리
 import '../../utils/web_utils.dart' if (dart.library.html) '../../utils/web_utils_html.dart';
 import '../products/product_detail_screen.dart';
@@ -64,7 +65,7 @@ class _MyPageScreenState extends State<MyPageScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     // 앱 시작 시 실제 주문 데이터 로드 + 이전 화면의 스낵바 큐 클리어
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 언어 변경 시 번역 트리거
@@ -210,6 +211,7 @@ class _MyPageScreenState extends State<MyPageScreen>
               if (ctx.mounted) {
                 ctx.read<SizeProfileProvider>().clear();
                 ctx.read<CartProvider>().clearCart();
+                ctx.read<CouponProvider>().clear();
                 Navigator.of(ctx).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (route) => false,
@@ -395,7 +397,7 @@ class _MyPageScreenState extends State<MyPageScreen>
                       up.logout();
                       ctx.read<CartProvider>().clearCart();
                       ctx.read<SizeProfileProvider>().clear();
-                      Navigator.pop(dialogCtx);
+                      ctx.read<CouponProvider>().clear();
                       ScaffoldMessenger.of(ctx).showSnackBar(
                         SnackBar(content: Text(context.loc.t('회원 탈퇴가 완료되었습니다', '회원 탈퇴가 완료되었습니다.')), backgroundColor: Colors.red),
                       );
@@ -456,6 +458,7 @@ class _PcMyPage extends StatelessWidget {
     final menuItems = [
       (Icons.receipt_long_rounded,   loc.myOrders),
       (Icons.favorite_rounded,       loc.wishlist),
+      (Icons.local_activity_rounded, context.loc.t('쿠폰함', '쿠폰함')),
       (Icons.settings_rounded,       loc.settings),
     ];
 
@@ -618,6 +621,7 @@ class _PcMyPage extends StatelessWidget {
                                 onDesignRevision: onShowDesignRevision,
                                 onDesignConfirm: onShowDesignConfirm);
                             case 1: return _PcWishlistTab(userProvider: userProvider, loc: loc);
+                            case 2: return _PcCouponTab(userProvider: userProvider, loc: loc);
                             case 3: return _PcSettingsTab(userProvider: userProvider, loc: loc,
                                 onShowProfileEdit: onShowProfileEdit,
                                 onShowAddressManager: onShowAddressManager,
@@ -2336,6 +2340,7 @@ class _MobileMyPage extends StatelessWidget {
                 tabs: [
                   Tab(text: loc.myOrders),
                   Tab(text: loc.wishlist),
+                  Tab(text: context.loc.t('쿠폰함', '쿠폰함')),
                   Tab(text: loc.settings),
                 ],
               ),
@@ -2350,6 +2355,7 @@ class _MobileMyPage extends StatelessWidget {
                     onDesignRevision: onShowDesignRevision,
                     onDesignConfirm: onShowDesignConfirm),
                   _MobileWishlistTab(userProvider: userProvider, loc: loc),
+                  _MobileCouponTab(userProvider: userProvider, loc: loc),
                   _MobileSettingsTab(userProvider: userProvider, loc: loc,
                     onShowProfileEdit: onShowProfileEdit,
                     onShowAddressManager: onShowAddressManager,
@@ -8031,6 +8037,334 @@ class _ErrorFallback extends StatelessWidget {
             onPressed: onRetry,
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// PC 쿠폰함 탭
+// ══════════════════════════════════════════════════════════════
+class _PcCouponTab extends StatefulWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+  const _PcCouponTab({required this.userProvider, required this.loc});
+
+  @override
+  State<_PcCouponTab> createState() => _PcCouponTabState();
+}
+
+class _PcCouponTabState extends State<_PcCouponTab> {
+  String _filter = 'all'; // all / valid / expired
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<CouponProvider>(
+      builder: (ctx, cp, _) {
+        final all = cp.coupons;
+        final shown = _filter == 'valid'
+            ? all.where((c) => c.isValid).toList()
+            : _filter == 'expired'
+                ? all.where((c) => !c.isValid).toList()
+                : all;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _PcTabHeader(
+              icon: Icons.local_activity_rounded,
+              title: context.loc.t('내_쿠폰함', '내 쿠폰함'),
+              color: const Color(0xFFE65100),
+              badge: '${all.where((c) => c.isValid).length}',
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  _filterChip('all', context.loc.t('전체', '전체')),
+                  _filterChip('valid', context.loc.t('사용_가능', '사용 가능')),
+                  _filterChip('expired', context.loc.t('만료_사용됨', '만료/사용됨')),
+                ],
+              ),
+            ),
+            if (cp.isLoading)
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else if (shown.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.local_activity_outlined,
+                          size: 56, color: Colors.grey.shade300),
+                      const SizedBox(height: 12),
+                      Text(
+                        context.loc.t('보유_쿠폰_없음', '보유한 쿠폰이 없습니다.'),
+                        style: TextStyle(color: Colors.grey.shade500),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  itemCount: shown.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (_, i) => _CouponCard(coupon: shown[i]),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _filterChip(String val, String label) {
+    final sel = _filter == val;
+    return ChoiceChip(
+      label: Text(label),
+      selected: sel,
+      onSelected: (_) => setState(() => _filter = val),
+      selectedColor: const Color(0xFFE65100).withValues(alpha: 0.12),
+      labelStyle: TextStyle(
+        color: sel ? const Color(0xFFE65100) : Colors.grey[700],
+        fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
+        fontSize: 13,
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 모바일 쿠폰함 탭
+// ══════════════════════════════════════════════════════════════
+class _MobileCouponTab extends StatefulWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+  const _MobileCouponTab({required this.userProvider, required this.loc});
+
+  @override
+  State<_MobileCouponTab> createState() => _MobileCouponTabState();
+}
+
+class _MobileCouponTabState extends State<_MobileCouponTab> {
+  String _filter = 'all';
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<CouponProvider>(
+      builder: (ctx, cp, _) {
+        final all = cp.coupons;
+        final shown = _filter == 'valid'
+            ? all.where((c) => c.isValid).toList()
+            : _filter == 'expired'
+                ? all.where((c) => !c.isValid).toList()
+                : all;
+
+        return Column(
+          children: [
+            // 필터 바
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  _chip('all', context.loc.t('전체', '전체')),
+                  const SizedBox(width: 8),
+                  _chip('valid', context.loc.t('사용_가능', '사용 가능')),
+                  const SizedBox(width: 8),
+                  _chip('expired', context.loc.t('만료_사용됨', '만료/사용됨')),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            if (cp.isLoading)
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else if (shown.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.local_activity_outlined,
+                          size: 56, color: Colors.grey.shade300),
+                      const SizedBox(height: 12),
+                      Text(
+                        context.loc.t('보유_쿠폰_없음', '보유한 쿠폰이 없습니다.'),
+                        style: TextStyle(color: Colors.grey.shade500),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: shown.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (_, i) => _CouponCard(coupon: shown[i]),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _chip(String val, String label) {
+    final sel = _filter == val;
+    return GestureDetector(
+      onTap: () => setState(() => _filter = val),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        decoration: BoxDecoration(
+          color: sel ? const Color(0xFFE65100) : const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: sel ? Colors.white : Colors.grey[700],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// 쿠폰 카드 위젯 (공통)
+// ══════════════════════════════════════════════════════════════
+class _CouponCard extends StatelessWidget {
+  final CouponModel coupon;
+  const _CouponCard({required this.coupon});
+
+  @override
+  Widget build(BuildContext context) {
+    final valid = coupon.isValid;
+    return Opacity(
+      opacity: valid ? 1.0 : 0.5,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: valid
+                ? const Color(0xFFE65100).withValues(alpha: 0.4)
+                : Colors.grey.shade300,
+          ),
+          boxShadow: valid
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFFE65100).withValues(alpha: 0.06),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : [],
+        ),
+        child: Row(
+          children: [
+            // 타입 뱃지
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: valid
+                    ? const Color(0xFFE65100).withValues(alpha: 0.1)
+                    : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.local_activity_rounded,
+                    size: 22,
+                    color: valid ? const Color(0xFFE65100) : Colors.grey,
+                  ),
+                  Text(
+                    coupon.type == CouponType.percent ? '%' : '₩',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: valid ? const Color(0xFFE65100) : Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 14),
+            // 쿠폰 정보
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    coupon.name,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w700),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    coupon.typeLabel,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: valid
+                          ? const Color(0xFFE65100)
+                          : Colors.grey.shade500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.access_time_rounded,
+                          size: 11, color: Colors.grey.shade500),
+                      const SizedBox(width: 3),
+                      Text(
+                        '~${coupon.expiresAt.year}.${coupon.expiresAt.month.toString().padLeft(2, '0')}.${coupon.expiresAt.day.toString().padLeft(2, '0')}',
+                        style: TextStyle(
+                            fontSize: 11, color: Colors.grey.shade500),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // 상태 뱃지
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: valid
+                    ? const Color(0xFFE65100)
+                    : Colors.grey.shade400,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                valid
+                    ? context.loc.t('사용_가능', '사용 가능')
+                    : coupon.isUsed
+                        ? context.loc.t('사용됨', '사용됨')
+                        : context.loc.t('만료됨', '만료됨'),
+                style: const TextStyle(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
