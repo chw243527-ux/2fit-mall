@@ -400,7 +400,8 @@ class _MyPageScreenState extends State<MyPageScreen>
                       ctx.read<CartProvider>().clearCart();
                       ctx.read<SizeProfileProvider>().clear();
                       ctx.read<CouponProvider>().clear();
-                      ctx.read<PointProvider>().clear();.of(ctx).showSnackBar(
+                      ctx.read<PointProvider>().clear();
+                      ScaffoldMessenger.of(ctx).showSnackBar(
                         SnackBar(content: Text(context.loc.t('회원 탈퇴가 완료되었습니다', '회원 탈퇴가 완료되었습니다.')), backgroundColor: Colors.red),
                       );
                     }
