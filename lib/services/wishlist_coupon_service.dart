@@ -164,11 +164,7 @@ class CouponService {
         .map((snap) => snap.docs
             .map((d) => _parse(d.id, d.data()))
             .where((c) => c.isValid)
-            .toList())
-        .handleError((e) {
-      if (kDebugMode) debugPrint('watchValidCoupons error: $e');
-      return <CouponModel>[];
-    });
+            .toList());
   }
 
   // ─── 파싱 ───────────────────────────────────────────

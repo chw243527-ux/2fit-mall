@@ -96,6 +96,13 @@ service cloud.firestore {
 
       // 삭제: 관리자만
       allow delete: if isAdmin();
+
+      // point_history 서브컬렉션 (포인트 적립/사용 내역)
+      match /point_history/{historyId} {
+        allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+        allow create: if isSignedIn(); // 앱 내 자동 적립 허용
+        allow update, delete: if isAdmin();
+      }
     }
 
 
@@ -329,6 +336,15 @@ service cloud.firestore {
     match /inventory_logs/{logId} {
       allow read: if isAdmin();
       allow write: if isAdmin();
+    }
+
+
+    // ════════════════════════════════════════════════════════
+    // admin_coupons 컬렉션 (관리자가 발행한 쿠폰)
+    // ════════════════════════════════════════════════════════
+    match /admin_coupons/{couponId} {
+      allow read: if isSignedIn();   // 로그인 사용자 조회 가능 (쿠폰함 표시)
+      allow write: if isAdmin();     // 발급/수정/삭제는 관리자만
     }
 
 
