@@ -151,11 +151,40 @@
   </div>
 
   <script>
+    // ── 리다이렉트 모드: 토스 콜백 → top.location으로 전달 ──────────────────
+    // 토스페이먼츠가 successUrl/failUrl로 iframe 안에서 리다이렉트할 때
+    // 이 페이지를 중간 경유지로 사용하여 top(Flutter)으로 이동시킵니다.
+    (function handleRedirect() {
+      const rp = new URLSearchParams(location.search);
+      if (rp.get('_redirect') !== '1') return;
+
+      const target = rp.get('_target');
+      if (!target) return;
+
+      // 토스가 붙여준 나머지 파라미터(paymentKey, orderId, amount, code, message 등)를
+      // target URL에 합쳐서 top으로 이동
+      const targetUrl = new URL(decodeURIComponent(target));
+      rp.forEach((v, k) => {
+        if (k !== '_redirect' && k !== '_target') {
+          targetUrl.searchParams.set(k, v);
+        }
+      });
+
+      try {
+        top.location.href = targetUrl.toString();
+      } catch (e) {
+        // cross-origin 차단 시 현재 창에서 이동 (fallback)
+        location.href = targetUrl.toString();
+      }
+    })();
+
     main();
 
     async function main() {
       // ── 1. URL 파라미터 ───────────────────────────────────────────────────
       const p = new URLSearchParams(location.search);
+      // _redirect 모드면 main() 실행 안 함
+      if (p.get('_redirect') === '1') return;
 
       const clientKey           = p.get('easyPayClientKey') || p.get('clientKey') || '';
       const rawCustomerKey      = p.get('customerKey')          || '';
@@ -223,11 +252,22 @@
             const paymentMethod = await paymentMethodWidget.getSelectedPaymentMethod();
             console.log('paymentMethod:', paymentMethod);
 
+            // requestPayment는 팝업/리다이렉트 방식으로 동작합니다.
+            // 이 iframe이 top-level 창 안에 있으므로 successUrl/failUrl로의
+            // 리다이렉트가 iframe 내부에서 발생합니다.
+            // → top.location으로 강제 이동해 Flutter 라우터가 처리하도록 합니다.
+            const wrappedSuccessUrl = location.origin
+              + '/payment-widget.html?_redirect=1'
+              + '&_target=' + encodeURIComponent(successUrl);
+            const wrappedFailUrl = location.origin
+              + '/payment-widget.html?_redirect=1'
+              + '&_target=' + encodeURIComponent(failUrl);
+
             await widgets.requestPayment({
               orderId,
               orderName,
-              successUrl,
-              failUrl,
+              successUrl: wrappedSuccessUrl,
+              failUrl:    wrappedFailUrl,
               customerName,
               customerEmail,
               ...(customerMobilePhone ? { customerMobilePhone } : {}),
