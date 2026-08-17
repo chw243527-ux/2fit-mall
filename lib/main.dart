@@ -42,6 +42,7 @@ import 'screens/mypage/size_profile_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/notifications/notification_center_screen.dart';
 import 'screens/main_screen.dart';
+import 'screens/payment/payment_result_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -342,6 +343,18 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
               }
               return MaterialPageRoute(
                 builder: (_) => AdminScreen(initialTab: initialTab),
+                settings: settings,
+              );
+            // 토스페이먼츠 결제 성공 콜백
+            case '/payment/success':
+              return MaterialPageRoute(
+                builder: (_) => const PaymentSuccessScreen(),
+                settings: settings,
+              );
+            // 토스페이먼츠 결제 실패 콜백
+            case '/payment/fail':
+              return MaterialPageRoute(
+                builder: (_) => const PaymentFailScreen(),
                 settings: settings,
               );
             default:

@@ -497,6 +497,102 @@
       window.Kakao.init('cc9800839ee51bb010cd0d7046f4b565');
     }
   </script>
+
+  <!-- 토스페이먼츠 결제 SDK v2 -->
+  <script src="https://js.tosspayments.com/v2/standard"></script>
+  <script>
+    // Flutter에서 호출할 토스페이먼츠 결제 요청 함수
+    window.requestTossPayment = async function(params) {
+      try {
+        const tossPayments = TossPayments(params.clientKey);
+        const payment = tossPayments.payment({
+          customerKey: params.customerKey,
+        });
+
+        await payment.requestPayment({
+          method: params.method,          // 'CARD', 'VIRTUAL_ACCOUNT', etc.
+          amount: {
+            currency: 'KRW',
+            value: params.amount,
+          },
+          orderId: params.orderId,
+          orderName: params.orderName,
+          customerName: params.customerName,
+          customerEmail: params.customerEmail,
+          successUrl: params.successUrl,
+          failUrl: params.failUrl,
+        });
+      } catch (e) {
+        // 사용자가 결제 취소하거나 실패한 경우
+        if (window._tossPaymentCancelCallback) {
+          window._tossPaymentCancelCallback(e.message || '결제가 취소되었습니다.');
+        }
+      }
+    };
+
+    // 간편결제 (카카오페이, 네이버페이, 토스페이)
+    window.requestTossEasyPay = async function(params) {
+      try {
+        const tossPayments = TossPayments(params.clientKey);
+        const payment = tossPayments.payment({
+          customerKey: params.customerKey,
+        });
+
+        await payment.requestPayment({
+          method: 'EASY_PAY',
+          amount: {
+            currency: 'KRW',
+            value: params.amount,
+          },
+          orderId: params.orderId,
+          orderName: params.orderName,
+          customerName: params.customerName,
+          customerEmail: params.customerEmail,
+          easyPay: {
+            easyPayCompany: params.easyPayCompany, // 'KAKAOPAY', 'NAVERPAY', 'TOSSPAY'
+          },
+          successUrl: params.successUrl,
+          failUrl: params.failUrl,
+        });
+      } catch (e) {
+        if (window._tossPaymentCancelCallback) {
+          window._tossPaymentCancelCallback(e.message || '결제가 취소되었습니다.');
+        }
+      }
+    };
+
+    // 가상계좌
+    window.requestTossVirtualAccount = async function(params) {
+      try {
+        const tossPayments = TossPayments(params.clientKey);
+        const payment = tossPayments.payment({
+          customerKey: params.customerKey,
+        });
+
+        await payment.requestPayment({
+          method: 'VIRTUAL_ACCOUNT',
+          amount: {
+            currency: 'KRW',
+            value: params.amount,
+          },
+          orderId: params.orderId,
+          orderName: params.orderName,
+          customerName: params.customerName,
+          customerEmail: params.customerEmail,
+          virtualAccount: {
+            bank: 'KAKAOBANK',
+            validHours: 24,
+          },
+          successUrl: params.successUrl,
+          failUrl: params.failUrl,
+        });
+      } catch (e) {
+        if (window._tossPaymentCancelCallback) {
+          window._tossPaymentCancelCallback(e.message || '결제가 취소되었습니다.');
+        }
+      }
+    };
+  </script>
 </head>
 <body>
 
