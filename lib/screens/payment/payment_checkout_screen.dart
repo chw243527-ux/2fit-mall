@@ -62,6 +62,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
       path: '/payment-widget.html',
       queryParameters: {
         'clientKey':           TossConfig.clientKey,
+        'easyPayClientKey':    TossConfig.easyPayClientKey, // 카카오페이·네이버페이·토스페이
         'customerKey':         customerKey,
         'orderId':             args.orderId,
         'orderName':           args.orderName,

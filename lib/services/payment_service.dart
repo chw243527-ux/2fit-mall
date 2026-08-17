@@ -25,6 +25,10 @@ class TossConfig {
   static const clientKey = 'live_ck_kYG57Eba3GbJ4WOYa1vE8pWDOxmA';
   static const secretKey = ''; // 앱에서 직접 사용 안 함 — CF Pages Function 전용
 
+  // ── 간편결제 클라이언트 키 (카카오페이·네이버페이·토스페이) ──
+  // gck 키를 Payment Widget에 함께 전달하면 간편결제 버튼이 활성화됩니다.
+  static const easyPayClientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
+
   // ── Cloudflare Pages Function URL ───────────────────────────
   static const confirmEdgeFunctionUrl =
       'https://2fit-mall.co.kr/api/confirm-payment';

@@ -151,8 +151,9 @@
   <script>
     // ── URL 파라미터 파싱 ──────────────────────────────────────────
     const p = new URLSearchParams(location.search);
-    const clientKey   = p.get('clientKey')   || '';
-    const customerKey = p.get('customerKey') || '@@ANONYMOUS';
+    const clientKey      = p.get('clientKey')      || '';
+    const easyPayClientKey = p.get('easyPayClientKey') || ''; // 간편결제 gck 키
+    const customerKey    = p.get('customerKey')    || '@@ANONYMOUS';
     const orderId     = p.get('orderId')     || '';
     const orderName   = p.get('orderName')   || '주문';
     const amount      = parseInt(p.get('amount') || '0', 10);
@@ -187,6 +188,15 @@
 
         // v1 API: PaymentWidget(clientKey, customerKey)
         const widget = PaymentWidget(clientKey, customerKey);
+
+        // 간편결제 gck 키가 있으면 추가 연동 (카카오페이·네이버페이·토스페이 활성화)
+        if (easyPayClientKey) {
+          try {
+            widget.addEasyPay(easyPayClientKey);
+          } catch (easyPayErr) {
+            console.warn('간편결제 키 추가 실패:', easyPayErr);
+          }
+        }
 
         await Promise.all([
           widget.renderPaymentMethods(
