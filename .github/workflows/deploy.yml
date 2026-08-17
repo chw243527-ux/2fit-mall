@@ -124,6 +124,17 @@ jobs:
             sed -i \
               "s|'flutter-temp-cache'|'flutter-temp-cache-${BUILD_VER}'|g" \
               ${{ env.BUILD_DIR }}/flutter_service_worker.js
+
+            # payment-widget.html 해시를 새로 계산해서 SW에 반영
+            # (빌드 번호 주입으로 해시가 바뀌었으므로 SW도 업데이트해야 캐시 무효화됨)
+            NEW_HASH=$(md5sum ${{ env.BUILD_DIR }}/payment-widget.html | cut -d' ' -f1)
+            OLD_HASH=$(grep '"payment-widget.html"' ${{ env.BUILD_DIR }}/flutter_service_worker.js | sed 's/.*": "\(.*\)".*/\1/')
+            if [ -n "$OLD_HASH" ] && [ -n "$NEW_HASH" ]; then
+              sed -i "s|\"payment-widget.html\": \"${OLD_HASH}\"|\"payment-widget.html\": \"${NEW_HASH}\"|g" \
+                ${{ env.BUILD_DIR }}/flutter_service_worker.js
+              echo "✅ SW payment-widget.html 해시 업데이트: ${OLD_HASH} → ${NEW_HASH}"
+            fi
+
             echo "// build: ${BUILD_VER} (${SHORT_SHA})" \
               >> ${{ env.BUILD_DIR }}/flutter_service_worker.js
           else
