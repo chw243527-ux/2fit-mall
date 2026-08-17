@@ -1735,65 +1735,136 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildCouponSection() {
+    final allCoupons = context.watch<CouponProvider>().validCoupons;
+    final orderTotal = widget.cart.total;
+
+    // 현재 주문 금액에서 사용 가능한 쿠폰 / 불가 쿠폰 분리
+    final usableCoupons = allCoupons
+        .where((c) => orderTotal >= c.minOrderAmount)
+        .toList();
+    final unusableCoupons = allCoupons
+        .where((c) => orderTotal < c.minOrderAmount)
+        .toList();
+
     return _buildSection(
-      context.loc.t('쿠폰_할인', '쿠폰 할인'),
+      '쿠폰 할인',
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 쿠폰 코드 입력 행
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _couponCodeController,
-                  enabled: _appliedCoupon == null,
-                  decoration: InputDecoration(
-                    hintText: context.loc.t('쿠폰_코드_입력', '쿠폰 코드를 입력하세요'),
-                    prefixIcon: const Icon(Icons.local_activity_rounded),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          // ── 보유 쿠폰 목록 ───────────────────────────────────
+          if (allCoupons.isEmpty) ...[
+            // 보유 쿠폰 없음
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F8F8),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFEEEEEE)),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.local_activity_outlined, color: Color(0xFFCCCCCC), size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    '보유한 쿠폰이 없습니다',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF999999)),
                   ),
-                  textCapitalization: TextCapitalization.characters,
-                  onChanged: (_) => setState(() {}),
+                ],
+              ),
+            ),
+          ] else ...[
+            // 사용 가능 쿠폰
+            if (usableCoupons.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  '사용 가능 (${usableCoupons.length}장)',
+                  style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w700,
+                    color: Color(0xFF0064FF),
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
-              SizedBox(
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _couponLoading
-                      ? null
-                      : _appliedCoupon != null
-                          ? _removeCoupon
-                          : _applyCoupon,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _appliedCoupon != null
-                        ? const Color(0xFF888888)
-                        : AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                  ),
-                  child: _couponLoading
-                      ? const SizedBox(
-                          width: 18, height: 18,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
-                      : Text(
-                          _appliedCoupon != null
-                              ? context.loc.t('취소', '취소')
-                              : context.loc.t('적용', '적용'),
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white),
-                        ),
-                ),
-              ),
+              ...usableCoupons.map((c) => _buildCouponCard(c, usable: true)),
+              const SizedBox(height: 6),
             ],
-          ),
+            // 사용 불가 쿠폰
+            if (unusableCoupons.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  '사용 불가 (최소 주문금액 미달)',
+                  style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w500,
+                    color: Color(0xFF999999),
+                  ),
+                ),
+              ),
+              ...unusableCoupons.map((c) => _buildCouponCard(c, usable: false)),
+              const SizedBox(height: 6),
+            ],
+          ],
 
-          // 적용된 쿠폰 표시
+          // ── 코드 직접 입력 (보유 목록에 없는 쿠폰용) ────────
+          if (_appliedCoupon == null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Expanded(child: Divider()),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text('코드 직접 입력',
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                ),
+                const Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _couponCodeController,
+                    decoration: const InputDecoration(
+                      hintText: '쿠폰 코드를 입력하세요',
+                      prefixIcon: Icon(Icons.local_activity_rounded),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    ),
+                    textCapitalization: TextCapitalization.characters,
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _couponLoading ? null : _applyCoupon,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    child: _couponLoading
+                        ? const SizedBox(
+                            width: 18, height: 18,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : const Text('적용',
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          ],
+
+          // ── 적용된 쿠폰 표시 ─────────────────────────────────
           if (_appliedCoupon != null) ...[
             const SizedBox(height: 10),
             Container(
@@ -1801,7 +1872,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFFE8F5E9),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF43A047).withValues(alpha: 0.5)),
+                border: Border.all(
+                    color: const Color(0xFF43A047).withValues(alpha: 0.5)),
               ),
               child: Row(
                 children: [
@@ -1820,12 +1892,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               color: Color(0xFF2E7D32)),
                         ),
                         Text(
-                          _appliedCoupon!.typeLabel +
-                              '  ·  -${_formatPrice(_couponDiscount)}원 할인',
+                          '${_appliedCoupon!.typeLabel}  ·  -${_formatPrice(_couponDiscount)}원 할인',
                           style: const TextStyle(
                               fontSize: 12, color: Color(0xFF388E3C)),
                         ),
                       ],
+                    ),
+                  ),
+                  // 취소 버튼
+                  GestureDetector(
+                    onTap: _removeCoupon,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE53935).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('취소',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFFE53935))),
                     ),
                   ),
                 ],
@@ -1833,6 +1920,153 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  /// 쿠폰 카드 위젯 (보유 목록용)
+  Widget _buildCouponCard(CouponModel c, {required bool usable}) {
+    final isApplied = _appliedCoupon?.id == c.id;
+    final discount = c.calculateDiscount(widget.cart.total);
+    final expiresStr =
+        '${c.expiresAt.year}.${c.expiresAt.month.toString().padLeft(2, '0')}.${c.expiresAt.day.toString().padLeft(2, '0')} 만료';
+
+    return GestureDetector(
+      onTap: usable && !isApplied && _appliedCoupon == null
+          ? () => setState(() {
+                _appliedCoupon = c;
+                _couponCodeController.clear();
+              })
+          : isApplied
+              ? _removeCoupon
+              : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isApplied
+              ? const Color(0xFFE8F5E9)
+              : usable
+                  ? Colors.white
+                  : const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isApplied
+                ? const Color(0xFF43A047)
+                : usable
+                    ? const Color(0xFF0064FF).withValues(alpha: 0.35)
+                    : const Color(0xFFDDDDDD),
+            width: isApplied ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // 아이콘
+            Container(
+              width: 36, height: 36,
+              decoration: BoxDecoration(
+                color: isApplied
+                    ? const Color(0xFF43A047).withValues(alpha: 0.12)
+                    : usable
+                        ? const Color(0xFF0064FF).withValues(alpha: 0.08)
+                        : const Color(0xFFEEEEEE),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isApplied
+                    ? Icons.check_circle_rounded
+                    : Icons.local_activity_rounded,
+                size: 18,
+                color: isApplied
+                    ? const Color(0xFF43A047)
+                    : usable
+                        ? const Color(0xFF0064FF)
+                        : const Color(0xFFBBBBBB),
+              ),
+            ),
+            const SizedBox(width: 10),
+            // 쿠폰 정보
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    c.name,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: usable
+                          ? const Color(0xFF1A1A2E)
+                          : const Color(0xFF999999),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Text(
+                        c.typeLabel,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isApplied
+                              ? const Color(0xFF2E7D32)
+                              : usable
+                                  ? const Color(0xFF0064FF)
+                                  : const Color(0xFFBBBBBB),
+                        ),
+                      ),
+                      if (usable && discount > 0) ...[
+                        Text(
+                          '  →  -${_formatPrice(discount)}원',
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFFE53935),
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Text(expiresStr,
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFFAAAAAA))),
+                      if (c.minOrderAmount > 0) ...[
+                        Text(
+                          '  ·  ${_formatPrice(c.minOrderAmount)}원 이상',
+                          style: const TextStyle(
+                              fontSize: 11, color: Color(0xFFAAAAAA)),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // 적용/선택 상태
+            if (usable) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: isApplied
+                      ? const Color(0xFF43A047)
+                      : _appliedCoupon == null
+                          ? const Color(0xFF0064FF)
+                          : const Color(0xFFDDDDDD),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  isApplied ? '적용됨' : _appliedCoupon == null ? '선택' : '선택불가',
+                  style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
