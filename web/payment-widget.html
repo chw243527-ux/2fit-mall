@@ -237,9 +237,9 @@
           errEl.style.display = 'none';
 
           try {
-            // 선택된 결제수단 확인
-            const selectedPaymentMethod = await paymentMethodWidget.getSelectedPaymentMethod();
-            console.log('[TossPayments] selectedPaymentMethod:', selectedPaymentMethod);
+            // 선택된 결제수단 확인 (공식: paymentMethodWidget.getSelectedPaymentMethod())
+            const paymentMethod = await paymentMethodWidget.getSelectedPaymentMethod();
+            console.log('[TossPayments] paymentMethod:', paymentMethod);
 
             await widgets.requestPayment({
               orderId,
