@@ -2081,18 +2081,19 @@ class _TossPaymentDialogState extends State<_TossPaymentDialog> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              loc.checkoutTestPayment,
+              TossConfig.isLiveMode ? loc.checkoutPayment : loc.checkoutTestPayment,
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(20),
+          if (!TossConfig.isLiveMode)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text('TEST', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
             ),
-            child: const Text('TEST', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
-          ),
           if (_step == 0) ...[ 
             const SizedBox(width: 8),
             GestureDetector(
@@ -2138,28 +2139,30 @@ class _TossPaymentDialogState extends State<_TossPaymentDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 테스트 안내 배너
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF8E1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFFFD54F)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFFF57F17)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  loc.testPaymentNotice,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFFF57F17), height: 1.5),
+        // 테스트 안내 배너 (테스트 모드에서만 표시)
+        if (!TossConfig.isLiveMode) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF8E1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFFFD54F)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFFF57F17)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    loc.testPaymentNotice,
+                    style: const TextStyle(fontSize: 11, color: Color(0xFFF57F17), height: 1.5),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
+          const SizedBox(height: 16),
+        ],
 
         // 결제수단 뱃지
         Container(
