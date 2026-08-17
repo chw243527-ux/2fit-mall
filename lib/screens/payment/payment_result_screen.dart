@@ -7,9 +7,7 @@
 import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/cart_provider.dart';
-import '../../providers/order_provider.dart';
-import '../../providers/user_provider.dart';
+import '../../providers/providers.dart';
 import '../../services/payment_service.dart';
 import '../../services/order_service.dart';
 import '../../models/models.dart';
@@ -81,7 +79,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
         setState(() => _isProcessing = false);
 
         // 장바구니 비우기
-        if (mounted) context.read<CartProvider>().clear();
+        if (mounted) context.read<CartProvider>().clearCart();
 
         // 주문완료 화면으로 이동
         if (mounted) {

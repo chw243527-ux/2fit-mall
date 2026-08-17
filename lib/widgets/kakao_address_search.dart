@@ -13,8 +13,8 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 // 웹 전용 구현은 별도 파일로 분리 (조건부 import)
 import 'kakao_address_web_stub.dart'
-import '../utils/app_localizations.dart';
     if (dart.library.html) 'kakao_address_web_impl.dart' as web_impl;
+import '../utils/app_localizations.dart';
 
 class KakaoAddressResult {
   final String zonecode;

@@ -123,14 +123,6 @@ class PaymentService {
       return const PaymentResult(success: false, error: '결제가 취소되었습니다.');
     }
   }
-      orderId: orderId,
-      orderName: orderName,
-      amount: amount,
-      customerName: customerName,
-      customerEmail: customerEmail,
-      paymentMethod: paymentMethod,
-    );
-  }
 
   // ─── 결제 승인 — 보안 라우팅 ─────────────────────────────────
   // 우선순위: Edge Function → 직접 API (개발 환경 전용)
