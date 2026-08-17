@@ -13,6 +13,7 @@ import '../../services/order_service.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/payment_service.dart';
+import '../../services/point_service.dart';
 import '../main_screen.dart';
 import '../../widgets/address_search_widget.dart';
 import '../../widgets/pc_layout.dart';
@@ -30,7 +31,8 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  String _selectedPayment = AppConstants.paymentMethods.first; // 초기값: 첫 번째 결제수단
+  // 결제수단: 토스페이먼츠로 고정
+  final String _selectedPayment = '토스페이먼츠';
   final _addressController = TextEditingController();
   final _detailAddressController = TextEditingController();
   final _memoController = TextEditingController();
@@ -50,6 +52,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _couponCodeController = TextEditingController();
   CouponModel? _appliedCoupon;
   bool _couponLoading = false;
+
+  // 포인트 사용
+  final _pointController = TextEditingController();
+  int _usedPoints = 0;        // 실제 사용할 포인트
+  bool _pointInputError = false;
 
   // 번역 헬퍼
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
@@ -104,6 +111,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _detailAddressController.dispose();
     _memoController.dispose();
     _couponCodeController.dispose();
+    _pointController.dispose();
     _intlLine1Ctrl.dispose();
     _intlLine2Ctrl.dispose();
     _intlCityCtrl.dispose();
@@ -143,7 +151,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return _appliedCoupon!.calculateDiscount(widget.cart.total);
   }
 
-  double get _finalTotal => (widget.cart.total - _couponDiscount).clamp(0, double.infinity);
+  // 포인트 할인 (사용포인트 = 원화 동일, 1P = 1원)
+  double get _pointDiscount => _usedPoints.toDouble();
+  double get _finalTotal => (widget.cart.total - _couponDiscount - _pointDiscount).clamp(0, double.infinity);
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +185,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   const SizedBox(height: 16),
                   _buildCouponSection(),
                   const SizedBox(height: 16),
-                  _buildPaymentMethod(),
+                  _buildPointSection(),
                   const SizedBox(height: 16),
                   _buildPriceSummary(),
                 ],
@@ -231,7 +241,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         const SizedBox(height: 16),
                         _buildCouponSection(),
                         const SizedBox(height: 16),
-                        _buildPaymentMethod(),
+                        _buildPointSection(),
                         const SizedBox(height: 80),
                       ],
                     ),
@@ -282,7 +292,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                             strokeWidth: 2, color: Colors.white),
                                       )
                                     : Text(
-                                        '$_selectedPayment\n${_formatPrice(_finalTotal)}원 결제',
+                                        '토스페이먼츠\n${_formatPrice(_finalTotal)}원 결제',
                                         style: const TextStyle(
                                             fontSize: 15, fontWeight: FontWeight.w800,
                                             color: Colors.white),
@@ -1258,7 +1268,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ...AppConstants.paymentMethods.map((method) {
           final isSelected = _selectedPayment == method;
           return GestureDetector(
-            onTap: () => setState(() => _selectedPayment = method),
+            onTap: null, // 결제수단 고정 (토스페이먼츠)
             child: Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1481,6 +1491,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               -_couponDiscount,
               isDiscount: true,
             ),
+          // 포인트 할인
+          if (_usedPoints > 0)
+            _buildPriceRow(
+              '포인트 사용 (-${_formatPrice(_usedPoints)}P)',
+              -_pointDiscount,
+              isDiscount: true,
+            ),
           // 배송비 행 (무료배송 시 강조 / 해외 시 국가별 상이 안내)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -1580,6 +1597,143 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void _showOverseasShippingRates() => showOverseasRateSheet(context);
 
   // ─── 쿠폰 섹션 ────────────────────────────────────────────────
+
+  // ── 포인트 사용 섹션 ──────────────────────────────────────
+  Widget _buildPointSection() {
+    final pointBalance = context.watch<PointProvider>().balance;
+    final minUse = PointService.minUsePoints; // 20,000
+    final canUse = pointBalance >= minUse;
+    // 최대 사용 가능: 결제 예정 금액(쿠폰 적용 후)을 초과 불가
+    final maxUsable = ((widget.cart.total - _couponDiscount) * 0.99)
+        .floor()
+        .clamp(0, pointBalance);
+
+    return _buildSection(
+      '포인트 사용',
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 잔액 표시
+          Row(
+            children: [
+              const Icon(Icons.stars_rounded, color: Color(0xFFFF6D00), size: 18),
+              const SizedBox(width: 6),
+              Text(
+                '보유 포인트: ${_formatPrice(pointBalance)}P',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              const Spacer(),
+              if (!canUse)
+                Text(
+                  '${_formatPrice(minUse)}P 이상부터 사용 가능',
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF999999)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (canUse) ...[ 
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _pointController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: '사용할 포인트 입력 (최대 ${_formatPrice(maxUsable)}P)',
+                      prefixIcon: const Icon(Icons.stars_rounded, color: Color(0xFFFF6D00)),
+                      errorText: _pointInputError ? '${_formatPrice(minUse)}P 이상, ${_formatPrice(maxUsable)}P 이하로 입력하세요' : null,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                    ),
+                    enabled: _usedPoints == 0,
+                    onChanged: (_) {
+                      if (_pointInputError) setState(() => _pointInputError = false);
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _usedPoints > 0
+                        ? () => setState(() {
+                              _usedPoints = 0;
+                              _pointController.clear();
+                              _pointInputError = false;
+                            })
+                        : () {
+                            final raw = int.tryParse(_pointController.text.replaceAll(',', '').trim()) ?? 0;
+                            if (raw < minUse || raw > maxUsable) {
+                              setState(() => _pointInputError = true);
+                              return;
+                            }
+                            setState(() {
+                              _usedPoints = raw;
+                              _pointInputError = false;
+                            });
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _usedPoints > 0
+                          ? const Color(0xFF888888)
+                          : const Color(0xFFFF6D00),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    child: Text(
+                      _usedPoints > 0 ? '취소' : '적용',
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // 적용된 포인트 표시
+            if (_usedPoints > 0) ...[ 
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3E0),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFF6D00).withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_rounded,
+                        color: Color(0xFFFF6D00), size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        '${_formatPrice(_usedPoints)}P 사용  ·  -${_formatPrice(_usedPoints)}원 할인',
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFE65100)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${_formatPrice(minUse)}P 이상 보유 시 포인트를 사용할 수 있습니다.',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildCouponSection() {
     return _buildSection(
       context.loc.t('쿠폰_할인', '쿠폰 할인'),
@@ -1781,7 +1935,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     )
                   : Text(
-                      '$_selectedPayment로 ${_formatPrice(_finalTotal)}원 결제하기',
+                      '토스페이먼츠로 ${_formatPrice(_finalTotal)}원 결제하기',
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -1880,6 +2034,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   // ─── 결제하기 버튼 클릭 ─────────────────────────────────────
   void _processPayment() async {
+    setState(() => _isProcessing = true);
     // 주소 미입력 체크
     if (!_addressFilled) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1890,6 +2045,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           backgroundColor: const Color(0xFFE53935),
         ),
       );
+      setState(() => _isProcessing = false);
       return;
     }
 
@@ -1910,6 +2066,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
       );
+      setState(() => _isProcessing = false);
       return;
     }
 
@@ -1968,6 +2125,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
 
     if (!mounted) return;
+
+    // 포인트 사용 시 먼저 차감 (실패하면 결제 중단)
+    if (_usedPoints > 0) {
+      final pointOk = await PointService.usePoints(
+        userId: user.id,
+        orderId: orderId,
+        amount: _usedPoints,
+      );
+      if (!mounted) return;
+      if (!pointOk) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('포인트 차감에 실패했습니다. 잔액을 확인해 주세요.'),
+            backgroundColor: Color(0xFFE53935),
+          ),
+        );
+        setState(() => _isProcessing = false);
+        return;
+      }
+    }
 
     // /payment/checkout 화면으로 이동 (무통장입금 포함)
     Navigator.pushNamed(

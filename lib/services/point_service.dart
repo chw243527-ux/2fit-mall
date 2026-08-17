@@ -150,6 +150,50 @@ class PointService {
     }
   }
 
+  // ── 포인트 사용 (결제 시 차감) ─────────────────────────
+  // minUse: 20,000P 이상부터 사용 가능
+  static const int minUsePoints = 20000;
+
+  static Future<bool> usePoints({
+    required String userId,
+    required String orderId,
+    required int amount, // 차감할 포인트 (양수)
+  }) async {
+    if (amount <= 0) return true;
+    if (amount < minUsePoints) {
+      if (kDebugMode) debugPrint('⚠️ 포인트 최소 사용금액 미달: $amount < $minUsePoints');
+      return false;
+    }
+    try {
+      final userRef = _db.collection('users').doc(userId);
+      final histRef = userRef.collection('point_history').doc();
+      bool success = false;
+
+      await _db.runTransaction((txn) async {
+        final snap = await txn.get(userRef);
+        final prev = (snap.data()?['points'] as num?)?.toInt() ?? 0;
+        if (prev < amount) {
+          // 잔액 부족 → 롤백
+          throw Exception('포인트 잔액 부족: $prev < $amount');
+        }
+        txn.update(userRef, {'points': prev - amount});
+        txn.set(histRef, PointHistory(
+          id: histRef.id,
+          action: PointActionType.use,
+          amount: -amount,
+          desc: '주문 $orderId 포인트 사용',
+          orderId: orderId,
+          createdAt: DateTime.now(),
+        ).toDoc());
+        success = true;
+      });
+      return success;
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ usePoints error: $e');
+      return false;
+    }
+  }
+
   // ── 포인트 잔액 실시간 스트림 ─────────────────────────
   static Stream<int> watchBalance(String userId) {
     return _db
