@@ -1174,25 +1174,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ...widget.cart.items.map((item) => Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: item.product.images.isNotEmpty
-                    ? NetImage(
-                        item.product.images.first,
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                      )
-                    : Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
+              // SizedBox로 감싸서 tight constraint 전달 → NetImage(_WebImage Stack) 올바른 렌더링
+              SizedBox(
+                width: 60,
+                height: 60,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: item.product.images.isNotEmpty
+                      ? NetImage(
+                          item.product.images.first,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
                           color: const Color(0xFFEEEEEE),
-                          borderRadius: BorderRadius.circular(8),
+                          child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey, size: 24),
                         ),
-                        child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey, size: 24),
-                      ),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
