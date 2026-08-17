@@ -10,6 +10,7 @@ import '../../services/fcm_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/payment_service.dart';
 import '../main_screen.dart';
 import '../../widgets/address_search_widget.dart';
 import '../../widgets/pc_layout.dart';
@@ -1915,160 +1916,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ? 'GRP_${ts}${_isAdditionalCart ? '_ADD' : ''}'
         : 'ORD-${DateTime.now().year}${DateTime.now().month.toString().padLeft(2,'0')}${DateTime.now().day.toString().padLeft(2,'0')}-${(ts % 100000).toString().padLeft(5,'0')}';
 
-    // ─── 결제수단에 따라 다이얼로그 분기 ───────────────────────
+    // ─── 토스페이먼츠 Payment Widget 결제 화면으로 이동 ────────────
     final orderName = widget.cart.items.first.product.name +
         (widget.cart.items.length > 1
             ? ' 외 ${widget.cart.items.length - 1}건'
             : '');
 
-    bool? result;
-    if (_selectedPayment == context.loc.t('무통장입금', '무통장입금') || _selectedPayment == 'Bank Transfer' || _selectedPayment.contains(context.loc.t('무통장', '무통장'))) {
-      // 무통장입금 전용 다이얼로그
-      result = await showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _BankTransferDialog(
-          orderId: orderId,
-          orderName: orderName,
-          amount: _finalTotal.toInt(),
-          customerName: user?.name ?? loc.buyerLabel,
-        ),
-      );
-    } else {
-      // 카드/간편결제 (테스트 다이얼로그)
-      result = await showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => _TossPaymentDialog(
-          orderId: orderId,
-          orderName: orderName,
-          amount: _finalTotal.toInt(),
-          customerName: user?.name ?? loc.buyerLabel,
-          paymentMethod: _selectedPayment,
-        ),
-      );
-    }
-
     if (!mounted) return;
-    if (result != true) return;
 
-    // 결제 승인 후 주문 저장
-    setState(() => _isProcessing = true);
-
-    // ── 단체주문 여부 판별 (장바구니 아이템의 customOptions 기반) ──
-    // 단체주문 폼에서 담긴 아이템은 customOptions에 orderType, teamName, persons 등이 있음
-    Map<String, dynamic>? groupCustomOptions;
-    String resolvedOrderType = 'personal';
-    String? groupName;
-    int? groupCount;
-    String resolvedUserName = user?.name ?? '';
-    String resolvedUserPhone = user?.phone ?? '';
-    String resolvedUserEmail = user?.email ?? '';
-    String resolvedAddress = _finalAddress;
-
-    for (final item in widget.cart.items) {
-      final opts = item.customOptions;
-      if (opts == null) continue;
-      final itemOrderType = opts['orderType'] as String? ?? '';
-      if (itemOrderType == 'group' || itemOrderType == 'additional') {
-        // 단체주문 아이템 발견 → 단체 정보 추출
-        groupCustomOptions = opts;
-        resolvedOrderType = itemOrderType;
-        groupName = opts['teamName'] as String?;
-        groupCount = (opts['persons'] as List?)?.length ?? 
-                     (opts['totalCount'] as num?)?.toInt();
-        // 단체주문 담당자 정보 우선 사용
-        final manager = opts['manager'] as String? ?? opts['teamName'] as String?;
-        if (manager != null && manager.isNotEmpty) resolvedUserName = manager;
-        final phone = opts['phone'] as String?;
-        if (phone != null && phone.isNotEmpty) resolvedUserPhone = phone;
-        final address = opts['address'] as String?;
-        if (address != null && address.isNotEmpty && resolvedAddress.isEmpty) {
-          resolvedAddress = address;
-        }
-        break;
-      }
-    }
-
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-    final order = OrderModel(
-      id: orderId,
-      userId: user?.id ?? 'guest',
-      userName: resolvedUserName,
-      userEmail: resolvedUserEmail,
-      userPhone: resolvedUserPhone,
-      userAddress: resolvedAddress,
-      items: widget.cart.items.map((item) {
-        // 상세페이지 디자인 이미지 우선, 없으면 메인 이미지
-        final designImg = (item.product.sectionImages['design'] ?? []).isNotEmpty
-            ? item.product.sectionImages['design']!.first
-            : (item.product.images.isNotEmpty ? item.product.images.first : null);
-        // customOptions에 designFileUrl이 없으면 삽입
-        Map<String, dynamic>? mergedOpts = item.customOptions != null
-            ? Map<String, dynamic>.from(item.customOptions!)
-            : null;
-        if (designImg != null && designImg.isNotEmpty) {
-          mergedOpts ??= {};
-          mergedOpts['designFileUrl'] ??= designImg;
-          mergedOpts['productImageUrl'] ??= designImg;
-        }
-        return OrderItem(
-          productId: item.product.id,
-          productName: item.product.name,
-          size: item.selectedSize,
-          color: item.selectedColor,
-          quantity: item.quantity,
-          price: item.product.price,
-          customOptions: mergedOpts,
-          imageUrl: designImg ?? (item.product.images.isNotEmpty ? item.product.images.first : null),
-        );
-      }).toList(),
-      totalAmount: _finalTotal,
-      shippingFee: widget.cart.shippingFee,
-      paymentMethod: _selectedPayment,
-      orderType: resolvedOrderType,
-      customOptions: groupCustomOptions != null
-          ? {
-              ...groupCustomOptions!,
-              if (_appliedCoupon != null) 'couponCode': _appliedCoupon!.code,
-              if (_appliedCoupon != null) 'couponDiscount': _couponDiscount,
-            }
-          : _appliedCoupon != null
-              ? {'couponCode': _appliedCoupon!.code, 'couponDiscount': _couponDiscount}
-              : null,
-      groupName: groupName,
-      groupCount: groupCount,
-      createdAt: DateTime.now(),
-      memo: _memoController.text,
-    );
-    orderProvider.addOrder(order);
-    // ── 1. 신규 주문 FCM 알림 (관리자에게) ───────────────────
-    FcmService.sendNewOrderNotification(order).catchError(
-      (e) { /* 알림 실패해도 주문은 진행 */ },
-    );
-    // ── 2. 카카오 알림톡 (고객에게 주문 확인 발송) ────────────
-    NotificationService.sendOrderConfirmed(order).catchError(
-      (e) { /* 알림톡 실패해도 주문은 진행 */ },
-    );
-
-    // 앱 내 알림
-    Provider.of<NotificationProvider>(context, listen: false).addNotification(
-      NotificationModel(
-        id: 'n_$orderId',
-        title: loc.orderCompletedTitle,
-        body: '${loc.checkoutOrderNum}: $orderId',
-        type: 'order',
-        createdAt: DateTime.now(),
+    // /payment/checkout 화면으로 이동 (무통장입금 포함)
+    Navigator.pushNamed(
+      context,
+      '/payment/checkout',
+      arguments: PaymentCheckoutArgs(
+        orderId:         orderId,
+        orderName:       orderName,
+        amount:          _finalTotal.toInt(),
+        customerName:    user?.name ?? loc.buyerLabel,
+        customerEmail:   user?.email ?? 'guest@2fit-mall.co.kr',
+        customerPhone:   user?.phone ?? '',
+        selectedPayment: _selectedPayment,
       ),
     );
-
-    widget.cart.clearCart();
-    setState(() => _isProcessing = false);
-
-    // 주문완료 화면으로 이동
-    if (mounted) {
-      _showOrderCompleteScreen(order);
-    }
+    // 결제 완료 처리는 /payment/success, /payment/fail 에서 담당
+    return;
   }
 
   // ─── 주문완료 전체화면 ────────────────────────────────────────
