@@ -498,8 +498,8 @@
     }
   </script>
 
-  <!-- 토스페이먼츠 결제 SDK v2 (Payment Widget 방식) -->
-  <script src="https://js.tosspayments.com/v2/standard"></script>
+  <!-- 토스페이먼츠 결제위젯 SDK v1 -->
+  <script src="https://js.tosspayments.com/v1/payment-widget"></script>
   <script>
     // ── Payment Widget 전역 인스턴스 ──────────────────────────────
     // Flutter checkout 페이지에서 initTossWidget() → renderTossWidget()
@@ -509,11 +509,12 @@
     /**
      * 1단계: 위젯 초기화 + 금액 설정
      *  params: { clientKey, customerKey, amount }
+     *  비로그인: customerKey = '@@ANONYMOUS'
      */
     window.initTossWidget = async function(params) {
       try {
-        const tossPayments = TossPayments(params.clientKey);
-        const widgets = tossPayments.widgets({ customerKey: params.customerKey });
+        // v1 payment-widget SDK: PaymentWidget(clientKey, customerKey)
+        const widgets = PaymentWidget(params.clientKey, params.customerKey);
         await widgets.setAmount({ currency: 'KRW', value: params.amount });
         window._tossWidgets = widgets;
         if (window._tossWidgetInitCallback) {
