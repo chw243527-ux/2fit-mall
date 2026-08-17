@@ -1169,12 +1169,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: NetImage(
-                  item.product.images.first,
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                ),
+                child: item.product.images.isNotEmpty
+                    ? NetImage(
+                        item.product.images.first,
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEEEEE),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.image_not_supported_outlined, color: Colors.grey, size: 24),
+                      ),
               ),
               const SizedBox(width: 12),
               Expanded(
