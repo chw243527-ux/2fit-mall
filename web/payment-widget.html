@@ -6,9 +6,14 @@
   <title>결제</title>
   <!--
     토스페이먼츠 v2 SDK (CDN)
-    window.TossPayments  — 초기화 함수 (동기)
-    window.loadTossPayments — 초기화 함수 (비동기, 공식 샘플 방식)
-    window.TossPayments.ANONYMOUS — 비회원 customerKey 상수 ("@@ANONYMOUS")
+
+    CDN 로드 후 전역 노출:
+      window.TossPaymentsV2          — v2 초기화 함수 (올바른 사용법)
+      window.TossPaymentsV2.ANONYMOUS — 비회원 customerKey 상수 ("@@ANONYMOUS")
+
+    ※ window.TossPayments 는 로드 순서에 따라 버전이 달라질 수 있어 직접 사용 금지.
+    ※ loadTossPayments() 는 npm 패키지(@tosspayments/tosspayments-sdk) 전용.
+       CDN에는 존재하지 않음.
   -->
   <script src="https://js.tosspayments.com/v2/standard"></script>
   <style>
@@ -88,7 +93,7 @@
     #payment-method { background: #fff; }
     #agreement      { background: #fff; }
 
-    /* ── 결제 버튼 오류 메시지 ── */
+    /* ── 오류 메시지 ── */
     #submit-error {
       margin: 0 16px 8px;
       padding: 12px;
@@ -102,7 +107,7 @@
 
     /* ── 결제 버튼 ── */
     .pay-btn-wrap { padding: 16px; background: #f5f5f5; }
-    #pay-btn {
+    #payment-request-button {
       width: 100%; height: 56px;
       background: #0064FF;
       color: #fff;
@@ -112,8 +117,8 @@
       cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    #pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    #pay-btn .btn-spinner {
+    #payment-request-button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #payment-request-button .btn-spinner {
       width: 20px; height: 20px;
       border: 2px solid rgba(255,255,255,0.4);
       border-top-color: #fff;
@@ -121,8 +126,8 @@
       animation: spin 0.8s linear infinite;
       display: none;
     }
-    #pay-btn.loading .btn-spinner { display: block; }
-    #pay-btn.loading .btn-text    { display: none; }
+    #payment-request-button.loading .btn-spinner { display: block; }
+    #payment-request-button.loading .btn-text    { display: none; }
   </style>
 </head>
 <body>
@@ -151,7 +156,6 @@
     <div id="agreement"></div>
     <div id="submit-error"></div>
     <div class="pay-btn-wrap">
-      <!-- id="payment-request-button" : 공식 샘플과 동일한 id 사용 -->
       <button id="payment-request-button">
         <div class="btn-spinner"></div>
         <span class="btn-text" id="pay-btn-text">결제하기</span>
@@ -165,34 +169,26 @@
 
     //
     // ⚠️ 토스페이먼츠 v2 결제위젯 SDK 키 규칙:
-    //   - "주문서형·결제창형 연동 키" (live_gck_... / test_gck_...)  ← 반드시 이 키 사용
-    //   - "API 개별 연동 키" (live_ck_... / test_ck_...) 사용 시
-    //     NOT_SUPPORTED_API_INDIVIDUAL_KEY 오류 발생
+    //   결제위젯(주문서형)은 "결제위젯 연동 키" (gck_...) 만 허용.
+    //   "API 개별 연동 키" (ck_...) 사용 시 NOT_SUPPORTED_API_INDIVIDUAL_KEY 오류.
+    //   → easyPayClientKey(gck) 우선, 없으면 clientKey(ck) fallback.
     //
-    // Flutter → easyPayClientKey(gck) 가 항상 전달되므로 우선 사용.
-    // gck 없을 경우 ck 로 fallback (테스트 환경 등).
-    //
-    const rawClientKey     = p.get('clientKey')          || '';
-    const easyPayClientKey = p.get('easyPayClientKey')   || '';
-    const widgetKey        = easyPayClientKey || rawClientKey; // v2 위젯 초기화 키
+    const rawClientKey     = p.get('clientKey')        || '';
+    const easyPayClientKey = p.get('easyPayClientKey') || '';
+    const widgetKey        = easyPayClientKey || rawClientKey;
 
-    const rawCustomerKey = p.get('customerKey') || '';
-    const orderId        = p.get('orderId')     || '';
-    const orderName      = p.get('orderName')   || '주문';
-    const amount         = parseInt(p.get('amount') || '0', 10);
-    const customerName   = p.get('customerName')   || '';
-    const customerEmail  = p.get('customerEmail')  || '';
-    const successUrl     = p.get('successUrl')     || '';
-    const failUrl        = p.get('failUrl')        || '';
+    const rawCustomerKey      = p.get('customerKey')          || '';
+    const orderId             = p.get('orderId')              || '';
+    const orderName           = p.get('orderName')            || '주문';
+    const amount              = parseInt(p.get('amount')      || '0', 10);
+    const customerName        = p.get('customerName')         || '';
+    const customerEmail       = p.get('customerEmail')        || '';
+    const successUrl          = p.get('successUrl')           || '';
+    const failUrl             = p.get('failUrl')              || '';
 
     // 전화번호: 숫자만 추출, 10자리 미만이면 omit
     const rawPhone = (p.get('customerMobilePhone') || '').replace(/[^0-9]/g, '');
     const customerMobilePhone = rawPhone.length >= 10 ? rawPhone : undefined;
-
-    // ── ANONYMOUS 상수 처리 ───────────────────────────────────────────────
-    // CDN 로드 후 window.TossPayments.ANONYMOUS === "@@ANONYMOUS"
-    // Flutter에서 uid 없을 때 "@@ANONYMOUS" 문자열을 전달하므로 동일하게 동작.
-    // SDK가 로드된 뒤 상수를 참조하기 위해 main() 내부에서 결정.
 
     // ── UI 초기 텍스트 ────────────────────────────────────────────────────
     const amtFmt = amount.toLocaleString('ko-KR');
@@ -208,37 +204,45 @@
       document.getElementById('error-msg').textContent     = msg;
     }
 
-    // ── 메인 (공식 샘플 구조 그대로 적용) ────────────────────────────────
+    // ── 메인 ──────────────────────────────────────────────────────────────
     const main = async () => {
-
       try {
         // 파라미터 검증
-        if (!widgetKey)           throw new Error('clientKey가 없습니다.');
-        if (!orderId)             throw new Error('orderId가 없습니다.');
+        if (!widgetKey)             throw new Error('clientKey가 없습니다.');
+        if (!orderId)               throw new Error('orderId가 없습니다.');
         if (!amount || amount <= 0) throw new Error('결제 금액이 올바르지 않습니다.');
 
-        // ── 1. loadTossPayments (async) ───────────────────────────────
-        // CDN v2/standard 로드 시 window.loadTossPayments 함수가 노출됨.
-        // 공식 샘플: await loadTossPayments(clientKey)
-        const tossPayments = await loadTossPayments(widgetKey);
+        // ── 1. TossPaymentsV2 초기화 ──────────────────────────────────
+        //
+        // CDN v2/standard 로드 후:
+        //   window.TossPaymentsV2          → v2 초기화 함수
+        //   window.TossPaymentsV2.ANONYMOUS → 비회원 상수 ("@@ANONYMOUS")
+        //
+        // ※ loadTossPayments()는 npm 전용 — CDN에 없음.
+        // ※ window.TossPayments 는 버전 혼재 위험으로 사용 금지.
+        //
+        const TossPaymentsV2 = window.TossPaymentsV2;
+        if (!TossPaymentsV2) throw new Error('토스페이먼츠 SDK를 불러오지 못했습니다.');
 
-        // ── 2. widgets 인스턴스 생성 ──────────────────────────────────
-        // ANONYMOUS 상수: SDK 로드 후 사용 가능
-        // rawCustomerKey가 비어있거나 "@@ANONYMOUS"이면 ANONYMOUS 상수 사용
-        const ANONYMOUS = window.TossPayments?.ANONYMOUS ?? '@@ANONYMOUS';
-        const customerKey = (rawCustomerKey && rawCustomerKey !== '@@ANONYMOUS')
+        const tossPayments = TossPaymentsV2(widgetKey);
+
+        // ── 2. customerKey 결정 ───────────────────────────────────────
+        // ANONYMOUS 상수: TossPaymentsV2.ANONYMOUS === "@@ANONYMOUS"
+        const ANONYMOUS   = TossPaymentsV2.ANONYMOUS;
+        const customerKey = (rawCustomerKey && rawCustomerKey !== ANONYMOUS)
           ? rawCustomerKey
           : ANONYMOUS;
 
+        // ── 3. widgets 인스턴스 생성 ──────────────────────────────────
         const widgets = tossPayments.widgets({ customerKey });
 
-        // ── 3. 금액 설정 (renderPaymentMethods 보다 반드시 선행) ──────
+        // ── 4. 금액 설정 (renderPaymentMethods 보다 반드시 선행) ──────
         await widgets.setAmount({
           currency: 'KRW',
           value: amount,
         });
 
-        // ── 4. 결제수단 UI + 약관 동시 렌더링 ────────────────────────
+        // ── 5. 결제수단 UI + 약관 동시 렌더링 ────────────────────────
         const [paymentMethodWidget] = await Promise.all([
           widgets.renderPaymentMethods({
             selector: '#payment-method',
@@ -250,56 +254,57 @@
           }),
         ]);
 
-        // ── 5. 결제수단 선택 이벤트 (공식 샘플과 동일) ───────────────
+        // ── 6. 결제수단 선택 이벤트 ──────────────────────────────────
         paymentMethodWidget.on('paymentMethodSelect', (selectedPaymentMethod) => {
-          console.log('[TossPayments] paymentMethodSelect:', selectedPaymentMethod);
+          console.log('[TossPayments v2] paymentMethodSelect:', selectedPaymentMethod);
         });
 
-        // ── 6. 위젯 표시 ──────────────────────────────────────────────
+        // ── 7. 위젯 표시 ──────────────────────────────────────────────
         document.getElementById('loading').style.display     = 'none';
         document.getElementById('widget-view').style.display = 'block';
 
-        // ── 7. 결제 버튼 이벤트 (공식 샘플: addEventListener 방식) ───
-        const paymentRequestButton = document.getElementById('payment-request-button');
+        // ── 8. 결제 버튼 이벤트 등록 ─────────────────────────────────
+        document.getElementById('payment-request-button')
+          .addEventListener('click', async () => {
+            const btn   = document.getElementById('payment-request-button');
+            const errEl = document.getElementById('submit-error');
+            btn.disabled = true;
+            btn.classList.add('loading');
+            errEl.style.display = 'none';
 
-        paymentRequestButton.addEventListener('click', async () => {
-          const errEl = document.getElementById('submit-error');
-          paymentRequestButton.disabled = true;
-          paymentRequestButton.classList.add('loading');
-          errEl.style.display = 'none';
+            try {
+              // 선택된 결제수단 조회
+              const selectedPaymentMethod =
+                await paymentMethodWidget.getSelectedPaymentMethod();
+              console.log('[TossPayments v2] selectedPaymentMethod:', selectedPaymentMethod);
 
-          try {
-            // 선택된 결제수단 조회 (공식 샘플 방식)
-            const selectedPaymentMethod = await paymentMethodWidget.getSelectedPaymentMethod();
-            console.log('[TossPayments] selectedPaymentMethod:', selectedPaymentMethod);
+              // 결제 요청
+              await widgets.requestPayment({
+                orderId,
+                orderName,
+                customerName,
+                customerEmail,
+                successUrl,
+                failUrl,
+                ...(customerMobilePhone ? { customerMobilePhone } : {}),
+              });
+              // 성공 → successUrl 리디렉션, 이후 코드 실행 안 됨
 
-            // 결제 요청
-            await widgets.requestPayment({
-              orderId,
-              orderName,
-              customerName,
-              customerEmail,
-              successUrl,
-              failUrl,
-              ...(customerMobilePhone ? { customerMobilePhone } : {}),
-            });
-            // 성공 → successUrl로 리디렉션, 이후 코드 실행 안 됨
+            } catch (err) {
+              console.log('[TossPayments v2] requestPayment err:', err);
 
-          } catch (err) {
-            console.log('[TossPayments] requestPayment err:', err);
-
-            // 취소(PAY_PROCESS_CANCELED / USER_CANCEL)는 조용히 처리
-            if (err?.code !== 'PAY_PROCESS_CANCELED' && err?.code !== 'USER_CANCEL') {
-              errEl.textContent   = err?.message || '결제 요청에 실패했습니다.';
-              errEl.style.display = 'block';
+              // 취소는 조용히 처리
+              if (err?.code !== 'PAY_PROCESS_CANCELED' && err?.code !== 'USER_CANCEL') {
+                errEl.textContent   = err?.message || '결제 요청에 실패했습니다.';
+                errEl.style.display = 'block';
+              }
+              btn.disabled = false;
+              btn.classList.remove('loading');
             }
-            paymentRequestButton.disabled = false;
-            paymentRequestButton.classList.remove('loading');
-          }
-        });
+          });
 
       } catch (e) {
-        console.error('[TossPayments] init error:', e);
+        console.error('[TossPayments v2] init error:', e);
         showError(e?.message || e?.toString() || '알 수 없는 오류가 발생했습니다.');
       }
     };
