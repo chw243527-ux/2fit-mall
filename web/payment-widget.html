@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>결제</title>
-  <script src="https://js.tosspayments.com/v1/payment-widget"></script>
+  <!-- 토스페이먼츠 v2 SDK (CDN) -->
   <script src="https://js.tosspayments.com/v2/standard"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -13,6 +13,8 @@
       background: #f5f5f5;
       min-height: 100vh;
     }
+
+    /* ── 로딩 ── */
     #loading {
       display: flex;
       flex-direction: column;
@@ -32,6 +34,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* ── 에러 ── */
     #error-view {
       display: none;
       flex-direction: column;
@@ -41,7 +44,7 @@
       gap: 12px;
       text-align: center;
     }
-    #error-view .icon { font-size: 48px; }
+    #error-view .icon  { font-size: 48px; }
     #error-view .title { font-size: 18px; font-weight: 700; color: #1a1a1a; }
     #error-view .msg   { font-size: 13px; color: #e53935; line-height: 1.5; }
     #error-view button {
@@ -58,6 +61,7 @@
       max-width: 320px;
     }
 
+    /* ── 위젯 본체 ── */
     #widget-view { display: none; }
 
     .order-info {
@@ -67,30 +71,41 @@
       justify-content: space-between;
       align-items: center;
     }
-    .order-name { font-size: 14px; font-weight: 600; color: #1a1a1a; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .order-amount { font-size: 18px; font-weight: 900; color: #0064FF; margin-left: 12px; white-space: nowrap; }
+    .order-name {
+      font-size: 14px; font-weight: 600; color: #1a1a1a;
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .order-amount {
+      font-size: 18px; font-weight: 900; color: #0064FF;
+      margin-left: 12px; white-space: nowrap;
+    }
 
     #payment-method { background: #fff; }
     #agreement      { background: #fff; }
 
-    .pay-btn-wrap {
-      padding: 16px;
-      background: #f5f5f5;
+    /* ── 결제 버튼 오류 메시지 ── */
+    #submit-error {
+      margin: 0 16px 8px;
+      padding: 12px;
+      background: #ffebee;
+      border: 1px solid #ef9a9a;
+      border-radius: 8px;
+      color: #e53935;
+      font-size: 13px;
+      display: none;
     }
+
+    /* ── 결제 버튼 ── */
+    .pay-btn-wrap { padding: 16px; background: #f5f5f5; }
     #pay-btn {
-      width: 100%;
-      height: 56px;
+      width: 100%; height: 56px;
       background: #0064FF;
       color: #fff;
       border: none;
       border-radius: 12px;
-      font-size: 17px;
-      font-weight: 800;
+      font-size: 17px; font-weight: 800;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
     #pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     #pay-btn .btn-spinner {
@@ -103,17 +118,6 @@
     }
     #pay-btn.loading .btn-spinner { display: block; }
     #pay-btn.loading .btn-text    { display: none; }
-
-    #submit-error {
-      margin: 0 16px 8px;
-      padding: 12px;
-      background: #ffebee;
-      border: 1px solid #ef9a9a;
-      border-radius: 8px;
-      color: #e53935;
-      font-size: 13px;
-      display: none;
-    }
   </style>
 </head>
 <body>
@@ -135,7 +139,7 @@
   <!-- 위젯 본체 -->
   <div id="widget-view">
     <div class="order-info">
-      <div class="order-name" id="order-name-el"></div>
+      <div class="order-name"   id="order-name-el"></div>
       <div class="order-amount" id="order-amount-el"></div>
     </div>
     <div id="payment-method"></div>
@@ -150,85 +154,96 @@
   </div>
 
   <script>
-    // ── URL 파라미터 파싱 ──────────────────────────────────────────
+    // ── URL 파라미터 파싱 ──────────────────────────────────────────────────
     const p = new URLSearchParams(location.search);
-    const clientKey      = p.get('clientKey')      || '';
-    const easyPayClientKey = p.get('easyPayClientKey') || ''; // 간편결제 gck 키
-    const customerKey    = p.get('customerKey')    || '@@ANONYMOUS';
-    const orderId     = p.get('orderId')     || '';
-    const orderName   = p.get('orderName')   || '주문';
-    const amount      = parseInt(p.get('amount') || '0', 10);
-    const customerName  = p.get('customerName')  || '';
-    const customerEmail = p.get('customerEmail') || '';
-    // 전화번호: 숫자만 추출, 비어있으면 undefined로 설정 (토스 API에 전달 안 함)
+    const clientKey      = p.get('clientKey')          || '';
+    const customerKey    = p.get('customerKey')         || '@@ANONYMOUS';
+    const orderId        = p.get('orderId')             || '';
+    const orderName      = p.get('orderName')           || '주문';
+    const amount         = parseInt(p.get('amount')     || '0', 10);
+    const customerName   = p.get('customerName')        || '';
+    const customerEmail  = p.get('customerEmail')       || '';
+    const successUrl     = p.get('successUrl')          || '';
+    const failUrl        = p.get('failUrl')             || '';
+
+    // 전화번호: 숫자만 추출, 10자리 미만이면 undefined (API 전달 생략)
     const rawPhone = (p.get('customerMobilePhone') || '').replace(/[^0-9]/g, '');
     const customerMobilePhone = rawPhone.length >= 10 ? rawPhone : undefined;
-    const successUrl  = p.get('successUrl')  || '';
-    const failUrl     = p.get('failUrl')     || '';
 
-    // 금액 포맷
+    // ── UI 초기 텍스트 ────────────────────────────────────────────────────
     const amtFmt = amount.toLocaleString('ko-KR');
-
-    // UI 초기화
-    document.getElementById('order-name-el').textContent  = orderName;
+    document.getElementById('order-name-el').textContent   = orderName;
     document.getElementById('order-amount-el').textContent = amtFmt + '원';
     document.getElementById('pay-btn-text').textContent    = amtFmt + '원 결제하기';
 
+    // ── 헬퍼 ──────────────────────────────────────────────────────────────
     function showError(msg) {
-      document.getElementById('loading').style.display    = 'none';
+      document.getElementById('loading').style.display     = 'none';
       document.getElementById('widget-view').style.display = 'none';
       document.getElementById('error-view').style.display  = 'flex';
-      document.getElementById('error-msg').textContent    = msg;
+      document.getElementById('error-msg').textContent     = msg;
     }
 
-    // ── 위젯 초기화 + 렌더링 ─────────────────────────────────────
+    // ── v2 위젯 초기화 ────────────────────────────────────────────────────
+    // TossPayments(clientKey) — CDN 전역 함수 (v2/standard)
+    // tossPayments.widgets({ customerKey }) — 결제위젯 인스턴스
+    let _widgets = null;
+
     async function init() {
       try {
         if (!clientKey) throw new Error('clientKey가 없습니다.');
         if (!orderId)   throw new Error('orderId가 없습니다.');
+        if (!amount || amount <= 0) throw new Error('결제 금액이 올바르지 않습니다.');
 
-        // v1 API: PaymentWidget(clientKey, customerKey)
-        const widget = PaymentWidget(clientKey, customerKey);
+        // v2: TossPayments 초기화
+        const tossPayments = TossPayments(clientKey);
 
-        // 간편결제 gck 키가 있으면 추가 연동 (카카오페이·네이버페이·토스페이 활성화)
-        if (easyPayClientKey) {
-          try {
-            widget.addEasyPay(easyPayClientKey);
-          } catch (easyPayErr) {
-            console.warn('간편결제 키 추가 실패:', easyPayErr);
-          }
-        }
+        // v2: 결제위젯 인스턴스 생성
+        const widgets = tossPayments.widgets({ customerKey });
 
+        // v2: 금액 설정 (setAmount 후 renderPaymentMethods)
+        await widgets.setAmount({
+          currency: 'KRW',
+          value: amount,
+        });
+
+        // v2: 결제수단 + 약관 동시 렌더링
         await Promise.all([
-          widget.renderPaymentMethods(
-            '#payment-method',
-            { currency: 'KRW', value: amount }
-          ),
-          widget.renderAgreement('#agreement'),
+          widgets.renderPaymentMethods({
+            selector: '#payment-method',
+            variantKey: 'DEFAULT',   // 기본 결제수단 UI 스타일
+          }),
+          widgets.renderAgreement({
+            selector: '#agreement',
+            variantKey: 'AGREEMENT', // 약관 UI 스타일
+          }),
         ]);
 
-        // 전역에 저장 (결제 시 사용)
-        window._widget = widget;
+        // 전역 저장 (결제 버튼 클릭 시 사용)
+        _widgets = widgets;
 
         document.getElementById('loading').style.display     = 'none';
         document.getElementById('widget-view').style.display = 'block';
 
       } catch (e) {
+        console.error('[TossPayments v2] init error:', e);
         showError(e.message || e.toString());
       }
     }
 
-    // ── 결제 요청 ─────────────────────────────────────────────────
+    // ── 결제 요청 ─────────────────────────────────────────────────────────
     async function submitPayment() {
-      const btn = document.getElementById('pay-btn');
+      if (!_widgets) return;
+
+      const btn   = document.getElementById('pay-btn');
       const errEl = document.getElementById('submit-error');
       btn.disabled = true;
       btn.classList.add('loading');
       errEl.style.display = 'none';
 
       try {
-        // customerMobilePhone이 undefined면 객체에서 제외
-        const paymentInfo = {
+        // v2: requestPayment (customerMobilePhone이 없으면 객체에서 제외)
+        await _widgets.requestPayment({
           orderId,
           orderName,
           customerName,
@@ -236,12 +251,13 @@
           successUrl,
           failUrl,
           ...(customerMobilePhone ? { customerMobilePhone } : {}),
-        };
-        await window._widget.requestPayment(paymentInfo);
-        // 성공 시 successUrl로 리디렉션 — 여기 도달 안 함
+        });
+        // 성공 시 successUrl로 리디렉션 — 이 이후 코드는 실행되지 않음
+
       } catch (e) {
-        // 취소(PAY_PROCESS_CANCELED) 는 조용히 처리
+        // 취소(PAY_PROCESS_CANCELED / USER_CANCEL)는 조용히 처리
         if (e.code !== 'PAY_PROCESS_CANCELED' && e.code !== 'USER_CANCEL') {
+          console.error('[TossPayments v2] requestPayment error:', e);
           errEl.textContent   = e.message || '결제 요청에 실패했습니다.';
           errEl.style.display = 'block';
         }
