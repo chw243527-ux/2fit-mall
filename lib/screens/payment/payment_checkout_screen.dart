@@ -89,7 +89,9 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
   Future<void> _initializeWidget() async {
     if (_args == null) return;
 
-    final customerKey = 'customer_${_args!.orderId}';
+    // Widget 방식: 로그인 사용자는 uid, 비로그인은 'ANONYMOUS' 고정
+    final uid = context.read<UserProvider>().user?.id;
+    final customerKey = (uid != null && uid.isNotEmpty) ? uid : 'ANONYMOUS';
     final initResult = await PaymentService.initWidget(
       amount: _args!.amount,
       customerKey: customerKey,
