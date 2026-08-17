@@ -504,19 +504,22 @@
     // ── Payment Widget 전역 인스턴스 ──────────────────────────────
     // Flutter checkout 페이지에서 initTossWidget() → renderTossWidget()
     // → submitTossWidget() 순서로 호출합니다.
-    window._tossWidgets = null;
+    window._tossWidgets = null;   // PaymentWidget 인스턴스
+    window._tossAmount   = 0;     // 금액 (renderPaymentMethods 호출 시 사용)
 
     /**
-     * 1단계: 위젯 초기화 + 금액 설정
+     * 1단계: 위젯 초기화 (금액 저장만 — 렌더 시 사용)
      *  params: { clientKey, customerKey, amount }
      *  비로그인: customerKey = '@@ANONYMOUS'
+     *
+     *  v1 API: PaymentWidget(clientKey, customerKey) → instance
+     *  setAmount() 없음 — 금액은 renderPaymentMethods(selector, amount) 두번째 인자로 전달
      */
     window.initTossWidget = async function(params) {
       try {
-        // v1 payment-widget SDK: PaymentWidget(clientKey, customerKey)
         const widgets = PaymentWidget(params.clientKey, params.customerKey);
-        await widgets.setAmount({ currency: 'KRW', value: params.amount });
         window._tossWidgets = widgets;
+        window._tossAmount  = params.amount;
         if (window._tossWidgetInitCallback) {
           window._tossWidgetInitCallback('ok');
         }
@@ -528,21 +531,22 @@
     };
 
     /**
-     * 2단계: 결제 UI + 이용약관 렌더링
+     * 2단계: 결제수단 UI + 이용약관 렌더링
      *  DOM에 id="payment-method" 와 id="agreement" div가 있어야 합니다.
+     *
+     *  v1 API:
+     *    renderPaymentMethods(selector, amount, options?) → PaymentMethodsWidget
+     *    renderAgreement(selector, options?)              → AgreementWidget
      */
     window.renderTossWidget = async function() {
       try {
         if (!window._tossWidgets) throw new Error('widget not initialized');
         await Promise.all([
-          window._tossWidgets.renderPaymentMethods({
-            selector: '#payment-method',
-            variantKey: 'DEFAULT',
-          }),
-          window._tossWidgets.renderAgreement({
-            selector: '#agreement',
-            variantKey: 'AGREEMENT',
-          }),
+          window._tossWidgets.renderPaymentMethods(
+            '#payment-method',
+            { currency: 'KRW', value: window._tossAmount }
+          ),
+          window._tossWidgets.renderAgreement('#agreement'),
         ]);
         if (window._tossWidgetRenderCallback) {
           window._tossWidgetRenderCallback('ok');
@@ -557,11 +561,13 @@
     /**
      * 금액 업데이트 (쿠폰 등 적용 시)
      *  params: { amount }
+     *  v1: PaymentMethodsWidget.updateAmount(amount) 사용
      */
     window.updateTossWidgetAmount = async function(params) {
       try {
-        if (!window._tossWidgets) return;
-        await window._tossWidgets.setAmount({ currency: 'KRW', value: params.amount });
+        if (!window._tossPaymentMethodsWidget) return;
+        window._tossPaymentMethodsWidget.updateAmount(params.amount);
+        window._tossAmount = params.amount;
       } catch (e) { /* ignore */ }
     };
 
