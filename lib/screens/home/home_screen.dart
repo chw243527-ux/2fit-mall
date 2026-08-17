@@ -5463,9 +5463,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _footerSocialBtn(String label, Color bg, Color fg, VoidCallback onTap) {
     final r = Responsive.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(7)),
         decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(6)),
@@ -5479,15 +5479,13 @@ class _HomeScreenState extends State<HomeScreen>
     return Padding(
       padding: EdgeInsets.only(bottom: r.h(10)),
       child: onTap != null
-          ? MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: onTap,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(label, style: TextStyle(color: const Color(0xFFBBBBBB), fontSize: r.sp(13))),
-                ),
+          ? InkWell(
+              onTap: onTap,
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                child: Text(label, style: TextStyle(color: const Color(0xFFBBBBBB), fontSize: r.sp(13))),
               ),
             )
           : Text(label, style: TextStyle(color: Colors.white38, fontSize: r.sp(13))),

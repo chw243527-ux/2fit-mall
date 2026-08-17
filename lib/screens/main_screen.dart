@@ -1165,8 +1165,9 @@ class _PcFooter extends StatelessWidget {
   }
 
   Widget _socialBtn(String label, Color bg, Color fg, VoidCallback onTap, Responsive r) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(7)),
         decoration: BoxDecoration(
@@ -1190,19 +1191,17 @@ class _PcFooter extends StatelessWidget {
           ...links.map((link) => Padding(
                 padding: EdgeInsets.only(bottom: r.h(10)),
                 child: link.onTap != null
-                    ? MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: link.onTap,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Text(
-                              link.label,
-                              style: TextStyle(
-                                color: const Color(0xFFBBBBBB),
-                                fontSize: r.sp(13),
-                              ),
+                    ? InkWell(
+                        onTap: link.onTap,
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                          child: Text(
+                            link.label,
+                            style: TextStyle(
+                              color: const Color(0xFFBBBBBB),
+                              fontSize: r.sp(13),
                             ),
                           ),
                         ),
