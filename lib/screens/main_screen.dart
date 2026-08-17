@@ -1193,12 +1193,16 @@ class _PcFooter extends StatelessWidget {
                     ? MouseRegion(
                         cursor: SystemMouseCursors.click,
                         child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: link.onTap,
-                          child: Text(
-                            link.label,
-                            style: TextStyle(
-                              color: Color(0xFFBBBBBB),
-                              fontSize: r.sp(13),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              link.label,
+                              style: TextStyle(
+                                color: const Color(0xFFBBBBBB),
+                                fontSize: r.sp(13),
+                              ),
                             ),
                           ),
                         ),
