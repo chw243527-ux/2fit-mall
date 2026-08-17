@@ -57,6 +57,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _pointController = TextEditingController();
   int _usedPoints = 0;        // 실제 사용할 포인트
   bool _pointInputError = false;
+  bool _useAllPoints = false;  // 전액사용 체크박스
 
   // 번역 헬퍼
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
@@ -1603,7 +1604,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final pointBalance = context.watch<PointProvider>().balance;
     final minUse = PointService.minUsePoints; // 20,000
     final canUse = pointBalance >= minUse;
-    // 최대 사용 가능: 결제 예정 금액(쿠폰 적용 후)을 초과 불가
+    // 최대 사용 가능: 쿠폰 적용 후 결제금액의 99% & 보유잔액 중 작은 값
     final maxUsable = ((widget.cart.total - _couponDiscount) * 0.99)
         .floor()
         .clamp(0, pointBalance);
@@ -1613,7 +1614,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 잔액 표시
+          // ── 보유 포인트 + 기준 안내 ──────────────────────────
           Row(
             children: [
               const Icon(Icons.stars_rounded, color: Color(0xFFFF6D00), size: 18),
@@ -1625,29 +1626,98 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const Spacer(),
               if (!canUse)
                 Text(
-                  '${_formatPrice(minUse.toDouble())}P 이상부터 사용 가능',
+                  '${_formatPrice(minUse.toDouble())}P 이상부터 사용',
                   style: const TextStyle(fontSize: 11, color: Color(0xFF999999)),
                 ),
             ],
           ),
-          const SizedBox(height: 10),
-          if (canUse) ...[ 
+
+          // ── 기준 포인트 미달 → 입력줄 숨김 ──────────────────
+          if (canUse) ...[
+            const SizedBox(height: 10),
+
+            // 전액사용 체크박스
+            GestureDetector(
+              onTap: _usedPoints > 0
+                  ? null // 이미 적용 중이면 체크박스 비활성
+                  : () {
+                      setState(() {
+                        _useAllPoints = !_useAllPoints;
+                        if (_useAllPoints) {
+                          _pointController.text = maxUsable.toString();
+                          _pointInputError = false;
+                        } else {
+                          _pointController.clear();
+                        }
+                      });
+                    },
+              child: Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: (_useAllPoints && _usedPoints == 0)
+                          ? const Color(0xFFFF6D00)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: (_useAllPoints && _usedPoints == 0)
+                            ? const Color(0xFFFF6D00)
+                            : const Color(0xFFCCCCCC),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: (_useAllPoints && _usedPoints == 0)
+                        ? const Icon(Icons.check, size: 14, color: Colors.white)
+                        : null,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '전액사용  (최대 ${_formatPrice(maxUsable.toDouble())}P)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: _usedPoints > 0
+                          ? const Color(0xFFCCCCCC)
+                          : const Color(0xFF333333),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // 입력 필드 + 적용/취소 버튼
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: TextField(
                     controller: _pointController,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      hintText: '사용할 포인트 입력 (최대 ${_formatPrice(maxUsable.toDouble())}P)',
-                      prefixIcon: const Icon(Icons.stars_rounded, color: Color(0xFFFF6D00)),
-                      errorText: _pointInputError ? '${_formatPrice(minUse.toDouble())}P 이상, ${_formatPrice(maxUsable.toDouble())}P 이하로 입력하세요' : null,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                    ),
                     enabled: _usedPoints == 0,
-                    onChanged: (_) {
+                    onChanged: (v) {
+                      // 직접 입력 시 전액사용 체크 해제
+                      if (_useAllPoints) setState(() => _useAllPoints = false);
                       if (_pointInputError) setState(() => _pointInputError = false);
                     },
+                    decoration: InputDecoration(
+                      hintText: '사용할 포인트 직접 입력',
+                      prefixIcon: const Icon(Icons.stars_rounded,
+                          color: Color(0xFFFF6D00), size: 20),
+                      suffixText: 'P',
+                      errorText: _pointInputError
+                          ? '${_formatPrice(minUse.toDouble())}P 이상 ${_formatPrice(maxUsable.toDouble())}P 이하'
+                          : null,
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      filled: true,
+                      fillColor: _usedPoints > 0
+                          ? const Color(0xFFF5F5F5)
+                          : Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -1655,13 +1725,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   height: 50,
                   child: ElevatedButton(
                     onPressed: _usedPoints > 0
+                        // 취소
                         ? () => setState(() {
                               _usedPoints = 0;
+                              _useAllPoints = false;
                               _pointController.clear();
                               _pointInputError = false;
                             })
+                        // 적용
                         : () {
-                            final raw = int.tryParse(_pointController.text.replaceAll(',', '').trim()) ?? 0;
+                            final raw = int.tryParse(
+                                    _pointController.text
+                                        .replaceAll(',', '')
+                                        .trim()) ??
+                                0;
                             if (raw < minUse || raw > maxUsable) {
                               setState(() => _pointInputError = true);
                               return;
@@ -1677,35 +1754,39 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           : const Color(0xFFFF6D00),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
                     ),
                     child: Text(
                       _usedPoints > 0 ? '취소' : '적용',
                       style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
                     ),
                   ),
                 ),
               ],
             ),
-            // 적용된 포인트 표시
-            if (_usedPoints > 0) ...[ 
+
+            // 적용 완료 배너
+            if (_usedPoints > 0) ...[
               const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF3E0),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFFFF6D00).withValues(alpha: 0.5)),
+                  border: Border.all(
+                      color: const Color(0xFFFF6D00).withValues(alpha: 0.45)),
                 ),
                 child: Row(
                   children: [
                     const Icon(Icons.check_circle_rounded,
-                        color: Color(0xFFFF6D00), size: 20),
-                    const SizedBox(width: 10),
+                        color: Color(0xFFFF6D00), size: 18),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${_formatPrice(_usedPoints.toDouble())}P 사용  ·  -${_formatPrice(_usedPoints.toDouble())}원 할인',
+                        '${_formatPrice(_usedPoints.toDouble())}P 적용  ·  -${_formatPrice(_usedPoints.toDouble())}원 할인',
                         style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
@@ -1717,15 +1798,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
             ],
           ] else ...[
+            // 기준 포인트 미달 → 안내 메시지만 표시 (입력줄 숨김)
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.all(12),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
+                color: const Color(0xFFF8F8F8),
                 borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFEEEEEE)),
               ),
               child: Text(
-                '${_formatPrice(minUse.toDouble())}P 이상 보유 시 포인트를 사용할 수 있습니다.',
+                '포인트는 ${_formatPrice(minUse.toDouble())}P 이상 보유 시 사용할 수 있습니다.',
                 style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
+                textAlign: TextAlign.center,
               ),
             ),
           ],
@@ -1738,25 +1824,91 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final allCoupons = context.watch<CouponProvider>().validCoupons;
     final orderTotal = widget.cart.total;
 
-    // 현재 주문 금액에서 사용 가능한 쿠폰 / 불가 쿠폰 분리
-    final usableCoupons = allCoupons
-        .where((c) => orderTotal >= c.minOrderAmount)
-        .toList();
-    final unusableCoupons = allCoupons
-        .where((c) => orderTotal < c.minOrderAmount)
-        .toList();
+    // 사용 가능 / 불가 분리
+    final usableCoupons =
+        allCoupons.where((c) => orderTotal >= c.minOrderAmount).toList();
+    final unusableCoupons =
+        allCoupons.where((c) => orderTotal < c.minOrderAmount).toList();
+
+    // 드롭다운 아이템 목록 구성
+    // null = "쿠폰 선택 안 함" sentinel
+    final dropdownItems = <DropdownMenuItem<String>>[
+      const DropdownMenuItem(
+        value: '__none__',
+        child: Text('쿠폰을 선택하세요', style: TextStyle(fontSize: 13, color: Color(0xFF999999))),
+      ),
+      if (usableCoupons.isNotEmpty) ...[
+        // 구분 헤더 (비선택)
+        const DropdownMenuItem(
+          value: '__header_usable__',
+          enabled: false,
+          child: Text('── 사용 가능',
+              style: TextStyle(fontSize: 11, color: Color(0xFF0064FF), fontWeight: FontWeight.w700)),
+        ),
+        ...usableCoupons.map((c) {
+          final disc = c.calculateDiscount(orderTotal);
+          return DropdownMenuItem(
+            value: c.id,
+            child: Row(
+              children: [
+                const Icon(Icons.local_activity_rounded,
+                    size: 15, color: Color(0xFF0064FF)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    '${c.name}  (-${_formatPrice(disc)}원)',
+                    style: const TextStyle(fontSize: 13, color: Color(0xFF1A1A2E)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+      if (unusableCoupons.isNotEmpty) ...[
+        const DropdownMenuItem(
+          value: '__header_unusable__',
+          enabled: false,
+          child: Text('── 최소 주문금액 미달',
+              style: TextStyle(fontSize: 11, color: Color(0xFF999999))),
+        ),
+        ...unusableCoupons.map((c) => DropdownMenuItem(
+              value: '__disabled_${c.id}__',
+              enabled: false,
+              child: Row(
+                children: [
+                  const Icon(Icons.local_activity_outlined,
+                      size: 15, color: Color(0xFFCCCCCC)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '${c.name}  (${_formatPrice(c.minOrderAmount)}원 이상)',
+                      style: const TextStyle(fontSize: 13, color: Color(0xFFBBBBBB)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            )),
+      ],
+    ];
+
+    // 현재 선택 값 (드롭다운용)
+    final dropdownValue = _appliedCoupon?.id ?? '__none__';
 
     return _buildSection(
       '쿠폰 할인',
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 보유 쿠폰 목록 ───────────────────────────────────
-          if (allCoupons.isEmpty) ...[
+          // ── 드롭다운 ─────────────────────────────────────────
+          if (allCoupons.isEmpty)
             // 보유 쿠폰 없음
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 14),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
               decoration: BoxDecoration(
                 color: const Color(0xFFF8F8F8),
                 borderRadius: BorderRadius.circular(10),
@@ -1765,308 +1917,167 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.local_activity_outlined, color: Color(0xFFCCCCCC), size: 20),
+                  Icon(Icons.local_activity_outlined,
+                      color: Color(0xFFCCCCCC), size: 18),
                   SizedBox(width: 8),
-                  Text(
-                    '보유한 쿠폰이 없습니다',
-                    style: TextStyle(fontSize: 13, color: Color(0xFF999999)),
-                  ),
+                  Text('보유한 쿠폰이 없습니다',
+                      style:
+                          TextStyle(fontSize: 13, color: Color(0xFF999999))),
                 ],
               ),
-            ),
-          ] else ...[
-            // 사용 가능 쿠폰
-            if (usableCoupons.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Text(
-                  '사용 가능 (${usableCoupons.length}장)',
-                  style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w700,
-                    color: Color(0xFF0064FF),
-                  ),
-                ),
-              ),
-              ...usableCoupons.map((c) => _buildCouponCard(c, usable: true)),
-              const SizedBox(height: 6),
-            ],
-            // 사용 불가 쿠폰
-            if (unusableCoupons.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Text(
-                  '사용 불가 (최소 주문금액 미달)',
-                  style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w500,
-                    color: Color(0xFF999999),
-                  ),
-                ),
-              ),
-              ...unusableCoupons.map((c) => _buildCouponCard(c, usable: false)),
-              const SizedBox(height: 6),
-            ],
-          ],
-
-          // ── 코드 직접 입력 (보유 목록에 없는 쿠폰용) ────────
-          if (_appliedCoupon == null) ...[
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                const Expanded(child: Divider()),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Text('코드 직접 입력',
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
-                ),
-                const Expanded(child: Divider()),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _couponCodeController,
-                    decoration: const InputDecoration(
-                      hintText: '쿠폰 코드를 입력하세요',
-                      prefixIcon: Icon(Icons.local_activity_rounded),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                    ),
-                    textCapitalization: TextCapitalization.characters,
-                    onChanged: (_) => setState(() {}),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _couponLoading ? null : _applyCoupon,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                    child: _couponLoading
-                        ? const SizedBox(
-                            width: 18, height: 18,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white))
-                        : const Text('적용',
-                            style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white)),
-                  ),
-                ),
-              ],
-            ),
-          ],
-
-          // ── 적용된 쿠폰 표시 ─────────────────────────────────
-          if (_appliedCoupon != null) ...[
-            const SizedBox(height: 10),
+            )
+          else
+            // 보유 쿠폰 있음 → 드롭다운
             Container(
-              padding: const EdgeInsets.all(12),
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _appliedCoupon != null
+                      ? const Color(0xFF43A047)
+                      : const Color(0xFFDDDDDD),
+                  width: _appliedCoupon != null ? 1.5 : 1,
+                ),
+              ),
+              child: DropdownButton<String>(
+                value: dropdownValue,
+                isExpanded: true,
+                underline: const SizedBox.shrink(),
+                icon: _appliedCoupon != null
+                    ? GestureDetector(
+                        onTap: _removeCoupon,
+                        child: const Icon(Icons.cancel_rounded,
+                            color: Color(0xFFAAAAAA), size: 20),
+                      )
+                    : const Icon(Icons.expand_more_rounded,
+                        color: Color(0xFF888888)),
+                items: dropdownItems,
+                onChanged: (val) {
+                  if (val == null ||
+                      val == '__none__' ||
+                      val.startsWith('__header') ||
+                      val.startsWith('__disabled')) {
+                    _removeCoupon();
+                    return;
+                  }
+                  final picked = usableCoupons
+                      .where((c) => c.id == val)
+                      .firstOrNull;
+                  if (picked != null) {
+                    setState(() {
+                      _appliedCoupon = picked;
+                      _couponCodeController.clear();
+                    });
+                  }
+                },
+              ),
+            ),
+
+          // ── 적용된 쿠폰 할인 배너 ────────────────────────────
+          if (_appliedCoupon != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: const Color(0xFFE8F5E9),
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                    color: const Color(0xFF43A047).withValues(alpha: 0.5)),
+                    color:
+                        const Color(0xFF43A047).withValues(alpha: 0.45)),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.check_circle_rounded,
-                      color: Color(0xFF43A047), size: 20),
-                  const SizedBox(width: 10),
+                      color: Color(0xFF43A047), size: 18),
+                  const SizedBox(width: 8),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _appliedCoupon!.name,
-                          style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF2E7D32)),
-                        ),
-                        Text(
-                          '${_appliedCoupon!.typeLabel}  ·  -${_formatPrice(_couponDiscount)}원 할인',
-                          style: const TextStyle(
-                              fontSize: 12, color: Color(0xFF388E3C)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // 취소 버튼
-                  GestureDetector(
-                    onTap: _removeCoupon,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE53935).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text('취소',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFFE53935))),
+                    child: Text(
+                      '${_appliedCoupon!.typeLabel}  ·  -${_formatPrice(_couponDiscount)}원 할인',
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF2E7D32)),
                     ),
                   ),
                 ],
               ),
             ),
           ],
-        ],
-      ),
-    );
-  }
 
-  /// 쿠폰 카드 위젯 (보유 목록용)
-  Widget _buildCouponCard(CouponModel c, {required bool usable}) {
-    final isApplied = _appliedCoupon?.id == c.id;
-    final discount = c.calculateDiscount(widget.cart.total);
-    final expiresStr =
-        '${c.expiresAt.year}.${c.expiresAt.month.toString().padLeft(2, '0')}.${c.expiresAt.day.toString().padLeft(2, '0')} 만료';
-
-    return GestureDetector(
-      onTap: usable && !isApplied && _appliedCoupon == null
-          ? () => setState(() {
-                _appliedCoupon = c;
-                _couponCodeController.clear();
-              })
-          : isApplied
-              ? _removeCoupon
-              : null,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isApplied
-              ? const Color(0xFFE8F5E9)
-              : usable
-                  ? Colors.white
-                  : const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isApplied
-                ? const Color(0xFF43A047)
-                : usable
-                    ? const Color(0xFF0064FF).withValues(alpha: 0.35)
-                    : const Color(0xFFDDDDDD),
-            width: isApplied ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            // 아이콘
-            Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(
-                color: isApplied
-                    ? const Color(0xFF43A047).withValues(alpha: 0.12)
-                    : usable
-                        ? const Color(0xFF0064FF).withValues(alpha: 0.08)
-                        : const Color(0xFFEEEEEE),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isApplied
-                    ? Icons.check_circle_rounded
-                    : Icons.local_activity_rounded,
-                size: 18,
-                color: isApplied
-                    ? const Color(0xFF43A047)
-                    : usable
-                        ? const Color(0xFF0064FF)
-                        : const Color(0xFFBBBBBB),
-              ),
-            ),
-            const SizedBox(width: 10),
-            // 쿠폰 정보
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    c.name,
+          // ── 코드 직접 입력 (보유 목록에 없는 쿠폰) ──────────
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Text('코드 직접 입력',
                     style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: usable
-                          ? const Color(0xFF1A1A2E)
-                          : const Color(0xFF999999),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Text(
-                        c.typeLabel,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: isApplied
-                              ? const Color(0xFF2E7D32)
-                              : usable
-                                  ? const Color(0xFF0064FF)
-                                  : const Color(0xFFBBBBBB),
-                        ),
-                      ),
-                      if (usable && discount > 0) ...[
-                        Text(
-                          '  →  -${_formatPrice(discount)}원',
-                          style: const TextStyle(
-                              fontSize: 11, color: Color(0xFFE53935),
-                              fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Text(expiresStr,
-                          style: const TextStyle(
-                              fontSize: 11, color: Color(0xFFAAAAAA))),
-                      if (c.minOrderAmount > 0) ...[
-                        Text(
-                          '  ·  ${_formatPrice(c.minOrderAmount)}원 이상',
-                          style: const TextStyle(
-                              fontSize: 11, color: Color(0xFFAAAAAA)),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
+                        fontSize: 11, color: Colors.grey.shade500)),
               ),
-            ),
-            // 적용/선택 상태
-            if (usable) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: isApplied
-                      ? const Color(0xFF43A047)
-                      : _appliedCoupon == null
-                          ? const Color(0xFF0064FF)
-                          : const Color(0xFFDDDDDD),
-                  borderRadius: BorderRadius.circular(6),
+              const Expanded(child: Divider()),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _couponCodeController,
+                  enabled: _appliedCoupon == null,
+                  decoration: InputDecoration(
+                    hintText: '쿠폰 코드 입력',
+                    prefixIcon: const Icon(Icons.local_activity_rounded,
+                        size: 20),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 14),
+                    filled: true,
+                    fillColor: _appliedCoupon != null
+                        ? const Color(0xFFF5F5F5)
+                        : Colors.white,
+                  ),
+                  textCapitalization: TextCapitalization.characters,
+                  onChanged: (_) => setState(() {}),
                 ),
-                child: Text(
-                  isApplied ? '적용됨' : _appliedCoupon == null ? '선택' : '선택불가',
-                  style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _appliedCoupon != null
+                      ? _removeCoupon
+                      : (_couponLoading ? null : _applyCoupon),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _appliedCoupon != null
+                        ? const Color(0xFF888888)
+                        : AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16),
+                  ),
+                  child: _couponLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
+                      : Text(
+                          _appliedCoupon != null ? '취소' : '적용',
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white),
+                        ),
                 ),
               ),
             ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
