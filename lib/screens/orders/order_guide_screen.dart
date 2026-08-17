@@ -883,7 +883,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           const SizedBox(height: 12),
           _buildInfoRow(Icons.design_services_rounded, context.loc.t('커스텀_제작', '커스텀 제작'), context.loc.t('주문_확정_후_14_21일', '주문 확정 후 14~21일'), AppColors.warning),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.groups_rounded, context.loc.t('단체_주문', '단체 주문'), context.loc.t('주문_확인_후_10_21_영업일', '주문 확인 후 10~21 영업일'), AppColors.accent),
+          _buildInfoRow(Icons.groups_rounded, context.loc.t('단체_주문', '단체 주문'), context.loc.t('주문_확인_후_14_21일', '주문 확정 후 14~21일'), AppColors.accent),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
