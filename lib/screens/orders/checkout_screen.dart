@@ -221,6 +221,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   flex: 6,
                   child: SingleChildScrollView(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildOrdererInfo(),
                         const SizedBox(height: 16),
@@ -1794,6 +1795,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildSection(String title, Widget content) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
