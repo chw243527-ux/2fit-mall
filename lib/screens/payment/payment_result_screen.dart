@@ -59,10 +59,11 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
       if (!mounted) return;
 
       if (result.success) {
-        // 주문 상태 업데이트
-        await OrderService.updateOrderStatus(orderId, OrderStatus.pending);
+        // 결제 승인 완료 → 주문 상태를 confirmed로 업데이트
+        await OrderService.updateOrderStatus(orderId, OrderStatus.confirmed);
 
         // 현금영수증 자동 발급
+        if (!mounted) return;
         final userProv = context.read<UserProvider>();
         final cashNum = userProv.user?.cashReceiptNum;
         if (cashNum != null && cashNum.isNotEmpty && result.paymentKey != null) {
@@ -76,18 +77,18 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
           );
         }
 
-        setState(() => _isProcessing = false);
+        if (!mounted) return;
 
         // 장바구니 비우기
-        if (mounted) context.read<CartProvider>().clearCart();
+        context.read<CartProvider>().clearCart();
 
-        // 주문완료 화면으로 이동
-        if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            '/mypage',
-            (route) => false,
-          );
-        }
+        setState(() => _isProcessing = false);
+
+        // 주문완료 → 마이페이지로 이동
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/mypage',
+          (route) => false,
+        );
       } else {
         setState(() {
           _isProcessing = false;

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import '../../widgets/net_image.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,7 @@ import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../services/fcm_service.dart';
 import '../../services/notification_service.dart';
+import '../../services/order_service.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/payment_service.dart';
@@ -1925,6 +1927,42 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         (widget.cart.items.length > 1
             ? ' 외 ${widget.cart.items.length - 1}건'
             : '');
+
+    // ── 결제 전 주문을 Firestore에 미리 저장 (pending 상태) ──
+    // payment/success 에서 updateOrderStatus로 paid 처리하려면 문서가 있어야 함
+    final orderItems = widget.cart.items.map((c) => OrderItem(
+      productId:   c.product.id,
+      productName: c.product.name,
+      size:        c.selectedSize,
+      color:       c.selectedColor,
+      quantity:    c.quantity,
+      price:       c.product.price,
+    )).toList();
+
+    final preOrder = OrderModel(
+      id:            orderId,
+      userId:        user?.id ?? 'guest',
+      userName:      user?.name ?? loc.buyerLabel,
+      userPhone:     user?.phone ?? '',
+      userAddress:   _finalAddress,
+      status:        OrderStatus.pending,
+      totalAmount:   _finalTotal,
+      shippingFee:   widget.cart.shippingFee,
+      paymentMethod: _selectedPayment,
+      orderType:     _isGroupCart ? 'group' : 'regular',
+      createdAt:     DateTime.now(),
+      items:         orderItems,
+      shippingMemo:  _memoController.text.trim().isNotEmpty
+                       ? _memoController.text.trim() : null,
+    );
+
+    try {
+      await OrderService.saveOrder(preOrder);
+      Provider.of<OrderProvider>(context, listen: false).addOrder(preOrder);
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 결제 전 주문 저장 실패: $e');
+      // 저장 실패해도 결제는 계속 진행 (success 화면에서 재시도)
+    }
 
     if (!mounted) return;
 
