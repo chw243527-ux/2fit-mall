@@ -156,7 +156,12 @@
   <script>
     // ── URL 파라미터 파싱 ──────────────────────────────────────────────────
     const p = new URLSearchParams(location.search);
+    // v2 결제위젯 SDK는 "주문서형·결제창형 연동 키"(live_gck_...) 만 허용.
+    // API 개별 연동 키(live_ck_...)를 넘기면 NOT_SUPPORTED_API_INDIVIDUAL_KEY 오류 발생.
+    // → easyPayClientKey(gck)가 있으면 우선 사용, 없으면 clientKey(ck) fallback.
     const clientKey      = p.get('clientKey')          || '';
+    const easyPayClientKey = p.get('easyPayClientKey') || '';
+    const widgetClientKey  = easyPayClientKey || clientKey; // v2 초기화에 사용할 키
     const customerKey    = p.get('customerKey')         || '@@ANONYMOUS';
     const orderId        = p.get('orderId')             || '';
     const orderName      = p.get('orderName')           || '주문';
@@ -191,12 +196,14 @@
 
     async function init() {
       try {
-        if (!clientKey) throw new Error('clientKey가 없습니다.');
-        if (!orderId)   throw new Error('orderId가 없습니다.');
+        if (!widgetClientKey) throw new Error('clientKey가 없습니다.');
+        if (!orderId)         throw new Error('orderId가 없습니다.');
         if (!amount || amount <= 0) throw new Error('결제 금액이 올바르지 않습니다.');
 
         // v2: TossPayments 초기화
-        const tossPayments = TossPayments(clientKey);
+        // ⚠️ v2 결제위젯 SDK는 "결제위젯 연동 키"(live_gck_...) 만 허용
+        //    API 개별 연동 키(live_ck_...)를 사용하면 NOT_SUPPORTED_API_INDIVIDUAL_KEY 오류
+        const tossPayments = TossPayments(widgetClientKey);
 
         // v2: 결제위젯 인스턴스 생성
         const widgets = tossPayments.widgets({ customerKey });
