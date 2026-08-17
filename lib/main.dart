@@ -43,6 +43,7 @@ import 'screens/auth/signup_screen.dart';
 import 'screens/notifications/notification_center_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/payment/payment_result_screen.dart';
+import 'screens/payment/payment_checkout_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -355,6 +356,12 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
             case '/payment/fail':
               return MaterialPageRoute(
                 builder: (_) => const PaymentFailScreen(),
+                settings: settings,
+              );
+            // 토스페이먼츠 Payment Widget 결제 화면
+            case '/payment/checkout':
+              return MaterialPageRoute(
+                builder: (_) => const PaymentCheckoutScreen(),
                 settings: settings,
               );
             default:

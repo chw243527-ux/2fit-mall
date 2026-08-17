@@ -498,97 +498,93 @@
     }
   </script>
 
-  <!-- 토스페이먼츠 결제 SDK v2 -->
+  <!-- 토스페이먼츠 결제 SDK v2 (Payment Widget 방식) -->
   <script src="https://js.tosspayments.com/v2/standard"></script>
   <script>
-    // Flutter에서 호출할 토스페이먼츠 결제 요청 함수
-    window.requestTossPayment = async function(params) {
+    // ── Payment Widget 전역 인스턴스 ──────────────────────────────
+    // Flutter checkout 페이지에서 initTossWidget() → renderTossWidget()
+    // → submitTossWidget() 순서로 호출합니다.
+    window._tossWidgets = null;
+
+    /**
+     * 1단계: 위젯 초기화 + 금액 설정
+     *  params: { clientKey, customerKey, amount }
+     */
+    window.initTossWidget = async function(params) {
       try {
         const tossPayments = TossPayments(params.clientKey);
-        const payment = tossPayments.payment({
-          customerKey: params.customerKey,
-        });
-
-        await payment.requestPayment({
-          method: params.method,          // 'CARD', 'VIRTUAL_ACCOUNT', etc.
-          amount: {
-            currency: 'KRW',
-            value: params.amount,
-          },
-          orderId: params.orderId,
-          orderName: params.orderName,
-          customerName: params.customerName,
-          customerEmail: params.customerEmail,
-          successUrl: params.successUrl,
-          failUrl: params.failUrl,
-        });
+        const widgets = tossPayments.widgets({ customerKey: params.customerKey });
+        await widgets.setAmount({ currency: 'KRW', value: params.amount });
+        window._tossWidgets = widgets;
+        if (window._tossWidgetInitCallback) {
+          window._tossWidgetInitCallback('ok');
+        }
       } catch (e) {
-        // 사용자가 결제 취소하거나 실패한 경우
-        if (window._tossPaymentCancelCallback) {
-          window._tossPaymentCancelCallback(e.message || '결제가 취소되었습니다.');
+        if (window._tossWidgetInitCallback) {
+          window._tossWidgetInitCallback('error:' + (e.message || e.toString()));
         }
       }
     };
 
-    // 간편결제 (카카오페이, 네이버페이, 토스페이)
-    window.requestTossEasyPay = async function(params) {
+    /**
+     * 2단계: 결제 UI + 이용약관 렌더링
+     *  DOM에 id="payment-method" 와 id="agreement" div가 있어야 합니다.
+     */
+    window.renderTossWidget = async function() {
       try {
-        const tossPayments = TossPayments(params.clientKey);
-        const payment = tossPayments.payment({
-          customerKey: params.customerKey,
-        });
-
-        await payment.requestPayment({
-          method: 'EASY_PAY',
-          amount: {
-            currency: 'KRW',
-            value: params.amount,
-          },
-          orderId: params.orderId,
-          orderName: params.orderName,
-          customerName: params.customerName,
-          customerEmail: params.customerEmail,
-          easyPay: {
-            easyPayCompany: params.easyPayCompany, // 'KAKAOPAY', 'NAVERPAY', 'TOSSPAY'
-          },
-          successUrl: params.successUrl,
-          failUrl: params.failUrl,
-        });
+        if (!window._tossWidgets) throw new Error('widget not initialized');
+        await Promise.all([
+          window._tossWidgets.renderPaymentMethods({
+            selector: '#payment-method',
+            variantKey: 'DEFAULT',
+          }),
+          window._tossWidgets.renderAgreement({
+            selector: '#agreement',
+            variantKey: 'AGREEMENT',
+          }),
+        ]);
+        if (window._tossWidgetRenderCallback) {
+          window._tossWidgetRenderCallback('ok');
+        }
       } catch (e) {
-        if (window._tossPaymentCancelCallback) {
-          window._tossPaymentCancelCallback(e.message || '결제가 취소되었습니다.');
+        if (window._tossWidgetRenderCallback) {
+          window._tossWidgetRenderCallback('error:' + (e.message || e.toString()));
         }
       }
     };
 
-    // 가상계좌
-    window.requestTossVirtualAccount = async function(params) {
+    /**
+     * 금액 업데이트 (쿠폰 등 적용 시)
+     *  params: { amount }
+     */
+    window.updateTossWidgetAmount = async function(params) {
       try {
-        const tossPayments = TossPayments(params.clientKey);
-        const payment = tossPayments.payment({
-          customerKey: params.customerKey,
-        });
+        if (!window._tossWidgets) return;
+        await window._tossWidgets.setAmount({ currency: 'KRW', value: params.amount });
+      } catch (e) { /* ignore */ }
+    };
 
-        await payment.requestPayment({
-          method: 'VIRTUAL_ACCOUNT',
-          amount: {
-            currency: 'KRW',
-            value: params.amount,
-          },
-          orderId: params.orderId,
-          orderName: params.orderName,
-          customerName: params.customerName,
-          customerEmail: params.customerEmail,
-          virtualAccount: {
-            bank: 'KAKAOBANK',
-            validHours: 24,
-          },
-          successUrl: params.successUrl,
-          failUrl: params.failUrl,
+    /**
+     * 3단계: 결제 요청 (결제하기 버튼 클릭 시)
+     *  params: { orderId, orderName, customerName, customerEmail,
+     *            customerMobilePhone, successUrl, failUrl }
+     */
+    window.submitTossWidget = async function(params) {
+      try {
+        if (!window._tossWidgets) throw new Error('widget not initialized');
+        await window._tossWidgets.requestPayment({
+          orderId:             params.orderId,
+          orderName:           params.orderName,
+          customerName:        params.customerName,
+          customerEmail:       params.customerEmail,
+          customerMobilePhone: params.customerMobilePhone || '',
+          successUrl:          params.successUrl,
+          failUrl:             params.failUrl,
         });
+        // 성공 시 successUrl로 리디렉션되므로 여기에 도달하지 않음
       } catch (e) {
-        if (window._tossPaymentCancelCallback) {
-          window._tossPaymentCancelCallback(e.message || '결제가 취소되었습니다.');
+        if (window._tossWidgetSubmitCallback) {
+          window._tossWidgetSubmitCallback('error:' + (e.message || e.toString()));
         }
       }
     };

@@ -1,6 +1,6 @@
 // payment_service.dart
 // ══════════════════════════════════════════════════════════════
-// 토스페이먼츠 결제 서비스 — 실결제(Live) JS SDK v2 연동
+// 토스페이먼츠 결제 서비스 — Payment Widget 방식 (v2)
 //
 // 🔑 연동 구성:
 //   • clientKey  : live_ck_kYG57Eba3GbJ4WOYa1vE8pWDOxmA (앱 포함 가능)
@@ -15,6 +15,7 @@ import 'dart:async';
 import 'dart:convert';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+// ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -35,93 +36,83 @@ class TossConfig {
 }
 
 // ══════════════════════════════════════════════════════════════
-// PaymentService — 결제 요청 / 승인 / 취소
+// PaymentService — Payment Widget 방식
 // ══════════════════════════════════════════════════════════════
 class PaymentService {
 
-  // ─── 결제 요청 (JS SDK v2 호출) ──────────────────────────────
-  static Future<PaymentResult> requestPayment(
-    BuildContext context, {
-    required String orderId,
-    required String orderName,
+  // ─── Widget 초기화 (JS 호출) ──────────────────────────────────
+  // checkout 화면 initState에서 호출 → 위젯 인스턴스 준비
+  static Future<String> initWidget({
     required int amount,
-    required String customerName,
-    required String customerEmail,
-    required String paymentMethod,
+    required String customerKey,
   }) async {
-    // 고객 키: userId 기반 (없으면 orderId 사용)
-    final customerKey = 'customer_$orderId';
-
-    // successUrl / failUrl — 결제 완료 후 토스가 리디렉션하는 URL
-    final baseUrl = html.window.location.origin;
-    final successUrl =
-        '$baseUrl/payment/success?orderId=$orderId&amount=$amount';
-    final failUrl = '$baseUrl/payment/fail?orderId=$orderId';
-
-    // 결제 수단 매핑
-    final method = _mapMethodForSdk(paymentMethod);
-
-    final completer = Completer<PaymentResult>();
-
-    // 취소 콜백 등록
-    js.context['_tossPaymentCancelCallback'] =
-        js.allowInterop((String msg) {
-      if (!completer.isCompleted) {
-        completer.complete(PaymentResult(success: false, error: msg));
-      }
+    final completer = Completer<String>();
+    js.context['_tossWidgetInitCallback'] = js.allowInterop((String result) {
+      if (!completer.isCompleted) completer.complete(result);
     });
-
-    // JS 파라미터 객체
     final params = js.JsObject.jsify({
       'clientKey': TossConfig.clientKey,
       'customerKey': customerKey,
       'amount': amount,
-      'orderId': orderId,
-      'orderName': orderName,
-      'customerName': customerName,
-      'customerEmail': customerEmail,
-      'successUrl': successUrl,
-      'failUrl': failUrl,
     });
+    js.context.callMethod('initTossWidget', [params]);
+    return completer.future.timeout(
+      const Duration(seconds: 15),
+      onTimeout: () => 'error:위젯 초기화 시간 초과',
+    );
+  }
 
-    try {
-      if (method == 'EASY_PAY') {
-        // 간편결제 (카카오페이/네이버페이/토스페이)
-        final easyPayCompany = _mapEasyPayCompany(paymentMethod);
-        final easyParams = js.JsObject.jsify({
-          'clientKey': TossConfig.clientKey,
-          'customerKey': customerKey,
-          'amount': amount,
-          'orderId': orderId,
-          'orderName': orderName,
-          'customerName': customerName,
-          'customerEmail': customerEmail,
-          'easyPayCompany': easyPayCompany,
-          'successUrl': successUrl,
-          'failUrl': failUrl,
-        });
-        js.context.callMethod('requestTossEasyPay', [easyParams]);
-      } else if (method == 'VIRTUAL_ACCOUNT') {
-        js.context.callMethod('requestTossVirtualAccount', [params]);
-      } else {
-        js.context.callMethod('requestTossPayment',
-            [js.JsObject.jsify({...params as Map, 'method': method})]);
-      }
-    } catch (e) {
-      return PaymentResult(success: false, error: '결제창 호출 오류: $e');
-    }
+  // ─── Widget 렌더링 (JS 호출) ──────────────────────────────────
+  // DOM에 #payment-method, #agreement div가 준비된 후 호출
+  static Future<String> renderWidget() async {
+    final completer = Completer<String>();
+    js.context['_tossWidgetRenderCallback'] = js.allowInterop((String result) {
+      if (!completer.isCompleted) completer.complete(result);
+    });
+    js.context.callMethod('renderTossWidget', []);
+    return completer.future.timeout(
+      const Duration(seconds: 15),
+      onTimeout: () => 'error:위젯 렌더링 시간 초과',
+    );
+  }
 
-    // successUrl로 리디렉션되므로 — 취소 콜백 대기 (30초 타임아웃)
-    // 실제 성공은 payment/success 라우트에서 처리됨
-    try {
-      return await completer.future.timeout(
-        const Duration(seconds: 30),
-        onTimeout: () => const PaymentResult(
-            success: false, error: '결제 시간이 초과되었습니다.'),
-      );
-    } catch (_) {
-      return const PaymentResult(success: false, error: '결제가 취소되었습니다.');
-    }
+  // ─── 금액 업데이트 (쿠폰 등) ──────────────────────────────────
+  static void updateWidgetAmount(int amount) {
+    final params = js.JsObject.jsify({'amount': amount});
+    js.context.callMethod('updateTossWidgetAmount', [params]);
+  }
+
+  // ─── 결제 요청 (결제하기 버튼 → JS 호출) ──────────────────────
+  // 성공 시 successUrl 리디렉션, 취소/오류 시 'error:...' 반환
+  static Future<String> submitWidget({
+    required String orderId,
+    required String orderName,
+    required String customerName,
+    required String customerEmail,
+    String customerMobilePhone = '',
+    required String successUrl,
+    required String failUrl,
+  }) async {
+    final completer = Completer<String>();
+    js.context['_tossWidgetSubmitCallback'] = js.allowInterop((String result) {
+      if (!completer.isCompleted) completer.complete(result);
+    });
+    final params = js.JsObject.jsify({
+      'orderId':             orderId,
+      'orderName':           orderName,
+      'customerName':        customerName,
+      'customerEmail':       customerEmail,
+      'customerMobilePhone': customerMobilePhone,
+      'successUrl':          successUrl,
+      'failUrl':             failUrl,
+    });
+    js.context.callMethod('submitTossWidget', [params]);
+    // 성공 시 successUrl로 리디렉션되어 이 future는 완료되지 않음
+    // 취소/오류 시 _tossWidgetSubmitCallback이 호출됨
+    return completer.future.timeout(
+      const Duration(minutes: 10),
+      onTimeout: () => 'error:결제 시간이 초과되었습니다.',
+    );
   }
 
   // ─── 결제 승인 — 보안 라우팅 ─────────────────────────────────
@@ -132,7 +123,7 @@ class PaymentService {
     required int amount,
   }) async {
     if (TossConfig.useEdgeFunction) {
-      // ✅ 운영 환경: Supabase Edge Function 경유 (secretKey 앱 노출 없음)
+      // ✅ 운영 환경: Cloudflare Pages Function 경유 (secretKey 앱 노출 없음)
       return await _confirmViaEdgeFunction(
         paymentKey: paymentKey,
         orderId: orderId,
@@ -232,7 +223,6 @@ class PaymentService {
       }
     } catch (e) {
       if (!TossConfig.isLiveMode) {
-        // 테스트 환경 네트워크 오류 → 시뮬레이션
         return PaymentResult(
           success: true,
           paymentKey: paymentKey,
@@ -242,31 +232,6 @@ class PaymentService {
       }
       return PaymentResult(success: false, error: '네트워크 오류: $e');
     }
-  }
-
-  // ─── 결제 팝업 표시 ───────────────────────────────────────────
-  static Future<PaymentResult> _showPaymentDialog(
-    BuildContext context, {
-    required String orderId,
-    required String orderName,
-    required int amount,
-    required String customerName,
-    required String customerEmail,
-    required String paymentMethod,
-  }) async {
-    final result = await showDialog<PaymentResult>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => _PaymentDialog(
-        orderId: orderId,
-        orderName: orderName,
-        amount: amount,
-        customerName: customerName,
-        customerEmail: customerEmail,
-        paymentMethod: paymentMethod,
-      ),
-    );
-    return result ?? const PaymentResult(success: false, error: '결제가 취소되었습니다.');
   }
 
   // ─── 현금영수증 발급 ──────────────────────────────────────────
@@ -371,7 +336,6 @@ class PaymentService {
           orderId: data['orderId'] as String?,
         );
       } else {
-        // 테스트 환경 — API 오류(또는 이미 발급)여도 성공으로 처리
         if (!TossConfig.isLiveMode) {
           return CashReceiptResult(
             success: true,
@@ -386,7 +350,6 @@ class PaymentService {
       }
     } catch (e) {
       if (!TossConfig.isLiveMode) {
-        // 테스트 환경 네트워크 오류 → 시뮬레이션 성공
         return CashReceiptResult(
           success: true,
           receiptKey: 'test_rcpt_${DateTime.now().millisecondsSinceEpoch}',
@@ -408,416 +371,23 @@ class PaymentService {
     }
   }
 
-  // ─── JS SDK v2 결제 수단 매핑 ─────────────────────────────────
-  static String _mapMethodForSdk(String method) {
-    switch (method) {
-      case '카카오페이':
-      case '네이버페이':
-      case '토스페이':
-        return 'EASY_PAY';
-      case '무통장입금':
-        return 'VIRTUAL_ACCOUNT';
-      default:
-        return 'CARD';
-    }
-  }
-
-  // ─── 간편결제사 매핑 ──────────────────────────────────────────
-  static String _mapEasyPayCompany(String method) {
-    switch (method) {
-      case '카카오페이': return 'KAKAOPAY';
-      case '네이버페이': return 'NAVERPAY';
-      case '토스페이':  return 'TOSSPAY';
-      default:        return 'KAKAOPAY';
-    }
-  }
-
   // ─── 현금영수증 필요 결제수단 여부 ────────────────────────────
   static bool needsCashReceiptApiCall(String? paymentMethod) {
     if (paymentMethod == null) return false;
     const autoIssueMethods = ['무통장입금', 'VIRTUAL_ACCOUNT'];
     return !autoIssueMethods.contains(paymentMethod);
   }
-}
 
-// ══════════════════════════════════════════════════════════════
-// 결제 팝업 다이얼로그
-// ══════════════════════════════════════════════════════════════
-class _PaymentDialog extends StatefulWidget {
-  final String orderId;
-  final String orderName;
-  final int amount;
-  final String customerName;
-  final String customerEmail;
-  final String paymentMethod;
-
-  const _PaymentDialog({
-    required this.orderId,
-    required this.orderName,
-    required this.amount,
-    required this.customerName,
-    required this.customerEmail,
-    required this.paymentMethod,
-  });
-
-  @override
-  State<_PaymentDialog> createState() => _PaymentDialogState();
-}
-
-class _PaymentDialogState extends State<_PaymentDialog> {
-  final _cardNumberCtrl = TextEditingController(text: '4330000000000000');
-  final _expiryCtrl     = TextEditingController(text: '12/26');
-  final _pwCtrl         = TextEditingController(text: '00');
-  final _birthCtrl      = TextEditingController(text: '000101');
-
-  bool   _isProcessing = false;
-  String? _errorMsg;
-  int    _step = 0; // 0: 입력, 1: 처리중, 2: 완료, 3: 실패
-
-  String get _fmt => widget.amount
-      .toString()
-      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
-
-  @override
-  void dispose() {
-    _cardNumberCtrl.dispose();
-    _expiryCtrl.dispose();
-    _pwCtrl.dispose();
-    _birthCtrl.dispose();
-    super.dispose();
+  // ─── successUrl 생성 헬퍼 ─────────────────────────────────────
+  static String buildSuccessUrl(String orderId, int amount) {
+    final baseUrl = html.window.location.origin;
+    return '$baseUrl/payment/success?orderId=$orderId&amount=$amount';
   }
 
-  Future<void> _processPayment() async {
-    setState(() { _isProcessing = true; _errorMsg = null; _step = 1; });
-
-    // 결제 키 생성 (실서비스: 토스 SDK에서 발급받음)
-    final paymentKey = TossConfig.isLiveMode
-        ? 'live_pay_${DateTime.now().millisecondsSinceEpoch}'
-        : 'test_pay_${DateTime.now().millisecondsSinceEpoch}';
-
-    // 결제 승인
-    final result = await PaymentService.confirmPayment(
-      paymentKey: paymentKey,
-      orderId: widget.orderId,
-      amount: widget.amount,
-    );
-
-    if (!mounted) return;
-
-    if (result.success) {
-      setState(() => _step = 2);
-      await Future.delayed(const Duration(milliseconds: 800));
-      if (mounted) Navigator.pop(context, result);
-    } else {
-      setState(() { _step = 3; _errorMsg = result.error; _isProcessing = false; });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-      child: Container(
-        width: double.infinity,
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildHeader(),
-            _buildOrderInfo(),
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: _step == 2
-                  ? _buildSuccessView()
-                  : _step == 1
-                      ? _buildProcessingView()
-                      : _buildCardForm(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    final isLive = TossConfig.isLiveMode;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: BoxDecoration(
-        color: isLive ? const Color(0xFF0064FF) : const Color(0xFF1A1A2E),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.lock, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              isLive ? '토스페이먼츠 결제' : '토스페이먼츠 테스트 결제',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
-            ),
-          ),
-          if (!isLive)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Text('TEST',
-                  style: TextStyle(
-                      color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800)),
-            ),
-          if (_step == 0) ...[
-            const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => Navigator.pop(
-                  context, const PaymentResult(success: false, error: '결제가 취소되었습니다.')),
-              child: const Icon(Icons.close, color: Colors.white70, size: 20),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrderInfo() {
-    return Container(
-      width: double.infinity,
-      color: const Color(0xFFF8F9FA),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(widget.orderName,
-                style: const TextStyle(fontSize: 13, color: Color(0xFF666666)),
-                overflow: TextOverflow.ellipsis),
-          ),
-          Text('$_fmt원',
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCardForm() {
-    final isLive = TossConfig.isLiveMode;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 모드 안내 배너
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isLive
-                ? const Color(0xFFE3F2FD)
-                : const Color(0xFFFFF3CD),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isLive ? const Color(0xFF1E88E5) : const Color(0xFFFFE082),
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(isLive ? Icons.security_rounded : Icons.info_outline,
-                  size: 16,
-                  color: isLive ? const Color(0xFF1565C0) : const Color(0xFF856404)),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  isLive
-                      ? '실제 결제가 진행됩니다. 카드 정보를 안전하게 입력하세요.'
-                      : '테스트 결제입니다. 실제 결제가 발생하지 않습니다.',
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: isLive ? const Color(0xFF1565C0) : const Color(0xFF856404)),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // 결제 수단 표시
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFF0064FF), width: 2),
-            borderRadius: BorderRadius.circular(8),
-            color: const Color(0xFFF0F4FF),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.credit_card, color: Color(0xFF0064FF)),
-              const SizedBox(width: 8),
-              Text(_getPaymentLabel(),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, color: Color(0xFF0064FF))),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        // 카드 입력 폼
-        _buildField('카드번호', _cardNumberCtrl, hint: '1234 5678 9012 3456'),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: _buildField('유효기간', _expiryCtrl, hint: 'MM/YY')),
-            const SizedBox(width: 12),
-            Expanded(
-                child: _buildField('비밀번호 앞 2자리', _pwCtrl,
-                    hint: '••', obscure: true)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _buildField('생년월일 6자리', _birthCtrl, hint: 'YYMMDD'),
-
-        if (_errorMsg != null) ...[
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFEBEE),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFEF9A9A)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 16),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(_errorMsg!,
-                      style: const TextStyle(color: Colors.red, fontSize: 12)),
-                ),
-              ],
-            ),
-          ),
-        ],
-        const SizedBox(height: 20),
-
-        // 결제 버튼
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: ElevatedButton(
-            onPressed: _isProcessing ? null : _processPayment,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0064FF),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: Text('$_fmt원 결제하기',
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: TextButton(
-            onPressed: () => Navigator.pop(
-                context, const PaymentResult(success: false, error: '결제가 취소되었습니다.')),
-            child: const Text('취소', style: TextStyle(color: Colors.grey, fontSize: 13)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _getPaymentLabel() {
-    switch (widget.paymentMethod) {
-      case '카카오페이':   return '카카오페이';
-      case '네이버페이':   return '네이버페이';
-      case '토스페이':    return '토스페이';
-      case '무통장입금':   return '무통장입금 (가상계좌)';
-      default:           return '신용/체크카드';
-    }
-  }
-
-  Widget _buildProcessingView() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 30),
-      child: Column(
-        children: [
-          CircularProgressIndicator(color: Color(0xFF0064FF)),
-          SizedBox(height: 16),
-          Text('결제를 처리하고 있습니다...',
-              style: TextStyle(fontSize: 14, color: Color(0xFF666666))),
-          SizedBox(height: 4),
-          Text('잠시만 기다려주세요',
-              style: TextStyle(fontSize: 12, color: Color(0xFF999999))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSuccessView() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Column(
-        children: [
-          Container(
-            width: 64, height: 64,
-            decoration: const BoxDecoration(
-                color: Color(0xFF00C853), shape: BoxShape.circle),
-            child: const Icon(Icons.check, color: Colors.white, size: 38),
-          ),
-          const SizedBox(height: 14),
-          const Text('결제 완료!',
-              style: TextStyle(
-                  fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A2E))),
-          const SizedBox(height: 6),
-          Text('$_fmt원이 결제되었습니다',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF666666))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildField(
-    String label,
-    TextEditingController ctrl, {
-    String hint = '',
-    bool obscure = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: const TextStyle(
-                fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF444444))),
-        const SizedBox(height: 4),
-        TextField(
-          controller: ctrl,
-          obscureText: obscure,
-          style: const TextStyle(fontSize: 14),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: const TextStyle(color: Color(0xFFCCCCCC), fontSize: 13),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
-            enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
-            focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide:
-                    const BorderSide(color: Color(0xFF0064FF), width: 2)),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-        ),
-      ],
-    );
+  // ─── failUrl 생성 헬퍼 ────────────────────────────────────────
+  static String buildFailUrl(String orderId) {
+    final baseUrl = html.window.location.origin;
+    return '$baseUrl/payment/fail?orderId=$orderId';
   }
 }
 
@@ -853,87 +423,24 @@ class CashReceiptResult {
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   Supabase Edge Function — confirm-payment
-   (supabase/functions/confirm-payment/index.ts)
+// ── 결제 화면 파라미터 모델 ─────────────────────────────────────
+// cart_screen → PaymentCheckoutScreen에 전달
+class PaymentCheckoutArgs {
+  final String orderId;
+  final String orderName;
+  final int amount;
+  final String customerName;
+  final String customerEmail;
+  final String customerPhone;
+  final String selectedPayment;
 
-   이 파일을 배포하면 secretKey가 서버에서만 사용됩니다.
-   배포 명령: supabase functions deploy confirm-payment
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-serve(async (req) => {
-  const { paymentKey, orderId, amount } = await req.json();
-  const secretKey = Deno.env.get("TOSS_SECRET_KEY")!;
-  const credentials = btoa(`${secretKey}:`);
-
-  const res = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
-    method: "POST",
-    headers: {
-      "Authorization": `Basic ${credentials}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ paymentKey, orderId, amount }),
+  const PaymentCheckoutArgs({
+    required this.orderId,
+    required this.orderName,
+    required this.amount,
+    required this.customerName,
+    required this.customerEmail,
+    required this.customerPhone,
+    required this.selectedPayment,
   });
-
-  const data = await res.json();
-  if (res.ok) {
-    return new Response(JSON.stringify({ success: true, ...data }), {
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-  return new Response(JSON.stringify({ success: false, message: data.message }), {
-    status: 400,
-    headers: { "Content-Type": "application/json" },
-  });
-});
-
-   환경변수 설정:
-   supabase secrets set TOSS_SECRET_KEY=live_sk_여기에실제시크릿키
-   ══════════════════════════════════════════════════════════════ */
-
-/* ══════════════════════════════════════════════════════════════
-   Supabase Edge Function — issue-cash-receipt
-   (supabase/functions/issue-cash-receipt/index.ts)
-
-   현금영수증 발급 — secretKey를 서버에서만 사용합니다.
-   배포 명령: supabase functions deploy issue-cash-receipt
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-serve(async (req) => {
-  const { paymentKey, customerIdentityNumber, type, taxFreeAmount } =
-    await req.json();
-  const secretKey = Deno.env.get("TOSS_SECRET_KEY")!;
-  const credentials = btoa(`${secretKey}:`);
-
-  const body: Record<string, unknown> = { customerIdentityNumber, type };
-  if (taxFreeAmount > 0) body.taxFreeAmount = taxFreeAmount;
-
-  const res = await fetch(
-    `https://api.tosspayments.com/v1/payments/${paymentKey}/cash-receipts`,
-    {
-      method: "POST",
-      headers: {
-        "Authorization": `Basic ${credentials}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    }
-  );
-
-  const data = await res.json();
-  if (res.ok) {
-    return new Response(JSON.stringify({ success: true, ...data }), {
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-  return new Response(
-    JSON.stringify({ success: false, message: data.message }),
-    { status: 400, headers: { "Content-Type": "application/json" } }
-  );
-});
-
-   환경변수 설정: (confirm-payment와 동일한 시크릿 재사용 가능)
-   supabase secrets set TOSS_SECRET_KEY=live_sk_여기에실제시크릿키
-   ══════════════════════════════════════════════════════════════ */
+}

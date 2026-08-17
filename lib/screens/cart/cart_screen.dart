@@ -1064,86 +1064,34 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
 
     try {
       final userProv  = context.read<UserProvider>();
-      final orderProv = context.read<OrderProvider>();
       final user      = userProv.user;
 
       // 2. 주문번호 생성
       final orderId = OrderService.generateOrderId();
 
-      // 3. 무통장입금 → 바로 주문 저장
-      if (_selectedPayment == loc.checkoutBankMethod) {
-        await _saveAndComplete(
-          orderId:    orderId,
-          orderProv:  orderProv,
-          userProv:   userProv,
-          paid:       false,
-          payMethod:  loc.checkoutBankMethod,
-        );
-        return;
-      }
-
-      // 4. 토스페이먼츠 결제창 호출
+      // 3. 무통장입금도 결제 화면으로 (checkout 화면에서 별도 처리)
+      // 4. 토스페이먼츠 Payment Widget 결제 화면으로 이동
       if (!mounted) return;
-      final result = await PaymentService.requestPayment(
+      setState(() => _isProcessing = false);
+
+      // 바텀시트 닫기
+      Navigator.pop(context);
+
+      // 결제 전용 화면으로 이동 (주문 저장은 payment_result_screen에서 처리됨)
+      Navigator.pushNamed(
         context,
-        orderId:       orderId,
-        orderName:     '2FIT MALL 주문 (${widget.cart.itemCount}개)',
-        amount:        widget.cart.total.toInt(),
-        customerName:  _nameCtrl.text.trim(),
-        customerEmail: user?.email ?? 'guest@2fit-mall.co.kr',
-        paymentMethod: _selectedPayment!,
+        '/payment/checkout',
+        arguments: PaymentCheckoutArgs(
+          orderId:         orderId,
+          orderName:       '2FIT MALL 주문 (${widget.cart.itemCount}개)',
+          amount:          widget.cart.total.toInt(),
+          customerName:    _nameCtrl.text.trim(),
+          customerEmail:   user?.email ?? 'guest@2fit-mall.co.kr',
+          customerPhone:   _phoneCtrl.text.trim(),
+          selectedPayment: _selectedPayment!,
+        ),
       );
-
-      if (!mounted) return;
-
-      if (result.success) {
-        // 5. 결제 성공 → 주문 저장
-        await _saveAndComplete(
-          orderId:    orderId,
-          orderProv:  orderProv,
-          userProv:   userProv,
-          paid:       true,
-          payMethod:  _selectedPayment!,
-          paymentKey: result.paymentKey,
-        );
-
-        // 6. 현금영수증 자동 발급
-        //    - 마이페이지에 번호 등록 + 카드/간편결제 수단인 경우에만 API 호출
-        //    - 가상계좌·계좌이체는 토스페이먼츠가 자동 발급하므로 스킵
-        final cashNum = userProv.user?.cashReceiptNum;
-        if (cashNum != null &&
-            cashNum.isNotEmpty &&
-            result.paymentKey != null &&
-            PaymentService.needsCashReceiptApiCall(_selectedPayment)) {
-          final receiptType = _isBusiness(cashNum) ? '지출증빙' : '소득공제';
-          final receiptResult = await PaymentService.issueCashReceipt(
-            paymentKey: result.paymentKey!,
-            customerIdentityNumber: cashNum,
-            type: receiptType,
-          );
-          if (!receiptResult.success) {
-            // 현금영수증 발급 실패는 주문 자체를 막지 않고 스낵바 안내만
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      '현금영수증 발급 실패: ${receiptResult.error ?? context.loc.t('잠시_후_마이페이지에서_재신청하세요', '잠시 후 마이페이지에서 재신청하세요.')}'),
-                  backgroundColor: Colors.orange,
-                  duration: const Duration(seconds: 4),
-                ),
-              );
-            }
-          }
-        }
-      } else {
-        setState(() => _isProcessing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result.error ?? loc.paymentCancelled),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
+      return;
     } catch (e) {
       if (mounted) {
         setState(() => _isProcessing = false);
