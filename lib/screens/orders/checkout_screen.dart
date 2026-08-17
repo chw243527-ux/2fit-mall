@@ -1494,7 +1494,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           // 포인트 할인
           if (_usedPoints > 0)
             _buildPriceRow(
-              '포인트 사용 (-${_formatPrice(_usedPoints)}P)',
+              '포인트 사용 (-${_formatPrice(_usedPoints.toDouble())}P)',
               -_pointDiscount,
               isDiscount: true,
             ),
@@ -1619,13 +1619,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const Icon(Icons.stars_rounded, color: Color(0xFFFF6D00), size: 18),
               const SizedBox(width: 6),
               Text(
-                '보유 포인트: ${_formatPrice(pointBalance)}P',
+                '보유 포인트: ${_formatPrice(pointBalance.toDouble())}P',
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
               const Spacer(),
               if (!canUse)
                 Text(
-                  '${_formatPrice(minUse)}P 이상부터 사용 가능',
+                  '${_formatPrice(minUse.toDouble())}P 이상부터 사용 가능',
                   style: const TextStyle(fontSize: 11, color: Color(0xFF999999)),
                 ),
             ],
@@ -1639,9 +1639,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     controller: _pointController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      hintText: '사용할 포인트 입력 (최대 ${_formatPrice(maxUsable)}P)',
+                      hintText: '사용할 포인트 입력 (최대 ${_formatPrice(maxUsable.toDouble())}P)',
                       prefixIcon: const Icon(Icons.stars_rounded, color: Color(0xFFFF6D00)),
-                      errorText: _pointInputError ? '${_formatPrice(minUse)}P 이상, ${_formatPrice(maxUsable)}P 이하로 입력하세요' : null,
+                      errorText: _pointInputError ? '${_formatPrice(minUse.toDouble())}P 이상, ${_formatPrice(maxUsable.toDouble())}P 이하로 입력하세요' : null,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     ),
                     enabled: _usedPoints == 0,
@@ -1705,7 +1705,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        '${_formatPrice(_usedPoints)}P 사용  ·  -${_formatPrice(_usedPoints)}원 할인',
+                        '${_formatPrice(_usedPoints.toDouble())}P 사용  ·  -${_formatPrice(_usedPoints.toDouble())}원 할인',
                         style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
@@ -1724,7 +1724,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                '${_formatPrice(minUse)}P 이상 보유 시 포인트를 사용할 수 있습니다.',
+                '${_formatPrice(minUse.toDouble())}P 이상 보유 시 포인트를 사용할 수 있습니다.',
                 style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
               ),
             ),
