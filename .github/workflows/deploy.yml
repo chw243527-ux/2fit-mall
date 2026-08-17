@@ -161,6 +161,7 @@ jobs:
               "files": [
                 "https://2fit-mall.co.kr/",
                 "https://2fit-mall.co.kr/index.html",
+                "https://2fit-mall.co.kr/payment-widget.html",
                 "https://2fit-mall.co.kr/flutter_service_worker.js",
                 "https://2fit-mall.co.kr/main.dart.js",
                 "https://2fit-mall.co.kr/flutter.js",
