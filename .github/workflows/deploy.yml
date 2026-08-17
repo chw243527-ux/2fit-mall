@@ -142,8 +142,7 @@ jobs:
             exit 1
           fi
 
-      # ── 7. Firebase Firestore Rules 배포
-      # FIREBASE_TOKEN secret이 없으면 이 스텝은 실패하지만 continue-on-error로 무시됨
+      # ── 7. Firebase Firestore Rules 배포 (실패해도 전체 빌드에 영향 없음)
       - name: Deploy Firebase Firestore Rules
         continue-on-error: true
         env:
@@ -154,7 +153,8 @@ jobs:
             exit 0
           fi
           npm install -g firebase-tools --silent
-          firebase deploy --only firestore:rules --token "$FIREBASE_TOKEN" --non-interactive
+          firebase deploy --only firestore:rules --token "$FIREBASE_TOKEN" --non-interactive \
+            || echo "⚠️  Firestore Rules 배포 실패 (토큰 만료 가능) — 빌드는 계속"
 
       # ── 8. Cloudflare Pages 배포
       - name: Deploy to Cloudflare Pages
