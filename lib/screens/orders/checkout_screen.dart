@@ -1952,7 +1952,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       orderType:     _isGroupCart ? 'group' : 'regular',
       createdAt:     DateTime.now(),
       items:         orderItems,
-      shippingMemo:  _memoController.text.trim().isNotEmpty
+      memo:          _memoController.text.trim().isNotEmpty
                        ? _memoController.text.trim() : null,
     );
 
