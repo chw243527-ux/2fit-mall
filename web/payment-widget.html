@@ -156,9 +156,11 @@
     const orderId     = p.get('orderId')     || '';
     const orderName   = p.get('orderName')   || '주문';
     const amount      = parseInt(p.get('amount') || '0', 10);
-    const customerName        = p.get('customerName')        || '';
-    const customerEmail       = p.get('customerEmail')       || '';
-    const customerMobilePhone = p.get('customerMobilePhone') || '';
+    const customerName  = p.get('customerName')  || '';
+    const customerEmail = p.get('customerEmail') || '';
+    // 전화번호: 숫자만 추출, 비어있으면 undefined로 설정 (토스 API에 전달 안 함)
+    const rawPhone = (p.get('customerMobilePhone') || '').replace(/[^0-9]/g, '');
+    const customerMobilePhone = rawPhone.length >= 10 ? rawPhone : undefined;
     const successUrl  = p.get('successUrl')  || '';
     const failUrl     = p.get('failUrl')     || '';
 
@@ -214,15 +216,17 @@
       errEl.style.display = 'none';
 
       try {
-        await window._widget.requestPayment({
+        // customerMobilePhone이 undefined면 객체에서 제외
+        const paymentInfo = {
           orderId,
           orderName,
           customerName,
           customerEmail,
-          customerMobilePhone,
           successUrl,
           failUrl,
-        });
+          ...(customerMobilePhone ? { customerMobilePhone } : {}),
+        };
+        await window._widget.requestPayment(paymentInfo);
         // 성공 시 successUrl로 리디렉션 — 여기 도달 안 함
       } catch (e) {
         // 취소(PAY_PROCESS_CANCELED) 는 조용히 처리
