@@ -195,15 +195,16 @@
 
         await widgets.setAmount({ currency: 'KRW', value: amount });
 
-        const paymentMethodWidget = await widgets.renderPaymentMethods({
-          selector: '#payment-method',
-          variantKey: 'DEFAULT',
-        });
-
-        const agreementWidget = await widgets.renderAgreement({
-          selector: '#agreement',
-          variantKey: 'AGREEMENT',
-        });
+        const [paymentMethodWidget, agreementWidget] = await Promise.all([
+          widgets.renderPaymentMethods({
+            selector: '#payment-method',
+            variantKey: 'DEFAULT',
+          }),
+          widgets.renderAgreement({
+            selector: '#agreement',
+            variantKey: 'AGREEMENT',
+          }),
+        ]);
 
         // ── 5. 위젯 표시 ──────────────────────────────────────────────────────
         document.getElementById('loading').style.display     = 'none';
