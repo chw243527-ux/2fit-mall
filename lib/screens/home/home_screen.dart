@@ -19,6 +19,7 @@ import '../products/product_detail_screen.dart';
 import '../products/category_detail_screen.dart';
 import '../orders/group_order_landing_screen.dart';
 import '../orders/group_order_only_screen.dart';
+import '../orders/order_guide_screen.dart';
 import '../admin/admin_screen.dart';
 import '../../services/analytics_service.dart';
 import '../chat/chat_screen.dart';
