@@ -102,6 +102,16 @@ jobs:
             exit 1
           fi
 
+          # payment-widget.html 빌드 번호 주입 → 해시 변경 → SW 캐시 무효화
+          if [ -f "${{ env.BUILD_DIR }}/payment-widget.html" ]; then
+            echo "<!-- build:${BUILD_VER} -->" \
+              >> ${{ env.BUILD_DIR }}/payment-widget.html
+            echo "✅ payment-widget.html build:${BUILD_VER} 주입 완료"
+          else
+            echo "❌ payment-widget.html 없음"
+            exit 1
+          fi
+
           # flutter_service_worker.js 패치
           if [ -f "${{ env.BUILD_DIR }}/flutter_service_worker.js" ]; then
             sed -i \
