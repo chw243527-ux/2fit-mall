@@ -5,15 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>결제</title>
   <!--
-    토스페이먼츠 v2 SDK (CDN)
-
-    CDN 로드 후 전역 노출:
-      window.TossPaymentsV2          — v2 초기화 함수 (올바른 사용법)
-      window.TossPaymentsV2.ANONYMOUS — 비회원 customerKey 상수 ("@@ANONYMOUS")
-
-    ※ window.TossPayments 는 로드 순서에 따라 버전이 달라질 수 있어 직접 사용 금지.
-    ※ loadTossPayments() 는 npm 패키지(@tosspayments/tosspayments-sdk) 전용.
-       CDN에는 존재하지 않음.
+    토스페이먼츠 v2 SDK — 스크립트 태그 방식
+    로드 후 전역에 TossPayments() 함수가 생성됨.
+    (v1 SDK 없이 v2만 로드하면 window.TossPayments === window.TossPaymentsV2)
+    공식 문서: https://docs.tosspayments.com/sdk/v2/js
   -->
   <script src="https://js.tosspayments.com/v2/standard"></script>
   <style>
@@ -168,10 +163,9 @@
     const p = new URLSearchParams(location.search);
 
     //
-    // ⚠️ 토스페이먼츠 v2 결제위젯 SDK 키 규칙:
-    //   결제위젯(주문서형)은 "결제위젯 연동 키" (gck_...) 만 허용.
-    //   "API 개별 연동 키" (ck_...) 사용 시 NOT_SUPPORTED_API_INDIVIDUAL_KEY 오류.
-    //   → easyPayClientKey(gck) 우선, 없으면 clientKey(ck) fallback.
+    // ⚠️ 토스페이먼츠 v2 결제위젯 키 규칙:
+    //   결제위젯(주문서형)은 "결제위젯 연동 키" (gck_...) 사용.
+    //   easyPayClientKey(gck) 우선, 없으면 clientKey(ck) fallback.
     //
     const rawClientKey     = p.get('clientKey')        || '';
     const easyPayClientKey = p.get('easyPayClientKey') || '';
@@ -212,23 +206,20 @@
         if (!orderId)               throw new Error('orderId가 없습니다.');
         if (!amount || amount <= 0) throw new Error('결제 금액이 올바르지 않습니다.');
 
-        // ── 1. TossPaymentsV2 초기화 ──────────────────────────────────
+        // ── 1. TossPayments 초기화 (스크립트 태그 방식) ───────────────
         //
-        // CDN v2/standard 로드 후:
-        //   window.TossPaymentsV2          → v2 초기화 함수
-        //   window.TossPaymentsV2.ANONYMOUS → 비회원 상수 ("@@ANONYMOUS")
+        // 공식 문서 스크립트 태그 연동 방식:
+        //   const tossPayments = TossPayments("gck_..."); // 결제위젯 연동 키
         //
-        // ※ loadTossPayments()는 npm 전용 — CDN에 없음.
-        // ※ window.TossPayments 는 버전 혼재 위험으로 사용 금지.
+        // v1 SDK 없이 v2만 로드하면:
+        //   window.TossPayments === window.TossPaymentsV2 (동일 함수)
         //
-        const TossPaymentsV2 = window.TossPaymentsV2;
-        if (!TossPaymentsV2) throw new Error('토스페이먼츠 SDK를 불러오지 못했습니다.');
-
-        const tossPayments = TossPaymentsV2(widgetKey);
+        const tossPayments = TossPayments(widgetKey);
 
         // ── 2. customerKey 결정 ───────────────────────────────────────
-        // ANONYMOUS 상수: TossPaymentsV2.ANONYMOUS === "@@ANONYMOUS"
-        const ANONYMOUS   = TossPaymentsV2.ANONYMOUS;
+        // ANONYMOUS 상수 = "@@ANONYMOUS"
+        // Flutter에서 uid 없을 때 "@@ANONYMOUS" 전달 — 동일하게 동작
+        const ANONYMOUS   = TossPayments.ANONYMOUS ?? '@@ANONYMOUS';
         const customerKey = (rawCustomerKey && rawCustomerKey !== ANONYMOUS)
           ? rawCustomerKey
           : ANONYMOUS;
@@ -263,7 +254,7 @@
         document.getElementById('loading').style.display     = 'none';
         document.getElementById('widget-view').style.display = 'block';
 
-        // ── 8. 결제 버튼 이벤트 등록 ─────────────────────────────────
+        // ── 8. 결제 버튼 이벤트 ──────────────────────────────────────
         document.getElementById('payment-request-button')
           .addEventListener('click', async () => {
             const btn   = document.getElementById('payment-request-button');
@@ -288,7 +279,7 @@
                 failUrl,
                 ...(customerMobilePhone ? { customerMobilePhone } : {}),
               });
-              // 성공 → successUrl 리디렉션, 이후 코드 실행 안 됨
+              // 성공 → successUrl 리디렉션
 
             } catch (err) {
               console.log('[TossPayments v2] requestPayment err:', err);
