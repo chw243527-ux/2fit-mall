@@ -212,7 +212,7 @@
           value: amount,
         });
 
-        const [paymentMethodWidget] = await Promise.all([
+        const [paymentMethodWidget, agreementWidget] = await Promise.all([
           // ── 결제 UI 렌더링 ────────────────────────────────────────
           widgets.renderPaymentMethods({
             selector: '#payment-method',
