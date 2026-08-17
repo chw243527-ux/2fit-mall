@@ -212,7 +212,7 @@
           value: amount,
         });
 
-        await Promise.all([
+        const [paymentMethodWidget] = await Promise.all([
           // ── 결제 UI 렌더링 ────────────────────────────────────────
           widgets.renderPaymentMethods({
             selector: '#payment-method',
@@ -237,6 +237,10 @@
           errEl.style.display = 'none';
 
           try {
+            // 선택된 결제수단 확인
+            const selectedPaymentMethod = await paymentMethodWidget.getSelectedPaymentMethod();
+            console.log('[TossPayments] selectedPaymentMethod:', selectedPaymentMethod);
+
             await widgets.requestPayment({
               orderId,
               orderName,
