@@ -1,3 +1,5 @@
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +21,7 @@ import '../mypage/size_profile_screen.dart';
 import '../notifications/notification_center_screen.dart';
 import '../not_found_screen.dart';
 import '../chat/chat_screen.dart';
+import '../payment/payment_result_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -72,15 +75,31 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted || _navigated) return;
     _navigated = true;
 
-    // ── 웹 URL fragment 파싱 ──────────────────────────────────────────
-    // Flutter Web은 hash-routing: https://2fit-mall.co.kr/#/path?query
-    // uri.fragment = "/path?query"
+    // ── 웹 URL 파싱 ──────────────────────────────────────────────────
+    // 1) pathname 우선: 토스페이먼츠가 top.location.href로 리다이렉트하면
+    //    https://2fit-mall.co.kr/payment/success?paymentKey=... 형태이므로
+    //    pathname(/payment/success)을 먼저 확인
+    // 2) fragment: Flutter hash-routing (#/path?query) 방식
     _DeepLink? deepLink;
     if (kIsWeb) {
       try {
-        final fragment = Uri.base.fragment; // e.g. "/product?id=abc123"
-        if (fragment.isNotEmpty) {
-          deepLink = _parseDeepLink(fragment);
+        final pathname = html.window.location.pathname ?? '';
+        final search   = html.window.location.search ?? ''; // ?paymentKey=...
+        if (pathname == '/payment/success' || pathname == '/payment/fail') {
+          // search string → query map
+          final qMap = <String, String>{};
+          if (search.length > 1) {
+            Uri.splitQueryString(search.substring(1)).forEach((k, v) {
+              qMap[k] = v;
+            });
+          }
+          deepLink = _DeepLink(pathname, qMap, requiresAuth: false);
+        } else {
+          // fragment 기반 hash-routing: https://2fit-mall.co.kr/#/path?query
+          final fragment = Uri.base.fragment; // e.g. "/product?id=abc123"
+          if (fragment.isNotEmpty) {
+            deepLink = _parseDeepLink(fragment);
+          }
         }
       } catch (_) {}
     }
@@ -174,6 +193,11 @@ class _SplashScreenState extends State<SplashScreen>
       // 알림 센터
       case '/notifications':
         return _DeepLink(path, q, requiresAuth: true);
+      // 결제 성공/실패 콜백 (fragment 방식으로 접근하는 경우 처리)
+      case '/payment/success':
+        return _DeepLink(path, q, requiresAuth: false);
+      case '/payment/fail':
+        return _DeepLink(path, q, requiresAuth: false);
       default:
         return null;
     }
@@ -271,6 +295,14 @@ class _SplashScreenState extends State<SplashScreen>
           break;
         case '/notifications':
           target = isLoggedIn ? const NotificationCenterScreen() : const LoginScreen();
+          break;
+        // ── 토스페이먼츠 결제 콜백 ────────────────────────────
+        // top.location.href로 리다이렉트되어 pathname 방식으로 진입
+        case '/payment/success':
+          target = const PaymentSuccessScreen();
+          break;
+        case '/payment/fail':
+          target = const PaymentFailScreen();
           break;
         default:
           target = isLoggedIn ? const MainScreen() : const LoginScreen();
