@@ -1,13 +1,14 @@
 // payment_checkout_screen.dart
-// 토스페이먼츠 Payment Widget 전용 결제 화면
+// 토스페이먼츠 Payment Widget — fullscreen iframe 방식
+//
+// HtmlElementView + div 방식은 Flutter 캔버스가 포인터 이벤트를 가로채
+// 토스 Widget 내부 드롭다운/클릭이 동작하지 않는 문제가 있음.
+// → web/payment-widget.html 을 fullscreen iframe으로 띄워 해결.
 //
 // 흐름:
-//   1. initState → PaymentService.initWidget() → JS 위젯 초기화
-//   2. WidgetsBinding.addPostFrameCallback → PaymentService.renderWidget()
-//      → index.html의 #payment-method, #agreement div에 렌더링
-//   3. 결제하기 버튼 → PaymentService.submitWidget()
-//      → 성공 시 /payment/success 리디렉션
-//      → 실패/취소 시 에러 메시지 표시
+//   1. PaymentCheckoutArgs로 URL 파라미터 구성
+//   2. /payment-widget.html?clientKey=...&orderId=...&successUrl=... 를 iframe으로 로드
+//   3. 토스 Widget이 successUrl(/payment/success)로 리디렉션 → Flutter가 해당 라우트 처리
 
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
@@ -29,151 +30,76 @@ class PaymentCheckoutScreen extends StatefulWidget {
 }
 
 class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
-  bool _isInitializing = true;
-  bool _isSubmitting = false;
-  String? _initError;
-  String? _submitError;
-
-  // 파라미터 (route arguments로 수신)
   PaymentCheckoutArgs? _args;
-
-  @override
-  void initState() {
-    super.initState();
-    // div 컨테이너 등록
-    _registerDivViews();
-  }
+  bool _registered = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // 최초 1회만 초기화
     if (_args == null) {
       final args =
           ModalRoute.of(context)?.settings.arguments as PaymentCheckoutArgs?;
       if (args != null) {
         _args = args;
-        _initializeWidget();
+        _registerIframe(args);
       }
     }
   }
 
-  // ── div 컨테이너 등록 ─────────────────────────────────────────
-  void _registerDivViews() {
-    // #payment-method div
-    // ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory(
-      'toss-payment-method',
-      (int viewId) {
-        final div = html.DivElement()
-          ..id = 'payment-method'
-          ..style.width = '100%'
-          ..style.minHeight = '300px';
-        return div;
-      },
-    );
-    // #agreement div
-    // ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory(
-      'toss-agreement',
-      (int viewId) {
-        final div = html.DivElement()
-          ..id = 'agreement'
-          ..style.width = '100%';
-        return div;
-      },
-    );
-  }
+  void _registerIframe(PaymentCheckoutArgs args) {
+    if (_registered) return;
+    _registered = true;
 
-  // ── 위젯 초기화 + 렌더링 ──────────────────────────────────────
-  Future<void> _initializeWidget() async {
-    if (_args == null) return;
-
-    // Widget v1 방식: 로그인 사용자는 uid, 비로그인은 '@@ANONYMOUS' 고정 (SDK 상수값)
     final uid = context.read<UserProvider>().user?.id;
-    final customerKey = (uid != null && uid.isNotEmpty) ? uid : '@@ANONYMOUS';
-    final initResult = await PaymentService.initWidget(
-      amount: _args!.amount,
-      customerKey: customerKey,
+    final customerKey =
+        (uid != null && uid.isNotEmpty) ? uid : '@@ANONYMOUS';
+
+    final successUrl = PaymentService.buildSuccessUrl(args.orderId, args.amount);
+    final failUrl    = PaymentService.buildFailUrl(args.orderId);
+
+    // URL 파라미터 구성
+    final uri = Uri(
+      path: '/payment-widget.html',
+      queryParameters: {
+        'clientKey':           TossConfig.clientKey,
+        'customerKey':         customerKey,
+        'orderId':             args.orderId,
+        'orderName':           args.orderName,
+        'amount':              args.amount.toString(),
+        'customerName':        args.customerName,
+        'customerEmail':       args.customerEmail,
+        'customerMobilePhone': args.customerPhone,
+        'successUrl':          successUrl,
+        'failUrl':             failUrl,
+      },
     );
 
-    if (!mounted) return;
-
-    if (initResult != 'ok') {
-      setState(() {
-        _isInitializing = false;
-        _initError = initResult.replaceFirst('error:', '');
-      });
-      return;
-    }
-
-    // DOM이 생성된 이후에 renderWidget 호출
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // 렌더링까지 약간의 딜레이 필요 (HtmlElementView DOM 생성 대기)
-      await Future.delayed(const Duration(milliseconds: 300));
-      if (!mounted) return;
-
-      final renderResult = await PaymentService.renderWidget();
-      if (!mounted) return;
-
-      if (renderResult.startsWith('error:')) {
-        setState(() {
-          _isInitializing = false;
-          _initError = renderResult.replaceFirst('error:', '');
-        });
-      } else {
-        setState(() => _isInitializing = false);
-      }
-    });
-  }
-
-  // ── 결제하기 버튼 ─────────────────────────────────────────────
-  Future<void> _onPayPressed() async {
-    if (_args == null || _isSubmitting) return;
-    setState(() {
-      _isSubmitting = true;
-      _submitError = null;
-    });
-
-    final successUrl = PaymentService.buildSuccessUrl(
-        _args!.orderId, _args!.amount);
-    final failUrl = PaymentService.buildFailUrl(_args!.orderId);
-
-    final result = await PaymentService.submitWidget(
-      orderId:             _args!.orderId,
-      orderName:           _args!.orderName,
-      customerName:        _args!.customerName,
-      customerEmail:       _args!.customerEmail,
-      customerMobilePhone: _args!.customerPhone,
-      successUrl:          successUrl,
-      failUrl:             failUrl,
+    // ignore: undefined_prefixed_name
+    ui.platformViewRegistry.registerViewFactory(
+      'toss-payment-iframe',
+      (int viewId) {
+        final iframe = html.IFrameElement()
+          ..src = uri.toString()
+          ..style.border = 'none'
+          ..style.width  = '100%'
+          ..style.height = '100%'
+          ..allow = 'payment';
+        return iframe;
+      },
     );
-
-    if (!mounted) return;
-
-    // 성공 시 여기 도달하지 않음 (리디렉션됨)
-    // 취소/오류 시
-    setState(() {
-      _isSubmitting = false;
-      _submitError = result.replaceFirst('error:', '');
-    });
   }
 
-  // ── 무통장입금 처리 ───────────────────────────────────────────
+  // ── 무통장입금: iframe 없이 직접 주문 저장 ────────────────────
   Future<void> _onVirtualAccountPressed() async {
-    if (_args == null || _isSubmitting) return;
-    setState(() {
-      _isSubmitting = true;
-      _submitError = null;
-    });
+    final args = _args;
+    if (args == null) return;
 
     try {
       final userProv  = context.read<UserProvider>();
       final orderProv = context.read<OrderProvider>();
-      final user      = userProv.user;
       final cart      = context.read<CartProvider>();
+      final user      = userProv.user;
 
-      // 주문 저장 (미결제 상태)
       final orderItems = cart.items.map((c) => OrderItem(
         productId:   c.product.id,
         productName: c.product.name,
@@ -184,15 +110,15 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
       )).toList();
 
       final order = OrderModel(
-        id:            _args!.orderId,
+        id:            args.orderId,
         userId:        user?.id ?? 'guest',
-        userName:      _args!.customerName,
-        userPhone:     _args!.customerPhone,
+        userName:      args.customerName,
+        userPhone:     args.customerPhone,
         userAddress:   '',
         status:        OrderStatus.pending,
-        totalAmount:   _args!.amount.toDouble(),
+        totalAmount:   args.amount.toDouble(),
         shippingFee:   cart.shippingFee,
-        paymentMethod: _args!.selectedPayment,
+        paymentMethod: args.selectedPayment,
         orderType:     'regular',
         createdAt:     DateTime.now(),
         items:         orderItems,
@@ -206,18 +132,16 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
       cart.clearCart();
 
       if (!mounted) return;
-
-      // 완료 화면으로 이동
       Navigator.of(context).pushNamedAndRemoveUntil(
         '/mypage',
         (route) => false,
       );
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-          _submitError = '주문 처리 오류: $e';
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('주문 처리 오류: $e'),
+              backgroundColor: Colors.red),
+        );
       }
     }
   }
@@ -257,25 +181,50 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
   }
 
   Widget _buildBody(PaymentCheckoutArgs args) {
-    if (_initError != null) {
+    // 무통장입금은 iframe 없이 처리
+    if (args.selectedPayment == '무통장입금') {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const Icon(Icons.account_balance_outlined,
+                  size: 56, color: Color(0xFF0064FF)),
               const SizedBox(height: 16),
-              const Text('결제 위젯 로드 실패',
+              const Text('무통장입금',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
-              Text(_initError!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red)),
+              const Text(
+                '주문 완료 후 입금 계좌 안내 문자를 발송합니다.\n입금 확인 후 주문이 처리됩니다.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Color(0xFF666666)),
+              ),
+              const SizedBox(height: 8),
+              Text('결제 금액: $_formattedAmount원',
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0064FF))),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('뒤로 가기'),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _onVirtualAccountPressed,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0064FF),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(
+                    '$_formattedAmount원 주문하기',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800),
+                  ),
+                ),
               ),
             ],
           ),
@@ -283,196 +232,11 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
       );
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // ── 주문 정보 ──────────────────────────────────────────
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    args.orderName,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Text(
-                  '$_formattedAmount원',
-                  style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0064FF)),
-                ),
-              ],
-            ),
-          ),
+    // 카드/간편결제 등 → iframe fullscreen
+    if (!_registered) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-          const SizedBox(height: 8),
-
-          // ── 무통장입금 선택 시 별도 버튼 ──────────────────────
-          if (args.selectedPayment == '무통장입금') ...[
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('무통장입금',
-                      style: TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 8),
-                  const Text(
-                    '주문 완료 후 입금 계좌 안내 문자를 발송합니다.\n입금 확인 후 주문이 처리됩니다.',
-                    style: TextStyle(fontSize: 13, color: Color(0xFF666666)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _onVirtualAccountPressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0064FF),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2))
-                      : Text(
-                          '$_formattedAmount원 주문하기',
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800),
-                        ),
-                ),
-              ),
-            ),
-          ] else ...[
-            // ── 토스 Payment Widget 렌더링 영역 ───────────────
-            _isInitializing
-                ? Container(
-                    color: Colors.white,
-                    height: 380,
-                    child: const Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircularProgressIndicator(
-                              color: Color(0xFF0064FF)),
-                          SizedBox(height: 16),
-                          Text('결제 수단을 불러오는 중...',
-                              style: TextStyle(
-                                  color: Color(0xFF666666))),
-                        ],
-                      ),
-                    ),
-                  )
-                : Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Column(
-                      children: [
-                        // 결제수단 위젯
-                        SizedBox(
-                          height: 380,
-                          child: HtmlElementView(
-                            viewType: 'toss-payment-method',
-                          ),
-                        ),
-                        // 이용약관 위젯
-                        SizedBox(
-                          height: 100,
-                          child: HtmlElementView(
-                            viewType: 'toss-agreement',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-            const SizedBox(height: 8),
-
-            // ── 오류 메시지 ──────────────────────────────────
-            if (_submitError != null)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFEBEE),
-                  borderRadius: BorderRadius.circular(8),
-                  border:
-                      Border.all(color: const Color(0xFFEF9A9A)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error_outline,
-                        color: Colors.red, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(_submitError!,
-                          style: const TextStyle(
-                              color: Colors.red, fontSize: 13)),
-                    ),
-                  ],
-                ),
-              ),
-
-            if (_submitError != null) const SizedBox(height: 8),
-
-            // ── 결제하기 버튼 ─────────────────────────────────
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: (_isInitializing || _isSubmitting)
-                      ? null
-                      : _onPayPressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0064FF),
-                    disabledBackgroundColor:
-                        const Color(0xFF0064FF).withValues(alpha: 0.4),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2))
-                      : Text(
-                          '$_formattedAmount원 결제하기',
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w800),
-                        ),
-                ),
-              ),
-            ),
-          ],
-
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
+    return const HtmlElementView(viewType: 'toss-payment-iframe');
   }
 }
