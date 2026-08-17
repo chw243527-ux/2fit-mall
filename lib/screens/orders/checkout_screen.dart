@@ -204,7 +204,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           child: Container(height: 1, color: const Color(0xFFEEEEEE)),
         ),
       ),
-      body: Center(
+      body: Column(
+        children: [Expanded(
+        child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1200),
           child: Padding(
@@ -312,6 +314,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
         ),
+        ),
+        )],
       ),
     ));
   }

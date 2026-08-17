@@ -462,6 +462,9 @@ class AuthService {
           createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
           loginProvider: (data['loginProvider'] as String?) ?? 'email',
           cashReceiptNum: data['cashReceiptNum'] as String?,
+          addresses: (data['addresses'] as List? ?? [])
+              .map((a) => AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
+              .toList(),
         );
       }
 
@@ -732,6 +735,9 @@ class AuthService {
         createdAt: DateTime.now(),
         loginProvider: 'google',
         cashReceiptNum: data['cashReceiptNum'] as String?,
+        addresses: (data['addresses'] as List? ?? [])
+            .map((a) => AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
+            .toList(),
       );
       // 세션 저장
       try {
@@ -912,6 +918,9 @@ class AuthService {
       createdAt       : DateTime.now(),
       loginProvider   : 'kakao',
       cashReceiptNum  : data['cashReceiptNum'] as String?,
+      addresses       : (data['addresses'] as List? ?? [])
+          .map((a) => AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
+          .toList(),
     );
 
     // ── Step 5: 세션 저장 ────────────────────────────────────
@@ -1124,6 +1133,9 @@ class AuthService {
       createdAt       : DateTime.now(),
       loginProvider   : 'naver',
       cashReceiptNum  : data['cashReceiptNum'] as String?,
+      addresses       : (data['addresses'] as List? ?? [])
+          .map((a) => AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
+          .toList(),
     );
     // 세션 저장
     try {
