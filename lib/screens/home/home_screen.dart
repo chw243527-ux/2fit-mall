@@ -5546,80 +5546,103 @@ class _HomeScreenState extends State<HomeScreen>
   // ────────────────────────────────────────────
   void _showSearchSheet(BuildContext context, AppLocalizations loc) {
     final r = Responsive.of(context);
-
     final ctrl = TextEditingController();
+
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
+      isScrollControlled: true,   // 키보드 높이만큼 시트 밀어올림
       backgroundColor: Colors.transparent,
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.88,
-        builder: (ctx2, scrollCtrl) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
-          ),
-          child: Column(
-            children: [
-              SizedBox(height: r.h(12)),
-              Container(
-                width: 40, height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0E0E0),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              SizedBox(height: r.h(16)),
-              Text(
-                loc.search,
-                style: TextStyle(
-                  fontSize: r.sp(16),
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A1A1A),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
-                child: TextField(
-                  controller: ctrl,
-                  autofocus: true,
-                  style: TextStyle(fontSize: r.sp(15)),
-                  decoration: InputDecoration(
-                    hintText: loc.searchHint,
-                    hintStyle: const TextStyle(color: Color(0xFFAAAAAA)),
-                    prefixIcon: const Icon(Icons.search_rounded,
-                        color: Color(0xFF1A1A1A)),
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.close_rounded,
-                          color: Color(0xFF888888)),
-                      onPressed: () => Navigator.pop(ctx),
+      builder: (ctx) {
+        // viewInsets.bottom = 키보드 높이 → Padding으로 시트 위로 밀기
+        return Padding(
+          padding: MediaQuery.of(ctx).viewInsets,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,   // 내용 크기만큼만 높이 차지
+                children: [
+                  // 핸들
+                  SizedBox(height: r.h(12)),
+                  Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E0E0),
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    filled: true,
-                    fillColor: const Color(0xFFF5F5F5),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(14)),
                   ),
-                  onSubmitted: (v) {
-                    if (v.trim().isNotEmpty) {
-                      AnalyticsService.logSearch(v.trim());
-                    }
-                    Navigator.pop(ctx);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ProductListScreen(searchQuery: v),
+                  SizedBox(height: r.h(14)),
+                  // 타이틀
+                  Text(
+                    loc.search,
+                    style: TextStyle(
+                      fontSize: r.sp(16),
+                      fontWeight: FontWeight.w800,
+                      color: const Color(0xFF1A1A1A),
+                    ),
+                  ),
+                  // 검색 입력 필드
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      r.w(16), r.h(12), r.w(16), r.h(16)),
+                    child: TextField(
+                      controller: ctrl,
+                      autofocus: true,
+                      style: TextStyle(fontSize: r.sp(15)),
+                      textInputAction: TextInputAction.search,
+                      decoration: InputDecoration(
+                        hintText: loc.searchHint,
+                        hintStyle: const TextStyle(color: Color(0xFFAAAAAA)),
+                        prefixIcon: const Icon(Icons.search_rounded,
+                            color: Color(0xFF1A1A1A)),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.close_rounded,
+                              color: Color(0xFF888888)),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF5F5F5),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(
+                              color: Color(0xFF1A1A1A), width: 1.5),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: r.w(16), vertical: r.h(14)),
                       ),
-                    );
-                  },
-                ),
+                      onSubmitted: (v) {
+                        if (v.trim().isNotEmpty) {
+                          AnalyticsService.logSearch(v.trim());
+                        }
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                ProductListScreen(searchQuery: v.trim()),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
