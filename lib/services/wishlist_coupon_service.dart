@@ -70,6 +70,7 @@ class CouponService {
     required double value,
     double minOrderAmount = 0,
     double? maxDiscountAmount,
+    DateTime? startsAt,
     required DateTime expiresAt,
     bool isDownloadable = false,
     int? downloadLimit,
@@ -91,6 +92,7 @@ class CouponService {
         'value': value,
         'minOrderAmount': minOrderAmount,
         if (maxDiscountAmount != null) 'maxDiscountAmount': maxDiscountAmount,
+        if (startsAt != null) 'startsAt': Timestamp.fromDate(startsAt),
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isUsed': false,
         'isDownloadable': isDownloadable,
@@ -113,6 +115,7 @@ class CouponService {
     required double value,
     double minOrderAmount = 0,
     double? maxDiscountAmount,
+    DateTime? startsAt,
     required DateTime expiresAt,
     bool isDownloadable = false,
     int? downloadLimit,
@@ -124,6 +127,7 @@ class CouponService {
         'value': value,
         'minOrderAmount': minOrderAmount,
         'maxDiscountAmount': maxDiscountAmount,
+        'startsAt': startsAt != null ? Timestamp.fromDate(startsAt) : null,
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isDownloadable': isDownloadable,
         'downloadLimit': downloadLimit,
@@ -277,6 +281,7 @@ class CouponService {
       maxDiscountAmount: data['maxDiscountAmount'] != null
           ? (data['maxDiscountAmount'] as num).toDouble()
           : null,
+      startsAt: (data['startsAt'] as Timestamp?)?.toDate(),
       expiresAt: (data['expiresAt'] as Timestamp?)?.toDate() ??
           DateTime.now().add(const Duration(days: 30)),
       isUsed: data['isUsed'] as bool? ?? false,

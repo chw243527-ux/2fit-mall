@@ -22,6 +22,7 @@ import '../../services/chat_service.dart';
 import '../../services/translation_service.dart';
 import '../../services/banner_service.dart';
 import '../../services/category_service.dart';
+import '../../services/wishlist_coupon_service.dart';
 import '../../services/inventory_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6712,6 +6713,8 @@ class _AdminScreenState extends State<AdminScreen>
     // ── 기간 설정 ──
     DateTime? scheduleStart;
     DateTime? scheduleEnd;
+    // ── 쿠폰 연결 ──
+    String? linkedCouponId;   // null = 연결 없음
 
     showDialog(
       context: context,
@@ -6860,6 +6863,80 @@ class _AdminScreenState extends State<AdminScreen>
                     scheduleEnd   = e;
                   }),
                 ),
+                // ── 쿠폰 연결 ──────────────────────────────────
+                const SizedBox(height: 16),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('쿠폰 연결 (선택)',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                ),
+                const SizedBox(height: 6),
+                StreamBuilder<List<CouponModel>>(
+                  stream: CouponService.watchDownloadableCoupons(),
+                  builder: (_, snap) {
+                    final coupons = snap.data ?? [];
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: linkedCouponId != null
+                              ? const Color(0xFF9C27B0)
+                              : const Color(0xFFDDDDDD),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        color: linkedCouponId != null
+                            ? const Color(0xFFF3E5F5)
+                            : Colors.white,
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String?>(
+                          value: linkedCouponId,
+                          isExpanded: true,
+                          hint: const Text('배너에서 다운로드할 쿠폰 선택',
+                              style: TextStyle(fontSize: 13, color: Colors.grey)),
+                          items: [
+                            const DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text('연결 안 함',
+                                  style: TextStyle(fontSize: 13, color: Colors.grey)),
+                            ),
+                            ...coupons.map((c) => DropdownMenuItem<String?>(
+                              value: c.id,
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.local_activity_rounded,
+                                      size: 14, color: Color(0xFF9C27B0)),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      '${c.name} (${c.code})',
+                                      style: const TextStyle(fontSize: 13),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )),
+                          ],
+                          onChanged: (v) => setDlg(() => linkedCouponId = v),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                if (linkedCouponId != null)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 6),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline_rounded,
+                            size: 12, color: Color(0xFF9C27B0)),
+                        SizedBox(width: 4),
+                        Text('배너 CTA 버튼 클릭 시 쿠폰 다운로드 팝업이 표시됩니다.',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF9C27B0))),
+                      ],
+                    ),
+                  ),
               ]),
             ),
           ),
@@ -6871,7 +6948,6 @@ class _AdminScreenState extends State<AdminScreen>
                 if (titleCtrl.text.trim().isEmpty) return;
                 setDlg(() => isUploading = true);
 
-                // 현재 배너 수 조회 (order 설정 위해)
                 String imageUrl = '';
                 if (pickedImageBytes != null) {
                   final url = await StorageService.uploadBannerImage(
@@ -6893,9 +6969,10 @@ class _AdminScreenState extends State<AdminScreen>
                   imageUrl: imageUrl,
                   videoUrl: useLocalVideo ? 'assets/images/banner_video.mp4' : null,
                   accentColor: 0xFFE53935,
-                  btnAction: 0,
+                  btnAction: linkedCouponId != null ? 3 : 0,
                   startDate: scheduleStart,
                   endDate:   scheduleEnd,
+                  couponId: linkedCouponId,
                 );
                 await BannerService.addBanner(newBanner);
 

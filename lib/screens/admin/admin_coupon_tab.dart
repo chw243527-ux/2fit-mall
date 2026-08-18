@@ -374,10 +374,25 @@ class _CouponCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '최소 주문 ${coupon.minOrderAmount > 0 ? '${fmt(coupon.minOrderAmount)}원' : '없음'}'
-                      '  ·  만료 ${fmtDate(coupon.expiresAt)}',
-                      style:
-                          const TextStyle(fontSize: 11, color: Colors.grey),
+                      '최소 ${coupon.minOrderAmount > 0 ? '${fmt(coupon.minOrderAmount)}원' : '제한없음'}',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        const Icon(Icons.schedule_rounded,
+                            size: 11, color: Colors.grey),
+                        const SizedBox(width: 3),
+                        Text(
+                          coupon.startsAt != null
+                              ? '${fmtDate(coupon.startsAt!)} ~ ${fmtDate(coupon.expiresAt)}'
+                              : '~ ${fmtDate(coupon.expiresAt)}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: valid ? Colors.grey : Colors.red[300],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -432,6 +447,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
   late final TextEditingController _maxCtrl;
   late final TextEditingController _limitCtrl;
   late CouponType _type;
+  DateTime? _startsAt;   // null = 즉시 시작
   late DateTime _expiresAt;
   bool _saving = false;
   bool _isDownloadable = false;
@@ -455,8 +471,8 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
             ? e!.maxDiscountAmount!.toInt().toString()
             : '');
     _type = e?.type ?? CouponType.fixed;
-    _expiresAt = e?.expiresAt ??
-        DateTime.now().add(const Duration(days: 30));
+    _startsAt = e?.startsAt;
+    _expiresAt = e?.expiresAt ?? DateTime.now().add(const Duration(days: 30));
     _isDownloadable = e?.isDownloadable ?? false;
     _limitCtrl = TextEditingController(
         text: e?.downloadLimit != null ? e!.downloadLimit.toString() : '');
@@ -473,11 +489,21 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
     super.dispose();
   }
 
-  Future<void> _pickDate() async {
+  Future<void> _pickStartDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _startsAt ?? DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      lastDate: _expiresAt,
+    );
+    if (picked != null) setState(() => _startsAt = picked);
+  }
+
+  Future<void> _pickExpireDate() async {
     final picked = await showDatePicker(
       context: context,
       initialDate: _expiresAt,
-      firstDate: DateTime.now(),
+      firstDate: _startsAt ?? DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
     );
     if (picked != null) setState(() => _expiresAt = picked);
@@ -492,7 +518,6 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
     final max = _type == CouponType.percent && _maxCtrl.text.trim().isNotEmpty
         ? double.tryParse(_maxCtrl.text.trim())
         : null;
-
     final limit = _isDownloadable && _limitCtrl.text.trim().isNotEmpty
         ? int.tryParse(_limitCtrl.text.trim())
         : null;
@@ -506,6 +531,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
         value: value,
         minOrderAmount: min,
         maxDiscountAmount: max,
+        startsAt: _startsAt,
         expiresAt: _expiresAt,
         isDownloadable: _isDownloadable,
         downloadLimit: limit,
@@ -518,6 +544,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
         value: value,
         minOrderAmount: min,
         maxDiscountAmount: max,
+        startsAt: _startsAt,
         expiresAt: _expiresAt,
         isDownloadable: _isDownloadable,
         downloadLimit: limit,
@@ -785,34 +812,121 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                         ),
                       ],
                       const SizedBox(height: 14),
-                      // 만료일
-                      _label('만료일 *'),
-                      GestureDetector(
-                        onTap: _pickDate,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 14),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFBDBDBD)),
-                            borderRadius: BorderRadius.circular(8),
+                      // ── 기간 설정 ──
+                      _label('쿠폰 사용 기간 *'),
+                      Row(
+                        children: [
+                          // 시작일
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: _pickStartDate,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: _startsAt != null
+                                        ? AppColors.primary
+                                        : const Color(0xFFBDBDBD),
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('시작일',
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.grey[500])),
+                                    const SizedBox(height: 3),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.play_arrow_rounded,
+                                            size: 13, color: Colors.grey),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _startsAt != null
+                                              ? _fmtDate(_startsAt!)
+                                              : '즉시',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: _startsAt != null
+                                                ? AppColors.primary
+                                                : Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.calendar_today_rounded,
-                                  size: 16, color: Colors.grey),
-                              const SizedBox(width: 8),
-                              Text(_fmtDate(_expiresAt),
-                                  style: const TextStyle(fontSize: 14)),
-                              const Spacer(),
-                              const Text('변경',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w600)),
-                            ],
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text('~',
+                                style: TextStyle(
+                                    fontSize: 18, color: Colors.grey)),
+                          ),
+                          // 만료일
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: _pickExpireDate,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color: const Color(0xFFBDBDBD)),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('만료일',
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.grey[500])),
+                                    const SizedBox(height: 3),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.stop_rounded,
+                                            size: 13, color: Colors.grey),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _fmtDate(_expiresAt),
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      // 시작일 초기화 버튼
+                      if (_startsAt != null)
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: () => setState(() => _startsAt = null),
+                            icon: const Icon(Icons.close_rounded, size: 13),
+                            label: const Text('시작일 제거 (즉시 활성)',
+                                style: TextStyle(fontSize: 11)),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.grey,
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),

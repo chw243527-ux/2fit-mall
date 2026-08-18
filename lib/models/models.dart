@@ -628,9 +628,10 @@ class CouponModel {
   final double value;           // 고정 금액 or 퍼센트
   final double minOrderAmount;  // 최소 주문금액 (0 = 제한 없음)
   final double? maxDiscountAmount; // 최대 할인 금액 (percent 전용)
+  final DateTime? startsAt;     // 쿠폰 시작일 (null = 즉시 유효)
   final DateTime expiresAt;
   bool isUsed;
-  final bool isDownloadable;    // 사용자가 팝업에서 다운로드 가능한 공개 쿠폰
+  final bool isDownloadable;    // 사용자가 팝업/배너에서 다운로드 가능한 공개 쿠폰
   final int? downloadLimit;     // 최대 다운로드 수 (null = 무제한)
   final int downloadCount;      // 현재 다운로드 수
 
@@ -642,6 +643,7 @@ class CouponModel {
     required this.value,
     this.minOrderAmount = 0,
     this.maxDiscountAmount,
+    this.startsAt,
     required this.expiresAt,
     this.isUsed = false,
     this.isDownloadable = false,
@@ -649,7 +651,13 @@ class CouponModel {
     this.downloadCount = 0,
   });
 
-  bool get isValid => !isUsed && expiresAt.isAfter(DateTime.now());
+  bool get isValid {
+    final now = DateTime.now();
+    if (isUsed) return false;
+    if (startsAt != null && now.isBefore(startsAt!)) return false;
+    return expiresAt.isAfter(now);
+  }
+
   bool get canDownload =>
       isDownloadable && isValid &&
       (downloadLimit == null || downloadCount < downloadLimit!);
@@ -922,9 +930,10 @@ class BannerModel {
   final String imageUrl;    // 배경 이미지 URL (Firebase Storage)
   final String? videoUrl;   // 동영상 URL (1번 슬라이드 전용, null이면 이미지)
   final int accentColor;    // accent 색상 (ARGB int)
-  final int btnAction;      // 0=신상, 1=베스트, 2=단체주문
+  final int btnAction;      // 0=신상, 1=베스트, 2=단체주문, 3=쿠폰다운로드
   final DateTime? startDate; // 노출 시작일 (null=제한없음)
   final DateTime? endDate;   // 노출 종료일 (null=제한없음)
+  final String? couponId;   // btnAction==3 일 때 연결할 쿠폰 ID
 
   const BannerModel({
     required this.id,
@@ -942,6 +951,7 @@ class BannerModel {
     this.btnAction = 0,
     this.startDate,
     this.endDate,
+    this.couponId,
   });
 
   /// 현재 시각 기준 기간 내 노출 여부
@@ -975,6 +985,7 @@ class BannerModel {
       btnAction: (d['btnAction'] as num?)?.toInt() ?? 0,
       startDate: _parseDate(d['startDate']),
       endDate:   _parseDate(d['endDate']),
+      couponId: d['couponId'] as String?,
     );
   }
 
@@ -995,6 +1006,7 @@ class BannerModel {
     else 'startDate': null,
     if (endDate != null)   'endDate':   Timestamp.fromDate(endDate!)
     else 'endDate': null,
+    'couponId': couponId,
   };
 
   BannerModel copyWith({
@@ -1002,6 +1014,7 @@ class BannerModel {
     String? titleKo, String? titleEn, String? ctaKo, String? ctaEn,
     String? imageUrl, String? videoUrl, int? accentColor, int? btnAction,
     Object? startDate = _sentinel, Object? endDate = _sentinel,
+    Object? couponId = _sentinel,
   }) => BannerModel(
     id: id ?? this.id,
     order: order ?? this.order,
@@ -1018,6 +1031,7 @@ class BannerModel {
     btnAction: btnAction ?? this.btnAction,
     startDate: startDate == _sentinel ? this.startDate : startDate as DateTime?,
     endDate:   endDate   == _sentinel ? this.endDate   : endDate   as DateTime?,
+    couponId: couponId == _sentinel ? this.couponId : couponId as String?,
   );
 }
 

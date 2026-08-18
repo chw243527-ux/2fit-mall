@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/net_image.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/providers.dart';
 import '../utils/app_localizations.dart';
 import '../utils/constants.dart';
@@ -85,9 +86,16 @@ class MainScreenState extends State<MainScreen> {
   }
 
   /// 다운로드 가능한 쿠폰이 있을 때 팝업 표시
-  void _showCouponPopup() {
+  void _showCouponPopup() async {
     if (!mounted) return;
     if (_currentIndex != 0) return;
+
+    // 오늘 하루 닫기 상태 확인
+    final uid = context.read<UserProvider>().user?.id;
+    final dismissed = await _isCouponPopupDismissedToday(uid);
+    if (dismissed) return;
+
+    if (!mounted) return;
     final userProv = context.read<UserProvider>();
     final isPc = MediaQuery.of(context).size.width >= kPcBreakpoint;
 
@@ -104,6 +112,7 @@ class MainScreenState extends State<MainScreen> {
           child: _CouponDownloadPopup(
             userId: userProv.user?.id,
             isPc: true,
+            onDismissToday: () => _dismissCouponPopupToday(userProv.user?.id),
           ),
         ),
       );
@@ -117,9 +126,42 @@ class MainScreenState extends State<MainScreen> {
         builder: (_) => _CouponDownloadPopup(
           userId: userProv.user?.id,
           isPc: false,
+          onDismissToday: () => _dismissCouponPopupToday(userProv.user?.id),
         ),
       );
     }
+  }
+
+  /// 쿠폰 팝업 오늘 하루 닫기 키 (유저별 분리)
+  static String _couponPopupDismissKey(String? uid) =>
+      uid != null && uid.isNotEmpty
+          ? 'coupon_popup_dismiss_$uid'
+          : 'coupon_popup_dismiss';
+
+  /// 오늘 이미 쿠폰 팝업을 닫았는지 확인
+  Future<bool> _isCouponPopupDismissedToday(String? uid) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getString(_couponPopupDismissKey(uid));
+      if (saved == null) return false;
+      final date = DateTime.tryParse(saved);
+      if (date == null) return false;
+      final now = DateTime.now();
+      return date.year == now.year &&
+          date.month == now.month &&
+          date.day == now.day;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// 쿠폰 팝업 오늘 하루 닫기 저장
+  Future<void> _dismissCouponPopupToday(String? uid) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+          _couponPopupDismissKey(uid), DateTime.now().toIso8601String());
+    } catch (_) {}
   }
 
   void _showNoticePopup() {
@@ -1709,8 +1751,14 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
 class _CouponDownloadPopup extends StatefulWidget {
   final String? userId;
   final bool isPc;
+  /// 오늘 하루 닫기 콜백 (null이면 버튼 미표시 — 배너 팝업 등에서 재사용 시)
+  final VoidCallback? onDismissToday;
 
-  const _CouponDownloadPopup({this.userId, required this.isPc});
+  const _CouponDownloadPopup({
+    this.userId,
+    required this.isPc,
+    this.onDismissToday,
+  });
 
   @override
   State<_CouponDownloadPopup> createState() => _CouponDownloadPopupState();
@@ -2166,6 +2214,23 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
               style: TextStyle(fontSize: r.sp(11), color: Colors.grey),
             ),
           ),
+          // 오늘 하루 닫기 버튼 (onDismissToday가 제공된 경우만 표시)
+          if (widget.onDismissToday != null)
+            TextButton(
+              onPressed: () {
+                widget.onDismissToday!();
+                Navigator.pop(context);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[500],
+                padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text('오늘 하루 닫기', style: TextStyle(fontSize: r.sp(12))),
+            ),
+          if (widget.onDismissToday != null)
+            SizedBox(width: r.w(4)),
           TextButton(
             onPressed: () => Navigator.pop(context),
             style: TextButton.styleFrom(
