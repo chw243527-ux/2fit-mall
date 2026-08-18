@@ -355,8 +355,28 @@ service cloud.firestore {
     // admin_coupons 컬렉션 (관리자가 발행한 쿠폰)
     // ════════════════════════════════════════════════════════
     match /admin_coupons/{couponId} {
-      allow read: if isSignedIn();   // 로그인 사용자 조회 가능 (쿠폰함 표시)
+      allow read: if true;           // 누구나 조회 가능 (다운로드 팝업 비로그인 표시)
       allow write: if isAdmin();     // 발급/수정/삭제는 관리자만
+    }
+
+
+    // ════════════════════════════════════════════════════════
+    // user_coupons 컬렉션 (사용자가 다운로드한 쿠폰)
+    // ════════════════════════════════════════════════════════
+    match /user_coupons/{userId} {
+      // 본인 또는 관리자만 최상위 문서 읽기
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow write: if isAdmin();
+
+      match /coupons/{couponId} {
+        // 본인 쿠폰 읽기: 본인 또는 관리자
+        allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+        // 쿠폰 다운로드: 본인만 (앱 내 Transaction에서 호출)
+        allow create: if isSignedIn() && isOwner(userId);
+        // 사용 처리(isUsed 필드 업데이트): 본인 또는 관리자
+        allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
+        allow delete: if isAdmin();
+      }
     }
 
 

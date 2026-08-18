@@ -71,6 +71,8 @@ class CouponService {
     double minOrderAmount = 0,
     double? maxDiscountAmount,
     required DateTime expiresAt,
+    bool isDownloadable = false,
+    int? downloadLimit,
   }) async {
     try {
       // 코드 중복 체크
@@ -91,6 +93,9 @@ class CouponService {
         if (maxDiscountAmount != null) 'maxDiscountAmount': maxDiscountAmount,
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isUsed': false,
+        'isDownloadable': isDownloadable,
+        if (downloadLimit != null) 'downloadLimit': downloadLimit,
+        'downloadCount': 0,
         'createdAt': FieldValue.serverTimestamp(),
       });
       return '';
@@ -109,6 +114,8 @@ class CouponService {
     double minOrderAmount = 0,
     double? maxDiscountAmount,
     required DateTime expiresAt,
+    bool isDownloadable = false,
+    int? downloadLimit,
   }) async {
     try {
       await _db.collection('admin_coupons').doc(couponId).update({
@@ -118,6 +125,8 @@ class CouponService {
         'minOrderAmount': minOrderAmount,
         'maxDiscountAmount': maxDiscountAmount,
         'expiresAt': Timestamp.fromDate(expiresAt),
+        'isDownloadable': isDownloadable,
+        'downloadLimit': downloadLimit,
         'updatedAt': FieldValue.serverTimestamp(),
       });
       return '';
@@ -167,6 +176,94 @@ class CouponService {
             .toList());
   }
 
+  /// 다운로드 가능한 공개 쿠폰 스트림 (홈 팝업용)
+  static Stream<List<CouponModel>> watchDownloadableCoupons() {
+    return _db
+        .collection('admin_coupons')
+        .where('isDownloadable', isEqualTo: true)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => _parse(d.id, d.data()))
+            .where((c) => c.canDownload)
+            .toList())
+        .handleError((e) {
+      if (kDebugMode) debugPrint('watchDownloadableCoupons error: $e');
+      return <CouponModel>[];
+    });
+  }
+
+  /// 사용자가 이미 다운로드한 쿠폰 ID 목록
+  static Future<Set<String>> getDownloadedCouponIds(String userId) async {
+    try {
+      final snap = await _db
+          .collection('user_coupons')
+          .doc(userId)
+          .collection('coupons')
+          .get();
+      return snap.docs.map((d) => d.id).toSet();
+    } catch (e) {
+      if (kDebugMode) debugPrint('getDownloadedCouponIds error: $e');
+      return {};
+    }
+  }
+
+  /// 사용자 쿠폰 다운로드 (user_coupons/{uid}/coupons/{couponId} 저장)
+  static Future<String> downloadCoupon({
+    required String userId,
+    required CouponModel coupon,
+  }) async {
+    try {
+      // 이미 다운로드했는지 확인
+      final existing = await _db
+          .collection('user_coupons')
+          .doc(userId)
+          .collection('coupons')
+          .doc(coupon.id)
+          .get();
+      if (existing.exists) return 'already_downloaded';
+
+      // 다운로드 수 제한 확인 (트랜잭션)
+      final couponRef = _db.collection('admin_coupons').doc(coupon.id);
+      String result = '';
+      await _db.runTransaction((tx) async {
+        final snap = await tx.get(couponRef);
+        if (!snap.exists) throw Exception('쿠폰을 찾을 수 없습니다.');
+        final data = snap.data()!;
+        final limit = data['downloadLimit'] as int?;
+        final count = (data['downloadCount'] as num?)?.toInt() ?? 0;
+        if (limit != null && count >= limit) {
+          result = 'limit_exceeded';
+          return;
+        }
+        // user_coupons에 저장
+        final userCouponRef = _db
+            .collection('user_coupons')
+            .doc(userId)
+            .collection('coupons')
+            .doc(coupon.id);
+        tx.set(userCouponRef, {
+          'couponId': coupon.id,
+          'code': coupon.code,
+          'name': coupon.name,
+          'type': coupon.type == CouponType.percent ? 'percent' : 'fixed',
+          'value': coupon.value,
+          'minOrderAmount': coupon.minOrderAmount,
+          if (coupon.maxDiscountAmount != null)
+            'maxDiscountAmount': coupon.maxDiscountAmount,
+          'expiresAt': Timestamp.fromDate(coupon.expiresAt),
+          'isUsed': false,
+          'downloadedAt': FieldValue.serverTimestamp(),
+        });
+        // 다운로드 카운트 증가
+        tx.update(couponRef, {'downloadCount': FieldValue.increment(1)});
+      });
+      return result; // '' = 성공
+    } catch (e) {
+      if (kDebugMode) debugPrint('downloadCoupon error: $e');
+      return '다운로드 중 오류가 발생했습니다.';
+    }
+  }
+
   // ─── 파싱 ───────────────────────────────────────────
   static CouponModel _parse(String id, Map<String, dynamic> data) {
     final typeStr = data['type'] as String? ?? 'fixed';
@@ -183,6 +280,9 @@ class CouponService {
       expiresAt: (data['expiresAt'] as Timestamp?)?.toDate() ??
           DateTime.now().add(const Duration(days: 30)),
       isUsed: data['isUsed'] as bool? ?? false,
+      isDownloadable: data['isDownloadable'] as bool? ?? false,
+      downloadLimit: data['downloadLimit'] as int?,
+      downloadCount: (data['downloadCount'] as num?)?.toInt() ?? 0,
     );
   }
 }

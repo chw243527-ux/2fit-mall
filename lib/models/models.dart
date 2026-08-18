@@ -630,6 +630,9 @@ class CouponModel {
   final double? maxDiscountAmount; // 최대 할인 금액 (percent 전용)
   final DateTime expiresAt;
   bool isUsed;
+  final bool isDownloadable;    // 사용자가 팝업에서 다운로드 가능한 공개 쿠폰
+  final int? downloadLimit;     // 최대 다운로드 수 (null = 무제한)
+  final int downloadCount;      // 현재 다운로드 수
 
   CouponModel({
     required this.id,
@@ -641,9 +644,15 @@ class CouponModel {
     this.maxDiscountAmount,
     required this.expiresAt,
     this.isUsed = false,
+    this.isDownloadable = false,
+    this.downloadLimit,
+    this.downloadCount = 0,
   });
 
   bool get isValid => !isUsed && expiresAt.isAfter(DateTime.now());
+  bool get canDownload =>
+      isDownloadable && isValid &&
+      (downloadLimit == null || downloadCount < downloadLimit!);
 
   double calculateDiscount(double orderAmount) {
     if (!isValid || orderAmount < minOrderAmount) return 0;

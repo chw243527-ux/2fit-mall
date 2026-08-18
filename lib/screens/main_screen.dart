@@ -15,6 +15,8 @@ import 'orders/order_guide_screen.dart';
 import 'chat/chat_screen.dart';
 import 'auth/login_screen.dart';
 import '../utils/responsive.dart';
+import '../models/models.dart';
+import '../services/wishlist_coupon_service.dart';
 
 // PC 기준 breakpoint
 const double kPcBreakpoint = 900;
@@ -72,12 +74,52 @@ class MainScreenState extends State<MainScreen> {
       await noticeProv.loadFromFirestore();
       if (mounted && _currentIndex == 0) {
         Future.delayed(const Duration(milliseconds: 300), _showNoticePopup);
+        // 공지 팝업 후 쿠폰 팝업 (약간 늦게)
+        Future.delayed(const Duration(milliseconds: 600), _showCouponPopup);
       }
       // 언어가 한국어가 아닌 경우 화면 첫 빌드 후 번역 트리거
       if (mounted) {
         context.read<LanguageProvider>().triggerTranslation();
       }
     });
+  }
+
+  /// 다운로드 가능한 쿠폰이 있을 때 팝업 표시
+  void _showCouponPopup() {
+    if (!mounted) return;
+    if (_currentIndex != 0) return;
+    final userProv = context.read<UserProvider>();
+    final isPc = MediaQuery.of(context).size.width >= kPcBreakpoint;
+
+    // 쿠폰 팝업은 별도 StatefulWidget이 스트림으로 쿠폰 목록을 직접 관리
+    if (isPc) {
+      final r = Responsive.of(context);
+      showDialog(
+        context: context,
+        barrierColor: Colors.black.withValues(alpha: 0.45),
+        barrierDismissible: true,
+        builder: (_) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.symmetric(horizontal: r.w(40), vertical: r.h(60)),
+          child: _CouponDownloadPopup(
+            userId: userProv.user?.id,
+            isPc: true,
+          ),
+        ),
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        barrierColor: Colors.black.withValues(alpha: 0.45),
+        useRootNavigator: false,
+        builder: (_) => _CouponDownloadPopup(
+          userId: userProv.user?.id,
+          isPc: false,
+        ),
+      );
+    }
   }
 
   void _showNoticePopup() {
@@ -1657,6 +1699,485 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
               )),
         const Divider(height: 1, indent: 16, endIndent: 16),
       ],
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// 쿠폰 다운로드 팝업
+// ══════════════════════════════════════════════════════
+class _CouponDownloadPopup extends StatefulWidget {
+  final String? userId;
+  final bool isPc;
+
+  const _CouponDownloadPopup({this.userId, required this.isPc});
+
+  @override
+  State<_CouponDownloadPopup> createState() => _CouponDownloadPopupState();
+}
+
+class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
+  Set<String> _downloadedIds = {};
+  // couponId → true(다운로드 중), false(완료/대기)
+  final Map<String, bool> _loadingMap = {};
+  bool _initLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDownloaded();
+  }
+
+  Future<void> _loadDownloaded() async {
+    if (widget.userId != null) {
+      final ids = await CouponService.getDownloadedCouponIds(widget.userId!);
+      if (mounted) setState(() => _downloadedIds = ids);
+    }
+    if (mounted) setState(() => _initLoaded = true);
+  }
+
+  Future<void> _download(CouponModel coupon) async {
+    if (widget.userId == null) {
+      // 로그인 필요 안내
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('로그인 후 쿠폰을 다운로드할 수 있습니다.'),
+          backgroundColor: Color(0xFF1565C0),
+        ),
+      );
+      return;
+    }
+    setState(() => _loadingMap[coupon.id] = true);
+    final result = await CouponService.downloadCoupon(
+      userId: widget.userId!,
+      coupon: coupon,
+    );
+    if (!mounted) return;
+    setState(() => _loadingMap.remove(coupon.id));
+
+    if (result == '' || result == 'already_downloaded') {
+      setState(() => _downloadedIds.add(coupon.id));
+      if (result == '') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text('「${coupon.name}」 쿠폰이 저장되었습니다!'),
+              ],
+            ),
+            backgroundColor: const Color(0xFF43A047),
+          ),
+        );
+      }
+    } else if (result == 'limit_exceeded') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('다운로드 수량이 모두 소진되었습니다.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  String _fmtDiscount(CouponModel c) {
+    if (c.type == CouponType.percent) {
+      final base = '${c.value.toInt()}% 할인';
+      if (c.maxDiscountAmount != null) {
+        final max = c.maxDiscountAmount!.toInt().toString()
+            .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+        return '$base (최대 ${max}원)';
+      }
+      return base;
+    } else {
+      final v = c.value.toInt().toString()
+          .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+      return '${v}원 할인';
+    }
+  }
+
+  String _fmtExpiry(DateTime d) =>
+      '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} 까지';
+
+  @override
+  Widget build(BuildContext context) {
+    final r = Responsive.of(context);
+
+    return StreamBuilder<List<CouponModel>>(
+      stream: CouponService.watchDownloadableCoupons(),
+      builder: (context, snap) {
+        final coupons = snap.data ?? [];
+
+        // 쿠폰이 없으면 팝업 자체를 표시하지 않음
+        if (snap.connectionState != ConnectionState.waiting && coupons.isEmpty) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) Navigator.pop(context);
+          });
+          return const SizedBox.shrink();
+        }
+
+        if (widget.isPc) {
+          return _buildPcDialog(context, r, coupons);
+        } else {
+          return _buildMobileSheet(context, r, coupons);
+        }
+      },
+    );
+  }
+
+  Widget _buildPcDialog(BuildContext context, Responsive r, List<CouponModel> coupons) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 480, maxHeight: 600),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 24, offset: const Offset(0, 8)),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildHeader(r),
+            Flexible(child: _buildCouponList(r, coupons)),
+            _buildFooter(r),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileSheet(BuildContext context, Responsive r, List<CouponModel> coupons) {
+    return SafeArea(
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.75,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 드래그 핸들
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(top: 10, bottom: 4),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            _buildHeader(r),
+            Flexible(child: _buildCouponList(r, coupons)),
+            _buildFooter(r),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(Responsive r) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(16)),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.local_activity_rounded, color: Colors.white, size: 22),
+          ),
+          SizedBox(width: r.w(12)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('🎁 쿠폰 받아가세요!',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: r.sp(16),
+                      fontWeight: FontWeight.w800,
+                    )),
+                Text('지금 바로 다운로드하고 할인 혜택을 누리세요',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: r.sp(12),
+                    )),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 22),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCouponList(Responsive r, List<CouponModel> coupons) {
+    if (!_initLoaded) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    return ListView.separated(
+      shrinkWrap: true,
+      padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
+      itemCount: coupons.length,
+      separatorBuilder: (_, __) => SizedBox(height: r.h(8)),
+      itemBuilder: (_, i) => _buildCouponItem(r, coupons[i]),
+    );
+  }
+
+  Widget _buildCouponItem(Responsive r, CouponModel coupon) {
+    final isDownloaded = _downloadedIds.contains(coupon.id);
+    final isLoading = _loadingMap[coupon.id] == true;
+    final isPercent = coupon.type == CouponType.percent;
+    final accentColor = isPercent ? const Color(0xFF1565C0) : const Color(0xFF2E7D32);
+
+    // 잔여 수량 표시
+    String? remainText;
+    if (coupon.downloadLimit != null) {
+      final remain = coupon.downloadLimit! - coupon.downloadCount;
+      remainText = remain > 0 ? '잔여 ${remain}개' : '마감';
+    }
+    final isSoldOut = remainText == '마감';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isSoldOut ? const Color(0xFFF9F9F9) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDownloaded
+              ? const Color(0xFF9C27B0).withValues(alpha: 0.3)
+              : const Color(0xFFEEEEEE),
+          width: isDownloaded ? 1.5 : 1,
+        ),
+        boxShadow: isSoldOut
+            ? []
+            : [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
+      ),
+      child: Opacity(
+        opacity: isSoldOut ? 0.6 : 1.0,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(12)),
+          child: Row(
+            children: [
+              // 타입 아이콘
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isPercent ? Icons.percent_rounded : Icons.attach_money_rounded,
+                  color: accentColor,
+                  size: 22,
+                ),
+              ),
+              SizedBox(width: r.w(12)),
+              // 쿠폰 정보
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(coupon.name,
+                        style: TextStyle(
+                          fontSize: r.sp(14),
+                          fontWeight: FontWeight.w700,
+                          color: isSoldOut ? Colors.grey : const Color(0xFF1A1A1A),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    SizedBox(height: r.h(3)),
+                    Text(_fmtDiscount(coupon),
+                        style: TextStyle(
+                          fontSize: r.sp(13),
+                          color: accentColor,
+                          fontWeight: FontWeight.w600,
+                        )),
+                    SizedBox(height: r.h(2)),
+                    Row(
+                      children: [
+                        Text(_fmtExpiry(coupon.expiresAt),
+                            style: TextStyle(fontSize: r.sp(11), color: Colors.grey)),
+                        if (remainText != null) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: isSoldOut
+                                  ? Colors.grey.withValues(alpha: 0.1)
+                                  : const Color(0xFFFFF8E1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              remainText,
+                              style: TextStyle(
+                                fontSize: r.sp(10),
+                                fontWeight: FontWeight.w700,
+                                color: isSoldOut ? Colors.grey : const Color(0xFFE65100),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: r.w(10)),
+              // 다운로드 버튼
+              _buildDownloadButton(r, coupon, isDownloaded, isLoading, isSoldOut),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDownloadButton(
+    Responsive r,
+    CouponModel coupon,
+    bool isDownloaded,
+    bool isLoading,
+    bool isSoldOut,
+  ) {
+    if (isDownloaded) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(8)),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF3E5F5),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.check_rounded, size: 14, color: Color(0xFF7B1FA2)),
+            SizedBox(width: r.w(4)),
+            Text('받기완료',
+                style: TextStyle(
+                  fontSize: r.sp(12),
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF7B1FA2),
+                )),
+          ],
+        ),
+      );
+    }
+    if (isSoldOut) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(8)),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text('마감',
+            style: TextStyle(
+              fontSize: r.sp(12),
+              fontWeight: FontWeight.w700,
+              color: Colors.grey,
+            )),
+      );
+    }
+    return GestureDetector(
+      onTap: isLoading ? null : () => _download(coupon),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(8)),
+        decoration: BoxDecoration(
+          gradient: isLoading
+              ? null
+              : const LinearGradient(
+                  colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+          color: isLoading ? Colors.grey[200] : null,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: isLoading
+            ? SizedBox(
+                width: r.w(40),
+                height: r.h(16),
+                child: const Center(
+                  child: SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
+                  ),
+                ),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.download_rounded, size: 14, color: Colors.white),
+                  SizedBox(width: r.w(4)),
+                  Text('받기',
+                      style: TextStyle(
+                        fontSize: r.sp(12),
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      )),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildFooter(Responsive r) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Color(0xFFF0F0F0))),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline_rounded, size: 13, color: Colors.grey[400]),
+          SizedBox(width: r.w(6)),
+          Expanded(
+            child: Text(
+              '다운로드한 쿠폰은 마이페이지 > 쿠폰함에서 확인하세요',
+              style: TextStyle(fontSize: r.sp(11), color: Colors.grey),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey,
+              padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: Text('닫기', style: TextStyle(fontSize: r.sp(13))),
+          ),
+        ],
+      ),
     );
   }
 }

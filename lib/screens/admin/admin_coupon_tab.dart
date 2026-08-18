@@ -1,7 +1,6 @@
 // admin_coupon_tab.dart — 관리자 쿠폰 관리 탭
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/models.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../utils/theme.dart';
@@ -276,6 +275,36 @@ class _CouponCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis),
                         ),
                         const SizedBox(width: 6),
+                        // 다운로드 쿠폰 배지
+                        if (coupon.isDownloadable) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF3E5F5),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.download_rounded,
+                                    size: 10, color: Color(0xFF7B1FA2)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  coupon.downloadLimit != null
+                                      ? '${coupon.downloadCount}/${coupon.downloadLimit}'
+                                      : '다운로드',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Color(0xFF7B1FA2),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 7, vertical: 2),
@@ -401,9 +430,11 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
   late final TextEditingController _valueCtrl;
   late final TextEditingController _minCtrl;
   late final TextEditingController _maxCtrl;
+  late final TextEditingController _limitCtrl;
   late CouponType _type;
   late DateTime _expiresAt;
   bool _saving = false;
+  bool _isDownloadable = false;
 
   bool get isEdit => widget.existing != null;
 
@@ -426,6 +457,9 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
     _type = e?.type ?? CouponType.fixed;
     _expiresAt = e?.expiresAt ??
         DateTime.now().add(const Duration(days: 30));
+    _isDownloadable = e?.isDownloadable ?? false;
+    _limitCtrl = TextEditingController(
+        text: e?.downloadLimit != null ? e!.downloadLimit.toString() : '');
   }
 
   @override
@@ -433,6 +467,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
     _codeCtrl.dispose();
     _nameCtrl.dispose();
     _valueCtrl.dispose();
+    _limitCtrl.dispose();
     _minCtrl.dispose();
     _maxCtrl.dispose();
     super.dispose();
@@ -458,6 +493,10 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
         ? double.tryParse(_maxCtrl.text.trim())
         : null;
 
+    final limit = _isDownloadable && _limitCtrl.text.trim().isNotEmpty
+        ? int.tryParse(_limitCtrl.text.trim())
+        : null;
+
     String err;
     if (isEdit) {
       err = await CouponService.updateCoupon(
@@ -468,6 +507,8 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
         minOrderAmount: min,
         maxDiscountAmount: max,
         expiresAt: _expiresAt,
+        isDownloadable: _isDownloadable,
+        downloadLimit: limit,
       );
     } else {
       err = await CouponService.createCoupon(
@@ -478,6 +519,8 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
         minOrderAmount: min,
         maxDiscountAmount: max,
         expiresAt: _expiresAt,
+        isDownloadable: _isDownloadable,
+        downloadLimit: limit,
       );
     }
 
@@ -675,6 +718,72 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                           suffixText: '원',
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      // ── 다운로드 쿠폰 토글 ──
+                      Container(
+                        decoration: BoxDecoration(
+                          color: _isDownloadable
+                              ? const Color(0xFFF3E5F5)
+                              : const Color(0xFFF8F8F8),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _isDownloadable
+                                ? const Color(0xFF9C27B0)
+                                : const Color(0xFFE0E0E0),
+                          ),
+                        ),
+                        child: SwitchListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 2),
+                          title: Row(
+                            children: [
+                              Icon(
+                                Icons.download_rounded,
+                                size: 16,
+                                color: _isDownloadable
+                                    ? const Color(0xFF9C27B0)
+                                    : Colors.grey,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '다운로드 쿠폰',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: _isDownloadable
+                                      ? const Color(0xFF9C27B0)
+                                      : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          subtitle: Text(
+                            '홈 화면 팝업에서 사용자가 직접 다운로드',
+                            style: TextStyle(
+                                fontSize: 11, color: Colors.grey[600]),
+                          ),
+                          value: _isDownloadable,
+                          activeColor: const Color(0xFF9C27B0),
+                          onChanged: (v) =>
+                              setState(() => _isDownloadable = v),
+                        ),
+                      ),
+                      // 다운로드 수 제한
+                      if (_isDownloadable) ...[
+                        const SizedBox(height: 10),
+                        _label('최대 다운로드 수 (선택)'),
+                        TextFormField(
+                          controller: _limitCtrl,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                          decoration: const InputDecoration(
+                            hintText: '예) 100 (미입력 시 무제한)',
+                            suffixText: '명',
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 14),
                       // 만료일
                       _label('만료일 *'),
