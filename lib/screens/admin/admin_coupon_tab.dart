@@ -490,21 +490,31 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
   }
 
   Future<void> _pickStartDate() async {
+    // 수정 모드에서 기존 시작일이 과거여도 선택 가능하도록 firstDate 보정
+    final earliest = isEdit && _startsAt != null && _startsAt!.isBefore(DateTime.now())
+        ? _startsAt!
+        : DateTime.now().subtract(const Duration(days: 1));
     final picked = await showDatePicker(
       context: context,
       initialDate: _startsAt ?? DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
+      firstDate: earliest,
       lastDate: _expiresAt,
     );
     if (picked != null) setState(() => _startsAt = picked);
   }
 
   Future<void> _pickExpireDate() async {
+    // 수정 모드에서 기존 만료일이 과거여도 피커가 열리도록 initialDate/firstDate 보정
+    final now = DateTime.now();
+    final safeFirst = _startsAt != null
+        ? (_startsAt!.isBefore(now) ? _startsAt! : _startsAt!)
+        : now;
+    final safeInitial = _expiresAt.isBefore(safeFirst) ? safeFirst : _expiresAt;
     final picked = await showDatePicker(
       context: context,
-      initialDate: _expiresAt,
-      firstDate: _startsAt ?? DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+      initialDate: safeInitial,
+      firstDate: safeFirst,
+      lastDate: now.add(const Duration(days: 365 * 3)),
     );
     if (picked != null) setState(() => _expiresAt = picked);
   }

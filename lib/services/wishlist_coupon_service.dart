@@ -126,17 +126,18 @@ class CouponService {
         'type': type == CouponType.fixed ? 'fixed' : 'percent',
         'value': value,
         'minOrderAmount': minOrderAmount,
-        'maxDiscountAmount': maxDiscountAmount,
-        'startsAt': startsAt != null ? Timestamp.fromDate(startsAt) : null,
+        // null이면 FieldValue.delete()로 필드 완전 제거 (null 값 저장 방지)
+        'maxDiscountAmount': maxDiscountAmount ?? FieldValue.delete(),
+        'startsAt': startsAt != null ? Timestamp.fromDate(startsAt) : FieldValue.delete(),
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isDownloadable': isDownloadable,
-        'downloadLimit': downloadLimit,
+        'downloadLimit': downloadLimit ?? FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
       return '';
     } catch (e) {
       if (kDebugMode) debugPrint('updateCoupon error: $e');
-      return '쿠폰 수정 중 오류가 발생했습니다.';
+      return '쿠폰 수정 중 오류가 발생했습니다: $e';
     }
   }
 
