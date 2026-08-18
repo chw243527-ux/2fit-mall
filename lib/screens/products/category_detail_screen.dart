@@ -811,7 +811,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           ),
         ),
       ),
-      body: Center(
+      // body는 Scaffold가 tight height를 주므로 Column > Expanded 구조가 동작함
+      // Center를 body 최상위로 쓰면 자식에 unbounded height → Expanded 0px 버그
+      body: Align(
+        alignment: Alignment.topCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1280),
           child: Padding(
