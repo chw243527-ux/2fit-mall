@@ -914,54 +914,62 @@ class _SearchBarState extends State<_SearchBar> {
     final r = Responsive.of(context);
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
-    return Container(
+    return SizedBox(
       height: 44,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FA),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      child: Row(
-        children: [
-          SizedBox(width: r.w(14)),
-          const Icon(Icons.search_rounded, size: 18, color: Color(0xFF999999)),
-          SizedBox(width: r.w(8)),
-          Expanded(
-            child: TextField(
-              controller: _ctrl,
-              onSubmitted: (_) => _search(),
-              decoration: InputDecoration(
-                hintText: widget.loc.pcSearchHint,
-                hintStyle: TextStyle(color: Color(0xFFAAAAAA), fontSize: r.sp(13)),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              style: TextStyle(fontSize: r.sp(13), color: Color(0xFF1A1A1A)),
-            ),
-          ),
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: _search,
-              child: Container(
-                margin: EdgeInsets.all(r.w(4)),
-                padding: EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(8)),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A1A),
-                  borderRadius: BorderRadius.circular(6),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF7F8FA),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(width: 14),
+            const Icon(Icons.search_rounded, size: 18, color: Color(0xFF999999)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _ctrl,
+                onSubmitted: (_) => _search(),
+                textAlignVertical: TextAlignVertical.center,
+                decoration: InputDecoration(
+                  hintText: widget.loc.pcSearchHint,
+                  hintStyle: TextStyle(
+                      color: const Color(0xFFAAAAAA), fontSize: r.sp(13)),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
                 ),
-                child: Text(
-                  widget.loc.pcSearchBtn,
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: r.sp(12),
-                      fontWeight: FontWeight.w700),
-                ),
+                style: TextStyle(
+                    fontSize: r.sp(13), color: const Color(0xFF1A1A1A)),
               ),
             ),
-          ),
-        ],
+            // 검색 버튼 — 고정 패딩으로 잘림 방지
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: _search,
+                child: Container(
+                  margin: const EdgeInsets.all(5),
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    widget.loc.pcSearchBtn,
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: r.sp(12),
+                        fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
