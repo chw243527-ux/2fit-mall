@@ -143,18 +143,36 @@ jobs:
           fi
 
       # ── 7. Firebase Firestore Rules 배포 (실패해도 전체 빌드에 영향 없음)
+      #   인증 우선순위: GOOGLE_APPLICATION_CREDENTIALS_JSON (SA) > FIREBASE_TOKEN (CI)
       - name: Deploy Firebase Firestore Rules
         continue-on-error: true
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          SA_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
         run: |
-          if [ -z "$FIREBASE_TOKEN" ]; then
-            echo "⚠️  FIREBASE_TOKEN 미설정 — Rules 배포 건너뜀"
-            exit 0
-          fi
           npm install -g firebase-tools --silent
-          firebase deploy --only firestore:rules --token "$FIREBASE_TOKEN" --non-interactive \
-            || echo "⚠️  Firestore Rules 배포 실패 (토큰 만료 가능) — 빌드는 계속"
+
+          if [ -n "$SA_JSON" ]; then
+            # ── Service Account 방식 (만료 없음, 권장) ──
+            echo "$SA_JSON" > /tmp/sa.json
+            export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
+            echo "🔑 Service Account 인증으로 Rules 배포 시작"
+            firebase deploy --only firestore:rules --non-interactive --project fit-mall \
+              && echo "✅ Firestore Rules 배포 완료 (SA)" \
+              || echo "⚠️  Rules 배포 실패 — 빌드는 계속"
+            rm -f /tmp/sa.json
+
+          elif [ -n "$FIREBASE_TOKEN" ]; then
+            # ── CI 토큰 방식 (fallback) ──
+            echo "🔑 FIREBASE_TOKEN으로 Rules 배포 시작"
+            firebase deploy --only firestore:rules --token "$FIREBASE_TOKEN" --non-interactive \
+              && echo "✅ Firestore Rules 배포 완료 (token)" \
+              || echo "⚠️  Rules 배포 실패 (토큰 만료 가능) — 빌드는 계속"
+
+          else
+            echo "⚠️  GOOGLE_APPLICATION_CREDENTIALS_JSON / FIREBASE_TOKEN 모두 미설정"
+            echo "    → Firestore Rules는 Firebase Console에서 수동 적용 필요"
+          fi
 
       # ── 8. Cloudflare Pages 배포
       - name: Deploy to Cloudflare Pages
