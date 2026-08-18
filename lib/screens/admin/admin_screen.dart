@@ -534,6 +534,7 @@ class _AdminScreenState extends State<AdminScreen>
       // ── 주문관리 소분류 (들여쓰기로 표시) ──
       {'icon': Icons.folder_special_rounded,   'label': '카테고리관리', 'sub': true},
       {'icon': Icons.layers_rounded,           'label': '섹션관리',     'sub': true},
+      {'icon': Icons.local_activity_rounded,   'label': '쿠폰관리',     'sub': true},
     ];
 
     return Scaffold(
@@ -795,7 +796,9 @@ class _AdminScreenState extends State<AdminScreen>
                   child: Row(
                     children: [
                       Text(
-                        tabs[_tabCtrl.index]['label'] as String,
+                        _tabCtrl.index < tabs.length
+                            ? tabs[_tabCtrl.index]['label'] as String
+                            : _tabLabels.elementAtOrNull(_tabCtrl.index) ?? '',
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A)),
                       ),
                       const Spacer(),
@@ -4682,20 +4685,23 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
               ),
               const SizedBox(width: 6),
-              ElevatedButton.icon(
-                onPressed: () => _showAddProductDialog(),
-                icon: const Icon(Icons.add, size: 16),
-                label: Text('상품 추가'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1A1A2E),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  elevation: 0,
-                  textStyle: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w700),
+              SizedBox(
+                height: 40,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showAddProductDialog(),
+                  icon: const Icon(Icons.add, size: 16),
+                  label: const Text('상품 추가'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1A1A2E),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    minimumSize: const Size(100, 40),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    elevation: 0,
+                    textStyle: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ],
