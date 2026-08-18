@@ -104,57 +104,105 @@ class CategoryService {
 
   // ── 메인 카테고리 추가 ─────────────────────────────────────
   static Future<void> addMainCategory(String name) async {
+    final prevCats = _cachedMainCats;
+    final prevSubs = _cachedSubCatMap;
     final cats = List<String>.from(mainCategories);
     if (cats.contains(name)) return;
     cats.add(name);
     final subs = Map<String, List<String>>.from(subCatMap);
     subs[name] = [name]; // 기본 하위카테고리: 메인과 동일한 이름
-    await _saveToFirestore(cats, subs);
+    // 캐시 선반영 후 저장 시도 (실패 시 롤백)
     _cachedMainCats = cats;
     _cachedSubCatMap = subs;
+    try {
+      await _saveToFirestore(cats, subs);
+    } catch (e) {
+      // Firestore 저장 실패 → 캐시 롤백
+      _cachedMainCats = prevCats;
+      _cachedSubCatMap = prevSubs;
+      debugPrint('❌ CategoryService.addMainCategory 실패: $e');
+      rethrow;
+    }
   }
 
   // ── 메인 카테고리 삭제 ─────────────────────────────────────
   static Future<void> removeMainCategory(String name) async {
+    final prevCats = _cachedMainCats;
+    final prevSubs = _cachedSubCatMap;
     final cats = List<String>.from(mainCategories)..remove(name);
     final subs = Map<String, List<String>>.from(subCatMap)..remove(name);
-    await _saveToFirestore(cats, subs);
     _cachedMainCats = cats;
     _cachedSubCatMap = subs;
+    try {
+      await _saveToFirestore(cats, subs);
+    } catch (e) {
+      _cachedMainCats = prevCats;
+      _cachedSubCatMap = prevSubs;
+      debugPrint('❌ CategoryService.removeMainCategory 실패: $e');
+      rethrow;
+    }
   }
 
   // ── 하위 카테고리 추가 ─────────────────────────────────────
   static Future<void> addSubCategory(String mainCat, String subName) async {
+    final prevSubs = _cachedSubCatMap;
     final subs = Map<String, List<String>>.from(subCatMap);
     final list = List<String>.from(subs[mainCat] ?? []);
     if (list.contains(subName)) return;
     list.add(subName);
     subs[mainCat] = list;
-    await _saveToFirestore(List<String>.from(mainCategories), subs);
     _cachedSubCatMap = subs;
+    try {
+      await _saveToFirestore(List<String>.from(mainCategories), subs);
+    } catch (e) {
+      _cachedSubCatMap = prevSubs;
+      debugPrint('❌ CategoryService.addSubCategory 실패: $e');
+      rethrow;
+    }
   }
 
   // ── 하위 카테고리 삭제 ─────────────────────────────────────
   static Future<void> removeSubCategory(String mainCat, String subName) async {
+    final prevSubs = _cachedSubCatMap;
     final subs = Map<String, List<String>>.from(subCatMap);
     final list = List<String>.from(subs[mainCat] ?? [])..remove(subName);
     subs[mainCat] = list;
-    await _saveToFirestore(List<String>.from(mainCategories), subs);
     _cachedSubCatMap = subs;
+    try {
+      await _saveToFirestore(List<String>.from(mainCategories), subs);
+    } catch (e) {
+      _cachedSubCatMap = prevSubs;
+      debugPrint('❌ CategoryService.removeSubCategory 실패: $e');
+      rethrow;
+    }
   }
 
   // ── 하위 카테고리 순서 변경 ────────────────────────────────
   static Future<void> reorderSubCategories(String mainCat, List<String> newOrder) async {
+    final prevSubs = _cachedSubCatMap;
     final subs = Map<String, List<String>>.from(subCatMap);
     subs[mainCat] = newOrder;
-    await _saveToFirestore(List<String>.from(mainCategories), subs);
     _cachedSubCatMap = subs;
+    try {
+      await _saveToFirestore(List<String>.from(mainCategories), subs);
+    } catch (e) {
+      _cachedSubCatMap = prevSubs;
+      debugPrint('❌ CategoryService.reorderSubCategories 실패: $e');
+      rethrow;
+    }
   }
 
   // ── 메인 카테고리 순서 변경 ────────────────────────────────
   static Future<void> reorderMainCategories(List<String> newOrder) async {
-    await _saveToFirestore(newOrder, Map<String, List<String>>.from(subCatMap));
+    final prevCats = _cachedMainCats;
     _cachedMainCats = newOrder;
+    try {
+      await _saveToFirestore(newOrder, Map<String, List<String>>.from(subCatMap));
+    } catch (e) {
+      _cachedMainCats = prevCats;
+      debugPrint('❌ CategoryService.reorderMainCategories 실패: $e');
+      rethrow;
+    }
   }
 
   // ── Firestore 저장 (내부) ──────────────────────────────────

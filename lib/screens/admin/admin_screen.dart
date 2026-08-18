@@ -14154,8 +14154,20 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
   }
 
   Future<void> _loadData() async {
+    if (mounted) setState(() => _loading = true);
     CategoryService.clearCache();
-    await CategoryService.load();
+    try {
+      await CategoryService.load();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('카테고리 로드 실패: $e'),
+            backgroundColor: const Color(0xFFE53935),
+          ),
+        );
+      }
+    }
     if (mounted) setState(() { _loading = false; _selectedMain ??= CategoryService.mainCategories.firstOrNull; });
   }
 
@@ -14442,12 +14454,20 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('이미 존재합니다: $result')));
       return;
     }
-    await CategoryService.addMainCategory(result);
-    if (mounted) {
-      setState(() => _selectedMain = result);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('카테고리 "$result" 추가됨'), backgroundColor: Color(0xFF2E7D32)),
-      );
+    try {
+      await CategoryService.addMainCategory(result);
+      if (mounted) {
+        setState(() => _selectedMain = result);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('카테고리 "$result" 추가됨'), backgroundColor: const Color(0xFF2E7D32)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('저장 실패: $e'), backgroundColor: const Color(0xFFE53935)),
+        );
+      }
     }
   }
 
@@ -14497,12 +14517,20 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('이미 존재합니다: $result')));
       return;
     }
-    await CategoryService.addSubCategory(_selectedMain!, result);
-    if (mounted) {
-      setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('"$_selectedMain" → "$result" 하위 카테고리 추가됨'), backgroundColor: const Color(0xFF3F51B5)),
-      );
+    try {
+      await CategoryService.addSubCategory(_selectedMain!, result);
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('"$_selectedMain" → "$result" 하위 카테고리 추가됨'), backgroundColor: const Color(0xFF3F51B5)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('저장 실패: $e'), backgroundColor: const Color(0xFFE53935)),
+        );
+      }
     }
   }
 
@@ -14525,14 +14553,22 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       ),
     );
     if (ok != true || !mounted) return;
-    await CategoryService.removeMainCategory(cat);
-    if (mounted) {
-      setState(() {
-        if (_selectedMain == cat) _selectedMain = CategoryService.mainCategories.firstOrNull;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('카테고리 "$cat" 삭제됨'), backgroundColor: Color(0xFFE53935)),
-      );
+    try {
+      await CategoryService.removeMainCategory(cat);
+      if (mounted) {
+        setState(() {
+          if (_selectedMain == cat) _selectedMain = CategoryService.mainCategories.firstOrNull;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('카테고리 "$cat" 삭제됨'), backgroundColor: const Color(0xFFE53935)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('삭제 실패: $e'), backgroundColor: const Color(0xFFE53935)),
+        );
+      }
     }
   }
 
@@ -14555,12 +14591,20 @@ class _CategoryManagementTabState extends State<_CategoryManagementTab> {
       ),
     );
     if (ok != true || !mounted) return;
-    await CategoryService.removeSubCategory(_selectedMain!, sub);
-    if (mounted) {
-      setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('"$sub" 하위 카테고리 삭제됨'), backgroundColor: const Color(0xFFE53935)),
-      );
+    try {
+      await CategoryService.removeSubCategory(_selectedMain!, sub);
+      if (mounted) {
+        setState(() {});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('"$sub" 하위 카테고리 삭제됨'), backgroundColor: const Color(0xFFE53935)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('삭제 실패: $e'), backgroundColor: const Color(0xFFE53935)),
+        );
+      }
     }
   }
 }
