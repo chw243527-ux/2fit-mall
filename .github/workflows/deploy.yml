@@ -143,17 +143,18 @@ jobs:
           fi
 
       # ── 7. Firebase Firestore Rules 배포 (실패해도 전체 빌드에 영향 없음)
-      #   인증 우선순위: GOOGLE_APPLICATION_CREDENTIALS_JSON (SA) > FIREBASE_TOKEN (CI)
+      #   Service Account JSON 방식 사용 (FIREBASE_TOKEN과 충돌 방지를 위해 env에서 제외)
       - name: Deploy Firebase Firestore Rules
         continue-on-error: true
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
           SA_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
         run: |
           npm install -g firebase-tools --silent
 
           if [ -n "$SA_JSON" ]; then
-            # ── Service Account 방식 (만료 없음, 권장) ──
+            # ── Service Account 방식 ──
+            # FIREBASE_TOKEN 환경변수가 있어도 SA가 우선되도록 명시적으로 unset
+            unset FIREBASE_TOKEN
             echo "$SA_JSON" > /tmp/sa.json
             export GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
             echo "🔑 Service Account 인증으로 Rules 배포 시작"
@@ -161,16 +162,8 @@ jobs:
               && echo "✅ Firestore Rules 배포 완료 (SA)" \
               || echo "⚠️  Rules 배포 실패 — 빌드는 계속"
             rm -f /tmp/sa.json
-
-          elif [ -n "$FIREBASE_TOKEN" ]; then
-            # ── CI 토큰 방식 (fallback) ──
-            echo "🔑 FIREBASE_TOKEN으로 Rules 배포 시작"
-            firebase deploy --only firestore:rules --token "$FIREBASE_TOKEN" --non-interactive \
-              && echo "✅ Firestore Rules 배포 완료 (token)" \
-              || echo "⚠️  Rules 배포 실패 (토큰 만료 가능) — 빌드는 계속"
-
           else
-            echo "⚠️  GOOGLE_APPLICATION_CREDENTIALS_JSON / FIREBASE_TOKEN 모두 미설정"
+            echo "⚠️  GOOGLE_APPLICATION_CREDENTIALS_JSON 미설정"
             echo "    → Firestore Rules는 Firebase Console에서 수동 적용 필요"
           fi
 
