@@ -23,7 +23,7 @@ const double kPcMaxWidth       = 1280;  // PC 콘텐츠 최대 너비
 
 // ── 폰트 스케일 상한/하한 ────────────────────────
 const double kMinFontScale = 0.85;  // 아주 작은 기기에서 너무 작아지지 않게
-const double kMaxFontScale = 1.30;  // 4K 모니터에서 너무 커지지 않게
+const double kMaxFontScale = 1.15;  // PC/4K 모니터에서 텍스트 과도하게 커지지 않게
 
 class Responsive {
   final double screenWidth;
