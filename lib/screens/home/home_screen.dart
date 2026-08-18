@@ -4885,16 +4885,8 @@ class _HomeScreenState extends State<HomeScreen>
     final provider = context.watch<ProductProvider>();
     final allProds = _getAllActiveProducts(provider);
 
-    // ① isNew 상품 우선
+    // isNew 배지가 있는 상품만 표시 (폴백 없음)
     List<ProductModel> products = allProds.where((p) => p.isNewActive).toList();
-
-    // ② isNew 없으면 createdAt 최신순 폴백
-    if (products.isEmpty) {
-      products = [...allProds]
-        ..sort((a, b) => (b.createdAt ?? DateTime(2000))
-            .compareTo(a.createdAt ?? DateTime(2000)));
-      products = products.take(10).toList();
-    }
 
     if (products.isEmpty) return const SizedBox.shrink();
 

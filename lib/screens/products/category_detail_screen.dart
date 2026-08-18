@@ -87,12 +87,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     final allCached = provider.products;
     List<ProductModel> all;
     if (filter == loc.sortNewArrival) {
-      // isNewActive 상품 우선, 없으면 홈화면과 동일하게 최신 등록순 폴백
+      // isNew 배지가 있는 상품만 표시 (폴백 없음)
       all = allCached.where((p) => p.isNewActive).toList();
-      if (all.isEmpty) {
-        all = [...allCached]
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      }
     } else if (filter == context.loc.t('세일', '세일')) {
       all = allCached.where((p) => p.isSale).toList();
     } else if (filter == context.loc.t('전체', '전체')) {
