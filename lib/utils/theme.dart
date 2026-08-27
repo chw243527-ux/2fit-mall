@@ -13,45 +13,54 @@ import 'package:flutter/material.dart';
 /// - Refined typography with balanced spacing
 class AppColors {
   // ── Core ──
-  static const Color primary      = Color(0xFF111111); // editorial black
-  static const Color primaryLight = Color(0xFF292929); // charcoal
-  static const Color accent       = Color(0xFFD86442); // restrained brand accent
-  static const Color accentOrange = accent;
-  static const Color accentGold   = Color(0xFFB8B5AE); // neutral marker
+  static const Color primary = Color(0xFF1A1A2E); // deep navy-charcoal
+  static const Color primaryLight = Color(0xFF2D2D44);
+  static const Color accent = Color(0xFFE53935); // refined red
+  static const Color accentOrange = Color(0xFFFF6B35);
+  static const Color accentGold = Color(0xFFFFD600);
 
   // ── Background ──
-  static const Color background   = Color(0xFFF6F5F2); // warm off-white
-  static const Color surface      = Color(0xFFFFFFFF); // pure white cards
-  static const Color cardBg       = Color(0xFFFFFFFF);
-  static const Color surfaceGray  = Color(0xFFEDECE8); // subtle warm gray
+  static const Color background = Color(0xFFF8F8FA); // warm off-white
+  static const Color surface = Color(0xFFFFFFFF); // pure white cards
+  static const Color cardBg = Color(0xFFFFFFFF);
+  static const Color surfaceGray = Color(0xFFF2F2F6); // subtle section bg
 
   // ── Text ──
-  static const Color textPrimary   = Color(0xFF161616);
-  static const Color textSecondary = Color(0xFF66645F);
-  static const Color textHint      = Color(0xFFAAA8A2);
-  static const Color textWhite     = Color(0xFFFFFFFF);
+  static const Color textPrimary = Color(0xFF1A1A2E);
+  static const Color textSecondary = Color(0xFF6B6B80);
+  static const Color textHint = Color(0xFFB0B0C0);
+  static const Color textWhite = Color(0xFFFFFFFF);
 
   // ── Border / Divider ──
-  static const Color border  = Color(0xFFE1DFD9);
-  static const Color divider = Color(0xFFEAE8E2);
+  static const Color border = Color(0xFFEAEAF0);
+  static const Color divider = Color(0xFFF0F0F5);
 
   // ── Status ──
   static const Color success = Color(0xFF00A651);
-  static const Color error   = Color(0xFFE53935);
+  static const Color error = Color(0xFFE53935);
   static const Color warning = Color(0xFFFFB300);
-  static const Color info    = Color(0xFF2979FF);
+  static const Color info = Color(0xFF2979FF);
 
   // ── Category ──
-  static const Color catTop       = primary;
-  static const Color catBottom    = primary;
-  static const Color catSet       = primary;
-  static const Color catOuterwear = primary;
-  static const Color catAccessory = primary;
+  static const Color catTop = Color(0xFF1A1A2E);
+  static const Color catBottom = Color(0xFF1A1A2E);
+  static const Color catSet = Color(0xFF1A1A2E);
+  static const Color catOuterwear = Color(0xFF1A1A2E);
+  static const Color catAccessory = Color(0xFF1A1A2E);
 
   // ── Gradient ──
-  static const List<Color> primaryGradient = [Color(0xFF111111), Color(0xFF292929)];
-  static const List<Color> accentGradient  = [Color(0xFFD86442), Color(0xFFB74E31)];
-  static const List<Color> heroGradient    = [Color(0xFF0D0D0D), Color(0xFF252525)];
+  static const List<Color> primaryGradient = [
+    Color(0xFF1A1A2E),
+    Color(0xFF2D2D44)
+  ];
+  static const List<Color> accentGradient = [
+    Color(0xFFE53935),
+    Color(0xFFC62828)
+  ];
+  static const List<Color> heroGradient = [
+    Color(0xFF0F0F1E),
+    Color(0xFF1A1A2E)
+  ];
 }
 
 class AppTheme {
@@ -63,42 +72,42 @@ class AppTheme {
   // 모바일(< 600): 기준, 태블릿(600~899): ×1.05, PC(≥ 900): ×1.10
   static TextTheme responsiveTextTheme(double screenWidth) {
     final double s = screenWidth < 600
-        ? 1.00   // 모바일
+        ? 1.00 // 모바일
         : screenWidth < 900
-            ? 1.05   // 태블릿
-            : 1.10;  // PC
+            ? 1.05 // 태블릿
+            : 1.10; // PC
 
     return TextTheme(
       // 대형 제목 (헤로 배너, 섹션 제목)
-      displayLarge:  _ts(30 * s, FontWeight.w900, -0.9),
-      displayMedium: _ts(26 * s, FontWeight.w900, -0.7),
-      displaySmall:  _ts(22 * s, FontWeight.w800, -0.5),
+      displayLarge: _ts(32 * s, FontWeight.w900, -1.0),
+      displayMedium: _ts(28 * s, FontWeight.w900, -0.8),
+      displaySmall: _ts(24 * s, FontWeight.w800, -0.6),
       // 화면 제목
-      headlineLarge:  _ts(20 * s, FontWeight.w800, -0.4),
-      headlineMedium: _ts(18 * s, FontWeight.w700, -0.3),
-      headlineSmall:  _ts(16 * s, FontWeight.w700, -0.2),
+      headlineLarge: _ts(22 * s, FontWeight.w800, -0.5),
+      headlineMedium: _ts(20 * s, FontWeight.w700, -0.4),
+      headlineSmall: _ts(18 * s, FontWeight.w700, -0.3),
       // AppBar / 카드 제목
-      titleLarge:  _ts(16 * s, FontWeight.w700, -0.2),
-      titleMedium: _ts(14 * s, FontWeight.w600, -0.1),
-      titleSmall:  _ts(12 * s, FontWeight.w600,  0.0),
+      titleLarge: _ts(17 * s, FontWeight.w700, -0.3),
+      titleMedium: _ts(15 * s, FontWeight.w600, -0.2),
+      titleSmall: _ts(13 * s, FontWeight.w600, -0.1),
       // 본문
-      bodyLarge:   _ts(15 * s, FontWeight.w400,  0.0),
-      bodyMedium:  _ts(14 * s, FontWeight.w400,  0.0),
-      bodySmall:   _ts(12 * s, FontWeight.w400,  0.0),
+      bodyLarge: _ts(15 * s, FontWeight.w400, 0.0),
+      bodyMedium: _ts(14 * s, FontWeight.w400, 0.0),
+      bodySmall: _ts(12 * s, FontWeight.w400, 0.0),
       // 라벨 (버튼, 탭, 뱃지)
-      labelLarge:  _ts(13 * s, FontWeight.w700, -0.1),
-      labelMedium: _ts(11 * s, FontWeight.w600,  0.0),
-      labelSmall:  _ts(10 * s, FontWeight.w500,  0.0),
+      labelLarge: _ts(14 * s, FontWeight.w600, -0.1),
+      labelMedium: _ts(12 * s, FontWeight.w600, -0.1),
+      labelSmall: _ts(10 * s, FontWeight.w500, 0.0),
     );
   }
 
   static TextStyle _ts(double size, FontWeight weight, double ls) => TextStyle(
-    fontFamily: fontFamily,
-    fontSize: size,
-    fontWeight: weight,
-    letterSpacing: ls,
-    color: AppColors.textPrimary,
-  );
+        fontFamily: fontFamily,
+        fontSize: size,
+        fontWeight: weight,
+        letterSpacing: ls,
+        color: AppColors.textPrimary,
+      );
 
   static ThemeData lightTheme({double screenWidth = 390}) {
     final textTheme = responsiveTextTheme(screenWidth);
@@ -142,7 +151,7 @@ class AppTheme {
         elevation: 0,
         shadowColor: const Color(0x10000000),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: AppColors.border, width: 0.8),
         ),
         margin: EdgeInsets.zero,
@@ -157,7 +166,7 @@ class AppTheme {
           shadowColor: Colors.transparent,
           minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(
             fontFamily: 'Pretendard Variable',
@@ -175,7 +184,7 @@ class AppTheme {
           side: const BorderSide(color: AppColors.primary, width: 1.2),
           minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(
             fontFamily: 'Pretendard Variable',
@@ -204,26 +213,27 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.surface,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.border, width: 1.0),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.border, width: 1.0),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.error, width: 1.0),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         hintStyle: const TextStyle(
           color: AppColors.textHint,
           fontSize: 14,
@@ -269,7 +279,7 @@ class AppTheme {
           letterSpacing: 0.1,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(8),
           side: const BorderSide(color: AppColors.border, width: 0.8),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

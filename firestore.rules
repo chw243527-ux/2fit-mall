@@ -24,6 +24,15 @@ service cloud.firestore {
       );
     }
 
+    // 관리자 FCM 토큰 필드 검증
+    function isValidAdminToken(data) {
+      return data.keys().hasAll(['token'])
+          && data.token is string
+          && data.token.size() > 10
+          && data.token.size() <= 4096
+          && (!('platform' in data) || data.platform in ['web', 'android', 'ios']);
+    }
+
     // 이메일 인증 완료 여부
     function isEmailVerified() {
       return request.auth.token.email_verified == true;
@@ -271,8 +280,8 @@ service cloud.firestore {
     // admin_fcm_tokens 컬렉션 (관리자 FCM 토큰 — Cloud Functions용)
     // ════════════════════════════════════════════════════════
     match /admin_fcm_tokens/{tokenId} {
-      // 로그인 사용자가 토큰 생성/갱신 가능 (Cloud Functions가 관리자 알림 발송에 사용)
-      allow create, update: if isSignedIn();
+      // 관리자 기기에서만 토큰 생성·갱신 가능
+      allow create, update: if isAdmin() && isValidAdminToken(request.resource.data);
       // 읽기/삭제는 관리자만
       allow read, delete: if isAdmin();
     }
@@ -379,6 +388,77 @@ service cloud.firestore {
       }
     }
 
+
+    // 관리자 알림: 관리자만 읽기·쓰기
+    match /admin_notifications/{notificationId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 전체/등급별 프로모션 알림: 관리자만 생성·관리
+    match /broadcast_notifications/{notificationId} {
+      allow read, write: if isAdmin();
+    }
+
+    // 재입고 알림 신청: 신청자 본인 또는 관리자만 접근
+    match /restock_alerts/{alertId} {
+      allow read: if isSignedIn()
+          && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.productId is string
+          && request.resource.data.productId.size() > 0
+          && request.resource.data.productId.size() <= 200;
+      allow update, delete: if isAdmin()
+          || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // 이메일 큐: 인증 사용자만 큐 등록, 처리는 서버/관리자만
+    match /email_queue/{queueId} {
+      allow create: if isSignedIn()
+          && request.resource.data.templateId is string
+          && request.resource.data.templateId.size() > 0
+          && request.resource.data.templateId.size() <= 100
+          && request.resource.data.status == 'pending';
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 개인정보 열람·삭제 요청: 본인 신청·열람, 관리자 처리
+    match /privacy_requests/{requestId} {
+      allow create: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.requestType in ['view', 'delete', 'export'];
+      allow read: if isSignedIn()
+          && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // 접근 로그·동의 이력은 위변조 방지를 위해 생성 후 변경 금지
+    match /access_logs/{logId} {
+      allow create: if isAdmin()
+          && request.resource.data.adminId == request.auth.uid;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /consent_history/{historyId} {
+      allow create: if isSignedIn()
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.agreed is bool
+          && request.resource.data.version is string;
+      allow read: if isSignedIn()
+          && (resource.data.userId == request.auth.uid || isAdmin());
+      allow update, delete: if false;
+    }
+
+    // 사이즈 프로필은 사용자별 하위 컬렉션으로 격리
+    match /size_profiles/{userId} {
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow write: if isAdmin();
+
+      match /profiles/{profileId} {
+        allow read, write: if isSignedIn() && (isOwner(userId) || isAdmin());
+      }
+    }
 
     // ════════════════════════════════════════════════════════
     // 그 외 모든 컬렉션: 기본 차단

@@ -2,6 +2,7 @@
 const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { onRequest } = require('firebase-functions/v2/https');
 const { initializeApp } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 
@@ -76,6 +77,7 @@ exports.processFcmQueue = onDocumentCreated('fcm_queue/{docId}', async (event) =
 // ══════════════════════════════════════════════════════
 exports.sendPromoNotification = onRequest(async (req, res) => {
   if (req.method !== 'POST') { res.status(405).send('Method Not Allowed'); return; }
+  if (!(await requireAdmin(req, res))) return;
   try {
     const { title, body, targetGrade } = req.body;
     if (!title) { res.status(400).json({ error: 'title required' }); return; }
@@ -92,6 +94,7 @@ exports.sendPromoNotification = onRequest(async (req, res) => {
 // ══════════════════════════════════════════════════════
 exports.sendTestNotification = onRequest(async (req, res) => {
   if (req.method !== 'POST') { res.status(405).send('Method Not Allowed'); return; }
+  if (!(await requireAdmin(req, res))) return;
   try {
     const { token, title, body } = req.body;
     if (!token) { res.status(400).json({ error: 'token required' }); return; }
@@ -160,6 +163,33 @@ exports.registerAdminToken = onDocumentCreated(
     } catch (e) { console.error('registerAdminToken error:', e); }
   }
 );
+
+// ══════════════════════════════════════════════════════
+// HTTP 관리자 인증
+// ══════════════════════════════════════════════════════
+async function requireAdmin(req, res) {
+  const header = req.get('authorization') || '';
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  if (!match) {
+    res.status(401).json({ error: 'Missing Firebase ID token' });
+    return false;
+  }
+
+  try {
+    const decoded = await getAuth().verifyIdToken(match[1]);
+    const profile = await db.collection('users').doc(decoded.uid).get();
+    const isAdmin = decoded.isAdmin === true || profile.data()?.isAdmin === true;
+    if (!isAdmin) {
+      res.status(403).json({ error: 'Admin access required' });
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('HTTP admin authentication failed:', error);
+    res.status(401).json({ error: 'Invalid or expired Firebase ID token' });
+    return false;
+  }
+}
 
 // ══════════════════════════════════════════════════════
 // 헬퍼 함수들

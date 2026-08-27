@@ -24,82 +24,92 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
   @override
   Widget build(BuildContext context) {
     if (isPcWeb(context)) return _buildPcLayout(context);
-    return wrapWithPopScope(context, Scaffold(
-      backgroundColor: null,
-      appBar: AppBar(
-        title: Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderGuideTitle)),
-        leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => goBackOrHome(context),
-              ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildOrderTypeCards(context),
-            _buildOrderFlowSection(),
-            _buildOrderFormSection(context),
-            _buildPolicySection(),
-            _buildShippingSection(),
-            _buildFAQSection(),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    ));
+    return wrapWithPopScope(
+        context,
+        Scaffold(
+          backgroundColor: null,
+          appBar: AppBar(
+            title: Consumer<LanguageProvider>(
+                builder: (_, lp, __) => Text(lp.loc.orderGuideTitle)),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+              onPressed: () => goBackOrHome(context),
+            ),
+          ),
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildOrderTypeCards(context),
+                _buildOrderFlowSection(),
+                _buildOrderFormSection(context),
+                _buildPolicySection(),
+                _buildShippingSection(),
+                _buildFAQSection(),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ));
   }
 
   // ── PC 2컬럼 레이아웃 ──
   Widget _buildPcLayout(BuildContext context) {
-    return wrapWithPopScope(context, Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderGuideTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Colors.white),
-                onPressed: () => goBackOrHome(context),
-              ),
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1280),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── 좌측: 주문 안내 콘텐츠 ──
-                Expanded(
-                  flex: 7,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        _buildOrderTypeCards(context),
-                        _buildOrderFlowSection(),
-                        _buildOrderFormSection(context),
-                        _buildPolicySection(),
-                        _buildShippingSection(),
-                        _buildFAQSection(),
-                        const SizedBox(height: 32),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 24),
-                // ── 우측: 빠른 주문 패널 ──
-                SizedBox(
-                  width: 320,
-                  child: _buildPcQuickOrderPanel(context),
-                ),
-              ],
+    return wrapWithPopScope(
+        context,
+        Scaffold(
+          backgroundColor: const Color(0xFFF5F5F5),
+          appBar: AppBar(
+            title: Consumer<LanguageProvider>(
+                builder: (_, lp, __) => Text(lp.loc.orderGuideTitle,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w800))),
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  size: 20, color: Colors.white),
+              onPressed: () => goBackOrHome(context),
             ),
           ),
-        ),
-      ),
-    ));
+          body: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1280),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── 좌측: 주문 안내 콘텐츠 ──
+                    Expanded(
+                      flex: 7,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            _buildOrderTypeCards(context),
+                            _buildOrderFlowSection(),
+                            _buildOrderFormSection(context),
+                            _buildPolicySection(),
+                            _buildShippingSection(),
+                            _buildFAQSection(),
+                            const SizedBox(height: 32),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    // ── 우측: 빠른 주문 패널 ──
+                    SizedBox(
+                      width: 320,
+                      child: _buildPcQuickOrderPanel(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ));
   }
 
   // ── PC 빠른 주문 패널 ──
@@ -111,36 +121,44 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF6A1B9A), Color(0xFF4A148C)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: AppColors.primary,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 16, offset: const Offset(0, 4),
-            )],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              )
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Icon(Icons.groups_rounded, color: Colors.white, size: 32),
               const SizedBox(height: 10),
-              Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.groupCustomOrder,
-                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900))),
+              Consumer<LanguageProvider>(
+                  builder: (_, lp, __) => Text(lp.loc.groupCustomOrder,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900))),
               const SizedBox(height: 6),
               Text(loc.orderGuide5PlusMake,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.82),
+                      fontSize: 12)),
               const SizedBox(height: 4),
               Text(loc.orderGuideDiscount,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11)),
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 11)),
               const SizedBox(height: 16),
               // ── 주문안내 확인 체크박스 ──
               GestureDetector(
                 onTap: () => setState(() => _guideChecked = !_guideChecked),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     color: _guideChecked
                         ? Colors.white.withValues(alpha: 0.2)
@@ -153,15 +171,21 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   ),
                   child: Row(children: [
                     Icon(
-                      _guideChecked ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                      _guideChecked
+                          ? Icons.check_box_rounded
+                          : Icons.check_box_outline_blank_rounded,
                       color: _guideChecked ? Colors.white : Colors.white54,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        context.loc.t('주문_안내_내용을_모두_확인했습니다', '주문 안내 내용을 모두 확인했습니다.'),
-                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                        context.loc
+                            .t('주문_안내_내용을_모두_확인했습니다', '주문 안내 내용을 모두 확인했습니다.'),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600),
                       ),
                     ),
                   ]),
@@ -173,17 +197,24 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _guideChecked
-                      ? () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const GroupOrderFormScreen(initialCount: 5)))
+                      ? () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  const GroupOrderFormScreen(initialCount: 5)))
                       : null,
                   icon: const Icon(Icons.assignment_outlined, size: 18),
-                  label: Text(context.loc.t('단체주문서_바로가기', '단체주문서 바로가기'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                  label: Text(context.loc.t('단체주문서_바로가기', '단체주문서 바로가기'),
+                      style:
+                          TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _guideChecked ? Colors.white : Colors.white38,
-                    foregroundColor: const Color(0xFF6A1B9A),
+                    backgroundColor:
+                        _guideChecked ? Colors.white : Colors.white38,
+                    foregroundColor: AppColors.primary,
                     disabledBackgroundColor: Colors.white24,
                     disabledForegroundColor: Colors.white54,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                     minimumSize: const Size(0, 46),
                     elevation: 0,
                   ),
@@ -200,22 +231,32 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 12, offset: const Offset(0, 2),
-            )],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 12,
+                offset: const Offset(0, 2),
+              )
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderProcess,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800))),
+              Consumer<LanguageProvider>(
+                  builder: (_, lp, __) => Text(lp.loc.orderProcess,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w800))),
               const SizedBox(height: 14),
-              _pcFlowStep('1', loc.orderGuideStep1, loc.orderGuideStep1Sub, AppColors.primary),
-              _pcFlowStep('2', loc.orderGuideStep2, loc.orderGuideStep2Sub, AppColors.accent),
-              _pcFlowStep('3', loc.orderGuideStep3, loc.orderGuideStep3Sub, const Color(0xFF2E7D32)),
-              _pcFlowStep('4', loc.orderGuideStep4, loc.orderGuideStep4Sub, const Color(0xFFFF6B35)),
-              _pcFlowStep('5', loc.orderGuideStep5, loc.orderGuideStep5Sub, const Color(0xFF1565C0)),
+              _pcFlowStep('1', loc.orderGuideStep1, loc.orderGuideStep1Sub,
+                  AppColors.primary),
+              _pcFlowStep('2', loc.orderGuideStep2, loc.orderGuideStep2Sub,
+                  AppColors.primaryLight),
+              _pcFlowStep('3', loc.orderGuideStep3, loc.orderGuideStep3Sub,
+                  AppColors.success),
+              _pcFlowStep('4', loc.orderGuideStep4, loc.orderGuideStep4Sub,
+                  AppColors.warning),
+              _pcFlowStep('5', loc.orderGuideStep5, loc.orderGuideStep5Sub,
+                  AppColors.primary),
               const SizedBox(height: 8),
               // 고객센터 바로가기
               Container(
@@ -228,28 +269,34 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.support_agent_rounded, size: 16, color: Color(0xFF1A1A1A)),
+                        const Icon(Icons.support_agent_rounded,
+                            size: 16, color: Color(0xFF1A1A1A)),
                         const SizedBox(width: 6),
                         Text(loc.orderGuideCustomerService,
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                            style: const TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w700)),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.phone_rounded, size: 13, color: Color(0xFF888888)),
+                        Icon(Icons.phone_rounded,
+                            size: 13, color: Color(0xFF888888)),
                         SizedBox(width: 5),
                         Text('010-2567-9015',
-                            style: TextStyle(fontSize: 12, color: Color(0xFF555555))),
+                            style: TextStyle(
+                                fontSize: 12, color: Color(0xFF555555))),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.chat_rounded, size: 13, color: Color(0xFFFFE500)),
+                        const Icon(Icons.chat_rounded,
+                            size: 13, color: Color(0xFFFFE500)),
                         const SizedBox(width: 5),
                         Text(loc.orderGuideKakao,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
+                            style: const TextStyle(
+                                fontSize: 12, color: Color(0xFF555555))),
                       ],
                     ),
                   ],
@@ -269,10 +316,15 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 24, height: 24,
+            width: 24,
+            height: 24,
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             child: Center(
-              child: Text(num, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)),
+              child: Text(num,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900)),
             ),
           ),
           const SizedBox(width: 10),
@@ -280,8 +332,12 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                Text(desc, style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700)),
+                Text(desc,
+                    style: const TextStyle(
+                        fontSize: 11, color: Color(0xFF888888))),
               ],
             ),
           ),
@@ -299,12 +355,14 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         children: [
           Text(
             loc.orderGuideTypeTitle,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+            style: const TextStyle(
+                fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 0.5),
           ),
           const SizedBox(height: 4),
           Text(
             loc.orderGuideTypeSub,
-            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            style:
+                const TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 16),
           // 단체 커스텀
@@ -315,12 +373,21 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
             subtitle: loc.orderGuideGroupSub,
             description: loc.orderGuideGroupDesc,
             color: AppColors.accent,
-            badges: [loc.orderGuideGroupBadge1, loc.orderGuideGroupBadge2, loc.orderGuideGroupBadge3],
-            onGuide: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen())),
+            badges: [
+              loc.orderGuideGroupBadge1,
+              loc.orderGuideGroupBadge2,
+              loc.orderGuideGroupBadge3
+            ],
+            onGuide: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const GroupOrderLandingScreen())),
             onForm: _guideChecked
-                ? () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const GroupOrderFormScreen(initialCount: 5)))
+                ? () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            const GroupOrderFormScreen(initialCount: 5)))
                 : null,
             guideChecked: _guideChecked,
             onGuideCheckChanged: (v) => setState(() => _guideChecked = v),
@@ -329,7 +396,6 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           const SizedBox(height: 12),
           // 추가구매 안내 카드
           _buildAdditionalOrderCard(context),
-
         ],
       ),
     );
@@ -352,12 +418,14 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           Row(
             children: [
               Container(
-                width: 48, height: 48,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: brownColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.add_circle_outline_rounded, color: brownColor, size: 26),
+                child: const Icon(Icons.add_circle_outline_rounded,
+                    color: brownColor, size: 26),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -366,20 +434,34 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   children: [
                     Row(
                       children: [
-                        Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.additionalPurchase, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800))),
+                        Consumer<LanguageProvider>(
+                            builder: (_, lp, __) => Text(
+                                lp.loc.additionalPurchase,
+                                style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800))),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: brownColor,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.addToExistingOrder, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700))),
+                          child: Consumer<LanguageProvider>(
+                              builder: (_, lp, __) => Text(
+                                  lp.loc.addToExistingOrder,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700))),
                         ),
                       ],
                     ),
                     const SizedBox(height: 2),
-                    Text(loc.orderGuideAdditionalNote, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    Text(loc.orderGuideAdditionalNote,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textSecondary)),
                   ],
                 ),
               ),
@@ -389,14 +471,25 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           // 뱃지
           Wrap(
             spacing: 6,
-            children: [loc.orderGuideAdditional1, loc.orderGuideAdditional2, loc.orderGuideAdditional3].map((b) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: brownColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(b, style: const TextStyle(fontSize: 11, color: brownColor, fontWeight: FontWeight.w700)),
-            )).toList(),
+            children: [
+              loc.orderGuideAdditional1,
+              loc.orderGuideAdditional2,
+              loc.orderGuideAdditional3
+            ]
+                .map((b) => Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: brownColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(b,
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: brownColor,
+                              fontWeight: FontWeight.w700)),
+                    ))
+                .toList(),
           ),
           const SizedBox(height: 12),
           // 설명
@@ -411,30 +504,44 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  const Icon(Icons.info_outline_rounded, size: 14, color: brownColor),
+                  const Icon(Icons.info_outline_rounded,
+                      size: 14, color: brownColor),
                   const SizedBox(width: 6),
-                  Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.additionalPurchaseGuide, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: brownColor))),
+                  Consumer<LanguageProvider>(
+                      builder: (_, lp, __) => Text(
+                          lp.loc.additionalPurchaseGuide,
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: brownColor))),
                 ]),
                 const SizedBox(height: 8),
-                _additionalGuideRow('✅', loc.orderGuideAdditionalMin, loc.orderGuideAdditionalMinDesc),
+                _additionalGuideRow('✅', loc.orderGuideAdditionalMin,
+                    loc.orderGuideAdditionalMinDesc),
                 const SizedBox(height: 5),
-                _additionalGuideRow('⏰', loc.orderGuideAdditionalDeadline, loc.orderGuideAdditionalDeadlineDesc),
+                _additionalGuideRow('⏰', loc.orderGuideAdditionalDeadline,
+                    loc.orderGuideAdditionalDeadlineDesc),
                 const SizedBox(height: 5),
-                _additionalGuideRow('🎨', loc.orderGuideAdditionalOption, loc.orderGuideAdditionalOptionDesc),
+                _additionalGuideRow('🎨', loc.orderGuideAdditionalOption,
+                    loc.orderGuideAdditionalOptionDesc),
                 const SizedBox(height: 5),
-                _additionalGuideRow('🚚', context.loc.t('배송', '배송'), context.loc.t('추가구매_물품은_별도_배송됩니다', '추가구매 물품은 별도 배송됩니다')),
+                _additionalGuideRow('🚚', context.loc.t('배송', '배송'),
+                    context.loc.t('추가구매_물품은_별도_배송됩니다', '추가구매 물품은 별도 배송됩니다')),
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: Colors.orange.shade200),
                   ),
                   child: Text(
-                    context.loc.t('추가구매_마이페이지_기존_주문내역_신청', '⚠️ 추가구매는 마이페이지 > 기존 주문내역에서 신청하실 수 있습니다.'),
-                    style: const TextStyle(fontSize: 11, color: Color(0xFFE65100)),
+                    context.loc.t('추가구매_마이페이지_기존_주문내역_신청',
+                        '⚠️ 추가구매는 마이페이지 > 기존 주문내역에서 신청하실 수 있습니다.'),
+                    style:
+                        const TextStyle(fontSize: 11, color: Color(0xFFE65100)),
                   ),
                 ),
               ],
@@ -453,9 +560,16 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         const SizedBox(width: 6),
         SizedBox(
           width: 60,
-          child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF795548))),
+          child: Text(label,
+              style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF795548))),
         ),
-        Expanded(child: Text(desc, style: const TextStyle(fontSize: 12, color: Color(0xFF555555)))),
+        Expanded(
+            child: Text(desc,
+                style:
+                    const TextStyle(fontSize: 12, color: Color(0xFF555555)))),
       ],
     );
   }
@@ -503,10 +617,12 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                     Row(
                       children: [
                         Text(title,
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                            style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w800)),
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: color,
                             borderRadius: BorderRadius.circular(4),
@@ -554,24 +670,36 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
             GestureDetector(
               onTap: () => onGuideCheckChanged(!guideChecked),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                  color: guideChecked ? color.withValues(alpha: 0.06) : const Color(0xFFFFF8E1),
+                  color: guideChecked
+                      ? color.withValues(alpha: 0.06)
+                      : const Color(0xFFFFF8E1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: guideChecked ? color.withValues(alpha: 0.4) : const Color(0xFFFFC107).withValues(alpha: 0.6),
+                    color: guideChecked
+                        ? color.withValues(alpha: 0.4)
+                        : const Color(0xFFFFC107).withValues(alpha: 0.6),
                   ),
                 ),
                 child: Row(children: [
                   Icon(
-                    guideChecked ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                    guideChecked
+                        ? Icons.check_box_rounded
+                        : Icons.check_box_outline_blank_rounded,
                     size: 20,
                     color: guideChecked ? color : const Color(0xFFFFA000),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(context.loc.t('주문_안내_내용을_모두_확인_899c8d', '주문 안내 내용을 모두 확인했습니다.'),
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A))),
+                    child: Text(
+                        context.loc.t(
+                            '주문_안내_내용을_모두_확인_899c8d', '주문 안내 내용을 모두 확인했습니다.'),
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF1A1A1A))),
                   ),
                 ]),
               ),
@@ -585,7 +713,8 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: onGuide,
-                  icon: Icon(Icons.info_outline_rounded, size: 15, color: color),
+                  icon:
+                      Icon(Icons.info_outline_rounded, size: 15, color: color),
                   label: Text(
                     context.loc.t('주문_안내', '주문 안내'),
                     style: TextStyle(
@@ -608,11 +737,15 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   onPressed: onForm,
                   icon: const Icon(Icons.assignment_rounded, size: 15),
                   label: Text(
-                    onGuideCheckChanged != null && !guideChecked ? context.loc.t('확인_후_작성_가능', '확인 후 작성 가능') : context.loc.t('주문서_작성', '주문서 작성'),
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                    onGuideCheckChanged != null && !guideChecked
+                        ? context.loc.t('확인_후_작성_가능', '확인 후 작성 가능')
+                        : context.loc.t('주문서_작성', '주문서 작성'),
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: onForm != null ? color : Colors.grey.shade300,
+                    backgroundColor:
+                        onForm != null ? color : Colors.grey.shade300,
                     foregroundColor: Colors.white,
                     disabledBackgroundColor: Colors.grey.shade300,
                     disabledForegroundColor: Colors.grey.shade500,
@@ -632,12 +765,36 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
 
   Widget _buildOrderFlowSection() {
     final steps = [
-      {'icon': Icons.search_rounded, 'title': context.loc.t('상품_선택', '상품 선택'), 'desc': context.loc.t('원하는_상품과_카테고리_선택', '원하는 상품과 카테고리 선택')},
-      {'icon': Icons.tune_rounded, 'title': context.loc.t('옵션_선택', '옵션 선택'), 'desc': context.loc.t('사이즈_컬러_커스텀_옵션_선택', '사이즈, 컬러, 커스텀 옵션 선택')},
-      {'icon': Icons.assignment_rounded, 'title': context.loc.t('주문서_작성', '주문서 작성'), 'desc': context.loc.t('주문자_정보_및_배송지_입력', '주문자 정보 및 배송지 입력')},
-      {'icon': Icons.payment_rounded, 'title': context.loc.t('결제', '결제'), 'desc': context.loc.t('다양한_결제_수단_지원', '다양한 결제 수단 지원')},
-      {'icon': Icons.local_shipping_rounded, 'title': context.loc.t('제작_배송', '제작 & 배송'), 'desc': context.loc.t('커스텀_14_21일_소요', '커스텀 14~21일 소요')},
-      {'icon': Icons.check_circle_rounded, 'title': context.loc.t('수령', '수령'), 'desc': context.loc.t('배송_완료_후_검수', '배송 완료 후 검수')},
+      {
+        'icon': Icons.search_rounded,
+        'title': context.loc.t('상품_선택', '상품 선택'),
+        'desc': context.loc.t('원하는_상품과_카테고리_선택', '원하는 상품과 카테고리 선택')
+      },
+      {
+        'icon': Icons.tune_rounded,
+        'title': context.loc.t('옵션_선택', '옵션 선택'),
+        'desc': context.loc.t('사이즈_컬러_커스텀_옵션_선택', '사이즈, 컬러, 커스텀 옵션 선택')
+      },
+      {
+        'icon': Icons.assignment_rounded,
+        'title': context.loc.t('주문서_작성', '주문서 작성'),
+        'desc': context.loc.t('주문자_정보_및_배송지_입력', '주문자 정보 및 배송지 입력')
+      },
+      {
+        'icon': Icons.payment_rounded,
+        'title': context.loc.t('결제', '결제'),
+        'desc': context.loc.t('다양한_결제_수단_지원', '다양한 결제 수단 지원')
+      },
+      {
+        'icon': Icons.local_shipping_rounded,
+        'title': context.loc.t('제작_배송', '제작 & 배송'),
+        'desc': context.loc.t('커스텀_14_21일_소요', '커스텀 14~21일 소요')
+      },
+      {
+        'icon': Icons.check_circle_rounded,
+        'title': context.loc.t('수령', '수령'),
+        'desc': context.loc.t('배송_완료_후_검수', '배송 완료 후 검수')
+      },
     ];
 
     return Container(
@@ -647,19 +804,28 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderProcessTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
+          Consumer<LanguageProvider>(
+              builder: (_, lp, __) => Text(lp.loc.orderProcessTitle,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w800))),
           const SizedBox(height: 16),
           ...steps.asMap().entries.map((entry) {
             final index = entry.key;
             final step = entry.value;
-            return _buildStepItem(index + 1, step['icon'] as IconData, step['title'] as String, step['desc'] as String, index < steps.length - 1);
+            return _buildStepItem(
+                index + 1,
+                step['icon'] as IconData,
+                step['title'] as String,
+                step['desc'] as String,
+                index < steps.length - 1);
           }),
         ],
       ),
     );
   }
 
-  Widget _buildStepItem(int number, IconData icon, String title, String desc, bool hasLine) {
+  Widget _buildStepItem(
+      int number, IconData icon, String title, String desc, bool hasLine) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -675,7 +841,10 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               child: Center(
                 child: Text(
                   '$number',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 14),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14),
                 ),
               ),
             ),
@@ -693,8 +862,12 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-              Text(desc, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w700)),
+              Text(desc,
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary)),
               SizedBox(height: hasLine ? 28 : 8),
             ],
           ),
@@ -711,7 +884,10 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderFormTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
+          Consumer<LanguageProvider>(
+              builder: (_, lp, __) => Text(lp.loc.orderFormTitle,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w800))),
           const SizedBox(height: 12),
           _buildFormCard(
             context.loc.t('단체_주문서', '단체 주문서'),
@@ -739,7 +915,13 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
     {'field': '배송 주소', 'example': '서울시 강남구 역삼동 000-00'},
   ];
 
-  Widget _buildFormCard(String title, IconData icon, Color color, List<Map<String, String>> fields, BuildContext context, String orderType) {
+  Widget _buildFormCard(
+      String title,
+      IconData icon,
+      Color color,
+      List<Map<String, String>> fields,
+      BuildContext context,
+      String orderType) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
@@ -751,23 +933,37 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: color,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(13)),
             ),
             child: Row(
               children: [
                 Icon(icon, color: Colors.white, size: 22),
                 const SizedBox(width: 10),
-                Text(title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800)),
+                Text(title,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800)),
                 const Spacer(),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const GroupOrderLandingScreen()));
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   ),
-                  child: Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.orderGuideTitle, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700))),
+                  child: Consumer<LanguageProvider>(
+                      builder: (_, lp, __) => Text(lp.loc.orderGuideTitle,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700))),
                 ),
               ],
             ),
@@ -779,18 +975,30 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 0: FixedColumnWidth(100),
                 1: FlexColumnWidth(),
               },
-              children: fields.map((f) => TableRow(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Text(context.loc.t('order_field_${f['field']!.replaceAll(' ', '_').replaceAll('/', '_')}', f['field']!), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 5),
-                    child: Text(f['example']!, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
-                  ),
-                ],
-              )).toList(),
+              children: fields
+                  .map((f) => TableRow(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Text(
+                                context.loc.t(
+                                    'order_field_${f['field']!.replaceAll(' ', '_').replaceAll('/', '_')}',
+                                    f['field']!),
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textSecondary)),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 5),
+                            child: Text(f['example']!,
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textPrimary)),
+                          ),
+                        ],
+                      ))
+                  .toList(),
             ),
           ),
         ],
@@ -806,13 +1014,31 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.cancelRefundPolicy, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
+          Consumer<LanguageProvider>(
+              builder: (_, lp, __) => Text(lp.loc.cancelRefundPolicy,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w800))),
           const SizedBox(height: 16),
-          _buildPolicyItem(Icons.cancel_outlined, context.loc.t('취소', '취소'), AppColors.error, context.loc.t('결제_후_1시간_이내_취소_가능_n커스텀_제작_시작_후_취소_불가', '결제 후 1시간 이내 취소 가능\n커스텀 제작 시작 후 취소 불가')),
+          _buildPolicyItem(
+              Icons.cancel_outlined,
+              context.loc.t('취소', '취소'),
+              AppColors.error,
+              context.loc.t('결제_후_1시간_이내_취소_가능_n커스텀_제작_시작_후_취소_불가',
+                  '결제 후 1시간 이내 취소 가능\n커스텀 제작 시작 후 취소 불가')),
           const SizedBox(height: 12),
-          _buildPolicyItem(Icons.swap_horiz_rounded, context.loc.t('교환', '교환'), AppColors.info, context.loc.t('수령_후_7일_이내_교환_가능_n착용_흔적이_없는_상품에_한함', '수령 후 7일 이내 교환 가능\n착용 흔적이 없는 상품에 한함')),
+          _buildPolicyItem(
+              Icons.swap_horiz_rounded,
+              context.loc.t('교환', '교환'),
+              AppColors.info,
+              context.loc.t('수령_후_7일_이내_교환_가능_n착용_흔적이_없는_상품에_한함',
+                  '수령 후 7일 이내 교환 가능\n착용 흔적이 없는 상품에 한함')),
           const SizedBox(height: 12),
-          _buildPolicyItem(Icons.replay_rounded, context.loc.t('환불', '환불'), AppColors.warning, context.loc.t('수령_후_7일_이내_환불_가능_n커스텀_제작_상품은_환불_불가', '수령 후 7일 이내 환불 가능\n커스텀 제작 상품은 환불 불가')),
+          _buildPolicyItem(
+              Icons.replay_rounded,
+              context.loc.t('환불', '환불'),
+              AppColors.warning,
+              context.loc.t('수령_후_7일_이내_환불_가능_n커스텀_제작_상품은_환불_불가',
+                  '수령 후 7일 이내 환불 가능\n커스텀 제작 상품은 환불 불가')),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(14),
@@ -823,10 +1049,15 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(loc.orderGuideNonExchangeable, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                Text(loc.orderGuideNonExchangeable,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 14)),
                 const SizedBox(height: 8),
                 Text(loc.orderGuideNonExchangeableList,
-                    style: const TextStyle(fontSize: 13, height: 1.6, color: AppColors.textSecondary)),
+                    style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.6,
+                        color: AppColors.textSecondary)),
               ],
             ),
           ),
@@ -835,7 +1066,8 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
     );
   }
 
-  Widget _buildPolicyItem(IconData icon, String title, Color color, String desc) {
+  Widget _buildPolicyItem(
+      IconData icon, String title, Color color, String desc) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -853,9 +1085,15 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 15, fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
-              Text(desc, style: const TextStyle(fontSize: 13, height: 1.5, color: AppColors.textSecondary)),
+              Text(desc,
+                  style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.5,
+                      color: AppColors.textSecondary)),
             ],
           ),
         ),
@@ -871,19 +1109,46 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.shippingGuide, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
+          Consumer<LanguageProvider>(
+              builder: (_, lp, __) => Text(lp.loc.shippingGuide,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w800))),
           const SizedBox(height: 16),
-          _buildInfoRow(Icons.local_shipping_rounded, context.loc.t('배송_방법', '배송 방법'), context.loc.t('택배_한진택배', '택배 (한진택배)'), AppColors.primary),
+          _buildInfoRow(
+              Icons.local_shipping_rounded,
+              context.loc.t('배송_방법', '배송 방법'),
+              context.loc.t('택배_한진택배', '택배 (한진택배)'),
+              AppColors.primary),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.attach_money_rounded, context.loc.t('배송비', '배송비'), context.loc.t('4_000원_30만원_이상_무료배송', '4,000원 (30만원 이상 무료배송)'), AppColors.success),
+          _buildInfoRow(
+              Icons.attach_money_rounded,
+              context.loc.t('배송비', '배송비'),
+              context.loc.t('4_000원_30만원_이상_무료배송', '4,000원 (30만원 이상 무료배송)'),
+              AppColors.success),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.public_rounded, context.loc.t('해외_배송비', '해외 배송비'), context.loc.t('국가_및_무게에_따라_상이', '국가 및 무게에 따라 상이'), const Color(0xFF1565C0)),
+          _buildInfoRow(
+              Icons.public_rounded,
+              context.loc.t('해외_배송비', '해외 배송비'),
+              context.loc.t('국가_및_무게에_따라_상이', '국가 및 무게에 따라 상이'),
+              const Color(0xFF1565C0)),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.access_time_rounded, context.loc.t('일반_배송', '일반 배송'), context.loc.t('결제_완료_후_2_3_영업일', '결제 완료 후 2~3 영업일'), AppColors.info),
+          _buildInfoRow(
+              Icons.access_time_rounded,
+              context.loc.t('일반_배송', '일반 배송'),
+              context.loc.t('결제_완료_후_2_3_영업일', '결제 완료 후 2~3 영업일'),
+              AppColors.info),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.design_services_rounded, context.loc.t('커스텀_제작', '커스텀 제작'), context.loc.t('주문_확정_후_14_21일', '주문 확정 후 14~21일'), AppColors.warning),
+          _buildInfoRow(
+              Icons.design_services_rounded,
+              context.loc.t('커스텀_제작', '커스텀 제작'),
+              context.loc.t('주문_확정_후_14_21일', '주문 확정 후 14~21일'),
+              AppColors.warning),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.groups_rounded, context.loc.t('단체_주문', '단체 주문'), context.loc.t('주문_확인_후_14_21일', '주문 확정 후 14~21일'), AppColors.accent),
+          _buildInfoRow(
+              Icons.groups_rounded,
+              context.loc.t('단체_주문', '단체 주문'),
+              context.loc.t('주문_확인_후_14_21일', '주문 확정 후 14~21일'),
+              AppColors.accent),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(12),
@@ -896,8 +1161,12 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  context.loc.t('도서_산간_지역_추가_배송비_배송_관련_문의_고객', '※ 도서/산간 지역은 추가 배송비가 발생할 수 있습니다.\n※ 배송 관련 문의는 고객센터로 연락해주세요.'),
-                  style: TextStyle(fontSize: 12, height: 1.6, color: AppColors.textSecondary),
+                  context.loc.t('도서_산간_지역_추가_배송비_배송_관련_문의_고객',
+                      '※ 도서/산간 지역은 추가 배송비가 발생할 수 있습니다.\n※ 배송 관련 문의는 고객센터로 연락해주세요.'),
+                  style: TextStyle(
+                      fontSize: 12,
+                      height: 1.6,
+                      color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: 6),
                 // 해외 배송비 채팅상담 연결
@@ -905,8 +1174,12 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        context.loc.t('해외_배송비_국가별_상이_채팅안내', '※ 해외 배송비는 국가 및 무게에 따라 상이합니다.'),
-                        style: TextStyle(fontSize: 12, height: 1.6, color: AppColors.textSecondary),
+                        context.loc.t('해외_배송비_국가별_상이_채팅안내',
+                            '※ 해외 배송비는 국가 및 무게에 따라 상이합니다.'),
+                        style: TextStyle(
+                            fontSize: 12,
+                            height: 1.6,
+                            color: AppColors.textSecondary),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -916,7 +1189,8 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                         MaterialPageRoute(builder: (_) => const ChatScreen()),
                       ),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           color: const Color(0xFF1565C0),
                           borderRadius: BorderRadius.circular(16),
@@ -924,11 +1198,15 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.chat_bubble_outline_rounded, size: 11, color: Colors.white),
+                            const Icon(Icons.chat_bubble_outline_rounded,
+                                size: 11, color: Colors.white),
                             const SizedBox(width: 4),
                             Text(
                               context.loc.t('채팅상담', '채팅상담'),
-                              style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700),
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700),
                             ),
                           ],
                         ),
@@ -960,8 +1238,12 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
+            Text(value,
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
           ],
         ),
       ],
@@ -970,10 +1252,25 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
 
   Widget _buildFAQSection() {
     final faqs = [
-      {'q': context.loc.t('사이즈_변경이_가능한가요', '사이즈 변경이 가능한가요?'), 'a': context.loc.t('커스텀_제작_시작_전까지_변경_가능합니다_주문_후_1시간_이내_3fa1fc', '커스텀 제작 시작 전까지 변경 가능합니다. 주문 후 1시간 이내 고객센터로 연락해주세요.')},
-      {'q': context.loc.t('커스텀_인쇄_색상_선택이_가능한가요', '커스텀 인쇄 색상 선택이 가능한가요?'), 'a': context.loc.t('네_주문서_작성_시_원하는_인쇄_색상을_기재해주세요_기본_색상_cdf445', '네, 주문서 작성 시 원하는 인쇄 색상을 기재해주세요. 기본 색상(흰색, 검정)은 무료이며 특수 색상은 추가 비용이 발생합니다.')},
-      {'q': context.loc.t('단체_주문_최소_수량은_몇_개인가요', '단체 주문 최소 수량은 몇 개인가요?'), 'a': context.loc.t('최소_5개부터_단체_주문이_가능합니다', '최소 5개부터 단체 주문이 가능합니다.')},
-      {'q': context.loc.t('팀_로고_파일은_어떻게_보내나요', '팀 로고 파일은 어떻게 보내나요?'), 'a': context.loc.t('주문_완료_후_카카오톡_2fit_mall_으로_AI_PNG_형_2989d6', '주문 완료 후 카카오톡(@2fit-mall)으로 AI/PNG 형식 파일을 전송해주세요.')},
+      {
+        'q': context.loc.t('사이즈_변경이_가능한가요', '사이즈 변경이 가능한가요?'),
+        'a': context.loc.t('커스텀_제작_시작_전까지_변경_가능합니다_주문_후_1시간_이내_3fa1fc',
+            '커스텀 제작 시작 전까지 변경 가능합니다. 주문 후 1시간 이내 고객센터로 연락해주세요.')
+      },
+      {
+        'q': context.loc.t('커스텀_인쇄_색상_선택이_가능한가요', '커스텀 인쇄 색상 선택이 가능한가요?'),
+        'a': context.loc.t('네_주문서_작성_시_원하는_인쇄_색상을_기재해주세요_기본_색상_cdf445',
+            '네, 주문서 작성 시 원하는 인쇄 색상을 기재해주세요. 기본 색상(흰색, 검정)은 무료이며 특수 색상은 추가 비용이 발생합니다.')
+      },
+      {
+        'q': context.loc.t('단체_주문_최소_수량은_몇_개인가요', '단체 주문 최소 수량은 몇 개인가요?'),
+        'a': context.loc.t('최소_5개부터_단체_주문이_가능합니다', '최소 5개부터 단체 주문이 가능합니다.')
+      },
+      {
+        'q': context.loc.t('팀_로고_파일은_어떻게_보내나요', '팀 로고 파일은 어떻게 보내나요?'),
+        'a': context.loc.t('주문_완료_후_카카오톡_2fit_mall_으로_AI_PNG_형_2989d6',
+            '주문 완료 후 카카오톡(@2fit-mall)으로 AI/PNG 형식 파일을 전송해주세요.')
+      },
     ];
 
     return Container(
@@ -983,7 +1280,10 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Consumer<LanguageProvider>(builder: (_, lp, __) => Text(lp.loc.faqTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800))),
+          Consumer<LanguageProvider>(
+              builder: (_, lp, __) => Text(lp.loc.faqTitle,
+                  style: const TextStyle(
+                      fontSize: 17, fontWeight: FontWeight.w800))),
           const SizedBox(height: 16),
           ...faqs.map((faq) => _buildFAQItem(faq['q']!, faq['a']!)),
         ],
@@ -1008,7 +1308,8 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Text(
               'A. $answer',
-              style: const TextStyle(fontSize: 13, height: 1.6, color: AppColors.textSecondary),
+              style: const TextStyle(
+                  fontSize: 13, height: 1.6, color: AppColors.textSecondary),
             ),
           ),
         ],

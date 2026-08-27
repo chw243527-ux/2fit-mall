@@ -6835,7 +6835,7 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
       final bytes = await file.readAsBytes();
       final ext = file.name.contains('.') ? file.name.split('.').last.toLowerCase() : 'jpg';
       final ref = FirebaseStorage.instance
-          .ref('exchange_requests/$requestId/image_$i.$ext');
+          .ref('exchange_requests/${widget.order.userId}/$requestId/image_$i.$ext');
       final meta = SettableMetadata(contentType: 'image/$ext');
       await ref.putData(bytes, meta);
       final url = await ref.getDownloadURL();

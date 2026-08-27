@@ -14,9 +14,13 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'iOS Firebase is not configured. Add GoogleService-Info.plist and regenerate firebase_options.dart.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'macOS Firebase is not configured. Register the macOS app and regenerate firebase_options.dart.',
+        );
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:

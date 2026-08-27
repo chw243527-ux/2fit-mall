@@ -2,55 +2,81 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // ─── 헬퍼 함수 ───────────────────────────────────────────
     function isSignedIn() {
       return request.auth != null;
     }
+
     function isAdmin() {
-      return isSignedIn() &&
-        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+      return isSignedIn()
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
 
-    // ─── 상품 이미지 (관리자 업로드, 누구나 읽기) ────────────
+    function isReasonableUpload() {
+      return request.resource.size < 50 * 1024 * 1024
+          && request.resource.contentType is string;
+    }
+
+    // 상품 이미지·배너·공지사항: 공개 읽기, 관리자만 업로드·수정·삭제
     match /products/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAdmin() && isReasonableUpload();
     }
 
-    // ─── 배너 이미지/영상 (관리자 업로드, 누구나 읽기) ───────
     match /banners/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAdmin() && isReasonableUpload();
     }
 
-    // ─── 공지사항 이미지 (관리자 업로드, 누구나 읽기) ────────
     match /notices/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAdmin() && isReasonableUpload();
     }
 
-    // ─── 주문/디자인 이미지 (로그인 사용자 업로드) ───────────
-    match /orders/{allPaths=**} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
+    // 일반 주문 첨부파일: 주문 문서의 userId와 로그인 사용자를 비교
+    match /orders/{orderId}/{allPaths=**} {
+      allow read: if isAdmin()
+          || (isSignedIn()
+              && firestore.get(/databases/(default)/documents/orders/$(orderId)).data.userId == request.auth.uid);
+      allow write: if isReasonableUpload()
+          && (isAdmin()
+              || (isSignedIn()
+                  && firestore.get(/databases/(default)/documents/orders/$(orderId)).data.userId == request.auth.uid));
     }
 
-    // ─── 단체주문 첨부 이미지 (로그인 사용자 업로드) ─────────
+    // 신규 단체주문 첨부파일: group_orders/{userId}/{orderId}/... 구조만 허용
+    match /group_orders/{userId}/{orderId}/{allPaths=**} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+      allow write: if isReasonableUpload()
+          && (isAdmin() || (isSignedIn() && request.auth.uid == userId));
+    }
+
+    // 기존 userId 없는 단체주문 경로는 소유권 확인이 불가능하므로 차단
     match /group_orders/{allPaths=**} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
+      allow read, write: if false;
     }
 
-    // ─── 채팅 첨부 이미지 (로그인 사용자) ────────────────────
-    match /chats/{allPaths=**} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
+    // 신규 교환·반품 첨부파일: exchange_requests/{userId}/{requestId}/... 구조
+    match /exchange_requests/{userId}/{requestId}/{allPaths=**} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+      allow write: if isReasonableUpload()
+          && (isAdmin() || (isSignedIn() && request.auth.uid == userId));
     }
 
-    // ─── 사용자 프로필 이미지 ─────────────────────────────────
+    // 채팅 첨부파일은 roomId가 사용자 ID인 경우에만 본인 접근 허용.
+    // 관리자 채팅 화면은 관리자 권한으로 접근합니다.
+    match /chats/{roomId}/{allPaths=**} {
+      allow read: if isAdmin()
+          || (isSignedIn() && request.auth.uid == roomId);
+      allow write: if isReasonableUpload()
+          && (isAdmin() || (isSignedIn() && request.auth.uid == roomId));
+    }
+
+    // 사용자 프로필 이미지
     match /users/{userId}/{allPaths=**} {
       allow read: if true;
-      allow write: if isSignedIn() && request.auth.uid == userId;
+      allow write: if isSignedIn()
+          && request.auth.uid == userId
+          && isReasonableUpload();
     }
   }
 }

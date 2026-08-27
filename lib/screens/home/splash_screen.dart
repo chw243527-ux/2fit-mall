@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
+import '../../models/models.dart';
 import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
 import '../auth/signup_screen.dart';
@@ -42,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _animController = AnimationController(
-      duration: const Duration(milliseconds: 700),  // 1800→700 빠른 등장
+      duration: const Duration(milliseconds: 700), // 1800→700 빠른 등장
       vsync: this,
     );
     _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
@@ -84,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (kIsWeb) {
       try {
         final pathname = html.window.location.pathname ?? '';
-        final search   = html.window.location.search ?? ''; // ?paymentKey=...
+        final search = html.window.location.search ?? ''; // ?paymentKey=...
         if (pathname == '/payment/success' || pathname == '/payment/fail') {
           // search string → query map
           final qMap = <String, String>{};
@@ -105,11 +106,16 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     try {
-      final result = await AuthService.restoreSession();
+      final result = await AuthService.restoreSession().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () => const AuthResult(success: false),
+      );
 
       if (result.success && result.user != null) {
         if (mounted) context.read<UserProvider>().login(result.user!);
-        if (mounted) _navigateAfterLogin(deepLink, isLoggedIn: true, isAdmin: result.user!.isAdmin);
+        if (mounted)
+          _navigateAfterLogin(deepLink,
+              isLoggedIn: true, isAdmin: result.user!.isAdmin);
       } else {
         // 세션 없음
         if (deepLink != null && deepLink.requiresAuth) {
@@ -117,7 +123,8 @@ class _SplashScreenState extends State<SplashScreen>
           _goToLoginWithRedirect(deepLink);
         } else if (deepLink != null) {
           // 로그인 불필요 공개 페이지 → 바로 이동
-          if (mounted) _navigateAfterLogin(deepLink, isLoggedIn: false, isAdmin: false);
+          if (mounted)
+            _navigateAfterLogin(deepLink, isLoggedIn: false, isAdmin: false);
         } else {
           _goToLogin();
         }
@@ -133,8 +140,8 @@ class _SplashScreenState extends State<SplashScreen>
   _DeepLink? _parseDeepLink(String fragment) {
     // fragment = "/product?id=abc" 또는 "/products" 등
     final uri = Uri.parse(fragment);
-    final path = uri.path;            // "/product"
-    final q    = uri.queryParameters; // {"id": "abc"}
+    final path = uri.path; // "/product"
+    final q = uri.queryParameters; // {"id": "abc"}
 
     switch (path) {
       // 홈
@@ -224,7 +231,7 @@ class _SplashScreenState extends State<SplashScreen>
           target = MainScreen(
             initialIndex: 1,
             initialCategory: link.query['category'],
-            initialSearch:   link.query['search'],
+            initialSearch: link.query['search'],
           );
           break;
         case '/product':
@@ -257,8 +264,10 @@ class _SplashScreenState extends State<SplashScreen>
           if (isLoggedIn && isAdmin) {
             final tab = link.query['tab'];
             int initialTab = 0;
-            if (tab == 'orders') initialTab = 1;
-            else if (tab == 'products') initialTab = 2;
+            if (tab == 'orders')
+              initialTab = 1;
+            else if (tab == 'products')
+              initialTab = 2;
             else if (tab == 'users') initialTab = 3;
             target = AdminScreen(initialTab: initialTab);
           } else if (isLoggedIn) {
@@ -294,7 +303,9 @@ class _SplashScreenState extends State<SplashScreen>
           target = isLoggedIn ? const SizeProfileScreen() : const LoginScreen();
           break;
         case '/notifications':
-          target = isLoggedIn ? const NotificationCenterScreen() : const LoginScreen();
+          target = isLoggedIn
+              ? const NotificationCenterScreen()
+              : const LoginScreen();
           break;
         // ── 토스페이먼츠 결제 콜백 ────────────────────────────
         // top.location.href로 리다이렉트되어 pathname 방식으로 진입
@@ -372,10 +383,11 @@ class _SplashScreenState extends State<SplashScreen>
                         builder: (ctx, constraints) {
                           final size = MediaQuery.of(ctx).size;
                           // 화면 짧은 쪽의 65% 사용 (최소 200, 최대 340)
-                          final iconSize = (size.shortestSide * 0.65)
-                              .clamp(200.0, 340.0);
+                          final iconSize =
+                              (size.shortestSide * 0.65).clamp(200.0, 340.0);
                           return ClipRRect(
-                            borderRadius: BorderRadius.circular(iconSize * 0.18),
+                            borderRadius:
+                                BorderRadius.circular(iconSize * 0.18),
                             child: Image.asset(
                               'assets/images/app_icon.png',
                               width: iconSize,
@@ -404,7 +416,9 @@ class _SplashScreenState extends State<SplashScreen>
 
             // ── 하단 진행 바 ─────────────────────────────────
             Positioned(
-              left: 0, right: 0, bottom: 48,
+              left: 0,
+              right: 0,
+              bottom: 48,
               child: Opacity(
                 opacity: _fadeAnim.value,
                 child: Column(

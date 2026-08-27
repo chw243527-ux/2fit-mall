@@ -41,8 +41,6 @@ import 'screens/products/category_by_name_screen.dart';
 import 'screens/mypage/size_profile_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/notifications/notification_center_screen.dart';
-import 'screens/support/notices_screen.dart';
-import 'screens/support/brand_story_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/payment/payment_result_screen.dart';
 import 'screens/payment/payment_checkout_screen.dart';
@@ -346,18 +344,6 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
             case '/notifications':
               return MaterialPageRoute(
                 builder: (_) => const NotificationCenterScreen(),
-                settings: settings,
-              );
-            // 고객 공지사항 목록 (팝업 공지와 동일한 데이터)
-            case '/notices':
-              return MaterialPageRoute(
-                builder: (_) => const NoticesScreen(),
-                settings: settings,
-              );
-            // 브랜드 소개
-            case '/about':
-              return MaterialPageRoute(
-                builder: (_) => const BrandStoryScreen(),
                 settings: settings,
               );
             // 환불 정책 (이용약관의 교환/환불 조항 직접 연결)
