@@ -32,6 +32,7 @@ import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
 import '../../utils/responsive.dart';
 import '../../utils/constants.dart';
+import '../../utils/theme.dart';
 
 class HomeScreen extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
@@ -68,13 +69,13 @@ class _HomeScreenState extends State<HomeScreen>
   // 카테고리 정의 (key 기반, 다국어 텍스트는 loc에서)
   List<Map<String, dynamic>> _getCategoryItems(AppLocalizations loc) => [
     {'key': 'all',       'label': loc.catAll,       'icon': Icons.grid_view_rounded,        'color': const Color(0xFF1A1A1A)},
-    {'key': '상의',      'label': loc.catTop,       'icon': Icons.dry_cleaning_rounded,     'color': Color(0xFF1565C0)},
-    {'key': '하의',      'label': loc.catBottom,    'icon': Icons.style_rounded,            'color': Color(0xFF2E7D32)},
-    {'key': '세트',      'label': loc.catSet,       'icon': Icons.checkroom_rounded,        'color': Color(0xFFE53935)},
-    {'key': '아우터',    'label': loc.catOuter,     'icon': Icons.layers_rounded,           'color': Color(0xFF37474F)},
-    {'key': '스킨슈트',  'label': context.loc.t('스킨슈트', '스킨슈트'),        'icon': Icons.accessibility_new_rounded, 'color': Color(0xFF00838F)},
-    {'key': '악세사리',  'label': loc.catAccessory, 'icon': Icons.backpack_rounded,         'color': Color(0xFF6A1B9A)},
-    {'key': '이벤트',    'label': context.loc.t('이벤트', '이벤트'),          'icon': Icons.local_offer_rounded,      'color': Color(0xFFFF6B35)},
+    {'key': '상의',      'label': loc.catTop,       'icon': Icons.dry_cleaning_rounded,     'color': AppColors.primary},
+    {'key': '하의',      'label': loc.catBottom,    'icon': Icons.style_rounded,            'color': AppColors.primary},
+    {'key': '세트',      'label': loc.catSet,       'icon': Icons.checkroom_rounded,        'color': AppColors.accent},
+    {'key': '아우터',    'label': loc.catOuter,     'icon': Icons.layers_rounded,           'color': AppColors.primaryLight},
+    {'key': '스킨슈트',  'label': context.loc.t('스킨슈트', '스킨슈트'),        'icon': Icons.accessibility_new_rounded, 'color': AppColors.primary},
+    {'key': '악세사리',  'label': loc.catAccessory, 'icon': Icons.backpack_rounded,         'color': AppColors.primary},
+    {'key': '이벤트',    'label': context.loc.t('이벤트', '이벤트'),          'icon': Icons.local_offer_rounded,      'color': AppColors.accent},
   ];
 
   @override
@@ -280,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen>
     return _buildProductSection(
       title: loc.homeGroupOnly,
       englishTitle: 'GROUP ORDER',
-      accentColor: const Color(0xFF4A148C),
+      accentColor: AppColors.primary,
       products: groupProds.take(10).toList(),
       category: '단체주문',
       viewAllLabel: loc.viewAll,
@@ -530,10 +531,10 @@ class _HomeScreenState extends State<HomeScreen>
                                             padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(1)),
                                             decoration: BoxDecoration(
                                               color: sub.tag == 'BEST'
-                                                  ? const Color(0xFFFF6B35)
+                                                  ? AppColors.accent
                                                   : sub.tag == 'NEW'
                                                       ? cat.color
-                                                      : const Color(0xFFE53935),
+                                                      : AppColors.accent,
                                               borderRadius: BorderRadius.circular(3),
                                             ),
                                             child: Text(
@@ -760,10 +761,10 @@ class _HomeScreenState extends State<HomeScreen>
                                       padding: EdgeInsets.symmetric(horizontal: r.w(4), vertical: r.h(1)),
                                       decoration: BoxDecoration(
                                         color: sub.tag == 'BEST'
-                                            ? const Color(0xFFFF6B35)
+                                            ? AppColors.accent
                                             : sub.tag == 'NEW'
                                                 ? cat.color
-                                                : const Color(0xFFE53935),
+                                                : AppColors.accent,
                                         borderRadius: BorderRadius.circular(2),
                                       ),
                                       child: Text(
@@ -989,7 +990,7 @@ class _HomeScreenState extends State<HomeScreen>
                           top: 6, right: 6,
                           child: Container(
                             width: 14, height: 14,
-                            decoration: const BoxDecoration(color: Color(0xFFE53935), shape: BoxShape.circle),
+                            decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
                             child: Center(child: Text(cart.itemCount > 9 ? '9+' : '${cart.itemCount}', style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900))),
                           ),
                         ),
@@ -1043,7 +1044,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 Consumer<UserProvider>(
                   builder: (ctx, user, _) => user.isAdmin
-                      ? IconButton(icon: const Icon(Icons.admin_panel_settings_rounded, color: Color(0xFFE53935), size: 22), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminScreen())))
+                      ? IconButton(icon: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.accent, size: 22), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminScreen())))
                       : const SizedBox.shrink(),
                 ),
                 // ── PC 로그아웃 버튼 ──
@@ -1352,7 +1353,7 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.arrow_forward_rounded, size: 18, color: Color(0xFFE53935)),
+                        const Icon(Icons.arrow_forward_rounded, size: 18, color: AppColors.accent),
                         SizedBox(width: r.w(10)),
                         Text(
                           loc.language == AppLanguage.korean ? context.loc.t('쇼핑하러 가기', '쇼핑하러 가기') : 'Shop Now',
@@ -1463,7 +1464,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 top: 6, right: 6,
                                 child: Container(
                                   width: 14, height: 14,
-                                  decoration: const BoxDecoration(color: Color(0xFFE53935), shape: BoxShape.circle),
+                                  decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
                                   child: Center(
                                     child: Text(
                                       cart.itemCount > 9 ? '9+' : '${cart.itemCount}',
@@ -1535,7 +1536,7 @@ class _HomeScreenState extends State<HomeScreen>
                             ? Tooltip(
                                 message: loc.homeAdminDashboard,
                                 child: IconButton(
-                                  icon: const Icon(Icons.admin_panel_settings_rounded, color: Color(0xFFE53935), size: 22),
+                                  icon: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.accent, size: 22),
                                   onPressed: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(builder: (_) => const AdminScreen()),
@@ -2077,7 +2078,7 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Container(
                           padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE53935),
+                            color: AppColors.accent,
                             borderRadius: BorderRadius.circular(2),
                           ),
                           child: Text('BEST', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 0.5)),
@@ -2164,7 +2165,7 @@ class _HomeScreenState extends State<HomeScreen>
               Container(
                 padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFF6B35),
+                  color: AppColors.accent,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text('GROUP ONLY',
@@ -2175,7 +2176,7 @@ class _HomeScreenState extends State<HomeScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('TEAM ORDER', style: TextStyle(color: Color(0xFFFF6B35),
+                  Text('TEAM ORDER', style: TextStyle(color: AppColors.accent,
                       fontSize: r.sp(9), fontWeight: FontWeight.w800, letterSpacing: 2.0)),
                   Text(loc.homeGroupOnly, style: TextStyle(color: Colors.white,
                       fontSize: r.sp(20), fontWeight: FontWeight.w900, letterSpacing: -0.5)),
@@ -2188,7 +2189,7 @@ class _HomeScreenState extends State<HomeScreen>
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(8)),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B35),
+                    color: AppColors.accent,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(loc.homeViewAll, style: TextStyle(color: Colors.white,
@@ -2226,11 +2227,11 @@ class _HomeScreenState extends State<HomeScreen>
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.4)),
+              border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.touch_app_rounded, color: Color(0xFFFF6B35), size: 16),
+                const Icon(Icons.touch_app_rounded, color: AppColors.accent, size: 16),
                 SizedBox(width: r.w(8)),
                 Expanded(
                   child: Text(
@@ -2493,7 +2494,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       child: Container(
                                         padding: EdgeInsets.symmetric(horizontal: r.w(4), vertical: r.h(2)),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFE53935),
+                                          color: AppColors.accent,
                                           borderRadius: BorderRadius.circular(3),
                                         ),
                                         child: Text('$discount%',
@@ -2621,7 +2622,7 @@ class _HomeScreenState extends State<HomeScreen>
                       decoration: BoxDecoration(
                         color: const Color(0xFFF3E5F5),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.25)),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -2629,7 +2630,7 @@ class _HomeScreenState extends State<HomeScreen>
                           Container(
                             width: 44, height: 44,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6A1B9A),
+                              color: AppColors.primary,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 22),
@@ -2640,7 +2641,7 @@ class _HomeScreenState extends State<HomeScreen>
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: r.sp(12), fontWeight: FontWeight.w800,
-                              color: Color(0xFF6A1B9A), height: 1.4,
+                              color: AppColors.primary, height: 1.4,
                             ),
                           ),
                         ],
@@ -2687,7 +2688,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     child: Container(
                                       padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(2)),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF6A1B9A),
+                                        color: AppColors.primary,
                                         borderRadius: BorderRadius.circular(3),
                                       ),
                                       child: Text('GROUP',
@@ -2701,7 +2702,7 @@ class _HomeScreenState extends State<HomeScreen>
                                       child: Container(
                                         padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(2)),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFE53935),
+                                          color: AppColors.accent,
                                           borderRadius: BorderRadius.circular(3),
                                         ),
                                         child: Text('$discount%',
@@ -2803,7 +2804,7 @@ class _HomeScreenState extends State<HomeScreen>
                     top: 6, right: 6,
                     child: Container(
                       width: 15, height: 15,
-                      decoration: const BoxDecoration(color: Color(0xFFE53935), shape: BoxShape.circle),
+                      decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
                       child: Center(
                         child: Text(
                           cart.itemCount > 9 ? '9+' : '${cart.itemCount}',
@@ -2879,10 +2880,10 @@ class _HomeScreenState extends State<HomeScreen>
                     margin: EdgeInsets.only(right: r.w(4), top: r.h(6), bottom: r.h(6)),
                     padding: EdgeInsets.symmetric(horizontal: isGroup ? 10 : 14, vertical: 2),
                     decoration: BoxDecoration(
-                      color: isGroup ? const Color(0xFF6A1B9A) : Colors.transparent,
+                      color: isGroup ? AppColors.primary : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isGroup ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD),
+                        color: isGroup ? AppColors.primary : const Color(0xFFDDDDDD),
                       ),
                     ),
                     child: Row(
@@ -2994,7 +2995,7 @@ class _HomeScreenState extends State<HomeScreen>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.arrow_forward_rounded,
-                              size: ctaSize + 2, color: const Color(0xFFE53935)),
+                              size: ctaSize + 2, color: AppColors.accent),
                             SizedBox(width: r.w(8)),
                             Text(
                               loc.language == AppLanguage.korean ? context.loc.t('쇼핑하러 가기', '쇼핑하러 가기') : 'Shop Now',
@@ -3073,7 +3074,7 @@ class _HomeScreenState extends State<HomeScreen>
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6A1B9A),
+                      color: AppColors.primary,
                       borderRadius: BorderRadius.circular(3),
                     ),
                     child: Text('GROUP ORDER ONLY',
@@ -3098,17 +3099,17 @@ class _HomeScreenState extends State<HomeScreen>
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4A148C).withValues(alpha: 0.08),
+                    color: AppColors.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(5),
-                    border: Border.all(color: const Color(0xFF7B1FA2).withValues(alpha: 0.35)),
+                    border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.35)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.emoji_events_rounded, size: 12, color: Color(0xFF7B1FA2)),
+                      const Icon(Icons.emoji_events_rounded, size: 12, color: AppColors.primaryLight),
                       SizedBox(width: r.w(4)),
                       Text(context.loc.t('🏅 엘리트 선수 주문', '🏅 엘리트 선수 주문: ${AppConstants.eliteAthletePhone}'),
-                        style: TextStyle(fontSize: r.sp(10.5), color: const Color(0xFF4A148C), fontWeight: FontWeight.w700)),
+                        style: TextStyle(fontSize: r.sp(10.5), color: AppColors.primary, fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),
@@ -3123,7 +3124,7 @@ class _HomeScreenState extends State<HomeScreen>
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(7)),
               decoration: BoxDecoration(
-                color: const Color(0xFF6A1B9A),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Row(
@@ -3191,7 +3192,7 @@ class _HomeScreenState extends State<HomeScreen>
                             child: Container(
                               padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF6A1B9A),
+                                color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(3),
                               ),
                               child: Text('GROUP', style: TextStyle(color: Colors.white, fontSize: r.sp(8), fontWeight: FontWeight.w900, letterSpacing: 1.0)),
@@ -3202,7 +3203,7 @@ class _HomeScreenState extends State<HomeScreen>
                               top: 8, right: 8,
                               child: Container(
                                 padding: EdgeInsets.symmetric(horizontal: r.w(6), vertical: r.h(3)),
-                                decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(3)),
+                                decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(3)),
                                 child: Text('$discount%', style: TextStyle(color: Colors.white, fontSize: r.sp(10), fontWeight: FontWeight.w900)),
                               ),
                             ),
@@ -3276,7 +3277,7 @@ class _HomeScreenState extends State<HomeScreen>
               color: const Color(0xFFF3E5F5),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: const Icon(Icons.groups_rounded, size: 38, color: Color(0xFF6A1B9A)),
+            child: const Icon(Icons.groups_rounded, size: 38, color: AppColors.primary),
           ),
           SizedBox(height: r.h(14)),
           Text(context.loc.t('단체주문 상품 준비 중', '단체주문 상품 준비 중'),
@@ -3293,8 +3294,8 @@ class _HomeScreenState extends State<HomeScreen>
             icon: const Icon(Icons.info_outline_rounded, size: 15),
             label: Text(context.loc.t('단체주문 안내 보기', '단체주문 안내 보기')),
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF6A1B9A),
-              side: const BorderSide(color: Color(0xFF6A1B9A)),
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ),
@@ -3371,7 +3372,7 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Container(
                           width: 15, height: 15,
                           decoration: const BoxDecoration(
-                            color: Color(0xFFE53935),
+                            color: AppColors.accent,
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -3456,7 +3457,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B35),
+                    color: AppColors.accent,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -3476,7 +3477,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Text(
                       'TEAM ORDER',
                       style: TextStyle(
-                        color: Color(0xFFFF6B35),
+                        color: AppColors.accent,
                         fontSize: r.sp(9),
                         fontWeight: FontWeight.w800,
                         letterSpacing: 2.0,
@@ -3505,7 +3506,7 @@ class _HomeScreenState extends State<HomeScreen>
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(7)),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF6B35),
+                      color: AppColors.accent,
                       borderRadius: BorderRadius.circular(2),
                     ),
                     child: Text(
@@ -3563,11 +3564,11 @@ class _HomeScreenState extends State<HomeScreen>
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.4)),
+                border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.touch_app_rounded, color: Color(0xFFFF6B35), size: 16),
+                  const Icon(Icons.touch_app_rounded, color: AppColors.accent, size: 16),
                   SizedBox(width: r.w(8)),
                   Expanded(
                     child: Text(
@@ -3592,7 +3593,7 @@ class _HomeScreenState extends State<HomeScreen>
     decoration: BoxDecoration(
       color: Colors.white.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.5)),
+      border: Border.all(color: AppColors.accent.withValues(alpha: 0.5)),
     ),
     child: Text(
       text,
@@ -3610,7 +3611,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildNoticeBanner() {
     final r = Responsive.of(context);
     return Container(
-      color: const Color(0xFFE53935),
+      color: AppColors.accent,
       padding: EdgeInsets.symmetric(vertical: r.h(8)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -3633,8 +3634,8 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildQuickMenuBar(AppLocalizations loc) {
     final r = Responsive.of(context);
     final menus = [
-      {'icon': Icons.local_offer_rounded, 'label': loc.homeEvent, 'color': const Color(0xFFE53935)},
-      {'icon': Icons.fiber_new_rounded, 'label': loc.homeNewArrival, 'color': const Color(0xFF6A1B9A)},
+      {'icon': Icons.local_offer_rounded, 'label': loc.homeEvent, 'color': AppColors.accent},
+      {'icon': Icons.fiber_new_rounded, 'label': loc.homeNewArrival, 'color': AppColors.primary},
     ];
     return Container(
       color: Colors.white,
@@ -3695,7 +3696,7 @@ class _HomeScreenState extends State<HomeScreen>
         children: [
           // 헤더
           Container(
-            color: const Color(0xFFE53935),
+            color: AppColors.accent,
             padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
             child: Row(
               children: [
@@ -3706,7 +3707,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(2)),
                   decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-                  child: Text(loc.homeMaxDiscount, style: TextStyle(color: Color(0xFFE53935), fontSize: r.sp(11), fontWeight: FontWeight.w900)),
+                  child: Text(loc.homeMaxDiscount, style: TextStyle(color: AppColors.accent, fontSize: r.sp(11), fontWeight: FontWeight.w900)),
                 ),
                 const Spacer(),
                 GestureDetector(
@@ -3766,7 +3767,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 Text('${_fmtPrice(p.originalPrice!)}${loc.wonUnit2}',
                                     style: TextStyle(fontSize: r.sp(10), color: Color(0xFFAAAAAA), decoration: TextDecoration.lineThrough)),
                               Text('${_fmtPrice(p.price)}${loc.wonUnit2}',
-                                  style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: Color(0xFFE53935))),
+                                  style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w900, color: AppColors.accent)),
                             ],
                           ),
                         ),
@@ -3804,7 +3805,7 @@ class _HomeScreenState extends State<HomeScreen>
                       children: [
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
-                          decoration: BoxDecoration(color: const Color(0xFF1565C0), borderRadius: BorderRadius.circular(3)),
+                          decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(3)),
                           child: Text('NEW ARRIVAL', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 1)),
                         ),
                         SizedBox(height: r.h(10)),
@@ -3841,7 +3842,7 @@ class _HomeScreenState extends State<HomeScreen>
                       children: [
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(3)),
-                          decoration: BoxDecoration(color: const Color(0xFFE53935), borderRadius: BorderRadius.circular(3)),
+                          decoration: BoxDecoration(color: AppColors.accent, borderRadius: BorderRadius.circular(3)),
                           child: Text('CUSTOM ORDER', style: TextStyle(color: Colors.white, fontSize: r.sp(9), fontWeight: FontWeight.w900, letterSpacing: 1)),
                         ),
                         SizedBox(height: r.h(10)),
@@ -4144,9 +4145,9 @@ class _HomeScreenState extends State<HomeScreen>
                                 ? Icons.local_offer_rounded
                                 : Icons.info_outline_rounded;
                         final iconColor = n.type == 'order'
-                            ? const Color(0xFF1565C0)
+                            ? AppColors.primary
                             : n.type == 'promo'
-                                ? const Color(0xFFE53935)
+                                ? AppColors.accent
                                 : const Color(0xFF43A047);
                         return InkWell(
                           onTap: () {
@@ -4194,7 +4195,7 @@ class _HomeScreenState extends State<HomeScreen>
                                               width: 7,
                                               height: 7,
                                               decoration: const BoxDecoration(
-                                                color: Color(0xFFE53935),
+                                                color: AppColors.accent,
                                                 shape: BoxShape.circle,
                                               ),
                                             ),
@@ -4319,7 +4320,7 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.arrow_forward_rounded, size: 12, color: Color(0xFFE53935)),
+                            const Icon(Icons.arrow_forward_rounded, size: 12, color: AppColors.accent),
                             SizedBox(width: r.w(8)),
                             Text(
                               loc.language == AppLanguage.korean ? context.loc.t('쇼핑하러 가기', '쇼핑하러 가기') : 'Shop Now',
@@ -4584,8 +4585,8 @@ class _HomeScreenState extends State<HomeScreen>
       'subtitle': loc.homeBanner2Subtitle,
       'badge': context.loc.t('베스트', '🔥 베스트'),
       'btn': loc.homeBanner2Btn,
-      'gradient1': const Color(0xFFE53935),
-      'gradient2': const Color(0xFFFF6B35),
+      'gradient1': AppColors.accent,
+      'gradient2': AppColors.accent,
     },
   ];
 
@@ -4754,10 +4755,10 @@ class _HomeScreenState extends State<HomeScreen>
                                           padding: EdgeInsets.symmetric(horizontal: r.w(5), vertical: r.h(1)),
                                           decoration: BoxDecoration(
                                             color: sub.tag == 'BEST'
-                                                ? const Color(0xFFFF6B35)
+                                                ? AppColors.accent
                                                 : sub.tag == 'NEW'
                                                     ? cat.color
-                                                    : const Color(0xFFE53935),
+                                                    : AppColors.accent,
                                             borderRadius: BorderRadius.circular(3),
                                           ),
                                           child: Text(
@@ -4963,7 +4964,7 @@ class _HomeScreenState extends State<HomeScreen>
     return _buildProductSection(
       title: context.loc.t('기성품 베스트', '기성품 베스트'),
       englishTitle: 'READY-MADE BEST',
-      accentColor: const Color(0xFF1565C0),
+      accentColor: AppColors.primary,
       products: bestProds,
       category: context.loc.t('상의', '상의'),
       viewAllLabel: loc.viewAll,
@@ -5192,7 +5193,7 @@ class _HomeScreenState extends State<HomeScreen>
                         width: cardW * 0.75,
                         margin: EdgeInsets.only(right: r.w(8)),
                         decoration: BoxDecoration(
-                          color: accentColor == const Color(0xFFE53935)
+                          color: accentColor == AppColors.accent
                               ? const Color(0xFFFFEBEE)
                               : const Color(0xFFF5F5F5),
                           borderRadius: BorderRadius.circular(10),
@@ -5731,7 +5732,7 @@ class _NoticePopupState extends State<_NoticePopup> {
   static const Map<String, List<Color>> _themeGradients = {
     'general':  [Color(0xFF2C3E50), Color(0xFF4CA1AF)],
     'event':    [Color(0xFF8E24AA), Color(0xFFE040FB)],
-    'delivery': [Color(0xFF1565C0), Color(0xFF42A5F5)],
+    'delivery': [AppColors.primary, Color(0xFF42A5F5)],
     'warning':  [Color(0xFFBF360C), Color(0xFFFF7043)],
     'update':   [Color(0xFF1B5E20), Color(0xFF43A047)],
     'promo':    [Color(0xFFC62828), Color(0xFFE57373)],
@@ -6241,7 +6242,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                             child: Container(
                               width: 14, height: 14,
                               decoration: const BoxDecoration(
-                                color: Color(0xFFE53935),
+                                color: AppColors.accent,
                                 shape: BoxShape.circle,
                               ),
                               child: Center(
@@ -6274,7 +6275,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                               ),
                               child: const Center(
                                 child: Icon(Icons.admin_panel_settings_rounded,
-                                    color: Color(0xFFE53935), size: 20),
+                                    color: AppColors.accent, size: 20),
                               ),
                             ),
                           ),
@@ -6343,7 +6344,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
     if (widget.userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('로그인 후 쿠폰을 다운로드할 수 있습니다.'),
-        backgroundColor: Color(0xFF1565C0),
+        backgroundColor: AppColors.primary,
       ));
       return;
     }
@@ -6460,7 +6461,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
       padding: EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(14)),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+          colors: [AppColors.primaryLight, Color(0xFF9C27B0)],
           begin: Alignment.topLeft, end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -6516,7 +6517,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
     final isDownloaded = _downloadedIds.contains(coupon.id);
     final isLoading = _loadingMap[coupon.id] == true;
     final isPercent = coupon.type == CouponType.percent;
-    final accentColor = isPercent ? const Color(0xFF1565C0) : const Color(0xFF2E7D32);
+    final accentColor = isPercent ? AppColors.primary : AppColors.primary;
     final remain = coupon.downloadLimit != null
         ? coupon.downloadLimit! - coupon.downloadCount
         : null;
@@ -6605,10 +6606,10 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.check_rounded, size: 13, color: Color(0xFF7B1FA2)),
+          const Icon(Icons.check_rounded, size: 13, color: AppColors.primaryLight),
           SizedBox(width: r.w(3)),
           Text('완료', style: TextStyle(fontSize: r.sp(12),
-              fontWeight: FontWeight.w700, color: const Color(0xFF7B1FA2))),
+              fontWeight: FontWeight.w700, color: AppColors.primaryLight)),
         ]),
       );
     }
@@ -6627,7 +6628,7 @@ class _BannerCouponPopupState extends State<_BannerCouponPopup> {
         padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(7)),
         decoration: BoxDecoration(
           gradient: isLoading ? null : const LinearGradient(
-            colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+            colors: [AppColors.primaryLight, Color(0xFF9C27B0)],
             begin: Alignment.topLeft, end: Alignment.bottomRight,
           ),
           color: isLoading ? Colors.grey[200] : null,

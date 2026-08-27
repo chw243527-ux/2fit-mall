@@ -4466,7 +4466,7 @@ $productUrl
                   heroCopy.headline,
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: r.sp(42),
+                    fontSize: r.sp(36),
                     fontWeight: FontWeight.w900,
                     height: 0.94,
                     letterSpacing: -1.8,
@@ -4511,7 +4511,7 @@ $productUrl
                 Text(
                   'MADE TO\nKEEP MOVING.',
                   style: TextStyle(
-                    fontSize: r.sp(31),
+                    fontSize: r.sp(24),
                     fontWeight: FontWeight.w900,
                     height: 1.04,
                     letterSpacing: -1.15,
@@ -4548,7 +4548,7 @@ $productUrl
                 SizedBox(height: r.h(13)),
                 Text(
                   isGroupOrder ? 'YOUR TEAM.\nYOUR DESIGN.' : 'FORM, FUNCTION,\nAND MOVEMENT.',
-                  style: TextStyle(fontSize: r.sp(30), fontWeight: FontWeight.w900, height: 1.03, letterSpacing: -1.0, color: const Color(0xFF161616)),
+                  style: TextStyle(fontSize: r.sp(26), fontWeight: FontWeight.w900, height: 1.03, letterSpacing: -1.0, color: const Color(0xFF161616)),
                 ),
                 SizedBox(height: r.h(16)),
                 Text(
@@ -4597,7 +4597,7 @@ $productUrl
               children: [
                 Text(
                   'DETAIL / SPEC',
-                  style: TextStyle(fontSize: r.sp(28), fontWeight: FontWeight.w900, color: const Color(0xFF202020), letterSpacing: -0.8),
+                  style: TextStyle(fontSize: r.sp(24), fontWeight: FontWeight.w900, color: const Color(0xFF202020), letterSpacing: -0.8),
                 ),
                 SizedBox(height: r.h(40)),
                 ...details.map(_buildLimitedDetailLine),
@@ -4650,7 +4650,7 @@ $productUrl
               children: [
                 Text(
                   '2FIT\nSPORTSWEAR',
-                  style: TextStyle(fontSize: r.sp(30), fontWeight: FontWeight.w900, height: 1.03, letterSpacing: -1.1, color: const Color(0xFF161616)),
+                  style: TextStyle(fontSize: r.sp(26), fontWeight: FontWeight.w900, height: 1.03, letterSpacing: -1.1, color: const Color(0xFF161616)),
                 ),
                 SizedBox(height: r.h(18)),
                 Text(
@@ -4698,7 +4698,7 @@ $productUrl
                   'ONLY\n200',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: r.sp(74),
+                    fontSize: r.sp(56),
                     fontWeight: FontWeight.w900,
                     height: 0.78,
                     letterSpacing: -3.2,
@@ -4743,7 +4743,7 @@ $productUrl
                 Text(
                   'NOT MASS-MADE.\nMADE MEANINGFUL.',
                   style: TextStyle(
-                    fontSize: r.sp(31),
+                    fontSize: r.sp(24),
                     fontWeight: FontWeight.w900,
                     height: 1.04,
                     letterSpacing: -1.15,
@@ -4790,7 +4790,7 @@ $productUrl
                 Text(
                   'SEAMLESS,\nBY DESIGN.',
                   style: TextStyle(
-                    fontSize: r.sp(30),
+                    fontSize: r.sp(26),
                     fontWeight: FontWeight.w900,
                     height: 1.03,
                     letterSpacing: -1.0,
@@ -4830,7 +4830,7 @@ $productUrl
                 Text(
                   'POLYESTER 92%\nLYCRA 8%',
                   style: TextStyle(
-                    fontSize: r.sp(31),
+                    fontSize: r.sp(24),
                     fontWeight: FontWeight.w900,
                     height: 1.03,
                     letterSpacing: -1.2,
@@ -4893,7 +4893,7 @@ $productUrl
                 Text(
                   'DETAIL / FABRIC',
                   style: TextStyle(
-                    fontSize: r.sp(28),
+                    fontSize: r.sp(24),
                     fontWeight: FontWeight.w900,
                     color: const Color(0xFF202020),
                     letterSpacing: -0.8,
@@ -4951,7 +4951,7 @@ $productUrl
                 Text(
                   '2FIT LIMITED\nRUNNING COLLECTION',
                   style: TextStyle(
-                    fontSize: r.sp(30),
+                    fontSize: r.sp(26),
                     fontWeight: FontWeight.w900,
                     height: 1.03,
                     letterSpacing: -1.1,

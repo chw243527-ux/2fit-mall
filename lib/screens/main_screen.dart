@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/providers.dart';
 import '../utils/app_localizations.dart';
 import '../utils/constants.dart';
+import '../utils/theme.dart';
 import 'home/home_screen.dart';
 import 'products/product_list_screen.dart';
 import 'products/category_detail_screen.dart';
@@ -636,10 +637,10 @@ class _LangDialogState extends State<_LangDialog> {
                       children: [
                         const SizedBox(
                           width: 13, height: 13,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1565C0)),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                         ),
                         SizedBox(width: r.w(8)),
-                        Text(loc.t('번역_중', '번역 중...'), style: TextStyle(fontSize: r.sp(12), color: const Color(0xFF1565C0))),
+                        Text(loc.t('번역_중', '번역 중...'), style: TextStyle(fontSize: r.sp(12), color: AppColors.primary)),
                       ],
                     ),
                   ),
@@ -933,7 +934,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                       constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                       padding: EdgeInsets.all(r.w(2)),
                       decoration: const BoxDecoration(
-                          color: Color(0xFFE53935), shape: BoxShape.circle),
+                          color: AppColors.accent, shape: BoxShape.circle),
                       child: Center(
                         child: Text(
                           badge > 9 ? '9+' : '$badge',
@@ -1132,7 +1133,7 @@ class _PcFooter extends StatelessWidget {
                               padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(10)),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF4A148C), Color(0xFF7B1FA2)],
+                                  colors: [AppColors.primary, AppColors.primaryLight],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -1363,16 +1364,16 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
   // ── 테마별 그라디언트 (이미지 없을 때 배너 배경) ──
   static const Map<String, List<Color>> _themeGradients = {
-    'general':  [Color(0xFF2C3E50), Color(0xFF4CA1AF)],
-    'event':    [Color(0xFF8E24AA), Color(0xFFE040FB)],
-    'delivery': [Color(0xFF1565C0), Color(0xFF42A5F5)],
-    'warning':  [Color(0xFFBF360C), Color(0xFFFF7043)],
-    'update':   [Color(0xFF1B5E20), Color(0xFF43A047)],
-    'promo':    [Color(0xFFC62828), Color(0xFFE57373)],
-    'holiday':  [Color(0xFF00695C), Color(0xFF26A69A)],
-    'newitem':  [Color(0xFF01579B), Color(0xFF29B6F6)],
-    'weather':  [Color(0xFF0277BD), Color(0xFF81D4FA)],
-    'review':   [Color(0xFFE65100), Color(0xFFFFCC02)],
+    'general':  [AppColors.primary, AppColors.primaryLight],
+    'event':    [AppColors.primary, AppColors.primaryLight],
+    'delivery': [AppColors.primary, AppColors.primaryLight],
+    'warning':  [AppColors.primary, AppColors.primaryLight],
+    'update':   [AppColors.primary, AppColors.primaryLight],
+    'promo':    [AppColors.primary, AppColors.primaryLight],
+    'holiday':  [AppColors.primary, AppColors.primaryLight],
+    'newitem':  [AppColors.primary, AppColors.primaryLight],
+    'weather':  [AppColors.primary, AppColors.primaryLight],
+    'review':   [AppColors.primary, AppColors.primaryLight],
   };
 
   List<Color> _gradientColors(String theme) =>
@@ -1790,7 +1791,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('로그인 후 쿠폰을 다운로드할 수 있습니다.'),
-          backgroundColor: Color(0xFF1565C0),
+          backgroundColor: AppColors.primary,
         ),
       );
       return;
@@ -1938,7 +1939,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
       padding: EdgeInsets.symmetric(horizontal: r.w(20), vertical: r.h(16)),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+          colors: [AppColors.primaryLight, AppColors.primaryLight],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -2005,7 +2006,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
     final isDownloaded = _downloadedIds.contains(coupon.id);
     final isLoading = _loadingMap[coupon.id] == true;
     final isPercent = coupon.type == CouponType.percent;
-    final accentColor = isPercent ? const Color(0xFF1565C0) : const Color(0xFF2E7D32);
+    final accentColor = isPercent ? AppColors.primary : AppColors.primaryLight;
 
     // 잔여 수량 표시
     String? remainText;
@@ -2021,7 +2022,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isDownloaded
-              ? const Color(0xFF9C27B0).withValues(alpha: 0.3)
+              ? AppColors.primaryLight.withValues(alpha: 0.3)
               : const Color(0xFFEEEEEE),
           width: isDownloaded ? 1.5 : 1,
         ),
@@ -2127,13 +2128,13 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_rounded, size: 14, color: Color(0xFF7B1FA2)),
+            const Icon(Icons.check_rounded, size: 14, color: AppColors.primaryLight),
             SizedBox(width: r.w(4)),
             Text('받기완료',
                 style: TextStyle(
                   fontSize: r.sp(12),
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF7B1FA2),
+                  color: AppColors.primaryLight,
                 )),
           ],
         ),
@@ -2162,7 +2163,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
           gradient: isLoading
               ? null
               : const LinearGradient(
-                  colors: [Color(0xFF7B1FA2), Color(0xFF9C27B0)],
+                  colors: [AppColors.primaryLight, AppColors.primaryLight],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
