@@ -656,7 +656,7 @@ class _AdminScreenState extends State<AdminScreen>
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F5),
+      backgroundColor: AppColors.background,
       body: Row(
         children: [
           // ── 좌측 사이드바 (220px) ──
@@ -1084,7 +1084,7 @@ class _AdminScreenState extends State<AdminScreen>
     final currentLabel =
         _tabCtrl.index < _tabLabels.length ? _tabLabels[_tabCtrl.index] : '';
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6FA),
+      backgroundColor: AppColors.background,
       // ── AppBar: 햄버거 + 현재 탭명 + 알림/로그아웃 ──
       appBar: AppBar(
         backgroundColor: AppColors.primary,
@@ -1509,7 +1509,7 @@ class _AdminScreenState extends State<AdminScreen>
             .length;
 
         return Container(
-          color: const Color(0xFFF0F2F5),
+          color: AppColors.background,
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
             child: Column(
@@ -1567,7 +1567,7 @@ class _AdminScreenState extends State<AdminScreen>
                             '배송 완료',
                             '$deliveredToday',
                             Icons.local_shipping_rounded,
-                            Color(0xFF00838F),
+                            AppColors.info,
                             '오늘')),
                   ],
                 ),
@@ -1644,17 +1644,17 @@ class _AdminScreenState extends State<AdminScreen>
                       }),
                       const SizedBox(height: 6),
                       _quickActionRow(Icons.table_chart_rounded,
-                          '단체 일일엑셀 (오후1시 마감)', Color(0xFF00897B), () {
+                          '단체 일일엑셀 (오후1시 마감)', AppColors.success, () {
                         _exportDailyExcel();
                       }),
                       const SizedBox(height: 6),
                       _quickActionRow(Icons.notifications_active_rounded,
-                          '전체 알림 발송', Color(0xFFFF6F00), () {
+                          '전체 알림 발송', AppColors.accentOrange, () {
                         _showPromoNotificationDialog();
                       }),
                       const SizedBox(height: 6),
                       _quickActionRow(
-                          Icons.science_rounded, '단체주문 테스트', Color(0xFF00838F),
+                          Icons.science_rounded, '단체주문 테스트', AppColors.info,
                           () {
                         Navigator.push(
                             context,
@@ -1723,8 +1723,8 @@ class _AdminScreenState extends State<AdminScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isGrowthPos
-                    ? [const Color(0xFF1B5E20), AppColors.success]
-                    : [const Color(0xFFB71C1C), AppColors.error],
+                    ? [AppColors.primary, AppColors.success]
+                    : [AppColors.primary, AppColors.error],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
@@ -1898,7 +1898,7 @@ class _AdminScreenState extends State<AdminScreen>
         }
         if (!snapshot.hasData) {
           return Container(
-            color: const Color(0xFFF4F6FA),
+            color: AppColors.background,
             child: const Center(
                 child: CircularProgressIndicator(color: AppColors.primary)),
           );
@@ -6106,7 +6106,7 @@ class _AdminScreenState extends State<AdminScreen>
         ),
         // 전체선택 + 일괄삭제 툴바
         Container(
-          color: const Color(0xFFF4F6FA),
+          color: AppColors.background,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: Row(children: [
             // 전체선택 체크박스
@@ -6814,7 +6814,7 @@ class _AdminScreenState extends State<AdminScreen>
         if (!snapshot.hasData) {
           // 캐시 데이터 없을 때만 로딩 표시 (initialData로 대부분 건너뜀)
           return Container(
-            color: const Color(0xFFF4F6FA),
+            color: AppColors.background,
             child: const Center(
                 child: CircularProgressIndicator(color: AppColors.primary)),
           );
@@ -6866,7 +6866,7 @@ class _AdminScreenState extends State<AdminScreen>
             ),
             // ── 전체선택 + 일괄삭제 툴바 ──
             Container(
-              color: const Color(0xFFF4F6FA),
+              color: AppColors.background,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: Row(
                 children: [
@@ -7496,7 +7496,7 @@ class _AdminScreenState extends State<AdminScreen>
   // ignore: unused_element
   Widget _buildEmptyState(String title, String subtitle, IconData icon) {
     return Container(
-      color: const Color(0xFFF4F6FA),
+      color: AppColors.background,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -7616,7 +7616,9 @@ class _AdminScreenState extends State<AdminScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
             decoration: BoxDecoration(
-              color: isPos ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE),
+              color: isPos
+                  ? AppColors.success.withValues(alpha: 0.10)
+                  : AppColors.error.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(change,
@@ -7718,7 +7720,7 @@ class _AdminScreenState extends State<AdminScreen>
                 const SizedBox(height: 2),
                 Text(order.userName,
                     style:
-                        const TextStyle(fontSize: 10, color: Color(0xFF9E9E9E)),
+                        const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                     overflow: TextOverflow.ellipsis),
               ],
             ),
@@ -7772,7 +7774,7 @@ class _AdminScreenState extends State<AdminScreen>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.cardBg,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.border),
           ),
