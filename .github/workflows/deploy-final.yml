@@ -1,0 +1,288 @@
+name: Build & Deploy — Firebase + Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      skip_cache:
+        description: 'Flutter/pub 캐시를 사용하지 않음'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.32.2'
+  NODE_VERSION: '20.x'
+  FIREBASE_CLI_VERSION: 'latest'
+  WRANGLER_VERSION: 'latest'
+  BUILD_DIR: build/web
+  FIREBASE_PROJECT: fit-mall
+  CF_PROJECT: twofit-mall
+
+jobs:
+  build_and_deploy:
+    name: Build → Firebase → Cloudflare Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: ${{ github.event.inputs.skip_cache != 'true' }}
+          cache-key: flutter-${{ runner.os }}-${{ env.FLUTTER_VERSION }}
+
+      - name: Cache pub packages
+        if: ${{ github.event.inputs.skip_cache != 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze Flutter project
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Build Flutter Web
+        run: |
+          flutter build web \
+            --release \
+            --tree-shake-icons \
+            --pwa-strategy=offline-first \
+            --dart-define=BUILD_NUMBER=${{ github.run_number }} \
+            --dart-define=BUILD_SHA=${{ github.sha }}
+
+      - name: Ensure Firebase Messaging service worker is present
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f web/firebase-messaging-sw.js
+          cp web/firebase-messaging-sw.js "${BUILD_DIR}/firebase-messaging-sw.js"
+          echo "Firebase Messaging service worker copied to ${BUILD_DIR}"
+
+      - name: Verify web build and Firebase Messaging worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "${BUILD_DIR}/index.html"
+          test -f "${BUILD_DIR}/firebase-messaging-sw.js"
+          test -f "${BUILD_DIR}/flutter_service_worker.js"
+          echo "Web build and Firebase Messaging files verified"
+          ls -lh "${BUILD_DIR}/index.html" "${BUILD_DIR}/firebase-messaging-sw.js" "${BUILD_DIR}/flutter_service_worker.js"
+
+      - name: Patch build output cache busting
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_VER="${{ github.run_number }}"
+          SHORT_SHA="$(echo '${{ github.sha }}' | cut -c1-7)"
+
+          if [ -f "${BUILD_DIR}/flutter_bootstrap.js" ]; then
+            sed -i "s|main\.dart\.js\"|main.dart.js?v=${BUILD_VER}\"|g" \
+              "${BUILD_DIR}/flutter_bootstrap.js"
+          fi
+
+          sed -i "s|flutter-app-cache-BUILD_NUMBER|flutter-app-cache-${BUILD_VER}|g" \
+            "${BUILD_DIR}/index.html"
+
+          if [ -f "${BUILD_DIR}/payment-widget.html" ]; then
+            printf '\n<!-- build:%s -->\n' "${BUILD_VER}" >> "${BUILD_DIR}/payment-widget.html"
+          fi
+
+          if [ -f "${BUILD_DIR}/flutter_service_worker.js" ]; then
+            sed -i "s|main\.dart\.js|main.dart.js?v=${BUILD_VER}|g" \
+              "${BUILD_DIR}/flutter_service_worker.js"
+            sed -i "s|'flutter-app-cache'|'flutter-app-cache-${BUILD_VER}'|g" \
+              "${BUILD_DIR}/flutter_service_worker.js"
+            sed -i "s|'flutter-temp-cache'|'flutter-temp-cache-${BUILD_VER}'|g" \
+              "${BUILD_DIR}/flutter_service_worker.js"
+
+            if [ -f "${BUILD_DIR}/payment-widget.html" ]; then
+              NEW_HASH="$(md5sum "${BUILD_DIR}/payment-widget.html" | cut -d' ' -f1)"
+              OLD_HASH="$(grep '"payment-widget.html"' "${BUILD_DIR}/flutter_service_worker.js" | sed 's/.*": "\(.*\)".*/\1/' || true)"
+              if [ -n "${OLD_HASH}" ] && [ -n "${NEW_HASH}" ]; then
+                sed -i "s|\"payment-widget.html\": \"${OLD_HASH}\"|\"payment-widget.html\": \"${NEW_HASH}\"|g" \
+                  "${BUILD_DIR}/flutter_service_worker.js"
+              fi
+            fi
+
+            printf '\n// build: %s (%s)\n' "${BUILD_VER}" "${SHORT_SHA}" >> \
+              "${BUILD_DIR}/flutter_service_worker.js"
+          fi
+
+      - name: Validate Firebase Rules configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f firestore.rules
+          test -f storage.rules
+          test -f firebase.json
+          test -f .firebaserc
+          node <<'NODE'
+          const fs = require('fs');
+          const config = JSON.parse(fs.readFileSync('firebase.json', 'utf8'));
+          if (config.firestore?.rules !== 'firestore.rules') {
+            throw new Error('firebase.json의 Firestore Rules 경로가 firestore.rules가 아닙니다.');
+          }
+          if (config.storage?.rules !== 'storage.rules') {
+            throw new Error('firebase.json의 Storage Rules 경로가 storage.rules가 아닙니다.');
+          }
+          if (config.functions?.source !== 'functions') {
+            throw new Error('firebase.json의 Functions source가 functions가 아닙니다.');
+          }
+          const firebaseProject = JSON.parse(fs.readFileSync('.firebaserc', 'utf8'));
+          if (firebaseProject.projects?.default !== 'fit-mall') {
+            throw new Error('.firebaserc의 기본 Firebase 프로젝트가 fit-mall이 아닙니다.');
+          }
+          console.log('Firebase Rules·Functions 설정 검증 완료');
+          NODE
+
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools@${{ env.FIREBASE_CLI_VERSION }}
+
+      - name: Install Cloud Functions dependencies
+        working-directory: functions
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Authenticate Firebase with service account
+        id: firebase-auth
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ]; then
+            echo "GOOGLE_APPLICATION_CREDENTIALS_JSON Secret이 설정되지 않았습니다."
+            exit 1
+          fi
+
+          umask 077
+          printf '%s' "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" > "${RUNNER_TEMP}/firebase-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/firebase-service-account.json" >> "${GITHUB_ENV}"
+
+      - name: Deploy Firestore Rules and Storage Rules
+        shell: bash
+        run: |
+          set -euo pipefail
+          firebase deploy \
+            --only firestore:rules,storage \
+            --project "${FIREBASE_PROJECT}" \
+            --non-interactive
+
+      # Cloud Functions는 Service Account User 권한을 추가한 뒤 별도 단계로 다시 활성화합니다.
+
+      - name: Remove Firebase service account file
+        if: always()
+        shell: bash
+        run: rm -f "${RUNNER_TEMP}/firebase-service-account.json"
+
+      - name: Cache Wrangler package
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm/_npx
+          key: wrangler-${{ env.WRANGLER_VERSION }}
+
+      - name: Deploy Flutter Web to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SHORT_SHA="$(echo '${{ github.sha }}' | cut -c1-7)"
+          UPLOAD_DIR="${RUNNER_TEMP}/cloudflare-pages-upload"
+          rm -rf "${UPLOAD_DIR}"
+          mkdir -p "${UPLOAD_DIR}"
+          cp -R "${BUILD_DIR}/." "${UPLOAD_DIR}/"
+          cd "${UPLOAD_DIR}"
+          npx --yes wrangler@${WRANGLER_VERSION} pages deploy \
+            . \
+            --project-name="${CF_PROJECT}" \
+            --branch=main \
+            --commit-dirty=true \
+            --commit-message="deploy: build-${{ github.run_number }} (${SHORT_SHA})"
+
+      - name: Purge Cloudflare cache
+        if: success()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_ZONE_ID}" ]; then
+            echo "CLOUDFLARE_ZONE_ID가 없어 캐시 purge를 건너뜁니다."
+            exit 0
+          fi
+
+          RESPONSE="$(curl --fail-with-body -sS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')"
+
+          python3 -c 'import json,sys; r=json.loads(sys.argv[1]); assert r.get("success"), r; print("Cloudflare cache purge 성공")' \
+            "${RESPONSE}"
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          {
+            echo "## 배포 완료"
+            echo
+            echo "| 항목 | 값 |"
+            echo "|---|---|"
+            echo "| 빌드 번호 | #${{ github.run_number }} |"
+            echo "| 커밋 | \\`$(echo '${{ github.sha }}' | cut -c1-7)\\` |"
+            echo "| Flutter | ${FLUTTER_VERSION} |"
+            echo "| Firebase | ${FIREBASE_PROJECT} |"
+            echo "| Cloudflare Pages | ${CF_PROJECT} |"
+            echo
+            echo "https://2fit-mall.co.kr"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload build metadata on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-metadata-${{ github.run_number }}
+          path: |
+            pubspec.lock
+            functions/package-lock.json
+          if-no-files-found: ignore
+          retention-days: 3
