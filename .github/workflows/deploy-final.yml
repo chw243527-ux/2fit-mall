@@ -211,7 +211,8 @@ jobs:
           firebase deploy \
             --only firestore:rules,storage,functions \
             --project "${FIREBASE_PROJECT}" \
-            --non-interactive
+            --non-interactive \
+            --force
 
       - name: Remove Firebase service account file
         if: always()
