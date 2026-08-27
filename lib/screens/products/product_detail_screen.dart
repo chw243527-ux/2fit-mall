@@ -5883,7 +5883,12 @@ $productUrl
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: EdgeInsets.fromLTRB(r.w(16), r.h(10), r.w(16), r.h(10)),
+          padding: EdgeInsets.fromLTRB(
+            r.isMobile ? r.contentGutter : r.w(16),
+            r.isNarrowMobile ? 8.0 : r.h(10),
+            r.isMobile ? r.contentGutter : r.w(16),
+            r.isNarrowMobile ? 8.0 : r.h(10),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
