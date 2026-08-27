@@ -72,17 +72,16 @@ void main() async {
     if (kDebugMode) debugPrint('⚠️ NaverSdk 초기화 오류: $e');
   }
 
-  // Firebase 초기화 (오류 시에도 앱 실행 유지)
+  // Firebase Core만 첫 화면 전에 초기화합니다.
+  // FCM 권한 요청과 Firestore 사전 로드는 브라우저 권한창·네트워크 지연으로
+  // 앱 첫 프레임을 막을 수 있으므로 runApp 이후 백그라운드에서 실행합니다.
+  var firebaseReady = false;
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    );
+    ).timeout(const Duration(seconds: 10));
+    firebaseReady = true;
     if (kDebugMode) debugPrint('✅ Firebase 초기화 성공');
-    // FCM 초기화
-    await FcmService.initialize();
-    // 카테고리 서비스 사전 로드 (앱 시작 시 Firestore에서 카테고리 불러오기)
-    await CategoryService.load();
-    if (kDebugMode) debugPrint('✅ CategoryService 로드: ${CategoryService.mainCategories}');
   } catch (e) {
     if (kDebugMode) debugPrint('⚠️ Firebase 초기화 오류: $e');
     // Firebase 실패해도 앱은 계속 실행 (로컬 모드로 동작)
@@ -90,7 +89,7 @@ void main() async {
 
   // Hive 초기화 (장바구니, 로컬 사용자 데이터용)
   try {
-    await Hive.initFlutter();
+    await Hive.initFlutter().timeout(const Duration(seconds: 5));
   } catch (e) {
     if (kDebugMode) debugPrint('⚠️ Hive 초기화 오류: $e');
   }
@@ -106,6 +105,27 @@ void main() async {
     ),
   );
   runApp(const TwoFitMallApp());
+
+  // 선택적 네트워크 초기화는 첫 프레임 이후 실행합니다.
+  // 특히 Web FCM requestPermission()은 사용자의 브라우저 응답을 기다릴 수
+  // 있으므로 main()에서 await하지 않습니다.
+  if (firebaseReady) {
+    Future<void>(() async {
+      try {
+        await FcmService.initialize().timeout(const Duration(seconds: 8));
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ FCM 백그라운드 초기화 건너뜀: $e');
+      }
+      try {
+        await CategoryService.load().timeout(const Duration(seconds: 8));
+        if (kDebugMode) {
+          debugPrint('✅ CategoryService 로드: ${CategoryService.mainCategories}');
+        }
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ CategoryService 백그라운드 로드 건너뜀: $e');
+      }
+    });
+  }
 }
 
 // 전역 navigatorKey - 브라우저 뒤로가기와 Flutter Navigator 연동
