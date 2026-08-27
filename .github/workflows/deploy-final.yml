@@ -22,7 +22,7 @@ env:
   FLUTTER_VERSION: '3.32.2'
   NODE_VERSION: '22.x'
   FIREBASE_CLI_VERSION: 'latest'
-  WRANGLER_VERSION: 'latest'
+  WRANGLER_VERSION: '3.78.12'
   BUILD_DIR: build/web
   FIREBASE_PROJECT: fit-mall
   CF_PROJECT: twofit-mall
