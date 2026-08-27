@@ -1519,6 +1519,44 @@ $productUrl
     );
   }
 
+  /// 상품명·분류·관리자 소재명에 따른 섬유 혼용률입니다.
+  /// 관리자가 브라이트/에어로브라이트 원단명을 입력하면 해당 원단의 비율을 우선 적용합니다.
+  String _materialTextForProduct(ProductModel product) {
+    final label = '${product.category} ${product.subCategory} ${product.name} ${product.material}'.toLowerCase();
+    const legacyDefaults = {
+      '78% Nylon, 22% Spandex / 4-way Stretch',
+      '78% Nylon, 22% Spandex',
+    };
+    final customMaterial = product.material.trim();
+    final hasCustomMaterial = customMaterial.isNotEmpty && !legacyDefaults.contains(customMaterial);
+    final isSingletSet = product.category == '세트' ||
+        label.contains('싱글렛세트') ||
+        label.contains('싱글렛 세트');
+    final isSingletOrRoundTee = !isSingletSet &&
+        (label.contains('싱글렛') || label.contains('라운드티') || label.contains('라운드 티'));
+    final isGoljiTights = label.contains('골지타이즈') ||
+        label.contains('골지 타이즈') ||
+        (product.category == '하의' && label.contains('골지'));
+    final isPearlWear = label.contains('크롭탑') ||
+        label.contains('크롭 탑') ||
+        label.contains('삼각') ||
+        label.contains('원피스');
+
+    if (isSingletSet) {
+      return '상의: 폴리에스터 92% / 라이크라 8%\n하의: 나일론 75% / 라이크라 25%';
+    }
+    if (isSingletOrRoundTee) return '폴리에스터 92% / 라이크라 8%';
+    if (isGoljiTights) return '나일론 75% / 라이크라 25%';
+    if (label.contains('에어로브라이트')) {
+      return '에어로브라이트 원단(펄원단)\n폴리에스터 78% / 크레오라 22%';
+    }
+    if (label.contains('브라이트') || isPearlWear) {
+      return '브라이트 원단(펄원단)\n폴리에스터 80% / 크레오라 20%';
+    }
+    if (hasCustomMaterial) return customMaterial;
+    return '상품별 소재 정보 확인';
+  }
+
   // ── 탑텐 스타일: 상품 상세 정보 (INFO/PRODUCT/MATERIAL/COLOR/WASHING TIP) ──
   Widget _buildToptenInfoSection(ProductModel product) {
     final r = Responsive.of(context);
@@ -1543,26 +1581,9 @@ $productUrl
         sub.contains(context.loc.t('타이즈', '타이즈')) || name.contains(context.loc.t('타이즈', '타이즈')) || cat == context.loc.t('하의', '하의');
     final isGroupOnly = product.isGroupOnly;
 
-    // ── 1) MATERIAL: 카테고리별 소재 텍스트 ─────────────────────
-    // 우선순위: ① 관리자 직접 입력값(material) → ② 카테고리 기본값
-    String materialText;
-    // 기본값('78% Nylon...')이 아닌 실제 입력값이 있으면 최우선 사용
-    final hasCustomMaterial = product.material.isNotEmpty &&
-        product.material != '78% Nylon, 22% Spandex / 4-way Stretch' &&
-        product.material != '78% Nylon, 22% Spandex';
-    if (hasCustomMaterial) {
-      materialText = product.material;
-    } else if (isSingletSet) {
-      materialText = context.loc.t('상의_폴리에스터_92_라이크라_8_n하의_나일론_75_라이크라_25', '상의: 폴리에스터 92% / 라이크라 8%\n하의: 나일론 75% / 라이크라 25%');
-    } else if (isSingletTop) {
-      materialText = context.loc.t('폴리에스터_92_라이크라_8', '폴리에스터 92% / 라이크라 8%');
-    } else if (isTaiz) {
-      materialText = context.loc.t('나일론_75_라이크라_25', '나일론 75% / 라이크라 25%');
-    } else if (product.material.isNotEmpty) {
-      materialText = product.material;
-    } else {
-      materialText = '78% Nylon, 22% Spandex / 4-way Stretch';
-    }
+    // ── 1) MATERIAL: 상품 유형별 섬유 혼용률 ─────────────────────
+    // 싱글렛·라운드티·골지타이즈·펄원단 상품은 확정된 기준값을 우선 적용합니다.
+    final materialText = _materialTextForProduct(product);
 
     // ── 2) COLOR: 카테고리/구매방식별 표시 ──────────────────────
     // 단체주문: 골지 19색 모두 선택 가능
@@ -4237,11 +4258,7 @@ $productUrl
   }
 
   String _limitedSingletMaterial(ProductModel product) {
-    const defaults = {'78% Nylon, 22% Spandex / 4-way Stretch', '78% Nylon, 22% Spandex'};
-    if (product.material.isNotEmpty && !defaults.contains(product.material)) {
-      return product.material;
-    }
-    return '폴리에스터 92% / 라이크라 8%';
+    return _materialTextForProduct(product);
   }
 
   /// 모든 상품에 공통 적용하는 에디토리얼 상세페이지 래퍼입니다.
@@ -4395,9 +4412,7 @@ $productUrl
 
   Widget _buildGeneralEditorialProductDetail(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
-    final material = product.material.isNotEmpty
-        ? product.material
-        : '상품 상세 정보에서 소재 구성을 확인해 주세요.';
+    final material = _materialTextForProduct(product);
     final heroCopy = _generalEditorialCopy(product);
     final productType = heroCopy.label;
     final isGroupOrder = product.isGroupOnly;
