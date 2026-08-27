@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../providers/providers.dart';
 import '../screens/products/product_detail_screen.dart';
 
+import '../utils/theme.dart';
 // ignore: unused_import
 import '../utils/app_localizations.dart';
 
@@ -15,14 +16,20 @@ import '../utils/app_localizations.dart';
 /// · 하단: [단체주문 전용 뱃지] → 상품명 → 가격
 class ProductCard extends StatelessWidget {
   final ProductModel product;
+
   /// true = 카드 너비가 외부(ListView)에서 결정됨 (가로 스크롤용)
   /// false = GridView 셀 크기에 맞게 채움 (기본)
   final bool isHorizontal;
+
   /// false로 넘기면 _buildInfo()의 "단체주문 전용" 텍스트 배지를 숨김
   /// (홈화면 단체주문 전용 섹션 카드에서 중복 표시 방지)
   final bool showGroupBadge;
 
-  const ProductCard({super.key, required this.product, this.isHorizontal = false, this.showGroupBadge = true});
+  const ProductCard(
+      {super.key,
+      required this.product,
+      this.isHorizontal = false,
+      this.showGroupBadge = true});
 
   @override
   Widget build(BuildContext context) {
@@ -30,11 +37,12 @@ class ProductCard extends StatelessWidget {
       child: GestureDetector(
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product)),
+          MaterialPageRoute(
+              builder: (_) => ProductDetailScreen(product: product)),
         ),
         child: Material(
           // Material.clipBehavior 는 Flutter에서 clip을 100% 보장
-          color: const Color(0xFF1A1A1A),
+          color: AppColors.primary,
           borderRadius: BorderRadius.circular(10),
           clipBehavior: Clip.antiAlias,
           child: Stack(
@@ -67,21 +75,22 @@ class ProductCard extends StatelessWidget {
 
   // ── 이미지 영역 ──────────────────────────────────────────
   Widget _buildImage(BuildContext context) {
-    final discount = product.originalPrice != null && product.originalPrice! > product.price
-        ? ((1 - product.price / product.originalPrice!) * 100).round()
-        : 0;
+    final discount =
+        product.originalPrice != null && product.originalPrice! > product.price
+            ? ((1 - product.price / product.originalPrice!) * 100).round()
+            : 0;
 
     // 배지 색상 결정
     Color badgeBg;
     String badgeText;
     if (product.isGroupOnly) {
-      badgeBg = const Color(0xFF333333);
+      badgeBg = AppColors.textPrimary;
       badgeText = 'GROUP';
     } else if (product.isNewActive) {
-      badgeBg = const Color(0xFF111111);
+      badgeBg = AppColors.textPrimary;
       badgeText = 'NEW';
     } else if (product.isSale && discount > 0) {
-      badgeBg = const Color(0xFF333333);
+      badgeBg = AppColors.textPrimary;
       badgeText = 'SALE';
     } else {
       badgeBg = Colors.transparent;
@@ -89,133 +98,136 @@ class ProductCard extends StatelessWidget {
     }
 
     return AspectRatio(
-        aspectRatio: 4 / 5,
-        child: Stack(
-            fit: StackFit.expand,
-            children: [
-              // ── 상품 이미지 (카드 완전히 채움) ──
-              Positioned.fill(
-                child: product.images.isNotEmpty
-                    ? NetImage(
-                        product.images.first,
-                        fit: BoxFit.cover,
-                        alignment: Alignment.topCenter,
-                      )
-                    : _placeholder(),
+      aspectRatio: 4 / 5,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ── 상품 이미지 (카드 완전히 채움) ──
+          Positioned.fill(
+            child: product.images.isNotEmpty
+                ? NetImage(
+                    product.images.first,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  )
+                : _placeholder(),
+          ),
+
+          // ── 좌상단 배지 (GROUP / NEW / SALE) ──
+          if (badgeText.isNotEmpty)
+            Positioned(
+              top: 6,
+              left: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: badgeBg,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  badgeText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ),
+            ),
 
-              // ── 좌상단 배지 (GROUP / NEW / SALE) ──
-              if (badgeText.isNotEmpty)
-                Positioned(
-                  top: 6,
-                  left: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: badgeBg,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Text(
-                      badgeText,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+          // ── 우상단 할인율 ──
+          if (discount > 0)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  '-$discount%',
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
+              ),
+            ),
 
-              // ── 우상단 할인율 ──
-              if (discount > 0)
-                Positioned(
-                  top: 6,
-                  right: 6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: Text(
-                      '-$discount%',
-                      style: const TextStyle(
-                        color: Color(0xFF111111),
-                        fontSize: 8,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+          // ── 무료배송 (우하단) ──
+          if (product.isFreeShipping)
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: const BoxDecoration(
+                  color: AppColors.textPrimary,
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(6)),
+                ),
+                child: const Text(
+                  'FREE',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 7,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
                   ),
                 ),
+              ),
+            ),
 
-              // ── 무료배송 (우하단) ──
-              if (product.isFreeShipping)
-                Positioned(
-                  bottom: 0,
-                  right: 0,
+          // ── 품절 오버레이 ──
+          if (product.stockCount <= 0)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                ),
+                child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF111111),
-                      borderRadius: BorderRadius.only(topLeft: Radius.circular(6)),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Text(
-                      'FREE',
+                      'SOLD OUT',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 7,
+                        color: AppColors.textPrimary,
+                        fontSize: 11,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
+                        letterSpacing: 1.5,
                       ),
                     ),
                   ),
                 ),
-
-              // ── 품절 오버레이 ──
-              if (product.stockCount <= 0)
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.55),
-                    ),
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.95),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: const Text(
-                          'SOLD OUT',
-                          style: TextStyle(
-                            color: Color(0xFF111111),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
-    Widget _placeholder() {
+  Widget _placeholder() {
     return const Center(
-      child: Icon(Icons.image_not_supported_rounded, color: Color(0xFF444444), size: 28),
+      child: Icon(Icons.image_not_supported_rounded,
+          color: AppColors.textSecondary, size: 28),
     );
   }
 
   // ── 상품 정보 영역 ──────────────────────────────────────
   Widget _buildInfo(BuildContext context) {
     final lang = context.watch<LanguageProvider>().language;
-    final loc  = context.watch<LanguageProvider>().loc;
+    final loc = context.watch<LanguageProvider>().loc;
 
-    final hasDiscount = product.originalPrice != null && product.originalPrice! > product.price;
+    final hasDiscount =
+        product.originalPrice != null && product.originalPrice! > product.price;
     final discount = hasDiscount
         ? ((1 - product.price / product.originalPrice!) * 100).round()
         : 0;
@@ -227,14 +239,16 @@ class ProductCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // ── 단체주문 전용 / 기성품 뱃지 (showGroupBadge=false 이면 숨김) ──
-          if ((product.isGroupOnly || product.isReadyMade) && showGroupBadge) ...[
+          if ((product.isGroupOnly || product.isReadyMade) &&
+              showGroupBadge) ...[
             Row(children: [
               if (product.isGroupOnly)
                 Container(
                   margin: const EdgeInsets.only(right: 4, bottom: 5),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF888888),
+                    color: AppColors.textSecondary,
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
@@ -250,7 +264,8 @@ class ProductCard extends StatelessWidget {
               if (product.isReadyMade)
                 Container(
                   margin: const EdgeInsets.only(bottom: 5),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(3),
@@ -258,7 +273,7 @@ class ProductCard extends StatelessWidget {
                   child: Text(
                     context.loc.t('기성품', '기성품'),
                     style: TextStyle(
-                      color: Color(0xFF111111),
+                      color: AppColors.textPrimary,
                       fontSize: 9,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.2,
@@ -326,7 +341,8 @@ class ProductCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 5),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(3),
@@ -335,7 +351,7 @@ class ProductCard extends StatelessWidget {
                     '$discount%',
                     style: const TextStyle(
                       fontSize: 8,
-                      color: Color(0xFF111111),
+                      color: AppColors.textPrimary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -360,14 +376,15 @@ class ProductCard extends StatelessWidget {
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.star_rounded, size: 10, color: Color(0xFFFFB300)),
+                const Icon(Icons.star_rounded,
+                    size: 10, color: Color(0xFFFFB300)),
                 const SizedBox(width: 2),
                 Text(
                   '${product.rating} (${product.reviewCount})',
                   style: const TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF888888),
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ],
@@ -379,9 +396,7 @@ class ProductCard extends StatelessWidget {
   }
 
   String _fmt(double price) {
-    return price
-        .toStringAsFixed(0)
-        .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+    return price.toStringAsFixed(0).replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
   }
 }
-

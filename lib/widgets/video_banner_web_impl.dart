@@ -35,7 +35,8 @@ class VideoBannerWidget extends StatefulWidget {
   final VoidCallback? onProductTap;
 
   // Flutter 웹 빌드 후 로컬 asset 실제 서빙 경로 (캐시 버스팅 버전 쿼리 포함)
-  static const String localAssetVideo = 'assets/assets/images/banner_video.mp4?v=20260529b';
+  static const String localAssetVideo =
+      'assets/assets/images/banner_video.mp4?v=20260529b';
 
   // Firestore에 저장되는 로컬 식별자
   static const String localAssetId = 'assets/images/banner_video.mp4';

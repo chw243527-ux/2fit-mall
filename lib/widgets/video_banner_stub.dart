@@ -1,3 +1,4 @@
+import '../utils/theme.dart';
 // video_banner_stub.dart
 // Android / iOS 네이티브: video_player 패키지로 실제 동영상 재생
 // loop = true → 영상 끝나면 처음부터 반복 재생
@@ -46,8 +47,8 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
 
     try {
       await ctrl.initialize();
-      ctrl.setVolume(0.0);      // 음소거 시작
-      ctrl.setLooping(true);    // loop ON: 끝나면 처음부터 반복 재생
+      ctrl.setVolume(0.0); // 음소거 시작
+      ctrl.setLooping(true); // loop ON: 끝나면 처음부터 반복 재생
 
       if (!mounted) {
         ctrl.dispose();
@@ -122,6 +123,6 @@ class _VideoBannerWidgetState extends State<VideoBannerWidget> {
         height: double.infinity,
       );
     }
-    return Container(color: const Color(0xFF111111));
+    return Container(color: AppColors.textPrimary);
   }
 }

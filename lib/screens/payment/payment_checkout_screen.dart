@@ -1,3 +1,4 @@
+import '../../utils/theme.dart';
 // payment_checkout_screen.dart
 // 토스페이먼츠 Payment Widget — fullscreen iframe 방식
 //
@@ -25,8 +26,7 @@ class PaymentCheckoutScreen extends StatefulWidget {
   const PaymentCheckoutScreen({super.key});
 
   @override
-  State<PaymentCheckoutScreen> createState() =>
-      _PaymentCheckoutScreenState();
+  State<PaymentCheckoutScreen> createState() => _PaymentCheckoutScreenState();
 }
 
 class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
@@ -51,27 +51,27 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
     _registered = true;
 
     final uid = context.read<UserProvider>().user?.id;
-    final customerKey =
-        (uid != null && uid.isNotEmpty) ? uid : '@@ANONYMOUS';
+    final customerKey = (uid != null && uid.isNotEmpty) ? uid : '@@ANONYMOUS';
 
-    final successUrl = PaymentService.buildSuccessUrl(args.orderId, args.amount);
-    final failUrl    = PaymentService.buildFailUrl(args.orderId);
+    final successUrl =
+        PaymentService.buildSuccessUrl(args.orderId, args.amount);
+    final failUrl = PaymentService.buildFailUrl(args.orderId);
 
     // URL 파라미터 구성
     final uri = Uri(
       path: '/payment-widget.html',
       queryParameters: {
-        'clientKey':           TossConfig.clientKey,
-        'easyPayClientKey':    TossConfig.easyPayClientKey, // 카카오페이·네이버페이·토스페이
-        'customerKey':         customerKey,
-        'orderId':             args.orderId,
-        'orderName':           args.orderName,
-        'amount':              args.amount.toString(),
-        'customerName':        args.customerName,
-        'customerEmail':       args.customerEmail,
+        'clientKey': TossConfig.clientKey,
+        'easyPayClientKey': TossConfig.easyPayClientKey, // 카카오페이·네이버페이·토스페이
+        'customerKey': customerKey,
+        'orderId': args.orderId,
+        'orderName': args.orderName,
+        'amount': args.amount.toString(),
+        'customerName': args.customerName,
+        'customerEmail': args.customerEmail,
         'customerMobilePhone': args.customerPhone,
-        'successUrl':          successUrl,
-        'failUrl':             failUrl,
+        'successUrl': successUrl,
+        'failUrl': failUrl,
       },
     );
 
@@ -82,7 +82,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
         final iframe = html.IFrameElement()
           ..src = uri.toString()
           ..style.border = 'none'
-          ..style.width  = '100%'
+          ..style.width = '100%'
           ..style.height = '100%'
           ..allow = 'payment';
         return iframe;
@@ -96,33 +96,35 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
     if (args == null) return;
 
     try {
-      final userProv  = context.read<UserProvider>();
+      final userProv = context.read<UserProvider>();
       final orderProv = context.read<OrderProvider>();
-      final cart      = context.read<CartProvider>();
-      final user      = userProv.user;
+      final cart = context.read<CartProvider>();
+      final user = userProv.user;
 
-      final orderItems = cart.items.map((c) => OrderItem(
-        productId:   c.product.id,
-        productName: c.product.name,
-        size:        c.selectedSize,
-        color:       c.selectedColor,
-        quantity:    c.quantity,
-        price:       c.product.price,
-      )).toList();
+      final orderItems = cart.items
+          .map((c) => OrderItem(
+                productId: c.product.id,
+                productName: c.product.name,
+                size: c.selectedSize,
+                color: c.selectedColor,
+                quantity: c.quantity,
+                price: c.product.price,
+              ))
+          .toList();
 
       final order = OrderModel(
-        id:            args.orderId,
-        userId:        user?.id ?? 'guest',
-        userName:      args.customerName,
-        userPhone:     args.customerPhone,
-        userAddress:   '',
-        status:        OrderStatus.pending,
-        totalAmount:   args.amount.toDouble(),
-        shippingFee:   cart.shippingFee,
+        id: args.orderId,
+        userId: user?.id ?? 'guest',
+        userName: args.customerName,
+        userPhone: args.customerPhone,
+        userAddress: '',
+        status: OrderStatus.pending,
+        totalAmount: args.amount.toDouble(),
+        shippingFee: cart.shippingFee,
         paymentMethod: args.selectedPayment,
-        orderType:     'regular',
-        createdAt:     DateTime.now(),
-        items:         orderItems,
+        orderType: 'regular',
+        createdAt: DateTime.now(),
+        items: orderItems,
         cashReceiptNum: user?.cashReceiptNum?.isNotEmpty == true
             ? user!.cashReceiptNum
             : null,
@@ -140,8 +142,8 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('주문 처리 오류: $e'),
-              backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('주문 처리 오류: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -149,8 +151,9 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
 
   String get _formattedAmount {
     final amt = _args?.amount ?? 0;
-    return amt.toString().replaceAllMapped(
-        RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+    return amt
+        .toString()
+        .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
   }
 
   @override
@@ -158,7 +161,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
     final args = _args;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.surfaceGray,
       appBar: AppBar(
         backgroundColor: const Color(0xFF0064FF),
         elevation: 0,
@@ -170,9 +173,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
         title: const Text(
           '결제',
           style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 18),
+              color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
         ),
       ),
       body: args == null
@@ -199,7 +200,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
               const Text(
                 '주문 완료 후 입금 계좌 안내 문자를 발송합니다.\n입금 확인 후 주문이 처리됩니다.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Color(0xFF666666)),
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 8),
               Text('결제 금액: $_formattedAmount원',

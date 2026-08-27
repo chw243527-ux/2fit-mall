@@ -24,10 +24,8 @@ class _AdminCouponTabBody extends StatefulWidget {
 class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
   String _filter = '전체'; // 전체 / 유효 / 만료
 
-  String _fmt(double v) => v
-      .toInt()
-      .toString()
-      .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  String _fmt(double v) => v.toInt().toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
   String _fmtDate(DateTime d) =>
       '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
@@ -52,11 +50,12 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
+        border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.local_activity_rounded, color: AppColors.primary, size: 22),
+          const Icon(Icons.local_activity_rounded,
+              color: AppColors.primary, size: 22),
           const SizedBox(width: 10),
           const Expanded(
             child: Text('쿠폰 관리',
@@ -70,7 +69,8 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
             ),
           ),
         ],
@@ -130,7 +130,9 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
                     size: 64, color: Colors.grey[300]),
                 const SizedBox(height: 12),
                 Text(
-                  _filter == '전체' ? '등록된 쿠폰이 없습니다.\n쿠폰 추가 버튼으로 첫 쿠폰을 만들어보세요.' : '해당 쿠폰이 없습니다.',
+                  _filter == '전체'
+                      ? '등록된 쿠폰이 없습니다.\n쿠폰 추가 버튼으로 첫 쿠폰을 만들어보세요.'
+                      : '해당 쿠폰이 없습니다.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
@@ -160,12 +162,15 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('쿠폰 삭제'),
-        content: Text('「${c.name}」(${c.code}) 쿠폰을 삭제하시겠습니까?\n이미 적용한 사용자의 쿠폰은 영향을 받지 않습니다.'),
+        content: Text(
+            '「${c.name}」(${c.code}) 쿠폰을 삭제하시겠습니까?\n이미 적용한 사용자의 쿠폰은 영향을 받지 않습니다.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('취소')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('삭제', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -176,12 +181,13 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(err.isEmpty ? '쿠폰이 삭제되었습니다.' : err),
-      backgroundColor: err.isEmpty ? const Color(0xFF43A047) : Colors.red,
+      backgroundColor: err.isEmpty ? AppColors.success : AppColors.error,
     ));
   }
 
   // ── 쿠폰 추가/수정 다이얼로그 ────────────────────────
-  Future<void> _showCouponDialog(BuildContext context, CouponModel? existing) async {
+  Future<void> _showCouponDialog(
+      BuildContext context, CouponModel? existing) async {
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -211,9 +217,8 @@ class _CouponCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final valid = coupon.isValid;
-    final typeColor = coupon.type == CouponType.percent
-        ? const Color(0xFF1565C0)
-        : const Color(0xFF2E7D32);
+    final typeColor =
+        coupon.type == CouponType.percent ? AppColors.info : AppColors.success;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -221,10 +226,15 @@ class _CouponCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: valid ? const Color(0xFFE8E8E8) : const Color(0xFFEEEEEE),
+          color: valid ? const Color(0xFFE8E8E8) : AppColors.border,
         ),
         boxShadow: valid
-            ? [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))]
+            ? [
+                BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2))
+              ]
             : [],
       ),
       child: Opacity(
@@ -254,7 +264,9 @@ class _CouponCard extends StatelessWidget {
                     Text(
                       coupon.type == CouponType.percent ? '%' : '₩',
                       style: TextStyle(
-                          fontSize: 10, color: typeColor, fontWeight: FontWeight.w700),
+                          fontSize: 10,
+                          color: typeColor,
+                          fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
@@ -311,16 +323,14 @@ class _CouponCard extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: valid
                                 ? const Color(0xFFE8F5E9)
-                                : const Color(0xFFF5F5F5),
+                                : AppColors.surfaceGray,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             valid ? '유효' : '만료',
                             style: TextStyle(
                               fontSize: 11,
-                              color: valid
-                                  ? const Color(0xFF2E7D32)
-                                  : Colors.grey,
+                              color: valid ? AppColors.success : Colors.grey,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -333,7 +343,9 @@ class _CouponCard extends StatelessWidget {
                       onTap: () {
                         Clipboard.setData(ClipboardData(text: coupon.code));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('코드가 복사되었습니다.'), duration: Duration(seconds: 1)),
+                          const SnackBar(
+                              content: Text('코드가 복사되었습니다.'),
+                              duration: Duration(seconds: 1)),
                         );
                       },
                       child: Row(
@@ -342,7 +354,7 @@ class _CouponCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF0F0F0),
+                              color: AppColors.surfaceGray,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -389,7 +401,9 @@ class _CouponCard extends StatelessWidget {
                               : '~ ${fmtDate(coupon.expiresAt)}',
                           style: TextStyle(
                             fontSize: 11,
-                            color: valid ? Colors.grey : Colors.red[300],
+                            color: valid
+                                ? Colors.grey
+                                : AppColors.error.withValues(alpha: 0.30),
                           ),
                         ),
                       ],
@@ -403,7 +417,7 @@ class _CouponCard extends StatelessWidget {
                   IconButton(
                     onPressed: onEdit,
                     icon: const Icon(Icons.edit_rounded, size: 18),
-                    color: const Color(0xFF1565C0),
+                    color: AppColors.info,
                     tooltip: '수정',
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -412,7 +426,7 @@ class _CouponCard extends StatelessWidget {
                   IconButton(
                     onPressed: onDelete,
                     icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                    color: Colors.red,
+                    color: AppColors.error,
                     tooltip: '삭제',
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
@@ -447,7 +461,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
   late final TextEditingController _maxCtrl;
   late final TextEditingController _limitCtrl;
   late CouponType _type;
-  DateTime? _startsAt;   // null = 즉시 시작
+  DateTime? _startsAt; // null = 즉시 시작
   late DateTime _expiresAt;
   bool _saving = false;
   bool _isDownloadable = false;
@@ -491,9 +505,10 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
 
   Future<void> _pickStartDate() async {
     // 수정 모드에서 기존 시작일이 과거여도 선택 가능하도록 firstDate 보정
-    final earliest = isEdit && _startsAt != null && _startsAt!.isBefore(DateTime.now())
-        ? _startsAt!
-        : DateTime.now().subtract(const Duration(days: 1));
+    final earliest =
+        isEdit && _startsAt != null && _startsAt!.isBefore(DateTime.now())
+            ? _startsAt!
+            : DateTime.now().subtract(const Duration(days: 1));
     final picked = await showDatePicker(
       context: context,
       initialDate: _startsAt ?? DateTime.now(),
@@ -566,7 +581,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
 
     if (err.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(err), backgroundColor: Colors.red),
+        SnackBar(content: Text(err), backgroundColor: AppColors.error),
       );
       return;
     }
@@ -574,7 +589,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(isEdit ? '쿠폰이 수정되었습니다.' : '쿠폰이 추가되었습니다.'),
-        backgroundColor: const Color(0xFF43A047),
+        backgroundColor: AppColors.success,
       ),
     );
   }
@@ -598,12 +613,10 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
           children: [
             // ── 타이틀 ──
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: const BoxDecoration(
                 color: AppColors.primary,
-                borderRadius:
-                    BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Row(
                 children: [
@@ -644,7 +657,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                         decoration: InputDecoration(
                           hintText: 'SUMMER2024',
                           filled: isEdit,
-                          fillColor: isEdit ? const Color(0xFFF5F5F5) : null,
+                          fillColor: isEdit ? AppColors.surfaceGray : null,
                           suffixIcon: isEdit
                               ? const Tooltip(
                                   message: '코드는 수정할 수 없습니다.',
@@ -654,8 +667,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                               : null,
                         ),
                         validator: (v) {
-                          if (!isEdit &&
-                              (v == null || v.trim().isEmpty)) {
+                          if (!isEdit && (v == null || v.trim().isEmpty)) {
                             return '코드를 입력하세요';
                           }
                           if (!isEdit &&
@@ -671,10 +683,11 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                       _label('쿠폰 이름 *'),
                       TextFormField(
                         controller: _nameCtrl,
-                        decoration: const InputDecoration(
-                            hintText: '여름 시즌 10% 할인'),
-                        validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? '이름을 입력하세요' : null,
+                        decoration:
+                            const InputDecoration(hintText: '여름 시즌 10% 할인'),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? '이름을 입력하세요'
+                            : null,
                       ),
                       const SizedBox(height: 14),
                       // 할인 유형 선택
@@ -710,9 +723,8 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                           FilteringTextInputFormatter.digitsOnly
                         ],
                         decoration: InputDecoration(
-                          hintText: _type == CouponType.fixed
-                              ? '예) 3000'
-                              : '예) 10',
+                          hintText:
+                              _type == CouponType.fixed ? '예) 3000' : '예) 10',
                           suffixText: _type == CouponType.fixed ? '원' : '%',
                         ),
                         validator: (v) {
@@ -761,12 +773,12 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                         decoration: BoxDecoration(
                           color: _isDownloadable
                               ? const Color(0xFFF3E5F5)
-                              : const Color(0xFFF8F8F8),
+                              : AppColors.background,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: _isDownloadable
                                 ? const Color(0xFF9C27B0)
-                                : const Color(0xFFE0E0E0),
+                                : AppColors.border,
                           ),
                         ),
                         child: SwitchListTile(
@@ -801,8 +813,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                           ),
                           value: _isDownloadable,
                           activeColor: const Color(0xFF9C27B0),
-                          onChanged: (v) =>
-                              setState(() => _isDownloadable = v),
+                          onChanged: (v) => setState(() => _isDownloadable = v),
                         ),
                       ),
                       // 다운로드 수 제한
@@ -944,17 +955,15 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
             ),
             // ── 버튼 ──
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+                border: Border(top: BorderSide(color: AppColors.border)),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed:
-                          _saving ? null : () => Navigator.pop(context),
+                      onPressed: _saving ? null : () => Navigator.pop(context),
                       child: const Text('취소'),
                     ),
                   ),
@@ -990,7 +999,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
             style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF555555))),
+                color: AppColors.textSecondary)),
       );
 }
 
@@ -1014,8 +1023,7 @@ class _TypeChip extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : Colors.white,
           border: Border.all(
@@ -1027,8 +1035,7 @@ class _TypeChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon,
-                size: 16,
-                color: selected ? Colors.white : Colors.grey[600]),
+                size: 16, color: selected ? Colors.white : Colors.grey[600]),
             const SizedBox(width: 6),
             Text(label,
                 style: TextStyle(

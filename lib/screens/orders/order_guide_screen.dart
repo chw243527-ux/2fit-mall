@@ -57,7 +57,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
     return wrapWithPopScope(
         context,
         Scaffold(
-          backgroundColor: const Color(0xFFF5F5F5),
+          backgroundColor: AppColors.surfaceGray,
           appBar: AppBar(
             title: Consumer<LanguageProvider>(
                 builder: (_, lp, __) => Text(lp.loc.orderGuideTitle,
@@ -262,7 +262,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
+                  color: AppColors.surfaceGray,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
@@ -270,7 +270,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                     Row(
                       children: [
                         const Icon(Icons.support_agent_rounded,
-                            size: 16, color: Color(0xFF1A1A1A)),
+                            size: 16, color: AppColors.primary),
                         const SizedBox(width: 6),
                         Text(loc.orderGuideCustomerService,
                             style: const TextStyle(
@@ -281,11 +281,11 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                     Row(
                       children: [
                         Icon(Icons.phone_rounded,
-                            size: 13, color: Color(0xFF888888)),
+                            size: 13, color: AppColors.textSecondary),
                         SizedBox(width: 5),
                         Text('010-2567-9015',
                             style: TextStyle(
-                                fontSize: 12, color: Color(0xFF555555))),
+                                fontSize: 12, color: AppColors.textSecondary)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -296,7 +296,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                         const SizedBox(width: 5),
                         Text(loc.orderGuideKakao,
                             style: const TextStyle(
-                                fontSize: 12, color: Color(0xFF555555))),
+                                fontSize: 12, color: AppColors.textSecondary)),
                       ],
                     ),
                   ],
@@ -337,7 +337,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                         fontSize: 13, fontWeight: FontWeight.w700)),
                 Text(desc,
                     style: const TextStyle(
-                        fontSize: 11, color: Color(0xFF888888))),
+                        fontSize: 11, color: AppColors.textSecondary)),
               ],
             ),
           ),
@@ -533,15 +533,16 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
+                    color: AppColors.warning.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: Colors.orange.shade200),
+                    border: Border.all(
+                        color: AppColors.warning.withValues(alpha: 0.20)),
                   ),
                   child: Text(
                     context.loc.t('추가구매_마이페이지_기존_주문내역_신청',
                         '⚠️ 추가구매는 마이페이지 > 기존 주문내역에서 신청하실 수 있습니다.'),
                     style:
-                        const TextStyle(fontSize: 11, color: Color(0xFFE65100)),
+                        const TextStyle(fontSize: 11, color: AppColors.accent),
                   ),
                 ),
               ],
@@ -568,8 +569,8 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
         ),
         Expanded(
             child: Text(desc,
-                style:
-                    const TextStyle(fontSize: 12, color: Color(0xFF555555)))),
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary))),
       ],
     );
   }
@@ -699,7 +700,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF1A1A1A))),
+                            color: AppColors.primary)),
                   ),
                 ]),
               ),
@@ -1130,7 +1131,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               Icons.public_rounded,
               context.loc.t('해외_배송비', '해외 배송비'),
               context.loc.t('국가_및_무게에_따라_상이', '국가 및 무게에 따라 상이'),
-              const Color(0xFF1565C0)),
+              AppColors.info),
           const SizedBox(height: 12),
           _buildInfoRow(
               Icons.access_time_rounded,
@@ -1192,7 +1193,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1565C0),
+                          color: AppColors.info,
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(

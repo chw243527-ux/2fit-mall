@@ -1,3 +1,4 @@
+import '../../utils/theme.dart';
 // admin_extra_tabs.dart — 매출통계, 재고관리, 직원계정 탭 위젯
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
@@ -53,13 +54,17 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8)),
             child: Icon(icon, color: color, size: 18),
           ),
           const SizedBox(width: 10),
@@ -68,8 +73,13 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(title, style: const TextStyle(fontSize: 11, color: Colors.grey), overflow: TextOverflow.ellipsis),
-                Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800), overflow: TextOverflow.ellipsis),
+                Text(title,
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    overflow: TextOverflow.ellipsis),
+                Text(value,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w800),
+                    overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -81,7 +91,8 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
   Future<void> _exportOrdersToExcel(List<OrderModel> orders) async {
     if (orders.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('내보낼 주문이 없습니다.'), backgroundColor: Colors.orange),
+        SnackBar(
+            content: Text('내보낼 주문이 없습니다.'), backgroundColor: AppColors.warning),
       );
       return;
     }
@@ -104,7 +115,8 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       '독점디자인', '인쇄방식',
     ];
     for (int i = 0; i < headers.length; i++) {
-      final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+      final cell =
+          sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
       cell.value = TextCellValue(headers[i]);
       cell.cellStyle = headerStyle;
     }
@@ -117,12 +129,15 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       String pocketVal = '-';
       if (isGroup) {
         final p = opts['pocket'];
-        if (p == true || p == 'true') pocketVal = '있음';
-        else if (p == false || p == 'false') pocketVal = '없음';
-        else pocketVal = '없음';
+        if (p == true || p == 'true')
+          pocketVal = '있음';
+        else if (p == false || p == 'false')
+          pocketVal = '없음';
+        else
+          pocketVal = '없음';
       }
-      final myRevenue    = (o.totalAmount * 0.3).roundToDouble();
-      final hqRevenue    = (o.totalAmount * 0.7).roundToDouble();
+      final myRevenue = (o.totalAmount * 0.3).roundToDouble();
+      final hqRevenue = (o.totalAmount * 0.7).roundToDouble();
       final row = [
         o.id,
         o.userName,
@@ -133,7 +148,7 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         o.paymentMethod,
         isGroup ? '단체' : '개인',
         o.status.label,
-        '${o.createdAt.year}-${o.createdAt.month.toString().padLeft(2,'0')}-${o.createdAt.day.toString().padLeft(2,'0')} ${o.createdAt.hour.toString().padLeft(2,'0')}:${o.createdAt.minute.toString().padLeft(2,'0')}',
+        '${o.createdAt.year}-${o.createdAt.month.toString().padLeft(2, '0')}-${o.createdAt.day.toString().padLeft(2, '0')} ${o.createdAt.hour.toString().padLeft(2, '0')}:${o.createdAt.minute.toString().padLeft(2, '0')}',
         myRevenue.toStringAsFixed(0),
         hqRevenue.toStringAsFixed(0),
         // 단체주문 옵션 (비단체주문은 '-')
@@ -148,8 +163,16 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         pocketVal,
         isGroup ? (opts['defaultLength'] ?? '-') : '-',
         isGroup ? (opts['waistbandOption'] ?? '-') : '-',
-        isGroup ? ((opts['waistbandColorHex'] ?? '').toString().isEmpty ? '-' : opts['waistbandColorHex'].toString()) : '-',
-        isGroup ? ((opts['exclusive'] == true || opts['exclusive'] == 'true') ? '선택' : '미선택') : '-',
+        isGroup
+            ? ((opts['waistbandColorHex'] ?? '').toString().isEmpty
+                ? '-'
+                : opts['waistbandColorHex'].toString())
+            : '-',
+        isGroup
+            ? ((opts['exclusive'] == true || opts['exclusive'] == 'true')
+                ? '선택'
+                : '미선택')
+            : '-',
         isGroup ? (opts['printType'] ?? '-') : '-',
       ];
       final rowStyle = CellStyle(
@@ -158,7 +181,8 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
             : ExcelColor.fromHexString('#F5F5F5'),
       );
       for (int c = 0; c < row.length; c++) {
-        final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1));
+        final cell = sheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1));
         cell.value = TextCellValue(row[c].toString());
         cell.cellStyle = rowStyle;
       }
@@ -167,14 +191,17 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
     // 요약 시트
     final summarySheet = excel['요약'];
     final now = DateTime.now();
-    final totalRevenue  = orders.fold<double>(0, (s, o) => s + o.totalAmount);
-    final myTotalRev    = (totalRevenue * 0.3).roundToDouble();
-    final hqTotalRev    = (totalRevenue * 0.7).roundToDouble();
-    final monthOrders   = orders.where((o) =>
-        o.createdAt.year == now.year && o.createdAt.month == now.month).toList();
-    final monthRevenue  = monthOrders.fold<double>(0, (s, o) => s + o.totalAmount);
-    final myMonthRev    = (monthRevenue * 0.3).roundToDouble();
-    final hqMonthRev    = (monthRevenue * 0.7).roundToDouble();
+    final totalRevenue = orders.fold<double>(0, (s, o) => s + o.totalAmount);
+    final myTotalRev = (totalRevenue * 0.3).roundToDouble();
+    final hqTotalRev = (totalRevenue * 0.7).roundToDouble();
+    final monthOrders = orders
+        .where((o) =>
+            o.createdAt.year == now.year && o.createdAt.month == now.month)
+        .toList();
+    final monthRevenue =
+        monthOrders.fold<double>(0, (s, o) => s + o.totalAmount);
+    final myMonthRev = (monthRevenue * 0.3).roundToDouble();
+    final hqMonthRev = (monthRevenue * 0.7).roundToDouble();
 
     // 매출 분배 스타일
     final myRevStyle = CellStyle(
@@ -189,28 +216,39 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
     );
 
     final summaryData = [
-      ['총 주문 수',          '${orders.length}건',                          ''],
-      ['총 매출액 (합계)',     '₩${_fmtPrice(totalRevenue)}',                  '100%'],
-      ['  └ 내 매출 (30%)',   '₩${_fmtPrice(myTotalRev)}',                   '30%'],
-      ['  └ 본사 매출 (70%)', '₩${_fmtPrice(hqTotalRev)}',                   '70%'],
-      ['이번 달 주문',         '${monthOrders.length}건',                      ''],
-      ['이번 달 매출 (합계)',  '₩${_fmtPrice(monthRevenue)}',                  '100%'],
-      ['  └ 내 매출 (30%)',   '₩${_fmtPrice(myMonthRev)}',                   '30%'],
-      ['  └ 본사 매출 (70%)', '₩${_fmtPrice(hqMonthRev)}',                   '70%'],
-      ['평균 주문액',          orders.isEmpty ? '₩0' : '₩${_fmtPrice(totalRevenue / orders.length)}', ''],
-      ['개인 주문',            '${orders.where((o) => o.orderType != 'group').length}건', ''],
-      ['단체 주문',            '${orders.where((o) => o.orderType == 'group').length}건',  ''],
-      ['다운로드 일시',        '${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')} ${now.hour.toString().padLeft(2,'0')}:${now.minute.toString().padLeft(2,'0')}', ''],
+      ['총 주문 수', '${orders.length}건', ''],
+      ['총 매출액 (합계)', '₩${_fmtPrice(totalRevenue)}', '100%'],
+      ['  └ 내 매출 (30%)', '₩${_fmtPrice(myTotalRev)}', '30%'],
+      ['  └ 본사 매출 (70%)', '₩${_fmtPrice(hqTotalRev)}', '70%'],
+      ['이번 달 주문', '${monthOrders.length}건', ''],
+      ['이번 달 매출 (합계)', '₩${_fmtPrice(monthRevenue)}', '100%'],
+      ['  └ 내 매출 (30%)', '₩${_fmtPrice(myMonthRev)}', '30%'],
+      ['  └ 본사 매출 (70%)', '₩${_fmtPrice(hqMonthRev)}', '70%'],
+      [
+        '평균 주문액',
+        orders.isEmpty ? '₩0' : '₩${_fmtPrice(totalRevenue / orders.length)}',
+        ''
+      ],
+      ['개인 주문', '${orders.where((o) => o.orderType != 'group').length}건', ''],
+      ['단체 주문', '${orders.where((o) => o.orderType == 'group').length}건', ''],
+      [
+        '다운로드 일시',
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+        ''
+      ],
     ];
 
     // 요약 시트 헤더 (3컬럼)
-    final h0 = summarySheet.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
+    final h0 = summarySheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
     h0.value = TextCellValue('항목');
     h0.cellStyle = headerStyle;
-    final h1 = summarySheet.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0));
+    final h1 = summarySheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0));
     h1.value = TextCellValue('금액 / 값');
     h1.cellStyle = headerStyle;
-    final h2 = summarySheet.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0));
+    final h2 = summarySheet
+        .cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0));
     h2.value = TextCellValue('비율');
     h2.cellStyle = headerStyle;
 
@@ -219,10 +257,11 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
       final isMyRev = label.contains('내 매출');
       final isHqRev = label.contains('본사 매출');
       for (int c = 0; c < summaryData[r].length; c++) {
-        final cell = summarySheet.cell(
-            CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1));
+        final cell = summarySheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1));
         cell.value = TextCellValue(summaryData[r][c]);
-        if (isMyRev) cell.cellStyle = myRevStyle;
+        if (isMyRev)
+          cell.cellStyle = myRevStyle;
         else if (isHqRev) cell.cellStyle = hqRevStyle;
       }
     }
@@ -230,9 +269,11 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
     final encoded = excel.encode();
     if (encoded == null) return;
     final uint8List = Uint8List.fromList(encoded);
-    final dateStr = '${now.year}${now.month.toString().padLeft(2,'0')}${now.day.toString().padLeft(2,'0')}';
+    final dateStr =
+        '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
     final fileName = '2FIT_MALL_주문내역_$dateStr.xlsx';
-    const mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    const mimeType =
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
     if (kIsWeb) {
       downloadFileWeb(uint8List, fileName, mimeType);
@@ -240,14 +281,17 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(children: [
-              const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+              const Icon(Icons.download_done_rounded,
+                  color: Colors.white, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(fileName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                    Text(fileName,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 12)),
                     const Text('📂 화면 하단 다운로드 바 또는 내 PC → 다운로드 폴더 확인',
                         style: TextStyle(fontSize: 11, color: Colors.white70)),
                   ],
@@ -267,16 +311,18 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
         await File(filePath).writeAsBytes(uint8List, flush: true);
         if (!mounted) return;
         await SharePlus.instance.share(
-            ShareParams(
-              files: [XFile(filePath, mimeType: mimeType, name: fileName)],
-              subject: '2FIT MALL 주문내역 엑셀',
-              text: '공유 시트에서 "내 파일에 저장" 또는 "다운로드"를 선택하세요.\n파일명: $fileName',
-            ),
-          );
+          ShareParams(
+            files: [XFile(filePath, mimeType: mimeType, name: fileName)],
+            subject: '2FIT MALL 주문내역 엑셀',
+            text: '공유 시트에서 "내 파일에 저장" 또는 "다운로드"를 선택하세요.\n파일명: $fileName',
+          ),
+        );
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('파일 저장 오류: $e'), backgroundColor: Colors.red),
+            SnackBar(
+                content: Text('파일 저장 오류: $e'),
+                backgroundColor: AppColors.error),
           );
         }
       }
@@ -312,13 +358,16 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
           statusCount[o.status.label] = (statusCount[o.status.label] ?? 0) + 1;
         }
 
-        final totalRevenue = orders.fold<double>(0, (s, o) => s + o.totalAmount);
-        final myRevenue    = (totalRevenue * 0.3).roundToDouble();
-        final hqRevenue    = (totalRevenue * 0.7).roundToDouble();
-        final todayOrders = orders.where((o) =>
-            o.createdAt.year == now.year &&
-            o.createdAt.month == now.month &&
-            o.createdAt.day == now.day).length;
+        final totalRevenue =
+            orders.fold<double>(0, (s, o) => s + o.totalAmount);
+        final myRevenue = (totalRevenue * 0.3).roundToDouble();
+        final hqRevenue = (totalRevenue * 0.7).roundToDouble();
+        final todayOrders = orders
+            .where((o) =>
+                o.createdAt.year == now.year &&
+                o.createdAt.month == now.month &&
+                o.createdAt.day == now.day)
+            .length;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -327,7 +376,9 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
             children: [
               Row(
                 children: [
-                  Text('매출 통계', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                  Text('매출 통계',
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                   const Spacer(),
                   ElevatedButton.icon(
                     onPressed: () => _exportOrdersToExcel(orders),
@@ -336,7 +387,8 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF217346),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
                 ],
@@ -352,9 +404,15 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                 mainAxisSpacing: 8,
                 childAspectRatio: 2.2,
                 children: [
-                  _statsKpiCard('총 매출', '₩${_fmtMillions(totalRevenue)}', Icons.monetization_on_rounded, const Color(0xFF4CAF50)),
-                  _statsKpiCard('내 매출 (30%)', '₩${_fmtMillions(myRevenue)}', Icons.account_balance_wallet_rounded, const Color(0xFF2196F3)),
-                  _statsKpiCard('본사 매출 (70%)', '₩${_fmtMillions(hqRevenue)}', Icons.business_rounded, const Color(0xFF9C27B0)),
+                  _statsKpiCard('총 매출', '₩${_fmtMillions(totalRevenue)}',
+                      Icons.monetization_on_rounded, const Color(0xFF4CAF50)),
+                  _statsKpiCard(
+                      '내 매출 (30%)',
+                      '₩${_fmtMillions(myRevenue)}',
+                      Icons.account_balance_wallet_rounded,
+                      const Color(0xFF2196F3)),
+                  _statsKpiCard('본사 매출 (70%)', '₩${_fmtMillions(hqRevenue)}',
+                      Icons.business_rounded, const Color(0xFF9C27B0)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -367,9 +425,17 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                 mainAxisSpacing: 8,
                 childAspectRatio: 2.2,
                 children: [
-                  _statsKpiCard('총 주문', '${orders.length}건', Icons.receipt_long_rounded, const Color(0xFF00BCD4)),
-                  _statsKpiCard('오늘 주문', '${todayOrders}건', Icons.today_rounded, const Color(0xFFFF9800)),
-                  _statsKpiCard('평균 주문액', orders.isEmpty ? '₩0' : '₩${_fmtMillions(totalRevenue / orders.length)}', Icons.analytics_rounded, const Color(0xFFE91E63)),
+                  _statsKpiCard('총 주문', '${orders.length}건',
+                      Icons.receipt_long_rounded, const Color(0xFF00BCD4)),
+                  _statsKpiCard('오늘 주문', '${todayOrders}건', Icons.today_rounded,
+                      const Color(0xFFFF9800)),
+                  _statsKpiCard(
+                      '평균 주문액',
+                      orders.isEmpty
+                          ? '₩0'
+                          : '₩${_fmtMillions(totalRevenue / orders.length)}',
+                      Icons.analytics_rounded,
+                      const Color(0xFFE91E63)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -380,12 +446,18 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 8)
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('월별 매출', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                    Text('월별 매출',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 16),
                     SizedBox(
                       height: 200,
@@ -394,14 +466,20 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                           alignment: BarChartAlignment.spaceAround,
                           maxY: monthlyData.values.isEmpty
                               ? 100
-                              : (monthlyData.values.reduce((a, b) => a > b ? a : b) * 1.2).clamp(1, double.infinity),
+                              : (monthlyData.values
+                                          .reduce((a, b) => a > b ? a : b) *
+                                      1.2)
+                                  .clamp(1, double.infinity),
                           barTouchData: BarTouchData(
                             touchTooltipData: BarTouchTooltipData(
-                              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                                final key = monthlyData.keys.elementAt(groupIndex);
+                              getTooltipItem:
+                                  (group, groupIndex, rod, rodIndex) {
+                                final key =
+                                    monthlyData.keys.elementAt(groupIndex);
                                 return BarTooltipItem(
                                   '$key\n₩${_fmtMillions(rod.toY)}',
-                                  const TextStyle(color: Colors.white, fontSize: 12),
+                                  const TextStyle(
+                                      color: Colors.white, fontSize: 12),
                                 );
                               },
                             ),
@@ -414,7 +492,8 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                                 getTitlesWidget: (value, meta) {
                                   final keys = monthlyData.keys.toList();
                                   if (value.toInt() < keys.length) {
-                                    return Text(keys[value.toInt()], style: const TextStyle(fontSize: 11));
+                                    return Text(keys[value.toInt()],
+                                        style: const TextStyle(fontSize: 11));
                                   }
                                   return const Text('');
                                 },
@@ -424,22 +503,29 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                               sideTitles: SideTitles(
                                 showTitles: true,
                                 reservedSize: 50,
-                                getTitlesWidget: (value, meta) =>
-                                    Text(_fmtMillions(value), style: const TextStyle(fontSize: 10)),
+                                getTitlesWidget: (value, meta) => Text(
+                                    _fmtMillions(value),
+                                    style: const TextStyle(fontSize: 10)),
                               ),
                             ),
-                            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            topTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false)),
+                            rightTitles: const AxisTitles(
+                                sideTitles: SideTitles(showTitles: false)),
                           ),
                           gridData: const FlGridData(show: true),
                           borderData: FlBorderData(show: false),
-                          barGroups: monthlyData.entries.toList().asMap().entries.map((entry) {
+                          barGroups: monthlyData.entries
+                              .toList()
+                              .asMap()
+                              .entries
+                              .map((entry) {
                             return BarChartGroupData(
                               x: entry.key,
                               barRods: [
                                 BarChartRodData(
                                   toY: entry.value.value,
-                                  color: const Color(0xFFE53935),
+                                  color: AppColors.error,
                                   width: 20,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
@@ -464,12 +550,18 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 8)
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('주문 상태 분포', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                          Text('주문 상태 분포',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 16),
                           SizedBox(
                             height: 180,
@@ -479,12 +571,12 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                                     PieChartData(
                                       sections: statusCount.entries.map((e) {
                                         final colors = {
-                                          '주문 대기': Colors.orange,
-                                          '주문 확인': Colors.blue,
-                                          '제작/준비 중': Colors.purple,
-                                          '배송 중': Colors.teal,
-                                          '배송 완료': Colors.green,
-                                          '주문 취소': Colors.red,
+                                          '주문 대기': AppColors.warning,
+                                          '주문 확인': AppColors.info,
+                                          '제작/준비 중': AppColors.primary,
+                                          '배송 중': AppColors.primary,
+                                          '배송 완료': AppColors.success,
+                                          '주문 취소': AppColors.error,
                                         };
                                         return PieChartSectionData(
                                           value: e.value.toDouble(),
@@ -513,15 +605,22 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
+                        boxShadow: [
+                          BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 8)
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('주문 유형별', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                          Text('주문 유형별',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 16),
                           ...['personal', 'group'].map((type) {
-                            final count = orders.where((o) => o.orderType == type).length;
+                            final count =
+                                orders.where((o) => o.orderType == type).length;
                             final revenue = orders
                                 .where((o) => o.orderType == type)
                                 .fold<double>(0, (s, o) => s + o.totalAmount);
@@ -532,18 +631,25 @@ class _AdminSalesStatsTabState extends State<AdminSalesStatsTab> {
                                 children: [
                                   Text(
                                     type == 'personal' ? '개인 주문' : '단체 주문',
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                                    style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     '$count건 · ₩${_fmtMillions(revenue)}',
-                                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                                    style: const TextStyle(
+                                        fontSize: 13, color: Colors.grey),
                                   ),
                                   const SizedBox(height: 4),
                                   LinearProgressIndicator(
-                                    value: orders.isEmpty ? 0 : count / orders.length,
+                                    value: orders.isEmpty
+                                        ? 0
+                                        : count / orders.length,
                                     backgroundColor: Colors.grey.shade200,
-                                    color: type == 'personal' ? Colors.blue : Colors.orange,
+                                    color: type == 'personal'
+                                        ? AppColors.info
+                                        : AppColors.warning,
                                   ),
                                 ],
                               ),
@@ -632,7 +738,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1A1A2E),
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
             ),
             child: Text('권한 부여'),
@@ -659,12 +765,13 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               if (ctx.mounted) Navigator.pop(ctx);
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${staff['name']} 님의 관리자 권한이 해제되었습니다')),
+                  SnackBar(
+                      content: Text('${staff['name']} 님의 관리자 권한이 해제되었습니다')),
                 );
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
             ),
             child: Text('해제'),
@@ -679,8 +786,10 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: AuthService.watchAllUsers(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-        final staffList = snapshot.data!.where((u) => u['isAdmin'] == true).toList();
+        if (!snapshot.hasData)
+          return const Center(child: CircularProgressIndicator());
+        final staffList =
+            snapshot.data!.where((u) => u['isAdmin'] == true).toList();
         final allUsers = snapshot.data!;
 
         return SingleChildScrollView(
@@ -690,16 +799,19 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
             children: [
               Row(
                 children: [
-                  Text('직원 계정 관리', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                  Text('직원 계정 관리',
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                   const Spacer(),
                   ElevatedButton.icon(
                     onPressed: _showAddStaffDialog,
                     icon: const Icon(Icons.person_add_rounded, size: 16),
                     label: Text('직원 추가'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A1A2E),
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                   ),
                 ],
@@ -713,7 +825,9 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               ...staffList.map((staff) {
                 final email = staff['email'] as String? ?? '';
                 final name = staff['name'] as String? ?? '이름없음';
-                final memberTier = staff['memberTier'] as String? ?? staff['grade'] as String? ?? '';
+                final memberTier = staff['memberTier'] as String? ??
+                    staff['grade'] as String? ??
+                    '';
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(16),
@@ -721,15 +835,20 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: const Color(0xFFE8E8E8)),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6)],
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 6)
+                    ],
                   ),
                   child: Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: const Color(0xFF1A1A2E),
+                        backgroundColor: AppColors.primary,
                         child: Text(
                           name.isNotEmpty ? name[0] : '?',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -739,39 +858,55 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                           children: [
                             Row(
                               children: [
-                                Text(name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                                Text(name,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 15)),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: Colors.red.withValues(alpha: 0.1),
+                                    color:
+                                        AppColors.error.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text('관리자',
-                                      style: TextStyle(color: Colors.red, fontSize: 11, fontWeight: FontWeight.w600)),
+                                      style: TextStyle(
+                                          color: AppColors.error,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600)),
                                 ),
                                 if (memberTier.isNotEmpty) ...[
                                   const SizedBox(width: 6),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: Colors.amber.withValues(alpha: 0.15),
+                                      color:
+                                          Colors.amber.withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Text(memberTier.toUpperCase(),
-                                        style: const TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.w600)),
+                                        style: const TextStyle(
+                                            color: Colors.amber,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600)),
                                   ),
                                 ],
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text(email, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                            Text(email,
+                                style: const TextStyle(
+                                    fontSize: 13, color: Colors.grey)),
                           ],
                         ),
                       ),
                       IconButton(
                         onPressed: () => _showRevokeDialog(staff),
-                        icon: const Icon(Icons.remove_circle_outline_rounded, color: Colors.red),
+                        icon: const Icon(Icons.remove_circle_outline_rounded,
+                            color: AppColors.error),
                         tooltip: '권한 해제',
                       ),
                     ],
@@ -795,13 +930,16 @@ Future<void> exportDesignRequestsToExcel(
 ) async {
   if (requests.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('내보낼 디자인 요청이 없습니다.'), backgroundColor: Colors.orange),
+      SnackBar(
+          content: Text('내보낼 디자인 요청이 없습니다.'),
+          backgroundColor: AppColors.warning),
     );
     return;
   }
 
-  String fmtPrice(double v) =>
-      v.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
+  String fmtPrice(double v) => v
+      .toStringAsFixed(0)
+      .replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+$)'), (m) => '${m[1]},');
 
   final excelFile = Excel.createExcel();
   final sheet = excelFile['디자인요청'];
@@ -819,13 +957,25 @@ Future<void> exportDesignRequestsToExcel(
 
   // ── 헤더 ──
   final headers = [
-    '번호', '주문번호', '고객명', '요청유형',
-    '요청내용', '상태', '요청일시',
-    '메인색상', '색상HEX', '재봉방법',
-    '원단무게', '주머니', '하의기장', '팀명', '담당자',
+    '번호',
+    '주문번호',
+    '고객명',
+    '요청유형',
+    '요청내용',
+    '상태',
+    '요청일시',
+    '메인색상',
+    '색상HEX',
+    '재봉방법',
+    '원단무게',
+    '주머니',
+    '하의기장',
+    '팀명',
+    '담당자',
   ];
   for (int i = 0; i < headers.length; i++) {
-    final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+    final cell =
+        sheet.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
     cell.value = TextCellValue(headers[i]);
     cell.cellStyle = i < 7 ? headerStyle : subHeaderStyle;
   }
@@ -838,7 +988,8 @@ Future<void> exportDesignRequestsToExcel(
 
     final pocketRaw = opts['pocket'];
     String pocketVal = '-';
-    if (pocketRaw == true || pocketRaw == 'true') pocketVal = '있음';
+    if (pocketRaw == true || pocketRaw == 'true')
+      pocketVal = '있음';
     else if (pocketRaw == false || pocketRaw == 'false') pocketVal = '없음';
 
     final rowData = [
@@ -866,7 +1017,8 @@ Future<void> exportDesignRequestsToExcel(
           : ExcelColor.fromHexString('#FAF5FF'),
     );
     for (int c = 0; c < rowData.length; c++) {
-      final cell = sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1));
+      final cell = sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1));
       cell.value = TextCellValue(rowData[c]);
       cell.cellStyle = rowStyle;
     }
@@ -886,10 +1038,14 @@ Future<void> exportDesignRequestsToExcel(
     backgroundColorHex: ExcelColor.fromHexString('#6A1B9A'),
     fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
   );
-  final sh0 = summary.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
-  sh0.value = TextCellValue('항목'); sh0.cellStyle = summaryHeaderStyle;
-  final sh1 = summary.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0));
-  sh1.value = TextCellValue('값'); sh1.cellStyle = summaryHeaderStyle;
+  final sh0 =
+      summary.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0));
+  sh0.value = TextCellValue('항목');
+  sh0.cellStyle = summaryHeaderStyle;
+  final sh1 =
+      summary.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0));
+  sh1.value = TextCellValue('값');
+  sh1.cellStyle = summaryHeaderStyle;
 
   final summaryData = [
     ['총 요청 수', '${requests.length}건'],
@@ -897,13 +1053,16 @@ Future<void> exportDesignRequestsToExcel(
     ['처리중', '${statusCounts['처리중'] ?? 0}건'],
     ['완료', '${statusCounts['완료'] ?? 0}건'],
     ['거절', '${statusCounts['거절'] ?? 0}건'],
-    ['다운로드 일시',
+    [
+      '다운로드 일시',
       '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} '
-      '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}'],
+          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}'
+    ],
   ];
   for (int r = 0; r < summaryData.length; r++) {
     for (int c = 0; c < 2; c++) {
-      summary.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1))
+      summary
+          .cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1))
           .value = TextCellValue(summaryData[r][c]);
     }
   }
@@ -912,9 +1071,11 @@ Future<void> exportDesignRequestsToExcel(
   final encoded = excelFile.encode();
   if (encoded == null) return;
   final uint8List = Uint8List.fromList(encoded);
-  final dateStr = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+  final dateStr =
+      '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
   final fileName = '2FIT_디자인요청_$dateStr.xlsx';
-  const mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  const mimeType =
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
   if (kIsWeb) {
     downloadFileWeb(uint8List, fileName, mimeType);
@@ -922,13 +1083,15 @@ Future<void> exportDesignRequestsToExcel(
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(children: [
-            const Icon(Icons.download_done_rounded, color: Colors.white, size: 18),
+            const Icon(Icons.download_done_rounded,
+                color: Colors.white, size: 18),
             const SizedBox(width: 8),
             Text('$fileName 다운로드 완료'),
           ]),
-          backgroundColor: const Color(0xFF6A1B9A),
+          backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
     }
@@ -938,12 +1101,15 @@ Future<void> exportDesignRequestsToExcel(
       final file = File('${dir.path}/$fileName');
       await file.writeAsBytes(uint8List);
       await SharePlus.instance.share(
-        ShareParams(files: [XFile(file.path, mimeType: mimeType)], subject: '2FIT 디자인요청'),
+        ShareParams(
+            files: [XFile(file.path, mimeType: mimeType)],
+            subject: '2FIT 디자인요청'),
       );
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('저장 실패: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('저장 실패: $e'), backgroundColor: AppColors.error),
         );
       }
     }

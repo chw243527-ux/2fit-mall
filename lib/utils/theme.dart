@@ -269,6 +269,70 @@ class AppTheme {
         ),
       ),
 
+      // ── Dialog: consistent premium surface ──
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.border, width: 0.8),
+        ),
+        titleTextStyle: const TextStyle(
+          fontFamily: fontFamily,
+          color: AppColors.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        ),
+        contentTextStyle: const TextStyle(
+          fontFamily: fontFamily,
+          color: AppColors.textSecondary,
+          fontSize: 14,
+          height: 1.45,
+        ),
+      ),
+
+      // ── Checkbox / radio / switch: one brand accent ──
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? AppColors.primary
+                : AppColors.surface),
+        checkColor: const WidgetStatePropertyAll(AppColors.textWhite),
+        side: const BorderSide(color: AppColors.border, width: 1.2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: const WidgetStatePropertyAll(AppColors.primary),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? AppColors.primary
+                : AppColors.textHint),
+        trackColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? AppColors.primary.withValues(alpha: 0.35)
+                : AppColors.surfaceGray),
+      ),
+
+      // ── SnackBar / FAB: consistent action surface ──
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: AppColors.primary,
+        contentTextStyle: TextStyle(
+          fontFamily: fontFamily,
+          color: AppColors.textWhite,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textWhite,
+        elevation: 2,
+      ),
+
       // ── Chip: soft pill shape ──
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceGray,

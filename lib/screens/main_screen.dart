@@ -26,7 +26,7 @@ const double kPcBreakpoint = 900;
 class MainScreen extends StatefulWidget {
   final int initialIndex;
   final String? initialCategory; // /products?category=상의 등 URL 직접 접근용
-  final String? initialSearch;   // /products?search=키워드 URL 직접 접근용
+  final String? initialSearch; // /products?search=키워드 URL 직접 접근용
   const MainScreen({
     super.key,
     this.initialIndex = 0,
@@ -50,6 +50,7 @@ class MainScreenState extends State<MainScreen> {
     _myPageKey.currentState?.resetToFirstTab();
     setState(() => _currentIndex = 3);
   }
+
   void navigateTo(int index) {
     // 마이페이지(3)로 이동 시 내부 탭을 "내 주문"(0)으로 리셋
     if (index == 3) {
@@ -67,9 +68,9 @@ class MainScreenState extends State<MainScreen> {
     super.initState();
     _currentIndex = widget.initialIndex;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final noticeProv  = context.read<NoticeProvider>();
-      final userProv    = context.read<UserProvider>();
-      final uid         = userProv.user?.id;
+      final noticeProv = context.read<NoticeProvider>();
+      final userProv = context.read<UserProvider>();
+      final uid = userProv.user?.id;
       _lastUid = uid;
       // MainScreen 진입 시 항상 dismiss 상태를 새로 로드
       await noticeProv.forceLoadDismissState(uid);
@@ -109,7 +110,8 @@ class MainScreenState extends State<MainScreen> {
         barrierDismissible: true,
         builder: (_) => Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.symmetric(horizontal: r.w(40), vertical: r.h(60)),
+          insetPadding:
+              EdgeInsets.symmetric(horizontal: r.w(40), vertical: r.h(60)),
           child: _CouponDownloadPopup(
             userId: userProv.user?.id,
             isPc: true,
@@ -180,7 +182,9 @@ class MainScreenState extends State<MainScreen> {
       notices: notices,
       language: langProv.language,
       loc: langProv.loc,
-      onDismissToday: () { noticeProv.dismissToday(); },
+      onDismissToday: () {
+        noticeProv.dismissToday();
+      },
       isPc: isPc,
     );
 
@@ -194,7 +198,8 @@ class MainScreenState extends State<MainScreen> {
         barrierDismissible: true,
         builder: (_) => Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: EdgeInsets.symmetric(horizontal: r.w(40), vertical: r.h(60)),
+          insetPadding:
+              EdgeInsets.symmetric(horizontal: r.w(40), vertical: r.h(60)),
           child: popupWidget,
         ),
       );
@@ -209,7 +214,6 @@ class MainScreenState extends State<MainScreen> {
         builder: (_) => popupWidget,
       );
     }
-
   }
 
   @override
@@ -357,14 +361,18 @@ class _PcLayoutState extends State<_PcLayout> {
       },
       child: Scaffold(
         key: _pcScaffoldKey,
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: AppColors.surfaceGray,
         drawer: _buildPcCategoryDrawer(context, loc),
         floatingActionButton: widget.currentIndex == 0
             ? FloatingActionButton.extended(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatScreen())),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const ChatScreen())),
                 backgroundColor: const Color(0xFF4CAF50),
-                icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
-                label: Text(loc.pcKakaoChannel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                icon: const Icon(Icons.chat_bubble_outline_rounded,
+                    color: Colors.white),
+                label: Text(loc.pcKakaoChannel,
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.w600)),
               )
             : null,
         body: Column(
@@ -414,20 +422,27 @@ class _PcLayoutState extends State<_PcLayout> {
             color: Colors.white,
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 12,
-              left: 20, right: 8, bottom: 16,
+              left: 20,
+              right: 8,
+              bottom: 16,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.category_rounded, color: Color(0xFF888888), size: 18),
+                    const Icon(Icons.category_rounded,
+                        color: AppColors.textSecondary, size: 18),
                     SizedBox(width: r.w(8)),
                     Text(loc.categoryLabel,
-                        style: TextStyle(color: Color(0xFF111111), fontSize: r.sp(16), fontWeight: FontWeight.w800)),
+                        style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: r.sp(16),
+                            fontWeight: FontWeight.w800)),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, color: Color(0xFF555555), size: 20),
+                      icon: const Icon(Icons.close_rounded,
+                          color: AppColors.textSecondary, size: 20),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -440,20 +455,26 @@ class _PcLayoutState extends State<_PcLayout> {
                     widget.onTabChanged(3);
                   },
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: r.w(14), vertical: r.h(10)),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: r.w(14), vertical: r.h(10)),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
+                      color: AppColors.surfaceGray,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFE0E0E0)),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.person_outline_rounded, color: Color(0xFF555555), size: 16),
+                        const Icon(Icons.person_outline_rounded,
+                            color: AppColors.textSecondary, size: 16),
                         SizedBox(width: r.w(8)),
                         Text(loc.myPageLabel,
-                            style: TextStyle(color: Color(0xFF1A1A1A), fontSize: r.sp(13), fontWeight: FontWeight.w700)),
+                            style: TextStyle(
+                                color: AppColors.primary,
+                                fontSize: r.sp(13),
+                                fontWeight: FontWeight.w700)),
                         const Spacer(),
-                        const Icon(Icons.chevron_right_rounded, color: Color(0xFFBBBBBB), size: 16),
+                        const Icon(Icons.chevron_right_rounded,
+                            color: AppColors.textHint, size: 16),
                       ],
                     ),
                   ),
@@ -461,16 +482,23 @@ class _PcLayoutState extends State<_PcLayout> {
               ],
             ),
           ),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
+          const Divider(height: 1, color: AppColors.border),
           // 전체 상품 링크
           ListTile(
-            leading: const Icon(Icons.grid_view_rounded, size: 20, color: Color(0xFF1A1A1A)),
+            leading: const Icon(Icons.grid_view_rounded,
+                size: 20, color: AppColors.primary),
             title: Text(loc.allProducts,
-                style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                style: TextStyle(
+                    fontSize: r.sp(14),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary)),
             onTap: () {
               Navigator.pop(context);
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => ProductListScreen(initialCategory: '전체')));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          ProductListScreen(initialCategory: '전체')));
             },
           ),
           const Divider(height: 1, indent: 16, endIndent: 16),
@@ -539,11 +567,12 @@ class _PcLanguageBtn extends StatelessWidget {
         child: GestureDetector(
           onTap: () => _showSheet(context),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(7)),
+            padding:
+                EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(7)),
             decoration: BoxDecoration(
               color: const Color(0xFFF7F8FA),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFE0E0E0)),
+              border: Border.all(color: AppColors.border),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -555,7 +584,7 @@ class _PcLanguageBtn extends StatelessWidget {
                     style: TextStyle(
                         fontSize: r.sp(12),
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1A1A))),
+                        color: AppColors.primary)),
                 SizedBox(width: r.w(4)),
                 const Icon(Icons.keyboard_arrow_down_rounded,
                     size: 15, color: Color(0xFF777777)),
@@ -592,9 +621,7 @@ class _LangDialogState extends State<_LangDialog> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: const [
               BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 24,
-                  offset: Offset(0, 8))
+                  color: Colors.black26, blurRadius: 24, offset: Offset(0, 8))
             ],
           ),
           padding: EdgeInsets.all(r.w(20)),
@@ -605,19 +632,19 @@ class _LangDialogState extends State<_LangDialog> {
               Row(
                 children: [
                   const Icon(Icons.language_rounded,
-                      size: 18, color: Color(0xFF1A1A1A)),
+                      size: 18, color: AppColors.primary),
                   SizedBox(width: r.w(8)),
                   Expanded(
                     child: Text(loc.mainLanguageSelect,
                         style: TextStyle(
                             fontSize: r.sp(15),
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF1A1A1A))),
+                            color: AppColors.primary)),
                   ),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: const Icon(Icons.close_rounded,
-                        size: 18, color: Color(0xFF999999)),
+                        size: 18, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -627,7 +654,8 @@ class _LangDialogState extends State<_LangDialog> {
                 Padding(
                   padding: EdgeInsets.only(bottom: r.h(12)),
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(8)),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: r.w(12), vertical: r.h(8)),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF0F7FF),
                       borderRadius: BorderRadius.circular(8),
@@ -636,11 +664,15 @@ class _LangDialogState extends State<_LangDialog> {
                     child: Row(
                       children: [
                         const SizedBox(
-                          width: 13, height: 13,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                          width: 13,
+                          height: 13,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: AppColors.primary),
                         ),
                         SizedBox(width: r.w(8)),
-                        Text(loc.t('번역_중', '번역 중...'), style: TextStyle(fontSize: r.sp(12), color: AppColors.primary)),
+                        Text(loc.t('번역_중', '번역 중...'),
+                            style: TextStyle(
+                                fontSize: r.sp(12), color: AppColors.primary)),
                       ],
                     ),
                   ),
@@ -660,15 +692,16 @@ class _LangDialogState extends State<_LangDialog> {
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
-                        padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: r.w(16), vertical: r.h(12)),
                         decoration: BoxDecoration(
                           color: isSel
-                              ? const Color(0xFF1A1A1A)
+                              ? AppColors.primary
                               : const Color(0xFFF7F8FA),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: isSel
-                                ? const Color(0xFF1A1A1A)
+                                ? AppColors.primary
                                 : const Color(0xFFE8E8E8),
                           ),
                         ),
@@ -684,7 +717,7 @@ class _LangDialogState extends State<_LangDialog> {
                                     fontWeight: FontWeight.w700,
                                     color: isSel
                                         ? Colors.white
-                                        : const Color(0xFF1A1A1A),
+                                        : AppColors.primary,
                                   )),
                             ),
                             Text(lang.code,
@@ -693,7 +726,7 @@ class _LangDialogState extends State<_LangDialog> {
                                   fontWeight: FontWeight.w600,
                                   color: isSel
                                       ? Colors.white70
-                                      : const Color(0xFFAAAAAA),
+                                      : AppColors.textHint,
                                 )),
                             if (isSel) ...[
                               SizedBox(width: r.w(6)),
@@ -726,7 +759,10 @@ class _PcTopBarState extends State<_PcTopBar> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Color(0x14000000), blurRadius: 6, offset: Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+              color: Color(0x14000000), blurRadius: 6, offset: Offset(0, 2))
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -736,7 +772,7 @@ class _PcTopBarState extends State<_PcTopBar> {
           // ══════════════════════════════════════════
           Container(
             height: 36,
-            color: const Color(0xFF111111),
+            color: AppColors.textPrimary,
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1280),
@@ -744,22 +780,31 @@ class _PcTopBarState extends State<_PcTopBar> {
                   padding: EdgeInsets.symmetric(horizontal: r.w(24)),
                   child: Row(
                     children: [
-                      const Icon(Icons.local_shipping_outlined, color: Colors.white38, size: 13),
+                      const Icon(Icons.local_shipping_outlined,
+                          color: Colors.white38, size: 13),
                       SizedBox(width: r.w(6)),
                       Text(loc.pcFreeShipping,
-                          style: TextStyle(color: Colors.white60, fontSize: r.sp(12))),
+                          style: TextStyle(
+                              color: Colors.white60, fontSize: r.sp(12))),
                       const Spacer(),
                       _utilBtn(loc.pcCustomerCenter, Icons.headset_mic_outlined,
-                          onTap: () => Navigator.push(context,
-                              MaterialPageRoute(builder: (_) => const ChatScreen()))),
+                          onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const ChatScreen()))),
                       SizedBox(width: r.w(24)),
                       _utilBtn(loc.pcOrderLookup, Icons.receipt_long_outlined,
-                          onTap: () => Navigator.push(context,
-                              MaterialPageRoute(builder: (_) => const OrderGuideScreen()))),
+                          onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const OrderGuideScreen()))),
                       SizedBox(width: r.w(24)),
-                      _utilBtn(loc.pcKakaoChannel, Icons.chat_bubble_outline_rounded,
-                          onTap: () => Navigator.push(context,
-                              MaterialPageRoute(builder: (_) => const ChatScreen()))),
+                      _utilBtn(
+                          loc.pcKakaoChannel, Icons.chat_bubble_outline_rounded,
+                          onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const ChatScreen()))),
                     ],
                   ),
                 ),
@@ -785,15 +830,17 @@ class _PcTopBarState extends State<_PcTopBar> {
                       MouseRegion(
                         cursor: SystemMouseCursors.click,
                         child: GestureDetector(
-                          onTap: () => widget.scaffoldKey?.currentState?.openDrawer(),
+                          onTap: () =>
+                              widget.scaffoldKey?.currentState?.openDrawer(),
                           child: Container(
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF5F5F5),
+                              color: AppColors.surfaceGray,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.menu_rounded, size: 20, color: Color(0xFF1A1A1A)),
+                            child: const Icon(Icons.menu_rounded,
+                                size: 20, color: AppColors.primary),
                           ),
                         ),
                       ),
@@ -844,7 +891,7 @@ class _PcTopBarState extends State<_PcTopBar> {
                       Container(
                         width: 1,
                         height: 28,
-                        color: const Color(0xFFE0E0E0),
+                        color: AppColors.border,
                       ),
                       SizedBox(width: r.w(16)),
 
@@ -856,8 +903,6 @@ class _PcTopBarState extends State<_PcTopBar> {
               ),
             ),
           ),
-
-
         ],
       ),
     );
@@ -874,7 +919,8 @@ class _PcTopBarState extends State<_PcTopBar> {
           children: [
             Icon(icon, color: Colors.white38, size: 12),
             SizedBox(width: r.w(4)),
-            Text(label, style: TextStyle(color: Colors.white60, fontSize: r.sp(11.5))),
+            Text(label,
+                style: TextStyle(color: Colors.white60, fontSize: r.sp(11.5))),
           ],
         ),
       ),
@@ -895,12 +941,12 @@ class _PcTopBarState extends State<_PcTopBar> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 24, color: const Color(0xFF1A1A1A)),
+            Icon(icon, size: 24, color: AppColors.primary),
             SizedBox(height: r.h(2)),
             Text(label,
                 style: TextStyle(
                     fontSize: r.sp(10),
-                    color: Color(0xFF555555),
+                    color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500)),
           ],
         ),
@@ -926,12 +972,14 @@ class _PcTopBarState extends State<_PcTopBar> {
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Icon(icon, size: 24, color: const Color(0xFF1A1A1A)),
+                Icon(icon, size: 24, color: AppColors.primary),
                 if (badge > 0)
                   Positioned(
-                    top: -6, right: -8,
+                    top: -6,
+                    right: -8,
                     child: Container(
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      constraints:
+                          const BoxConstraints(minWidth: 16, minHeight: 16),
                       padding: EdgeInsets.all(r.w(2)),
                       decoration: const BoxDecoration(
                           color: AppColors.accent, shape: BoxShape.circle),
@@ -952,14 +1000,13 @@ class _PcTopBarState extends State<_PcTopBar> {
             Text(label,
                 style: TextStyle(
                     fontSize: r.sp(10),
-                    color: Color(0xFF555555),
+                    color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500)),
           ],
         ),
       ),
     );
   }
-
 }
 
 // ─────────────────────────────────────────
@@ -1005,13 +1052,14 @@ class _SearchBarState extends State<_SearchBar> {
         decoration: BoxDecoration(
           color: const Color(0xFFF7F8FA),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
+          border: Border.all(color: AppColors.border),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(width: 14),
-            const Icon(Icons.search_rounded, size: 18, color: Color(0xFF999999)),
+            const Icon(Icons.search_rounded,
+                size: 18, color: AppColors.textSecondary),
             const SizedBox(width: 8),
             Expanded(
               child: TextField(
@@ -1020,14 +1068,13 @@ class _SearchBarState extends State<_SearchBar> {
                 textAlignVertical: TextAlignVertical.center,
                 decoration: InputDecoration(
                   hintText: widget.loc.pcSearchHint,
-                  hintStyle: TextStyle(
-                      color: const Color(0xFFAAAAAA), fontSize: r.sp(13)),
+                  hintStyle:
+                      TextStyle(color: AppColors.textHint, fontSize: r.sp(13)),
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
-                style: TextStyle(
-                    fontSize: r.sp(13), color: const Color(0xFF1A1A1A)),
+                style: TextStyle(fontSize: r.sp(13), color: AppColors.primary),
               ),
             ),
             // 검색 버튼 — 고정 패딩으로 잘림 방지
@@ -1039,7 +1086,7 @@ class _SearchBarState extends State<_SearchBar> {
                   margin: const EdgeInsets.all(5),
                   padding: const EdgeInsets.symmetric(horizontal: 18),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   alignment: Alignment.center,
@@ -1075,7 +1122,7 @@ class _PcFooter extends StatelessWidget {
     // ignore: unused_local_variable
     final loc = context.watch<LanguageProvider>().loc;
     return Container(
-      color: const Color(0xFF1A1A1A),
+      color: AppColors.primary,
       padding: EdgeInsets.symmetric(vertical: r.h(40)),
       child: Center(
         child: ConstrainedBox(
@@ -1108,32 +1155,53 @@ class _PcFooter extends StatelessWidget {
                           SizedBox(height: r.h(10)),
                           Text(
                             loc.footerBrandDesc,
-                            style: TextStyle(color: Colors.white54, fontSize: r.sp(13), height: 1.7),
+                            style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: r.sp(13),
+                                height: 1.7),
                           ),
                           SizedBox(height: r.h(20)),
                           _footerInfoRow('🏢 ${AppConstants.companyName}', r),
                           _footerInfoRow('👤 대표자: ${AppConstants.ceoName}', r),
-                          _footerInfoRow('📍 ${AppConstants.companyAddress}', r),
-                          _footerInfoRow('📋 사업자등록번호: ${AppConstants.businessRegNumber}', r),
-                          _footerInfoRow('🛒 통신판매업신고번호: ${AppConstants.ecommerceRegNumber.isEmpty ? "심사 중" : AppConstants.ecommerceRegNumber}', r),
-                          _footerInfoRow('📞 ${AppConstants.customerServicePhone}', r),
-                          _footerInfoRow('✉ ${AppConstants.customerServiceEmail}', r),
-                          _footerInfoRow('💬 카카오톡 ${AppConstants.kakaoTalkId}', r),
-                          _footerInfoRow('🕐 ${AppConstants.customerServiceHours.replaceAll("\n", " / ")}', r),
-                          _footerInfoRow(context.loc.t('토일공휴일_휴무', '🚫 토·일·공휴일 휴무'), r),
+                          _footerInfoRow(
+                              '📍 ${AppConstants.companyAddress}', r),
+                          _footerInfoRow(
+                              '📋 사업자등록번호: ${AppConstants.businessRegNumber}',
+                              r),
+                          _footerInfoRow(
+                              '🛒 통신판매업신고번호: ${AppConstants.ecommerceRegNumber.isEmpty ? "심사 중" : AppConstants.ecommerceRegNumber}',
+                              r),
+                          _footerInfoRow(
+                              '📞 ${AppConstants.customerServicePhone}', r),
+                          _footerInfoRow(
+                              '✉ ${AppConstants.customerServiceEmail}', r),
+                          _footerInfoRow(
+                              '💬 카카오톡 ${AppConstants.kakaoTalkId}', r),
+                          _footerInfoRow(
+                              '🕐 ${AppConstants.customerServiceHours.replaceAll("\n", " / ")}',
+                              r),
+                          _footerInfoRow(
+                              context.loc.t('토일공휴일_휴무', '🚫 토·일·공휴일 휴무'), r),
                           SizedBox(height: r.h(12)),
                           // ── 엘리트 선수 전용 안내 ──
                           GestureDetector(
                             onTap: () async {
-                              final uri = Uri(scheme: 'tel', path: AppConstants.eliteAthletePhone.replaceAll('-', ''));
+                              final uri = Uri(
+                                  scheme: 'tel',
+                                  path: AppConstants.eliteAthletePhone
+                                      .replaceAll('-', ''));
                               // ignore: deprecated_member_use
                               if (await canLaunchUrl(uri)) launchUrl(uri);
                             },
                             child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(10)),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: r.w(12), vertical: r.h(10)),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [AppColors.primary, AppColors.primaryLight],
+                                  colors: [
+                                    AppColors.primary,
+                                    AppColors.primaryLight
+                                  ],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -1141,22 +1209,34 @@ class _PcFooter extends StatelessWidget {
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 18),
+                                  const Icon(Icons.emoji_events_rounded,
+                                      color: Colors.amber, size: 18),
                                   SizedBox(width: r.w(8)),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text(context.loc.t('엘리트_선수_주문_전용_상담', '🏅 엘리트 선수 주문 전용 상담'),
-                                          style: TextStyle(color: Colors.white, fontSize: r.sp(11), fontWeight: FontWeight.w800)),
+                                        Text(
+                                            context.loc.t('엘리트_선수_주문_전용_상담',
+                                                '🏅 엘리트 선수 주문 전용 상담'),
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: r.sp(11),
+                                                fontWeight: FontWeight.w800)),
                                         SizedBox(height: r.h(2)),
                                         Text(AppConstants.eliteAthletePhone,
-                                          style: TextStyle(color: Colors.amber, fontSize: r.sp(13), fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                            style: TextStyle(
+                                                color: Colors.amber,
+                                                fontSize: r.sp(13),
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: 0.5)),
                                       ],
                                     ),
                                   ),
                                   Container(
-                                    padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: r.w(8), vertical: r.h(4)),
                                     decoration: BoxDecoration(
                                       color: Colors.amber,
                                       borderRadius: BorderRadius.circular(5),
@@ -1164,9 +1244,14 @@ class _PcFooter extends StatelessWidget {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.phone_rounded, size: 12, color: Colors.black87),
+                                        const Icon(Icons.phone_rounded,
+                                            size: 12, color: Colors.black87),
                                         SizedBox(width: r.w(3)),
-                                        Text(context.loc.t('전화', '전화'), style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w800, color: Colors.black87)),
+                                        Text(context.loc.t('전화', '전화'),
+                                            style: TextStyle(
+                                                fontSize: r.sp(11),
+                                                fontWeight: FontWeight.w800,
+                                                color: Colors.black87)),
                                       ],
                                     ),
                                   ),
@@ -1178,11 +1263,19 @@ class _PcFooter extends StatelessWidget {
                           // 소셜 링크 버튼
                           Row(
                             children: [
-                              _socialBtn(loc.footerKakao, const Color(0xFFFFE000), Colors.black,
-                                  () => Navigator.pushNamed(context, '/chat'), r),
+                              _socialBtn(
+                                  loc.footerKakao,
+                                  const Color(0xFFFFE000),
+                                  Colors.black,
+                                  () => Navigator.pushNamed(context, '/chat'),
+                                  r),
                               SizedBox(width: r.w(8)),
-                              _socialBtn(loc.pcCustomerCenter, const Color(0xFF1A1A1A), Colors.white,
-                                  () => Navigator.pushNamed(context, '/chat'), r),
+                              _socialBtn(
+                                  loc.pcCustomerCenter,
+                                  AppColors.primary,
+                                  Colors.white,
+                                  () => Navigator.pushNamed(context, '/chat'),
+                                  r),
                             ],
                           ),
                         ],
@@ -1193,10 +1286,22 @@ class _PcFooter extends StatelessWidget {
                     _footerLinkCol(
                       loc.footerShopGuide,
                       [
-                        _FooterLink(loc.footerProductList, () => onTabChanged?.call(1)),
-                        _FooterLink(loc.footerDeliveryGuide, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderGuideScreen()))),
-                        _FooterLink(loc.footerReturnPolicy, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderGuideScreen()))),
-                        _FooterLink(loc.footerSizeGuide, () => onTabChanged?.call(1)),
+                        _FooterLink(
+                            loc.footerProductList, () => onTabChanged?.call(1)),
+                        _FooterLink(
+                            loc.footerDeliveryGuide,
+                            () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const OrderGuideScreen()))),
+                        _FooterLink(
+                            loc.footerReturnPolicy,
+                            () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const OrderGuideScreen()))),
+                        _FooterLink(
+                            loc.footerSizeGuide, () => onTabChanged?.call(1)),
                       ],
                       r,
                     ),
@@ -1204,8 +1309,10 @@ class _PcFooter extends StatelessWidget {
                     _footerLinkCol(
                       loc.footerOrderService,
                       [
-                        _FooterLink(loc.footerGroupOrder, () => Navigator.pushNamed(context, '/group-guide')),
-                        _FooterLink(loc.footerOrderStatus, () => onTabChanged?.call(3)),
+                        _FooterLink(loc.footerGroupOrder,
+                            () => Navigator.pushNamed(context, '/group-guide')),
+                        _FooterLink(
+                            loc.footerOrderStatus, () => onTabChanged?.call(3)),
                         _FooterLink(loc.navCart, () => onTabChanged?.call(2)),
                       ],
                       r,
@@ -1214,10 +1321,17 @@ class _PcFooter extends StatelessWidget {
                     _footerLinkCol(
                       loc.footerSupport,
                       [
-                        _FooterLink(loc.footerInquiry, () => Navigator.pushNamed(context, '/chat')),
-                        _FooterLink(loc.footerFaq, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderGuideScreen()))),
+                        _FooterLink(loc.footerInquiry,
+                            () => Navigator.pushNamed(context, '/chat')),
+                        _FooterLink(
+                            loc.footerFaq,
+                            () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const OrderGuideScreen()))),
                         _FooterLink(loc.pcMyPage, () => onTabChanged?.call(3)),
-                        _FooterLink(loc.footerKakaoChannel, () => Navigator.pushNamed(context, '/chat')),
+                        _FooterLink(loc.footerKakaoChannel,
+                            () => Navigator.pushNamed(context, '/chat')),
                       ],
                       r,
                     ),
@@ -1231,13 +1345,20 @@ class _PcFooter extends StatelessWidget {
                   children: [
                     Text(
                       '© 2025 2FIT Korea Co., Ltd. All rights reserved.',
-                      style: TextStyle(color: Colors.white30, fontSize: r.sp(12)),
+                      style:
+                          TextStyle(color: Colors.white30, fontSize: r.sp(12)),
                     ),
                     Row(
                       children: [
-                        Text(loc.footerTerms, style: TextStyle(color: Colors.white38, fontSize: r.sp(12))),
+                        Text(loc.footerTerms,
+                            style: TextStyle(
+                                color: Colors.white38, fontSize: r.sp(12))),
                         SizedBox(width: r.w(16)),
-                        Text(loc.footerPrivacy, style: TextStyle(color: Colors.white38, fontSize: r.sp(12), fontWeight: FontWeight.w600)),
+                        Text(loc.footerPrivacy,
+                            style: TextStyle(
+                                color: Colors.white38,
+                                fontSize: r.sp(12),
+                                fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
@@ -1253,11 +1374,13 @@ class _PcFooter extends StatelessWidget {
   Widget _footerInfoRow(String text, Responsive r) {
     return Padding(
       padding: EdgeInsets.only(bottom: r.h(5)),
-      child: Text(text, style: TextStyle(color: Colors.white54, fontSize: r.sp(12.5))),
+      child: Text(text,
+          style: TextStyle(color: Colors.white54, fontSize: r.sp(12.5))),
     );
   }
 
-  Widget _socialBtn(String label, Color bg, Color fg, VoidCallback onTap, Responsive r) {
+  Widget _socialBtn(
+      String label, Color bg, Color fg, VoidCallback onTap, Responsive r) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
@@ -1267,7 +1390,9 @@ class _PcFooter extends StatelessWidget {
           color: bg,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: Text(label, style: TextStyle(color: fg, fontSize: r.sp(12), fontWeight: FontWeight.w700)),
+        child: Text(label,
+            style: TextStyle(
+                color: fg, fontSize: r.sp(12), fontWeight: FontWeight.w700)),
       ),
     );
   }
@@ -1279,7 +1404,9 @@ class _PcFooter extends StatelessWidget {
         children: [
           Text(title,
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w700, fontSize: r.sp(14))),
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: r.sp(14))),
           SizedBox(height: r.h(14)),
           ...links.map((link) => Padding(
                 padding: EdgeInsets.only(bottom: r.h(10)),
@@ -1289,18 +1416,20 @@ class _PcFooter extends StatelessWidget {
                         splashColor: Colors.transparent,
                         highlightColor: Colors.transparent,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 6, horizontal: 2),
                           child: Text(
                             link.label,
                             style: TextStyle(
-                              color: const Color(0xFFBBBBBB),
+                              color: AppColors.textHint,
                               fontSize: r.sp(13),
                             ),
                           ),
                         ),
                       )
                     : Text(link.label,
-                        style: TextStyle(color: Colors.white38, fontSize: r.sp(13))),
+                        style: TextStyle(
+                            color: Colors.white38, fontSize: r.sp(13))),
               )),
         ],
       ),
@@ -1364,16 +1493,16 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
   // ── 테마별 그라디언트 (이미지 없을 때 배너 배경) ──
   static const Map<String, List<Color>> _themeGradients = {
-    'general':  [AppColors.primary, AppColors.primaryLight],
-    'event':    [AppColors.primary, AppColors.primaryLight],
+    'general': [AppColors.primary, AppColors.primaryLight],
+    'event': [AppColors.primary, AppColors.primaryLight],
     'delivery': [AppColors.primary, AppColors.primaryLight],
-    'warning':  [AppColors.primary, AppColors.primaryLight],
-    'update':   [AppColors.primary, AppColors.primaryLight],
-    'promo':    [AppColors.primary, AppColors.primaryLight],
-    'holiday':  [AppColors.primary, AppColors.primaryLight],
-    'newitem':  [AppColors.primary, AppColors.primaryLight],
-    'weather':  [AppColors.primary, AppColors.primaryLight],
-    'review':   [AppColors.primary, AppColors.primaryLight],
+    'warning': [AppColors.primary, AppColors.primaryLight],
+    'update': [AppColors.primary, AppColors.primaryLight],
+    'promo': [AppColors.primary, AppColors.primaryLight],
+    'holiday': [AppColors.primary, AppColors.primaryLight],
+    'newitem': [AppColors.primary, AppColors.primaryLight],
+    'weather': [AppColors.primary, AppColors.primaryLight],
+    'review': [AppColors.primary, AppColors.primaryLight],
   };
 
   List<Color> _gradientColors(String theme) =>
@@ -1382,15 +1511,15 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
-    final notice     = widget.notices[_page];
-    final title      = notice.localizedTitle(widget.language);
-    final content    = notice.localizedContent(widget.language);
-    final total      = widget.notices.length;
-    final sw         = MediaQuery.of(context).size.width;
-    final sh         = MediaQuery.of(context).size.height;
-    final hasImage   = notice.imageUrl.isNotEmpty;
+    final notice = widget.notices[_page];
+    final title = notice.localizedTitle(widget.language);
+    final content = notice.localizedContent(widget.language);
+    final total = widget.notices.length;
+    final sw = MediaQuery.of(context).size.width;
+    final sh = MediaQuery.of(context).size.height;
+    final hasImage = notice.imageUrl.isNotEmpty;
     final gradColors = _gradientColors(notice.theme);
-    final emoji      = NoticeThemeHelper.themeEmoji[notice.theme] ?? '📢';
+    final emoji = NoticeThemeHelper.themeEmoji[notice.theme] ?? '📢';
 
     // 하단 시트 최대 너비 (PC 대응)
     final sheetW = sw > 600 ? 480.0 : sw;
@@ -1419,7 +1548,6 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             // ① 이미지 / 그라디언트 배너
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1444,10 +1572,13 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                 // ── 드래그 핸들: 모바일 + 이미지 위에 오버레이 ──
                 if (!widget.isPc)
                   Positioned(
-                    top: 10, left: 0, right: 0,
+                    top: 10,
+                    left: 0,
+                    right: 0,
                     child: Center(
                       child: Container(
-                        width: 40, height: 4,
+                        width: 40,
+                        height: 4,
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(2),
@@ -1458,11 +1589,13 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
                 // 우상단 X 닫기 버튼
                 Positioned(
-                  top: 12, right: 12,
+                  top: 12,
+                  right: 12,
                   child: GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
                     child: Container(
-                      width: 32, height: 32,
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.32),
                         shape: BoxShape.circle,
@@ -1478,9 +1611,11 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
 
                 // 좌하단 '01 / 01' 캡슐
                 Positioned(
-                  left: 16, bottom: 14,
+                  left: 16,
+                  bottom: 14,
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: r.w(11), vertical: r.h(5)),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: r.w(11), vertical: r.h(5)),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.50),
                       borderRadius: BorderRadius.circular(20),
@@ -1513,7 +1648,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                   Text(
                     title,
                     style: TextStyle(
-                      color: const Color(0xFF111111),
+                      color: AppColors.textPrimary,
                       fontSize: r.sp(17),
                       fontWeight: FontWeight.w800,
                       height: 1.4,
@@ -1526,7 +1661,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                       content,
                       style: TextStyle(
                         fontSize: r.sp(13),
-                        color: const Color(0xFF555555),
+                        color: AppColors.textSecondary,
                         height: 1.7,
                       ),
                     ),
@@ -1543,7 +1678,7 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(height: 1, color: const Color(0xFFEEEEEE)),
+                  Container(height: 1, color: AppColors.border),
                   SizedBox(
                     height: 44,
                     child: Row(
@@ -1555,24 +1690,29 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                               Navigator.of(context).pop();
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF888888),
+                              foregroundColor: AppColors.textSecondary,
                               padding: EdgeInsets.zero,
                               shape: const RoundedRectangleBorder(),
                               minimumSize: const Size(0, 52),
                             ),
                             child: Text(
                               widget.loc.noticeDontShowToday,
-                              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w400),
+                              style: TextStyle(
+                                  fontSize: r.sp(13),
+                                  fontWeight: FontWeight.w400),
                             ),
                           ),
                         ),
                         Expanded(
                           child: TextButton(
                             onPressed: total > 1 && _page < total - 1
-                                ? () { setState(() => _page++); _loadImageSize(); }
+                                ? () {
+                                    setState(() => _page++);
+                                    _loadImageSize();
+                                  }
                                 : () => Navigator.of(context).pop(),
                             style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF111111),
+                              foregroundColor: AppColors.textPrimary,
                               padding: EdgeInsets.zero,
                               shape: const RoundedRectangleBorder(),
                               minimumSize: const Size(0, 52),
@@ -1581,7 +1721,9 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                               total > 1 && _page < total - 1
                                   ? widget.loc.noticeNext
                                   : widget.loc.noticeConfirm,
-                              style: TextStyle(fontSize: r.sp(13), fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                  fontSize: r.sp(13),
+                                  fontWeight: FontWeight.w600),
                             ),
                           ),
                         ),
@@ -1590,11 +1732,10 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
                   ),
                   // iOS 홈 인디케이터 여백 (모바일만)
                   if (!widget.isPc)
-                  SizedBox(height: MediaQuery.of(context).padding.bottom),
+                    SizedBox(height: MediaQuery.of(context).padding.bottom),
                 ],
               ),
             ),
-
           ],
         ),
       ),
@@ -1619,9 +1760,11 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
         ),
         // 장식용 반투명 원
         Positioned(
-          right: -40, top: -40,
+          right: -40,
+          top: -40,
           child: Container(
-            width: 200, height: 200,
+            width: 200,
+            height: 200,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white.withValues(alpha: 0.07),
@@ -1629,9 +1772,11 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
           ),
         ),
         Positioned(
-          left: -30, bottom: -30,
+          left: -30,
+          bottom: -30,
           child: Container(
-            width: 150, height: 150,
+            width: 150,
+            height: 150,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.white.withValues(alpha: 0.07),
@@ -1640,7 +1785,9 @@ class _NoticePopupDialogState extends State<_NoticePopupDialog> {
         ),
         // 이모지 + 제목 (하단 왼쪽 정렬)
         Positioned(
-          left: 22, right: 22, bottom: 28,
+          left: 22,
+          right: 22,
+          bottom: 28,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -1694,11 +1841,19 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
         ListTile(
           leading: Icon(cat.icon, size: 20, color: cat.color),
           title: Text(cat.name,
-              style: TextStyle(fontSize: r.sp(14), fontWeight: FontWeight.w600, color: Color(0xFF1A1A1A))),
+              style: TextStyle(
+                  fontSize: r.sp(14),
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary)),
           trailing: cat.subCategories.isNotEmpty
-              ? Icon(_expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-                  size: 18, color: const Color(0xFF999999))
-              : const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFF999999)),
+              ? Icon(
+                  _expanded
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded,
+                  size: 18,
+                  color: AppColors.textSecondary)
+              : const Icon(Icons.chevron_right_rounded,
+                  size: 18, color: AppColors.textSecondary),
           onTap: () {
             if (cat.subCategories.isNotEmpty) {
               setState(() => _expanded = !_expanded);
@@ -1722,8 +1877,10 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
           ...cat.subCategories.map((sub) => ListTile(
                 contentPadding: EdgeInsets.only(left: r.w(56), right: r.w(16)),
                 title: Text(sub.name,
-                    style: TextStyle(fontSize: r.sp(13), color: Color(0xFF555555))),
-                trailing: const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFFCCCCCC)),
+                    style: TextStyle(
+                        fontSize: r.sp(13), color: AppColors.textSecondary)),
+                trailing: const Icon(Icons.chevron_right_rounded,
+                    size: 16, color: AppColors.border),
                 dense: true,
                 onTap: () {
                   widget.onClose();
@@ -1752,6 +1909,7 @@ class _PcDrawerCategoryTileState extends State<_PcDrawerCategoryTile> {
 class _CouponDownloadPopup extends StatefulWidget {
   final String? userId;
   final bool isPc;
+
   /// 오늘 하루 닫기 콜백 (null이면 버튼 미표시 — 배너 팝업 등에서 재사용 시)
   final VoidCallback? onDismissToday;
 
@@ -1811,12 +1969,13 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                const Icon(Icons.check_circle_rounded,
+                    color: Colors.white, size: 18),
                 const SizedBox(width: 8),
                 Text('「${coupon.name}」 쿠폰이 저장되었습니다!'),
               ],
             ),
-            backgroundColor: const Color(0xFF43A047),
+            backgroundColor: AppColors.success,
           ),
         );
       }
@@ -1824,12 +1983,12 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('다운로드 수량이 모두 소진되었습니다.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.warning,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result), backgroundColor: Colors.red),
+        SnackBar(content: Text(result), backgroundColor: AppColors.error),
       );
     }
   }
@@ -1838,14 +1997,14 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
     if (c.type == CouponType.percent) {
       final base = '${c.value.toInt()}% 할인';
       if (c.maxDiscountAmount != null) {
-        final max = c.maxDiscountAmount!.toInt().toString()
-            .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+        final max = c.maxDiscountAmount!.toInt().toString().replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
         return '$base (최대 ${max}원)';
       }
       return base;
     } else {
-      final v = c.value.toInt().toString()
-          .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+      final v = c.value.toInt().toString().replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
       return '${v}원 할인';
     }
   }
@@ -1863,7 +2022,8 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
         final coupons = snap.data ?? [];
 
         // 쿠폰이 없으면 팝업 자체를 표시하지 않음
-        if (snap.connectionState != ConnectionState.waiting && coupons.isEmpty) {
+        if (snap.connectionState != ConnectionState.waiting &&
+            coupons.isEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) Navigator.pop(context);
           });
@@ -1879,7 +2039,8 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
     );
   }
 
-  Widget _buildPcDialog(BuildContext context, Responsive r, List<CouponModel> coupons) {
+  Widget _buildPcDialog(
+      BuildContext context, Responsive r, List<CouponModel> coupons) {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 480, maxHeight: 600),
       child: Container(
@@ -1887,7 +2048,10 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 24, offset: const Offset(0, 8)),
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 24,
+                offset: const Offset(0, 8)),
           ],
         ),
         child: Column(
@@ -1902,7 +2066,8 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
     );
   }
 
-  Widget _buildMobileSheet(BuildContext context, Responsive r, List<CouponModel> coupons) {
+  Widget _buildMobileSheet(
+      BuildContext context, Responsive r, List<CouponModel> coupons) {
     return SafeArea(
       child: Container(
         constraints: BoxConstraints(
@@ -1954,7 +2119,8 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.local_activity_rounded, color: Colors.white, size: 22),
+            child: const Icon(Icons.local_activity_rounded,
+                color: Colors.white, size: 22),
           ),
           SizedBox(width: r.w(12)),
           Expanded(
@@ -1977,7 +2143,8 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
           ),
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 22),
+            icon: const Icon(Icons.close_rounded,
+                color: Colors.white70, size: 22),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
@@ -2023,12 +2190,17 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
         border: Border.all(
           color: isDownloaded
               ? AppColors.primaryLight.withValues(alpha: 0.3)
-              : const Color(0xFFEEEEEE),
+              : AppColors.border,
           width: isDownloaded ? 1.5 : 1,
         ),
         boxShadow: isSoldOut
             ? []
-            : [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
+            : [
+                BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2))
+              ],
       ),
       child: Opacity(
         opacity: isSoldOut ? 0.6 : 1.0,
@@ -2045,7 +2217,9 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  isPercent ? Icons.percent_rounded : Icons.attach_money_rounded,
+                  isPercent
+                      ? Icons.percent_rounded
+                      : Icons.attach_money_rounded,
                   color: accentColor,
                   size: 22,
                 ),
@@ -2060,7 +2234,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
                         style: TextStyle(
                           fontSize: r.sp(14),
                           fontWeight: FontWeight.w700,
-                          color: isSoldOut ? Colors.grey : const Color(0xFF1A1A1A),
+                          color: isSoldOut ? Colors.grey : AppColors.primary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
@@ -2075,11 +2249,13 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
                     Row(
                       children: [
                         Text(_fmtExpiry(coupon.expiresAt),
-                            style: TextStyle(fontSize: r.sp(11), color: Colors.grey)),
+                            style: TextStyle(
+                                fontSize: r.sp(11), color: Colors.grey)),
                         if (remainText != null) ...[
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
                             decoration: BoxDecoration(
                               color: isSoldOut
                                   ? Colors.grey.withValues(alpha: 0.1)
@@ -2091,7 +2267,8 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
                               style: TextStyle(
                                 fontSize: r.sp(10),
                                 fontWeight: FontWeight.w700,
-                                color: isSoldOut ? Colors.grey : const Color(0xFFE65100),
+                                color:
+                                    isSoldOut ? Colors.grey : AppColors.accent,
                               ),
                             ),
                           ),
@@ -2103,7 +2280,8 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
               ),
               SizedBox(width: r.w(10)),
               // 다운로드 버튼
-              _buildDownloadButton(r, coupon, isDownloaded, isLoading, isSoldOut),
+              _buildDownloadButton(
+                  r, coupon, isDownloaded, isLoading, isSoldOut),
             ],
           ),
         ),
@@ -2128,7 +2306,8 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_rounded, size: 14, color: AppColors.primaryLight),
+            const Icon(Icons.check_rounded,
+                size: 14, color: AppColors.primaryLight),
             SizedBox(width: r.w(4)),
             Text('받기완료',
                 style: TextStyle(
@@ -2144,7 +2323,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
       return Container(
         padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(8)),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
+          color: AppColors.surfaceGray,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text('마감',
@@ -2178,14 +2357,16 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
                   child: SizedBox(
                     width: 14,
                     height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.grey),
                   ),
                 ),
               )
             : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.download_rounded, size: 14, color: Colors.white),
+                  const Icon(Icons.download_rounded,
+                      size: 14, color: Colors.white),
                   SizedBox(width: r.w(4)),
                   Text('받기',
                       style: TextStyle(
@@ -2203,7 +2384,7 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: r.w(16), vertical: r.h(12)),
       decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: Color(0xFFF0F0F0))),
+        border: Border(top: BorderSide(color: AppColors.surfaceGray)),
       ),
       child: Row(
         children: [
@@ -2224,19 +2405,20 @@ class _CouponDownloadPopupState extends State<_CouponDownloadPopup> {
               },
               style: TextButton.styleFrom(
                 foregroundColor: Colors.grey[500],
-                padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
+                padding:
+                    EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               child: Text('오늘 하루 닫기', style: TextStyle(fontSize: r.sp(12))),
             ),
-          if (widget.onDismissToday != null)
-            SizedBox(width: r.w(4)),
+          if (widget.onDismissToday != null) SizedBox(width: r.w(4)),
           TextButton(
             onPressed: () => Navigator.pop(context),
             style: TextButton.styleFrom(
               foregroundColor: Colors.grey,
-              padding: EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
+              padding:
+                  EdgeInsets.symmetric(horizontal: r.w(8), vertical: r.h(4)),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),

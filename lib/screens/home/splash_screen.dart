@@ -1,3 +1,4 @@
+import '../../utils/theme.dart';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 import 'package:flutter/material.dart';
@@ -405,7 +406,7 @@ class _SplashScreenState extends State<SplashScreen>
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 5,
-                          color: Color(0xFF999999),
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -430,9 +431,9 @@ class _SplashScreenState extends State<SplashScreen>
                         borderRadius: BorderRadius.circular(2),
                         child: LinearProgressIndicator(
                           value: _progressAnim.value,
-                          backgroundColor: const Color(0xFFEEEEEE),
+                          backgroundColor: AppColors.border,
                           valueColor: const AlwaysStoppedAnimation<Color>(
-                            Color(0xFF111111),
+                            AppColors.textPrimary,
                           ),
                           minHeight: 2,
                         ),
@@ -445,7 +446,7 @@ class _SplashScreenState extends State<SplashScreen>
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 3,
-                        color: Color(0xFFCCCCCC),
+                        color: AppColors.border,
                       ),
                     ),
                   ],
@@ -468,7 +469,7 @@ class _SplashScreenState extends State<SplashScreen>
             fontSize: 56,
             fontWeight: FontWeight.w900,
             letterSpacing: -2,
-            color: Color(0xFF111111),
+            color: AppColors.textPrimary,
           ),
         ),
         Text(
@@ -477,7 +478,7 @@ class _SplashScreenState extends State<SplashScreen>
             fontSize: 13,
             fontWeight: FontWeight.w700,
             letterSpacing: 6,
-            color: Color(0xFF999999),
+            color: AppColors.textSecondary,
           ),
         ),
       ],

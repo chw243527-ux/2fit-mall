@@ -7,13 +7,14 @@ import '../../utils/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 
+import '../../utils/theme.dart';
 // ═══════════════════════════════════════════════════════════════
 // GroupOrderLandingScreen — 사이드바 "단체주문하기" 전용 랜딩 페이지
 // • product 파라미터 없음 (사이드바 진입 전용)
 // • 탭1: 단체주문 안내
 // • 탭2: 주문서 바로가기 (카테고리 선택 → GroupOrderGuideScreen)
 // • Provider / AppLocalizations 의존성 없음
-// • 탑텐 스타일: Color(0xFF1A1A1A), flat black/white, 정사각 블랙 아이콘, sharp border
+// • 탑텐 스타일: AppColors.primary, flat black/white, 정사각 블랙 아이콘, sharp border
 // ═══════════════════════════════════════════════════════════════
 
 class GroupOrderLandingScreen extends StatefulWidget {
@@ -21,18 +22,19 @@ class GroupOrderLandingScreen extends StatefulWidget {
   const GroupOrderLandingScreen({super.key, this.product});
 
   @override
-  State<GroupOrderLandingScreen> createState() => _GroupOrderLandingScreenState();
+  State<GroupOrderLandingScreen> createState() =>
+      _GroupOrderLandingScreenState();
 }
 
 class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabCtrl;
 
-  static const _kBlack  = Color(0xFF1A1A1A);
-  static const _kBg     = Color(0xFFF8F8F8);
+  static const _kBlack = AppColors.primary;
+  static const _kBg = AppColors.background;
   static const _kBorder = Color(0xFFE8E8E8);
-  static const _kGrey4  = Color(0xFF444444);
-  static const _kGrey6  = Color(0xFF666666);
+  static const _kGrey4 = AppColors.textSecondary;
+  static const _kGrey6 = AppColors.textSecondary;
 
   @override
   void initState() {
@@ -78,7 +80,6 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             context.loc.t('단체주문하기', '단체주문하기'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
-
         ),
         body: _buildGuideTab(),
       ),
@@ -181,25 +182,33 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   color: Colors.white,
                   child: const Text(
                     'GROUP ORDER',
                     style: TextStyle(
-                      color: _kBlack, fontSize: 10,
-                      fontWeight: FontWeight.w800, letterSpacing: 1.5,
+                      color: _kBlack,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   context.loc.t('단체주문_안내', '단체주문 안내'),
-                  style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  context.loc.t('5명_이상_단체_맞춤_제작__a802bf', '5명 이상 단체 맞춤 제작 전문\n최고의 품질로 특별한 유니폼을 만들어드립니다.'),
-                  style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.5),
+                  context.loc.t('5명_이상_단체_맞춤_제작__a802bf',
+                      '5명 이상 단체 맞춤 제작 전문\n최고의 품질로 특별한 유니폼을 만들어드립니다.'),
+                  style: TextStyle(
+                      color: Colors.white70, fontSize: 12, height: 1.5),
                 ),
               ],
             ),
@@ -207,22 +216,42 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           const SizedBox(height: 20),
 
           // 주문 절차
-          _buildSectionTitle(Icons.assignment_outlined, context.loc.t('주문_절차', '주문 절차')),
+          _buildSectionTitle(
+              Icons.assignment_outlined, context.loc.t('주문_절차', '주문 절차')),
           const SizedBox(height: 12),
-          _buildStepCard('1', context.loc.t('상품_선택___주문서_작성', '상품 선택 & 주문서 작성'), context.loc.t('원하는_상품을_선택하고_단체주문서를_작성합니다', '원하는 상품을 선택하고 단체주문서를 작성합니다.')),
-          _buildStepCard('2', context.loc.t('디자인_협의', '디자인 협의'), context.loc.t('컬러_로고_마킹_등_맞춤_디자인을_협의합니다', '컬러, 로고, 마킹 등 맞춤 디자인을 협의합니다.')),
-          _buildStepCard('3', context.loc.t('견적_확인___결제', '견적 확인 & 결제'), context.loc.t('수량별_최종_견적을_확인하고_주문을_확정합니다', '수량별 최종 견적을 확인하고 주문을 확정합니다.')),
-          _buildStepCard('4', context.loc.t('제작___배송', '제작 & 배송'), context.loc.t('제작_후_일괄_배송_또는_분_c0067b', '제작 후 일괄 배송 또는 분배 배송을 선택합니다.'), isLast: true),
+          _buildStepCard(
+              '1',
+              context.loc.t('상품_선택___주문서_작성', '상품 선택 & 주문서 작성'),
+              context.loc.t(
+                  '원하는_상품을_선택하고_단체주문서를_작성합니다', '원하는 상품을 선택하고 단체주문서를 작성합니다.')),
+          _buildStepCard(
+              '2',
+              context.loc.t('디자인_협의', '디자인 협의'),
+              context.loc.t(
+                  '컬러_로고_마킹_등_맞춤_디자인을_협의합니다', '컬러, 로고, 마킹 등 맞춤 디자인을 협의합니다.')),
+          _buildStepCard(
+              '3',
+              context.loc.t('견적_확인___결제', '견적 확인 & 결제'),
+              context.loc.t(
+                  '수량별_최종_견적을_확인하고_주문을_확정합니다', '수량별 최종 견적을 확인하고 주문을 확정합니다.')),
+          _buildStepCard(
+              '4',
+              context.loc.t('제작___배송', '제작 & 배송'),
+              context.loc
+                  .t('제작_후_일괄_배송_또는_분_c0067b', '제작 후 일괄 배송 또는 분배 배송을 선택합니다.'),
+              isLast: true),
           const SizedBox(height: 20),
 
           // 주문 조건
-          _buildSectionTitle(Icons.check_circle_outline, context.loc.t('주문_조건', '주문 조건')),
+          _buildSectionTitle(
+              Icons.check_circle_outline, context.loc.t('주문_조건', '주문 조건')),
           const SizedBox(height: 12),
           _buildConditionTable(),
           const SizedBox(height: 20),
 
           // 커스텀 옵션
-          _buildSectionTitle(Icons.palette_outlined, context.loc.t('커스텀_옵션', '커스텀 옵션')),
+          _buildSectionTitle(
+              Icons.palette_outlined, context.loc.t('커스텀_옵션', '커스텀 옵션')),
           const SizedBox(height: 12),
           _buildInfoLines([
             context.loc.t('팀명___로고___번호_마킹_ae11e1', '• 팀명 / 로고 / 번호 마킹 가능'),
@@ -233,13 +262,17 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           const SizedBox(height: 20),
 
           // 주의사항
-          _buildSectionTitle(Icons.warning_amber_outlined, context.loc.t('주의사항', '주의사항')),
+          _buildSectionTitle(
+              Icons.warning_amber_outlined, context.loc.t('주의사항', '주의사항')),
           const SizedBox(height: 12),
           _buildNoticeBox([
-            context.loc.t('주문_확정_후_디자인_변경__628958', '주문 확정 후 디자인 변경 시 추가 비용이 발생할 수 있습니다.'),
-            context.loc.t('색상은_모니터_환경에_따라__a7b8cd', '색상은 모니터 환경에 따라 실제와 다소 차이가 있을 수 있습니다.'),
+            context.loc.t('주문_확정_후_디자인_변경__628958',
+                '주문 확정 후 디자인 변경 시 추가 비용이 발생할 수 있습니다.'),
+            context.loc.t('색상은_모니터_환경에_따라__a7b8cd',
+                '색상은 모니터 환경에 따라 실제와 다소 차이가 있을 수 있습니다.'),
             context.loc.t('단체주문_상품은_교환_환불이_61f5d0', '단체주문 상품은 교환/환불이 불가합니다.'),
-            context.loc.t('사이즈_측정은_주문서_작성__0081c8', '사이즈 측정은 주문서 작성 전 반드시 확인해주세요.'),
+            context.loc
+                .t('사이즈_측정은_주문서_작성__0081c8', '사이즈 측정은 주문서 작성 전 반드시 확인해주세요.'),
           ]),
           const SizedBox(height: 20),
 
@@ -283,10 +316,12 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle(Icons.edit_note_outlined, context.loc.t('단체주문서_작성', '단체주문서 작성')),
+          _buildSectionTitle(
+              Icons.edit_note_outlined, context.loc.t('단체주문서_작성', '단체주문서 작성')),
           const SizedBox(height: 12),
           Text(
-            context.loc.t('상품을_선택하지_않고_바로__efb285', '상품을 선택하지 않고 바로 단체주문서를 작성할 수 있습니다.\n아래 카테고리에서 원하는 상품 유형을 선택해주세요.'),
+            context.loc.t('상품을_선택하지_않고_바로__efb285',
+                '상품을 선택하지 않고 바로 단체주문서를 작성할 수 있습니다.\n아래 카테고리에서 원하는 상품 유형을 선택해주세요.'),
             style: TextStyle(fontSize: 12, color: _kGrey6, height: 1.6),
           ),
           const SizedBox(height: 20),
@@ -295,31 +330,36 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           _buildOrderTypeCard(
             icon: Icons.sports_rounded,
             title: context.loc.t('싱글렛_A타입_세트', '싱글렛 A타입 세트'),
-            subtitle: context.loc.t('싱글렛___타이즈_세트____ada1cf', '싱글렛 + 타이즈 세트 / 육상·인라인·마라톤'),
+            subtitle: context.loc
+                .t('싱글렛___타이즈_세트____ada1cf', '싱글렛 + 타이즈 세트 / 육상·인라인·마라톤'),
           ),
           const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.fitness_center_rounded,
             title: context.loc.t('싱글렛_B타입', '싱글렛 B타입'),
-            subtitle: context.loc.t('싱글렛_단품___헬스_크로스_1bce31', '싱글렛 단품 / 헬스·크로스핏·복싱'),
+            subtitle:
+                context.loc.t('싱글렛_단품___헬스_크로스_1bce31', '싱글렛 단품 / 헬스·크로스핏·복싱'),
           ),
           const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.directions_run_rounded,
             title: context.loc.t('스킨슈트', '스킨슈트'),
-            subtitle: context.loc.t('원피스_전신_경기복___사이_bc1d90', '원피스 전신 경기복 / 사이클·트라이애슬론'),
+            subtitle: context.loc
+                .t('원피스_전신_경기복___사이_bc1d90', '원피스 전신 경기복 / 사이클·트라이애슬론'),
           ),
           const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.dry_cleaning_rounded,
             title: context.loc.t('트레이닝복_세트', '트레이닝복 세트'),
-            subtitle: context.loc.t('상의___하의_트레이닝_세트_0bebc1', '상의 + 하의 트레이닝 세트 / 팀복·동호회복'),
+            subtitle: context.loc
+                .t('상의___하의_트레이닝_세트_0bebc1', '상의 + 하의 트레이닝 세트 / 팀복·동호회복'),
           ),
           const SizedBox(height: 8),
           _buildOrderTypeCard(
             icon: Icons.list_alt_rounded,
             title: context.loc.t('기타___직접_작성', '기타 / 직접 작성'),
-            subtitle: context.loc.t('위에_없는_상품이나_복합_주_244706', '위에 없는 상품이나 복합 주문'),
+            subtitle:
+                context.loc.t('위에_없는_상품이나_복합_주_244706', '위에 없는 상품이나 복합 주문'),
           ),
           const SizedBox(height: 24),
 
@@ -327,11 +367,12 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           Container(
             padding: const EdgeInsets.all(14),
             decoration: const BoxDecoration(
-              color: Color(0xFFF8F8F8),
+              color: AppColors.background,
               border: Border(left: BorderSide(color: _kBlack, width: 3)),
             ),
             child: Text(
-              context.loc.t('상품_상세_페이지에서_단체주_e5e1e7', '상품 상세 페이지에서 단체주문서 작성 시 상품 정보가 자동으로 입력됩니다.\n더 빠른 주문을 원하시면 상품을 먼저 선택해주세요.'),
+              context.loc.t('상품_상세_페이지에서_단체주_e5e1e7',
+                  '상품 상세 페이지에서 단체주문서 작성 시 상품 정보가 자동으로 입력됩니다.\n더 빠른 주문을 원하시면 상품을 먼저 선택해주세요.'),
               style: TextStyle(fontSize: 11, color: _kGrey4, height: 1.5),
             ),
           ),
@@ -357,14 +398,16 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       Expanded(
         child: Text(
           title,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: _kBlack),
+          style: const TextStyle(
+              fontSize: 15, fontWeight: FontWeight.w800, color: _kBlack),
         ),
       ),
     ]);
   }
 
   // 번호가 있는 단계 카드
-  Widget _buildStepCard(String step, String title, String desc, {bool isLast = false}) {
+  Widget _buildStepCard(String step, String title, String desc,
+      {bool isLast = false}) {
     return Container(
       margin: EdgeInsets.only(bottom: isLast ? 0 : 1),
       padding: const EdgeInsets.all(14),
@@ -374,12 +417,16 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       ),
       child: Row(children: [
         Container(
-          width: 28, height: 28,
+          width: 28,
+          height: 28,
           color: _kBlack,
           child: Center(
             child: Text(
               step,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13),
             ),
           ),
         ),
@@ -389,10 +436,14 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title,
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: _kBlack)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: _kBlack)),
               const SizedBox(height: 2),
               Text(desc,
-                  style: const TextStyle(fontSize: 11, color: _kGrey6, height: 1.5)),
+                  style: const TextStyle(
+                      fontSize: 11, color: _kGrey6, height: 1.5)),
             ],
           ),
         ),
@@ -403,9 +454,22 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   // 주문 조건 테이블
   Widget _buildConditionTable() {
     final items = [
-      {'icon': Icons.group_outlined,           'title': context.loc.t('최소_주문_수량', '최소 주문 수량'), 'desc': context.loc.t('k_5벌_이상', '5벌 이상')},
-      {'icon': Icons.local_shipping_outlined,   'title': context.loc.t('배송', '배송'),                  'desc': context.loc.t('k_30만원_이상_무료_미만_별도_해외_국가별', '국내: 30만원 이상 무료 (미만 4,000원)\n해외: 국가별 상이')},
-      {'icon': Icons.schedule_outlined,         'title': context.loc.t('제작_기간', '제작 기간'),         'desc': context.loc.t('주문_확정_후_1421일', '주문 확정 후 14~21일')},
+      {
+        'icon': Icons.group_outlined,
+        'title': context.loc.t('최소_주문_수량', '최소 주문 수량'),
+        'desc': context.loc.t('k_5벌_이상', '5벌 이상')
+      },
+      {
+        'icon': Icons.local_shipping_outlined,
+        'title': context.loc.t('배송', '배송'),
+        'desc': context.loc.t('k_30만원_이상_무료_미만_별도_해외_국가별',
+            '국내: 30만원 이상 무료 (미만 4,000원)\n해외: 국가별 상이')
+      },
+      {
+        'icon': Icons.schedule_outlined,
+        'title': context.loc.t('제작_기간', '제작 기간'),
+        'desc': context.loc.t('주문_확정_후_1421일', '주문 확정 후 14~21일')
+      },
     ];
     return Container(
       decoration: BoxDecoration(
@@ -424,7 +488,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                 const SizedBox(width: 12),
                 Text(
                   item['title'] as String,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _kBlack),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: _kBlack),
                 ),
                 const Spacer(),
                 Flexible(
@@ -454,10 +521,14 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: lines.map((l) => Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Text(l, style: const TextStyle(fontSize: 12, height: 1.6, color: _kGrey4)),
-        )).toList(),
+        children: lines
+            .map((l) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(l,
+                      style: const TextStyle(
+                          fontSize: 12, height: 1.6, color: _kGrey4)),
+                ))
+            .toList(),
       ),
     );
   }
@@ -468,23 +539,31 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: const BoxDecoration(
-        color: Color(0xFFF8F8F8),
+        color: AppColors.background,
         border: Border(left: BorderSide(color: _kBlack, width: 3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: notices.map((n) => Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('• ', style: TextStyle(color: _kBlack, fontWeight: FontWeight.w900, fontSize: 13)),
-              Expanded(
-                child: Text(n, style: const TextStyle(fontSize: 11, color: _kGrey4, height: 1.6)),
-              ),
-            ],
-          ),
-        )).toList(),
+        children: notices
+            .map((n) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('• ',
+                          style: TextStyle(
+                              color: _kBlack,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13)),
+                      Expanded(
+                        child: Text(n,
+                            style: const TextStyle(
+                                fontSize: 11, color: _kGrey4, height: 1.6)),
+                      ),
+                    ],
+                  ),
+                ))
+            .toList(),
       ),
     );
   }
@@ -501,7 +580,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             SizedBox(width: 8),
             Text(
               context.loc.t('카카오톡_채널_2fit_mall', '카카오톡 채널: @2fit-mall'),
-              style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700),
             ),
           ]),
           SizedBox(height: 8),
@@ -509,7 +591,8 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             Icon(Icons.email_rounded, size: 16, color: Colors.white),
             SizedBox(width: 8),
             Text(
-              context.loc.t('이메일_chw243527_gmail_com', '이메일: chw243527@gmail.com'),
+              context.loc
+                  .t('이메일_chw243527_gmail_com', '이메일: chw243527@gmail.com'),
               style: TextStyle(color: Colors.white, fontSize: 12),
             ),
           ]),
@@ -543,7 +626,8 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
         ),
         child: Row(children: [
           Container(
-            width: 38, height: 38,
+            width: 38,
+            height: 38,
             color: _kBlack,
             child: Icon(icon, size: 20, color: Colors.white),
           ),
@@ -553,7 +637,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: _kBlack)),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color: _kBlack)),
                 const SizedBox(height: 2),
                 Text(subtitle,
                     style: const TextStyle(fontSize: 11, color: _kGrey6)),

@@ -1,3 +1,4 @@
+import '../utils/theme.dart';
 // not_found_screen.dart
 // ══════════════════════════════════════════════════════════════
 // 404 에러 페이지 — 잘못된 URL 접근 시 표시
@@ -27,13 +28,13 @@ class NotFoundScreen extends StatelessWidget {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A2E).withValues(alpha: 0.06),
+                    color: AppColors.primary.withValues(alpha: 0.06),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.search_off_rounded,
                     size: 56,
-                    color: Color(0xFF1A1A2E),
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -44,7 +45,7 @@ class NotFoundScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 72,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF1A1A2E),
+                    color: AppColors.primary,
                     letterSpacing: -2,
                     height: 1,
                   ),
@@ -57,18 +58,19 @@ class NotFoundScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A1A2E),
+                    color: AppColors.primary,
                   ),
                 ),
                 const SizedBox(height: 8),
 
                 // 서브 메시지
                 Text(
-                  context.loc.t('요청하신 페이지가 존재하지 않거나 이동되었을 수 있습니다', '요청하신 페이지가 존재하지 않거나\n이동되었을 수 있습니다.'),
+                  context.loc.t('요청하신 페이지가 존재하지 않거나 이동되었을 수 있습니다',
+                      '요청하신 페이지가 존재하지 않거나\n이동되었을 수 있습니다.'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: const Color(0xFF1A1A2E).withValues(alpha: 0.55),
+                    color: AppColors.primary.withValues(alpha: 0.55),
                     height: 1.6,
                   ),
                 ),
@@ -95,7 +97,7 @@ class NotFoundScreen extends StatelessWidget {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1A1A2E),
+                      backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -130,9 +132,9 @@ class NotFoundScreen extends StatelessWidget {
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF1A1A2E),
+                      foregroundColor: AppColors.primary,
                       side: const BorderSide(
-                        color: Color(0xFF1A1A2E),
+                        color: AppColors.primary,
                         width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(
@@ -151,7 +153,7 @@ class NotFoundScreen extends StatelessWidget {
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1A1A2E),
+                        color: AppColors.primary,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Center(
@@ -171,7 +173,7 @@ class NotFoundScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1A1A2E).withValues(alpha: 0.5),
+                        color: AppColors.primary.withValues(alpha: 0.5),
                         letterSpacing: 1,
                       ),
                     ),

@@ -64,7 +64,8 @@ class _NoticesScreenState extends State<NoticesScreen> {
         builder: (context, provider, _) {
           final notices = provider.activeNotices;
           if (provider.isLoading && notices.isEmpty) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+            return const Center(
+                child: CircularProgressIndicator(color: AppColors.primary));
           }
           return RefreshIndicator(
             color: AppColors.primary,
@@ -91,7 +92,10 @@ class _NoticesScreenState extends State<NoticesScreen> {
                       SizedBox(height: 12),
                       Text(
                         '배송, 발매, 이벤트와 운영 안내를 확인하세요.',
-                        style: TextStyle(color: Color(0xFFD2D0CA), fontSize: 13, height: 1.5),
+                        style: TextStyle(
+                            color: Color(0xFFD2D0CA),
+                            fontSize: 13,
+                            height: 1.5),
                       ),
                     ],
                   ),
@@ -99,20 +103,24 @@ class _NoticesScreenState extends State<NoticesScreen> {
                 const SizedBox(height: 18),
                 if (notices.isEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 54),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 54),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       border: Border.all(color: AppColors.border),
                     ),
                     child: const Column(
                       children: [
-                        Icon(Icons.campaign_outlined, color: AppColors.textHint, size: 32),
+                        Icon(Icons.campaign_outlined,
+                            color: AppColors.textHint, size: 32),
                         SizedBox(height: 14),
-                        Text('등록된 공지사항이 없습니다.', style: TextStyle(fontWeight: FontWeight.w700)),
+                        Text('등록된 공지사항이 없습니다.',
+                            style: TextStyle(fontWeight: FontWeight.w700)),
                         SizedBox(height: 4),
                         Text('새 소식은 이 페이지에서 언제든 확인할 수 있습니다.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                            style: TextStyle(
+                                color: AppColors.textSecondary, fontSize: 13)),
                       ],
                     ),
                   )
@@ -135,13 +143,16 @@ class _NoticesScreenState extends State<NoticesScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 15),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(16, 16, 16, 15),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               _themeLabel(notice.theme),
@@ -166,14 +177,18 @@ class _NoticesScreenState extends State<NoticesScreen> {
                                             const SizedBox(height: 8),
                                             Text(
                                               _date(notice.createdAt),
-                                              style: const TextStyle(color: AppColors.textHint, fontSize: 11),
+                                              style: const TextStyle(
+                                                  color: AppColors.textHint,
+                                                  fontSize: 11),
                                             ),
                                           ],
                                         ),
                                       ),
                                       const SizedBox(width: 12),
                                       Icon(
-                                        expanded ? Icons.remove_rounded : Icons.add_rounded,
+                                        expanded
+                                            ? Icons.remove_rounded
+                                            : Icons.add_rounded,
                                         color: AppColors.primary,
                                         size: 20,
                                       ),
@@ -181,16 +196,22 @@ class _NoticesScreenState extends State<NoticesScreen> {
                                   ),
                                 ),
                                 if (expanded) ...[
-                                  const Divider(height: 1, color: AppColors.border),
+                                  const Divider(
+                                      height: 1, color: AppColors.border),
                                   Padding(
-                                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                                    padding: const EdgeInsets.fromLTRB(
+                                        16, 16, 16, 20),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        if (notice.imageUrl.trim().isNotEmpty) ...[
+                                        if (notice.imageUrl
+                                            .trim()
+                                            .isNotEmpty) ...[
                                           AspectRatio(
                                             aspectRatio: 16 / 9,
-                                            child: NetImage(notice.imageUrl, fit: BoxFit.cover),
+                                            child: NetImage(notice.imageUrl,
+                                                fit: BoxFit.cover),
                                           ),
                                           const SizedBox(height: 16),
                                         ],

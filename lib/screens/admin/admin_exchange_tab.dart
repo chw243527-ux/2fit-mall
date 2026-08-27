@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/fcm_service.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 
+import '../../utils/theme.dart';
 // ═══════════════════════════════════════════════════════
 // 관리자 교환/반품 관리 탭
 // ═══════════════════════════════════════════════════════
@@ -36,17 +37,22 @@ class _AdminExchangeTabState extends State<AdminExchangeTab>
       children: [
         // ── 탭바 ──
         Container(
-          color: const Color(0xFF1A1A2E),
+          color: AppColors.primary,
           child: TabBar(
             controller: _tabCtrl,
             indicatorColor: const Color(0xFF4FC3F7),
             indicatorWeight: 3,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white54,
-            labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            labelStyle:
+                const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
             tabs: const [
-              Tab(icon: Icon(Icons.swap_horiz_rounded, size: 16), text: '교환 목록'),
-              Tab(icon: Icon(Icons.assignment_return_outlined, size: 16), text: '반품 목록'),
+              Tab(
+                  icon: Icon(Icons.swap_horiz_rounded, size: 16),
+                  text: '교환 목록'),
+              Tab(
+                  icon: Icon(Icons.assignment_return_outlined, size: 16),
+                  text: '반품 목록'),
             ],
           ),
         ),
@@ -84,13 +90,19 @@ class _ExchangeList extends StatelessWidget {
         final docs = snap.data?.docs ?? [];
         if (docs.isEmpty) {
           return Center(
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(type == 'exchange'
-                  ? Icons.swap_horiz_rounded
-                  : Icons.assignment_return_outlined,
-                  size: 48, color: Colors.grey[300]),
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(
+                  type == 'exchange'
+                      ? Icons.swap_horiz_rounded
+                      : Icons.assignment_return_outlined,
+                  size: 48,
+                  color: Colors.grey[300]),
               const SizedBox(height: 12),
-              Text(type == 'exchange' ? context.loc.t('교환 요청이 없습니다', '교환 요청이 없습니다.') : context.loc.t('반품 요청이 없습니다', '반품 요청이 없습니다.'),
+              Text(
+                  type == 'exchange'
+                      ? context.loc.t('교환 요청이 없습니다', '교환 요청이 없습니다.')
+                      : context.loc.t('반품 요청이 없습니다', '반품 요청이 없습니다.'),
                   style: TextStyle(color: Colors.grey[500], fontSize: 14)),
             ]),
           );
@@ -115,24 +127,31 @@ class _ExchangeCard extends StatelessWidget {
   final String docId;
   final Map<String, dynamic> data;
   final String type;
-  const _ExchangeCard({required this.docId, required this.data, required this.type});
+  const _ExchangeCard(
+      {required this.docId, required this.data, required this.type});
 
   String get _status => data['status'] as String? ?? 'pending';
   bool get _isDone => _status == 'completed';
 
   Color get _statusColor {
     switch (_status) {
-      case 'completed': return const Color(0xFF16A34A);
-      case 'processing': return const Color(0xFF1565C0);
-      default: return const Color(0xFFFF8F00);
+      case 'completed':
+        return const Color(0xFF16A34A);
+      case 'processing':
+        return AppColors.info;
+      default:
+        return const Color(0xFFFF8F00);
     }
   }
 
   String get _statusLabel {
     switch (_status) {
-      case 'completed': return '완료';
-      case 'processing': return '처리중';
-      default: return '접수';
+      case 'completed':
+        return '완료';
+      case 'processing':
+        return '처리중';
+      default:
+        return '접수';
     }
   }
 
@@ -152,14 +171,19 @@ class _ExchangeCard extends StatelessWidget {
     final adminNote = data['adminNote'] as String? ?? '';
     final imageUrls = (data['imageUrls'] as List?)?.cast<String>() ?? [];
 
-    final dateStr = createdAt.length >= 16 ? createdAt.substring(0, 16).replaceAll('T', ' ') : createdAt;
+    final dateStr = createdAt.length >= 16
+        ? createdAt.substring(0, 16).replaceAll('T', ' ')
+        : createdAt;
 
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _isDone ? const Color(0xFFBBF7D0) : Colors.grey[200]!),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)],
+        border: Border.all(
+            color: _isDone ? const Color(0xFFBBF7D0) : Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8)
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -168,8 +192,10 @@ class _ExchangeCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: _isDone ? const Color(0xFFF0FFF4) : const Color(0xFFF8F9FA),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              color:
+                  _isDone ? const Color(0xFFF0FFF4) : const Color(0xFFF8F9FA),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
             ),
             child: Row(children: [
               // 상태 배지
@@ -178,50 +204,67 @@ class _ExchangeCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: _statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: _statusColor.withValues(alpha: 0.3)),
+                  border:
+                      Border.all(color: _statusColor.withValues(alpha: 0.3)),
                 ),
                 child: Text(_statusLabel,
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _statusColor)),
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: _statusColor)),
               ),
               const SizedBox(width: 8),
               // 유형 배지
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (type == 'exchange'
-                      ? const Color(0xFF1565C0)
-                      : Colors.orange).withValues(alpha: 0.1),
+                  color:
+                      (type == 'exchange' ? AppColors.info : AppColors.warning)
+                          .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(type == 'exchange' ? context.loc.t('교환', '교환') : context.loc.t('반품', '반품'),
+                child: Text(
+                    type == 'exchange'
+                        ? context.loc.t('교환', '교환')
+                        : context.loc.t('반품', '반품'),
                     style: TextStyle(
-                      fontSize: 11, fontWeight: FontWeight.w700,
-                      color: type == 'exchange' ? const Color(0xFF1565C0) : Colors.orange,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: type == 'exchange'
+                          ? AppColors.info
+                          : AppColors.warning,
                     )),
               ),
               const Spacer(),
-              Text(dateStr, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+              Text(dateStr,
+                  style: TextStyle(fontSize: 11, color: Colors.grey[500])),
             ]),
           ),
 
           // ── 본문 ──
           Padding(
             padding: const EdgeInsets.all(14),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               // 주문번호 + 신청자
               _infoRow(context.loc.t('주문번호', '주문번호'), orderId, isBold: true),
-              if (userName.isNotEmpty) _infoRow(context.loc.t('신청자', '신청자'), userName),
+              if (userName.isNotEmpty)
+                _infoRow(context.loc.t('신청자', '신청자'), userName),
               const SizedBox(height: 8),
               const Divider(height: 1),
               const SizedBox(height: 8),
               // 사유
               _infoRow(context.loc.t('사유', '사유'), reason),
-              if (detail.isNotEmpty) _infoRow(context.loc.t('상세', '상세'), detail),
+              if (detail.isNotEmpty)
+                _infoRow(context.loc.t('상세', '상세'), detail),
               // 첨부 사진
               if (imageUrls.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(context.loc.t('첨부 사진 _장', '첨부 사진 (${imageUrls.length}장)'),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555))),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary)),
                 const SizedBox(height: 6),
                 SizedBox(
                   height: 80,
@@ -235,7 +278,8 @@ class _ExchangeCard extends StatelessWidget {
                         builder: (_) => Dialog(
                           backgroundColor: Colors.black,
                           child: InteractiveViewer(
-                            child: Image.network(imageUrls[i], fit: BoxFit.contain),
+                            child: Image.network(imageUrls[i],
+                                fit: BoxFit.contain),
                           ),
                         ),
                       ),
@@ -243,12 +287,15 @@ class _ExchangeCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
                           imageUrls[i],
-                          width: 80, height: 80,
+                          width: 80,
+                          height: 80,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
-                            width: 80, height: 80,
+                            width: 80,
+                            height: 80,
                             color: Colors.grey[100],
-                            child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+                            child: const Icon(Icons.broken_image_outlined,
+                                color: Colors.grey),
                           ),
                         ),
                       ),
@@ -257,14 +304,23 @@ class _ExchangeCard extends StatelessWidget {
                 ),
               ],
               // 수거방법
-              _infoRow(context.loc.t('수거방법', '수거방법'), pickupMethod == 'pickup' ? context.loc.t('직접수거 택배사 방문', '직접수거 (택배사 방문)') : context.loc.t('이미 발송', '이미 발송')),
+              _infoRow(
+                  context.loc.t('수거방법', '수거방법'),
+                  pickupMethod == 'pickup'
+                      ? context.loc.t('직접수거 택배사 방문', '직접수거 (택배사 방문)')
+                      : context.loc.t('이미 발송', '이미 발송')),
               // 운송장 (이미 발송한 경우)
               if (returnTracking.isNotEmpty) ...[
-                _infoRow(context.loc.t('반송 택배사', '반송 택배사'), returnCompany.isNotEmpty ? returnCompany : '-'),
+                _infoRow(context.loc.t('반송 택배사', '반송 택배사'),
+                    returnCompany.isNotEmpty ? returnCompany : '-'),
                 _infoRow(context.loc.t('반송 운송장', '반송 운송장'), returnTracking),
               ],
               // 배송비
-              _infoRow(context.loc.t('배송비', '배송비'), shippingBySelf ? context.loc.t('고객 부담', '고객 부담') : context.loc.t('판매자 부담 무료', '판매자 부담 (무료)')),
+              _infoRow(
+                  context.loc.t('배송비', '배송비'),
+                  shippingBySelf
+                      ? context.loc.t('고객 부담', '고객 부담')
+                      : context.loc.t('판매자 부담 무료', '판매자 부담 (무료)')),
               // 결제수단 (고객부담인 경우)
               if (shippingBySelf && payMethod.isNotEmpty)
                 _infoRow(context.loc.t('결제수단', '결제수단'), _payLabel(payMethod)),
@@ -278,12 +334,17 @@ class _ExchangeCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: const Color(0xFFFFCC80)),
                   ),
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Icon(Icons.edit_note_rounded, size: 14, color: Color(0xFFFF8F00)),
-                    const SizedBox(width: 6),
-                    Expanded(child: Text(adminNote,
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF5D4037)))),
-                  ]),
+                  child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.edit_note_rounded,
+                            size: 14, color: Color(0xFFFF8F00)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                            child: Text(adminNote,
+                                style: const TextStyle(
+                                    fontSize: 12, color: Color(0xFF5D4037)))),
+                      ]),
                 ),
               ],
             ]),
@@ -299,9 +360,10 @@ class _ExchangeCard extends StatelessWidget {
                   Expanded(
                     child: _ActionButton(
                       label: '처리중으로 변경',
-                      color: const Color(0xFF1565C0),
+                      color: AppColors.info,
                       icon: Icons.autorenew_rounded,
-                      onTap: () => _changeStatus(context, 'processing', userId, orderId),
+                      onTap: () =>
+                          _changeStatus(context, 'processing', userId, orderId),
                     ),
                   ),
                 if (_status == 'pending') const SizedBox(width: 8),
@@ -320,9 +382,14 @@ class _ExchangeCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
               child: Row(children: [
-                const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFF16A34A)),
+                const Icon(Icons.check_circle_rounded,
+                    size: 16, color: Color(0xFF16A34A)),
                 const SizedBox(width: 6),
-                Text(context.loc.t('처리 완료', '처리 완료'), style: TextStyle(fontSize: 13, color: Color(0xFF16A34A), fontWeight: FontWeight.w700)),
+                Text(context.loc.t('처리 완료', '처리 완료'),
+                    style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF16A34A),
+                        fontWeight: FontWeight.w700)),
               ]),
             ),
         ],
@@ -331,37 +398,47 @@ class _ExchangeCard extends StatelessWidget {
   }
 
   String _payLabel(String key) {
-    final map = {'card': '신용카드', 'kakao': '카카오페이', 'payco': '페이코', 'toss': '토스페이'};
+    final map = {
+      'card': '신용카드',
+      'kakao': '카카오페이',
+      'payco': '페이코',
+      'toss': '토스페이'
+    };
     return map[key] ?? key;
   }
 
   Widget _infoRow(String label, String value, {bool isBold = false}) => Padding(
-    padding: const EdgeInsets.only(bottom: 4),
-    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SizedBox(
-        width: 72,
-        child: Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
-      ),
-      Expanded(
-        child: Text(value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: isBold ? FontWeight.w700 : FontWeight.normal,
-              color: isBold ? const Color(0xFF1A1A2E) : Colors.black87,
-            )),
-      ),
-    ]),
-  );
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(
+            width: 72,
+            child: Text(label,
+                style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+          ),
+          Expanded(
+            child: Text(value,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: isBold ? FontWeight.w700 : FontWeight.normal,
+                  color: isBold ? AppColors.primary : Colors.black87,
+                )),
+          ),
+        ]),
+      );
 
-  Future<void> _changeStatus(
-      BuildContext context, String newStatus, String userId, String orderId) async {
+  Future<void> _changeStatus(BuildContext context, String newStatus,
+      String userId, String orderId) async {
     await FirebaseFirestore.instance
         .collection('exchange_requests')
         .doc(docId)
         .update({'status': newStatus});
 
-    final typeLabel = type == 'exchange' ? context.loc.t('교환', '교환') : context.loc.t('반품', '반품');
-    final statusLabel = newStatus == 'processing' ? context.loc.t('처리중', '처리중') : context.loc.t('완료', '완료');
+    final typeLabel = type == 'exchange'
+        ? context.loc.t('교환', '교환')
+        : context.loc.t('반품', '반품');
+    final statusLabel = newStatus == 'processing'
+        ? context.loc.t('처리중', '처리중')
+        : context.loc.t('완료', '완료');
 
     // FCM 알림
     if (userId.isNotEmpty) {
@@ -379,13 +456,14 @@ class _ExchangeCard extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('✅ $typeLabel 요청 → $statusLabel 변경 완료'),
-          backgroundColor: const Color(0xFF1565C0),
+          backgroundColor: AppColors.info,
         ),
       );
     }
   }
 
-  void _showCompleteDialog(BuildContext context, String userId, String orderId) {
+  void _showCompleteDialog(
+      BuildContext context, String userId, String orderId) {
     showDialog(
       context: context,
       builder: (ctx) => _CompleteDialog(
@@ -404,7 +482,11 @@ class _ActionButton extends StatelessWidget {
   final Color color;
   final IconData icon;
   final VoidCallback onTap;
-  const _ActionButton({required this.label, required this.color, required this.icon, required this.onTap});
+  const _ActionButton(
+      {required this.label,
+      required this.color,
+      required this.icon,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -420,7 +502,9 @@ class _ActionButton extends StatelessWidget {
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           Icon(icon, size: 15, color: color),
           const SizedBox(width: 6),
-          Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 13, fontWeight: FontWeight.w700, color: color)),
         ]),
       ),
     );
@@ -434,8 +518,10 @@ class _CompleteDialog extends StatefulWidget {
   final String userId;
   final String orderId;
   const _CompleteDialog({
-    required this.docId, required this.type,
-    required this.userId, required this.orderId,
+    required this.docId,
+    required this.type,
+    required this.userId,
+    required this.orderId,
   });
   @override
   State<_CompleteDialog> createState() => _CompleteDialogState();
@@ -453,11 +539,14 @@ class _CompleteDialogState extends State<_CompleteDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final typeLabel = widget.type == 'exchange' ? context.loc.t('교환', '교환') : context.loc.t('반품', '반품');
+    final typeLabel = widget.type == 'exchange'
+        ? context.loc.t('교환', '교환')
+        : context.loc.t('반품', '반품');
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(children: [
-        const Icon(Icons.check_circle_outline_rounded, color: Color(0xFF16A34A), size: 22),
+        const Icon(Icons.check_circle_outline_rounded,
+            color: Color(0xFF16A34A), size: 22),
         const SizedBox(width: 8),
         Text('$typeLabel 완료 처리',
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
@@ -471,7 +560,9 @@ class _CompleteDialogState extends State<_CompleteDialog> {
           maxLines: 3,
           style: const TextStyle(fontSize: 13),
           decoration: InputDecoration(
-            hintText: context.loc.t('고객에게 전달할 메시지 선택사항 예 _ 상품이 발송되었습니다 운송장 1234567890', '고객에게 전달할 메시지 (선택사항)\n예: $typeLabel 상품이 발송되었습니다. 운송장: 1234567890'),
+            hintText: context.loc.t(
+                '고객에게 전달할 메시지 선택사항 예 _ 상품이 발송되었습니다 운송장 1234567890',
+                '고객에게 전달할 메시지 (선택사항)\n예: $typeLabel 상품이 발송되었습니다. 운송장: 1234567890'),
             hintStyle: TextStyle(fontSize: 12, color: Colors.grey[400]),
             contentPadding: const EdgeInsets.all(12),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -490,8 +581,11 @@ class _CompleteDialogState extends State<_CompleteDialog> {
           ),
           onPressed: _loading ? null : _submit,
           child: _loading
-              ? const SizedBox(width: 16, height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white))
               : Text(context.loc.t('완료 처리  알림 발송', '완료 처리 + 알림 발송')),
         ),
       ],
@@ -500,7 +594,9 @@ class _CompleteDialogState extends State<_CompleteDialog> {
 
   Future<void> _submit() async {
     setState(() => _loading = true);
-    final typeLabel = widget.type == 'exchange' ? context.loc.t('교환', '교환') : context.loc.t('반품', '반품');
+    final typeLabel = widget.type == 'exchange'
+        ? context.loc.t('교환', '교환')
+        : context.loc.t('반품', '반품');
     final note = _noteCtrl.text.trim();
 
     try {

@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../utils/theme.dart';
+
 /// 전역 이미지 헬퍼
 /// • 웹: Image.network + ResizeImage(cacheWidth/cacheHeight) + shimmer
 ///   - width/height가 null/infinity인 경우 LayoutBuilder로 실제 크기 측정 후 캐시
@@ -45,8 +47,7 @@ class NetImage extends StatelessWidget {
   }
 
   // double.infinity 또는 null → LayoutBuilder 측정 필요 여부
-  static bool _needsMeasure(double? v) =>
-      v == null || !v.isFinite || v <= 0;
+  static bool _needsMeasure(double? v) => v == null || !v.isFinite || v <= 0;
 
   @override
   Widget build(BuildContext context) {
@@ -125,10 +126,10 @@ class NetImage extends StatelessWidget {
     return Container(
       width: _needsMeasure(width) ? null : width,
       height: _needsMeasure(height) ? null : height,
-      color: backgroundColor ?? const Color(0xFFF0F0F0),
+      color: backgroundColor ?? AppColors.surfaceGray,
       child: const Center(
         child: Icon(Icons.broken_image_outlined,
-            color: Color(0xFFCCCCCC), size: 28),
+            color: AppColors.border, size: 28),
       ),
     );
   }
@@ -231,10 +232,10 @@ class _WebImageState extends State<_WebImage> {
       return Container(
         width: widget.width,
         height: widget.height,
-        color: widget.backgroundColor ?? const Color(0xFFF0F0F0),
+        color: widget.backgroundColor ?? AppColors.surfaceGray,
         child: const Center(
           child: Icon(Icons.broken_image_outlined,
-              color: Color(0xFFCCCCCC), size: 28),
+              color: AppColors.border, size: 28),
         ),
       );
     }
@@ -285,8 +286,8 @@ class _ShimmerBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: backgroundColor ?? const Color(0xFFEEEEEE),
-      highlightColor: const Color(0xFFF8F8F8),
+      baseColor: backgroundColor ?? AppColors.border,
+      highlightColor: AppColors.background,
       child: Container(
         width: width,
         height: height,

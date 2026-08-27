@@ -122,9 +122,9 @@ class _PersonEntry {
 class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     with SingleTickerProviderStateMixin {
   // ── 탑텐 스타일 상수 ──
-  static const Color _purple = Color(0xFF1A1A1A); // 블랙 (탑텐 강조색)
-  static const Color _purpleLight = Color(0xFFF0F0F0); // 라이트 그레이 배경
-  static const Color _bg = Color(0xFFF8F8F8); // 페이지 배경
+  static const Color _purple = AppColors.primary; // 블랙 (탑텐 강조색)
+  static const Color _purpleLight = AppColors.surfaceGray; // 라이트 그레이 배경
+  static const Color _bg = AppColors.background; // 페이지 배경
 
   // loc 의존성 완전 제거 — LanguageProvider.watch 호출 없음
 
@@ -135,7 +135,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   late TabController _colorTabCtrl;
   final _hexCtrl = TextEditingController();
   String? _hexError;
-  Color _hexPreview = const Color(0xFF1A1A1A);
+  Color _hexPreview = AppColors.primary;
 
   // ── 수량 ──
   int _count = 5;
@@ -483,7 +483,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF1A1A2E))),
+                  color: AppColors.primary)),
           const SizedBox(height: 4),
           Text(
               context.loc
@@ -520,11 +520,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isMale ? Colors.blue.shade50 : Colors.pink.shade50,
+                  color: isMale
+                      ? AppColors.info.withValues(alpha: 0.05)
+                      : Colors.pink.shade50,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isMale
-                        ? Colors.blue.withValues(alpha: 0.3)
+                        ? AppColors.info.withValues(alpha: 0.3)
                         : Colors.pink.withValues(alpha: 0.3),
                   ),
                 ),
@@ -533,7 +535,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: isMale ? Colors.blue : Colors.pink,
+                      color: isMale ? AppColors.info : Colors.pink,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(profile.genderLabel,
@@ -551,7 +553,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF1A1A2E))),
+                                  color: AppColors.primary)),
                           const SizedBox(height: 2),
                           Text(
                             context.loc.t('상의', '상의') +
@@ -647,7 +649,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 if (!mounted) return;
                 if (err != null) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(err), backgroundColor: Colors.red));
+                      content: Text(err), backgroundColor: AppColors.error));
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -1007,13 +1009,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     context.loc.t('명', '명') +
                     ' / ${_fmt(_finalPrice)}원)')),
           ]),
-          backgroundColor: const Color(0xFF1A1A1A),
+          backgroundColor: AppColors.primary,
           behavior: SnackBarBehavior.floating,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           action: SnackBarAction(
             label: context.loc.t('장바구니_보기', '장바구니 보기'),
-            textColor: const Color(0xFFFFD600),
+            textColor: AppColors.accent,
             onPressed: () {
               Navigator.push(
                 context,
@@ -1168,7 +1170,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2E7D32).withValues(alpha: 0.85),
+                  color: AppColors.success.withValues(alpha: 0.85),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(context.loc.t('연결됨', '연결됨'),
@@ -1378,7 +1380,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(Icons.info_outline_rounded,
-              size: 16, color: Color(0xFFF57F17)),
+              size: 16, color: AppColors.warning),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -1408,7 +1410,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         'title': context.loc.t('디자인_유지_색상_변경', '디자인 유지 + 색상 변경'),
         'desc': context.loc.t('2FIT_로고_적용_전면_색상_변경_단체명_인쇄_없음',
             '2FIT 로고 적용(전면) + 색상 변경 (단체명 인쇄 없음)'),
-        'badgeColor': const Color(0xFF1565C0), // 파랑
+        'badgeColor': AppColors.info, // 파랑
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
       },
@@ -1417,7 +1419,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         'title': context.loc.t('디자인_유지_단체명_색상_변경', '디자인 유지 + 단체명 + 색상 변경'),
         'desc': context.loc
             .t('기존_디자인_유지_단체명_전면_색상_변경', '기존 디자인 유지 + 단체명(전면) + 색상 변경'),
-        'badgeColor': const Color(0xFF1A1A1A), // 블랙
+        'badgeColor': AppColors.primary, // 블랙
         'condMin': 5,
         'condLabel': context.loc.t('5명', '5명↑'),
       },
@@ -1436,7 +1438,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             .t('디자인_유지_색상변경_단체명_이름_후면', '디자인 유지 + 색상변경 + 단체명 + 이름(후면)'),
         'desc': context.loc.t('기존_디자인_유지_색상_변경_단체명_전면_개인_이름_후면_등',
             '기존 디자인 유지 + 색상 변경 + 단체명(전면) + 개인 이름(후면·등)'),
-        'badgeColor': const Color(0xFF6A1B9A), // 보라
+        'badgeColor': AppColors.primary, // 보라
         'condMin': 10,
         'condLabel': context.loc.t('10명', '10명↑'),
       },
@@ -1581,7 +1583,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           ? Colors.grey.shade400
                           : condMin == 10
                               ? const Color(0xFFC62828)
-                              : const Color(0xFF2E7D32),
+                              : AppColors.success,
                     ),
                   ),
                 ),
@@ -1603,7 +1605,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1A1A2E), Color(0xFF16213E)],
+          colors: [AppColors.primary, Color(0xFF16213E)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
@@ -1793,7 +1795,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             // 구분선
             Container(
               height: 1,
-              color: const Color(0xFF1A1A1A).withValues(alpha: 0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               margin: const EdgeInsets.only(bottom: 12),
             ),
             // 헤더
@@ -1808,7 +1810,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A1A))),
+                      color: AppColors.primary)),
               const SizedBox(width: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -1967,18 +1969,21 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: Colors.blue.shade50,
+            color: AppColors.info.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue.shade200),
+            border: Border.all(color: AppColors.info.withValues(alpha: 0.20)),
           ),
           child: Row(children: [
-            Icon(Icons.info_outline, size: 14, color: Colors.blue.shade600),
+            Icon(Icons.info_outline,
+                size: 14, color: AppColors.info.withValues(alpha: 0.70)),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
                 context.loc.t(
                     '심리스무봉제_선택_시_10000원_추가', '심리스(무봉제) 선택 시 +10,000원이 추가됩니다.'),
-                style: TextStyle(fontSize: 11, color: Colors.blue.shade700),
+                style: TextStyle(
+                    fontSize: 11,
+                    color: AppColors.info.withValues(alpha: 0.82)),
               ),
             ),
           ]),
@@ -2036,7 +2041,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                 fontSize: 11,
                                 color: isSel
                                     ? Colors.white70
-                                    : Colors.orange.shade700,
+                                    : AppColors.warning.withValues(alpha: 0.82),
                                 fontWeight: FontWeight.w600,
                               )),
                         ],
@@ -2096,14 +2101,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           ),
           child: Row(children: [
             const Icon(Icons.check_circle_outline,
-                size: 14, color: Color(0xFF2E7D32)),
+                size: 14, color: AppColors.success),
             const SizedBox(width: 6),
             Expanded(
                 child: Text(
               context.loc.t('허리밴드_디자인_색상_변경_전부_무료', '허리밴드 디자인·색상 변경 전부 무료'),
               style: const TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF2E7D32),
+                  color: AppColors.success,
                   fontWeight: FontWeight.w700),
             )),
           ]),
@@ -2124,7 +2129,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
               color: _waistbandOptions.isEmpty
-                  ? const Color(0xFFEEEEEE)
+                  ? AppColors.border
                   : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
@@ -2226,9 +2231,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           Text(sub,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: isSel
-                                    ? Colors.white70
-                                    : const Color(0xFF2E7D32),
+                                color:
+                                    isSel ? Colors.white70 : AppColors.success,
                                 fontWeight: FontWeight.w700,
                               )),
                         ]),
@@ -2260,7 +2264,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               Text('+${_fmt(_waistbandExtra)}' + context.loc.t('원', '원'),
                   style: const TextStyle(
                       fontSize: 13,
-                      color: Color(0xFFE65100),
+                      color: AppColors.accent,
                       fontWeight: FontWeight.w700)),
             ]),
           ),
@@ -2459,27 +2463,26 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-                color: const Color(0xFF1A1A1A).withValues(alpha: 0.2)),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
           ),
           child: Column(children: [
             // 헤더
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F8F8),
+                color: AppColors.background,
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(11)),
               ),
               child: Row(children: [
                 const Icon(Icons.info_outline_rounded,
-                    size: 14, color: Color(0xFF1A1A1A)),
+                    size: 14, color: AppColors.primary),
                 const SizedBox(width: 6),
                 Text(context.loc.t('색상_적용_안내', '색상 적용 안내'),
                     style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF1A1A1A))),
+                        color: AppColors.primary)),
               ]),
             ),
             // 내용
@@ -2502,7 +2505,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF1565C0),
+                              color: AppColors.info,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(context.loc.t('상의', '상의'),
@@ -2518,7 +2521,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                   '포인트 색상 또는 전체 색상이 선택한 색상으로 변경됩니다.'),
                               style: TextStyle(
                                   fontSize: 11,
-                                  color: Color(0xFF333333),
+                                  color: AppColors.textPrimary,
                                   height: 1.5),
                             ),
                           ),
@@ -2533,7 +2536,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF2E7D32),
+                              color: AppColors.success,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(context.loc.t('하의', '하의'),
@@ -2549,7 +2552,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                   '골지 느낌의 선택한 색상으로 제작됩니다.'),
                               style: TextStyle(
                                   fontSize: 11,
-                                  color: Color(0xFF333333),
+                                  color: AppColors.textPrimary,
                                   height: 1.5),
                             ),
                           ),
@@ -3096,19 +3099,20 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.orange.shade50,
+              color: AppColors.warning.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.orange.shade200),
+              border:
+                  Border.all(color: AppColors.warning.withValues(alpha: 0.20)),
             ),
             child: Row(children: [
-              Icon(Icons.info_outline, size: 14, color: Colors.orange),
+              Icon(Icons.info_outline, size: 14, color: AppColors.warning),
               SizedBox(width: 6),
               Expanded(
                 child: Text(
                   context.loc.t('원하시는_색상의_HEX_코드를_6자리로_입력하세요_n예_빨강__bc66fc',
                       '원하시는 색상의 HEX 코드를 6자리로 입력하세요.\n예) 빨강: FF0000 / 파랑: 0000FF / 노랑: FFFF00'),
                   style: TextStyle(
-                      fontSize: 11, color: Colors.orange, height: 1.5),
+                      fontSize: 11, color: AppColors.warning, height: 1.5),
                 ),
               ),
             ]),
@@ -3234,7 +3238,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               child: Text(
                 context.loc
                     .t('선택한_길이는_성별에_따라_전원', '선택한 길이는 성별에 따라 전원에게 동일하게 적용됩니다.'),
-                style: TextStyle(fontSize: 11, color: Color(0xFF666666)),
+                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
               ),
             ),
           ]),
@@ -3243,7 +3247,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         // ── 남성 길이 선택
         _buildGenderLengthRow(
           gender: '남성',
-          genderColor: const Color(0xFF1565C0),
+          genderColor: AppColors.info,
           genderBg: const Color(0xFFE3F2FD),
           lengths: maleLengths,
           selected: _maleLengthSel,
@@ -3280,7 +3284,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             ),
             child: Row(children: [
               const Icon(Icons.block_rounded,
-                  size: 14, color: Color(0xFFE65100)),
+                  size: 14, color: AppColors.accent),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -3308,7 +3312,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             ),
             child: Row(children: [
               const Icon(Icons.info_outline_rounded,
-                  size: 14, color: Color(0xFFE65100)),
+                  size: 14, color: AppColors.accent),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -3371,12 +3375,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: isSel
-                      ? (isShort ? const Color(0xFFE65100) : genderColor)
+                      ? (isShort ? AppColors.accent : genderColor)
                       : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: isSel
-                        ? (isShort ? const Color(0xFFE65100) : genderColor)
+                        ? (isShort ? AppColors.accent : genderColor)
                         : Colors.grey.shade300,
                   ),
                 ),
@@ -3399,16 +3403,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       decoration: BoxDecoration(
                         color: isSel
                             ? Colors.white.withValues(alpha: 0.25)
-                            : const Color(0xFFE65100).withValues(alpha: 0.12),
+                            : AppColors.accent.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(context.loc.t('2만원', '+2만원'),
                           style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w800,
-                              color: isSel
-                                  ? Colors.white
-                                  : const Color(0xFFE65100))),
+                              color: isSel ? Colors.white : AppColors.accent)),
                     ),
                   ],
                 ]),
@@ -3441,7 +3443,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             ),
             child: Row(children: [
               const Icon(Icons.block_rounded,
-                  size: 14, color: Color(0xFFE65100)),
+                  size: 14, color: AppColors.accent),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -3558,7 +3560,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             ? Colors.grey.shade400
                             : (_hasPocket
                                 ? Colors.white70
-                                : Colors.orange.shade700),
+                                : AppColors.warning.withValues(alpha: 0.82)),
                       )),
                 ]),
               ),
@@ -3582,15 +3584,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: Colors.purple.shade50,
+            color: AppColors.primary.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.purple.shade100),
+            border:
+                Border.all(color: AppColors.primary.withValues(alpha: 0.10)),
           ),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Icon(Icons.info_outline_rounded,
-                  size: 14, color: Colors.purple.shade400),
+                  size: 14, color: AppColors.primary.withValues(alpha: 0.45)),
               const SizedBox(width: 6),
               Text(
                   context.loc
@@ -3598,7 +3601,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Colors.purple.shade700)),
+                      color: AppColors.primary.withValues(alpha: 0.82))),
             ]),
             const SizedBox(height: 6),
             Padding(
@@ -3609,17 +3612,17 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     _dotRow(
                         context.loc.t('앞면뒷면_디자인을_모두_첨부',
                             '앞면·뒷면 디자인을 모두 첨부하시면 더욱 정확하게 제작됩니다.'),
-                        Colors.purple.shade600),
+                        AppColors.primary.withValues(alpha: 0.70)),
                     const SizedBox(height: 3),
                     _dotRow(
                         context.loc.t('지원_형식_PNG_JPG_PDF_AI_PSD_SVG_등',
                             '지원 형식: PNG · JPG · PDF · AI · PSD · SVG 등'),
-                        Colors.purple.shade600),
+                        AppColors.primary.withValues(alpha: 0.70)),
                     const SizedBox(height: 3),
                     _dotRow(
                         context.loc.t('파일이_여러_개일_경우_ZIP으로_압축_후_업로드해_주세요',
                             '파일이 여러 개일 경우 ZIP으로 압축 후 업로드해 주세요.'),
-                        Colors.purple.shade600),
+                        AppColors.primary.withValues(alpha: 0.70)),
                   ]),
             ),
           ]),
@@ -3643,13 +3646,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       // 소제목
       Row(children: [
         Icon(Icons.attach_file_rounded,
-            size: 14, color: Colors.purple.shade600),
+            size: 14, color: AppColors.primary.withValues(alpha: 0.70)),
         const SizedBox(width: 5),
         Text(context.loc.t('로고_파일_첨부__선택사항', '로고 파일 첨부 (선택사항)'),
             style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: Colors.purple.shade700)),
+                color: AppColors.primary.withValues(alpha: 0.82))),
       ]),
       const SizedBox(height: 6),
 
@@ -3659,13 +3662,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: Colors.orange.shade50,
+          color: AppColors.warning.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.orange.shade200),
+          border: Border.all(color: AppColors.warning.withValues(alpha: 0.20)),
         ),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Icon(Icons.warning_amber_rounded,
-              size: 13, color: Colors.orange.shade700),
+              size: 13, color: AppColors.warning.withValues(alpha: 0.82)),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
@@ -3673,7 +3676,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · EPS · SVG · PDF 권장 / JPG·PNG는 품질 저하 가능'),
               style: TextStyle(
                   fontSize: 11,
-                  color: Colors.orange.shade700,
+                  color: AppColors.warning.withValues(alpha: 0.82),
                   height: 1.5,
                   fontWeight: FontWeight.w600),
             ),
@@ -3689,26 +3692,28 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
-              color: Colors.orange.shade50,
+              color: AppColors.warning.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.orange.shade300, width: 1.5),
+              border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.30), width: 1.5),
             ),
             child:
                 Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Icons.upload_file_rounded,
-                  color: Colors.orange.shade600, size: 28),
+                  color: AppColors.warning.withValues(alpha: 0.70), size: 28),
               const SizedBox(height: 5),
               Text(context.loc.t('로고_파일_선택', '로고 파일 선택'),
                   style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Colors.orange.shade700)),
+                      color: AppColors.warning.withValues(alpha: 0.82))),
               const SizedBox(height: 2),
               Text(
                   context.loc.t('AI___EPS___SVG__e5fe76',
                       'AI · EPS · SVG · PDF (벡터 파일만 허용)'),
-                  style:
-                      TextStyle(fontSize: 10, color: Colors.orange.shade400)),
+                  style: TextStyle(
+                      fontSize: 10,
+                      color: AppColors.warning.withValues(alpha: 0.45))),
             ]),
           ),
         )
@@ -3716,9 +3721,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.green.shade50,
+            color: AppColors.success.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.green.shade200),
+            border:
+                Border.all(color: AppColors.success.withValues(alpha: 0.20)),
           ),
           child: Row(children: [
             if (isImage && _designLogoBytes != null)
@@ -3736,11 +3742,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade100,
+                  color: AppColors.warning.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Icon(Icons.insert_drive_file_rounded,
-                    color: Colors.orange.shade600, size: 28),
+                    color: AppColors.warning.withValues(alpha: 0.70), size: 28),
               ),
             const SizedBox(width: 12),
             Expanded(
@@ -3753,12 +3759,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A1A1A))),
+                            color: AppColors.primary)),
                     const SizedBox(height: 2),
                     Text(context.loc.t('업로드_완료', '업로드 완료'),
                         style: TextStyle(
                             fontSize: 10,
-                            color: Colors.green.shade600,
+                            color: AppColors.success.withValues(alpha: 0.70),
                             fontWeight: FontWeight.w600)),
                   ]),
             ),
@@ -3783,12 +3789,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           onTap: _pickDesignLogoFile,
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(Icons.refresh_rounded,
-                size: 14, color: Colors.orange.shade600),
+                size: 14, color: AppColors.warning.withValues(alpha: 0.70)),
             const SizedBox(width: 4),
             Text(context.loc.t('파일_재선택', '파일 재선택'),
                 style: TextStyle(
                     fontSize: 11,
-                    color: Colors.orange.shade700,
+                    color: AppColors.warning.withValues(alpha: 0.82),
                     fontWeight: FontWeight.w600)),
           ]),
         ),
@@ -3817,7 +3823,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       child: Container(
         height: 180,
         decoration: BoxDecoration(
-          color: b64 != null ? Colors.grey.shade900 : Colors.purple.shade50,
+          color: b64 != null
+              ? Colors.grey.shade900
+              : AppColors.primary.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: _purple.withValues(alpha: 0.4), width: 1.5),
         ),
@@ -3953,38 +3961,38 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF0F0F0),
+            color: AppColors.surfaceGray,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFCCCCCC)),
+            border: Border.all(color: AppColors.border),
           ),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               const Icon(Icons.info_outline_rounded,
-                  size: 13, color: Color(0xFF1A1A1A)),
+                  size: 13, color: AppColors.primary),
               const SizedBox(width: 5),
               Text(context.loc.t('업로드_안내', '업로드 안내'),
                   style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1A1A))),
+                      color: AppColors.primary)),
             ]),
             const SizedBox(height: 5),
             Text(
                 context.loc.t('원하는_문구_텍스트__또는__ef24c2',
                     '• 원하는 문구(텍스트) 또는 무늬(패턴)가 담긴 이미지를 업로드해 주세요.'),
                 style: TextStyle(
-                    fontSize: 11, color: Color(0xFF444444), height: 1.5)),
+                    fontSize: 11, color: AppColors.textSecondary, height: 1.5)),
             Text(
                 context.loc.t('로고__팀명__숫자__그래픽_d10d57',
                     '• 로고, 팀명, 숫자, 그래픽 무늬 등 허리밴드에 넣고 싶은 디자인 참고 이미지도 가능합니다.'),
                 style: TextStyle(
-                    fontSize: 11, color: Color(0xFF444444), height: 1.5)),
+                    fontSize: 11, color: AppColors.textSecondary, height: 1.5)),
             Text(
                 context.loc.t(
                     '선택사항이며_최대_3장까지__660c66', '• 선택사항이며 최대 3장까지 업로드할 수 있습니다.'),
                 style: TextStyle(
-                    fontSize: 11, color: Color(0xFF444444), height: 1.5)),
+                    fontSize: 11, color: AppColors.textSecondary, height: 1.5)),
           ]),
         ),
 
@@ -4034,7 +4042,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8F8F8),
+                    color: AppColors.background,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: _purple.withValues(alpha: 0.3),
@@ -4059,13 +4067,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ),
 
         const SizedBox(height: 20),
-        const Divider(color: Color(0xFFEEEEEE)),
+        const Divider(color: AppColors.border),
         const SizedBox(height: 12),
 
         // ── 2) 로고 파일 소제목
         Row(children: [
           Icon(Icons.attach_file_rounded,
-              size: 14, color: Colors.orange.shade700),
+              size: 14, color: AppColors.warning.withValues(alpha: 0.82)),
           const SizedBox(width: 6),
           Text(
               context.loc.t('로고_파일_첨부__선택사항__104b69',
@@ -4073,7 +4081,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: Colors.orange.shade700)),
+                  color: AppColors.warning.withValues(alpha: 0.82))),
         ]),
         const SizedBox(height: 8),
 
@@ -4083,13 +4091,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: Colors.orange.shade50,
+            color: AppColors.warning.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.orange.shade200),
+            border:
+                Border.all(color: AppColors.warning.withValues(alpha: 0.20)),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Icon(Icons.warning_amber_rounded,
-                size: 13, color: Colors.orange.shade700),
+                size: 13, color: AppColors.warning.withValues(alpha: 0.82)),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
@@ -4097,7 +4106,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · SVG · PDF · EPS 파일만 첨부 가능합니다.'),
                 style: TextStyle(
                   fontSize: 11,
-                  color: Colors.orange.shade700,
+                  color: AppColors.warning.withValues(alpha: 0.82),
                   height: 1.5,
                   fontWeight: FontWeight.w600,
                 ),
@@ -4112,10 +4121,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           child: Container(
             height: 110,
             decoration: BoxDecoration(
-              color: hasFile ? Colors.green.shade50 : Colors.orange.shade50,
+              color: hasFile
+                  ? AppColors.success.withValues(alpha: 0.05)
+                  : AppColors.warning.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: hasFile ? Colors.green.shade300 : Colors.orange.shade300,
+                color: hasFile
+                    ? AppColors.success.withValues(alpha: 0.30)
+                    : AppColors.warning.withValues(alpha: 0.30),
                 width: 1.5,
               ),
             ),
@@ -4129,11 +4142,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: Colors.orange.shade100,
+                                color:
+                                    AppColors.warning.withValues(alpha: 0.10),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Icon(Icons.insert_drive_file_rounded,
-                                  color: Colors.orange.shade600, size: 26),
+                                  color:
+                                      AppColors.warning.withValues(alpha: 0.70),
+                                  size: 26),
                             ),
                             const SizedBox(height: 6),
                             SizedBox(
@@ -4152,7 +4168,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                     '업로드 완료 · 탭하여 재선택'),
                                 style: TextStyle(
                                     fontSize: 10,
-                                    color: Colors.green.shade600,
+                                    color: AppColors.success
+                                        .withValues(alpha: 0.70),
                                     fontWeight: FontWeight.w600)),
                           ]),
                     ),
@@ -4178,11 +4195,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                         Icon(Icons.upload_file_rounded,
-                            color: Colors.orange.shade500, size: 32),
+                            color: AppColors.warning.withValues(alpha: 0.05),
+                            size: 32),
                         const SizedBox(height: 6),
                         Text(context.loc.t('로고_파일_선택', '로고 파일 선택'),
                             style: TextStyle(
-                                color: Colors.orange.shade700,
+                                color:
+                                    AppColors.warning.withValues(alpha: 0.82),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600)),
                         const SizedBox(height: 2),
@@ -4190,7 +4209,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             context.loc.t('AI___SVG___PDF__65d822',
                                 'AI · SVG · PDF · EPS (벡터 파일만 허용)'),
                             style: TextStyle(
-                                color: Colors.orange.shade400, fontSize: 11)),
+                                color:
+                                    AppColors.warning.withValues(alpha: 0.45),
+                                fontSize: 11)),
                       ]),
           ),
         ),
@@ -4217,13 +4238,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: Colors.orange.shade50,
+            color: AppColors.warning.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.orange.shade200),
+            border:
+                Border.all(color: AppColors.warning.withValues(alpha: 0.20)),
           ),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Icon(Icons.warning_amber_rounded,
-                size: 13, color: Colors.orange.shade700),
+                size: 13, color: AppColors.warning.withValues(alpha: 0.82)),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
@@ -4231,7 +4253,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     '로고 인쇄 품질을 위해 AI 원본 파일(벡터)을 첨부해 주세요.\nAI · EPS · SVG · PDF 권장 / JPG·PNG는 품질 저하 가능'),
                 style: TextStyle(
                   fontSize: 11,
-                  color: Colors.orange.shade700,
+                  color: AppColors.warning.withValues(alpha: 0.82),
                   height: 1.5,
                   fontWeight: FontWeight.w600,
                 ),
@@ -4246,10 +4268,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           child: Container(
             height: 130,
             decoration: BoxDecoration(
-              color: hasFile ? Colors.green.shade50 : Colors.orange.shade50,
+              color: hasFile
+                  ? AppColors.success.withValues(alpha: 0.05)
+                  : AppColors.warning.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: hasFile ? Colors.green.shade300 : Colors.orange.shade300,
+                color: hasFile
+                    ? AppColors.success.withValues(alpha: 0.30)
+                    : AppColors.warning.withValues(alpha: 0.30),
                 width: 1.5,
               ),
             ),
@@ -4275,11 +4301,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                 width: 52,
                                 height: 52,
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.shade100,
+                                  color:
+                                      AppColors.warning.withValues(alpha: 0.10),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Icon(Icons.insert_drive_file_rounded,
-                                    color: Colors.orange.shade600, size: 30),
+                                    color: AppColors.warning
+                                        .withValues(alpha: 0.70),
+                                    size: 30),
                               ),
                             const SizedBox(height: 6),
                             SizedBox(
@@ -4292,7 +4321,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                 style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
-                                    color: Color(0xFF1A1A1A)),
+                                    color: AppColors.primary),
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -4301,7 +4330,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                     '업로드 완료 · 탭하여 재선택'),
                                 style: TextStyle(
                                     fontSize: 10,
-                                    color: Colors.green.shade600,
+                                    color: AppColors.success
+                                        .withValues(alpha: 0.70),
                                     fontWeight: FontWeight.w600)),
                           ]),
                     ),
@@ -4328,11 +4358,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                         Icon(Icons.upload_file_rounded,
-                            color: Colors.orange.shade500, size: 36),
+                            color: AppColors.warning.withValues(alpha: 0.05),
+                            size: 36),
                         const SizedBox(height: 6),
                         Text(context.loc.t('로고_파일_선택', '로고 파일 선택'),
                             style: TextStyle(
-                              color: Colors.orange.shade700,
+                              color: AppColors.warning.withValues(alpha: 0.82),
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             )),
@@ -4341,7 +4372,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             context.loc.t('AI___EPS___SVG__e5fe76',
                                 'AI · EPS · SVG · PDF (벡터 파일만 허용)'),
                             style: TextStyle(
-                                color: Colors.orange.shade400, fontSize: 11)),
+                                color:
+                                    AppColors.warning.withValues(alpha: 0.45),
+                                fontSize: 11)),
                       ]),
           ),
         ),
@@ -4363,43 +4396,49 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFFF0F0F0),
+            color: AppColors.surfaceGray,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFCCCCCC)),
+            border: Border.all(color: AppColors.border),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(children: [
                 const Icon(Icons.info_outline_rounded,
-                    size: 13, color: Color(0xFF1A1A1A)),
+                    size: 13, color: AppColors.primary),
                 const SizedBox(width: 5),
                 Text(context.loc.t('업로드_안내', '업로드 안내'),
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF1A1A1A))),
+                        color: AppColors.primary)),
               ]),
               SizedBox(height: 5),
               Text(
                   context.loc.t('원하는_문구_텍스트__또는__ef24c2',
                       '• 원하는 문구(텍스트) 또는 무늬(패턴)가 담긴 이미지를 업로드해 주세요.'),
                   style: const TextStyle(
-                      fontSize: 11, color: Color(0xFF444444), height: 1.5)),
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      height: 1.5)),
               Text(
                   context.loc.t('로고__팀명__숫자__그래픽_d10d57',
                       '• 로고, 팀명, 숫자, 그래픽 무늬 등 허리밴드에 넣고 싶은 디자인 참고 이미지도 가능합니다.'),
                   style: const TextStyle(
-                      fontSize: 11, color: Color(0xFF444444), height: 1.5)),
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      height: 1.5)),
               Text(
                   context.loc.t('선택사항이며_최대_3장까지__660c66',
                       '• 선택사항이며 최대 3장까지 업로드할 수 있습니다.'),
                   style: const TextStyle(
-                      fontSize: 11, color: Color(0xFF444444), height: 1.5)),
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      height: 1.5)),
               SizedBox(height: 6),
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Icon(Icons.warning_amber_rounded,
-                    size: 13, color: Color(0xFFE65100)),
+                    size: 13, color: AppColors.accent),
                 SizedBox(width: 5),
                 Expanded(
                   child: Text(
@@ -4407,7 +4446,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         '로고를 첨부하실 경우 AI 원본 파일(벡터 파일)이 필요합니다.\n(JPG·PNG 등 래스터 이미지로는 로고 인쇄 품질 보장이 어렵습니다.)'),
                     style: TextStyle(
                         fontSize: 11,
-                        color: Color(0xFFE65100),
+                        color: AppColors.accent,
                         height: 1.5,
                         fontWeight: FontWeight.w600),
                   ),
@@ -4464,10 +4503,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8F8F8),
+                    color: AppColors.background,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: const Color(0xFF1A1A1A).withValues(alpha: 0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       width: 1.5,
                       style: BorderStyle.solid,
                     ),
@@ -4581,17 +4620,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: isConfirmed
-                                  ? const Color(0xFF2E7D32)
-                                      .withValues(alpha: 0.12)
-                                  : const Color(0xFFF57F17)
-                                      .withValues(alpha: 0.12),
+                                  ? AppColors.success.withValues(alpha: 0.12)
+                                  : AppColors.warning.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
                                 color: isConfirmed
-                                    ? const Color(0xFF2E7D32)
-                                        .withValues(alpha: 0.4)
-                                    : const Color(0xFFF57F17)
-                                        .withValues(alpha: 0.4),
+                                    ? AppColors.success.withValues(alpha: 0.4)
+                                    : AppColors.warning.withValues(alpha: 0.4),
                               ),
                             ),
                             child: Text(
@@ -4602,8 +4637,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 color: isConfirmed
-                                    ? const Color(0xFF2E7D32)
-                                    : const Color(0xFFF57F17),
+                                    ? AppColors.success
+                                    : AppColors.warning,
                               ),
                             ),
                           ),
@@ -4661,38 +4696,39 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
-              color: Colors.teal.shade50,
+              color: AppColors.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.teal.shade200),
+              border:
+                  Border.all(color: AppColors.primary.withValues(alpha: 0.20)),
             ),
             child: Row(children: [
               Icon(Icons.content_cut_outlined,
-                  size: 15, color: Colors.teal.shade600),
+                  size: 15, color: AppColors.primary.withValues(alpha: 0.70)),
               const SizedBox(width: 8),
               Text(context.loc.t('재봉방법', '재봉방법: '),
                   style: TextStyle(
                       fontSize: 11,
-                      color: Colors.teal.shade700,
+                      color: AppColors.primary.withValues(alpha: 0.82),
                       fontWeight: FontWeight.w600)),
               Text(context.loc.t(_fabricType, _fabricType),
                   style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
-                      color: Colors.teal.shade800)),
+                      color: AppColors.primary.withValues(alpha: 0.90))),
               if (_fabricExtra > 0) ...[
                 const SizedBox(width: 6),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade100,
+                    color: AppColors.warning.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                       '+${_fmt(_fabricExtra)}' + context.loc.t('원', '원'),
                       style: TextStyle(
                           fontSize: 10,
-                          color: Colors.orange.shade800,
+                          color: AppColors.warning.withValues(alpha: 0.90),
                           fontWeight: FontWeight.w700)),
                 ),
               ],
@@ -4789,31 +4825,33 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             margin: const EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
-              color: Colors.teal.shade50,
+              color: AppColors.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.teal.shade200),
+              border:
+                  Border.all(color: AppColors.primary.withValues(alpha: 0.20)),
             ),
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Icon(Icons.straighten_rounded,
-                    size: 15, color: Colors.teal.shade600),
+                    size: 15, color: AppColors.primary.withValues(alpha: 0.70)),
                 const SizedBox(width: 6),
                 Text(context.loc.t('하의_길이__성별_통일_적용', '하의 길이 (성별 통일 적용)'),
                     style: TextStyle(
                         fontSize: 11,
-                        color: Colors.teal.shade700,
+                        color: AppColors.primary.withValues(alpha: 0.82),
                         fontWeight: FontWeight.w600)),
               ]),
               const SizedBox(height: 4),
               Row(children: [
                 const SizedBox(width: 21),
-                Icon(Icons.male_rounded, size: 13, color: Colors.blue.shade600),
+                Icon(Icons.male_rounded,
+                    size: 13, color: AppColors.info.withValues(alpha: 0.70)),
                 const SizedBox(width: 3),
                 Text(context.loc.t('남성', '남성: '),
                     style: TextStyle(
                         fontSize: 11,
-                        color: Colors.blue.shade700,
+                        color: AppColors.info.withValues(alpha: 0.82),
                         fontWeight: FontWeight.w600)),
                 Text(
                   _maleLengthSel ?? context.loc.t('미선택', '미선택'),
@@ -4821,8 +4859,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
                     color: _maleLengthSel != null
-                        ? Colors.teal.shade800
-                        : Colors.orange.shade700,
+                        ? AppColors.primary.withValues(alpha: 0.90)
+                        : AppColors.warning.withValues(alpha: 0.82),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -4840,8 +4878,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
                     color: _femaleLengthSel != null
-                        ? Colors.teal.shade800
-                        : Colors.orange.shade700,
+                        ? AppColors.primary.withValues(alpha: 0.90)
+                        : AppColors.warning.withValues(alpha: 0.82),
                   ),
                 ),
               ]),
@@ -5079,7 +5117,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: Colors.orange.shade600,
+                color: AppColors.warning.withValues(alpha: 0.70),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(context.loc.t('주니어', '주니어'),
@@ -5095,20 +5133,24 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         ),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.orange.shade200),
+            border:
+                Border.all(color: AppColors.warning.withValues(alpha: 0.20)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Table(
               border: TableBorder(
-                horizontalInside: BorderSide(color: Colors.orange.shade50),
-                verticalInside: BorderSide(color: Colors.orange.shade100),
+                horizontalInside: BorderSide(
+                    color: AppColors.warning.withValues(alpha: 0.05)),
+                verticalInside: BorderSide(
+                    color: AppColors.warning.withValues(alpha: 0.10)),
               ),
               defaultColumnWidth: const IntrinsicColumnWidth(),
               children: [
                 TableRow(
-                  decoration: BoxDecoration(color: Colors.orange.shade50),
+                  decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.05)),
                   children: juniorHeaders
                       .map((h) => Padding(
                             padding: const EdgeInsets.symmetric(
@@ -5117,7 +5159,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                 style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w800,
-                                    color: Colors.orange.shade700)),
+                                    color: AppColors.warning
+                                        .withValues(alpha: 0.82))),
                           ))
                       .toList(),
                 ),
@@ -5140,18 +5183,19 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           margin: const EdgeInsets.only(top: 6),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.orange.shade50,
+            color: AppColors.warning.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: Colors.orange.shade200),
+            border:
+                Border.all(color: AppColors.warning.withValues(alpha: 0.20)),
           ),
           child: Row(children: [
-            Icon(Icons.info_outline, size: 12, color: Colors.orange),
+            Icon(Icons.info_outline, size: 12, color: AppColors.warning),
             SizedBox(width: 5),
             Expanded(
                 child: Text(
               context.loc.t('위_사이즈에_해당하지_않으면_상세치수',
                   "위 사이즈에 해당하지 않으면 '상세치수 입력'을 선택해 주세요."),
-              style: TextStyle(fontSize: 10, color: Colors.orange),
+              style: TextStyle(fontSize: 10, color: AppColors.warning),
             )),
           ]),
         ),
@@ -5189,7 +5233,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           decoration: BoxDecoration(
             color: p.gender == null
                 ? Colors.grey.shade50
-                : (isMale ? Colors.blue.shade50 : Colors.pink.shade50),
+                : (isMale
+                    ? AppColors.info.withValues(alpha: 0.05)
+                    : Colors.pink.shade50),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
           ),
           child: Row(children: [
@@ -5200,7 +5246,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               decoration: BoxDecoration(
                 color: p.gender == null
                     ? Colors.grey.shade400
-                    : (isMale ? Colors.blue : Colors.pink),
+                    : (isMale ? AppColors.info : Colors.pink),
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
@@ -5261,10 +5307,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                 Text(context.loc.t('필수', '필수*'),
                     style: TextStyle(
                         fontSize: 9,
-                        color: Colors.red.shade600,
+                        color: AppColors.error.withValues(alpha: 0.70),
                         fontWeight: FontWeight.w700)),
               Row(mainAxisSize: MainAxisSize.min, children: [
-                _genderBtn(context.loc.t('남', '남'), isMale, Colors.blue,
+                _genderBtn(context.loc.t('남', '남'), isMale, AppColors.info,
                     () => setState(() => p.gender = 'male')),
                 const SizedBox(width: 5),
                 _genderBtn(context.loc.t('여', '여'), isFemale, Colors.pink,
@@ -5300,10 +5346,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
+                  color: AppColors.error.withValues(alpha: 0.05),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.close, color: Colors.red.shade400, size: 16),
+                child: Icon(Icons.close,
+                    color: AppColors.error.withValues(alpha: 0.45), size: 16),
               ),
             ),
           ]),
@@ -5351,17 +5398,19 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   // ① 성인/주니어 구분 선택
                   Row(children: [
                     const Icon(Icons.person_outline_rounded,
-                        size: 14, color: Color(0xFF1A1A1A)),
+                        size: 14, color: AppColors.primary),
                     const SizedBox(width: 5),
                     Text(context.loc.t('사이즈_구분', '사이즈 구분'),
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A1A2E))),
+                            color: AppColors.primary)),
                     const SizedBox(width: 10),
-                    _sizeTypeBtn(context.loc.t('성인', '성인'), p, Colors.indigo),
+                    _sizeTypeBtn(
+                        context.loc.t('성인', '성인'), p, AppColors.primary),
                     const SizedBox(width: 6),
-                    _sizeTypeBtn(context.loc.t('주니어', '주니어'), p, Colors.teal),
+                    _sizeTypeBtn(
+                        context.loc.t('주니어', '주니어'), p, AppColors.primary),
                   ]),
                   const SizedBox(height: 10),
 
@@ -5403,12 +5452,12 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: p.showDetail
-                              ? Colors.orange.shade50
+                              ? AppColors.warning.withValues(alpha: 0.05)
                               : Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: p.showDetail
-                                ? Colors.orange.shade300
+                                ? AppColors.warning.withValues(alpha: 0.30)
                                 : Colors.grey.shade300,
                             width: p.showDetail ? 1.5 : 1,
                           ),
@@ -5417,7 +5466,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                           Icon(Icons.straighten_rounded,
                               size: 14,
                               color: p.showDetail
-                                  ? Colors.orange.shade700
+                                  ? AppColors.warning.withValues(alpha: 0.82)
                                   : Colors.grey.shade500),
                           const SizedBox(width: 6),
                           Text(context.loc.t('하의_상세_치수_입력', '하의 상세 치수 입력'),
@@ -5425,7 +5474,8 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   color: p.showDetail
-                                      ? Colors.orange.shade800
+                                      ? AppColors.warning
+                                          .withValues(alpha: 0.90)
                                       : Colors.grey.shade600)),
                           const SizedBox(width: 5),
                           Text(context.loc.t('사이즈_미해당_시', '(사이즈 미해당 시)'),
@@ -5438,7 +5488,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                                   : Icons.expand_more,
                               size: 18,
                               color: p.showDetail
-                                  ? Colors.orange.shade600
+                                  ? AppColors.warning.withValues(alpha: 0.70)
                                   : Colors.grey.shade400),
                         ]),
                       ),
@@ -5463,9 +5513,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.teal.shade50,
+                          color: AppColors.primary.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.teal.shade100),
+                          border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.10)),
                         ),
                         child: Row(children: [
                           Icon(
@@ -5475,12 +5526,13 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               size: 13,
                               color: isFemale
                                   ? Colors.pink.shade400
-                                  : Colors.blue.shade400),
+                                  : AppColors.info.withValues(alpha: 0.45)),
                           const SizedBox(width: 4),
                           Text(context.loc.t('하의_길이', '하의 길이: '),
                               style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.teal.shade700,
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.82),
                                   fontWeight: FontWeight.w600)),
                           Text(
                             lenLabel,
@@ -5488,14 +5540,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               fontSize: 11,
                               fontWeight: FontWeight.w800,
                               color: selected
-                                  ? Colors.teal.shade800
-                                  : Colors.orange.shade700,
+                                  ? AppColors.primary.withValues(alpha: 0.90)
+                                  : AppColors.warning.withValues(alpha: 0.82),
                             ),
                           ),
                           const Spacer(),
                           if (selected)
                             Icon(Icons.check_circle_rounded,
-                                size: 13, color: Colors.teal.shade500),
+                                size: 13,
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.05)),
                         ]),
                       );
                     }),
@@ -5528,7 +5582,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         Text('*',
             style: TextStyle(
                 fontSize: 11,
-                color: Colors.red.shade400,
+                color: AppColors.error.withValues(alpha: 0.45),
                 fontWeight: FontWeight.w900)),
       ]),
       const SizedBox(height: 6),
@@ -5714,23 +5768,25 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.orange.shade50,
+        color: AppColors.warning.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.orange.shade200),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.20)),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Icon(Icons.straighten_rounded,
-              size: 14, color: Colors.orange.shade700),
+              size: 14, color: AppColors.warning.withValues(alpha: 0.82)),
           const SizedBox(width: 6),
           Text(context.loc.t('상세_치수_입력', '상세 치수 입력'),
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
-                  color: Colors.orange.shade800)),
+                  color: AppColors.warning.withValues(alpha: 0.90))),
           const SizedBox(width: 6),
           Text(context.loc.t('사이즈_미해당_시_입력', '(사이즈 미해당 시 입력)'),
-              style: TextStyle(fontSize: 10, color: Colors.orange.shade600)),
+              style: TextStyle(
+                  fontSize: 10,
+                  color: AppColors.warning.withValues(alpha: 0.70))),
         ]),
         const SizedBox(height: 10),
         // 2열 그리드: 키, 몸무게, 허리, 허벅지
@@ -5771,25 +5827,29 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
         fillColor: Colors.white,
         prefixIcon: Padding(
           padding: const EdgeInsets.only(left: 8, right: 4),
-          child: Icon(icon, size: 14, color: Colors.orange.shade500),
+          child: Icon(icon,
+              size: 14, color: AppColors.warning.withValues(alpha: 0.05)),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 28, minHeight: 0),
         labelText: label,
         labelStyle: TextStyle(
             fontSize: 11,
-            color: Colors.orange.shade700,
+            color: AppColors.warning.withValues(alpha: 0.82),
             fontWeight: FontWeight.w700),
         suffixText: unit,
         suffixStyle: TextStyle(fontSize: 11, color: Colors.grey.shade500),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.orange.shade300)),
+            borderSide:
+                BorderSide(color: AppColors.warning.withValues(alpha: 0.30))),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.orange.shade200)),
+            borderSide:
+                BorderSide(color: AppColors.warning.withValues(alpha: 0.20))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.orange.shade500, width: 1.5)),
+            borderSide: BorderSide(
+                color: AppColors.warning.withValues(alpha: 0.05), width: 1.5)),
       ),
     );
   }
@@ -5952,8 +6012,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                       color: _address.isEmpty ? Colors.grey.shade300 : _purple,
                       width: _address.isEmpty ? 1.0 : 1.5),
                   borderRadius: BorderRadius.circular(8),
-                  color:
-                      _address.isEmpty ? Colors.white : Colors.purple.shade50,
+                  color: _address.isEmpty
+                      ? Colors.white
+                      : AppColors.primary.withValues(alpha: 0.05),
                 ),
                 child: Row(children: [
                   Icon(Icons.location_on_outlined,
@@ -6015,7 +6076,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
             color: _exclusiveDesign
-                ? const Color(0xFFF0F0F0)
+                ? AppColors.surfaceGray
                 : const Color(0xFFFAFAFA),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
@@ -6046,7 +6107,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   child: RichText(
                     text: TextSpan(
                       style: const TextStyle(
-                          fontSize: 12, color: Color(0xFF333333), height: 1.5),
+                          fontSize: 12,
+                          color: AppColors.textPrimary,
+                          height: 1.5),
                       children: [
                         TextSpan(
                           text: context.loc.t('1년_독점_디자인_소유', '1년 독점 디자인 소유  '),
@@ -6054,23 +6117,22 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                             fontWeight: FontWeight.w800,
                             color: _exclusiveDesign
                                 ? _purple
-                                : const Color(0xFF333333),
+                                : AppColors.textPrimary,
                           ),
                         ),
                         TextSpan(
                           text: context.loc.t('선택_무료', '(선택 · 무료)  '),
                           style: const TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF2E7D32)),
+                              color: AppColors.success),
                         ),
                         TextSpan(
                           text: context.loc.t('무료_제공', '무료 제공'),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
-                            color: _exclusiveDesign
-                                ? _purple
-                                : const Color(0xFF2E7D32),
+                            color:
+                                _exclusiveDesign ? _purple : AppColors.success,
                           ),
                         ),
                         TextSpan(
@@ -6078,7 +6140,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               '· 1년간 해당 디자인을 타인에게 배포하지 않습니다.'),
                           style: TextStyle(
                               fontSize: 11,
-                              color: Color(0xFF666666),
+                              color: AppColors.textSecondary,
                               fontWeight: FontWeight.w400),
                         ),
                         TextSpan(
@@ -6087,7 +6149,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                               '· 별도 이야기 없으면 매년 2월 1일 홈페이지에 업로드 됩니다.'),
                           style: TextStyle(
                               fontSize: 11,
-                              color: Color(0xFF666666),
+                              color: AppColors.textSecondary,
                               fontWeight: FontWeight.w400),
                         ),
                         TextSpan(
@@ -6280,7 +6342,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               borderSide: const BorderSide(color: _purple, width: 1.5)),
           errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.red, width: 1.5)),
+              borderSide: const BorderSide(color: AppColors.error, width: 1.5)),
         ),
       ),
     );
@@ -6364,7 +6426,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A1A),
+                    color: AppColors.primary,
                     height: 1.4,
                   ),
                 ),
@@ -6471,7 +6533,7 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
                     context.loc.t('수령_후_3일_이내_교환환불_가능', '수령 후 7일 이내 교환·환불 가능'),
                     style: TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF1A1A2E),
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                         height: 1.5),
                   ),
@@ -6555,16 +6617,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           padding: const EdgeInsets.fromLTRB(10, 2, 0, 2),
           decoration: const BoxDecoration(
             border:
-                Border(left: BorderSide(color: Color(0xFF1A1A1A), width: 3)),
+                Border(left: BorderSide(color: AppColors.primary, width: 3)),
           ),
           child: Row(children: [
-            Icon(icon, color: const Color(0xFF1A1A1A), size: 16),
+            Icon(icon, color: AppColors.primary, size: 16),
             const SizedBox(width: 7),
             Text(title,
                 style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF1A1A1A),
+                    color: AppColors.primary,
                     letterSpacing: -0.2)),
           ]),
         ),

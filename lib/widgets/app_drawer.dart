@@ -11,6 +11,8 @@ import '../screens/support/brand_story_screen.dart';
 import '../screens/support/notices_screen.dart';
 import '../services/category_service.dart';
 
+import '../utils/theme.dart';
+
 // ──────────────────────────────────────────────
 // 카테고리 데이터 모델
 // ──────────────────────────────────────────────
@@ -29,7 +31,7 @@ class CategoryData {
 }
 
 class SubCategory {
-  final String name;   // 표시 이름 (= Firestore subCategory 값과 동일)
+  final String name; // 표시 이름 (= Firestore subCategory 값과 동일)
   final String filter; // 메인 카테고리 (Firestore category 값)
   final String? tag;
 
@@ -39,15 +41,24 @@ class SubCategory {
 // ── 메인 카테고리별 아이콘·색상 매핑 ──────────────
 IconData _iconFor(String cat) {
   switch (cat) {
-    case '상의':    return Icons.dry_cleaning_rounded;
-    case '하의':    return Icons.style_rounded;
-    case '세트':    return Icons.checkroom_rounded;
-    case '아우터':  return Icons.layers_rounded;
-    case '스킨슈트': return Icons.accessibility_new_rounded;
-    case '악세사리': return Icons.backpack_rounded;
-    case '이벤트':  return Icons.local_offer_rounded;
-    case '단체주문': return Icons.groups_rounded;
-    default:        return Icons.category_rounded;
+    case '상의':
+      return Icons.dry_cleaning_rounded;
+    case '하의':
+      return Icons.style_rounded;
+    case '세트':
+      return Icons.checkroom_rounded;
+    case '아우터':
+      return Icons.layers_rounded;
+    case '스킨슈트':
+      return Icons.accessibility_new_rounded;
+    case '악세사리':
+      return Icons.backpack_rounded;
+    case '이벤트':
+      return Icons.local_offer_rounded;
+    case '단체주문':
+      return Icons.groups_rounded;
+    default:
+      return Icons.category_rounded;
   }
 }
 
@@ -104,8 +115,10 @@ class _AppDrawerState extends State<AppDrawer> {
       context.read<LanguageProvider>().triggerTranslation();
     });
     // CategoryService가 아직 로드되지 않은 경우 로드 후 rebuild
-    if (CategoryService.mainCategories == CategoryService.defaultMainCategories &&
-        CategoryService.mainCategories.length == CategoryService.defaultMainCategories.length) {
+    if (CategoryService.mainCategories ==
+            CategoryService.defaultMainCategories &&
+        CategoryService.mainCategories.length ==
+            CategoryService.defaultMainCategories.length) {
       // 이미 기본값이라도 Firestore에서 최신값 확인
       CategoryService.load().then((_) {
         if (mounted) setState(() {});
@@ -130,8 +143,8 @@ class _AppDrawerState extends State<AppDrawer> {
               children: [
                 _sectionLabel('SHOP'),
                 ...categories.asMap().entries.map(
-                  (e) => _buildCategoryTile(context, e.key, e.value),
-                ),
+                      (e) => _buildCategoryTile(context, e.key, e.value),
+                    ),
                 _nikeRule(),
                 _sectionLabel('ORDERS'),
                 _buildMenuTile(
@@ -140,8 +153,10 @@ class _AppDrawerState extends State<AppDrawer> {
                   label: loc.t('단체주문하기', '단체주문하기'),
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const GroupOrderLandingScreen()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const GroupOrderLandingScreen()));
                   },
                 ),
                 _nikeRule(),
@@ -162,8 +177,10 @@ class _AppDrawerState extends State<AppDrawer> {
                   label: '공지사항',
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const NoticesScreen()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const NoticesScreen()));
                   },
                 ),
                 _buildMenuTile(
@@ -172,8 +189,10 @@ class _AppDrawerState extends State<AppDrawer> {
                   label: loc.brandInfo,
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const BrandStoryScreen()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const BrandStoryScreen()));
                   },
                 ),
                 if (isAdmin) ...[
@@ -194,7 +213,7 @@ class _AppDrawerState extends State<AppDrawer> {
   Widget _nikeRule() => Container(
         height: 1,
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        color: const Color(0xFFEEEEEE),
+        color: AppColors.border,
       );
 
   Widget _sectionLabel(String title) {
@@ -205,7 +224,7 @@ class _AppDrawerState extends State<AppDrawer> {
         style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w900,
-          color: Color(0xFFAAAAAA),
+          color: AppColors.textHint,
           letterSpacing: 2.5,
         ),
       ),
@@ -229,7 +248,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 Icon(
                   cat.icon,
                   size: 18,
-                  color: isExpanded ? cat.color : const Color(0xFF888888),
+                  color: isExpanded ? cat.color : AppColors.textSecondary,
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -237,8 +256,11 @@ class _AppDrawerState extends State<AppDrawer> {
                     cat.name,
                     style: TextStyle(
                       fontSize: 15,
-                      fontWeight: isExpanded ? FontWeight.w800 : FontWeight.w500,
-                      color: isExpanded ? const Color(0xFF111111) : const Color(0xFF333333),
+                      fontWeight:
+                          isExpanded ? FontWeight.w800 : FontWeight.w500,
+                      color: isExpanded
+                          ? AppColors.textPrimary
+                          : AppColors.textPrimary,
                       letterSpacing: isExpanded ? 0.3 : 0,
                     ),
                   ),
@@ -265,7 +287,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFFBBBBBB),
+                      color: AppColors.textHint,
                       letterSpacing: 1.5,
                     ),
                   ),
@@ -277,7 +299,9 @@ class _AppDrawerState extends State<AppDrawer> {
                   child: Icon(
                     Icons.keyboard_arrow_down_rounded,
                     size: 18,
-                    color: isExpanded ? const Color(0xFF555555) : const Color(0xFFBBBBBB),
+                    color: isExpanded
+                        ? AppColors.textSecondary
+                        : AppColors.textHint,
                   ),
                 ),
               ],
@@ -287,9 +311,8 @@ class _AppDrawerState extends State<AppDrawer> {
         AnimatedCrossFade(
           firstChild: const SizedBox(width: double.infinity, height: 0),
           secondChild: _buildSubCategories(context, cat),
-          crossFadeState: isExpanded
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
+          crossFadeState:
+              isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 200),
         ),
       ],
@@ -298,7 +321,7 @@ class _AppDrawerState extends State<AppDrawer> {
 
   Widget _buildSubCategories(BuildContext context, CategoryData cat) {
     return Container(
-      color: const Color(0xFFF8F8F8),
+      color: AppColors.background,
       child: Column(
         children: cat.subCategories.asMap().entries.map((entry) {
           final tabIndex = entry.key;
@@ -330,7 +353,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     height: 14,
                     color: isAllTab
                         ? cat.color.withValues(alpha: 0.5)
-                        : const Color(0xFFDDDDDD),
+                        : AppColors.border,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -338,8 +361,11 @@ class _AppDrawerState extends State<AppDrawer> {
                       sub.name,
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: isAllTab ? FontWeight.w700 : FontWeight.w500,
-                        color: isAllTab ? const Color(0xFF333333) : const Color(0xFF555555),
+                        fontWeight:
+                            isAllTab ? FontWeight.w700 : FontWeight.w500,
+                        color: isAllTab
+                            ? AppColors.textPrimary
+                            : AppColors.textSecondary,
                         letterSpacing: 0.2,
                       ),
                     ),
@@ -368,7 +394,7 @@ class _AppDrawerState extends State<AppDrawer> {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: const Color(0xFF888888)),
+            Icon(icon, size: 18, color: AppColors.textSecondary),
             const SizedBox(width: 14),
             Expanded(
               child: Text(
@@ -376,7 +402,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF333333),
+                  color: AppColors.textPrimary,
                 ),
               ),
             ),
@@ -396,7 +422,8 @@ class _AppDrawerState extends State<AppDrawer> {
                   ),
                 ),
               ),
-            const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFFCCCCCC)),
+            const Icon(Icons.chevron_right_rounded,
+                size: 16, color: AppColors.border),
           ],
         ),
       ),
@@ -421,7 +448,8 @@ class _AppDrawerState extends State<AppDrawer> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.admin_panel_settings_rounded, color: Color(0xFF111111), size: 20),
+            const Icon(Icons.admin_panel_settings_rounded,
+                color: AppColors.textPrimary, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -430,7 +458,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   Text(
                     loc.adminDashboard,
                     style: const TextStyle(
-                      color: Color(0xFF111111),
+                      color: AppColors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.3,
@@ -439,12 +467,14 @@ class _AppDrawerState extends State<AppDrawer> {
                   const SizedBox(height: 2),
                   Text(
                     loc.adminManageDesc,
-                    style: const TextStyle(color: Color(0xFF555555), fontSize: 11),
+                    style: const TextStyle(
+                        color: AppColors.textSecondary, fontSize: 11),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_rounded, color: Color(0xFF111111), size: 16),
+            const Icon(Icons.arrow_forward_rounded,
+                color: AppColors.textPrimary, size: 16),
           ],
         ),
       ),
@@ -478,7 +508,8 @@ class _AppDrawerState extends State<AppDrawer> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: Color(0xFF555555), size: 22),
+                    icon: const Icon(Icons.close_rounded,
+                        color: AppColors.textSecondary, size: 22),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -491,21 +522,23 @@ class _AppDrawerState extends State<AppDrawer> {
                   widget.onNavigateToMyPage?.call();
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
+                    color: AppColors.surfaceGray,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.person_outline_rounded, color: Color(0xFF1A1A1A), size: 18),
+                      const Icon(Icons.person_outline_rounded,
+                          color: AppColors.primary, size: 18),
                       const SizedBox(width: 10),
                       Consumer<LanguageProvider>(
                         builder: (_, lp, __) => Text(
                           lp.loc.navMyPage,
                           style: const TextStyle(
-                            color: Color(0xFF1A1A1A),
+                            color: AppColors.primary,
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.3,
@@ -513,7 +546,8 @@ class _AppDrawerState extends State<AppDrawer> {
                         ),
                       ),
                       const Spacer(),
-                      const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF999999), size: 14),
+                      const Icon(Icons.arrow_forward_ios_rounded,
+                          color: AppColors.textSecondary, size: 14),
                     ],
                   ),
                 ),
@@ -526,12 +560,14 @@ class _AppDrawerState extends State<AppDrawer> {
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFF111111),
-                        border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+                        color: AppColors.textPrimary,
+                        border: Border.all(color: AppColors.border, width: 1.5),
                       ),
                       child: Center(
                         child: Text(
-                          user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                          user.name.isNotEmpty
+                              ? user.name[0].toUpperCase()
+                              : '?',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -548,7 +584,7 @@ class _AppDrawerState extends State<AppDrawer> {
                           Text(
                             user.name,
                             style: const TextStyle(
-                              color: Color(0xFF1A1A1A),
+                              color: AppColors.primary,
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 0.3,
@@ -557,7 +593,8 @@ class _AppDrawerState extends State<AppDrawer> {
                           const SizedBox(height: 2),
                           Text(
                             user.email,
-                            style: const TextStyle(color: Color(0xFF999999), fontSize: 11),
+                            style: const TextStyle(
+                                color: AppColors.textSecondary, fontSize: 11),
                           ),
                         ],
                       ),
@@ -576,7 +613,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       Text(
                         loc.loginSignup,
                         style: const TextStyle(
-                          color: Color(0xFF1A1A1A),
+                          color: AppColors.primary,
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0.5,
@@ -587,10 +624,11 @@ class _AppDrawerState extends State<AppDrawer> {
                         width: 22,
                         height: 22,
                         decoration: const BoxDecoration(
-                          color: Color(0xFF111111),
+                          color: AppColors.textPrimary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 13),
+                        child: const Icon(Icons.arrow_forward_rounded,
+                            color: Colors.white, size: 13),
                       ),
                     ],
                   ),
@@ -615,7 +653,7 @@ class _AppDrawerState extends State<AppDrawer> {
           ),
           decoration: const BoxDecoration(
             color: Colors.white,
-            border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+            border: Border(top: BorderSide(color: AppColors.border)),
           ),
           child: Row(
             children: [
@@ -624,7 +662,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFFCCCCCC),
+                  color: AppColors.border,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -640,7 +678,7 @@ class _AppDrawerState extends State<AppDrawer> {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w900,
-                      color: Color(0xFFAAAAAA),
+                      color: AppColors.textHint,
                       letterSpacing: 1.5,
                     ),
                   ),
@@ -668,55 +706,84 @@ class _AppDrawerState extends State<AppDrawer> {
           children: [
             Center(
               child: Container(
-                width: 36, height: 3,
+                width: 36,
+                height: 3,
                 margin: const EdgeInsets.only(bottom: 24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFDDDDDD),
+                  color: AppColors.border,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const Text(
               '2FIT KOREA',
-              style: TextStyle(color: Color(0xFF111111), fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 2),
+              style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2),
             ),
             const SizedBox(height: 4),
             const Text(
               'SPORTS & FITNESS WEAR',
-              style: TextStyle(color: Color(0xFFAAAAAA), fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 2),
+              style: TextStyle(
+                  color: AppColors.textHint,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2),
             ),
             const SizedBox(height: 20),
-            const Divider(color: Color(0xFFEEEEEE), height: 1),
+            const Divider(color: AppColors.border, height: 1),
             const SizedBox(height: 20),
-            Consumer<LanguageProvider>(builder: (_, lp, __) => Text(
-              lp.loc.brandDescription,
-              style: const TextStyle(fontSize: 13, height: 1.8, color: Color(0xFF555555)),
-            )),
+            Consumer<LanguageProvider>(
+                builder: (_, lp, __) => Text(
+                      lp.loc.brandDescription,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          height: 1.8,
+                          color: AppColors.textSecondary),
+                    )),
             const SizedBox(height: 16),
             Row(
               children: [
-                const Icon(Icons.phone_rounded, size: 14, color: Color(0xFFAAAAAA)),
+                const Icon(Icons.phone_rounded,
+                    size: 14, color: AppColors.textHint),
                 const SizedBox(width: 8),
-                const Text('010-7227-6914', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+                const Text('010-7227-6914',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary)),
                 const Spacer(),
-                const Icon(Icons.email_rounded, size: 14, color: Color(0xFFAAAAAA)),
+                const Icon(Icons.email_rounded,
+                    size: 14, color: AppColors.textHint),
                 const SizedBox(width: 8),
-                const Text('chw243527@gmail.com', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+                const Text('chw243527@gmail.com',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary)),
               ],
             ),
             const SizedBox(height: 6),
             Row(
               children: [
-                const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFFAAAAAA)),
+                const Icon(Icons.access_time_rounded,
+                    size: 14, color: AppColors.textHint),
                 const SizedBox(width: 8),
-                Text(context.loc.t('평일 10001800    토·일·공휴일 휴무', '평일 10:00-18:00  |  토·일·공휴일 휴무'), style: TextStyle(fontSize: 11, color: Color(0xFF888888))),
+                Text(
+                    context.loc.t('평일 10001800    토·일·공휴일 휴무',
+                        '평일 10:00-18:00  |  토·일·공휴일 휴무'),
+                    style: TextStyle(
+                        fontSize: 11, color: AppColors.textSecondary)),
               ],
             ),
             const SizedBox(height: 4),
             Row(
               children: [
                 const SizedBox(width: 22),
-                Text(context.loc.t('점심시간 12001400 제외', '점심시간 12:00-14:00 제외'), style: TextStyle(fontSize: 10, color: Color(0xFFAAAAAA))),
+                Text(context.loc.t('점심시간 12001400 제외', '점심시간 12:00-14:00 제외'),
+                    style: TextStyle(fontSize: 10, color: AppColors.textHint)),
               ],
             ),
             const SizedBox(height: 10),

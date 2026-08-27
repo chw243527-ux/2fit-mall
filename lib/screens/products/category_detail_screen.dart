@@ -47,14 +47,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   bool _onlyFreeShipping = false;
 
   // ── 색상 팔레트: 약간 밝게 조정 ──
-  static const Color _bg       = Color(0xFF1A1A1A);   // 이전 0xFF111111 → 더 밝게
-  static const Color _surface  = Color(0xFF222222);   // 이전 0xFF181818
-  static const Color _card     = Color(0xFF2A2A2A);   // 이전 0xFF1C1C1C
-  static const Color _border   = Color(0xFF3A3A3A);   // 이전 0xFF2A2A2A
-  static const Color _divider  = Color(0xFF303030);   // 이전 0xFF222222
-  static const Color _white    = Colors.white;
-  static const Color _grey     = Color(0xFFAAAAAA);   // 이전 0xFF888888 → 더 밝게
-  static const Color _greyDim  = Color(0xFF777777);   // 이전 0xFF555555 → 더 밝게
+  static const Color _bg = AppColors.primary; // 이전 0xFF111111 → 더 밝게
+  static const Color _surface = Color(0xFF222222); // 이전 0xFF181818
+  static const Color _card = Color(0xFF2A2A2A); // 이전 0xFF1C1C1C
+  static const Color _border = Color(0xFF3A3A3A); // 이전 0xFF2A2A2A
+  static const Color _divider = Color(0xFF303030); // 이전 0xFF222222
+  static const Color _white = Colors.white;
+  static const Color _grey = AppColors.textHint; // 이전 0xFF888888 → 더 밝게
+  static const Color _greyDim = Color(0xFF777777); // 이전 0xFF555555 → 더 밝게
 
   // 카테고리 사이드 드로어용 스크롤 키
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -64,7 +64,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     super.initState();
     _tabController = TabController(
       length: widget.subCategories.length,
-      initialIndex: widget.initialTabIndex.clamp(0, widget.subCategories.length - 1),
+      initialIndex:
+          widget.initialTabIndex.clamp(0, widget.subCategories.length - 1),
       vsync: this,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -95,87 +96,115 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       all = List.from(allCached);
     } else {
       all = allCached.where((p) => p.category == filter).toList();
-      if (subName != null && subName.isNotEmpty &&
-          !subName.startsWith(context.loc.t('전체', '전체')) && subName != filter) {
+      if (subName != null &&
+          subName.isNotEmpty &&
+          !subName.startsWith(context.loc.t('전체', '전체')) &&
+          subName != filter) {
         all = all.where((p) {
           final sub = p.subCategory;
           if (sub.isEmpty) return false;
-          return sub == subName || sub.contains(subName) || subName.contains(sub);
+          return sub == subName ||
+              sub.contains(subName) ||
+              subName.contains(sub);
         }).toList();
       }
     }
     if (_searchQuery.isNotEmpty) {
-      all = all.where((p) => p.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+      all = all
+          .where(
+              (p) => p.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+          .toList();
     }
     if (_selectedSize != null) {
       all = all.where((p) => p.sizes.contains(_selectedSize)).toList();
     }
-    all = all.where((p) => p.price >= _minPrice && p.price <= _maxPrice).toList();
+    all =
+        all.where((p) => p.price >= _minPrice && p.price <= _maxPrice).toList();
     if (_onlySale) {
-      all = all.where((p) => p.isSale || (p.originalPrice != null && p.originalPrice! > p.price)).toList();
+      all = all
+          .where((p) =>
+              p.isSale ||
+              (p.originalPrice != null && p.originalPrice! > p.price))
+          .toList();
     }
     if (_onlyFreeShipping) {
       all = all.where((p) => p.isFreeShipping).toList();
     }
     final sorted = List<ProductModel>.from(all);
     switch (_sortBy) {
-      case 'priceLow':  sorted.sort((a, b) => a.price.compareTo(b.price)); break;
-      case 'priceHigh': sorted.sort((a, b) => b.price.compareTo(a.price)); break;
-      case 'popular':   sorted.sort((a, b) => b.reviewCount.compareTo(a.reviewCount)); break;
-      case 'rating':    sorted.sort((a, b) => b.rating.compareTo(a.rating)); break;
-      default:          sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      case 'priceLow':
+        sorted.sort((a, b) => a.price.compareTo(b.price));
+        break;
+      case 'priceHigh':
+        sorted.sort((a, b) => b.price.compareTo(a.price));
+        break;
+      case 'popular':
+        sorted.sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
+        break;
+      case 'rating':
+        sorted.sort((a, b) => b.rating.compareTo(a.rating));
+        break;
+      default:
+        sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     }
     return sorted;
   }
 
   bool get _hasFilter =>
-      _selectedSize != null || _onlySale || _onlyFreeShipping ||
-      _minPrice > 0 || _maxPrice < 300000;
+      _selectedSize != null ||
+      _onlySale ||
+      _onlyFreeShipping ||
+      _minPrice > 0 ||
+      _maxPrice < 300000;
 
   @override
   Widget build(BuildContext context) {
     if (isPcWeb(context)) return _buildPcLayout(context);
-    return wrapWithPopScope(context, Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: _bg,
-      // ── 우측 카테고리 드로어 ──
-      endDrawer: _buildCategoryDrawer(context),
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          _buildSliverAppBar(),
-        ],
-        body: Column(
-          children: [
-            _buildSortBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: widget.subCategories.map((sub) {
-                  final provider = context.watch<ProductProvider>();
-                  if (provider.isLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.white38,
-                        strokeWidth: 1.5,
-                      ),
-                    );
-                  }
-                  final products = _getProducts(sub.filter, subName: sub.name);
-                  return RefreshIndicator(
-                    color: _white,
-                    backgroundColor: _card,
-                    onRefresh: () => context.read<ProductProvider>().refreshAll(),
-                    child: _isGridView
-                        ? _buildProductGrid(products)
-                        : _buildProductList(products),
-                  );
-                }).toList(),
-              ),
+    return wrapWithPopScope(
+        context,
+        Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: _bg,
+          // ── 우측 카테고리 드로어 ──
+          endDrawer: _buildCategoryDrawer(context),
+          body: NestedScrollView(
+            headerSliverBuilder: (context, innerBoxIsScrolled) => [
+              _buildSliverAppBar(),
+            ],
+            body: Column(
+              children: [
+                _buildSortBar(),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: widget.subCategories.map((sub) {
+                      final provider = context.watch<ProductProvider>();
+                      if (provider.isLoading) {
+                        return const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white38,
+                            strokeWidth: 1.5,
+                          ),
+                        );
+                      }
+                      final products =
+                          _getProducts(sub.filter, subName: sub.name);
+                      return RefreshIndicator(
+                        color: _white,
+                        backgroundColor: _card,
+                        onRefresh: () =>
+                            context.read<ProductProvider>().refreshAll(),
+                        child: _isGridView
+                            ? _buildProductGrid(products)
+                            : _buildProductList(products),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    ));
+          ),
+        ));
   }
 
   // ── 우측 카테고리 드로어 ──
@@ -205,7 +234,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                   const Spacer(),
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.close_rounded, color: _grey, size: 22),
+                    child:
+                        const Icon(Icons.close_rounded, color: _grey, size: 22),
                   ),
                 ],
               ),
@@ -231,10 +261,12 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                               MaterialPageRoute(
                                 builder: (_) => CategoryDetailScreen(
                                   categoryName: context.loc.t('전체', '전체'),
-                                  categoryColor: const Color(0xFF888888),
+                                  categoryColor: AppColors.textSecondary,
                                   categoryIcon: Icons.grid_view_rounded,
                                   subCategories: [
-                                    SubCategory(name: context.loc.t('전체 상품', '전체 상품'), filter: context.loc.t('전체', '전체')),
+                                    SubCategory(
+                                        name: context.loc.t('전체 상품', '전체 상품'),
+                                        filter: context.loc.t('전체', '전체')),
                                   ],
                                 ),
                               ),
@@ -242,25 +274,28 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                           }
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 14),
                           decoration: BoxDecoration(
                             color: isActive ? _card : Colors.transparent,
                             border: isActive
-                                ? const Border(left: BorderSide(color: _white, width: 2))
+                                ? const Border(
+                                    left: BorderSide(color: _white, width: 2))
                                 : null,
                           ),
                           child: Row(
                             children: [
                               Icon(Icons.grid_view_rounded,
-                                  size: 16,
-                                  color: isActive ? _white : _grey),
+                                  size: 16, color: isActive ? _white : _grey),
                               const SizedBox(width: 12),
                               Text(
                                 context.loc.t('전체 상품', '전체 상품'),
                                 style: TextStyle(
                                   color: isActive ? _white : _grey,
                                   fontSize: 14,
-                                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                                  fontWeight: isActive
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
                                 ),
                               ),
                             ],
@@ -281,7 +316,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
-  Widget _buildDrawerCategoryItem(BuildContext context, CategoryData cat, bool isActive) {
+  Widget _buildDrawerCategoryItem(
+      BuildContext context, CategoryData cat, bool isActive) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -355,7 +391,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       elevation: 0,
       // 뒤로가기 버튼 (좌측)
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _white, size: 19),
+        icon: const Icon(Icons.arrow_back_ios_new_rounded,
+            color: _white, size: 19),
         onPressed: () => goBackOrHome(context),
       ),
       actions: [
@@ -373,15 +410,19 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           clipBehavior: Clip.none,
           children: [
             IconButton(
-              icon: Icon(Icons.tune_rounded, color: _hasFilter ? _white : _grey, size: 22),
+              icon: Icon(Icons.tune_rounded,
+                  color: _hasFilter ? _white : _grey, size: 22),
               onPressed: _showFilterSheet,
             ),
             if (_hasFilter)
               Positioned(
-                top: 8, right: 8,
+                top: 8,
+                right: 8,
                 child: Container(
-                  width: 7, height: 7,
-                  decoration: const BoxDecoration(color: _white, shape: BoxShape.circle),
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                      color: _white, shape: BoxShape.circle),
                 ),
               ),
           ],
@@ -408,8 +449,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       flexibleSpace: LayoutBuilder(
         builder: (context, constraints) {
           // 현재 확장 정도 계산
-          final expandRatio = (constraints.maxHeight - kToolbarHeight) /
-              (100 - kToolbarHeight);
+          final expandRatio =
+              (constraints.maxHeight - kToolbarHeight) / (100 - kToolbarHeight);
           final opacity = expandRatio.clamp(0.0, 1.0);
           return FlexibleSpaceBar(
             background: Container(
@@ -459,30 +500,39 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
               borderSide: BorderSide(color: _white, width: 2),
               insets: EdgeInsets.symmetric(horizontal: 4),
             ),
-            labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.3),
-            unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
+            labelStyle: const TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+            unselectedLabelStyle:
+                const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
             padding: EdgeInsets.zero,
-            tabs: widget.subCategories.map((sub) => Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(sub.name),
-                  if (sub.tag != null) ...[
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: _greyDim,
-                        borderRadius: BorderRadius.circular(2),
+            tabs: widget.subCategories
+                .map((sub) => Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(sub.name),
+                          if (sub.tag != null) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: _greyDim,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                              child: Text(
+                                sub.tag!,
+                                style: const TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w800,
+                                    color: _white),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      child: Text(sub.tag!,
-                        style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: _white),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            )).toList(),
+                    ))
+                .toList(),
           ),
         ),
       ),
@@ -492,11 +542,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   // ── 정렬 바 ──
   Widget _buildSortBar() {
     final sortMap = <String, String>{
-      'newest':    loc.sortNewest,
-      'popular':   loc.sortPopular,
-      'priceLow':  loc.sortPriceLow,
+      'newest': loc.sortNewest,
+      'popular': loc.sortPopular,
+      'priceLow': loc.sortPriceLow,
       'priceHigh': loc.sortPriceHigh,
-      'rating':    loc.sortRating,
+      'rating': loc.sortRating,
     };
     return Container(
       height: 44,
@@ -521,7 +571,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         e.value,
                         style: TextStyle(
                           fontSize: 12.5,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w400,
                           color: isSelected ? _white : _greyDim,
                           letterSpacing: 0.2,
                         ),
@@ -568,7 +619,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
             children: [
               Container(
                 margin: const EdgeInsets.only(top: 10),
-                width: 32, height: 3,
+                width: 32,
+                height: 3,
                 decoration: BoxDecoration(
                   color: _border,
                   borderRadius: BorderRadius.circular(2),
@@ -579,22 +631,29 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 child: Row(
                   children: [
                     const Text('FILTER',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900,
-                          color: _white, letterSpacing: 2.5)),
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: _white,
+                            letterSpacing: 2.5)),
                     const Spacer(),
                     TextButton(
                       onPressed: () {
                         setModal(() {
-                          _selectedSize = null; _minPrice = 0;
-                          _maxPrice = 300000; _onlySale = false; _onlyFreeShipping = false;
+                          _selectedSize = null;
+                          _minPrice = 0;
+                          _maxPrice = 300000;
+                          _onlySale = false;
+                          _onlyFreeShipping = false;
                         });
                         setState(() {});
                       },
                       child: Text(context.loc.t('초기화', '초기화'),
-                        style: TextStyle(fontSize: 12, color: _greyDim)),
+                          style: TextStyle(fontSize: 12, color: _greyDim)),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, color: _grey, size: 20),
+                      icon: const Icon(Icons.close_rounded,
+                          color: _grey, size: 20),
                       onPressed: () => Navigator.pop(ctx),
                     ),
                   ],
@@ -608,7 +667,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     _filterLabel('SIZE'),
                     const SizedBox(height: 12),
                     Wrap(
-                      spacing: 8, runSpacing: 8,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: sizes.map((s) {
                         final isSel = _selectedSize == s;
                         return GestureDetector(
@@ -617,16 +677,20 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                             setState(() {});
                           }),
                           child: Container(
-                            width: 54, height: 40,
+                            width: 54,
+                            height: 40,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: isSel ? _white : _card,
                               borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: isSel ? _white : _border),
+                              border:
+                                  Border.all(color: isSel ? _white : _border),
                             ),
-                            child: Text(s,
+                            child: Text(
+                              s,
                               style: TextStyle(
-                                fontSize: 12.5, fontWeight: FontWeight.w700,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
                                 color: isSel ? _bg : _grey,
                               ),
                             ),
@@ -651,34 +715,50 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                         thumbColor: _white,
                         overlayColor: Colors.white12,
                         trackHeight: 1.5,
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                        thumbShape:
+                            const RoundSliderThumbShape(enabledThumbRadius: 6),
                       ),
                       child: RangeSlider(
                         values: RangeValues(_minPrice, _maxPrice),
-                        min: 0, max: 300000, divisions: 30,
+                        min: 0,
+                        max: 300000,
+                        divisions: 30,
                         activeColor: _white,
                         inactiveColor: _border,
                         onChanged: (v) => setModal(() {
-                          _minPrice = v.start; _maxPrice = v.end; setState(() {});
+                          _minPrice = v.start;
+                          _maxPrice = v.end;
+                          setState(() {});
                         }),
                       ),
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('0${loc.wonUnit2}', style: const TextStyle(fontSize: 11, color: _greyDim)),
-                        Text('300,000${loc.wonUnit2}', style: const TextStyle(fontSize: 11, color: _greyDim)),
+                        Text('0${loc.wonUnit2}',
+                            style:
+                                const TextStyle(fontSize: 11, color: _greyDim)),
+                        Text('300,000${loc.wonUnit2}',
+                            style:
+                                const TextStyle(fontSize: 11, color: _greyDim)),
                       ],
                     ),
                     const SizedBox(height: 28),
                     _filterLabel('OPTIONS'),
                     const SizedBox(height: 12),
                     _filterToggleRow(loc.filterSaleOnly, _onlySale, (v) {
-                      setModal(() { _onlySale = v; setState(() {}); });
+                      setModal(() {
+                        _onlySale = v;
+                        setState(() {});
+                      });
                     }),
                     const SizedBox(height: 8),
-                    _filterToggleRow(loc.filterFreeShipOnly, _onlyFreeShipping, (v) {
-                      setModal(() { _onlyFreeShipping = v; setState(() {}); });
+                    _filterToggleRow(loc.filterFreeShipOnly, _onlyFreeShipping,
+                        (v) {
+                      setModal(() {
+                        _onlyFreeShipping = v;
+                        setState(() {});
+                      });
                     }),
                   ],
                 ),
@@ -686,17 +766,22 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
                 child: SizedBox(
-                  width: double.infinity, height: 50,
+                  width: double.infinity,
+                  height: 50,
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(ctx),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _white,
                       foregroundColor: _bg,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6)),
                     ),
                     child: Text(loc.filterApply,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                        style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1)),
                   ),
                 ),
               ),
@@ -708,10 +793,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
   }
 
   Widget _filterLabel(String text) => Text(text,
-    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900,
-        color: _greyDim, letterSpacing: 2));
+      style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          color: _greyDim,
+          letterSpacing: 2));
 
-  Widget _filterToggleRow(String label, bool value, ValueChanged<bool> onChanged) {
+  Widget _filterToggleRow(
+      String label, bool value, ValueChanged<bool> onChanged) {
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: Container(
@@ -724,18 +813,21 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         child: Row(
           children: [
             Container(
-              width: 18, height: 18,
+              width: 18,
+              height: 18,
               decoration: BoxDecoration(
                 color: value ? _white : Colors.transparent,
                 borderRadius: BorderRadius.circular(3),
-                border: Border.all(color: value ? _white : _greyDim, width: 1.5),
+                border:
+                    Border.all(color: value ? _white : _greyDim, width: 1.5),
               ),
               child: value
                   ? const Icon(Icons.check_rounded, size: 12, color: _bg)
                   : null,
             ),
             const SizedBox(width: 12),
-            Text(label,
+            Text(
+              label,
               style: TextStyle(
                 fontSize: 13.5,
                 fontWeight: value ? FontWeight.w600 : FontWeight.w400,
@@ -748,126 +840,148 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
-  String _fmtPrice(double v) =>
-      v.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  String _fmtPrice(double v) => v.toInt().toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
   // ══════════════════════════════════════════════════════
   // PC 레이아웃
   // ══════════════════════════════════════════════════════
   Widget _buildPcLayout(BuildContext context) {
-    return wrapWithPopScope(context, Scaffold(
-      backgroundColor: _bg,
-      appBar: AppBar(
-        backgroundColor: _surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.chevron_left_rounded, color: _white, size: 26),
-          onPressed: () => goBackOrHome(context),
-        ),
-        title: Text(
-          widget.categoryName.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 15, fontWeight: FontWeight.w900,
-            color: _white, letterSpacing: 3,
-          ),
-        ),
-        centerTitle: false,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(44),
-          child: Container(
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: _divider)),
+    return wrapWithPopScope(
+        context,
+        Scaffold(
+          backgroundColor: _bg,
+          appBar: AppBar(
+            backgroundColor: _surface,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.chevron_left_rounded,
+                  color: _white, size: 26),
+              onPressed: () => goBackOrHome(context),
             ),
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              labelColor: _white,
-              unselectedLabelColor: _greyDim,
-              indicator: const UnderlineTabIndicator(
-                borderSide: BorderSide(color: _white, width: 2),
-                insets: EdgeInsets.symmetric(horizontal: 4),
+            title: Text(
+              widget.categoryName.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: _white,
+                letterSpacing: 3,
               ),
-              labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-              unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400),
-              padding: EdgeInsets.zero,
-              tabs: widget.subCategories.map((sub) => Tab(
+            ),
+            centerTitle: false,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(44),
+              child: Container(
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: _divider)),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
+                  labelColor: _white,
+                  unselectedLabelColor: _greyDim,
+                  indicator: const UnderlineTabIndicator(
+                    borderSide: BorderSide(color: _white, width: 2),
+                    insets: EdgeInsets.symmetric(horizontal: 4),
+                  ),
+                  labelStyle: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w700),
+                  unselectedLabelStyle: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w400),
+                  padding: EdgeInsets.zero,
+                  tabs: widget.subCategories
+                      .map((sub) => Tab(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(sub.name),
+                                if (sub.tag != null) ...[
+                                  const SizedBox(width: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 1),
+                                    decoration: BoxDecoration(
+                                        color: _greyDim,
+                                        borderRadius: BorderRadius.circular(2)),
+                                    child: Text(sub.tag!,
+                                        style: const TextStyle(
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w800,
+                                            color: _white)),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ),
+          ),
+          // body는 Scaffold가 tight height를 주므로 Column > Expanded 구조가 동작함
+          // Center를 body 최상위로 쓰면 자식에 unbounded height → Expanded 0px 버그
+          body: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1280),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(sub.name),
-                    if (sub.tag != null) ...[
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                        decoration: BoxDecoration(color: _greyDim, borderRadius: BorderRadius.circular(2)),
-                        child: Text(sub.tag!,
-                          style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w800, color: _white)),
+                    SizedBox(width: 200, child: _buildPcSidebar()),
+                    const SizedBox(width: 28),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          _buildPcTopBar(),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            child: TabBarView(
+                              controller: _tabController,
+                              children: widget.subCategories.map((sub) {
+                                final provider =
+                                    context.watch<ProductProvider>();
+                                if (provider.isLoading) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white30,
+                                        strokeWidth: 1.5),
+                                  );
+                                }
+                                final products =
+                                    _getProducts(sub.filter, subName: sub.name);
+                                return RefreshIndicator(
+                                  color: _white,
+                                  backgroundColor: _card,
+                                  onRefresh: () => context
+                                      .read<ProductProvider>()
+                                      .refreshAll(),
+                                  child: _buildPcProductGrid(products),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ],
                 ),
-              )).toList(),
+              ),
             ),
           ),
-        ),
-      ),
-      // body는 Scaffold가 tight height를 주므로 Column > Expanded 구조가 동작함
-      // Center를 body 최상위로 쓰면 자식에 unbounded height → Expanded 0px 버그
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1280),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(width: 200, child: _buildPcSidebar()),
-                const SizedBox(width: 28),
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildPcTopBar(),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: widget.subCategories.map((sub) {
-                            final provider = context.watch<ProductProvider>();
-                            if (provider.isLoading) {
-                              return const Center(
-                                child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 1.5),
-                              );
-                            }
-                            final products = _getProducts(sub.filter, subName: sub.name);
-                            return RefreshIndicator(
-                              color: _white,
-                              backgroundColor: _card,
-                              onRefresh: () => context.read<ProductProvider>().refreshAll(),
-                              child: _buildPcProductGrid(products),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    ));
+        ));
   }
 
   Widget _buildPcSidebar() {
     final sortMap = <String, String>{
-      'newest':    loc.sortNewest,
-      'popular':   loc.sortPopular,
-      'priceLow':  loc.sortPriceLow,
+      'newest': loc.sortNewest,
+      'popular': loc.sortPopular,
+      'priceLow': loc.sortPriceLow,
       'priceHigh': loc.sortPriceHigh,
-      'rating':    loc.sortRating,
+      'rating': loc.sortRating,
     };
     final sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
     return SingleChildScrollView(
@@ -875,8 +989,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('SORT',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
-                color: _greyDim, letterSpacing: 2.5)),
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: _greyDim,
+                  letterSpacing: 2.5)),
           const SizedBox(height: 12),
           ...sortMap.entries.map((e) {
             final isSel = _sortBy == e.key;
@@ -887,15 +1004,18 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 child: Row(
                   children: [
                     Container(
-                      width: 14, height: 14,
+                      width: 14,
+                      height: 14,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isSel ? _white : Colors.transparent,
-                        border: Border.all(color: isSel ? _white : _greyDim, width: 1.5),
+                        border: Border.all(
+                            color: isSel ? _white : _greyDim, width: 1.5),
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Text(e.value,
+                    Text(
+                      e.value,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: isSel ? FontWeight.w700 : FontWeight.w400,
@@ -911,26 +1031,33 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           Container(height: 1, color: _divider),
           const SizedBox(height: 24),
           const Text('SIZE',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
-                color: _greyDim, letterSpacing: 2.5)),
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: _greyDim,
+                  letterSpacing: 2.5)),
           const SizedBox(height: 12),
           Wrap(
-            spacing: 6, runSpacing: 6,
+            spacing: 6,
+            runSpacing: 6,
             children: sizes.map((s) {
               final isSel = _selectedSize == s;
               return GestureDetector(
                 onTap: () => setState(() => _selectedSize = isSel ? null : s),
                 child: Container(
-                  width: 44, height: 34,
+                  width: 44,
+                  height: 34,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: isSel ? _white : Colors.transparent,
                     borderRadius: BorderRadius.circular(3),
                     border: Border.all(color: isSel ? _white : _border),
                   ),
-                  child: Text(s,
+                  child: Text(
+                    s,
                     style: TextStyle(
-                      fontSize: 11.5, fontWeight: FontWeight.w700,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
                       color: isSel ? _bg : _grey,
                     ),
                   ),
@@ -943,8 +1070,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           const SizedBox(height: 24),
           Row(children: [
             const Text('PRICE',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
-                  color: _greyDim, letterSpacing: 2.5)),
+                style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: _greyDim,
+                    letterSpacing: 2.5)),
             const Spacer(),
             Text(
               '${_fmtPrice(_minPrice)}~${_fmtPrice(_maxPrice)}',
@@ -954,17 +1084,25 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           const SizedBox(height: 4),
           RangeSlider(
             values: RangeValues(_minPrice, _maxPrice),
-            min: 0, max: 300000, divisions: 30,
+            min: 0,
+            max: 300000,
+            divisions: 30,
             activeColor: _white,
             inactiveColor: _border,
-            onChanged: (v) => setState(() { _minPrice = v.start; _maxPrice = v.end; }),
+            onChanged: (v) => setState(() {
+              _minPrice = v.start;
+              _maxPrice = v.end;
+            }),
           ),
           const SizedBox(height: 24),
           Container(height: 1, color: _divider),
           const SizedBox(height: 24),
           const Text('OPTIONS',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900,
-                color: _greyDim, letterSpacing: 2.5)),
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: _greyDim,
+                  letterSpacing: 2.5)),
           const SizedBox(height: 12),
           _sidebarToggle(loc.filterSaleOnly, _onlySale,
               (v) => setState(() => _onlySale = v)),
@@ -975,34 +1113,44 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           if (_hasFilter)
             GestureDetector(
               onTap: () => setState(() {
-                _selectedSize = null; _minPrice = 0; _maxPrice = 300000;
-                _onlySale = false; _onlyFreeShipping = false;
+                _selectedSize = null;
+                _minPrice = 0;
+                _maxPrice = 300000;
+                _onlySale = false;
+                _onlyFreeShipping = false;
               }),
               child: Text(context.loc.t('초기화', '초기화'),
-                style: TextStyle(fontSize: 12, color: _greyDim,
-                    decoration: TextDecoration.underline)),
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: _greyDim,
+                      decoration: TextDecoration.underline)),
             ),
         ],
       ),
     );
   }
 
-  Widget _sidebarToggle(String label, bool value, ValueChanged<bool> onChanged) {
+  Widget _sidebarToggle(
+      String label, bool value, ValueChanged<bool> onChanged) {
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: Row(
         children: [
           Container(
-            width: 16, height: 16,
+            width: 16,
+            height: 16,
             decoration: BoxDecoration(
               color: value ? _white : Colors.transparent,
               borderRadius: BorderRadius.circular(2),
               border: Border.all(color: value ? _white : _greyDim, width: 1.5),
             ),
-            child: value ? const Icon(Icons.check_rounded, size: 11, color: _bg) : null,
+            child: value
+                ? const Icon(Icons.check_rounded, size: 11, color: _bg)
+                : null,
           ),
           const SizedBox(width: 10),
-          Text(label,
+          Text(
+            label,
             style: TextStyle(
               fontSize: 13,
               color: value ? _white : _grey,
@@ -1048,7 +1196,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                     onTap: () => setState(() => _searchQuery = ''),
                     child: const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Icon(Icons.close_rounded, size: 16, color: _greyDim),
+                      child:
+                          Icon(Icons.close_rounded, size: 16, color: _greyDim),
                     ),
                   ),
               ],
@@ -1080,7 +1229,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40, height: 40,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: isActive ? Colors.white10 : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
@@ -1097,8 +1247,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 24),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, childAspectRatio: 0.72,
-          crossAxisSpacing: 14, mainAxisSpacing: 14,
+          crossAxisCount: 3,
+          childAspectRatio: 0.72,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
         ),
         itemCount: products.length,
         itemBuilder: (_, i) => ProductCard(product: products[i]),
@@ -1121,8 +1273,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(12),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, childAspectRatio: 0.68,
-        crossAxisSpacing: 10, mainAxisSpacing: 10,
+        crossAxisCount: 2,
+        childAspectRatio: 0.68,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: products.length,
       itemBuilder: (_, i) => ProductCard(product: products[i]),
@@ -1139,11 +1293,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
     );
   }
 
-  Widget _buildListItem(BuildContext context, ProductModel product, {bool pc = false}) {
+  Widget _buildListItem(BuildContext context, ProductModel product,
+      {bool pc = false}) {
     final imgSize = pc ? 130.0 : 100.0;
     return GestureDetector(
-      onTap: () => Navigator.push(context,
-          MaterialPageRoute(builder: (_) => ProductDetailScreen(product: product))),
+      onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => ProductDetailScreen(product: product))),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
@@ -1154,12 +1311,15 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(8)),
+              borderRadius:
+                  const BorderRadius.horizontal(left: Radius.circular(8)),
               child: SizedBox(
-                width: imgSize, height: imgSize,
+                width: imgSize,
+                height: imgSize,
                 child: product.images.isNotEmpty
                     ? NetImage(product.images.first, fit: BoxFit.cover)
-                    : Container(color: _surface,
+                    : Container(
+                        color: _surface,
                         child: const Icon(Icons.image_not_supported_outlined,
                             color: _greyDim, size: 28)),
               ),
@@ -1170,45 +1330,56 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (product.isNewActive || product.isSale || product.isFreeShipping)
+                    if (product.isNewActive ||
+                        product.isSale ||
+                        product.isFreeShipping)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 5),
                         child: Row(
                           children: [
                             if (product.isNewActive) _tag('NEW'),
                             if (product.isSale) _tag('SALE'),
-                            if (product.isFreeShipping) _tag(context.loc.t('무료배송', '무료배송')),
+                            if (product.isFreeShipping)
+                              _tag(context.loc.t('무료배송', '무료배송')),
                           ],
                         ),
                       ),
-                    Text(product.localizedName(_lang),
+                    Text(
+                      product.localizedName(_lang),
                       style: TextStyle(
                         fontSize: pc ? 14.0 : 13.0,
-                        fontWeight: FontWeight.w600, color: _white,
+                        fontWeight: FontWeight.w600,
+                        color: _white,
                       ),
                     ),
                     const SizedBox(height: 6),
                     if (product.originalPrice != null)
-                      Text('${_fmt(product.originalPrice!)}원',
+                      Text(
+                        '${_fmt(product.originalPrice!)}원',
                         style: const TextStyle(
-                          fontSize: 11, color: _greyDim,
+                          fontSize: 11,
+                          color: _greyDim,
                           decoration: TextDecoration.lineThrough,
                         ),
                       ),
-                    Text('${_fmt(product.price)}원',
+                    Text(
+                      '${_fmt(product.price)}원',
                       style: TextStyle(
                         fontSize: pc ? 16.0 : 15.0,
-                        fontWeight: FontWeight.w800, color: _white,
+                        fontWeight: FontWeight.w800,
+                        color: _white,
                       ),
                     ),
                     const SizedBox(height: 4),
                     if (product.reviewCount > 0)
                       Row(
                         children: [
-                          const Icon(Icons.star_rounded, size: 12, color: Color(0xFFFFD600)),
+                          const Icon(Icons.star_rounded,
+                              size: 12, color: AppColors.accent),
                           const SizedBox(width: 2),
                           Text('${product.rating} (${product.reviewCount})',
-                            style: const TextStyle(fontSize: 11, color: _greyDim)),
+                              style: const TextStyle(
+                                  fontSize: 11, color: _greyDim)),
                         ],
                       ),
                   ],
@@ -1230,11 +1401,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
           const Icon(Icons.inbox_outlined, size: 48, color: _greyDim),
           const SizedBox(height: 14),
           Text(loc.categoryNoProducts,
-            style: const TextStyle(fontSize: 14, color: _grey)),
+              style: const TextStyle(fontSize: 14, color: _grey)),
           if (_searchQuery.isNotEmpty) ...[
             const SizedBox(height: 6),
             Text('"$_searchQuery" ${loc.searchNoResult}',
-              style: const TextStyle(fontSize: 12, color: _greyDim)),
+                style: const TextStyle(fontSize: 12, color: _greyDim)),
           ],
         ],
       ),
@@ -1251,11 +1422,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen>
         borderRadius: BorderRadius.circular(2),
       ),
       child: Text(text,
-        style: const TextStyle(color: _grey, fontSize: 9, fontWeight: FontWeight.w700)),
+          style: const TextStyle(
+              color: _grey, fontSize: 9, fontWeight: FontWeight.w700)),
     );
   }
 
-  String _fmt(double price) => price
-      .toStringAsFixed(0)
-      .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  String _fmt(double price) => price.toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 }

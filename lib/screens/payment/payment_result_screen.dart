@@ -1,3 +1,4 @@
+import '../../utils/theme.dart';
 // payment_result_screen.dart
 // 토스페이먼츠 결제 완료/실패 후 리디렉션되는 화면
 // successUrl: /payment/success?paymentKey=...&orderId=...&amount=...
@@ -37,9 +38,9 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
       // URL 파라미터 파싱
       final uri = Uri.parse(html.window.location.href);
       final paymentKey = uri.queryParameters['paymentKey'] ?? '';
-      final orderId    = uri.queryParameters['orderId'] ?? '';
-      final amountStr  = uri.queryParameters['amount'] ?? '0';
-      final amount     = int.tryParse(amountStr) ?? 0;
+      final orderId = uri.queryParameters['orderId'] ?? '';
+      final amountStr = uri.queryParameters['amount'] ?? '0';
+      final amount = int.tryParse(amountStr) ?? 0;
 
       if (paymentKey.isEmpty || orderId.isEmpty) {
         setState(() {
@@ -66,10 +67,13 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
         if (!mounted) return;
         final userProv = context.read<UserProvider>();
         final cashNum = userProv.user?.cashReceiptNum;
-        if (cashNum != null && cashNum.isNotEmpty && result.paymentKey != null) {
-          final receiptType = cashNum.replaceAll('-', '').replaceAll(' ', '').length == 10
-              ? '지출증빙'
-              : '소득공제';
+        if (cashNum != null &&
+            cashNum.isNotEmpty &&
+            result.paymentKey != null) {
+          final receiptType =
+              cashNum.replaceAll('-', '').replaceAll(' ', '').length == 10
+                  ? '지출증빙'
+                  : '소득공제';
           await PaymentService.issueCashReceipt(
             paymentKey: result.paymentKey!,
             customerIdentityNumber: cashNum,
@@ -115,10 +119,12 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                   CircularProgressIndicator(color: Color(0xFF0064FF)),
                   SizedBox(height: 20),
                   Text('결제를 처리하고 있습니다...',
-                      style: TextStyle(fontSize: 16, color: Color(0xFF666666))),
+                      style: TextStyle(
+                          fontSize: 16, color: AppColors.textSecondary)),
                   SizedBox(height: 8),
                   Text('잠시만 기다려주세요',
-                      style: TextStyle(fontSize: 13, color: Color(0xFF999999))),
+                      style: TextStyle(
+                          fontSize: 13, color: AppColors.textSecondary)),
                 ],
               )
             : _errorMsg != null
@@ -126,7 +132,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.error_outline,
-                          color: Colors.red, size: 64),
+                          color: AppColors.error, size: 64),
                       const SizedBox(height: 16),
                       Text('결제 처리 오류',
                           style: const TextStyle(
@@ -134,7 +140,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                       const SizedBox(height: 8),
                       Text(_errorMsg!,
                           style: const TextStyle(
-                              color: Colors.red, fontSize: 14)),
+                              color: AppColors.error, fontSize: 14)),
                       const SizedBox(height: 24),
                       ElevatedButton(
                         onPressed: () => Navigator.pushNamedAndRemoveUntil(
@@ -159,7 +165,7 @@ class PaymentFailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final uri = Uri.parse(html.window.location.href);
     final message = uri.queryParameters['message'] ?? '결제에 실패했습니다.';
-    final code    = uri.queryParameters['code'] ?? '';
+    final code = uri.queryParameters['code'] ?? '';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -168,27 +174,28 @@ class PaymentFailScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 72, height: 72,
+              width: 72,
+              height: 72,
               decoration: const BoxDecoration(
                   color: Color(0xFFFFEBEE), shape: BoxShape.circle),
               child: const Icon(Icons.close_rounded,
-                  color: Colors.red, size: 44),
+                  color: AppColors.error, size: 44),
             ),
             const SizedBox(height: 20),
             const Text('결제 실패',
                 style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
-                    color: Color(0xFF1A1A2E))),
+                    color: AppColors.primary)),
             const SizedBox(height: 10),
             Text(message,
                 style: const TextStyle(
-                    fontSize: 14, color: Color(0xFF666666))),
+                    fontSize: 14, color: AppColors.textSecondary)),
             if (code.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text('오류 코드: $code',
                   style: const TextStyle(
-                      fontSize: 12, color: Color(0xFF999999))),
+                      fontSize: 12, color: AppColors.textSecondary)),
             ],
             const SizedBox(height: 32),
             Row(

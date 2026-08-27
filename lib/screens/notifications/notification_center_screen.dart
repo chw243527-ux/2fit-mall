@@ -12,133 +12,145 @@ class NotificationCenterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = context.watch<LanguageProvider>().loc;
-    return wrapWithPopScope(context, Scaffold(
-      backgroundColor: AppColors.surfaceGray,
-      appBar: AppBar(
-        title: Text(loc.notifCenterTitle),
-        backgroundColor: AppColors.background,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-                onPressed: () => goBackOrHome(context),
-              )
-            : null,
-        actions: [
-          Consumer<NotificationProvider>(
-            builder: (_, provider, __) => provider.unreadCount > 0
-                ? TextButton(
-                    onPressed: provider.markAllAsRead,
-                    child: Text(loc.notifMarkAllRead,
-                        style: const TextStyle(color: AppColors.primary, fontSize: 13)),
+    return wrapWithPopScope(
+        context,
+        Scaffold(
+          backgroundColor: AppColors.surfaceGray,
+          appBar: AppBar(
+            title: Text(loc.notifCenterTitle),
+            backgroundColor: AppColors.background,
+            foregroundColor: AppColors.textPrimary,
+            elevation: 0,
+            leading: Navigator.canPop(context)
+                ? IconButton(
+                    icon:
+                        const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                    onPressed: () => goBackOrHome(context),
                   )
-                : const SizedBox(),
-          ),
-        ],
-      ),
-      body: Consumer<NotificationProvider>(
-        builder: (_, provider, __) {
-          final loc = context.watch<LanguageProvider>().loc;
-          final notifs = provider.notifications;
-          if (notifs.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.notifications_none, size: 64, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  Text(loc.notifEmpty,
-                      style: const TextStyle(fontSize: 16, color: Colors.grey)),
-                ],
+                : null,
+            actions: [
+              Consumer<NotificationProvider>(
+                builder: (_, provider, __) => provider.unreadCount > 0
+                    ? TextButton(
+                        onPressed: provider.markAllAsRead,
+                        child: Text(loc.notifMarkAllRead,
+                            style: const TextStyle(
+                                color: AppColors.primary, fontSize: 13)),
+                      )
+                    : const SizedBox(),
               ),
-            );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: notifs.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final n = notifs[index];
-              return GestureDetector(
-                onTap: () => provider.markAsRead(n.id),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: n.isRead ? Colors.white : AppColors.primary.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: n.isRead ? Colors.grey.shade200 : AppColors.primary.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+          ),
+          body: Consumer<NotificationProvider>(
+            builder: (_, provider, __) {
+              final loc = context.watch<LanguageProvider>().loc;
+              final notifs = provider.notifications;
+              if (notifs.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: _iconBg(n.type).withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          _iconData(n.type),
-                          color: _iconBg(n.type),
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    n.title,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: n.isRead ? FontWeight.w500 : FontWeight.w700,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                                if (!n.isRead)
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.primary,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              n.body,
-                              style: const TextStyle(
-                                  fontSize: 13, color: Colors.grey),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              _formatDate(n.createdAt, loc),
-                              style: const TextStyle(
-                                  fontSize: 11, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
+                      const Icon(Icons.notifications_none,
+                          size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
+                      Text(loc.notifEmpty,
+                          style: const TextStyle(
+                              fontSize: 16, color: Colors.grey)),
                     ],
                   ),
-                ),
+                );
+              }
+              return ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: notifs.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final n = notifs[index];
+                  return GestureDetector(
+                    onTap: () => provider.markAsRead(n.id),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: n.isRead
+                            ? Colors.white
+                            : AppColors.primary.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: n.isRead
+                              ? Colors.grey.shade200
+                              : AppColors.primary.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: _iconBg(n.type).withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _iconData(n.type),
+                              color: _iconBg(n.type),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        n.title,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: n.isRead
+                                              ? FontWeight.w500
+                                              : FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                    ),
+                                    if (!n.isRead)
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.primary,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  n.body,
+                                  style: const TextStyle(
+                                      fontSize: 13, color: Colors.grey),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  _formatDate(n.createdAt, loc),
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
-      ),
-    ));
+          ),
+        ));
   }
 
   IconData _iconData(String? type) {
@@ -159,13 +171,13 @@ class NotificationCenterScreen extends StatelessWidget {
   Color _iconBg(String? type) {
     switch (type) {
       case 'order':
-        return Colors.blue;
+        return AppColors.info;
       case 'delivery':
-        return Colors.green;
+        return AppColors.success;
       case 'event':
-        return Colors.orange;
+        return AppColors.warning;
       case 'coupon':
-        return Colors.purple;
+        return AppColors.primary;
       default:
         return Colors.grey;
     }

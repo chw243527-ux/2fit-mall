@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../utils/app_localizations.dart';
 import '../screens/chat/chat_screen.dart';
 
+import '../utils/theme.dart';
+
 /// 해외 배송비 EMS 요금표 바텀시트
 /// checkout_screen, chat_screen 양쪽에서 공용으로 사용
 void showOverseasRateSheet(BuildContext context) {
@@ -9,18 +11,102 @@ void showOverseasRateSheet(BuildContext context) {
 
   // EMS 비서류 기준 주요 국가 요금 (2025)
   final countries = [
-    {'flag': '🇯🇵', 'name': loc.t('일본', '일본'),           'kg1': '25,500', 'kg2': '33,000', 'kg5': '43,000',  'kg10': '60,000'},
-    {'flag': '🇨🇳', 'name': loc.t('중국', '중국'),           'kg1': '25,500', 'kg2': '32,000', 'kg5': '45,000',  'kg10': '72,000'},
-    {'flag': '🇻🇳', 'name': loc.t('베트남', '베트남'),        'kg1': '20,500', 'kg2': '26,000', 'kg5': '40,000',  'kg10': '62,000'},
-    {'flag': '🇲🇾', 'name': loc.t('말레이시아', '말레이시아'), 'kg1': '20,500', 'kg2': '26,000', 'kg5': '40,000',  'kg10': '62,000'},
-    {'flag': '🇸🇬', 'name': loc.t('싱가포르', '싱가포르'),    'kg1': '20,500', 'kg2': '26,000', 'kg5': '40,000',  'kg10': '62,000'},
-    {'flag': '🇹🇭', 'name': loc.t('태국', '태국'),           'kg1': '20,500', 'kg2': '26,000', 'kg5': '40,000',  'kg10': '62,000'},
-    {'flag': '🇦🇺', 'name': loc.t('호주', '호주'),           'kg1': '29,000', 'kg2': '40,500', 'kg5': '70,000',  'kg10': '118,000'},
-    {'flag': '🇺🇸', 'name': loc.t('미국', '미국'),           'kg1': '33,500', 'kg2': '51,000', 'kg5': '88,000',  'kg10': '156,000'},
-    {'flag': '🇨🇦', 'name': loc.t('캐나다', '캐나다'),        'kg1': '33,000', 'kg2': '43,000', 'kg5': '64,500',  'kg10': '105,500'},
-    {'flag': '🇩🇪', 'name': loc.t('독일_유럽', '독일/유럽'),  'kg1': '34,500', 'kg2': '45,000', 'kg5': '72,000',  'kg10': '120,000'},
-    {'flag': '🇬🇧', 'name': loc.t('영국', '영국'),           'kg1': '34,500', 'kg2': '45,000', 'kg5': '72,000',  'kg10': '120,000'},
-    {'flag': '🇫🇷', 'name': loc.t('프랑스', '프랑스'),        'kg1': '34,500', 'kg2': '45,000', 'kg5': '72,000',  'kg10': '120,000'},
+    {
+      'flag': '🇯🇵',
+      'name': loc.t('일본', '일본'),
+      'kg1': '25,500',
+      'kg2': '33,000',
+      'kg5': '43,000',
+      'kg10': '60,000'
+    },
+    {
+      'flag': '🇨🇳',
+      'name': loc.t('중국', '중국'),
+      'kg1': '25,500',
+      'kg2': '32,000',
+      'kg5': '45,000',
+      'kg10': '72,000'
+    },
+    {
+      'flag': '🇻🇳',
+      'name': loc.t('베트남', '베트남'),
+      'kg1': '20,500',
+      'kg2': '26,000',
+      'kg5': '40,000',
+      'kg10': '62,000'
+    },
+    {
+      'flag': '🇲🇾',
+      'name': loc.t('말레이시아', '말레이시아'),
+      'kg1': '20,500',
+      'kg2': '26,000',
+      'kg5': '40,000',
+      'kg10': '62,000'
+    },
+    {
+      'flag': '🇸🇬',
+      'name': loc.t('싱가포르', '싱가포르'),
+      'kg1': '20,500',
+      'kg2': '26,000',
+      'kg5': '40,000',
+      'kg10': '62,000'
+    },
+    {
+      'flag': '🇹🇭',
+      'name': loc.t('태국', '태국'),
+      'kg1': '20,500',
+      'kg2': '26,000',
+      'kg5': '40,000',
+      'kg10': '62,000'
+    },
+    {
+      'flag': '🇦🇺',
+      'name': loc.t('호주', '호주'),
+      'kg1': '29,000',
+      'kg2': '40,500',
+      'kg5': '70,000',
+      'kg10': '118,000'
+    },
+    {
+      'flag': '🇺🇸',
+      'name': loc.t('미국', '미국'),
+      'kg1': '33,500',
+      'kg2': '51,000',
+      'kg5': '88,000',
+      'kg10': '156,000'
+    },
+    {
+      'flag': '🇨🇦',
+      'name': loc.t('캐나다', '캐나다'),
+      'kg1': '33,000',
+      'kg2': '43,000',
+      'kg5': '64,500',
+      'kg10': '105,500'
+    },
+    {
+      'flag': '🇩🇪',
+      'name': loc.t('독일_유럽', '독일/유럽'),
+      'kg1': '34,500',
+      'kg2': '45,000',
+      'kg5': '72,000',
+      'kg10': '120,000'
+    },
+    {
+      'flag': '🇬🇧',
+      'name': loc.t('영국', '영국'),
+      'kg1': '34,500',
+      'kg2': '45,000',
+      'kg5': '72,000',
+      'kg10': '120,000'
+    },
+    {
+      'flag': '🇫🇷',
+      'name': loc.t('프랑스', '프랑스'),
+      'kg1': '34,500',
+      'kg2': '45,000',
+      'kg5': '72,000',
+      'kg10': '120,000'
+    },
   ];
 
   showModalBottomSheet(
@@ -45,7 +131,7 @@ void showOverseasRateSheet(BuildContext context) {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFFDDDDDD),
+                color: AppColors.border,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -65,19 +151,22 @@ void showOverseasRateSheet(BuildContext context) {
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
-                            color: Color(0xFF1A1A2E),
+                            color: AppColors.primary,
                           ),
                         ),
                         Text(
-                          loc.t('ems_기준_비서류_2025', 'EMS(우체국 국제특급) 비서류 기준 · 2025년'),
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF888888)),
+                          loc.t('ems_기준_비서류_2025',
+                              'EMS(우체국 국제특급) 비서류 기준 · 2025년'),
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textSecondary),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.of(ctx).pop(),
-                    icon: const Icon(Icons.close_rounded, color: Color(0xFF888888)),
+                    icon: const Icon(Icons.close_rounded,
+                        color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -93,15 +182,18 @@ void showOverseasRateSheet(BuildContext context) {
               },
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8F5E9),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: const Color(0xFF43A047).withValues(alpha: 0.5)),
+                  border: Border.all(
+                      color: AppColors.success.withValues(alpha: 0.5)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.chat_bubble_rounded, size: 18, color: Color(0xFF2E7D32)),
+                    const Icon(Icons.chat_bubble_rounded,
+                        size: 18, color: AppColors.success),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
@@ -117,7 +209,8 @@ void showOverseasRateSheet(BuildContext context) {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            loc.t('배송비_채팅상담_부연', '부피·무게·국가에 따라 실제 요금이 달라질 수 있습니다.'),
+                            loc.t('배송비_채팅상담_부연',
+                                '부피·무게·국가에 따라 실제 요금이 달라질 수 있습니다.'),
                             style: const TextStyle(
                               fontSize: 11,
                               color: Color(0xFF388E3C),
@@ -128,9 +221,10 @@ void showOverseasRateSheet(BuildContext context) {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2E7D32),
+                        color: AppColors.success,
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
@@ -153,7 +247,8 @@ void showOverseasRateSheet(BuildContext context) {
               decoration: BoxDecoration(
                 color: const Color(0xFFF3E5F5),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF9C27B0).withValues(alpha: 0.25)),
+                border: Border.all(
+                    color: const Color(0xFF9C27B0).withValues(alpha: 0.25)),
               ),
               child: Row(
                 children: [
@@ -167,7 +262,7 @@ void showOverseasRateSheet(BuildContext context) {
                       ),
                       style: const TextStyle(
                         fontSize: 11,
-                        color: Color(0xFF6A1B9A),
+                        color: AppColors.primary,
                         height: 1.4,
                       ),
                     ),
@@ -181,7 +276,7 @@ void showOverseasRateSheet(BuildContext context) {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               decoration: const BoxDecoration(
-                color: Color(0xFF1565C0),
+                color: AppColors.info,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
               ),
               child: Row(
@@ -190,7 +285,10 @@ void showOverseasRateSheet(BuildContext context) {
                     flex: 3,
                     child: Text(
                       loc.t('국가', '국가'),
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
                     ),
                   ),
                   _th('1kg'),
@@ -211,13 +309,14 @@ void showOverseasRateSheet(BuildContext context) {
                   final isEven = i % 2 == 0;
                   final won = loc.t('원', '원');
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
                       color: isEven ? const Color(0xFFF8F9FA) : Colors.white,
                       border: const Border(
-                        left: BorderSide(color: Color(0xFFE0E0E0)),
-                        right: BorderSide(color: Color(0xFFE0E0E0)),
-                        bottom: BorderSide(color: Color(0xFFEEEEEE)),
+                        left: BorderSide(color: AppColors.border),
+                        right: BorderSide(color: AppColors.border),
+                        bottom: BorderSide(color: AppColors.border),
                       ),
                     ),
                     child: Row(
@@ -226,7 +325,8 @@ void showOverseasRateSheet(BuildContext context) {
                           flex: 3,
                           child: Row(
                             children: [
-                              Text(c['flag']!, style: const TextStyle(fontSize: 16)),
+                              Text(c['flag']!,
+                                  style: const TextStyle(fontSize: 16)),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
@@ -234,7 +334,7 @@ void showOverseasRateSheet(BuildContext context) {
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: Color(0xFF333333),
+                                    color: AppColors.textPrimary,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -257,7 +357,7 @@ void showOverseasRateSheet(BuildContext context) {
               margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF5F5F5),
+                color: AppColors.surfaceGray,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
@@ -265,7 +365,10 @@ void showOverseasRateSheet(BuildContext context) {
                 children: [
                   Text(
                     loc.t('부피중량_안내_제목', '⚠️ 부피중량 계산'),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF555555)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -273,7 +376,8 @@ void showOverseasRateSheet(BuildContext context) {
                       '부피중량_계산식',
                       '가로(cm) × 세로(cm) × 높이(cm) ÷ 6,000\n실무게와 부피중량 중 더 큰 값으로 요금 적용',
                     ),
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF777777), height: 1.5),
+                    style: const TextStyle(
+                        fontSize: 11, color: Color(0xFF777777), height: 1.5),
                   ),
                 ],
               ),
@@ -294,13 +398,15 @@ void showOverseasRateSheet(BuildContext context) {
                   icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
                   label: Text(
                     loc.t('채팅상담으로_배송비_문의하기', '채팅상담으로 배송비 문의하기'),
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w700),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1565C0),
+                    backgroundColor: AppColors.info,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     elevation: 0,
                   ),
                 ),
@@ -318,7 +424,8 @@ Widget _th(String text) => Expanded(
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+        style: const TextStyle(
+            fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
       ),
     );
 
@@ -327,6 +434,6 @@ Widget _td(String text) => Expanded(
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 11, color: Color(0xFF444444)),
+        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
       ),
     );

@@ -21,14 +21,12 @@ StreamSubscription? _activeSub;
 
 /// iframe + postMessage 리스너 등록
 /// web/kakao_postcode.html 을 같은 origin iframe으로 사용
-void registerKakaoIframeListener(
-    void Function(Map<String, dynamic>) onResult) {
+void registerKakaoIframeListener(void Function(Map<String, dynamic>) onResult) {
   // 기존 리스너 먼저 해제
   _activeSub?.cancel();
   _activeSub = null;
 
-  final viewType =
-      'kakao-postcode-${DateTime.now().millisecondsSinceEpoch}';
+  final viewType = 'kakao-postcode-${DateTime.now().millisecondsSinceEpoch}';
 
   // ── iframe 생성 ──
   // src = 같은 origin의 정적 HTML → sandbox 불필요, postMessage 정상 동작
