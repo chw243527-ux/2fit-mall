@@ -20,7 +20,7 @@ permissions:
 
 env:
   FLUTTER_VERSION: '3.32.2'
-  NODE_VERSION: '20.x'
+  NODE_VERSION: '22.x'
   FIREBASE_CLI_VERSION: 'latest'
   WRANGLER_VERSION: 'latest'
   BUILD_DIR: build/web
