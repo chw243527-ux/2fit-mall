@@ -22,7 +22,7 @@ env:
   FLUTTER_VERSION: '3.32.2'
   NODE_VERSION: '22.x'
   FIREBASE_CLI_VERSION: 'latest'
-  WRANGLER_VERSION: '3.78.12'
+  WRANGLER_VERSION: 'latest'
   BUILD_DIR: build/web
   FIREBASE_PROJECT: fit-mall
   CF_PROJECT: twofit-mall
@@ -195,16 +195,14 @@ jobs:
           printf '%s' "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" > "${RUNNER_TEMP}/firebase-service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/firebase-service-account.json" >> "${GITHUB_ENV}"
 
-      - name: Deploy Firestore Rules and Storage Rules
+      - name: Deploy Firestore Rules, Storage Rules, and Cloud Functions
         shell: bash
         run: |
           set -euo pipefail
           firebase deploy \
-            --only firestore:rules,storage \
+            --only firestore:rules,storage,functions \
             --project "${FIREBASE_PROJECT}" \
             --non-interactive
-
-      # Cloud Functions는 Service Account User 권한을 추가한 뒤 별도 단계로 다시 활성화합니다.
 
       - name: Remove Firebase service account file
         if: always()
