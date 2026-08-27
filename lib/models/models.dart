@@ -49,6 +49,16 @@ class ProductModel {
   /// inventory 컬렉션 대체 — products 문서에 직접 저장
   final Map<String, Map<String, int>> stockData;
 
+  /// 관리용 일괄 카피 스크립트가 생성하는 에디토리얼 상세페이지 문구
+  final String editorialLabel;
+  final String editorialTitle;
+  final String editorialAccent;
+  final String editorialSubtitle;
+  final String editorialMaterialKey;
+  final String editorialMaterialText;
+  final String editorialSource;
+  final bool editorialLocked;
+
   ProductModel({
     required this.id,
     required this.name,
@@ -81,6 +91,14 @@ class ProductModel {
     this.bottomLength = '',
     this.sizeStocks = const {},
     this.stockData = const {},
+    this.editorialLabel = '',
+    this.editorialTitle = '',
+    this.editorialAccent = '',
+    this.editorialSubtitle = '',
+    this.editorialMaterialKey = '',
+    this.editorialMaterialText = '',
+    this.editorialSource = '',
+    this.editorialLocked = false,
   });
 
   /// 현재 언어에 맞는 상품명 반환 (번역 없으면 원본 한국어 사용)
@@ -145,6 +163,14 @@ class ProductModel {
       bottomLength: bottomLength,
       sizeStocks: sizeStocks,
       stockData: stockData,
+      editorialLabel: editorialLabel,
+      editorialTitle: editorialTitle,
+      editorialAccent: editorialAccent,
+      editorialSubtitle: editorialSubtitle,
+      editorialMaterialKey: editorialMaterialKey,
+      editorialMaterialText: editorialMaterialText,
+      editorialSource: editorialSource,
+      editorialLocked: editorialLocked,
     );
   }
 
@@ -198,6 +224,14 @@ class ProductModel {
       sizes: json['sizes'] != null ? List<String>.from(json['sizes'] as List) : const [],
       colors: json['colors'] != null ? List<String>.from(json['colors'] as List) : const [],
       material: json['material'] as String? ?? '78% Nylon, 22% Spandex',
+      editorialLabel: json['editorialLabel'] as String? ?? '',
+      editorialTitle: json['editorialTitle'] as String? ?? '',
+      editorialAccent: json['editorialAccent'] as String? ?? '',
+      editorialSubtitle: json['editorialSubtitle'] as String? ?? '',
+      editorialMaterialKey: json['editorialMaterialKey'] as String? ?? '',
+      editorialMaterialText: json['editorialMaterialText'] as String? ?? '',
+      editorialSource: json['editorialSource'] as String? ?? '',
+      editorialLocked: json['editorialLocked'] as bool? ?? false,
       bottomLength: json['bottomLength'] as String? ?? '',
       isNew: json['isNew'] as bool? ?? false,
       newExpiresAt: json['newExpiresAt'] != null
@@ -250,6 +284,14 @@ class ProductModel {
       'sizes': sizes,
       'colors': colors,
       'material': material,
+      'editorialLabel': editorialLabel,
+      'editorialTitle': editorialTitle,
+      'editorialAccent': editorialAccent,
+      'editorialSubtitle': editorialSubtitle,
+      'editorialMaterialKey': editorialMaterialKey,
+      'editorialMaterialText': editorialMaterialText,
+      'editorialSource': editorialSource,
+      'editorialLocked': editorialLocked,
       'bottomLength': bottomLength,
       'isNew': isNew,
       'newExpiresAt': newExpiresAt?.toIso8601String(),
@@ -294,6 +336,14 @@ class ProductModel {
       nameTranslations: nameTranslations,
       descriptionTranslations: descriptionTranslations,
       bottomLength: bottomLength,
+      editorialLabel: editorialLabel,
+      editorialTitle: editorialTitle,
+      editorialAccent: editorialAccent,
+      editorialSubtitle: editorialSubtitle,
+      editorialMaterialKey: editorialMaterialKey,
+      editorialMaterialText: editorialMaterialText,
+      editorialSource: editorialSource,
+      editorialLocked: editorialLocked,
     );
   }
 }

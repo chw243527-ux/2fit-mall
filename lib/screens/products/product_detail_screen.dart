@@ -4284,6 +4284,21 @@ $productUrl
       );
     }
 
+    // 관리자 일괄 스크립트로 저장된 상품별 카피가 있으면 최우선 사용합니다.
+    if (product.editorialTitle.trim().isNotEmpty &&
+        product.editorialSubtitle.trim().isNotEmpty) {
+      return (
+        label: product.editorialLabel.trim().isNotEmpty
+            ? product.editorialLabel
+            : '2FIT SPORTSWEAR',
+        headline: product.editorialTitle,
+        accent: product.editorialAccent.trim().isNotEmpty
+            ? product.editorialAccent
+            : 'DESIGNED FOR MOTION.',
+        copy: product.editorialSubtitle,
+      );
+    }
+
     // 여성 2.5부 골지 쇼츠
     if (name.contains('2.5부 숏')) {
       if (name.contains('틸블루')) {
