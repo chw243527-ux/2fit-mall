@@ -73,10 +73,28 @@ class _AdminScreenState extends State<AdminScreen>
       'icon': Icons.science_rounded
     },
     {
+      'key': 's2_seamless',
+      'label': '섹션 2A',
+      'title': '심리스 구조',
+      'icon': Icons.all_inclusive_rounded
+    },
+    {
+      'key': 's2_fiber',
+      'label': '섹션 2B',
+      'title': '원단 구조',
+      'icon': Icons.texture_rounded
+    },
+    {
       'key': 's3',
       'label': '섹션 3',
       'title': '스마트 포켓',
       'icon': Icons.shopping_bag_rounded
+    },
+    {
+      'key': 's4',
+      'label': '섹션 4',
+      'title': '착용 및 핏 안내',
+      'icon': Icons.accessibility_new_rounded
     },
     {
       'key': 's5',
@@ -98,6 +116,18 @@ class _AdminScreenState extends State<AdminScreen>
   String _orderSearchQuery = '';
   String _memberSearchQuery = '';
   String _productCategoryFilter = '전체';
+
+  static const _reservedSectionKeys = {
+    's1',
+    's2',
+    's2_seamless',
+    's2_fiber',
+    's3',
+    's4',
+    's5',
+    's6',
+  };
+  static const _contentCatalogDocumentId = 'admin_content_catalog';
 
   static const _orderFilters = [
     '전체',
@@ -263,14 +293,15 @@ class _AdminScreenState extends State<AdminScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 17, vsync: this);
+    _tabCtrl = TabController(length: 18, vsync: this);
     // initialTab이 지정된 경우 해당 탭으로 이동
-    if (widget.initialTab > 0 && widget.initialTab < 16) {
+    if (widget.initialTab > 0 && widget.initialTab < 18) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _tabCtrl.animateTo(widget.initialTab);
       });
     }
     _loadAdminSettings();
+    _loadContentCatalogs();
     _prefetchData();
     // 관리자 화면 진입 시 비활성 상품 포함 전체 목록 로드
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -504,7 +535,7 @@ class _AdminScreenState extends State<AdminScreen>
       for (final doc in snap.docs) {
         final d = doc.data();
         final req = d['designRevisionRequest'] as Map<String, dynamic>?;
-        if (req == null) continue;
+        if (req == null || req['archived'] == true) continue;
 
         // 날짜 파싱
         DateTime createdAt;
@@ -607,6 +638,147 @@ class _AdminScreenState extends State<AdminScreen>
     await prefs.setBool('notify_sms', _notifyChatSms);
   }
 
+  /// 관리자에서 조작하는 공통 콘텐츠 목록입니다.
+  /// 기존 로컬 목록을 최초 한 번 Firestore에 시드하고 이후에는 모든
+  /// 관리자 기기에서 같은 색상·섹션 정의를 사용합니다.
+  Future<void> _loadContentCatalogs() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('app_settings')
+          .doc(_contentCatalogDocumentId)
+          .get();
+      if (!doc.exists) {
+        await _persistContentCatalogs();
+        return;
+      }
+
+      final data = doc.data() ?? <String, dynamic>{};
+      final storedColors = _catalogList(data['colors']);
+      final storedSections = _catalogList(data['sections']);
+      if (!mounted) return;
+      setState(() {
+        // 빈 배열도 관리자가 의도적으로 모두 정리한 결과일 수 있으므로 유지합니다.
+        if (data['colors'] is List) {
+          _colorItems
+            ..clear()
+            ..addAll(storedColors.map(_colorFromCatalog));
+        }
+        if (data['sections'] is List) {
+          _customSections
+            ..clear()
+            ..addAll(storedSections.map(_sectionFromCatalog));
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) debugPrint('관리 콘텐츠 목록 로드 실패: $e');
+    }
+  }
+
+  List<Map<String, dynamic>> _catalogList(dynamic raw) {
+    if (raw is! List) return <Map<String, dynamic>>[];
+    return raw
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+  }
+
+  Map<String, dynamic> _colorFromCatalog(Map<String, dynamic> item) => {
+        'id': item['id'] as String? ??
+            'c_${DateTime.now().microsecondsSinceEpoch}',
+        'name': item['name'] as String? ?? '이름 없음',
+        'hexCode': item['hexCode'] as String? ?? '#808080',
+        'category': item['category'] as String? ?? '기본색',
+        'hasImage': item['hasImage'] == true,
+        'imageUrl': item['imageUrl'] as String? ?? '',
+        'buttonCard': item['buttonCard'] != false,
+        'active': item['active'] != false,
+      };
+
+  Map<String, dynamic> _sectionFromCatalog(Map<String, dynamic> item) {
+    final key = item['key'] as String? ??
+        'custom_${DateTime.now().microsecondsSinceEpoch}';
+    return {
+      'key': key,
+      'label': item['label'] as String? ?? '섹션',
+      'title': item['title'] as String? ?? '이름 없는 섹션',
+      'description': item['description'] as String? ?? '',
+      'thumbUrl': item['thumbUrl'] as String? ?? '',
+      'active': item['active'] != false,
+      'icon': _sectionIconForKey(key),
+    };
+  }
+
+  IconData _sectionIconForKey(String key) {
+    switch (key) {
+      case 's1':
+        return Icons.star_rounded;
+      case 's2':
+        return Icons.science_rounded;
+      case 's2_seamless':
+        return Icons.all_inclusive_rounded;
+      case 's2_fiber':
+        return Icons.texture_rounded;
+      case 's3':
+        return Icons.shopping_bag_rounded;
+      case 's4':
+        return Icons.accessibility_new_rounded;
+      case 's5':
+        return Icons.palette_rounded;
+      case 's6':
+        return Icons.table_chart_rounded;
+      default:
+        return Icons.image_rounded;
+    }
+  }
+
+  Map<String, dynamic> _colorForCatalog(Map<String, dynamic> item) => {
+        'id': item['id'],
+        'name': item['name'],
+        'hexCode': item['hexCode'],
+        'category': item['category'],
+        'hasImage': item['hasImage'] == true,
+        'imageUrl': item['imageUrl'] ?? '',
+        'buttonCard': item['buttonCard'] != false,
+        'active': item['active'] != false,
+      };
+
+  Map<String, dynamic> _sectionForCatalog(Map<String, dynamic> item) => {
+        'key': item['key'],
+        'label': item['label'],
+        'title': item['title'],
+        'description': item['description'] ?? '',
+        'thumbUrl': item['thumbUrl'] ?? '',
+        'active': item['active'] != false,
+        'reserved': _reservedSectionKeys.contains(item['key']),
+      };
+
+  Future<bool> _persistContentCatalogs() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('app_settings')
+          .doc(_contentCatalogDocumentId)
+          .set({
+        'schemaVersion': 1,
+        'colors': _colorItems.map(_colorForCatalog).toList(),
+        'sections': _customSections.map(_sectionForCatalog).toList(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'updatedBy': FirebaseAuth.instance.currentUser?.uid ?? '',
+      }, SetOptions(merge: true));
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('관리 콘텐츠 목록 저장 실패: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('저장하지 못했습니다. 네트워크와 관리자 권한을 확인해주세요.'),
+            backgroundColor: Color(0xFFE53935),
+          ),
+        );
+      }
+      return false;
+    }
+  }
+
   @override
   void dispose() {
     _tabCtrl.dispose();
@@ -633,7 +805,7 @@ class _AdminScreenState extends State<AdminScreen>
     // ── 새 탭 순서 ──
     // 0: 대시보드  1: 주문관리  2: 디자인요청  3: 배송관리  4: 채팅상담
     // 5: 재고관리  6: 상품관리  7: 교환/반품  8: 리뷰관리  9: 배너관리
-    // 10: 직원관리  11: 회원관리  12: 공지관리  13: 매출통계  14: 카테고리관리  15: 섹션관리
+    // 10: 직원관리  11: 회원관리  12: 공지관리  13: 매출통계  14: 카테고리관리  15: 섹션관리  16: 쿠폰관리  17: 색상관리
     final tabs = [
       {'icon': Icons.dashboard_rounded, 'label': '대시보드'},
       {'icon': Icons.receipt_long_rounded, 'label': '주문관리'},
@@ -651,9 +823,10 @@ class _AdminScreenState extends State<AdminScreen>
       {'icon': Icons.bar_chart_rounded, 'label': '매출통계'},
       // ── 주문관리 소분류 (들여쓰기로 표시) ──
       {'icon': Icons.folder_special_rounded, 'label': '카테고리관리', 'sub': true},
-      {'icon': Icons.layers_rounded, 'label': '섹션관리', 'sub': true},
-      {'icon': Icons.local_activity_rounded, 'label': '쿠폰관리', 'sub': true},
-    ];
+       {'icon': Icons.layers_rounded, 'label': '섹션관리', 'sub': true},
+       {'icon': Icons.local_activity_rounded, 'label': '쿠폰관리', 'sub': true},
+       {'icon': Icons.palette_rounded, 'label': '색상관리', 'sub': true},
+     ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -1057,6 +1230,7 @@ class _AdminScreenState extends State<AdminScreen>
     '카테고리관리',
     '섹션관리',
     '쿠폰관리',
+    '색상관리',
   ];
   static const _tabIcons = [
     Icons.dashboard_rounded,
@@ -1076,9 +1250,10 @@ class _AdminScreenState extends State<AdminScreen>
     Icons.folder_special_rounded,
     Icons.layers_rounded,
     Icons.local_activity_rounded,
+    Icons.palette_rounded,
   ];
   // 소분류(들여쓰기) 인덱스
-  static const _subTabIndices = {14, 15};
+  static const _subTabIndices = {14, 15, 16, 17};
 
   Widget _buildMobileLayout(dynamic user) {
     final currentLabel =
@@ -1435,7 +1610,7 @@ class _AdminScreenState extends State<AdminScreen>
     // Stack+Offstage: 모든 탭을 미리 빌드해두고 보이기/숨기기만 전환
     // 새 순서: 0대시보드 1주문관리 2디자인요청 3배송관리 4채팅상담
     //          5재고관리  6상품관리  7교환/반품  8리뷰관리  9배너관리
-    //          10직원관리 11회원관리 12공지관리 13매출통계 14카테고리관리 15섹션관리
+    //          10직원관리 11회원관리 12공지관리 13매출통계 14카테고리관리 15섹션관리 16쿠폰관리 17색상관리
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -1459,6 +1634,7 @@ class _AdminScreenState extends State<AdminScreen>
         Offstage(offstage: index != 14, child: const _CategoryManagementTab()),
         Offstage(offstage: index != 15, child: _buildSectionManagement()),
         Offstage(offstage: index != 16, child: const AdminCouponTab()),
+        Offstage(offstage: index != 17, child: _buildColorManagement()),
       ],
     );
   }
@@ -11528,24 +11704,72 @@ class _AdminScreenState extends State<AdminScreen>
                             product: selectedProduct,
                             onUpdated: () => setState(() {}),
                           ),
-                          // 삭제 버튼 (우상단)
+                          // 수정 및 안전 삭제/보관 버튼 (우상단)
                           Positioned(
                             top: 8,
                             right: 8,
-                            child: GestureDetector(
-                              onTap: () => _confirmDeleteSection(i),
-                              child: Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: AppColors.error,
-                                  borderRadius: BorderRadius.circular(6),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                GestureDetector(
+                                  onTap: () => _showEditSectionDialog(i),
+                                  child: Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Icon(Icons.edit_rounded,
+                                        color: Colors.white, size: 14),
+                                  ),
                                 ),
-                                child: const Icon(Icons.close_rounded,
-                                    color: Colors.white, size: 14),
-                              ),
+                                const SizedBox(width: 4),
+                                GestureDetector(
+                                  onTap: () => _reservedSectionKeys.contains(key)
+                                      ? _toggleSectionActive(i)
+                                      : _confirmDeleteSection(i),
+                                  child: Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: _reservedSectionKeys.contains(key)
+                                          ? const Color(0xFF6A1B9A)
+                                          : const Color(0xFFE53935),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Icon(
+                                      _reservedSectionKeys.contains(key)
+                                          ? ((sec['active'] == false)
+                                              ? Icons.visibility_rounded
+                                              : Icons.inventory_2_rounded)
+                                          : Icons.close_rounded,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                          if (sec['active'] == false)
+                            Positioned(
+                              left: 8,
+                              top: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF555555),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text('보관됨',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700)),
+                              ),
+                            ),
                         ],
                       );
                     },
@@ -11698,16 +11922,23 @@ class _AdminScreenState extends State<AdminScreen>
                         );
                       }
 
-                      setState(() {
-                        _customSections.add({
-                          'key': newKey,
-                          'label': '섹션 ${_customSections.length + 1}',
-                          'title': title,
-                          'description': desc,
-                          'icon': Icons.image_rounded,
-                          if (imageUrl != null) 'thumbUrl': imageUrl,
-                        });
-                      });
+                      final newSection = <String, dynamic>{
+                        'key': newKey,
+                        'label': '섹션 ${_customSections.length + 1}',
+                        'title': title,
+                        'description': desc,
+                        'active': true,
+                        'icon': Icons.image_rounded,
+                        if (imageUrl != null) 'thumbUrl': imageUrl,
+                      };
+                      setState(() => _customSections.add(newSection));
+                      final saved = await _persistContentCatalogs();
+                      if (!saved) {
+                        if (mounted) {
+                          setState(() => _customSections.remove(newSection));
+                        }
+                        return;
+                      }
                       if (ctx.mounted) Navigator.pop(ctx);
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -11734,31 +11965,143 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  // 섹션 삭제 확인
+  void _showEditSectionDialog(int index) {
+    final section = _customSections[index];
+    final titleCtrl = TextEditingController(text: section['title'] as String);
+    final descCtrl = TextEditingController(
+        text: (section['description'] as String?) ?? '');
+    bool active = section['active'] != false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('섹션 수정',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleCtrl,
+                  decoration: const InputDecoration(labelText: '섹션 이름 *'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: descCtrl,
+                  maxLines: 3,
+                  decoration: const InputDecoration(labelText: '섹션 설명'),
+                ),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('섹션 보관 상태',
+                      style: TextStyle(fontSize: 13)),
+                  subtitle: const Text('기본 키의 상품 이미지 참조를 보호하는 안전 상태입니다',
+                      style: TextStyle(fontSize: 11)),
+                  value: active,
+                  onChanged: (value) => setDialogState(() => active = value),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A1A2E),
+                  foregroundColor: Colors.white),
+              onPressed: () async {
+                final title = titleCtrl.text.trim();
+                if (title.isEmpty) return;
+                final before = Map<String, dynamic>.from(section);
+                setState(() {
+                  _customSections[index] = {
+                    ...section,
+                    'title': title,
+                    'description': descCtrl.text.trim(),
+                    'active': active,
+                  };
+                });
+                final saved = await _persistContentCatalogs();
+                if (!saved) {
+                  if (mounted) setState(() => _customSections[index] = before);
+                  return;
+                }
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('섹션 정보가 저장되었습니다'),
+                        backgroundColor: Color(0xFF1A1A2E)),
+                  );
+                }
+              },
+              child: const Text('저장'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _toggleSectionActive(int index) async {
+    final section = _customSections[index];
+    final before = Map<String, dynamic>.from(section);
+    final nextActive = section['active'] == false;
+    setState(() => _customSections[index] = {
+          ...section,
+          'active': nextActive,
+        });
+    final saved = await _persistContentCatalogs();
+    if (!saved) {
+      if (mounted) setState(() => _customSections[index] = before);
+      return;
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(nextActive
+              ? '기본 섹션을 다시 표시합니다'
+              : '기본 섹션을 보관했습니다. 상품 이미지는 유지됩니다.'),
+          backgroundColor: const Color(0xFF6A1B9A),
+        ),
+      );
+    }
+  }
+
+  // 섹션 삭제 확인: 기본 키는 상품 이미지 참조를 보호하기 위해 보관으로만 처리합니다.
   void _confirmDeleteSection(int index) {
     final sec = _customSections[index];
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('섹션 삭제',
+        title: const Text('섹션 삭제',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        content: Text('"${sec['title']}" 섹션을 삭제하시겠습니까?\n이미지 데이터는 유지됩니다.'),
+        content: Text('"${sec['title']}" 섹션 정의를 삭제하시겠습니까?\n연결된 상품 이미지는 삭제되지 않지만, 이 키로 다시 표시하려면 새 섹션을 만들어야 합니다.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
+              final removed = Map<String, dynamic>.from(sec);
               setState(() => _customSections.removeAt(index));
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text('"${sec['title']}" 섹션이 삭제되었습니다'),
-                    backgroundColor: AppColors.error),
-              );
+              final saved = await _persistContentCatalogs();
+              if (!saved) {
+                if (mounted) setState(() => _customSections.insert(index, removed));
+                return;
+              }
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('"${sec['title']}" 섹션이 삭제되었습니다'),
+                      backgroundColor: AppColors.error),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
                 foregroundColor: Colors.white),
-            child: Text('삭제'),
+            child: const Text('삭제'),
           ),
         ],
       ),
@@ -11886,18 +12229,7 @@ class _AdminScreenState extends State<AdminScreen>
                         color: AppColors.accent)),
                 const Spacer(),
                 TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _colorItems.removeWhere(
-                          (c) => _selectedColorIds.contains(c['id'] as String));
-                      _selectedColorIds.clear();
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text('선택된 색상이 삭제되었습니다'),
-                          backgroundColor: AppColors.error),
-                    );
-                  },
+                  onPressed: _confirmDeleteSelectedColors,
                   icon: const Icon(Icons.delete_rounded,
                       size: 16, color: AppColors.error),
                   label: Text('삭제',
@@ -12269,24 +12601,32 @@ class _AdminScreenState extends State<AdminScreen>
                                                                       0xFFE53935),
                                                               foregroundColor:
                                                                   Colors.white),
-                                                      onPressed: () {
+                                                      onPressed: () async {
+                                                        final removed =
+                                                            Map<String, dynamic>.from(c);
                                                         setState(() => _colorItems
-                                                            .removeWhere(
-                                                                (item) =>
-                                                                    item[
-                                                                        'id'] ==
-                                                                    id));
-                                                        Navigator.pop(context);
-                                                        ScaffoldMessenger.of(
-                                                                context)
-                                                            .showSnackBar(
-                                                          SnackBar(
-                                                              content: Text(
-                                                                  '"${c['name']}" 색상이 삭제되었습니다'),
-                                                              backgroundColor:
-                                                                  const Color(
-                                                                      0xFFE53935)),
-                                                        );
+                                                            .removeWhere((item) =>
+                                                                item['id'] == id));
+                                                        final saved =
+                                                            await _persistContentCatalogs();
+                                                        if (!saved) {
+                                                          if (mounted) {
+                                                            setState(() =>
+                                                                _colorItems.add(removed));
+                                                          }
+                                                          return;
+                                                        }
+                                                        if (context.mounted) {
+                                                          Navigator.pop(context);
+                                                          ScaffoldMessenger.of(context)
+                                                              .showSnackBar(
+                                                            SnackBar(
+                                                                content: Text(
+                                                                    '"${c['name']}" 색상이 삭제되었습니다'),
+                                                                backgroundColor:
+                                                                    const Color(0xFFE53935)),
+                                                          );
+                                                        }
                                                       },
                                                       child: Text('삭제'),
                                                     ),
@@ -12332,6 +12672,59 @@ class _AdminScreenState extends State<AdminScreen>
     } catch (_) {
       return Colors.grey;
     }
+  }
+
+  void _confirmDeleteSelectedColors() {
+    final ids = Set<String>.from(_selectedColorIds);
+    if (ids.isEmpty) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('선택 색상 삭제',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        content: Text(
+          '${ids.length}개의 색상을 목록에서 삭제하시겠습니까?\n이미 등록된 상품의 색상 텍스트와 이미지는 변경되지 않습니다.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE53935),
+                foregroundColor: Colors.white),
+            onPressed: () async {
+              final before = _colorItems
+                  .map((item) => Map<String, dynamic>.from(item))
+                  .toList();
+              setState(() {
+                _colorItems.removeWhere((item) => ids.contains(item['id']));
+                _selectedColorIds.clear();
+              });
+              final saved = await _persistContentCatalogs();
+              if (!saved) {
+                if (mounted) {
+                  setState(() {
+                    _colorItems
+                      ..clear()
+                      ..addAll(before);
+                  });
+                }
+                return;
+              }
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${ids.length}개의 색상이 삭제되었습니다'),
+                    backgroundColor: const Color(0xFFE53935),
+                  ),
+                );
+              }
+            },
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showAddColorDialog() {
@@ -12481,7 +12874,7 @@ class _AdminScreenState extends State<AdminScreen>
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white),
-              onPressed: () {
+              onPressed: () async {
                 final name = nameCtrl.text.trim();
                 final hex = hexCtrl.text.trim();
                 if (name.isEmpty || hex.length < 4) {
@@ -12492,26 +12885,31 @@ class _AdminScreenState extends State<AdminScreen>
                   );
                   return;
                 }
-                final newId = 'c_${DateTime.now().millisecondsSinceEpoch}';
-                setState(() {
-                  _colorItems.add({
-                    'id': newId,
-                    'name': name,
-                    'hexCode': hex.startsWith('#') ? hex : '#$hex',
-                    'category': category,
-                    'hasImage': hasImage,
-                    'imageUrl': '',
-                    'buttonCard': buttonCard,
-                    'active': active,
-                  });
-                });
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text(
-                          '"$name" 색상이 추가되었습니다. ${buttonCard ? '버튼카드도 자동 생성됩니다.' : ''}'),
-                      backgroundColor: AppColors.primary),
-                );
+                final newColor = <String, dynamic>{
+                  'id': 'c_${DateTime.now().millisecondsSinceEpoch}',
+                  'name': name,
+                  'hexCode': hex.startsWith('#') ? hex : '#$hex',
+                  'category': category,
+                  'hasImage': hasImage,
+                  'imageUrl': '',
+                  'buttonCard': buttonCard,
+                  'active': active,
+                };
+                setState(() => _colorItems.add(newColor));
+                final saved = await _persistContentCatalogs();
+                if (!saved) {
+                  if (mounted) setState(() => _colorItems.remove(newColor));
+                  return;
+                }
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            '"$name" 색상이 추가되었습니다. ${buttonCard ? '버튼카드도 자동 생성됩니다.' : ''}'),
+                        backgroundColor: AppColors.primary),
+                  );
+                }
               },
               child: Text('추가'),
             ),
@@ -12648,30 +13046,38 @@ class _AdminScreenState extends State<AdminScreen>
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white),
-              onPressed: () {
+              onPressed: () async {
                 final idx =
                     _colorItems.indexWhere((c) => c['id'] == colorData['id']);
-                if (idx >= 0) {
-                  setState(() {
-                    _colorItems[idx] = {
-                      ..._colorItems[idx],
-                      'name': nameCtrl.text.trim(),
-                      'hexCode': hexCtrl.text.trim().startsWith('#')
-                          ? hexCtrl.text.trim()
-                          : '#${hexCtrl.text.trim()}',
-                      'category': category,
-                      'hasImage': hasImage,
-                      'buttonCard': buttonCard,
-                      'active': active,
-                    };
-                  });
+                if (idx < 0) return;
+                final before = Map<String, dynamic>.from(_colorItems[idx]);
+                setState(() {
+                  _colorItems[idx] = {
+                    ..._colorItems[idx],
+                    'name': nameCtrl.text.trim(),
+                    'hexCode': hexCtrl.text.trim().startsWith('#')
+                        ? hexCtrl.text.trim()
+                        : '#${hexCtrl.text.trim()}',
+                    'category': category,
+                    'hasImage': hasImage,
+                    'buttonCard': buttonCard,
+                    'active': active,
+                  };
+                });
+                final saved = await _persistContentCatalogs();
+                if (!saved) {
+                  if (mounted) setState(() => _colorItems[idx] = before);
+                  return;
                 }
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('색상이 수정되었습니다'),
-                      backgroundColor: AppColors.primary),
-                );
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('색상이 수정되었습니다'),
+                        backgroundColor: Color(0xFF1A1A2E)),
+                  );
+                }
+
               },
               child: Text('저장'),
             ),
@@ -13356,15 +13762,7 @@ class _AdminScreenState extends State<AdminScreen>
                                             _showAddAdminNoteDialog(req))),
                                 const SizedBox(width: 6),
                                 GestureDetector(
-                                  onTap: () {
-                                    setState(() => _designRequests
-                                        .removeWhere((r) => r['id'] == id));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text('요청이 삭제되었습니다'),
-                                          backgroundColor: AppColors.error),
-                                    );
-                                  },
+                                  onTap: () => _confirmArchiveDesignRequest(req),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 7),
@@ -13372,7 +13770,7 @@ class _AdminScreenState extends State<AdminScreen>
                                       color: const Color(0xFFFFEBEE),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Icon(Icons.delete_rounded,
+                                    child: const Icon(Icons.archive_rounded,
                                         size: 14, color: AppColors.error),
                                   ),
                                 ),
@@ -13464,44 +13862,107 @@ class _AdminScreenState extends State<AdminScreen>
     return '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')}';
   }
 
-  void _updateDesignRequestStatus(Map<String, dynamic> req, String newStatus) {
+  Future<void> _updateDesignRequestStatus(
+      Map<String, dynamic> req, String newStatus) async {
     final idx = _designRequests.indexWhere((r) => r['id'] == req['id']);
-    if (idx >= 0) {
-      setState(() => _designRequests[idx] = {
-            ..._designRequests[idx],
-            'status': newStatus
-          });
+    if (idx < 0) return;
+    final before = Map<String, dynamic>.from(_designRequests[idx]);
+    setState(() => _designRequests[idx] = {
+          ..._designRequests[idx],
+          'status': newStatus,
+        });
 
-      // Firestore status 매핑 (한글 → 영문 key)
-      final String fsStatus;
-      switch (newStatus) {
-        case '완료':
-          fsStatus = 'responded';
-          break;
-        case '거절':
-          fsStatus = 'rejected';
-          break;
-        case '처리중':
-          fsStatus = 'processing';
-          break;
-        default:
-          fsStatus = 'pending';
-      }
+    // Firestore status 매핑 (한글 → 영문 key)
+    final String fsStatus;
+    switch (newStatus) {
+      case '완료':
+        fsStatus = 'responded';
+        break;
+      case '거절':
+        fsStatus = 'rejected';
+        break;
+      case '처리중':
+        fsStatus = 'processing';
+        break;
+      default:
+        fsStatus = 'pending';
+    }
 
-      final orderId = req['orderId'] as String? ?? req['id'] as String;
-      FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+    final orderId = req['orderId'] as String? ?? req['id'] as String;
+    try {
+      await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
         'designRevisionRequest.status': fsStatus,
         'designRevisionRequest.handledAt': FieldValue.serverTimestamp(),
-      }).catchError((e) {
-        if (kDebugMode) debugPrint('디자인 수정 처리 업데이트 실패: $e');
       });
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('상태가 "$newStatus"로 변경되었습니다'),
+            content: Text('상태가 "$newStatus"로 저장되었습니다'),
             backgroundColor: _getDesignStatusColor(newStatus)),
       );
+    } catch (e) {
+      if (kDebugMode) debugPrint('디자인 수정 처리 업데이트 실패: $e');
+      if (!mounted) return;
+      setState(() => _designRequests[idx] = before);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('상태를 저장하지 못했습니다. 관리자 권한과 네트워크를 확인해주세요.'),
+          backgroundColor: Color(0xFFE53935),
+        ),
+      );
     }
+  }
+
+  void _confirmArchiveDesignRequest(Map<String, dynamic> req) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('디자인 요청 보관',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        content: const Text(
+            '이 요청을 관리자 목록에서 보관하시겠습니까? 주문과 고객 요청 원본은 삭제되지 않습니다.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFE53935),
+                foregroundColor: Colors.white),
+            onPressed: () async {
+              final orderId = req['orderId'] as String? ?? req['id'] as String;
+              try {
+                await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+                  'designRevisionRequest.archived': true,
+                  'designRevisionRequest.archivedAt': FieldValue.serverTimestamp(),
+                  'designRevisionRequest.archivedBy':
+                      FirebaseAuth.instance.currentUser?.uid ?? '',
+                });
+                if (!mounted) return;
+                setState(() => _designRequests
+                    .removeWhere((request) => request['id'] == req['id']));
+                if (ctx.mounted) Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('요청을 보관했습니다. 주문 원본은 유지됩니다.'),
+                    backgroundColor: Color(0xFF555555),
+                  ),
+                );
+              } catch (e) {
+                if (kDebugMode) debugPrint('디자인 요청 보관 실패: $e');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('요청을 보관하지 못했습니다. 관리자 권한을 확인해주세요.'),
+                      backgroundColor: Color(0xFFE53935),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('보관'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showAddAdminNoteDialog(Map<String, dynamic> req) {
@@ -13526,20 +13987,43 @@ class _AdminScreenState extends State<AdminScreen>
             style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white),
-            onPressed: () {
+            onPressed: () async {
               final idx =
                   _designRequests.indexWhere((r) => r['id'] == req['id']);
-              if (idx >= 0)
-                setState(() => _designRequests[idx] = {
-                      ..._designRequests[idx],
-                      'adminNote': noteCtrl.text.trim()
-                    });
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                    content: Text('메모가 저장되었습니다'),
-                    backgroundColor: AppColors.primary),
-              );
+              if (idx < 0) return;
+              final before = Map<String, dynamic>.from(_designRequests[idx]);
+              final note = noteCtrl.text.trim();
+              setState(() => _designRequests[idx] = {
+                    ..._designRequests[idx],
+                    'adminNote': note,
+                  });
+              final orderId = req['orderId'] as String? ?? req['id'] as String;
+              try {
+                await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+                  'designRevisionRequest.adminNote': note,
+                  'designRevisionRequest.noteUpdatedAt':
+                      FieldValue.serverTimestamp(),
+                });
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('메모가 저장되었습니다'),
+                        backgroundColor: AppColors.primary),
+                  );
+                }
+              } catch (e) {
+                if (kDebugMode) debugPrint('디자인 요청 메모 저장 실패: $e');
+                if (mounted) {
+                  setState(() => _designRequests[idx] = before);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('메모를 저장하지 못했습니다. 관리자 권한을 확인해주세요.'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              }
             },
             child: Text('저장'),
           ),
