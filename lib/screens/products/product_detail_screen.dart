@@ -4560,7 +4560,7 @@ $productUrl
                 ),
                 SizedBox(height: r.h(18)),
                 Text(
-                  '쇼필몰은 더 많은 수량보다, 더 분명한 기준을 선택합니다. 한 디자인은 단 200장. 자신만의 기준과 취향으로 달리는 러너를 위해 만듭니다.',
+                  '2FIT MALL은 더 많은 수량보다, 더 분명한 기준을 선택합니다. 한 디자인은 단 200장. 자신만의 기준과 취향으로 달리는 러너를 위해 만듭니다.',
                   style: TextStyle(fontSize: r.sp(14), color: const Color(0xFF4B4B4B), height: 1.72),
                 ),
               ],
