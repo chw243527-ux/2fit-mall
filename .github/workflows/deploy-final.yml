@@ -232,6 +232,7 @@ jobs:
           cd "${UPLOAD_DIR}"
           npx --yes wrangler@${WRANGLER_VERSION} pages deploy \
             . \
+            --no-bundle \
             --project-name="${CF_PROJECT}" \
             --branch=main \
             --commit-dirty=true \
