@@ -13,7 +13,7 @@ on:
       deploy_firebase:
         description: 'Firestore·Storage 규칙 및 Cloud Functions를 함께 배포함 (권한 필요)'
         required: false
-        default: false
+        default: true
         type: boolean
 
 concurrency:
@@ -34,7 +34,7 @@ env:
 
 jobs:
   build_and_deploy:
-    name: Build → Cloudflare Pages
+    name: Build → Firebase → Cloudflare Pages
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -171,11 +171,11 @@ jobs:
           NODE
 
       - name: Install Firebase CLI
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true' }}
+        if: ${{ github.event_name == 'push' || github.event.inputs.deploy_firebase == 'true' }}
         run: npm install --global firebase-tools@${{ env.FIREBASE_CLI_VERSION }}
 
       - name: Install Cloud Functions dependencies
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true' }}
+        if: ${{ github.event_name == 'push' || github.event.inputs.deploy_firebase == 'true' }}
         working-directory: functions
         shell: bash
         run: |
@@ -187,7 +187,7 @@ jobs:
           fi
 
       - name: Authenticate Firebase with service account
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true' }}
+        if: ${{ github.event_name == 'push' || github.event.inputs.deploy_firebase == 'true' }}
         id: firebase-auth
         env:
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
@@ -204,7 +204,7 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/firebase-service-account.json" >> "${GITHUB_ENV}"
 
       - name: Deploy Firestore Rules, Storage Rules, and Cloud Functions
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true' }}
+        if: ${{ github.event_name == 'push' || github.event.inputs.deploy_firebase == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
