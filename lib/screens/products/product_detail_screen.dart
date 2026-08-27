@@ -287,15 +287,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               ),
               SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
               SliverToBoxAdapter(child: KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product))),
-              if (_isLimitedSinglet(product))
-                SliverToBoxAdapter(child: RepaintBoundary(child: _buildLimitedSingletEditorial(product, isAdmin)))
-              else ...[
-                SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
-                SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
-                if (_showPocketSection(product))
-                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
-                SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
-              ],
+              SliverToBoxAdapter(child: RepaintBoundary(child: _buildEditorialProductDetail(product, isAdmin))),
               SliverToBoxAdapter(child: RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin))),
               SliverToBoxAdapter(child: KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product))),
               SliverToBoxAdapter(child: RepaintBoundary(key: _keyReview, child: _buildReviewSection(product))),
@@ -341,15 +333,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
                           _buildMobileDesignImageBanner(product),
                           KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product)),
-                          if (_isLimitedSinglet(product))
-                            RepaintBoundary(child: _buildLimitedSingletEditorial(product, isAdmin))
-                          else ...[
-                            RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
-                            RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
-                            if (_showPocketSection(product))
-                              RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
-                            RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
-                          ],
+                          RepaintBoundary(child: _buildEditorialProductDetail(product, isAdmin)),
                           RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
                           KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product)),
                           RepaintBoundary(key: _keyReview, child: _buildReviewSection(product)),
@@ -487,15 +471,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                   children: [
                                     _buildMobileDesignImageBanner(product),
                                     KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product)),
-                                    if (_isLimitedSinglet(product))
-                                      RepaintBoundary(child: _buildLimitedSingletEditorial(product, isAdmin))
-                                    else ...[
-                                      RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
-                                      RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
-                                      if (_showPocketSection(product))
-                                        RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
-                                      RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
-                                    ],
+                                    RepaintBoundary(child: _buildEditorialProductDetail(product, isAdmin)),
                                     RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
                                     KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product)),
                                     RepaintBoundary(key: _keyReview, child: _buildReviewSection(product)),
@@ -4266,6 +4242,286 @@ $productUrl
       return product.material;
     }
     return '폴리에스터 92% / 라이크라 8%';
+  }
+
+  /// 모든 상품에 공통 적용하는 에디토리얼 상세페이지 래퍼입니다.
+  /// 한정 수량은 기성품 싱글렛에만 표시하고, 나머지는 동일한 시각 언어만 유지합니다.
+  Widget _buildEditorialProductDetail(ProductModel product, bool isAdmin) {
+    if (_isLimitedSinglet(product)) {
+      return _buildLimitedSingletEditorial(product, isAdmin);
+    }
+    return _buildGeneralEditorialProductDetail(product, isAdmin);
+  }
+
+  String _generalEditorialType(ProductModel product) {
+    if (product.isGroupOnly) return 'TEAM ORDER / CUSTOM MADE';
+    if (product.category == '세트') return 'PERFORMANCE RUNNING SET';
+    if (product.category == '하의') return 'PERFORMANCE RUNNING BOTTOM';
+    return 'PERFORMANCE SPORTSWEAR';
+  }
+
+  String _generalEditorialHeadline(ProductModel product) {
+    if (product.isGroupOnly) return 'MADE FOR\nTHE TEAM.';
+    if (product.category == '세트') return 'ONE SET.\nONE PURPOSE.';
+    if (product.category == '하의') return 'MOVE WITH\nPURPOSE.';
+    return 'BUILT FOR\nTHE MOVE.';
+  }
+
+  String _generalEditorialKoreanCopy(ProductModel product) {
+    if (product.isGroupOnly) {
+      return '팀의 기준과 움직임에 맞춰 완성하는 커스텀 스포츠웨어입니다. 필요한 수량과 사양을 상담해 주세요.';
+    }
+    if (product.category == '세트') {
+      return '함께 움직이기 위한 균형 잡힌 구성. 트레이닝부터 러닝까지 자연스럽게 이어집니다.';
+    }
+    if (product.category == '하의') {
+      return '움직임을 방해하지 않는 설계와 편안한 착용감을 바탕으로, 당신의 페이스에 집중할 수 있도록 만들었습니다.';
+    }
+    return '움직임에 집중할 수 있도록 설계한 스포츠웨어. 일상과 운동 사이를 자연스럽게 이어갑니다.';
+  }
+
+  Widget _buildGeneralEditorialProductDetail(ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
+    final material = product.material.isNotEmpty
+        ? product.material
+        : '상품 상세 정보에서 소재 구성을 확인해 주세요.';
+    final productType = _generalEditorialType(product);
+    final isGroupOrder = product.isGroupOnly;
+    final details = [
+      if (isGroupOrder) '팀의 필요 수량과 원하는 사양에 맞춰 상담 가능한 단체주문 상품',
+      if (!isGroupOrder) '운동과 일상에서 편안하게 활용할 수 있는 2FIT 스포츠웨어',
+      if (product.colors.isNotEmpty) '상품별 선택 가능 옵션: ${product.colors.join(' · ')}',
+      '소재 구성: $material',
+      if (isGroupOrder) '주문 전 제작 일정과 옵션을 상담을 통해 확인해 주세요.',
+      if (!isGroupOrder) '사이즈 조견표와 상품 옵션을 함께 확인해 주세요.',
+    ];
+
+    return Container(
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 01. 상품 정체성: 공통 블랙 히어로
+          Container(
+            color: const Color(0xFF111111),
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(44), r.w(24), r.h(46)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  productType,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.62),
+                    fontSize: r.sp(10),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.45,
+                  ),
+                ),
+                SizedBox(height: r.h(18)),
+                Text(
+                  _generalEditorialHeadline(product),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: r.sp(42),
+                    fontWeight: FontWeight.w900,
+                    height: 0.94,
+                    letterSpacing: -1.8,
+                  ),
+                ),
+                SizedBox(height: r.h(27)),
+                Text(
+                  isGroupOrder ? 'DESIGNED TOGETHER.' : 'DESIGNED FOR MOTION.',
+                  style: TextStyle(
+                    color: const Color(0xFFFF6A3D),
+                    fontSize: r.sp(12),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.75,
+                  ),
+                ),
+                SizedBox(height: r.h(10)),
+                Text(
+                  _generalEditorialKoreanCopy(product),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.82),
+                    fontSize: r.sp(13),
+                    height: 1.65,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 02. 제품/활동 무드 이미지
+          _buildLimitedImageSlot(
+            sectionKey: 's1',
+            adminLabel: '에디토리얼 상세 · 활동 무드 이미지',
+            isAdmin: isAdmin,
+          ),
+
+          // 03. 브랜드 선언: 싱글렛의 대형 타이포그래피 톤 유지
+          Padding(
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(60), r.w(24), r.h(62)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'MADE TO\nKEEP MOVING.',
+                  style: TextStyle(
+                    fontSize: r.sp(31),
+                    fontWeight: FontWeight.w900,
+                    height: 1.04,
+                    letterSpacing: -1.15,
+                    color: const Color(0xFF161616),
+                  ),
+                ),
+                SizedBox(height: r.h(22)),
+                Container(width: 32, height: 2, color: const Color(0xFF161616)),
+                SizedBox(height: r.h(18)),
+                Text(
+                  '좋은 스포츠웨어는 움직임을 돕되, 움직임을 대신하지 않습니다. 2FIT은 오래 입고 오래 움직일 수 있는 균형을 고민합니다.',
+                  style: TextStyle(fontSize: r.sp(15), color: const Color(0xFF4B4B4B), height: 1.72),
+                ),
+              ],
+            ),
+          ),
+
+          // 04. 소재 / 제작 디테일
+          _buildLimitedImageSlot(
+            sectionKey: 's2_fiber',
+            adminLabel: '에디토리얼 상세 · 원단 및 제작 디테일 이미지',
+            isAdmin: isAdmin,
+          ),
+          Container(
+            color: const Color(0xFFF5F4F1),
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(38), r.w(24), r.h(42)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isGroupOrder ? '01 / CUSTOM OPTIONS' : '01 / MATERIAL & DETAIL',
+                  style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w900, letterSpacing: 1.15, color: const Color(0xFF161616)),
+                ),
+                SizedBox(height: r.h(13)),
+                Text(
+                  isGroupOrder ? 'YOUR TEAM.\nYOUR DESIGN.' : 'FORM, FUNCTION,\nAND MOVEMENT.',
+                  style: TextStyle(fontSize: r.sp(30), fontWeight: FontWeight.w900, height: 1.03, letterSpacing: -1.0, color: const Color(0xFF161616)),
+                ),
+                SizedBox(height: r.h(16)),
+                Text(
+                  isGroupOrder
+                      ? '수량, 색상, 디자인 등 팀에 필요한 주문 조건을 상담으로 확인할 수 있습니다.'
+                      : '상품마다 다른 원단과 디테일을 적용해, 활용 목적에 맞는 편안한 착용감을 제안합니다.',
+                  style: TextStyle(fontSize: r.sp(14), color: const Color(0xFF4B4B4B), height: 1.65),
+                ),
+              ],
+            ),
+          ),
+
+          // 05. 핏 / 제품 이미지
+          _buildLimitedImageSlot(
+            sectionKey: 's4',
+            adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
+            isAdmin: isAdmin,
+          ),
+          Container(
+            color: const Color(0xFF111111),
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(34), r.w(24), r.h(36)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isGroupOrder ? 'ONE TEAM, ONE IDENTITY.' : 'ONE PIECE, YOUR PACE.',
+                  style: TextStyle(fontSize: r.sp(23), fontWeight: FontWeight.w900, letterSpacing: -0.6, color: Colors.white),
+                ),
+                SizedBox(height: r.h(10)),
+                Text(
+                  isGroupOrder
+                      ? '함께 달리는 팀의 정체성을 더 분명하게 보여줄 수 있도록.'
+                      : '운동을 위한 한 장. 그리고 당신의 일상에 자연스럽게 더해질 한 장.',
+                  style: TextStyle(fontSize: r.sp(13), color: Colors.white.withValues(alpha: 0.72), height: 1.6),
+                ),
+              ],
+            ),
+          ),
+
+          // 06. 상세 사양: 동일한 번호형 정보 레이아웃
+          Container(
+            color: Colors.white,
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(64), r.w(24), r.h(62)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'DETAIL / SPEC',
+                  style: TextStyle(fontSize: r.sp(28), fontWeight: FontWeight.w900, color: const Color(0xFF202020), letterSpacing: -0.8),
+                ),
+                SizedBox(height: r.h(40)),
+                ...details.map(_buildLimitedDetailLine),
+                SizedBox(height: r.h(24)),
+                Text(
+                  '2FIT SPORTSWEAR\n$productType',
+                  style: TextStyle(fontSize: r.sp(14), color: const Color(0xFF666666), height: 1.8),
+                ),
+              ],
+            ),
+          ),
+
+          // 07. 상품 정책: 한정 수량 대신 일반/단체 주문 정보를 표시
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: r.w(16)),
+            padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(30)),
+            decoration: BoxDecoration(color: const Color(0xFF161616), borderRadius: BorderRadius.circular(2)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isGroupOrder ? 'ORDER GUIDE' : 'PURCHASE GUIDE',
+                  style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w900, color: const Color(0xFFFF6A3D), letterSpacing: 1.35),
+                ),
+                SizedBox(height: r.h(18)),
+                if (isGroupOrder) ...[
+                  _buildLimitedPolicyLine('01', '상담을 통해 수량과 제작 사양을 확인합니다.'),
+                  _buildLimitedPolicyLine('02', '디자인 및 생산 일정은 주문 조건에 따라 달라질 수 있습니다.'),
+                  _buildLimitedPolicyLine('03', '확정된 제작 조건은 결제 전 다시 안내합니다.'),
+                ] else ...[
+                  _buildLimitedPolicyLine('01', '구매 전 상품 옵션과 사이즈 정보를 확인해 주세요.'),
+                  _buildLimitedPolicyLine('02', '재고는 주문 상황에 따라 달라질 수 있습니다.'),
+                  _buildLimitedPolicyLine('03', '상품별 교환·반품 기준을 명확하게 안내합니다.'),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(height: r.h(52)),
+
+          // 08. 브랜드 스토리
+          _buildLimitedImageSlot(
+            sectionKey: 's5',
+            adminLabel: '에디토리얼 상세 · 브랜드 스토리 이미지',
+            isAdmin: isAdmin,
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(58)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '2FIT\nSPORTSWEAR',
+                  style: TextStyle(fontSize: r.sp(30), fontWeight: FontWeight.w900, height: 1.03, letterSpacing: -1.1, color: const Color(0xFF161616)),
+                ),
+                SizedBox(height: r.h(18)),
+                Text(
+                  '2FIT MALL은 움직임을 멈추지 않는 사람들을 위한 스포츠웨어를 제안합니다. 목적과 취향에 맞는 한 장이 더 나은 움직임으로 이어진다고 믿습니다.',
+                  style: TextStyle(fontSize: r.sp(14), color: const Color(0xFF4B4B4B), height: 1.72),
+                ),
+              ],
+            ),
+          ),
+
+          // 09. 공통 구매 안내
+          _buildLimitedNoticeSection(r),
+        ],
+      ),
+    );
   }
 
   Widget _buildLimitedSingletEditorial(ProductModel product, bool isAdmin) {
