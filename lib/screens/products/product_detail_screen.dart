@@ -287,11 +287,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
               ),
               SliverToBoxAdapter(child: _buildMobileDesignImageBanner(product)),
               SliverToBoxAdapter(child: KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product))),
-              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
-              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
-              if (_showPocketSection(product))
-                SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
-              SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
+              if (_isLimitedSinglet(product))
+                SliverToBoxAdapter(child: RepaintBoundary(child: _buildLimitedSingletEditorial(product, isAdmin)))
+              else ...[
+                SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection1Banner(product, isAdmin))),
+                SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection2Material(product, isAdmin))),
+                if (_showPocketSection(product))
+                  SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection3Pocket(product, isAdmin))),
+                SliverToBoxAdapter(child: RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin))),
+              ],
               SliverToBoxAdapter(child: RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin))),
               SliverToBoxAdapter(child: KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product))),
               SliverToBoxAdapter(child: RepaintBoundary(key: _keyReview, child: _buildReviewSection(product))),
@@ -337,11 +341,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                           const Divider(height: 8, color: Color(0xFFF5F5F5), thickness: 8),
                           _buildMobileDesignImageBanner(product),
                           KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product)),
-                          RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
-                          RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
-                          if (_showPocketSection(product))
-                            RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
-                          RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
+                          if (_isLimitedSinglet(product))
+                            RepaintBoundary(child: _buildLimitedSingletEditorial(product, isAdmin))
+                          else ...[
+                            RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
+                            RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
+                            if (_showPocketSection(product))
+                              RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
+                            RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
+                          ],
                           RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
                           KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product)),
                           RepaintBoundary(key: _keyReview, child: _buildReviewSection(product)),
@@ -479,11 +487,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                   children: [
                                     _buildMobileDesignImageBanner(product),
                                     KeyedSubtree(key: _keyInfo, child: _buildToptenInfoSection(product)),
-                                    RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
-                                    RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
-                                    if (_showPocketSection(product))
-                                      RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
-                                    RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
+                                    if (_isLimitedSinglet(product))
+                                      RepaintBoundary(child: _buildLimitedSingletEditorial(product, isAdmin))
+                                    else ...[
+                                      RepaintBoundary(child: _buildSection1Banner(product, isAdmin)),
+                                      RepaintBoundary(child: _buildSection2Material(product, isAdmin)),
+                                      if (_showPocketSection(product))
+                                        RepaintBoundary(child: _buildSection3Pocket(product, isAdmin)),
+                                      RepaintBoundary(child: _buildSection5GoljiColors(product, isAdmin)),
+                                    ],
                                     RepaintBoundary(key: _keySize, child: _buildSection6SizeChart(product, isAdmin)),
                                     KeyedSubtree(key: _keyWashing, child: _buildWashingTipSection(product)),
                                     RepaintBoundary(key: _keyReview, child: _buildReviewSection(product)),
@@ -4236,6 +4248,430 @@ $productUrl
     );
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // 리미티드 싱글렛 전용 에디토리얼 상세페이지
+  // 기성품 싱글렛에만 적용: 단체주문 상품과 일반 카테고리에는 기존 구성 유지
+  // ═══════════════════════════════════════════════════════════
+  bool _isLimitedSinglet(ProductModel product) {
+    final label = '${product.category} ${product.subCategory} ${product.name}';
+    final isSingletSet = product.category == '세트' ||
+        label.contains('싱글렛세트') ||
+        label.contains('싱글렛 세트');
+    return !product.isGroupOnly && !isSingletSet && label.contains('싱글렛');
+  }
+
+  String _limitedSingletMaterial(ProductModel product) {
+    const defaults = {'78% Nylon, 22% Spandex / 4-way Stretch', '78% Nylon, 22% Spandex'};
+    if (product.material.isNotEmpty && !defaults.contains(product.material)) {
+      return product.material;
+    }
+    return '폴리에스터 92% / 라이크라 8%';
+  }
+
+  Widget _buildLimitedSingletEditorial(ProductModel product, bool isAdmin) {
+    final r = Responsive.of(context);
+    final material = _limitedSingletMaterial(product);
+
+    return Container(
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 01. 한정 수량 선언
+          Container(
+            color: const Color(0xFF111111),
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(46), r.w(24), r.h(48)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'LIMITED RUNNING COLLECTION',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.62),
+                    fontSize: r.sp(10),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                SizedBox(height: r.h(16)),
+                Text(
+                  'ONLY\n200',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: r.sp(74),
+                    fontWeight: FontWeight.w900,
+                    height: 0.78,
+                    letterSpacing: -3.2,
+                  ),
+                ),
+                SizedBox(height: r.h(26)),
+                Text(
+                  '200 PIECES. 200 RUNNERS.',
+                  style: TextStyle(
+                    color: const Color(0xFFFF6A3D),
+                    fontSize: r.sp(12),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                SizedBox(height: r.h(10)),
+                Text(
+                  '이 디자인은 단 200명만 구매할 수 있습니다.\n모두를 위한 대량 생산 대신, 자신만의 페이스로 달리는\n200명의 러너를 위해 만듭니다.',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.82),
+                    fontSize: r.sp(13),
+                    height: 1.65,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 02. 러닝 무드 이미지: 관리자 업로드 s1 사용
+          _buildLimitedImageSlot(
+            sectionKey: 's1',
+            adminLabel: '리미티드 싱글렛 · 러닝 무드 이미지',
+            isAdmin: isAdmin,
+          ),
+
+          // 03. 브랜드 선언
+          Padding(
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(64), r.w(24), r.h(64)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'NOT MASS-MADE.\nMADE MEANINGFUL.',
+                  style: TextStyle(
+                    fontSize: r.sp(31),
+                    fontWeight: FontWeight.w900,
+                    height: 1.04,
+                    letterSpacing: -1.15,
+                    color: const Color(0xFF161616),
+                  ),
+                ),
+                SizedBox(height: r.h(22)),
+                Container(width: 32, height: 2, color: const Color(0xFF161616)),
+                SizedBox(height: r.h(18)),
+                Text(
+                  '더 많이 만들기보다, 선택한 200명에게 오래 남을 디자인을 만듭니다.\n달리는 방식은 모두 다릅니다. 입는 디자인도 그래야 하니까.',
+                  style: TextStyle(
+                    fontSize: r.sp(15),
+                    color: const Color(0xFF4B4B4B),
+                    height: 1.72,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 04. 심리스 디테일
+          _buildLimitedImageSlot(
+            sectionKey: 's2_seamless',
+            adminLabel: '리미티드 싱글렛 · 심리스 디테일 이미지',
+            isAdmin: isAdmin,
+          ),
+          Container(
+            color: const Color(0xFFF5F4F1),
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(38), r.w(24), r.h(40)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '01 / SEAMLESS DESIGN',
+                  style: TextStyle(
+                    fontSize: r.sp(11),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.15,
+                    color: const Color(0xFF161616),
+                  ),
+                ),
+                SizedBox(height: r.h(13)),
+                Text(
+                  'SEAMLESS,\nBY DESIGN.',
+                  style: TextStyle(
+                    fontSize: r.sp(30),
+                    fontWeight: FontWeight.w900,
+                    height: 1.03,
+                    letterSpacing: -1.0,
+                    color: const Color(0xFF161616),
+                  ),
+                ),
+                SizedBox(height: r.h(16)),
+                Text(
+                  '불필요한 선은 덜고, 움직임을 위한 매끄러운 실루엣을 완성했습니다.',
+                  style: TextStyle(fontSize: r.sp(14), color: const Color(0xFF4B4B4B), height: 1.65),
+                ),
+              ],
+            ),
+          ),
+
+          // 05. 소재 정보
+          _buildLimitedImageSlot(
+            sectionKey: 's2_fiber',
+            adminLabel: '리미티드 싱글렛 · 원단 질감 이미지',
+            isAdmin: isAdmin,
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(56), r.w(24), r.h(58)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'MATERIAL',
+                  style: TextStyle(
+                    fontSize: r.sp(11),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    color: const Color(0xFF777777),
+                  ),
+                ),
+                SizedBox(height: r.h(12)),
+                Text(
+                  'POLYESTER 92%\nLYCRA 8%',
+                  style: TextStyle(
+                    fontSize: r.sp(31),
+                    fontWeight: FontWeight.w900,
+                    height: 1.03,
+                    letterSpacing: -1.2,
+                    color: const Color(0xFF161616),
+                  ),
+                ),
+                SizedBox(height: r.h(18)),
+                Text(
+                  '가볍게 입고 오래 움직일 수 있도록, 폴리에스터의 경쾌함에 라이크라의 유연함을 더했습니다. 몸의 움직임에 자연스럽게 대응하는 소재 구성입니다.',
+                  style: TextStyle(fontSize: r.sp(14), color: const Color(0xFF4B4B4B), height: 1.72),
+                ),
+                SizedBox(height: r.h(22)),
+                Container(height: 1, color: const Color(0xFFE4E4E4)),
+                SizedBox(height: r.h(12)),
+                Text(
+                  material,
+                  style: TextStyle(fontSize: r.sp(12), color: const Color(0xFF6C6C6C), height: 1.5),
+                ),
+              ],
+            ),
+          ),
+
+          // 06. 룩북 / 핏 이미지
+          _buildLimitedImageSlot(
+            sectionKey: 's4',
+            adminLabel: '리미티드 싱글렛 · 핏 및 스타일링 이미지',
+            isAdmin: isAdmin,
+          ),
+          Container(
+            color: const Color(0xFF111111),
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(34), r.w(24), r.h(36)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ONE PIECE, YOUR PACE.',
+                  style: TextStyle(
+                    fontSize: r.sp(23),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.6,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: r.h(10)),
+                Text(
+                  '러닝을 위한 한 장. 그리고 당신의 일상에 자연스럽게 더해질 한 장.',
+                  style: TextStyle(fontSize: r.sp(13), color: Colors.white.withValues(alpha: 0.72), height: 1.6),
+                ),
+              ],
+            ),
+          ),
+
+          // 07. 상세 사양
+          Container(
+            color: Colors.white,
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(66), r.w(24), r.h(64)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'DETAIL / FABRIC',
+                  style: TextStyle(
+                    fontSize: r.sp(28),
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF202020),
+                    letterSpacing: -0.8,
+                  ),
+                ),
+                SizedBox(height: r.h(42)),
+                _buildLimitedDetailLine('디자인당 200장 한정으로 제작되는 리미티드 싱글렛'),
+                _buildLimitedDetailLine('단 200명의 러너를 위한 리미티드 컬렉션'),
+                _buildLimitedDetailLine('매끄러운 실루엣을 완성하는 심리스 디자인'),
+                _buildLimitedDetailLine('폴리에스터 92%와 라이크라 8%의 소재 구성'),
+                SizedBox(height: r.h(30)),
+                Text(
+                  'Polyester 92% · Lycra 8%\nSeamless Design\nLimited to 200 Pieces per Design\nMade for 200 Runners',
+                  style: TextStyle(fontSize: r.sp(15), color: const Color(0xFF666666), height: 1.85),
+                ),
+              ],
+            ),
+          ),
+
+          // 08. 발매 원칙
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: r.w(16)),
+            padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(30)),
+            decoration: BoxDecoration(
+              color: const Color(0xFF161616),
+              borderRadius: BorderRadius.circular(2),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'LIMITED RELEASE POLICY',
+                  style: TextStyle(fontSize: r.sp(10), fontWeight: FontWeight.w900, color: const Color(0xFFFF6A3D), letterSpacing: 1.35),
+                ),
+                SizedBox(height: r.h(18)),
+                _buildLimitedPolicyLine('01', '디자인당 200장 발매'),
+                _buildLimitedPolicyLine('02', '운영 변경 시 상품 페이지와 공지로 안내'),
+                _buildLimitedPolicyLine('03', '상품별 교환·반품 기준을 명확하게 고지'),
+              ],
+            ),
+          ),
+          SizedBox(height: r.h(52)),
+
+          // 09. 브랜드 스토리 이미지
+          _buildLimitedImageSlot(
+            sectionKey: 's5',
+            adminLabel: '리미티드 싱글렛 · 브랜드 스토리 이미지',
+            isAdmin: isAdmin,
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(58)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '2FIT LIMITED\nRUNNING COLLECTION',
+                  style: TextStyle(
+                    fontSize: r.sp(30),
+                    fontWeight: FontWeight.w900,
+                    height: 1.03,
+                    letterSpacing: -1.1,
+                    color: const Color(0xFF161616),
+                  ),
+                ),
+                SizedBox(height: r.h(18)),
+                Text(
+                  '쇼필몰은 더 많은 수량보다, 더 분명한 기준을 선택합니다. 한 디자인은 단 200장. 자신만의 기준과 취향으로 달리는 러너를 위해 만듭니다.',
+                  style: TextStyle(fontSize: r.sp(14), color: const Color(0xFF4B4B4B), height: 1.72),
+                ),
+              ],
+            ),
+          ),
+
+          // 10. 교환·반품 및 제품 안내
+          _buildLimitedNoticeSection(r),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLimitedImageSlot({
+    required String sectionKey,
+    required String adminLabel,
+    required bool isAdmin,
+  }) {
+    final images = _sectionImages[sectionKey] ?? const <String>[];
+    if (!isAdmin && images.isEmpty) return const SizedBox.shrink();
+    final r = Responsive.of(context);
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.only(top: isAdmin ? r.h(14) : 0),
+      child: isAdmin
+          ? Padding(
+              padding: EdgeInsets.symmetric(horizontal: r.w(16)),
+              child: _buildAdminImageSection(sectionKey, adminLabel, isAdmin),
+            )
+          : _buildSectionImageSlider(sectionKey),
+    );
+  }
+
+  Widget _buildLimitedDetailLine(String text) {
+    final r = Responsive.of(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: r.h(14)),
+      child: Text(
+        '- $text',
+        style: TextStyle(fontSize: r.sp(16), color: const Color(0xFF444444), height: 1.55),
+      ),
+    );
+  }
+
+  Widget _buildLimitedPolicyLine(String number, String text) {
+    final r = Responsive.of(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: r.h(12)),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: r.w(30),
+            child: Text(number, style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w900, color: const Color(0xFFFF6A3D))),
+          ),
+          Expanded(
+            child: Text(text, style: TextStyle(fontSize: r.sp(13), color: Colors.white.withValues(alpha: 0.84), height: 1.5)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLimitedNoticeSection(Responsive r) {
+    final notices = [
+      (
+        'EXCHANGE / RETURN',
+        '단순 변심에 따른 교환·반품은 상품을 공급받은 날부터 7일 이내에 접수해 주세요. 착용·세탁·수선·오염 또는 택과 구성품의 분실·훼손 등으로 상품 가치가 저하된 경우에는 제한될 수 있습니다.',
+      ),
+      (
+        'REFUND',
+        '오배송 또는 표시·광고 내용과 다르거나 하자가 확인된 경우에는 고객센터로 사진과 함께 접수해 주세요. 반품 상품이 도착하여 상태 확인을 마친 뒤 결제수단에 따라 환불이 진행됩니다.',
+      ),
+      (
+        'PLEASE NOTE',
+        '제품 색상은 촬영 환경과 화면 설정에 따라 실제와 다르게 보일 수 있습니다. 사이즈는 체형과 선호 핏에 따라 차이가 있을 수 있으므로, 조견표와 실측 정보를 함께 확인해 주세요. 세탁 방법은 제품 케어라벨을 우선으로 확인해 주세요.',
+      ),
+    ];
+
+    return Container(
+      color: const Color(0xFFF5F4F1),
+      padding: EdgeInsets.fromLTRB(r.w(24), r.h(52), r.w(24), r.h(54)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: notices.asMap().entries.map((entry) {
+          final isLast = entry.key == notices.length - 1;
+          final notice = entry.value;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                notice.$1,
+                style: TextStyle(fontSize: r.sp(11), fontWeight: FontWeight.w900, color: const Color(0xFF222222), letterSpacing: 1.1),
+              ),
+              SizedBox(height: r.h(10)),
+              Text(
+                notice.$2,
+                style: TextStyle(fontSize: r.sp(12.5), color: const Color(0xFF666666), height: 1.68),
+              ),
+              if (!isLast) ...[
+                SizedBox(height: r.h(24)),
+                const Divider(height: 1, color: Color(0xFFDCDAD6)),
+                SizedBox(height: r.h(24)),
+              ],
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _buildSection1Banner(ProductModel product, bool isAdmin) {
     final r = Responsive.of(context);
     final features = [
@@ -5032,6 +5468,9 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   Widget _buildBottomBar(ProductModel product) {
     final r = Responsive.of(context);
+    final buyNowLabel = _isLimitedSinglet(product)
+        ? '200명 중 한 명이 되기'
+        : context.loc.t('바로구매', '바로구매');
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -5186,8 +5625,8 @@ $productUrl
                           ),
                           onPressed: () => _showBuyNowSheet(product),
                           child: Text(
-                            context.loc.t('바로구매', '바로구매'),
-                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(16), color: Colors.white),
+                            buyNowLabel,
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: r.sp(_isLimitedSinglet(product) ? 13 : 16), color: Colors.white),
                           ),
                         ),
                       ),
