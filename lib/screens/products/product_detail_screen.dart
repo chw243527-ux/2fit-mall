@@ -4253,31 +4253,144 @@ $productUrl
     return _buildGeneralEditorialProductDetail(product, isAdmin);
   }
 
-  String _generalEditorialType(ProductModel product) {
-    if (product.isGroupOnly) return 'TEAM ORDER / CUSTOM MADE';
-    if (product.category == '세트') return 'PERFORMANCE RUNNING SET';
-    if (product.category == '하의') return 'PERFORMANCE RUNNING BOTTOM';
-    return 'PERFORMANCE SPORTSWEAR';
-  }
+  /// 기성품별 히어로 카피입니다. 상품명에 따라 개별 타이틀·서브 문구를 우선 적용합니다.
+  ({String label, String headline, String accent, String copy})
+      _generalEditorialCopy(ProductModel product) {
+    final name = product.name;
 
-  String _generalEditorialHeadline(ProductModel product) {
-    if (product.isGroupOnly) return 'MADE FOR\nTHE TEAM.';
-    if (product.category == '세트') return 'ONE SET.\nONE PURPOSE.';
-    if (product.category == '하의') return 'MOVE WITH\nPURPOSE.';
-    return 'BUILT FOR\nTHE MOVE.';
-  }
-
-  String _generalEditorialKoreanCopy(ProductModel product) {
     if (product.isGroupOnly) {
-      return '팀의 기준과 움직임에 맞춰 완성하는 커스텀 스포츠웨어입니다. 필요한 수량과 사양을 상담해 주세요.';
+      return (
+        label: 'TEAM ORDER / CUSTOM MADE',
+        headline: 'MADE FOR\nTHE TEAM.',
+        accent: 'DESIGNED TOGETHER.',
+        copy: '팀의 기준과 움직임에 맞춰 완성하는 커스텀 스포츠웨어입니다. 필요한 수량과 사양을 상담해 주세요.',
+      );
     }
+
+    // 여성 2.5부 골지 쇼츠
+    if (name.contains('2.5부 숏')) {
+      if (name.contains('틸블루')) {
+        return (
+          label: "WOMEN'S 2.5 RIB SHORTS / TEAL",
+          headline: 'LIGHT STEP.\nCLEAR MIND.',
+          accent: 'TEAL EDITION.',
+          copy: '짧고 가볍게 움직이는 날을 위한 2.5부 골지 쇼츠. 산뜻한 틸블루 컬러로 러닝 룩에 리듬을 더합니다.',
+        );
+      }
+      return (
+        label: "WOMEN'S 2.5 RIB SHORTS / BLACK",
+        headline: 'MOVE.\nNO DISTRACTIONS.',
+        accent: 'BLACK EDITION.',
+        copy: '짧고 가볍게 움직이는 날을 위한 2.5부 골지 쇼츠. 어떤 러닝 룩에도 자연스럽게 이어지는 블랙 컬러입니다.',
+      );
+    }
+
+    // 스트링 일체형 매쉬 밴드 쇼츠
+    if (name.contains('스트링 일체형')) {
+      if (name.contains('오렌지')) {
+        return (
+          label: 'MESH BAND SHORTS / ORANGE',
+          headline: 'BRIGHT PACE.\nBOLD MOVE.',
+          accent: 'ORANGE EDITION.',
+          copy: '일체형 스트링과 매쉬 밴드 디테일로 완성한 쇼츠. 선명한 오렌지 포인트로 움직임에 에너지를 더합니다.',
+        );
+      }
+      if (name.contains('그린')) {
+        return (
+          label: 'MESH BAND SHORTS / GREEN',
+          headline: 'FRESH PACE.\nFULL FOCUS.',
+          accent: 'GREEN EDITION.',
+          copy: '일체형 스트링과 매쉬 밴드 디테일로 완성한 쇼츠. 산뜻한 그린 톤으로 깔끔한 러닝 룩을 제안합니다.',
+        );
+      }
+      if (name.contains('블루')) {
+        return (
+          label: 'MESH BAND SHORTS / BLUE',
+          headline: 'COOL TONE.\nSTRONG MOVE.',
+          accent: 'BLUE EDITION.',
+          copy: '일체형 스트링과 매쉬 밴드 디테일로 완성한 쇼츠. 시원한 블루 톤으로 또렷한 움직임을 완성합니다.',
+        );
+      }
+      if (name.contains('화이트')) {
+        return (
+          label: 'MESH BAND SHORTS / WHITE',
+          headline: 'CLEAN LINES.\nCLEAR PACE.',
+          accent: 'WHITE EDITION.',
+          copy: '일체형 스트링과 매쉬 밴드 디테일로 완성한 쇼츠. 밝고 정돈된 화이트 컬러가 경쾌한 룩을 만듭니다.',
+        );
+      }
+      return (
+        label: 'MESH BAND SHORTS / BLACK',
+        headline: 'CARRY LESS.\nMOVE MORE.',
+        accent: 'BLACK EDITION.',
+        copy: '일체형 스트링과 매쉬 밴드 디테일로 완성한 쇼츠. 부담 없이 매일 꺼내 입기 좋은 블랙 컬러입니다.',
+      );
+    }
+
+    // 자가드 승화전사 밴드 쇼츠
+    if (name.contains('자가드 승화전사')) {
+      if (name.contains('오렌지')) {
+        return (
+          label: 'JACQUARD BAND SHORTS / ORANGE',
+          headline: 'ENERGY\nIN MOTION.',
+          accent: 'ORANGE EDITION.',
+          copy: '자가드 승화전사 밴드 디테일로 마무리한 쇼츠. 오렌지 컬러가 러닝 룩에 강한 리듬을 더합니다.',
+        );
+      }
+      if (name.contains('그린')) {
+        return (
+          label: 'JACQUARD BAND SHORTS / GREEN',
+          headline: 'STAY SHARP.\nKEEP MOVING.',
+          accent: 'GREEN EDITION.',
+          copy: '자가드 승화전사 밴드 디테일로 마무리한 쇼츠. 정돈된 그린 컬러가 안정적인 룩을 완성합니다.',
+        );
+      }
+      if (name.contains('블루')) {
+        return (
+          label: 'JACQUARD BAND SHORTS / BLUE',
+          headline: 'FLOW\nIN MOTION.',
+          accent: 'BLUE EDITION.',
+          copy: '자가드 승화전사 밴드 디테일로 마무리한 쇼츠. 깊이감 있는 블루 컬러로 러닝 룩을 완성합니다.',
+        );
+      }
+      if (name.contains('화이트')) {
+        return (
+          label: 'JACQUARD BAND SHORTS / WHITE',
+          headline: 'LIGHT LOOK.\nALL DAY MOVE.',
+          accent: 'WHITE EDITION.',
+          copy: '자가드 승화전사 밴드 디테일로 마무리한 쇼츠. 가볍고 선명한 화이트 톤으로 일상과 운동을 잇습니다.',
+        );
+      }
+      return (
+        label: 'JACQUARD BAND SHORTS / BLACK',
+        headline: 'STAY READY.\nSTAY MOVING.',
+        accent: 'BLACK EDITION.',
+        copy: '자가드 승화전사 밴드 디테일로 마무리한 쇼츠. 기본에 충실한 블랙 컬러로 다양한 움직임에 어울립니다.',
+      );
+    }
+
     if (product.category == '세트') {
-      return '함께 움직이기 위한 균형 잡힌 구성. 트레이닝부터 러닝까지 자연스럽게 이어집니다.';
+      return (
+        label: 'PERFORMANCE RUNNING SET',
+        headline: 'ONE SET.\nONE PURPOSE.',
+        accent: 'DESIGNED FOR MOTION.',
+        copy: '함께 움직이기 위한 균형 잡힌 구성. 트레이닝부터 러닝까지 자연스럽게 이어집니다.',
+      );
     }
     if (product.category == '하의') {
-      return '움직임을 방해하지 않는 설계와 편안한 착용감을 바탕으로, 당신의 페이스에 집중할 수 있도록 만들었습니다.';
+      return (
+        label: 'PERFORMANCE RUNNING BOTTOM',
+        headline: 'MOVE WITH\nPURPOSE.',
+        accent: 'DESIGNED FOR MOTION.',
+        copy: '움직임을 방해하지 않는 설계와 편안한 착용감을 바탕으로, 당신의 페이스에 집중할 수 있도록 만들었습니다.',
+      );
     }
-    return '움직임에 집중할 수 있도록 설계한 스포츠웨어. 일상과 운동 사이를 자연스럽게 이어갑니다.';
+    return (
+      label: 'PERFORMANCE SPORTSWEAR',
+      headline: 'BUILT FOR\nTHE MOVE.',
+      accent: 'DESIGNED FOR MOTION.',
+      copy: '움직임에 집중할 수 있도록 설계한 스포츠웨어. 일상과 운동 사이를 자연스럽게 이어갑니다.',
+    );
   }
 
   Widget _buildGeneralEditorialProductDetail(ProductModel product, bool isAdmin) {
@@ -4285,7 +4398,8 @@ $productUrl
     final material = product.material.isNotEmpty
         ? product.material
         : '상품 상세 정보에서 소재 구성을 확인해 주세요.';
-    final productType = _generalEditorialType(product);
+    final heroCopy = _generalEditorialCopy(product);
+    final productType = heroCopy.label;
     final isGroupOrder = product.isGroupOnly;
     final details = [
       if (isGroupOrder) '팀의 필요 수량과 원하는 사양에 맞춰 상담 가능한 단체주문 상품',
@@ -4319,7 +4433,7 @@ $productUrl
                 ),
                 SizedBox(height: r.h(18)),
                 Text(
-                  _generalEditorialHeadline(product),
+                  heroCopy.headline,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: r.sp(42),
@@ -4330,7 +4444,7 @@ $productUrl
                 ),
                 SizedBox(height: r.h(27)),
                 Text(
-                  isGroupOrder ? 'DESIGNED TOGETHER.' : 'DESIGNED FOR MOTION.',
+                  heroCopy.accent,
                   style: TextStyle(
                     color: const Color(0xFFFF6A3D),
                     fontSize: r.sp(12),
@@ -4340,7 +4454,7 @@ $productUrl
                 ),
                 SizedBox(height: r.h(10)),
                 Text(
-                  _generalEditorialKoreanCopy(product),
+                  heroCopy.copy,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.82),
                     fontSize: r.sp(13),
