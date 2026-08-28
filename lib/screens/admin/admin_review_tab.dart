@@ -349,7 +349,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
               _showReviewEditor(existing: r);
             },
             icon: const Icon(Icons.edit_outlined, size: 16),
-            child: const Text('수정'),
+            label: const Text('수정'),
           ),
           TextButton(
             onPressed: () {
