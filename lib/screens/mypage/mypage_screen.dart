@@ -10837,7 +10837,7 @@ class _CouponCard extends StatelessWidget {
 }
 
 // ══════════════════════════════════════════════════════════════
-// PC 포인트 탭
+// 포인트 탭 — 잔액 요약과 적립·사용 내역 필터
 // ══════════════════════════════════════════════════════════════
 class _PcPointTab extends StatelessWidget {
   final UserProvider userProvider;
@@ -10845,37 +10845,72 @@ class _PcPointTab extends StatelessWidget {
   const _PcPointTab({required this.userProvider, required this.loc});
 
   @override
+  Widget build(BuildContext context) => const _PointHistoryPanel(isMobile: false);
+}
+
+class _MobilePointTab extends StatelessWidget {
+  final UserProvider userProvider;
+  final AppLocalizations loc;
+  const _MobilePointTab({required this.userProvider, required this.loc});
+
+  @override
+  Widget build(BuildContext context) => const _PointHistoryPanel(isMobile: true);
+}
+
+class _PointHistoryPanel extends StatefulWidget {
+  final bool isMobile;
+  const _PointHistoryPanel({required this.isMobile});
+
+  @override
+  State<_PointHistoryPanel> createState() => _PointHistoryPanelState();
+}
+
+class _PointHistoryPanelState extends State<_PointHistoryPanel> {
+  int _filter = 0; // 0: 전체, 1: 적립, 2: 사용
+
+  List<PointHistory> _filtered(List<PointHistory> history) {
+    if (_filter == 0) return history;
+    return history.where((item) {
+      final earned = item.amount > 0;
+      return _filter == 1 ? earned : !earned;
+    }).toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<PointProvider>(
       builder: (ctx, pp, _) {
+        final history = _filtered(pp.history);
+        final earned = pp.history
+            .where((item) => item.amount > 0)
+            .fold<int>(0, (sum, item) => sum + item.amount);
+        final used = pp.history
+            .where((item) => item.amount < 0)
+            .fold<int>(0, (sum, item) => sum + item.amount.abs());
+        final number = (int value) => value.toString().replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+        final horizontal = widget.isMobile ? 16.0 : 24.0;
+        final minPoints = PointService.minUsePoints;
+        final canUse = pp.balance >= minPoints;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _PcTabHeader(
-              icon: Icons.stars_rounded,
-              title: context.loc.t('포인트', '포인트'),
-              color: AppColors.accent,
-            ),
-            // 잔액 카드
+            if (!widget.isMobile)
+              _PcTabHeader(
+                icon: Icons.stars_rounded,
+                title: context.loc.t('포인트', '포인트'),
+                color: AppColors.accent,
+              ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+              padding: EdgeInsets.fromLTRB(horizontal, widget.isMobile ? 16 : 0,
+                  horizontal, 16),
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(widget.isMobile ? 18 : 22),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF6F00), Color(0xFFFFCA28)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFF6F00).withValues(alpha: 0.25),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    )
-                  ],
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -10885,171 +10920,90 @@ class _PcPointTab extends StatelessWidget {
                         const Icon(Icons.stars_rounded,
                             color: Colors.white, size: 20),
                         const SizedBox(width: 8),
-                        Text(
-                          context.loc.t('보유_포인트', '보유 포인트'),
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 13),
-                        ),
+                        Text(context.loc.t('보유_포인트', '보유 포인트'),
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 13)),
+                        const Spacer(),
+                        Text(canUse ? '사용 가능' : '${number(minPoints)}P부터 사용',
+                            style: TextStyle(
+                                color: canUse
+                                    ? AppColors.accent
+                                    : Colors.white70,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700)),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      '${pp.balance.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} P',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      context.loc
-                          .t('구매금액_1%_자동_적립', '구매금액의 1% 자동 적립 (개인 일반주문)'),
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 11),
+                    Text('${number(pp.balance)} P',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _PointSummary(label: '누적 적립', value: '+${number(earned)}P'),
+                        ),
+                        Expanded(
+                          child: _PointSummary(label: '누적 사용', value: '-${number(used)}P'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
-            // 내역 헤더
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-              child: Text(
-                context.loc.t('포인트_내역', '포인트 내역'),
-                style:
-                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-              ),
-            ),
-            // 내역 리스트
-            if (pp.isLoading)
-              const Expanded(child: Center(child: CircularProgressIndicator()))
-            else if (pp.history.isEmpty)
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.history_rounded,
-                          size: 48, color: Colors.grey.shade300),
-                      const SizedBox(height: 12),
-                      Text(
-                        context.loc.t('포인트_내역_없음', '포인트 내역이 없습니다.'),
-                        style: TextStyle(color: Colors.grey.shade500),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                  itemCount: pp.history.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (_, i) => _PointHistoryTile(item: pp.history[i]),
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// 모바일 포인트 탭
-// ══════════════════════════════════════════════════════════════
-class _MobilePointTab extends StatelessWidget {
-  final UserProvider userProvider;
-  final AppLocalizations loc;
-  const _MobilePointTab({required this.userProvider, required this.loc});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<PointProvider>(
-      builder: (ctx, pp, _) {
-        return Column(
-          children: [
-            // 잔액 배너
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF6F00), Color(0xFFFFCA28)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFF6F00).withValues(alpha: 0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  )
-                ],
-              ),
+              padding: EdgeInsets.fromLTRB(horizontal, 4, horizontal, 8),
               child: Row(
                 children: [
-                  const Icon(Icons.stars_rounded,
-                      color: Colors.white, size: 32),
-                  const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.loc.t('보유_포인트', '보유 포인트'),
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 12),
-                      ),
-                      Text(
-                        '${pp.balance.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},')} P',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      Text(
-                        context.loc.t('구매금액_1%_자동_적립', '구매금액의 1% 자동 적립'),
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 10),
-                      ),
-                    ],
-                  ),
+                  Text(context.loc.t('포인트_내역', '포인트 내역'),
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w800)),
+                  const Spacer(),
+                  Text('${history.length}건',
+                      style: TextStyle(
+                          color: Colors.grey.shade500, fontSize: 12)),
                 ],
               ),
             ),
-            // 내역
+            Padding(
+              padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 12),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _PointFilterChip(label: '전체', selected: _filter == 0,
+                        onTap: () => setState(() => _filter = 0)),
+                    _PointFilterChip(label: '적립', selected: _filter == 1,
+                        onTap: () => setState(() => _filter = 1)),
+                    _PointFilterChip(label: '사용', selected: _filter == 2,
+                        onTap: () => setState(() => _filter = 2)),
+                  ],
+                ),
+              ),
+            ),
             if (pp.isLoading)
               const Expanded(child: Center(child: CircularProgressIndicator()))
-            else if (pp.history.isEmpty)
+            else if (history.isEmpty)
               Expanded(
                 child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.history_rounded,
-                          size: 48, color: Colors.grey.shade300),
-                      const SizedBox(height: 12),
-                      Text(
-                        context.loc.t('포인트_내역_없음', '포인트 내역이 없습니다.'),
-                        style: TextStyle(color: Colors.grey.shade500),
-                      ),
-                    ],
+                  child: Text(
+                    _filter == 0
+                        ? context.loc.t('포인트_내역_없음', '포인트 내역이 없습니다.')
+                        : '해당 내역이 없습니다.',
+                    style: TextStyle(color: Colors.grey.shade500),
                   ),
                 ),
               )
             else
               Expanded(
                 child: ListView.separated(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  itemCount: pp.history.length,
+                  padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 24),
+                  itemCount: history.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (_, i) => _PointHistoryTile(item: pp.history[i]),
+                  itemBuilder: (_, i) => _PointHistoryTile(item: history[i]),
                 ),
               ),
           ],
@@ -11058,6 +11012,45 @@ class _MobilePointTab extends StatelessWidget {
     );
   }
 }
+
+class _PointSummary extends StatelessWidget {
+  final String label;
+  final String value;
+  const _PointSummary({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+          const SizedBox(height: 3),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
+        ],
+      );
+}
+
+class _PointFilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _PointFilterChip({required this.label, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: ChoiceChip(
+          label: Text(label),
+          selected: selected,
+          onSelected: (_) => onTap(),
+          selectedColor: AppColors.primary,
+          backgroundColor: Colors.white,
+          labelStyle: TextStyle(
+              color: selected ? Colors.white : AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w700),
+          side: BorderSide(color: selected ? AppColors.primary : AppColors.border),
+        ),
+      );
 
 // ══════════════════════════════════════════════════════════════
 // 포인트 내역 타일 (공통)
