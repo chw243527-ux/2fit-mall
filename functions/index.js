@@ -1,20 +1,29 @@
 // Firebase Cloud Functions - 2FIT Mall
 const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { onRequest } = require('firebase-functions/v2/https');
+const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
+const crypto = require('crypto');
 
 initializeApp();
 const db = getFirestore();
 
 const ADMIN_TOKENS_DOC = 'admin_config/fcm_tokens';
 
+// Secret Manager values are available only to server-side Functions.
+const SOLAPI_API_KEY = defineSecret('SOLAPI_API_KEY');
+const SOLAPI_API_SECRET = defineSecret('SOLAPI_API_SECRET');
+const SOLAPI_SENDER_PHONE = '01072276914';
+
 // ══════════════════════════════════════════════════════
 // 1) 새 주문 접수 알림 (기존)
 // ══════════════════════════════════════════════════════
-exports.onNewOrder = onDocumentCreated('orders/{orderId}', async (event) => {
+exports.onNewOrder = onDocumentCreated(
+  { document: 'orders/{orderId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET] },
+  async (event) => {
   const data = event.data?.data();
   if (!data) return;
   try {
@@ -26,7 +35,7 @@ exports.onNewOrder = onDocumentCreated('orders/{orderId}', async (event) => {
       body: `${data.userName || '고객'}님 주문${amount ? ' ' + amount : ''}`,
       data: { type: 'new_order', orderId: event.params.orderId },
     });
-  } catch (e) { console.error('onNewOrder error:', e); }
+  } catch (e) { console.error('onNewOrder error:', e);   }
 });
 
 // ══════════════════════════════════════════════════════
@@ -192,6 +201,38 @@ async function requireAdmin(req, res) {
 }
 
 // ══════════════════════════════════════════════════════
+// 8) 서버 전용 SOLAPI SMS 발송 (관리자만)
+// ══════════════════════════════════════════════════════
+exports.sendSolapiSms = onRequest(
+  { secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET] },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Method Not Allowed' });
+      return;
+    }
+    if (!(await requireAdmin(req, res))) return;
+
+    const phone = String(req.body?.phone || '').replace(/[^0-9+]/g, '');
+    const text = String(req.body?.text || '').trim();
+    if (!/^\+?[0-9]{8,15}$/.test(phone) || !text || text.length > 2000) {
+      res.status(400).json({ error: 'Valid phone and text are required' });
+      return;
+    }
+
+    try {
+      const result = await _sendSolapiSms(phone, text);
+      res.status(result.ok ? 200 : 502).json({
+        success: result.ok,
+        statusCode: result.statusCode,
+      });
+    } catch (error) {
+      console.error('sendSolapiSms error:', error);
+      res.status(500).json({ error: 'SMS delivery failed' });
+    }
+  }
+);
+
+// ══════════════════════════════════════════════════════
 // 헬퍼 함수들
 // ══════════════════════════════════════════════════════
 async function _getAdminTokens() {
@@ -230,6 +271,33 @@ async function _sendMulticast(tokens, { title, body, data: msgData = {} }) {
     await db.doc(ADMIN_TOKENS_DOC).set({ tokens: valid }, { merge: true });
     console.log(`만료 토큰 ${invalid.length}개 제거`);
   }
+}
+
+async function _sendSolapiSms(phone, text) {
+  const date = new Date().toISOString();
+  const salt = crypto.randomBytes(16).toString('hex');
+  const signature = crypto
+    .createHmac('sha256', SOLAPI_API_SECRET.value())
+    .update(`${date}${salt}`)
+    .digest('hex');
+
+  const response = await fetch('https://api.solapi.com/messages/v4/send', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      Authorization: `HMAC-SHA256 apiKey=${SOLAPI_API_KEY.value()}, date=${date}, salt=${salt}, signature=${signature}`,
+    },
+    body: JSON.stringify({
+      message: {
+        to: phone,
+        from: SOLAPI_SENDER_PHONE,
+        type: text.length > 90 ? 'LMS' : 'SMS',
+        text,
+      },
+    }),
+  });
+
+  return { ok: response.ok, statusCode: response.status };
 }
 
 function _fmt(n) {

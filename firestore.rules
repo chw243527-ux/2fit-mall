@@ -109,7 +109,8 @@ service cloud.firestore {
       // point_history 서브컬렉션 (포인트 적립/사용 내역)
       match /point_history/{historyId} {
         allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
-        allow create: if isSignedIn(); // 앱 내 자동 적립 허용
+        // 포인트 이력은 클라이언트가 위조할 수 없도록 서버/관리자만 생성
+        allow create: if isAdmin();
         allow update, delete: if isAdmin();
       }
     }
@@ -244,6 +245,7 @@ service cloud.firestore {
         );
         // 메시지 생성: 로그인 + 내용 길이 검증
         allow create: if isSignedIn()
+            && (request.auth.uid == chatId || isAdmin())
             && ('text' in request.resource.data
                 ? isValidMessage(request.resource.data)
                 : true);

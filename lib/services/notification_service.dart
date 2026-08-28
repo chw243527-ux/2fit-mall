@@ -21,11 +21,10 @@ class KakaoConfig {
   // → API Key + API Secret 복사
   // ═════════════════════════════════════════════════════════════
 
-  // ✅ SOLAPI API Key — 설정 완료 (2026-06-17)
-  static const apiKey = 'NCSZ6J3N1XWLA5WJ';
-
-  // ✅ SOLAPI API Secret — 설정 완료 (2026-06-17)
-  static const apiSecret = 'BH8J2NRD1NQ04UVHG6CNRFKYZFEZWTXS';
+  // 보안: SOLAPI 자격증명은 클라이언트 앱에 저장하지 않습니다.
+  // 발송 기능은 Firebase Functions 서버 측 Secret으로 이전해야 합니다.
+  static const apiKey = '';
+  static const apiSecret = '';
 
   // ✅ 발신프로필 키 — SOLAPI 채널 연동 완료 (2026-06-17)
   static const senderKey = 'KA01PF2606170642574857w8Hjn9Czz4';
