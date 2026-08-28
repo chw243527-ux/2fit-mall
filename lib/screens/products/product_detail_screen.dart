@@ -4764,6 +4764,22 @@ $productUrl
     );
   }
 
+  // ═══════════════════════════════════════════════════════════
+  // 리미티드 싱글렛 전용 에디토리얼 상세페이지
+  // 기성품 싱글렛 단품에만 적용하며, 단체주문 상품에는 표시하지 않습니다.
+  // ═══════════════════════════════════════════════════════════
+  bool _isLimitedSinglet(ProductModel product) {
+    final label = '${product.category} ${product.subCategory} ${product.name}';
+    final isSingletSet = product.category == '세트' ||
+        label.contains('싱글렛세트') ||
+        label.contains('싱글렛 세트');
+    return !product.isGroupOnly && !isSingletSet && label.contains('싱글렛');
+  }
+
+  String _limitedSingletMaterial(ProductModel product) {
+    return _materialTextForProduct(product);
+  }
+
   /// 모든 상품에 공통 적용하는 에디토리얼 상세페이지 래퍼입니다.
   /// 한정 수량은 기성품 싱글렛에만 표시하고, 나머지는 동일한 시각 언어만 유지합니다.
   Widget _buildEditorialProductDetail(ProductModel product, bool isAdmin) {
