@@ -920,7 +920,7 @@ class _PcProfileCard extends StatelessWidget {
       case 'gold':
         return Colors.amber[400]!;
       case 'vip':
-        return AppColors.primary.withValues(alpha: 0.30)!;
+        return AppColors.primary.withValues(alpha: 0.30);
       default:
         return Colors.brown[300]!;
     }
@@ -1247,7 +1247,6 @@ class _PcOrderCard extends StatelessWidget {
         order.status != OrderStatus.refunded;
     // 추가제작: 취소/환불 아니면 배송완료 후에도 항상 가능 (같은 디자인 재주문)
     final canAdditional = isGroup && isActive;
-    final canDesignRevision = isGroup && isActive && order.canDesignRevision;
     // 배송조회: 운송장 등록된 경우
     final trackingNumberMobile =
         (order.customOptions?['trackingNumber'] as String? ?? '').trim();
@@ -3244,14 +3243,12 @@ class _MobileProfileHeader extends StatelessWidget {
       case 'gold':
         return Colors.amber[400]!;
       case 'vip':
-        return AppColors.primary.withValues(alpha: 0.30)!;
+        return AppColors.primary.withValues(alpha: 0.30);
       default:
         return Colors.brown[300]!;
     }
   }
 
-  String _fmt(int n) => n.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '\${m[1]},');
 }
 
 class _InfoChip extends StatelessWidget {
@@ -3480,7 +3477,6 @@ class _MobileOrderCard extends StatelessWidget {
         order.status != OrderStatus.refunded;
     // 추가제작: 취소/환불 아니면 배송완료 후에도 항상 가능 (같은 디자인 재주문)
     final canAdditional = isGroup && isActive;
-    final canDesignRevision = isGroup && isActive && order.canDesignRevision;
 
     // 운송장 등록 여부
     final trackingNumber =
@@ -3517,7 +3513,6 @@ class _MobileOrderCard extends StatelessWidget {
         ((order.status == OrderStatus.delivered && isWithin7DaysPC) ||
             (order.status == OrderStatus.shipped && hasTracking));
     // 배송조회: 운송장 등록된 경우
-    final canTrack = hasTracking;
     // 구매확정: 배송완료 상태이고 구매확정 전 (운송장 유무 무관)
     final canConfirmPurchase =
         order.status == OrderStatus.delivered && !isPurchaseConfirmed;
