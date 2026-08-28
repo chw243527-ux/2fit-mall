@@ -46,49 +46,73 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
 
   // ── 헤더 ────────────────────────────────────────────
   Widget _buildHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.border)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.local_activity_rounded,
-              color: AppColors.primary, size: 22),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Text('쿠폰 관리',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 520;
+        final addButton = ElevatedButton.icon(
+          onPressed: () => _showCouponDialog(context, null),
+          icon: const Icon(Icons.add_rounded, size: 18),
+          label: const Text('쿠폰 추가'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(44, 44),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
           ),
-          Builder(builder: (context) {
-            final compact = MediaQuery.of(context).size.width < 480;
-            return compact
-                ? IconButton.filled(
-                    onPressed: () => _showCouponDialog(context, null),
-                    icon: const Icon(Icons.add_rounded),
-                    tooltip: '쿠폰 추가',
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(44, 44),
+        );
+
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.fromLTRB(20, narrow ? 14 : 16, 20, narrow ? 12 : 16),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(color: AppColors.border)),
+          ),
+          child: narrow
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.local_activity_rounded,
+                            color: AppColors.primary, size: 22),
+                        const SizedBox(width: 10),
+                        const Expanded(
+                          child: Text(
+                            '쿠폰 관리',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
                     ),
-                  )
-                : ElevatedButton.icon(
-                    onPressed: () => _showCouponDialog(context, null),
-                    icon: const Icon(Icons.add_rounded, size: 18),
-                    label: const Text('쿠폰 추가'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                    const SizedBox(height: 10),
+                    SizedBox(width: double.infinity, child: addButton),
+                  ],
+                )
+              : Row(
+                  children: [
+                    const Icon(Icons.local_activity_rounded,
+                        color: AppColors.primary, size: 22),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        '쿠폰 관리',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.w700),
+                      ),
                     ),
-                  );
-          }),
-        ],
-      ),
+                    addButton,
+                  ],
+                ),
+        );
+      },
     );
   }
 
@@ -145,11 +169,25 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
                 const SizedBox(height: 12),
                 Text(
                   _filter == '전체'
-                      ? '등록된 쿠폰이 없습니다.\n쿠폰 추가 버튼으로 첫 쿠폰을 만들어보세요.'
+                      ? '등록된 쿠폰이 없습니다.'
                       : '해당 쿠폰이 없습니다.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
+                if (_filter == '전체') ...[
+                  const SizedBox(height: 14),
+                  ElevatedButton.icon(
+                    onPressed: () => _showCouponDialog(context, null),
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    label: const Text('첫 쿠폰 등록하기'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                    ),
+                  ),
+                ],
               ],
             ),
           );
