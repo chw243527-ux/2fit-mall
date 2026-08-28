@@ -11277,6 +11277,7 @@ class _AdminScreenState extends State<AdminScreen>
                     itemCount: msgs.length,
                     itemBuilder: (_, i) {
                       final m = msgs[i];
+                      final isSystem = m.isSystem;
                       final timeStr =
                           '${m.time.hour.toString().padLeft(2, '0')}:${m.time.minute.toString().padLeft(2, '0')}';
                       return Align(
@@ -11298,7 +11299,9 @@ class _AdminScreenState extends State<AdminScreen>
                               decoration: BoxDecoration(
                                 color: m.isUser
                                     ? AppColors.primary
-                                    : AppColors.surfaceGray,
+                                    : (isSystem
+                                        ? const Color(0xFFEAF2FF)
+                                        : AppColors.surfaceGray),
                                 borderRadius: BorderRadius.only(
                                   topLeft: const Radius.circular(14),
                                   topRight: const Radius.circular(14),
@@ -11313,15 +11316,25 @@ class _AdminScreenState extends State<AdminScreen>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  if (!m.isUser)
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 3),
-                                      child: Text(m.senderName,
-                                          style: const TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w700,
-                                              color: AppColors.textSecondary)),
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 3),
+                                    child: Text(
+                                      m.isUser
+                                          ? '고객'
+                                          : (isSystem
+                                              ? '자동 안내'
+                                              : '판매자 · ${m.senderName}'),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: m.isUser
+                                            ? Colors.white70
+                                            : (isSystem
+                                                ? AppColors.info
+                                                : AppColors.textSecondary),
+                                      ),
                                     ),
+                                  ),
                                   Text(m.text,
                                       style: TextStyle(
                                           fontSize: 13,
