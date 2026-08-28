@@ -6,11 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:app_links/app_links.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
-// 네이버 로그인: Web(dart.library.html)은 stub, 앱(dart.library.io)은 실제 패키지
-import 'services/naver_login_stub.dart'
-    if (dart.library.io) 'package:flutter_naver_login/flutter_naver_login.dart'
-    as naver;
 import 'firebase_options.dart';
 import 'services/fcm_service.dart';
 import 'utils/theme.dart';
@@ -57,19 +54,6 @@ void main() async {
     if (kDebugMode) debugPrint('✅ KakaoSdk 초기화 성공');
   } catch (e) {
     if (kDebugMode) debugPrint('⚠️ KakaoSdk 초기화 오류: $e');
-  }
-
-  // 네이버 SDK 초기화 (앱 전용 — Web 빌드 시 stub 사용)
-  try {
-    await naver.FlutterNaverLogin.initSdk(
-      clientId: 'RTeQb5TSs920qoowhcra',
-      clientSecret: 'l5P3RChcnd',
-      clientName: '2FIT mall',
-      enableNaverAppAuthIOS: true,
-    );
-    if (kDebugMode) debugPrint('✅ NaverSdk 초기화 성공');
-  } catch (e) {
-    if (kDebugMode) debugPrint('⚠️ NaverSdk 초기화 오류: $e');
   }
 
   // Firebase Core만 첫 화면 전에 초기화합니다.
@@ -146,7 +130,8 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
-        ChangeNotifierProvider<LanguageProvider>(create: (_) => LanguageProvider()),
+        ChangeNotifierProvider<LanguageProvider>(
+            create: (_) => LanguageProvider()),
         // LanguageProviderBridge로도 접근 가능하게 (context.loc 사용)
         ProxyProvider<LanguageProvider, LanguageProviderBridge>(
           update: (ctx, lp, _) => lp,
@@ -219,7 +204,9 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
               final groupOrderProduct = settings.arguments;
               return MaterialPageRoute(
                 builder: (_) => GroupOrderLandingScreen(
-                  product: groupOrderProduct is ProductModel ? groupOrderProduct : null,
+                  product: groupOrderProduct is ProductModel
+                      ? groupOrderProduct
+                      : null,
                 ),
               );
             case '/group-guide':
@@ -283,7 +270,7 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
             case '/products':
               final args = settings.arguments;
               final category = args is Map ? args['category'] as String? : null;
-              final search   = args is Map ? args['search']   as String? : null;
+              final search = args is Map ? args['search'] as String? : null;
               return MaterialPageRoute(
                 builder: (_) => MainScreen(
                   initialIndex: 1,
@@ -295,7 +282,8 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
             // 상품 상세 (/products/:id)
             case '/product':
               final pArgs = settings.arguments;
-              final pid = pArgs is Map ? pArgs['id'] as String? : pArgs as String?;
+              final pid =
+                  pArgs is Map ? pArgs['id'] as String? : pArgs as String?;
               if (pid != null && pid.isNotEmpty) {
                 return MaterialPageRoute(
                   builder: (_) => ProductDetailByIdScreen(productId: pid),
@@ -303,11 +291,12 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 );
               }
               return MaterialPageRoute(
-                builder: (_) => const NotFoundScreen(), settings: settings);
+                  builder: (_) => const NotFoundScreen(), settings: settings);
             // 카테고리 (/category/:name)
             case '/category':
               final cArgs = settings.arguments;
-              final cname = cArgs is Map ? cArgs['name'] as String? : cArgs as String?;
+              final cname =
+                  cArgs is Map ? cArgs['name'] as String? : cArgs as String?;
               if (cname != null && cname.isNotEmpty) {
                 return MaterialPageRoute(
                   builder: (_) => CategoryByNameScreen(categoryName: cname),
@@ -315,7 +304,7 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 );
               }
               return MaterialPageRoute(
-                builder: (_) => const NotFoundScreen(), settings: settings);
+                  builder: (_) => const NotFoundScreen(), settings: settings);
             // 장바구니
             case '/cart-tab':
               return MaterialPageRoute(
@@ -359,7 +348,8 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
               int initialTab = 0;
               if (args is Map<String, dynamic>) {
                 final tab = args['tab'];
-                if (tab == 'orders') initialTab = 1;
+                if (tab == 'orders')
+                  initialTab = 1;
                 else if (tab is int) initialTab = tab;
               }
               return MaterialPageRoute(
@@ -401,10 +391,10 @@ class _AppScrollBehavior extends MaterialScrollBehavior {
   const _AppScrollBehavior();
   @override
   Set<PointerDeviceKind> get dragDevices => {
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.trackpad,
-  };
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+      };
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) =>
       const ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
@@ -419,11 +409,14 @@ class _AppInit extends StatefulWidget {
 
 class _AppInitState extends State<_AppInit> {
   Timer? _deliveryCheckTimer;
+  StreamSubscription<Uri>? _deepLinkSub;
 
   @override
   void initState() {
     super.initState();
     _restoreSession();
+    _deepLinkSub =
+        AppLinks().uriLinkStream.listen(AuthService.handleNaverDeepLink);
     // 앱 시작 후 1분 뒤 첫 번째 배송완료 자동 체크, 이후 30분마다 반복
     Future.delayed(const Duration(minutes: 1), () {
       if (!mounted) return;
@@ -441,15 +434,16 @@ class _AppInitState extends State<_AppInit> {
   @override
   void dispose() {
     _deliveryCheckTimer?.cancel();
+    _deepLinkSub?.cancel();
     super.dispose();
   }
 
   Future<void> _restoreSession() async {
     try {
       // 3초 안에 안 되면 포기하고 로그인 화면에서 처리
-      final result = await AuthService.restoreSession()
-          .timeout(const Duration(seconds: 3),
-              onTimeout: () => const AuthResult(success: false));
+      final result = await AuthService.restoreSession().timeout(
+          const Duration(seconds: 3),
+          onTimeout: () => const AuthResult(success: false));
       if (!mounted) return;
       if (result.success && result.user != null) {
         final user = result.user!;
@@ -462,7 +456,9 @@ class _AppInitState extends State<_AppInit> {
         context.read<CouponProvider>().loadValidCoupons(user.id);
         context.read<PointProvider>().loadPoints(user.id);
         FcmService.saveTokenToFirestore(user.id).catchError(
-          (e) { if (kDebugMode) debugPrint('⚠️ FCM 토큰 저장 실패: $e'); },
+          (e) {
+            if (kDebugMode) debugPrint('⚠️ FCM 토큰 저장 실패: $e');
+          },
         );
       }
       // 관리자용 전체 주문 백그라운드 로드

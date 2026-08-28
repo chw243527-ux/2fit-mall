@@ -483,43 +483,41 @@
        팝업창에서 콜백을 받아 Flutter로 전달
   ═══════════════════════════════════════════════ -->
   <script>
-    // 네이버 OAuth 팝업 로그인
-    window.naverOAuthLogin = function() {
-      var clientId = 'RTeQb5TSs920qoowhcra';
-      var redirectUri = encodeURIComponent(window.location.origin + '/naver_callback.html');
-      var state = Math.random().toString(36).substring(2);
-      sessionStorage.setItem('naver_oauth_state', state);
+    // 네이버 OAuth 팝업 로그인: Secret은 Firebase Functions 서버에서만 사용
+    window.naverOAuthLogin = async function() {
+      var redirectUri = window.location.origin + '/naver_callback.html';
+      var startEndpoint = 'https://us-central1-fit-mall.cloudfunctions.net/startNaverOAuth';
+      var response = await fetch(startEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ redirectUri: redirectUri })
+      });
+      var start = await response.json();
+      if (!response.ok || !start.authorizeUrl) {
+        throw new Error(start.error || '네이버 로그인을 시작할 수 없습니다.');
+      }
 
-      var url = 'https://nid.naver.com/oauth2.0/authorize'
-        + '?response_type=token'
-        + '&client_id=' + clientId
-        + '&redirect_uri=' + redirectUri
-        + '&state=' + state;
-
-      var popup = window.open(url, 'naverLogin',
+      var popup = window.open(start.authorizeUrl, 'naverLogin',
         'width=500,height=600,scrollbars=yes,resizable=yes');
+      if (!popup) throw new Error('팝업이 차단되었습니다. 팝업을 허용해 주세요.');
 
       return new Promise(function(resolve, reject) {
         var timer = setInterval(function() {
-          if (popup && popup.closed) {
+          if (popup.closed) {
             clearInterval(timer);
+            window.removeEventListener('message', onMessage);
             reject(new Error('팝업이 닫혔습니다.'));
           }
         }, 500);
 
-        // 팝업에서 postMessage로 사용자 정보 전달
         function onMessage(e) {
           if (e.origin !== window.location.origin) return;
-          if (e.data && e.data.type === 'NAVER_TOKEN') {
+          if (e.data && e.data.type === 'NAVER_CODE') {
             clearInterval(timer);
             window.removeEventListener('message', onMessage);
-            if (popup) popup.close();
-            if (e.data.error) {
-              reject(new Error(e.data.error));
-            } else {
-              // {token, naverId, email, name, photoUrl} 객체 전체 전달
-              resolve(e.data);
-            }
+            popup.close();
+            if (e.data.error) reject(new Error(e.data.error));
+            else resolve(e.data);
           }
         }
         window.addEventListener('message', onMessage);

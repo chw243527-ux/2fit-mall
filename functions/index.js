@@ -17,6 +17,13 @@ const ADMIN_TOKENS_DOC = 'admin_config/fcm_tokens';
 const SOLAPI_API_KEY = defineSecret('SOLAPI_API_KEY');
 const SOLAPI_API_SECRET = defineSecret('SOLAPI_API_SECRET');
 const SOLAPI_SENDER_PHONE = '01072276914';
+const NAVER_CLIENT_ID = 'RTeQb5TSs920qoowhcra';
+const NAVER_CLIENT_SECRET = defineSecret('NAVER_CLIENT_SECRET');
+const NAVER_ALLOWED_REDIRECTS = new Set([
+  'https://2fit-mall.co.kr/naver_callback.html',
+  'https://fit-mall.web.app/naver_callback.html',
+  'http://localhost:5000/naver_callback.html',
+]);
 
 // ══════════════════════════════════════════════════════
 // 1) 새 주문 접수 알림 (기존)
@@ -201,7 +208,129 @@ async function requireAdmin(req, res) {
 }
 
 // ══════════════════════════════════════════════════════
-// 8) 서버 전용 SOLAPI SMS 발송 (관리자만)
+// 8) 서버 전용 Naver OAuth
+// ══════════════════════════════════════════════════════
+exports.startNaverOAuth = onRequest(
+  { secrets: [NAVER_CLIENT_SECRET], cors: [
+    'https://2fit-mall.co.kr',
+    'https://fit-mall.web.app',
+    'http://localhost:5000',
+  ] },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Method Not Allowed' });
+      return;
+    }
+    const redirectUri = String(req.body?.redirectUri || '');
+    if (!NAVER_ALLOWED_REDIRECTS.has(redirectUri)) {
+      res.status(400).json({ error: 'Invalid redirect URI' });
+      return;
+    }
+    const nonce = crypto.randomBytes(24).toString('base64url');
+    const issuedAt = Date.now().toString();
+    const payload = `${issuedAt}.${nonce}.${redirectUri}`;
+    const signature = crypto
+      .createHmac('sha256', NAVER_CLIENT_SECRET.value())
+      .update(payload)
+      .digest('base64url');
+    const state = `${issuedAt}.${nonce}.${signature}`;
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: NAVER_CLIENT_ID,
+      redirect_uri: redirectUri,
+      state,
+    });
+    res.json({
+      authorizeUrl: `https://nid.naver.com/oauth2.0/authorize?${params}`,
+      state,
+    });
+  }
+);
+
+exports.exchangeNaverCode = onRequest(
+  { secrets: [NAVER_CLIENT_SECRET], cors: [
+    'https://2fit-mall.co.kr',
+    'https://fit-mall.web.app',
+    'http://localhost:5000',
+  ] },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Method Not Allowed' });
+      return;
+    }
+    const code = String(req.body?.code || '');
+    const state = String(req.body?.state || '');
+    const redirectUri = String(req.body?.redirectUri || '');
+    if (!code || !state || !NAVER_ALLOWED_REDIRECTS.has(redirectUri)) {
+      res.status(400).json({ error: 'code, state, and redirectUri are required' });
+      return;
+    }
+    try {
+      const stateParts = state.split('.');
+      if (stateParts.length !== 3) throw new Error('Invalid state');
+      const [issuedAt, nonce, signature] = stateParts;
+      const issuedMs = Number(issuedAt);
+      if (!Number.isFinite(issuedMs) || Date.now() - issuedMs > 10 * 60 * 1000) {
+        throw new Error('Expired state');
+      }
+      const payload = `${issuedAt}.${nonce}.${redirectUri}`;
+      const expected = crypto
+        .createHmac('sha256', NAVER_CLIENT_SECRET.value())
+        .update(payload)
+        .digest('base64url');
+      if (signature.length !== expected.length ||
+          !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+        throw new Error('Invalid state signature');
+      }
+
+      const tokenParams = new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: NAVER_CLIENT_ID,
+        client_secret: NAVER_CLIENT_SECRET.value(),
+        code,
+        state,
+      });
+      const tokenResponse = await fetch(
+        `https://nid.naver.com/oauth2.0/token?${tokenParams}`,
+        { headers: { Accept: 'application/json' } }
+      );
+      const token = await tokenResponse.json();
+      if (!tokenResponse.ok || !token.access_token) {
+        console.error('Naver token exchange failed:', token.error || tokenResponse.status);
+        res.status(401).json({ error: 'Naver authorization failed' });
+        return;
+      }
+
+      const profileResponse = await fetch('https://openapi.naver.com/v1/nid/me', {
+        headers: { Authorization: `Bearer ${token.access_token}` },
+      });
+      const profile = await profileResponse.json();
+      const naver = profile?.response;
+      if (!profileResponse.ok || !naver?.id) {
+        res.status(401).json({ error: 'Naver profile lookup failed' });
+        return;
+      }
+
+      const email = String(naver.email || `${naver.id}@naver.com`).toLowerCase();
+      const name = String(naver.name || '네이버 사용자').slice(0, 100);
+      const photoUrl = String(naver.profile_image || '').slice(0, 2000);
+      const user = await _getOrCreateNaverUser({
+        naverId: String(naver.id), email, name, photoUrl,
+      });
+      const customToken = await getAuth().createCustomToken(user.uid, {
+        provider: 'naver',
+        naverId: String(naver.id),
+      });
+      res.json({ customToken });
+    } catch (error) {
+      console.error('exchangeNaverCode error:', error.message);
+      res.status(500).json({ error: 'Naver login failed' });
+    }
+  }
+);
+
+// ══════════════════════════════════════════════════════
+// 9) 서버 전용 SOLAPI SMS 발송 (관리자만)
 // ══════════════════════════════════════════════════════
 exports.sendSolapiSms = onRequest(
   { secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET] },
@@ -235,6 +364,38 @@ exports.sendSolapiSms = onRequest(
 // ══════════════════════════════════════════════════════
 // 헬퍼 함수들
 // ══════════════════════════════════════════════════════
+async function _getOrCreateNaverUser({ naverId, email, name, photoUrl }) {
+  let user;
+  try {
+    user = await getAuth().getUserByEmail(email);
+  } catch (error) {
+    if (error.code !== 'auth/user-not-found') throw error;
+    user = await getAuth().createUser({ email, displayName: name, photoURL: photoUrl || undefined });
+  }
+  const userRef = db.collection('users').doc(user.uid);
+  const existing = await userRef.get();
+  const data = existing.data() || {};
+  const userData = {
+    id: user.uid,
+    name,
+    email,
+    phone: data.phone || '',
+    profileImageUrl: photoUrl || data.profileImageUrl || '',
+    grade: data.grade || 'bronze',
+    memberTier: data.memberTier || data.grade || 'bronze',
+    isAdmin: data.isAdmin === true,
+    points: Number.isFinite(data.points) ? data.points : 0,
+    coupons: Array.isArray(data.coupons) ? data.coupons : [],
+    wishlist: Array.isArray(data.wishlist) ? data.wishlist : [],
+    loginProvider: 'naver',
+    naverId,
+    ...(existing.exists ? { lastLoginAt: FieldValue.serverTimestamp() } :
+      { createdAt: FieldValue.serverTimestamp() }),
+  };
+  await userRef.set(userData, { merge: true });
+  return user;
+}
+
 async function _getAdminTokens() {
   const doc = await db.doc(ADMIN_TOKENS_DOC).get();
   return (doc.data()?.tokens || []).filter(t => t && t.length > 10);
