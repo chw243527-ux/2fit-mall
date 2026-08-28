@@ -131,7 +131,7 @@ exports.sendTestNotification = onRequest(async (req, res) => {
 // 6) 🆕 새 채팅 문의 → 관리자 FCM 푸시 알림
 // ══════════════════════════════════════════════════════
 exports.onNewChatMessage = onDocumentCreated(
-  'chats/{roomId}/messages/{messageId}',
+  { document: 'chats/{roomId}/messages/{messageId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET] },
   async (event) => {
     const data = event.data?.data();
     if (!data) return;
