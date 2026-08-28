@@ -22,6 +22,9 @@ const SOLAPI_SENDER_PHONE = '01072276914';
 const KAKAO_CHANNEL_ID = 'KA01PF2606170642574857w8Hjn9Czz4';
 const KAKAO_ORDER_CONFIRMED_TEMPLATE_ID = 'KA01TP260617070446140hAHwuGcxCxF';
 const KAKAO_CHAT_ALERT_TEMPLATE_ID = 'KA01TP260620035956868dCYREOJSYWF';
+const KAKAO_CUSTOMER_CHAT_REPLY_TEMPLATE_ID = 'KA01TP260828143138157dXaG933iQOm';
+// 관리자 알림 수신번호. 현재 등록된 SOLAPI 발신번호를 관리자 번호로 사용합니다.
+const SOLAPI_ADMIN_PHONE = SOLAPI_SENDER_PHONE;
 const NAVER_CLIENT_ID = 'RTeQb5TSs920qoowhcra';
 const NAVER_CLIENT_SECRET = defineSecret('NAVER_CLIENT_SECRET');
 const NAVER_ALLOWED_REDIRECTS = new Set([
@@ -180,7 +183,49 @@ exports.onNewChatMessage = onDocumentCreated(
 );
 
 // ══════════════════════════════════════════════════════
-// 7) 🆕 관리자 FCM 토큰 자동 등록
+// 7) 관리자 답변 → 해당 고객에게만 알림톡
+// ══════════════════════════════════════════════════════
+exports.onAdminChatReply = onDocumentCreated(
+  { document: 'chats/{roomId}/messages/{messageId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET] },
+  async (event) => {
+    const data = event.data?.data();
+    if (!data || data.isAdmin !== true || data.isSystem === true) return;
+
+    const message = String(data.message || data.text || '').trim();
+    if (!message) return;
+
+    try {
+      const roomId = event.params.roomId;
+      const roomSnap = await db.collection('chat_rooms').doc(roomId).get();
+      const room = roomSnap.data() || {};
+      const userId = String(room.userId || roomId || '').trim();
+      if (!userId) {
+        console.warn('관리자 답변 고객 식별 실패:', roomId);
+        return;
+      }
+
+      const userSnap = await db.collection('users').doc(userId).get();
+      const user = userSnap.data() || {};
+      const phone = String(user.phone || user.phoneNumber || '').replace(/[^0-9+]/g, '');
+      if (!/^\+?[0-9]{8,15}$/.test(phone)) {
+        console.warn('고객 전화번호 없음 또는 형식 오류:', userId);
+        return;
+      }
+
+      const result = await _sendSolapiAlimtalk({
+        phone,
+        templateId: KAKAO_CUSTOMER_CHAT_REPLY_TEMPLATE_ID,
+        variables: { '#{답변내용}': message.slice(0, 500) },
+      });
+      console.log(`고객 답변 알림톡 처리 결과: ${result.ok ? 'accepted' : 'rejected'} (${result.statusCode})`);
+    } catch (e) {
+      console.error('onAdminChatReply Alimtalk error:', e);
+    }
+  }
+);
+
+// ══════════════════════════════════════════════════════
+// 8) 🆕 관리자 FCM 토큰 자동 등록
 // ══════════════════════════════════════════════════════
 exports.registerAdminToken = onDocumentCreated(
   'admin_fcm_tokens/{docId}',
@@ -425,7 +470,6 @@ exports.exchangeNaverCode = onRequest(
 // ══════════════════════════════════════════════════════
 // 9) 서버 전용 SOLAPI 알림 발송
 // ══════════════════════════════════════════════════════
-const SOLAPI_ADMIN_PHONE = '01072276914';
 const ALLOWED_ORDER_NOTIFICATION_KINDS = new Set([
   'order_confirmed', 'shipped', 'delivered', 'cancelled',
 ]);
