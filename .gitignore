@@ -25,3 +25,9 @@ lib/screens/home/home_screen.dart.bak
 lib/screens/main_screen.dart.bak
 lib/screens/products/product_detail_screen.dart.bak
 scripts/
+
+# Android signing credentials — never commit
+.private/
+android/*.jks
+android/key.properties
+android/*.keystore
