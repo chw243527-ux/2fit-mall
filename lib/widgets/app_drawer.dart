@@ -690,6 +690,8 @@ class _AppDrawerState extends State<AppDrawer> {
     );
   }
 
+  // 고객 메뉴 연결은 현재 브랜드 소개 라우트로 통합됨.
+  // ignore: unused_element
   void _showBrandInfo(BuildContext context) {
     showModalBottomSheet(
       context: context,

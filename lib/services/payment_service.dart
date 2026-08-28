@@ -17,7 +17,6 @@ import 'dart:convert';
 import 'dart:html' as html;
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 // ─── 🔑 키 설정 ────────────────────────────────────────────────
