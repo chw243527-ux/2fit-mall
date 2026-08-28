@@ -12127,53 +12127,80 @@ class _AdminScreenState extends State<AdminScreen>
         Container(
           color: Colors.white,
           padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 420;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(8)),
-                    child: const Icon(Icons.palette_rounded,
-                        color: Colors.white, size: 18),
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(8)),
+                        child: const Icon(Icons.palette_rounded,
+                            color: Colors.white, size: 18),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '색상 관리',
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '상품 색상을 추가·편집·삭제합니다',
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 11, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      if (isCompact)
+                        IconButton(
+                          tooltip: '색상 추가',
+                          onPressed: _showAddColorDialog,
+                          icon: const Icon(Icons.add_rounded),
+                          color: AppColors.primary,
+                          constraints: const BoxConstraints(
+                              minWidth: 44, minHeight: 44),
+                        )
+                      else
+                        ElevatedButton.icon(
+                          onPressed: _showAddColorDialog,
+                          icon: const Icon(Icons.add_rounded, size: 14),
+                          label: const Text('색상 추가',
+                              style: TextStyle(fontSize: 12)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            elevation: 0,
+                          ),
+                        ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('색상 관리',
-                            style: TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w800)),
-                        Text('상품 색상을 추가/편집/삭제합니다',
-                            style: TextStyle(
-                                fontSize: 11, color: AppColors.textSecondary)),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () => _showAddColorDialog(),
-                    icon: const Icon(Icons.add_rounded, size: 14),
-                    label: Text('색상 추가', style: TextStyle(fontSize: 12)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                      elevation: 0,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              // 카테고리 필터
-              SingleChildScrollView(
+                  const SizedBox(height: 10),
+                  // 카테고리 필터
+                  SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: _colorCategories.map((cat) {
@@ -12211,8 +12238,10 @@ class _AdminScreenState extends State<AdminScreen>
                     );
                   }).toList(),
                 ),
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           ),
         ),
         // ── 전체선택 / 삭제 바 ──
