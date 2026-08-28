@@ -330,6 +330,94 @@ exports.exchangeNaverCode = onRequest(
 );
 
 // ══════════════════════════════════════════════════════
+// 9) 서버 전용 SOLAPI 알림 발송
+// ══════════════════════════════════════════════════════
+const SOLAPI_ADMIN_PHONE = '01072276914';
+const ALLOWED_ORDER_NOTIFICATION_KINDS = new Set([
+  'order_confirmed', 'shipped', 'delivered', 'cancelled',
+]);
+
+async function requireSignedIn(req, res) {
+  const header = req.get('authorization') || '';
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  if (!match) {
+    res.status(401).json({ error: 'Missing Firebase ID token' });
+    return null;
+  }
+  try {
+    return await getAuth().verifyIdToken(match[1]);
+  } catch (error) {
+    console.error('HTTP authentication failed:', error.message);
+    res.status(401).json({ error: 'Invalid or expired Firebase ID token' });
+    return null;
+  }
+}
+
+exports.sendSolapiChatAlert = onRequest(
+  { secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET], cors: [
+    'https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000',
+  ] },
+  async (req, res) => {
+    if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+    if (!(await requireSignedIn(req, res))) return;
+    const userName = String(req.body?.userName || '고객').slice(0, 80);
+    const message = String(req.body?.message || '').trim().slice(0, 500);
+    const language = String(req.body?.language || 'KO').slice(0, 10);
+    if (!message) { res.status(400).json({ error: 'message is required' }); return; }
+    const result = await _sendSolapiSms(
+      SOLAPI_ADMIN_PHONE,
+      `[2FIT MALL] 새 채팅 문의\n고객: ${userName}\n언어: ${language}\n내용: ${message}`,
+    );
+    res.status(result.ok ? 200 : 502).json({ success: result.ok, statusCode: result.statusCode });
+  },
+);
+
+exports.sendSolapiOrderNotification = onRequest(
+  { secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET], cors: [
+    'https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000',
+  ] },
+  async (req, res) => {
+    if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+    const decoded = await requireSignedIn(req, res);
+    if (!decoded) return;
+    const orderId = String(req.body?.orderId || '');
+    const kind = String(req.body?.kind || '');
+    const params = req.body?.params && typeof req.body.params === 'object' ? req.body.params : {};
+    if (!orderId || !ALLOWED_ORDER_NOTIFICATION_KINDS.has(kind)) {
+      res.status(400).json({ error: 'Valid orderId and notification kind are required' }); return;
+    }
+    const orderSnap = await db.collection('orders').doc(orderId).get();
+    if (!orderSnap.exists) { res.status(404).json({ error: 'Order not found' }); return; }
+    const order = orderSnap.data();
+    const profile = await db.collection('users').doc(decoded.uid).get();
+    const isAdminUser = decoded.isAdmin === true || profile.data()?.isAdmin === true;
+    if (!isAdminUser && order.userId !== decoded.uid) {
+      res.status(403).json({ error: 'Order access denied' }); return;
+    }
+    const phone = String(order.userPhone || '').replace(/[^0-9+]/g, '');
+    if (!/^\+?[0-9]{8,15}$/.test(phone)) {
+      res.status(400).json({ error: 'Order phone is invalid' }); return;
+    }
+    const items = Array.isArray(order.items) ? order.items : [];
+    const itemSummary = items.length ? `${items[0].productName || '상품'}${items.length > 1 ? ` 외 ${items.length - 1}건` : ''}` : '상품';
+    const name = String(order.userName || '고객').slice(0, 80);
+    const number = orderId.slice(0, 80);
+    let text;
+    if (kind === 'order_confirmed') {
+      text = `[2FIT MALL] ${name}님 주문이 확인되었습니다. 주문번호: ${number}, 상품: ${itemSummary}, 결제금액: ${Number(order.totalAmount || 0).toLocaleString()}원`;
+    } else if (kind === 'shipped') {
+      text = `[2FIT MALL] ${name}님 상품이 발송되었습니다. 주문번호: ${number}, 택배사: ${String(params.courierName || '').slice(0, 60)}, 운송장번호: ${String(params.trackingNumber || '').slice(0, 80)}`;
+    } else if (kind === 'delivered') {
+      text = `[2FIT MALL] ${name}님 상품이 배송 완료되었습니다. 주문번호: ${number}, 상품: ${itemSummary}`;
+    } else {
+      text = `[2FIT MALL] ${name}님 주문이 취소되었습니다. 주문번호: ${number}, 사유: ${String(params.reason || '').slice(0, 200)}`;
+    }
+    const result = await _sendSolapiSms(phone, text);
+    res.status(result.ok ? 200 : 502).json({ success: result.ok, statusCode: result.statusCode });
+  },
+);
+
+// ══════════════════════════════════════════════════════
 // 9) 서버 전용 SOLAPI SMS 발송 (관리자만)
 // ══════════════════════════════════════════════════════
 exports.sendSolapiSms = onRequest(
