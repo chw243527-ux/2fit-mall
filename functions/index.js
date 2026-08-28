@@ -546,6 +546,13 @@ async function _sendSolapiSms(phone, text) {
     }),
   });
 
+  const responseText = await response.text();
+  if (!response.ok) {
+    // API 자격증명·메시지 본문은 로그에 남기지 않고 상태와 응답 코드만 기록합니다.
+    console.error('SOLAPI request rejected:', response.status, responseText.slice(0, 500));
+  } else {
+    console.log('SOLAPI request accepted:', response.status);
+  }
   return { ok: response.ok, statusCode: response.status };
 }
 
