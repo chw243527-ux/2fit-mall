@@ -17,6 +17,9 @@ const ADMIN_TOKENS_DOC = 'admin_config/fcm_tokens';
 const SOLAPI_API_KEY = defineSecret('SOLAPI_API_KEY');
 const SOLAPI_API_SECRET = defineSecret('SOLAPI_API_SECRET');
 const SOLAPI_SENDER_PHONE = '01072276914';
+// 카카오 알림톡 식별자는 비밀키가 아니지만, 클라이언트에 노출하지 않고 서버에서만 관리합니다.
+const KAKAO_CHANNEL_ID = 'KA01PF2606170642574857w8Hjn9Czz4';
+const KAKAO_ORDER_CONFIRMED_TEMPLATE_ID = 'KA01TP260617070446140hAHwuGcxCxF';
 const NAVER_CLIENT_ID = 'RTeQb5TSs920qoowhcra';
 const NAVER_CLIENT_SECRET = defineSecret('NAVER_CLIENT_SECRET');
 const NAVER_ALLOWED_REDIRECTS = new Set([
@@ -402,10 +405,24 @@ exports.sendSolapiOrderNotification = onRequest(
     const itemSummary = items.length ? `${items[0].productName || '상품'}${items.length > 1 ? ` 외 ${items.length - 1}건` : ''}` : '상품';
     const name = String(order.userName || '고객').slice(0, 80);
     const number = orderId.slice(0, 80);
-    let text;
     if (kind === 'order_confirmed') {
-      text = `[2FIT MALL] ${name}님 주문이 확인되었습니다. 주문번호: ${number}, 상품: ${itemSummary}, 결제금액: ${Number(order.totalAmount || 0).toLocaleString()}원`;
-    } else if (kind === 'shipped') {
+      const result = await _sendSolapiAlimtalk({
+        phone,
+        templateId: KAKAO_ORDER_CONFIRMED_TEMPLATE_ID,
+        variables: {
+          '#{고객명}': name,
+          '#{주문번호}': number,
+          '#{상품명}': itemSummary.slice(0, 100),
+          '#{결제금액}': Number(order.totalAmount || 0).toLocaleString(),
+          '#{결제수단}': String(order.paymentMethod || '-').slice(0, 40),
+          '#{배송주소}': String(order.userAddress || order.deliveryAddress || '-').slice(0, 200),
+        },
+      });
+      res.status(result.ok ? 200 : 502).json({ success: result.ok, statusCode: result.statusCode });
+      return;
+    }
+    let text;
+    if (kind === 'shipped') {
       text = `[2FIT MALL] ${name}님 상품이 발송되었습니다. 주문번호: ${number}, 택배사: ${String(params.courierName || '').slice(0, 60)}, 운송장번호: ${String(params.trackingNumber || '').slice(0, 80)}`;
     } else if (kind === 'delivered') {
       text = `[2FIT MALL] ${name}님 상품이 배송 완료되었습니다. 주문번호: ${number}, 상품: ${itemSummary}`;
@@ -520,6 +537,42 @@ async function _sendMulticast(tokens, { title, body, data: msgData = {} }) {
     await db.doc(ADMIN_TOKENS_DOC).set({ tokens: valid }, { merge: true });
     console.log(`만료 토큰 ${invalid.length}개 제거`);
   }
+}
+
+async function _sendSolapiAlimtalk({ phone, templateId, variables }) {
+  const date = new Date().toISOString();
+  const salt = crypto.randomBytes(16).toString('hex');
+  const signature = crypto
+    .createHmac('sha256', SOLAPI_API_SECRET.value())
+    .update(`${date}${salt}`)
+    .digest('hex');
+  const response = await fetch('https://api.solapi.com/messages/v4/send', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      Authorization: `HMAC-SHA256 apiKey=${SOLAPI_API_KEY.value()}, date=${date}, salt=${salt}, signature=${signature}`,
+    },
+    body: JSON.stringify({
+      messages: [{
+        to: phone,
+        // disableSms=true이므로 차단된 기존 번호는 대체 SMS 발신에 사용되지 않습니다.
+        from: SOLAPI_SENDER_PHONE,
+        kakaoOptions: {
+          pfId: KAKAO_CHANNEL_ID,
+          templateId,
+          disableSms: true,
+          variables,
+        },
+      }],
+    }),
+  });
+  const responseText = await response.text();
+  if (!response.ok) {
+    console.error('SOLAPI Alimtalk request rejected:', response.status, responseText.slice(0, 500));
+  } else {
+    console.log('SOLAPI Alimtalk request accepted:', response.status);
+  }
+  return { ok: response.ok, statusCode: response.status };
 }
 
 async function _sendSolapiSms(phone, text) {
