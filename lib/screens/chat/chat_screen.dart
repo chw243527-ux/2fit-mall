@@ -198,7 +198,7 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       Future.delayed(const Duration(milliseconds: 800), () {
         if (!mounted || _roomId == null) return;
-        ChatService.adminReply(roomId: _roomId!, text: answerText);
+        ChatService.systemReply(roomId: _roomId!, text: answerText);
       });
     } else {
       _showLoginRequiredMessage();
@@ -253,7 +253,7 @@ class _ChatScreenState extends State<ChatScreen> {
           if (_roomId == null || !mounted) return;
           final autoReply =
               '${loc.chatAutoReplyMsg}${AppConstants.customerServicePhone}';
-          ChatService.adminReply(roomId: _roomId!, text: autoReply);
+          ChatService.systemReply(roomId: _roomId!, text: autoReply);
         });
       }
     } else {

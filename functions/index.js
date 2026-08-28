@@ -135,7 +135,7 @@ exports.onNewChatMessage = onDocumentCreated(
   async (event) => {
     const data = event.data?.data();
     if (!data) return;
-    if (data.isAdmin === true) return; // 관리자 메시지 제외
+    if (data.isAdmin === true || data.isSystem === true) return; // 관리자·자동 답변 제외
 
     const senderName = data.senderName || '고객';
     const message    = data.message || data.text || '';

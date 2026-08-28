@@ -230,6 +230,26 @@ class ChatService {
     );
   }
 
+  /// 고객 화면에서 표시할 자동 안내 답변. 관리자 권한을 위조하지 않습니다.
+  static Future<void> systemReply({
+    required String roomId,
+    required String text,
+  }) async {
+    final msg = text.trim();
+    if (msg.isEmpty) return;
+    await _db.collection('chats').doc(roomId).collection('messages').add({
+      'senderId': 'system',
+      'senderName': '2FIT 고객센터',
+      'message': msg,
+      'text': msg,
+      'originalText': msg,
+      'isAdmin': false,
+      'isSystem': true,
+      'createdAt': FieldValue.serverTimestamp(),
+      'isRead': true,
+    });
+  }
+
   static Stream<List<ChatRoom>> watchAllRooms() {
     return _db
         .collection('chat_rooms')
