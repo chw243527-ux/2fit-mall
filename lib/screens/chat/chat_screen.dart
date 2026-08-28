@@ -4,6 +4,7 @@ import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
+import '../../services/notification_service.dart';
 import '../../services/chat_service.dart';
 import '../../services/email_service.dart';
 import '../../utils/navigation_helper.dart';
