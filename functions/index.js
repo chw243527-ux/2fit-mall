@@ -20,6 +20,7 @@ const SOLAPI_SENDER_PHONE = '01072276914';
 // 카카오 알림톡 식별자는 비밀키가 아니지만, 클라이언트에 노출하지 않고 서버에서만 관리합니다.
 const KAKAO_CHANNEL_ID = 'KA01PF2606170642574857w8Hjn9Czz4';
 const KAKAO_ORDER_CONFIRMED_TEMPLATE_ID = 'KA01TP260617070446140hAHwuGcxCxF';
+const KAKAO_CHAT_ALERT_TEMPLATE_ID = 'KA01TP260620035956868dCYREOJSYWF';
 const NAVER_CLIENT_ID = 'RTeQb5TSs920qoowhcra';
 const NAVER_CLIENT_SECRET = defineSecret('NAVER_CLIENT_SECRET');
 const NAVER_ALLOWED_REDIRECTS = new Set([
@@ -367,10 +368,16 @@ exports.sendSolapiChatAlert = onRequest(
     const message = String(req.body?.message || '').trim().slice(0, 500);
     const language = String(req.body?.language || 'KO').slice(0, 10);
     if (!message) { res.status(400).json({ error: 'message is required' }); return; }
-    const result = await _sendSolapiSms(
-      SOLAPI_ADMIN_PHONE,
-      `[2FIT MALL] 새 채팅 문의\n고객: ${userName}\n언어: ${language}\n내용: ${message}`,
-    );
+    const result = await _sendSolapiAlimtalk({
+      phone: SOLAPI_ADMIN_PHONE,
+      templateId: KAKAO_CHAT_ALERT_TEMPLATE_ID,
+      variables: {
+        '#{고객명}': userName,
+        '#{시간}': _formatKstTime(new Date()),
+        '#{주문번호}': '최근 주문 없음',
+        '#{메시지}': `[${language}] ${message}`.slice(0, 500),
+      },
+    });
     res.status(result.ok ? 200 : 502).json({ success: result.ok, statusCode: result.statusCode });
   },
 );
@@ -607,6 +614,18 @@ async function _sendSolapiSms(phone, text) {
     console.log('SOLAPI request accepted:', response.status);
   }
   return { ok: response.ok, statusCode: response.status };
+}
+
+function _formatKstTime(date) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date).replace(/\. /g, '.').replace(/\.$/, '');
 }
 
 function _fmt(n) {
