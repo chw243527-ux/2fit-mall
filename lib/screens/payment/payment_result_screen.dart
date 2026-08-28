@@ -12,6 +12,7 @@ import '../../providers/providers.dart';
 import '../../services/payment_service.dart';
 import '../../services/order_service.dart';
 import '../../services/wishlist_coupon_service.dart';
+import '../../services/point_service.dart';
 import '../../models/models.dart';
 
 // ══════════════════════════════════════════════════════════════
@@ -170,8 +171,32 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
 // ══════════════════════════════════════════════════════════════
 // 결제 실패 화면
 // ══════════════════════════════════════════════════════════════
-class PaymentFailScreen extends StatelessWidget {
+class PaymentFailScreen extends StatefulWidget {
   const PaymentFailScreen({super.key});
+
+  @override
+  State<PaymentFailScreen> createState() => _PaymentFailScreenState();
+}
+
+class _PaymentFailScreenState extends State<PaymentFailScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _refundReservedPoints();
+  }
+
+  Future<void> _refundReservedPoints() async {
+    final uri = Uri.parse(html.window.location.href);
+    final orderId = uri.queryParameters['orderId'] ?? '';
+    if (orderId.isEmpty) return;
+    final order = await OrderService.getOrderById(orderId);
+    if (!mounted || order == null || order.usedPoints <= 0) return;
+    await PointService.refundPoints(
+      userId: order.userId,
+      orderId: orderId,
+      amount: order.usedPoints,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

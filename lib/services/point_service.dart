@@ -194,6 +194,38 @@ class PointService {
     }
   }
 
+  /// 결제 실패·취소 시 선차감된 포인트를 1회 환급합니다.
+  static Future<bool> refundPoints({
+    required String userId,
+    required String orderId,
+    required int amount,
+  }) async {
+    if (amount <= 0) return true;
+    try {
+      final userRef = _db.collection('users').doc(userId);
+      final refundRef = userRef.collection('point_history').doc('refund_$orderId');
+      await _db.runTransaction((txn) async {
+        final refundSnap = await txn.get(refundRef);
+        if (refundSnap.exists) return;
+        final userSnap = await txn.get(userRef);
+        final prev = (userSnap.data()?['points'] as num?)?.toInt() ?? 0;
+        txn.update(userRef, {'points': prev + amount});
+        txn.set(refundRef, PointHistory(
+          id: refundRef.id,
+          action: PointActionType.admin,
+          amount: amount,
+          desc: '결제 실패 주문 $orderId 포인트 환급',
+          orderId: orderId,
+          createdAt: DateTime.now(),
+        ).toDoc());
+      });
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ refundPoints error: $e');
+      return false;
+    }
+  }
+
   // ── 포인트 잔액 실시간 스트림 ─────────────────────────
   static Stream<int> watchBalance(String userId) {
     return _db
