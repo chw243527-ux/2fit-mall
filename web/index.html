@@ -487,19 +487,29 @@
     window.naverOAuthLogin = async function() {
       var redirectUri = window.location.origin + '/naver_callback.html';
       var startEndpoint = 'https://us-central1-fit-mall.cloudfunctions.net/startNaverOAuth';
-      var response = await fetch(startEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ redirectUri: redirectUri })
-      });
-      var start = await response.json();
-      if (!response.ok || !start.authorizeUrl) {
-        throw new Error(start.error || '네이버 로그인을 시작할 수 없습니다.');
-      }
 
-      var popup = window.open(start.authorizeUrl, 'naverLogin',
+      // Open synchronously during the user gesture. iOS Safari can drop
+      // window.opener if window.open happens after an awaited fetch.
+      var popup = window.open('about:blank', 'naverLogin',
         'width=500,height=600,scrollbars=yes,resizable=yes');
       if (!popup) throw new Error('팝업이 차단되었습니다. 팝업을 허용해 주세요.');
+
+      try {
+        var response = await fetch(startEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ redirectUri: redirectUri })
+        });
+        var start = await response.json();
+        if (!response.ok || !start.authorizeUrl) {
+          popup.close();
+          throw new Error(start.error || '네이버 로그인을 시작할 수 없습니다.');
+        }
+        popup.location.href = start.authorizeUrl;
+      } catch (error) {
+        try { popup.close(); } catch (_) {}
+        throw error;
+      }
 
       return new Promise(function(resolve, reject) {
         var timer = setInterval(function() {
