@@ -10873,7 +10873,8 @@ class _PointHistoryPanelState extends State<_PointHistoryPanel> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<PointProvider>(
+    try {
+      return Consumer<PointProvider>(
       builder: (ctx, pp, _) {
         final history = _filtered(pp.history);
         final earned = pp.history
@@ -10887,6 +10888,19 @@ class _PointHistoryPanelState extends State<_PointHistoryPanel> {
         final horizontal = widget.isMobile ? 16.0 : 24.0;
         final minPoints = PointService.minUsePoints;
         final canUse = pp.balance >= minPoints;
+        final now = DateTime.now();
+        final expiringSoon = pp.history.where((item) {
+          final expires = item.expiresAt;
+          if (item.amount <= 0 || expires == null) return false;
+          final days = expires.difference(now).inDays;
+          return days >= 0 && days <= 30;
+        }).fold<int>(0, (sum, item) => sum + item.amount);
+        final nearestExpiry = pp.history
+            .where((item) => item.amount > 0 && item.expiresAt != null &&
+                !item.expiresAt!.isBefore(now))
+            .map((item) => item.expiresAt!)
+            .fold<DateTime?>(null, (nearest, date) =>
+                nearest == null || date.isBefore(nearest) ? date : nearest);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -10949,6 +10963,41 @@ class _PointHistoryPanelState extends State<_PointHistoryPanel> {
                 ),
               ),
             ),
+            if (expiringSoon > 0)
+              Padding(
+                padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 12),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7E6),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFFD98A)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.schedule_rounded,
+                          size: 18, color: Color(0xFFB7791F)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          nearestExpiry == null
+                              ? '30일 이내 소멸 예정 포인트 ${number(expiringSoon)}P'
+                              : '30일 이내 ${number(expiringSoon)}P가 소멸 예정입니다.\n'
+                                  '소멸 예정일: ${nearestExpiry.year}.${nearestExpiry.month}.${nearestExpiry.day}',
+                          style: const TextStyle(
+                            color: Color(0xFF8A5A00),
+                            fontSize: 12,
+                            height: 1.45,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             Padding(
               padding: EdgeInsets.fromLTRB(horizontal, 4, horizontal, 8),
               child: Row(
@@ -11004,7 +11053,19 @@ class _PointHistoryPanelState extends State<_PointHistoryPanel> {
           ],
         );
       },
-    );
+      );
+    } catch (error) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            '포인트 내역을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
+        ),
+      );
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 // Firebase Cloud Functions - 2FIT Mall
 const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { onRequest } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
@@ -183,6 +184,74 @@ exports.registerAdminToken = onDocumentCreated(
     } catch (e) { console.error('registerAdminToken error:', e); }
   }
 );
+
+// ══════════════════════════════════════════════════════
+// 8) 포인트 1년 만료 처리 및 사전 안내
+// 매일 새벽 실행: 만료 포인트를 소멸하고 30일 이내 만료 예정분을 알립니다.
+// ══════════════════════════════════════════════════════
+exports.expireUserPointsDaily = onSchedule('every day 03:10', async () => {
+  const now = new Date();
+  const noticeUntil = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const usersSnap = await db.collection('users').get();
+  let expiredCount = 0;
+  let noticeCount = 0;
+
+  for (const userDoc of usersSnap.docs) {
+    const userRef = userDoc.ref;
+    const historyRef = userRef.collection('point_history');
+    const pendingSnap = await historyRef
+      .where('expiresAt', '<=', noticeUntil)
+      .limit(200)
+      .get();
+
+    for (const sourceDoc of pendingSnap.docs) {
+      const source = sourceDoc.data();
+      const amount = Number(source.amount || 0);
+      const action = source.action || 'earn';
+      const expiresAt = source.expiresAt?.toDate?.();
+      if (amount <= 0 || !expiresAt || (action !== 'earn' && action !== 'admin')) continue;
+
+      const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / 86400000);
+      if (daysLeft >= 0 && daysLeft <= 30) {
+        const noticeRef = historyRef.doc(`expiry_notice_${sourceDoc.id}`);
+        const noticeSnap = await noticeRef.get();
+        if (!noticeSnap.exists) {
+          await db.collection('notifications').add({
+            userId: userDoc.id,
+            title: '포인트 소멸 예정 안내',
+            body: `${amount.toLocaleString('ko-KR')}P가 ${expiresAt.getFullYear()}.${expiresAt.getMonth() + 1}.${expiresAt.getDate()}에 소멸 예정입니다.`,
+            type: 'point_expiry',
+            isRead: false,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+          await noticeRef.set({ action: 'expiry_notice', sourceId: sourceDoc.id, createdAt: FieldValue.serverTimestamp() });
+          noticeCount++;
+        }
+      }
+
+      if (expiresAt <= now) {
+        const expireRef = historyRef.doc(`expire_${sourceDoc.id}`);
+        await db.runTransaction(async (tx) => {
+          if ((await tx.get(expireRef)).exists) return;
+          const latestUser = await tx.get(userRef);
+          const balance = Number(latestUser.data()?.points || 0);
+          const expireAmount = Math.max(0, Math.min(balance, amount));
+          if (expireAmount <= 0) return;
+          tx.update(userRef, { points: balance - expireAmount });
+          tx.set(expireRef, {
+            action: 'expire',
+            amount: -expireAmount,
+            desc: `${expiresAt.getFullYear()}.${expiresAt.getMonth() + 1}.${expiresAt.getDate()} 적립 포인트 기간 만료 소멸`,
+            orderId: source.orderId || null,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+          expiredCount++;
+        });
+      }
+    }
+  }
+  console.log(`Point expiry completed: expired=${expiredCount}, notices=${noticeCount}`);
+});
 
 // ══════════════════════════════════════════════════════
 // HTTP 관리자 인증

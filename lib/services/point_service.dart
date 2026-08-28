@@ -43,6 +43,7 @@ class PointHistory {
   final String desc;      // 예: '주문 ORD-20260815-00001 1% 적립'
   final String? orderId;
   final DateTime createdAt;
+  final DateTime? expiresAt;
 
   const PointHistory({
     required this.id,
@@ -51,16 +52,24 @@ class PointHistory {
     required this.desc,
     this.orderId,
     required this.createdAt,
+    this.expiresAt,
   });
 
   factory PointHistory.fromDoc(String id, Map<String, dynamic> d) {
+    final createdAt = (d['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+    final action = PointActionTypeExt.fromKey(d['action'] as String? ?? 'earn');
     return PointHistory(
       id: id,
-      action: PointActionTypeExt.fromKey(d['action'] as String? ?? 'earn'),
+      action: action,
       amount: (d['amount'] as num?)?.toInt() ?? 0,
       desc: d['desc'] as String? ?? '',
       orderId: d['orderId'] as String?,
-      createdAt: (d['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdAt: createdAt,
+      expiresAt: (d['expiresAt'] as Timestamp?)?.toDate() ??
+          (action == PointActionType.earn || action == PointActionType.admin
+              ? DateTime(createdAt.year + 1, createdAt.month, createdAt.day,
+                  createdAt.hour, createdAt.minute, createdAt.second)
+              : null),
     );
   }
 
@@ -70,6 +79,7 @@ class PointHistory {
     'desc': desc,
     if (orderId != null) 'orderId': orderId,
     'createdAt': Timestamp.fromDate(createdAt),
+    if (expiresAt != null) 'expiresAt': Timestamp.fromDate(expiresAt!),
   };
 }
 
@@ -138,6 +148,7 @@ class PointService {
           desc: '주문 $orderId 구매 적립 (1%)',
           orderId: orderId,
           createdAt: DateTime.now(),
+          expiresAt: DateTime.now().add(const Duration(days: 365)),
         ).toDoc());
       });
 
@@ -176,6 +187,7 @@ class PointService {
           amount: amount,
           desc: '관리자 적립: ${reason.trim()}',
           createdAt: DateTime.now(),
+          expiresAt: DateTime.now().add(const Duration(days: 365)),
         ).toDoc());
       });
       return true;
@@ -254,6 +266,50 @@ class PointService {
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ refundPoints error: $e');
       return false;
+    }
+  }
+
+  /// 만료된 적립 포인트를 자동 소멸합니다.
+  /// expire_{원본이력ID} 문서를 멱등 키로 사용해 반복 실행되어도 중복 차감하지 않습니다.
+  static Future<int> expirePoints(String userId) async {
+    final now = DateTime.now();
+    try {
+      final historySnap = await _db
+          .collection('users').doc(userId).collection('point_history')
+          .where('expiresAt', isLessThanOrEqualTo: Timestamp.fromDate(now))
+          .limit(100)
+          .get();
+      var expiredTotal = 0;
+      for (final doc in historySnap.docs) {
+        final source = PointHistory.fromDoc(doc.id, doc.data());
+        if (source.amount <= 0 ||
+            (source.action != PointActionType.earn &&
+                source.action != PointActionType.admin)) continue;
+        final expireRef = _db.collection('users').doc(userId)
+            .collection('point_history').doc('expire_${doc.id}');
+        await _db.runTransaction((txn) async {
+          if ((await txn.get(expireRef)).exists) return;
+          final userRef = _db.collection('users').doc(userId);
+          final userSnap = await txn.get(userRef);
+          final balance = (userSnap.data()?['points'] as num?)?.toInt() ?? 0;
+          final amount = balance.clamp(0, source.amount).toInt();
+          if (amount <= 0) return;
+          txn.update(userRef, {'points': balance - amount});
+          txn.set(expireRef, PointHistory(
+            id: expireRef.id,
+            action: PointActionType.expire,
+            amount: -amount,
+            desc: '${source.expiresAt!.year}.${source.expiresAt!.month}.${source.expiresAt!.day} 적립 포인트 기간 만료 소멸',
+            orderId: source.orderId,
+            createdAt: now,
+          ).toDoc());
+          expiredTotal += amount;
+        });
+      }
+      return expiredTotal;
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ expirePoints error: $e');
+      return 0;
     }
   }
 

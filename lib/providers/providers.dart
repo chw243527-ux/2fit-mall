@@ -1675,6 +1675,8 @@ class PointProvider extends ChangeNotifier {
   /// 로그인 후 호출: 잔액 + 내역 실시간 구독
   void loadPoints(String userId) {
     _loading = true;
+    // 포인트 화면 진입 시 만료 포인트를 정리합니다. 서비스는 멱등 처리됩니다.
+    PointService.expirePoints(userId).catchError((_) => 0);
     notifyListeners();
 
     // 잔액 구독
