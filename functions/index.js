@@ -215,8 +215,10 @@ exports.expireUserPointsDaily = onSchedule('every day 03:10', async () => {
   for (const userDoc of usersSnap.docs) {
     const userRef = userDoc.ref;
     const historyRef = userRef.collection('point_history');
+    // 기존 이력에는 expiresAt이 없을 수 있으므로 최근 이력을 읽어
+    // 적립일 + 1년을 만료일로 보정한 뒤 서버에서 함께 처리합니다.
     const pendingSnap = await historyRef
-      .where('expiresAt', '<=', noticeUntil)
+      .orderBy('createdAt', 'desc')
       .limit(200)
       .get();
 
@@ -224,7 +226,9 @@ exports.expireUserPointsDaily = onSchedule('every day 03:10', async () => {
       const source = sourceDoc.data();
       const amount = Number(source.amount || 0);
       const action = source.action || 'earn';
-      const expiresAt = source.expiresAt?.toDate?.();
+      const createdAt = source.createdAt?.toDate?.();
+      const expiresAt = source.expiresAt?.toDate?.() ||
+        (createdAt ? new Date(createdAt.getTime() + 365 * 24 * 60 * 60 * 1000) : null);
       if (amount <= 0 || !expiresAt || (action !== 'earn' && action !== 'admin')) continue;
 
       const daysLeft = Math.ceil((expiresAt.getTime() - now.getTime()) / 86400000);
