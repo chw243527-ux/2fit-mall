@@ -151,8 +151,39 @@ class PointService {
   }
 
   // ── 포인트 사용 (결제 시 차감) ─────────────────────────
-  // minUse: 5,000P 이상부터 사용 가능
-  static const int minUsePoints = 5000;
+  // minUse: 10,000P 이상부터 사용 가능
+  static const int minUsePoints = 10000;
+
+  /// 관리자가 고객에게 포인트를 직접 적립합니다.
+  /// 잔액과 이력 기록을 하나의 트랜잭션으로 처리해 누락을 방지합니다.
+  static Future<bool> adminCreditPoints({
+    required String userId,
+    required int amount,
+    required String reason,
+  }) async {
+    if (amount <= 0 || reason.trim().isEmpty) return false;
+    try {
+      final userRef = _db.collection('users').doc(userId);
+      final histRef = userRef.collection('point_history').doc();
+      await _db.runTransaction((txn) async {
+        final snap = await txn.get(userRef);
+        if (!snap.exists) throw Exception('회원 정보를 찾을 수 없습니다.');
+        final prev = (snap.data()?['points'] as num?)?.toInt() ?? 0;
+        txn.update(userRef, {'points': prev + amount});
+        txn.set(histRef, PointHistory(
+          id: histRef.id,
+          action: PointActionType.admin,
+          amount: amount,
+          desc: '관리자 적립: ${reason.trim()}',
+          createdAt: DateTime.now(),
+        ).toDoc());
+      });
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ adminCreditPoints error: $e');
+      return false;
+    }
+  }
 
   static Future<bool> usePoints({
     required String userId,

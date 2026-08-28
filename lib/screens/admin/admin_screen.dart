@@ -14,6 +14,7 @@ import '../../providers/providers.dart';
 import '../../services/product_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/point_service.dart';
 import '../../services/order_service.dart';
 // ignore: unused_import
 import '../../services/privacy_service.dart';
@@ -7438,6 +7439,8 @@ class _AdminScreenState extends State<AdminScreen>
                                     PopupMenuItem(
                                         value: 'memo', child: Text('메모')),
                                     PopupMenuItem(
+                                        value: 'points', child: Text('포인트 적립')),
+                                    PopupMenuItem(
                                         value: 'block',
                                         child: Text(
                                           isBlocked ? '차단 해제' : '계정 차단',
@@ -7456,6 +7459,8 @@ class _AdminScreenState extends State<AdminScreen>
                                       _showMemberBlockDialog(m);
                                     } else if (val == 'memo') {
                                       _showMemberMemoDialog(m);
+                                    } else if (val == 'points') {
+                                      _showMemberPointsDialog(m);
                                     }
                                   },
                                 ),
@@ -9991,6 +9996,99 @@ class _AdminScreenState extends State<AdminScreen>
             child: Text('저장', style: TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+
+  // ── 관리자 포인트 적립 다이얼로그
+  void _showMemberPointsDialog(Map<String, dynamic> m) {
+    final uid = m['uid'] as String? ?? '';
+    final name = m['name'] as String? ?? '회원';
+    final amountCtrl = TextEditingController();
+    final reasonCtrl = TextEditingController();
+    var saving = false;
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(children: [
+            const Icon(Icons.stars_rounded, color: AppColors.accent, size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text('$name 포인트 적립',
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ]),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: amountCtrl,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: const InputDecoration(
+                    labelText: '적립 포인트',
+                    suffixText: 'P',
+                    hintText: '예: 10000',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: reasonCtrl,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    labelText: '적립 사유',
+                    hintText: '예: 이벤트 당첨 보상',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: saving ? null : () {
+                amountCtrl.dispose();
+                reasonCtrl.dispose();
+                Navigator.pop(ctx);
+              },
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              onPressed: saving ? null : () async {
+                final amount = int.tryParse(amountCtrl.text.trim()) ?? 0;
+                final reason = reasonCtrl.text.trim();
+                if (amount <= 0 || reason.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('적립 포인트와 사유를 입력해 주세요')),
+                  );
+                  return;
+                }
+                setDialogState(() => saving = true);
+                final ok = await PointService.adminCreditPoints(
+                  userId: uid,
+                  amount: amount,
+                  reason: reason,
+                );
+                if (!ctx.mounted) return;
+                amountCtrl.dispose();
+                reasonCtrl.dispose();
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(ok
+                        ? '$name 회원에게 ${amount.toString()}P가 적립되었습니다'
+                        : '포인트 적립에 실패했습니다'),
+                    backgroundColor: ok ? AppColors.success : AppColors.error,
+                  ),
+                );
+              },
+              child: Text('적립', style: const TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }

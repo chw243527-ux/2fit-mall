@@ -1833,7 +1833,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // ── 포인트 사용 섹션 ──────────────────────────────────────
   Widget _buildPointSection() {
     final pointBalance = context.watch<PointProvider>().balance;
-    final minUse = PointService.minUsePoints; // 5,000
+    final minUse = PointService.minUsePoints; // 10,000
     // 최대 사용 가능: 쿠폰 적용 후 상품금액의 99% & 보유잔액 중 작은 값
     final maxUsable = ((widget.cart.total - _couponDiscount) * 0.99)
         .floor()
