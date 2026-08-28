@@ -42,10 +42,25 @@ import 'screens/main_screen.dart';
 import 'screens/payment/payment_result_screen.dart';
 import 'screens/payment/payment_checkout_screen.dart';
 
-void main() async {
+Future<bool> _initializeFirebaseInBackground() async {
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 10));
+    if (kDebugMode) debugPrint('✅ Firebase 초기화 성공');
+    return true;
+  } catch (e) {
+    if (kDebugMode) debugPrint('⚠️ Firebase 초기화 오류: $e');
+    return false;
+  }
+}
+
+Future<bool>? _firebaseReadyFuture;
+
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 카카오 SDK 초기화
+  // 카카오 SDK는 동기 초기화만 수행하고, 네트워크 초기화는 첫 화면을 막지 않습니다.
   try {
     kakao.KakaoSdk.init(
       nativeAppKey: '590de0b0412c1c14f49369bf99268914',
@@ -56,27 +71,16 @@ void main() async {
     if (kDebugMode) debugPrint('⚠️ KakaoSdk 초기화 오류: $e');
   }
 
-  // Firebase Core만 첫 화면 전에 초기화합니다.
-  // FCM 권한 요청과 Firestore 사전 로드는 브라우저 권한창·네트워크 지연으로
-  // 앱 첫 프레임을 막을 수 있으므로 runApp 이후 백그라운드에서 실행합니다.
-  var firebaseReady = false;
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    ).timeout(const Duration(seconds: 10));
-    firebaseReady = true;
-    if (kDebugMode) debugPrint('✅ Firebase 초기화 성공');
-  } catch (e) {
-    if (kDebugMode) debugPrint('⚠️ Firebase 초기화 오류: $e');
-    // Firebase 실패해도 앱은 계속 실행 (로컬 모드로 동작)
-  }
-
-  // Hive 초기화 (장바구니, 로컬 사용자 데이터용)
-  try {
-    await Hive.initFlutter().timeout(const Duration(seconds: 5));
-  } catch (e) {
-    if (kDebugMode) debugPrint('⚠️ Hive 초기화 오류: $e');
-  }
+  // Firebase·Hive 초기화가 지연되어도 Flutter 첫 프레임은 즉시 표시합니다.
+  // 인증 복구가 필요할 때만 _firebaseReadyFuture를 기다립니다.
+  _firebaseReadyFuture = _initializeFirebaseInBackground();
+  Future<void>(() async {
+    try {
+      await Hive.initFlutter().timeout(const Duration(seconds: 5));
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ Hive 초기화 오류: $e');
+    }
+  });
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -90,10 +94,9 @@ void main() async {
   );
   runApp(const TwoFitMallApp());
 
-  // 선택적 네트워크 초기화는 첫 프레임 이후 실행합니다.
-  // 특히 Web FCM requestPermission()은 사용자의 브라우저 응답을 기다릴 수
-  // 있으므로 main()에서 await하지 않습니다.
-  if (firebaseReady) {
+  // 선택적 네트워크 초기화는 Firebase 완료 후 첫 프레임 뒤 실행합니다.
+  _firebaseReadyFuture!.then((firebaseReady) {
+    if (!firebaseReady) return;
     Future<void>(() async {
       try {
         await FcmService.initialize().timeout(const Duration(seconds: 8));
@@ -109,7 +112,7 @@ void main() async {
         if (kDebugMode) debugPrint('⚠️ CategoryService 백그라운드 로드 건너뜀: $e');
       }
     });
-  }
+  });
 }
 
 // 전역 navigatorKey - 브라우저 뒤로가기와 Flutter Navigator 연동
@@ -440,6 +443,8 @@ class _AppInitState extends State<_AppInit> {
 
   Future<void> _restoreSession() async {
     try {
+      // Firebase 초기화가 완료된 뒤에만 인증 복구를 시도합니다.
+      await (_firebaseReadyFuture ?? Future<bool>.value(false));
       // 3초 안에 안 되면 포기하고 로그인 화면에서 처리
       final result = await AuthService.restoreSession().timeout(
           const Duration(seconds: 3),
