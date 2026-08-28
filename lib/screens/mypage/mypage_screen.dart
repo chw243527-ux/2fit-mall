@@ -11043,9 +11043,10 @@ class _PointFilterChip extends StatelessWidget {
               color: selected ? Colors.white : AppColors.textSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w700),
-          side: BorderSide(color: selected ? AppColors.primary : AppColors.border),
+          side: BorderSide(color: selected ? AppColors.primary : AppColors.border          ),
         ),
       );
+}
 
 // ══════════════════════════════════════════════════════════════
 // 포인트 내역 타일 (공통)
