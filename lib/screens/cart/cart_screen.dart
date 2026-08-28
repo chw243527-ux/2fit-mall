@@ -711,14 +711,9 @@ class CartScreen extends StatelessWidget {
       );
       return;
     }
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => _CheckoutSheet(cart: cart),
-    );
+    // 쿠폰·포인트 입력과 주문 저장이 연결된 전체 결제 화면으로 이동합니다.
+    // 레거시 주문 시트는 할인 입력란이 없어 장바구니 결제 진입에서 사용하지 않습니다.
+    Navigator.pushNamed(context, '/checkout');
   }
 }
 
