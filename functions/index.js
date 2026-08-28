@@ -146,20 +146,36 @@ exports.onNewChatMessage = onDocumentCreated(
     try {
       const tokens = await _getAdminTokens();
       if (tokens.length === 0) {
-        console.log('관리자 토큰 없음 - 로그인 후 자동 등록됩니다');
-        return;
+        console.log('관리자 토큰 없음 - 알림톡은 계속 발송합니다');
+      } else {
+        const msgShort = message.length > 60 ? message.substring(0, 60) + '...' : message;
+        await _sendMulticast(tokens, {
+          title: `💬 ${senderName}님의 채팅 문의`,
+          body: msgShort,
+          data: {
+            type: 'chat',
+            roomId: event.params.roomId,
+            click_action: 'https://2fit-mall.co.kr/#/admin?tab=chat',
+          },
+        });
       }
-      const msgShort = message.length > 60 ? message.substring(0, 60) + '...' : message;
-      await _sendMulticast(tokens, {
-        title: `💬 ${senderName}님의 채팅 문의`,
-        body: msgShort,
-        data: {
-          type: 'chat',
-          roomId: event.params.roomId,
-          click_action: 'https://2fit-mall.co.kr/#/admin?tab=chat',
+    } catch (e) { console.error('onNewChatMessage FCM error:', e); }
+
+    // 채팅 문서가 저장된 뒤 서버에서 알림톡을 발송합니다.
+    // 클라이언트의 FirebaseAuth 상태나 브라우저 캐시에 의존하지 않습니다.
+    try {
+      const result = await _sendSolapiAlimtalk({
+        phone: SOLAPI_ADMIN_PHONE,
+        templateId: KAKAO_CHAT_ALERT_TEMPLATE_ID,
+        variables: {
+          '#{고객명}': String(senderName).slice(0, 80),
+          '#{시간}': _formatKstTime(new Date()),
+          '#{주문번호}': '최근 주문 없음',
+          '#{메시지}': message.trim().slice(0, 500),
         },
       });
-    } catch (e) { console.error('onNewChatMessage error:', e); }
+      console.log(`채팅 알림톡 처리 결과: ${result.ok ? 'accepted' : 'rejected'} (${result.statusCode})`);
+    } catch (e) { console.error('onNewChatMessage Alimtalk error:', e); }
   }
 );
 

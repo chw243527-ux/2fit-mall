@@ -4,7 +4,6 @@ import '../../utils/theme.dart';
 import '../../utils/constants.dart';
 import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
-import '../../services/notification_service.dart';
 import '../../services/chat_service.dart';
 import '../../services/email_service.dart';
 import '../../utils/navigation_helper.dart';
@@ -221,16 +220,11 @@ class _ChatScreenState extends State<ChatScreen> {
       language: loc.language.code,
     );
 
-    // 관리자 알림 3종: 이메일 + SMS/알림톡 + 브라우저 알림
+    // 관리자 알림: 이메일 + 브라우저 알림 + Firestore 서버 트리거 알림톡
     EmailService.sendChatAlert(
       userName: userName,
       message: displayQuestion,
       userId: userId,
-    );
-    NotificationService.sendChatAlertToAdmin(
-      userName: userName,
-      message: displayQuestion,
-      language: loc.language.code,
     );
 
     // 해외배송비 FAQ: 답변 표시 후 요금표 모달 열기
@@ -303,17 +297,11 @@ class _ChatScreenState extends State<ChatScreen> {
       language: loc.language.code,
     );
 
-    // 관리자 알림 3종 발송: 이메일 + SMS/알림톡 + 브라우저 알림
+    // 관리자 알림: 이메일 + 브라우저 알림 + Firestore 서버 트리거 알림톡
     EmailService.sendChatAlert(
       userName: userName,
       message: text.trim(),
       userId: userId,
-    );
-    // SMS / 카카오 알림톡 (관리자 핸드폰)
-    NotificationService.sendChatAlertToAdmin(
-      userName: userName,
-      message: text.trim(),
-      language: loc.language.code,
     );
   }
 
