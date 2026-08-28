@@ -179,11 +179,15 @@ service cloud.firestore {
           && request.resource.data.userId == request.auth.uid
           && isValidReview(request.resource.data);
 
-      // 수정/삭제: 본인 또는 관리자
-      allow update: if isSignedIn() && (
-        resource.data.userId == request.auth.uid
+      // 고객은 본인 리뷰의 원문 필드만 수정하고, 베스트·관리자 답변은 관리자만 변경
+      allow update: if isAdmin() || (
+        isSignedIn()
+        && resource.data.userId == request.auth.uid
         && isValidReview(request.resource.data)
-      ) || isAdmin();
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'rating', 'content', 'images', 'size', 'color', 'updatedAt'
+        ])
+      );
 
       allow delete: if isSignedIn() && (
         resource.data.userId == request.auth.uid || isAdmin()

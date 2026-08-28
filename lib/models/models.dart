@@ -652,6 +652,9 @@ class ReviewModel {
   final String size;
   final String color;
   final DateTime createdAt;
+  final bool isBest;
+  final String adminReply;
+  final DateTime? adminReplyAt;
 
   ReviewModel({
     required this.id,
@@ -664,6 +667,9 @@ class ReviewModel {
     required this.size,
     required this.color,
     required this.createdAt,
+    this.isBest = false,
+    this.adminReply = '',
+    this.adminReplyAt,
   });
 }
 

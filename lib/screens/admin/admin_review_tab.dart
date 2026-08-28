@@ -86,183 +86,70 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
     setState(() => _filtered = list);
   }
 
-  Future<void> _showReviewEditor({ReviewModel? existing}) async {
-    final userNameCtrl = TextEditingController(text: existing?.userName ?? '관리자');
-    final productIdCtrl = TextEditingController(text: existing?.productId ?? '');
-    final contentCtrl = TextEditingController(text: existing?.content ?? '');
-    double rating = existing?.rating ?? 5;
-    final isEdit = existing != null;
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Text(isEdit ? '리뷰 수정' : '리뷰 추가'),
-          content: SizedBox(
-            width: 420,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (!isEdit) ...[
-                    TextField(
-                      controller: productIdCtrl,
-                      decoration: const InputDecoration(
-                        labelText: '상품 ID *',
-                        helperText: '상품 관리 목록의 상품 ID를 입력하세요.',
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: userNameCtrl,
-                      decoration: const InputDecoration(labelText: '표시 작성자 *'),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  const Text('별점', style: TextStyle(fontWeight: FontWeight.w700)),
-                  DropdownButtonFormField<double>(
-                    value: rating,
-                    items: [5, 4, 3, 2, 1]
-                        .map((value) => DropdownMenuItem(
-                              value: value.toDouble(),
-                              child: Text('$value점'),
-                            ))
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) setDialogState(() => rating = value);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: contentCtrl,
-                    maxLength: 1000,
-                    minLines: 4,
-                    maxLines: 7,
-                    decoration: const InputDecoration(
-                      labelText: '리뷰 내용 *',
-                      alignLabelWithHint: true,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('취소'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-              onPressed: () async {
-                final content = contentCtrl.text.trim();
-                final productId = productIdCtrl.text.trim();
-                final userName = userNameCtrl.text.trim();
-                if (content.isEmpty || (!isEdit && (productId.isEmpty || userName.isEmpty))) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(content: Text('필수 항목을 입력해주세요.')),
-                  );
-                  return;
-                }
-                if (!isEdit) {
-                  final product = await FirebaseFirestore.instance
-                      .collection('products')
-                      .doc(productId)
-                      .get();
-                  if (!product.exists) {
-                    if (dialogContext.mounted) {
-                      ScaffoldMessenger.of(dialogContext).showSnackBar(
-                        const SnackBar(content: Text('입력한 상품 ID를 찾을 수 없습니다.')),
-                      );
-                    }
-                    return;
-                  }
-                }
-                final review = ReviewModel(
-                  id: existing?.id ?? 'admin_review_${DateTime.now().millisecondsSinceEpoch}',
-                  userId: existing?.userId ?? 'admin_manual',
-                  userName: existing?.userName ?? userName,
-                  productId: existing?.productId ?? productId,
-                  rating: rating,
-                  content: content,
-                  images: existing?.images ?? const [],
-                  size: existing?.size ?? '',
-                  color: existing?.color ?? '',
-                  createdAt: existing?.createdAt ?? DateTime.now(),
-                );
-                final saved = isEdit
-                    ? await ReviewService.updateReview(review)
-                    : await ReviewService.addReview(review);
-                if (!dialogContext.mounted) return;
-                if (!saved) {
-                  ScaffoldMessenger.of(dialogContext).showSnackBar(
-                    const SnackBar(content: Text('리뷰 저장에 실패했습니다.')),
-                  );
-                  return;
-                }
-                Navigator.pop(dialogContext);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(isEdit ? '리뷰가 수정되었습니다.' : '리뷰가 추가되었습니다.')),
-                  );
-                  await _loadReviews();
-                }
-              },
-              child: Text(isEdit ? '저장' : '추가'),
-            ),
-          ],
-        ),
-      ),
+  Future<void> _toggleBestReview(ReviewModel review) async {
+    final saved = await ReviewService.setBestReview(
+      reviewId: review.id,
+      productId: review.productId,
+      isBest: !review.isBest,
     );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(saved
+          ? (review.isBest ? '베스트 리뷰를 해제했습니다.' : '베스트 리뷰로 선정했습니다.')
+          : '베스트 상태 저장에 실패했습니다.')),
+    );
+    if (saved) await _loadReviews();
   }
 
-  Future<void> _deleteReview(ReviewModel r) async {
-    final confirm = await showDialog<bool>(
+  Future<void> _showAdminReplyDialog(ReviewModel review) async {
+    final controller = TextEditingController(text: review.adminReply);
+    final saved = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: Text(context.loc.t('리뷰 삭제', '리뷰 삭제'),
-            style: TextStyle(fontWeight: FontWeight.w700)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(context.loc.t('작성자 _', '작성자: ${r.userName}'),
-                style: TextStyle(fontSize: 13)),
-            const SizedBox(height: 4),
-            Text(r.content,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textSecondary)),
-            const SizedBox(height: 10),
-            Text(context.loc.t('이 리뷰를 삭제하시겠습니까', '이 리뷰를 삭제하시겠습니까?'),
-                style: TextStyle(fontSize: 13, color: AppColors.error)),
-          ],
+      builder: (dialogContext) => AlertDialog(
+        title: Text(review.adminReply.isEmpty ? '리뷰 답변 작성' : '리뷰 답변 수정'),
+        content: SizedBox(
+          width: 420,
+          child: TextField(
+            controller: controller,
+            autofocus: true,
+            minLines: 4,
+            maxLines: 8,
+            maxLength: 1000,
+            decoration: const InputDecoration(
+              labelText: '고객에게 보여질 답변',
+              hintText: '리뷰에 대한 감사와 안내를 입력하세요.',
+              alignLabelWithHint: true,
+              border: OutlineInputBorder(),
+            ),
+          ),
         ),
         actions: [
+          if (review.adminReply.isNotEmpty)
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('답변 삭제'),
+            ),
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(context.loc.t('취소', '취소'))),
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('취소'),
+          ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error,
-                foregroundColor: Colors.white),
-            child: Text(context.loc.t('삭제', '삭제')),
+            onPressed: () async {
+              final ok = await ReviewService.saveAdminReply(
+                reviewId: review.id,
+                reply: controller.text,
+              );
+              if (dialogContext.mounted) Navigator.pop(dialogContext, ok);
+            },
+            child: const Text('저장'),
           ),
         ],
       ),
     );
-    if (confirm != true) return;
-    await ReviewService.deleteReview(r.id, r.productId);
-    if (mounted) {
+    controller.dispose();
+    if (saved == true && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(context.loc.t('리뷰가 삭제되었습니다', '리뷰가 삭제되었습니다')),
-            backgroundColor: AppColors.error),
+        const SnackBar(content: Text('리뷰 답변이 저장되었습니다.')),
       );
       await _loadReviews();
     }
@@ -346,18 +233,20 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
           TextButton.icon(
             onPressed: () {
               Navigator.pop(context);
-              _showReviewEditor(existing: r);
+              _toggleBestReview(r);
             },
-            icon: const Icon(Icons.edit_outlined, size: 16),
-            label: const Text('수정'),
+            icon: Icon(r.isBest
+                ? Icons.emoji_events_rounded
+                : Icons.emoji_events_outlined),
+            label: Text(r.isBest ? '베스트 해제' : '베스트 선정'),
           ),
-          TextButton(
+          TextButton.icon(
             onPressed: () {
               Navigator.pop(context);
-              _deleteReview(r);
+              _showAdminReplyDialog(r);
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text(context.loc.t('삭제', '삭제')),
+            icon: const Icon(Icons.reply_outlined),
+            label: Text(r.adminReply.isEmpty ? '답변 작성' : '답변 수정'),
           ),
           TextButton(
               onPressed: () => Navigator.pop(context),
@@ -392,15 +281,11 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                 child: Text('리뷰 관리',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               ),
-              ElevatedButton.icon(
-                onPressed: () => _showReviewEditor(),
-                icon: const Icon(Icons.add_rounded, size: 17),
-                label: const Text('리뷰 추가'),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(0, 42)),
-              ),
+              const Text('원문 보호 · 베스트 선정 · 답변 관리',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -590,8 +475,8 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                         review: _filtered[i],
                         productName: _productNames[_filtered[i].productId] ??
                             _filtered[i].productId,
-                        onDelete: () => _deleteReview(_filtered[i]),
-                        onEdit: () => _showReviewEditor(existing: _filtered[i]),
+                        onBest: () => _toggleBestReview(_filtered[i]),
+                        onReply: () => _showAdminReplyDialog(_filtered[i]),
                         onTap: () => _showReviewDetail(_filtered[i]),
                       ),
                     ),
@@ -605,15 +490,15 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
 class _ReviewCard extends StatelessWidget {
   final ReviewModel review;
   final String productName;
-  final VoidCallback onDelete;
-  final VoidCallback onEdit;
+  final VoidCallback onBest;
+  final VoidCallback onReply;
   final VoidCallback onTap;
 
   const _ReviewCard({
     required this.review,
     required this.productName,
-    required this.onDelete,
-    required this.onEdit,
+    required this.onBest,
+    required this.onReply,
     required this.onTap,
   });
 
@@ -653,28 +538,44 @@ class _ReviewCard extends StatelessWidget {
                           fontWeight: FontWeight.w600),
                       overflow: TextOverflow.ellipsis),
                 ),
+                if (review.isBest)
+                  const Padding(
+                    padding: EdgeInsets.only(right: 6),
+                    child: Icon(Icons.emoji_events_rounded,
+                        size: 17, color: AppColors.warning),
+                  ),
                 Text(_fmtDate(review.createdAt),
                     style: const TextStyle(
                         fontSize: 11, color: AppColors.textSecondary)),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.edit_outlined,
-                      size: 16, color: AppColors.info),
-                  tooltip: '수정',
+                  icon: Icon(review.isBest
+                      ? Icons.emoji_events_rounded
+                      : Icons.emoji_events_outlined,
+                      size: 18,
+                      color: review.isBest
+                          ? AppColors.warning
+                          : AppColors.textSecondary),
+                  tooltip: review.isBest ? '베스트 해제' : '베스트 선정',
                   constraints:
-                      const BoxConstraints(minWidth: 28, minHeight: 28),
+                      const BoxConstraints(minWidth: 32, minHeight: 32),
                   padding: EdgeInsets.zero,
-                  onPressed: onEdit,
+                  onPressed: onBest,
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 2),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded,
-                      size: 16, color: AppColors.error),
-                  tooltip: context.loc.t('삭제', '삭제'),
+                  icon: Icon(review.adminReply.isEmpty
+                      ? Icons.reply_outlined
+                      : Icons.reply_rounded,
+                      size: 18,
+                      color: review.adminReply.isEmpty
+                          ? AppColors.textSecondary
+                          : AppColors.info),
+                  tooltip: review.adminReply.isEmpty ? '답변 작성' : '답변 수정',
                   constraints:
-                      const BoxConstraints(minWidth: 28, minHeight: 28),
+                      const BoxConstraints(minWidth: 32, minHeight: 32),
                   padding: EdgeInsets.zero,
-                  onPressed: onDelete,
+                  onPressed: onReply,
                 ),
               ],
             ),
@@ -728,6 +629,20 @@ class _ReviewCard extends StatelessWidget {
                     fontSize: 13, color: AppColors.textPrimary, height: 1.5),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis),
+            if (review.adminReply.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              const Text('관리자 답변',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.info,
+                      fontWeight: FontWeight.w800)),
+              const SizedBox(height: 2),
+              Text(review.adminReply,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary)),
+            ],
             if (review.images.isNotEmpty) ...[
               const SizedBox(height: 8),
               SizedBox(

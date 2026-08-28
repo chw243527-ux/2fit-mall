@@ -25,6 +25,9 @@ class ReviewService {
           size: data['size'] as String? ?? '',
           color: data['color'] as String? ?? '',
           createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          isBest: data['isBest'] as bool? ?? false,
+          adminReply: data['adminReply'] as String? ?? '',
+          adminReplyAt: (data['adminReplyAt'] as Timestamp?)?.toDate(),
         );
       }).toList();
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -54,6 +57,9 @@ class ReviewService {
           size: data['size'] as String? ?? '',
           color: data['color'] as String? ?? '',
           createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          isBest: data['isBest'] as bool? ?? false,
+          adminReply: data['adminReply'] as String? ?? '',
+          adminReplyAt: (data['adminReplyAt'] as Timestamp?)?.toDate(),
         );
       }).toList();
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -83,6 +89,9 @@ class ReviewService {
               size: data['size'] as String? ?? '',
               color: data['color'] as String? ?? '',
               createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          isBest: data['isBest'] as bool? ?? false,
+          adminReply: data['adminReply'] as String? ?? '',
+          adminReplyAt: (data['adminReplyAt'] as Timestamp?)?.toDate(),
             );
           }).toList();
           list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -113,6 +122,9 @@ class ReviewService {
               size: data['size'] as String? ?? '',
               color: data['color'] as String? ?? '',
               createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          isBest: data['isBest'] as bool? ?? false,
+          adminReply: data['adminReply'] as String? ?? '',
+          adminReplyAt: (data['adminReplyAt'] as Timestamp?)?.toDate(),
             );
           }).toList();
           list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -137,6 +149,8 @@ class ReviewService {
         'size': review.size,
         'color': review.color,
         'createdAt': FieldValue.serverTimestamp(),
+        'isBest': false,
+        'adminReply': '',
       });
       await _updateProductRating(review.productId);
       return true;
@@ -158,6 +172,53 @@ class ReviewService {
       return true;
     } catch (e) {
       if (kDebugMode) debugPrint('updateReview error: $e');
+      return false;
+    }
+  }
+
+  /// 상품별 베스트 리뷰를 지정합니다. 지정 시 기존 베스트는 자동 해제됩니다.
+  static Future<bool> setBestReview({
+    required String reviewId,
+    required String productId,
+    required bool isBest,
+  }) async {
+    try {
+      final batch = _db.batch();
+      if (isBest) {
+        final snap = await _db
+            .collection('reviews')
+            .where('productId', isEqualTo: productId)
+            .get();
+        for (final doc in snap.docs) {
+          if (doc.id != reviewId && doc.data()['isBest'] == true) {
+            batch.update(doc.reference, {'isBest': false});
+          }
+        }
+      }
+      batch.update(_db.collection('reviews').doc(reviewId), {'isBest': isBest});
+      await batch.commit();
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('setBestReview error: $e');
+      return false;
+    }
+  }
+
+  /// 관리자 답변을 저장하거나 비웁니다.
+  static Future<bool> saveAdminReply({
+    required String reviewId,
+    required String reply,
+  }) async {
+    try {
+      await _db.collection('reviews').doc(reviewId).update({
+        'adminReply': reply.trim(),
+        'adminReplyAt': reply.trim().isEmpty
+            ? FieldValue.delete()
+            : FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('saveAdminReply error: $e');
       return false;
     }
   }
@@ -236,6 +297,9 @@ class ReviewService {
           size: data['size'] as String? ?? '',
           color: data['color'] as String? ?? '',
           createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+          isBest: data['isBest'] as bool? ?? false,
+          adminReply: data['adminReply'] as String? ?? '',
+          adminReplyAt: (data['adminReplyAt'] as Timestamp?)?.toDate(),
         );
       }).toList();
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));

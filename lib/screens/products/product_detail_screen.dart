@@ -10628,8 +10628,12 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
   // ignore: unused_element
   List<ReviewModel> get _sorted {
     final list = List<ReviewModel>.from(widget.reviews);
-    if (_sort == 'highest') list.sort((a, b) => b.rating.compareTo(a.rating));
-    if (_sort == 'lowest') list.sort((a, b) => a.rating.compareTo(b.rating));
+    list.sort((a, b) {
+      if (a.isBest != b.isBest) return a.isBest ? -1 : 1;
+      if (_sort == 'highest') return b.rating.compareTo(a.rating);
+      if (_sort == 'lowest') return a.rating.compareTo(b.rating);
+      return b.createdAt.compareTo(a.createdAt);
+    });
     return list;
   }
 
@@ -10866,6 +10870,23 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                                 style: TextStyle(
                                                     fontWeight: FontWeight.w700,
                                                     fontSize: r.sp(13))),
+                                            if (rev.isBest) ...[
+                                              SizedBox(width: r.w(6)),
+                                              Container(
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: r.w(6),
+                                                    vertical: r.h(2)),
+                                                decoration: BoxDecoration(
+                                                  color: AppColors.accent.withValues(alpha: 0.12),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: Text('BEST',
+                                                    style: TextStyle(
+                                                        fontSize: r.sp(10),
+                                                        color: AppColors.accent,
+                                                        fontWeight: FontWeight.w800)),
+                                              ),
+                                            ],
                                             if (isMyReview) ...[
                                               SizedBox(width: r.w(6)),
                                               Container(
@@ -10964,6 +10985,34 @@ class _AllReviewsSheetState extends State<_AllReviewsSheet> {
                                         fontSize: r.sp(13),
                                         height: 1.5,
                                         color: AppColors.textPrimary)),
+                                if (rev.adminReply.isNotEmpty) ...[
+                                  SizedBox(height: r.h(10)),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: r.w(12), vertical: r.h(10)),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: AppColors.border),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('2FIT 답변',
+                                            style: TextStyle(
+                                                fontSize: r.sp(11),
+                                                fontWeight: FontWeight.w800,
+                                                color: AppColors.info)),
+                                        SizedBox(height: r.h(4)),
+                                        Text(rev.adminReply,
+                                            style: TextStyle(
+                                                fontSize: r.sp(12),
+                                                height: 1.5,
+                                                color: AppColors.textSecondary)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                                 if (rev.images.isNotEmpty) ...[
                                   SizedBox(height: r.h(8)),
                                   SizedBox(
