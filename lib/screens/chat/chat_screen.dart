@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
@@ -68,9 +69,17 @@ class _ChatScreenState extends State<ChatScreen> {
   // Firestore 채팅방 초기화 및 실시간 메시지 수신
   Future<void> _initFirestoreChat() async {
     final user = context.read<UserProvider>().user;
-    final userId = user?.id ?? 'guest_${DateTime.now().millisecondsSinceEpoch}';
-    final userName = user?.name ?? _loc.chatVisitor;
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    final userId = firebaseUser?.uid;
+    final userName = user?.name ?? firebaseUser?.displayName ?? _loc.chatVisitor;
     final lang = _loc.language.code;
+
+    if (userId == null) {
+      if (!mounted) return;
+      setState(() => _isLoadingRoom = false);
+      _initializeChat();
+      return;
+    }
 
     try {
       final roomId = await ChatService.getOrCreateRoom(
@@ -112,9 +121,12 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() => _isChatCompleted = completed);
       });
     } catch (e) {
-      // Firestore 연결 실패 시 로컬 모드로 폴백
+      // Firestore 저장이 실패하면 로컬 성공처럼 보이지 않도록 서버 채팅을 중단합니다.
       if (!mounted) return;
-      setState(() => _isLoadingRoom = false);
+      setState(() {
+        _isLoadingRoom = false;
+        _roomId = null;
+      });
       _initializeChat();
     }
   }
@@ -189,30 +201,8 @@ class _ChatScreenState extends State<ChatScreen> {
         ChatService.adminReply(roomId: _roomId!, text: answerText);
       });
     } else {
-      // 폴백: 로컬 즉시 표시
-      setState(() {
-        _messages.add(ChatMessage(
-          text: displayQuestion,
-          originalText: questionText,
-          isUser: true,
-          time: DateTime.now(),
-        ));
-        _isTyping = true;
-      });
-      _scrollToBottom();
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (!mounted) return;
-        setState(() {
-          _isTyping = false;
-          _messages.add(ChatMessage(
-            text: answerText,
-            isUser: false,
-            time: DateTime.now(),
-            showRateSheet: isOverseasShipping,
-          ));
-        });
-        _scrollToBottom();
-      });
+      _showLoginRequiredMessage();
+      return;
     }
 
     AdminNotificationStore.addChatNotification(
@@ -267,29 +257,8 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     } else {
-      // 폴백: 로컬 모드
-      setState(() {
-        _messages.add(ChatMessage(
-          text: text.trim(),
-          originalText: text.trim(),
-          isUser: true,
-          time: DateTime.now(),
-        ));
-        _isTyping = true;
-      });
-      _scrollToBottom();
-      Future.delayed(const Duration(milliseconds: 1200), () {
-        if (!mounted) return;
-        final defaultReply = '${loc.chatWelcome2}\n\n'
-            '${loc.chatOfflineMsg}\n'
-            '${AppConstants.customerServicePhone}';
-        setState(() {
-          _isTyping = false;
-          _messages.add(ChatMessage(
-              text: defaultReply, isUser: false, time: DateTime.now()));
-        });
-        _scrollToBottom();
-      });
+      _showLoginRequiredMessage();
+      return;
     }
 
     AdminNotificationStore.addChatNotification(
@@ -303,6 +272,13 @@ class _ChatScreenState extends State<ChatScreen> {
       userName: userName,
       message: text.trim(),
       userId: userId,
+    );
+  }
+
+  void _showLoginRequiredMessage() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(_loc.loginRequired)),
     );
   }
 

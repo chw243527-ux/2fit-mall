@@ -132,7 +132,7 @@ class ChatService {
       return userId; // roomId = userId
     } catch (e) {
       if (kDebugMode) debugPrint('getOrCreateRoom error: $e');
-      return userId;
+      rethrow;
     }
   }
 
