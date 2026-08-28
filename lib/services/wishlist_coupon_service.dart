@@ -239,34 +239,34 @@ class CouponService {
     required CouponModel coupon,
   }) async {
     try {
-      // 이미 다운로드했는지 확인
-      final existing = await _db
-          .collection('user_coupons')
-          .doc(userId)
-          .collection('coupons')
-          .doc(coupon.id)
-          .get();
-      if (existing.exists) return 'already_downloaded';
-
-      // 다운로드 수 제한 확인 (트랜잭션)
+      // 공개 여부·중복·다운로드 수를 한 트랜잭션에서 확인합니다.
       final couponRef = _db.collection('admin_coupons').doc(coupon.id);
       String result = '';
       await _db.runTransaction((tx) async {
         final snap = await tx.get(couponRef);
         if (!snap.exists) throw Exception('쿠폰을 찾을 수 없습니다.');
         final data = snap.data()!;
-        final limit = data['downloadLimit'] as int?;
+        if (data['isDownloadable'] != true) {
+          result = 'not_downloadable';
+          return;
+        }
+        final userCouponRef = _db
+            .collection('user_coupons')
+            .doc(userId)
+            .collection('coupons')
+            .doc(coupon.id);
+        final existing = await tx.get(userCouponRef);
+        if (existing.exists) {
+          result = 'already_downloaded';
+          return;
+        }
+        final limit = (data['downloadLimit'] as num?)?.toInt();
         final count = (data['downloadCount'] as num?)?.toInt() ?? 0;
         if (limit != null && count >= limit) {
           result = 'limit_exceeded';
           return;
         }
         // user_coupons에 저장
-        final userCouponRef = _db
-            .collection('user_coupons')
-            .doc(userId)
-            .collection('coupons')
-            .doc(coupon.id);
         tx.set(userCouponRef, {
           'couponId': coupon.id,
           'code': coupon.code,
