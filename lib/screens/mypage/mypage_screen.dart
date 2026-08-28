@@ -2469,6 +2469,14 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                   border: Border.all(color: AppColors.border),
                 ),
                 child: Column(children: [
+                  if (o.couponDiscount > 0) ...[
+                    row('쿠폰 할인', '-${fmtPrice(o.couponDiscount)}원'),
+                    divider(),
+                  ],
+                  if (o.usedPoints > 0) ...[
+                    row('포인트 사용', '-${fmtPrice(o.pointDiscount)}원 (${o.usedPoints}P)'),
+                    divider(),
+                  ],
                   row('결제 금액', '${fmtPrice(o.totalAmount)}원',
                       bold: true, valueColor: AppColors.error),
                   divider(),
@@ -6230,6 +6238,14 @@ Future<void> _showUserOrderDetail(
                           o.shippingFee == 0
                               ? context.loc.t('무료', '무료')
                               : '${fmtPrice(o.shippingFee)}원'),
+                      if (o.couponDiscount > 0)
+                        detailRow(Icons.local_offer_outlined,
+                            context.loc.t('쿠폰할인', '쿠폰 할인'),
+                            '-${fmtPrice(o.couponDiscount)}원'),
+                      if (o.usedPoints > 0)
+                        detailRow(Icons.stars_outlined,
+                            context.loc.t('포인트사용', '포인트 사용'),
+                            '-${fmtPrice(o.pointDiscount)}원 (${o.usedPoints}P)'),
                       detailRow(Icons.receipt_outlined, '합계',
                           '${fmtPrice(o.totalAmount)}원'),
                       if ((o.cashReceiptNum ?? '').isNotEmpty)

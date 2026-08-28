@@ -379,8 +379,15 @@ class OrderModel {
   final String userPhone;
   final String userAddress;
   final List<OrderItem> items;
+  /// 쿠폰·포인트 적용 후 실제 결제 금액
   final double totalAmount;
   final double shippingFee;
+  /// 적용한 쿠폰 식별자와 할인 금액
+  final String? couponId;
+  final double couponDiscount;
+  /// 사용한 포인트와 포인트 할인 금액 (1P = 1원)
+  final int usedPoints;
+  final double pointDiscount;
   final String paymentMethod;
   final OrderStatus status;
   final String orderType; // personal, group, additional
@@ -418,6 +425,10 @@ class OrderModel {
     required this.items,
     required this.totalAmount,
     this.shippingFee = 0,
+    this.couponId,
+    this.couponDiscount = 0,
+    this.usedPoints = 0,
+    this.pointDiscount = 0,
     required this.paymentMethod,
     this.status = OrderStatus.pending,
     this.orderType = 'personal',
@@ -514,6 +525,10 @@ class OrderModel {
     DateTime? deliveredAt,
     String? paymentKey,
     String? cashReceiptNum,
+    String? couponId,
+    double? couponDiscount,
+    int? usedPoints,
+    double? pointDiscount,
   }) {
     return OrderModel(
       id: id,
@@ -525,6 +540,10 @@ class OrderModel {
       items: items,
       totalAmount: totalAmount,
       shippingFee: shippingFee,
+      couponId: couponId ?? this.couponId,
+      couponDiscount: couponDiscount ?? this.couponDiscount,
+      usedPoints: usedPoints ?? this.usedPoints,
+      pointDiscount: pointDiscount ?? this.pointDiscount,
       paymentMethod: paymentMethod,
       status: status ?? this.status,
       orderType: orderType,
@@ -554,6 +573,10 @@ class OrderModel {
       'items': items.map((e) => e.toJson()).toList(),
       'totalAmount': totalAmount,
       'shippingFee': shippingFee,
+      'couponId': couponId,
+      'couponDiscount': couponDiscount,
+      'usedPoints': usedPoints,
+      'pointDiscount': pointDiscount,
       'paymentMethod': paymentMethod,
       'status': status.name,
       'orderType': orderType,

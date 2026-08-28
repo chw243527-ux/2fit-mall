@@ -290,6 +290,35 @@ class CouponService {
     }
   }
 
+  /// 결제 성공 후 고객 보유 쿠폰을 사용 처리합니다.
+  /// 이미 사용 처리된 쿠폰은 중복 결제에서도 멱등적으로 성공 처리합니다.
+  static Future<bool> markUserCouponUsed({
+    required String userId,
+    required String couponId,
+    required String orderId,
+  }) async {
+    try {
+      final ref = _db.collection('user_coupons').doc(userId)
+          .collection('coupons').doc(couponId);
+      final result = await _db.runTransaction<bool>((tx) async {
+        final snap = await tx.get(ref);
+        if (!snap.exists) return false;
+        final data = snap.data() ?? <String, dynamic>{};
+        if (data['isUsed'] == true) return true;
+        tx.update(ref, {
+          'isUsed': true,
+          'usedOrderId': orderId,
+          'usedAt': FieldValue.serverTimestamp(),
+        });
+        return true;
+      });
+      return result;
+    } catch (e) {
+      if (kDebugMode) debugPrint('markUserCouponUsed error: $e');
+      return false;
+    }
+  }
+
   // ─── 파싱 ───────────────────────────────────────────
   static CouponModel _parse(String id, Map<String, dynamic> data) {
     final typeStr = data['type'] as String? ?? 'fixed';

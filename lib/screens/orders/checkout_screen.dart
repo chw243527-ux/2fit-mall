@@ -1833,12 +1833,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // ── 포인트 사용 섹션 ──────────────────────────────────────
   Widget _buildPointSection() {
     final pointBalance = context.watch<PointProvider>().balance;
-    final minUse = PointService.minUsePoints; // 20,000
-    final canUse = pointBalance >= minUse;
-    // 최대 사용 가능: 쿠폰 적용 후 결제금액의 99% & 보유잔액 중 작은 값
+    final minUse = PointService.minUsePoints; // 5,000
+    // 최대 사용 가능: 쿠폰 적용 후 상품금액의 99% & 보유잔액 중 작은 값
     final maxUsable = ((widget.cart.total - _couponDiscount) * 0.99)
         .floor()
         .clamp(0, pointBalance);
+    final canUse = pointBalance >= minUse && maxUsable >= minUse;
 
     return _buildSection(
       '포인트 사용',
@@ -2591,6 +2591,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       status: OrderStatus.pending,
       totalAmount: _finalTotal,
       shippingFee: widget.cart.shippingFee,
+      couponId: _appliedCoupon?.id,
+      couponDiscount: _couponDiscount,
+      usedPoints: _usedPoints,
+      pointDiscount: _pointDiscount,
       paymentMethod: _selectedPayment,
       orderType: _isGroupCart ? 'group' : 'regular',
       createdAt: DateTime.now(),
@@ -2642,6 +2646,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         customerEmail: user?.email ?? 'guest@2fit-mall.co.kr',
         customerPhone: user?.phone ?? '',
         selectedPayment: _selectedPayment,
+        couponId: _appliedCoupon?.id,
+        couponDiscount: _couponDiscount,
+        usedPoints: _usedPoints,
+        pointDiscount: _pointDiscount,
       ),
     );
     // 결제 완료 처리는 /payment/success, /payment/fail 에서 담당

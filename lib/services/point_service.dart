@@ -151,8 +151,8 @@ class PointService {
   }
 
   // ── 포인트 사용 (결제 시 차감) ─────────────────────────
-  // minUse: 20,000P 이상부터 사용 가능
-  static const int minUsePoints = 20000;
+  // minUse: 5,000P 이상부터 사용 가능
+  static const int minUsePoints = 5000;
 
   static Future<bool> usePoints({
     required String userId,

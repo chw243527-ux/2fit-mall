@@ -69,6 +69,18 @@ class OrderService {
     }
   }
 
+  /// 주문번호로 단일 주문을 조회합니다.
+  static Future<OrderModel?> getOrderById(String orderId) async {
+    try {
+      final doc = await _db.collection('orders').doc(orderId).get();
+      if (!doc.exists || doc.data() == null) return null;
+      return _orderFromFirestore(doc.data()!, docId: doc.id);
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ 주문 단건 조회 실패: $e');
+      return null;
+    }
+  }
+
   // ────────────────────────────────────────────
   // 전체 주문 조회 (관리자용)
   // ────────────────────────────────────────────
@@ -547,6 +559,10 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       'status': order.status.name,
       'totalAmount': order.totalAmount,
       'shippingFee': order.shippingFee,
+      'couponId': order.couponId,
+      'couponDiscount': order.couponDiscount,
+      'usedPoints': order.usedPoints,
+      'pointDiscount': order.pointDiscount,
       'paymentMethod': order.paymentMethod,
       'orderType': order.orderType,
       'groupName': order.groupName,
@@ -710,6 +726,10 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       status: status,
       totalAmount: (data['totalAmount'] as num?)?.toDouble() ?? 0,
       shippingFee: (data['shippingFee'] as num?)?.toDouble() ?? 0,
+      couponId: data['couponId'] as String?,
+      couponDiscount: (data['couponDiscount'] as num?)?.toDouble() ?? 0,
+      usedPoints: (data['usedPoints'] as num?)?.toInt() ?? 0,
+      pointDiscount: (data['pointDiscount'] as num?)?.toDouble() ?? 0,
       paymentMethod: data['paymentMethod'] as String? ?? '',
       orderType: rawOrderType,
       customOptions: customOptions.isEmpty ? null : customOptions,
@@ -812,6 +832,10 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       status: status,
       totalAmount: (data['totalAmount'] as num?)?.toDouble() ?? 0,
       shippingFee: (data['shippingFee'] as num?)?.toDouble() ?? 0,
+      couponId: data['couponId'] as String?,
+      couponDiscount: (data['couponDiscount'] as num?)?.toDouble() ?? 0,
+      usedPoints: (data['usedPoints'] as num?)?.toInt() ?? 0,
+      pointDiscount: (data['pointDiscount'] as num?)?.toDouble() ?? 0,
       paymentMethod: data['paymentMethod'] as String? ?? '',
       orderType: data['orderType'] as String? ?? 'personal',
       groupName: data['groupName'] as String?,

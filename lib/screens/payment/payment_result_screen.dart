@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../services/payment_service.dart';
 import '../../services/order_service.dart';
+import '../../services/wishlist_coupon_service.dart';
 import '../../models/models.dart';
 
 // ══════════════════════════════════════════════════════════════
@@ -62,6 +63,17 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
       if (result.success) {
         // 결제 승인 완료 → 주문 상태를 confirmed로 업데이트
         await OrderService.updateOrderStatus(orderId, OrderStatus.confirmed);
+
+        // 주문에 기록된 쿠폰은 결제 성공 시 1회 사용 처리
+        final savedOrder = await OrderService.getOrderById(orderId);
+        final userId = context.read<UserProvider>().user?.id;
+        if (savedOrder?.couponId != null && userId != null && userId.isNotEmpty) {
+          await CouponService.markUserCouponUsed(
+            userId: userId,
+            couponId: savedOrder!.couponId!,
+            orderId: orderId,
+          );
+        }
 
         // 현금영수증 자동 발급
         if (!mounted) return;

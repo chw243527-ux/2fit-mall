@@ -437,6 +437,10 @@ class PaymentCheckoutArgs {
   final String customerEmail;
   final String customerPhone;
   final String selectedPayment;
+  final String? couponId;
+  final double couponDiscount;
+  final int usedPoints;
+  final double pointDiscount;
 
   const PaymentCheckoutArgs({
     required this.orderId,
@@ -446,5 +450,9 @@ class PaymentCheckoutArgs {
     required this.customerEmail,
     required this.customerPhone,
     required this.selectedPayment,
+    this.couponId,
+    this.couponDiscount = 0,
+    this.usedPoints = 0,
+    this.pointDiscount = 0,
   });
 }
