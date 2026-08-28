@@ -447,10 +447,11 @@ exports.sendSolapiChatAlert = onRequest(
         '#{메시지}': `[${language}] ${message}`.slice(0, 500),
       },
     });
-    res.status(result.ok ? 200 : 502).json({ success: result.ok, statusCode: result.statusCode });
+        res.status(result.ok ? 200 : 502).json({ success: result.ok, statusCode: result.statusCode });
   },
 );
-
+// 채팅 알림 전용 이름으로도 노출해 구형 SMS 호출 경로와 명확히 분리합니다.
+exports.sendSolapiChatAlimtalk = exports.sendSolapiChatAlert;
 exports.sendSolapiOrderNotification = onRequest(
   { secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET], cors: [
     'https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000',

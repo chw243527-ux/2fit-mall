@@ -82,7 +82,7 @@ class NotificationService {
     String language = 'KO',
   }) async {
     await _postServerNotification(
-      endpoint: 'sendSolapiChatAlert',
+      endpoint: 'sendSolapiChatAlimtalk',
       body: {
         'userName': userName,
         'message': message,
