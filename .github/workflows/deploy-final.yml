@@ -171,11 +171,11 @@ jobs:
           NODE
 
       - name: Install Firebase CLI
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true' }}
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true') }}
         run: npm install --global firebase-tools@${{ env.FIREBASE_CLI_VERSION }}
 
       - name: Install Cloud Functions dependencies
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true' }}
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true') }}
         working-directory: functions
         shell: bash
         run: |
@@ -187,7 +187,7 @@ jobs:
           fi
 
       - name: Authenticate Firebase with service account
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true' }}
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true') }}
         id: firebase-auth
         env:
           GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
@@ -204,7 +204,7 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/firebase-service-account.json" >> "${GITHUB_ENV}"
 
       - name: Deploy Firestore Rules, Storage Rules, and Cloud Functions
-        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true' }}
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true') }}
         shell: bash
         run: |
           set -euo pipefail
