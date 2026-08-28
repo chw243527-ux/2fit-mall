@@ -286,14 +286,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   SliverToBoxAdapter(
                     child: Column(mainAxisSize: MainAxisSize.min, children: [
                       const Divider(
-                          height: 8,
-                          color: AppColors.surfaceGray,
-                          thickness: 8),
+                          height: 1,
+                          color: AppColors.border,
+                          thickness: 1),
                       _buildToptenBrandSection(product),
                       const Divider(
-                          height: 8,
-                          color: AppColors.surfaceGray,
-                          thickness: 8),
+                          height: 1,
+                          color: AppColors.border,
+                          thickness: 1),
                     ]),
                   ),
                   SliverPersistentHeader(
@@ -341,7 +341,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     return wrapWithPopScope(
         context,
         Scaffold(
-          backgroundColor: AppColors.surfaceGray,
+          backgroundColor: Colors.white,
           body: Stack(
             children: [
               CustomScrollView(
@@ -365,14 +365,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                   key: _keyDesign,
                                   child: _buildBasicInfo(product)),
                               const Divider(
-                                  height: 8,
-                                  color: AppColors.surfaceGray,
-                                  thickness: 8),
+                                  height: 1,
+                                  color: AppColors.border,
+                                  thickness: 1),
                               _buildToptenBrandSection(product),
                               const Divider(
-                                  height: 8,
-                                  color: AppColors.surfaceGray,
-                                  thickness: 8),
+                                  height: 1,
+                                  color: AppColors.border,
+                                  thickness: 1),
                               _buildMobileDesignImageBanner(product),
                               KeyedSubtree(
                                   key: _keyInfo,
@@ -427,7 +427,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
     return wrapWithPopScope(
         context,
         Scaffold(
-          backgroundColor: AppColors.surfaceGray,
+          backgroundColor: Colors.white,
           body: Column(
             children: [
               // ── 상단 앱바 (전체 너비) ──
@@ -525,14 +525,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                                             key: _keyDesign,
                                             child: _buildBasicInfo(product)),
                                         const Divider(
-                                            height: 8,
-                                            color: AppColors.surfaceGray,
-                                            thickness: 8),
+                                            height: 1,
+                                            color: AppColors.border,
+                                            thickness: 1),
                                         _buildToptenBrandSection(product),
                                         const Divider(
-                                            height: 8,
-                                            color: AppColors.surfaceGray,
-                                            thickness: 8),
+                                            height: 1,
+                                            color: AppColors.border,
+                                            thickness: 1),
                                       ],
                                     ),
                                   )),
@@ -1395,21 +1395,19 @@ $productUrl
   // ── 탑텐 스타일: PAYBACK/특별사이즈 탭 칩 ──
   Widget _toptenTabChip(String label, bool selected, {Color? activeColor}) {
     final r = Responsive.of(context);
-    final ac = activeColor ?? AppColors.primary;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: r.w(12), vertical: r.h(5)),
-      decoration: BoxDecoration(
-        color: selected ? ac : Colors.white,
-        border: Border.all(color: selected ? ac : AppColors.border),
-        borderRadius: BorderRadius.circular(4),
-      ),
+    final accent = activeColor ?? AppColors.primary;
+    return Padding(
+      padding: EdgeInsets.only(bottom: r.h(4)),
       child: Text(
         label,
         style: TextStyle(
           fontSize: r.sp(12),
-          fontWeight: FontWeight.w700,
-          color: selected ? Colors.white : AppColors.textSecondary,
+          fontWeight: FontWeight.w800,
+          color: selected ? accent : AppColors.textSecondary,
           letterSpacing: 0.2,
+          decoration: selected ? TextDecoration.underline : TextDecoration.none,
+          decorationThickness: 1.5,
+          decorationColor: accent,
         ),
       ),
     );
@@ -1511,20 +1509,12 @@ $productUrl
   // ── 탑텐 스타일: 해시태그 칩 ──
   Widget _hashtagChip(String label) {
     final r = Responsive.of(context);
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: r.w(10), vertical: r.h(5)),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-            fontSize: r.sp(12),
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w400),
-      ),
+    return Text(
+      label,
+      style: TextStyle(
+          fontSize: r.sp(12),
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w400),
     );
   }
 
@@ -1849,61 +1839,27 @@ $productUrl
             'FG'
           ], useRib: true),
           SizedBox(height: r.h(12)),
-          Container(
-            width: double.infinity,
-            padding:
-                EdgeInsets.symmetric(horizontal: r.w(13), vertical: r.h(10)),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFEDE7F6), Color(0xFFF3E5F5)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
+          const Divider(height: 1, color: AppColors.border),
+          SizedBox(height: r.h(10)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('01',
+                  style: TextStyle(
+                      fontSize: r.sp(10),
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.w900)),
+              SizedBox(width: r.w(9)),
+              Expanded(
+                child: Text(
+                  '${context.loc.t('19가지_기본_색상_외에도_제작_가능', '19가지 기본 색상 외에도 제작 가능')}\n${context.loc.t('원하시는_색상이_있다면_주문_시_별도로_알려주세요', '원하시는 색상이 있다면 주문 시 별도로 알려주세요.')}',
+                  style: TextStyle(
+                      fontSize: r.sp(11),
+                      color: AppColors.textSecondary,
+                      height: 1.55),
+                ),
               ),
-              borderRadius: BorderRadius.circular(9),
-              border: Border.all(
-                  color: const Color(0xFF7B1FA2).withValues(alpha: 0.22)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF7B1FA2).withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.auto_awesome_rounded,
-                      size: 15, color: AppColors.primary),
-                ),
-                SizedBox(width: r.w(10)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.loc
-                            .t('19가지_기본_색상_외에도_제작_가능', '19가지 기본 색상 외에도 제작 가능'),
-                        style: TextStyle(
-                            fontSize: r.sp(12),
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryLight,
-                            height: 1.3),
-                      ),
-                      SizedBox(height: r.h(2)),
-                      Text(
-                        context.loc.t('원하시는_색상이_있다면_주문_시_별도로_알려주세요',
-                            '원하시는 색상이 있다면 주문 시 별도로 알려주세요.'),
-                        style: TextStyle(
-                            fontSize: r.sp(10.5),
-                            color: AppColors.primary,
-                            height: 1.45),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
         ],
       );
@@ -2038,17 +1994,13 @@ $productUrl
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: r.w(7), vertical: r.h(3)),
-          decoration: BoxDecoration(
-            color: labelColor,
-            borderRadius: BorderRadius.circular(3),
-          ),
-          child: Text(label,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: r.sp(10),
-                  fontWeight: FontWeight.w800)),
+        Text(
+          '$label ·',
+          style: TextStyle(
+              color: labelColor,
+              fontSize: r.sp(10),
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5),
         ),
         SizedBox(width: r.w(8)),
         Expanded(
@@ -2056,7 +2008,7 @@ $productUrl
               style: TextStyle(
                   fontSize: r.sp(12),
                   color: AppColors.textSecondary,
-                  height: 1.5)),
+                  height: 1.55)),
         ),
       ],
     );
@@ -2223,68 +2175,52 @@ $productUrl
 
   // ── 탑텐 스타일: 키-값 테이블
   Widget _toptenInfoTable(List<(String, String)> rows) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.border),
-        color: Colors.white,
-      ),
-      child: Column(
-        children: rows.asMap().entries.map((entry) {
-          final r = Responsive.of(context);
-
-          final i = entry.key;
-          final row = entry.value;
-          final isLast = i == rows.length - 1;
-          return Container(
-            decoration: BoxDecoration(
-              border: isLast
-                  ? null
-                  : const Border(bottom: BorderSide(color: AppColors.border)),
-              color: i.isEven ? Colors.white : const Color(0xFFFAFAFA),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 라벨 셀
-                Container(
-                  width: 80,
-                  padding: EdgeInsets.symmetric(
-                      horizontal: r.w(12), vertical: r.h(11)),
-                  decoration: const BoxDecoration(
-                    border: Border(right: BorderSide(color: AppColors.border)),
-                    color: AppColors.surfaceGray,
-                  ),
-                  child: Text(
-                    row.$1,
-                    style: TextStyle(
-                      fontSize: r.sp(11),
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ),
-                // 값 셀
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: r.w(12), vertical: r.h(11)),
+    final r = Responsive.of(context);
+    return Column(
+      children: rows.asMap().entries.map((entry) {
+        final i = entry.key;
+        final row = entry.value;
+        final isLast = i == rows.length - 1;
+        return Padding(
+          padding: EdgeInsets.only(bottom: isLast ? 0 : r.h(10)),
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: r.w(78),
                     child: Text(
-                      row.$2,
+                      row.$1.toUpperCase(),
                       style: TextStyle(
-                        fontSize: r.sp(11),
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFF222222),
-                        letterSpacing: 0.1,
+                        fontSize: r.sp(10),
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textHint,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
-                ),
+                  Expanded(
+                    child: Text(
+                      row.$2,
+                      style: TextStyle(
+                        fontSize: r.sp(12),
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (!isLast) ...[
+                SizedBox(height: r.h(10)),
+                const Divider(height: 1, color: AppColors.border),
               ],
-            ),
-          );
-        }).toList(),
-      ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -2307,172 +2243,112 @@ $productUrl
   // ── 최하단 WASHING TIP 독립 섹션 (탑텐 스타일) ──
   Widget _buildWashingTipSection(ProductModel product) {
     final r = Responsive.of(context);
-    // 아이콘+설명 세탁 가이드 항목
     final washGuide = [
-      (
-        Icons.water_drop_outlined,
-        context.loc.t('찬물_세탁', '찬물 세탁'),
-        context.loc.t('30_C_이하_찬물_사용_권장', '30°C 이하 찬물 사용 권장')
-      ),
-      (
-        Icons.front_hand_outlined,
-        '손세탁 권장',
-        context.loc.t('세탁기 사용 시 단독 세탁', '세탁기 사용 시 단독 세탁')
-      ),
-      (
-        Icons.air_outlined,
-        '자연 건조',
-        context.loc.t('열풍 건조 금지  수축 원인', '열풍 건조 금지 — 수축 원인')
-      ),
-      (
-        Icons.lock_outline_rounded,
-        '지퍼/단추 잠금',
-        context.loc.t('세탁 전 지퍼·단추를 잠근 후 세탁', '세탁 전 지퍼·단추를 잠근 후 세탁')
-      ),
-      (
-        Icons.color_lens_outlined,
-        '색상 분리',
-        context.loc.t('흰색·유색 제품 반드시 분리 세탁', '흰색·유색 제품 반드시 분리 세탁')
-      ),
-      (
-        Icons.timer_outlined,
-        '즉시 세탁',
-        context.loc.t('땀·물에 젖은 즉시 세탁', '땀·물에 젖은 즉시 세탁')
-      ),
+      (Icons.water_drop_outlined, context.loc.t('찬물_세탁', '찬물 세탁'),
+          context.loc.t('30_C_이하_찬물_사용_권장', '30°C 이하 찬물 사용 권장')),
+      (Icons.front_hand_outlined, '손세탁 권장',
+          context.loc.t('세탁기 사용 시 단독 세탁', '세탁기 사용 시 단독 세탁')),
+      (Icons.air_outlined, '자연 건조',
+          context.loc.t('열풍 건조 금지  수축 원인', '열풍 건조 금지 — 수축 원인')),
+      (Icons.lock_outline_rounded, '지퍼/단추 잠금',
+          context.loc.t('세탁 전 지퍼·단추를 잠근 후 세탁', '세탁 전 지퍼·단추를 잠근 후 세탁')),
+      (Icons.color_lens_outlined, '색상 분리',
+          context.loc.t('흰색·유색 제품 반드시 분리 세탁', '흰색·유색 제품 반드시 분리 세탁')),
+      (Icons.timer_outlined, '즉시 세탁',
+          context.loc.t('땀·물에 젖은 즉시 세탁', '땀·물에 젖은 즉시 세탁')),
     ];
 
-    return Container(
-      color: Colors.white,
+    return Padding(
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(46), r.w(20), r.h(44)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 상단 굵은 구분선
-          Container(height: 2, color: AppColors.primary),
-
-          SizedBox(height: r.h(8)),
-
-          // ── 세탁 가이드 아이콘 그리드
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: r.w(20)),
-            child: GridView.count(
-              crossAxisCount: 3,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 1,
-              crossAxisSpacing: 1,
-              childAspectRatio: 1.15,
-              children: washGuide
-                  .map((g) => Container(
-                        color: const Color(0xFFF2F2F2),
-                        padding: EdgeInsets.all(r.w(14)),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(g.$1, size: 22, color: AppColors.textPrimary),
-                            SizedBox(height: r.h(8)),
-                            Text(
-                              g.$2,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: r.sp(10),
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primary,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                            SizedBox(height: r.h(3)),
-                            Text(
-                              g.$3,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: r.sp(9),
-                                color: AppColors.textSecondary,
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ))
-                  .toList(),
+          const Divider(height: 1, color: AppColors.textPrimary),
+          SizedBox(height: r.h(20)),
+          Text(
+            'WASHING TIP',
+            style: TextStyle(
+              fontSize: r.sp(11),
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.4,
+              color: AppColors.accent,
             ),
           ),
-
-          SizedBox(height: r.h(24)),
-
-          // ── WASHING TIP 상세 리스트
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: r.w(20)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 팁 리스트
-                ..._washingTips.asMap().entries.map((entry) {
-                  final r = Responsive.of(context);
-
-                  final tip = entry.value;
-                  final isLast = entry.key == _washingTips.length - 1;
-                  return Column(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: r.h(12)),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('·',
-                                style: TextStyle(
-                                  fontSize: r.sp(14),
-                                  color: AppColors.textHint,
-                                  height: 1.2,
-                                )),
-                            SizedBox(width: r.w(10)),
-                            Expanded(
-                              child: Text(
-                                tip,
-                                style: TextStyle(
-                                  fontSize: r.sp(12),
-                                  color: AppColors.textSecondary,
-                                  height: 1.65,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ),
-                          ],
+          SizedBox(height: r.h(15)),
+          GridView.count(
+            crossAxisCount: 3,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: r.h(18),
+            crossAxisSpacing: r.w(10),
+            childAspectRatio: 1.04,
+            children: washGuide
+                .map((guide) => Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(guide.$1, size: 20, color: AppColors.textPrimary),
+                        SizedBox(height: r.h(7)),
+                        Text(
+                          guide.$2,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: r.sp(10),
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
+                        SizedBox(height: r.h(3)),
+                        Text(
+                          guide.$3,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: r.sp(9),
+                            color: AppColors.textSecondary,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ))
+                .toList(),
+          ),
+          SizedBox(height: r.h(30)),
+          ..._washingTips.asMap().entries.map((entry) {
+            final isLast = entry.key == _washingTips.length - 1;
+            return Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: r.h(12)),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${(entry.key + 1).toString().padLeft(2, '0')}',
+                          style: TextStyle(
+                              fontSize: r.sp(10),
+                              color: AppColors.accent,
+                              fontWeight: FontWeight.w900)),
+                      SizedBox(width: r.w(10)),
+                      Expanded(
+                        child: Text(entry.value,
+                            style: TextStyle(
+                                fontSize: r.sp(12),
+                                color: AppColors.textSecondary,
+                                height: 1.65)),
                       ),
-                      if (!isLast)
-                        const Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: AppColors.surfaceGray),
                     ],
-                  );
-                }),
-
-                SizedBox(height: r.h(20)),
-
-                // ── 하단 주의사항 박스 (탑텐 스타일: 검정 좌측 라인)
-                Container(
-                  padding:
-                      EdgeInsets.fromLTRB(r.w(16), r.h(14), r.w(16), r.h(14)),
-                  decoration: const BoxDecoration(
-                    color: AppColors.surfaceGray,
-                    border: Border(
-                      left: BorderSide(color: AppColors.primary, width: 2),
-                    ),
-                  ),
-                  child: Text(
-                    context.loc.t('재고는_조기_소진될_수_있으며_소비자_부주의로_인한_제품_손상_dc3ff0',
-                        '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.'),
-                    style: TextStyle(
-                        fontSize: r.sp(11),
-                        color: AppColors.textSecondary,
-                        height: 1.65),
                   ),
                 ),
-
-                SizedBox(height: r.h(40)),
+                if (!isLast) const Divider(height: 1, color: AppColors.border),
               ],
-            ),
+            );
+          }),
+          SizedBox(height: r.h(20)),
+          const Divider(height: 1, color: AppColors.border),
+          SizedBox(height: r.h(13)),
+          Text(
+            context.loc.t('재고는_조기_소진될_수_있으며_소비자_부주의로_인한_제품_손상_dc3ff0',
+                '재고는 조기 소진될 수 있으며, 소비자 부주의로 인한 제품 손상은 보상이 되지 않으므로 위의 세탁 방법을 반드시 준수 바랍니다.'),
+            style: TextStyle(
+                fontSize: r.sp(11), color: AppColors.textSecondary, height: 1.65),
           ),
         ],
       ),
@@ -4845,63 +4721,47 @@ $productUrl
     Widget? trailingIcon,
   }) {
     final r = Responsive.of(context);
-    return Container(
-      width: double.infinity,
-      color: bgColor,
-      padding: EdgeInsets.fromLTRB(r.w(20), r.h(22), r.w(20), r.h(20)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+    return Padding(
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(34), r.w(20), r.h(28)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 영문 대제목
-                Text(
-                  engTitle,
-                  style: TextStyle(
-                    fontSize: r.sp(26),
-                    fontWeight: FontWeight.w900,
-                    color: textColor,
-                    letterSpacing: -0.5,
-                    height: 1.1,
-                  ),
-                ),
-                SizedBox(height: r.h(6)),
-                // 한글 설명
-                Text(
-                  korSub,
-                  style: TextStyle(
-                    fontSize: r.sp(11),
-                    color: textColor.withValues(alpha: 0.55),
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0.2,
-                    height: 1.5,
-                  ),
-                ),
-              ],
+          const Divider(height: 1, color: AppColors.textPrimary),
+          SizedBox(height: r.h(16)),
+          Text(
+            engSub,
+            style: TextStyle(
+              fontSize: r.sp(10),
+              fontWeight: FontWeight.w900,
+              color: AppColors.accent,
+              letterSpacing: 1.35,
             ),
           ),
-          if (trailingIcon != null) trailingIcon,
+          SizedBox(height: r.h(8)),
+          Text(
+            engTitle,
+            style: TextStyle(
+              fontSize: r.sp(26),
+              fontWeight: FontWeight.w900,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+          ),
+          SizedBox(height: r.h(8)),
+          Text(
+            korSub,
+            style: TextStyle(
+              fontSize: r.sp(11),
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w400,
+              letterSpacing: 0.2,
+              height: 1.55,
+            ),
+          ),
         ],
       ),
     );
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // 리미티드 싱글렛 전용 에디토리얼 상세페이지
-  // 기성품 싱글렛에만 적용: 단체주문 상품과 일반 카테고리에는 기존 구성 유지
-  // ═══════════════════════════════════════════════════════════
-  bool _isLimitedSinglet(ProductModel product) {
-    final label = '${product.category} ${product.subCategory} ${product.name}';
-    final isSingletSet = product.category == '세트' ||
-        label.contains('싱글렛세트') ||
-        label.contains('싱글렛 세트');
-    return !product.isGroupOnly && !isSingletSet && label.contains('싱글렛');
-  }
-
-  String _limitedSingletMaterial(ProductModel product) {
-    return _materialTextForProduct(product);
   }
 
   /// 모든 상품에 공통 적용하는 에디토리얼 상세페이지 래퍼입니다.
@@ -5085,281 +4945,282 @@ $productUrl
       if (!isGroupOrder) '사이즈 조견표와 상품 옵션을 함께 확인해 주세요.',
     ];
 
-    return Container(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 01. 상품 정체성: 공통 블랙 히어로
-          Container(
-            color: AppColors.textPrimary,
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(44), r.w(24), r.h(46)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  productType,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.62),
-                    fontSize: r.sp(10),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.45,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 01. 상품 정체성: 색면 대신 타이포그래피와 여백으로 집중을 만듭니다.
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(48)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                productType,
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: r.sp(10),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.45,
                 ),
-                SizedBox(height: r.h(18)),
-                Text(
-                  heroCopy.headline,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: r.sp(36),
+              ),
+              SizedBox(height: r.h(17)),
+              Text(
+                heroCopy.headline,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: r.sp(36),
+                  fontWeight: FontWeight.w900,
+                  height: 0.94,
+                  letterSpacing: -1.8,
+                ),
+              ),
+              SizedBox(height: r.h(24)),
+              Text(
+                heroCopy.accent,
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: r.sp(12),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.75,
+                ),
+              ),
+              SizedBox(height: r.h(14)),
+              const Divider(height: 1, color: AppColors.border),
+              SizedBox(height: r.h(14)),
+              Text(
+                heroCopy.copy,
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: r.sp(13),
+                  height: 1.72,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        _buildLimitedImageSlot(
+          sectionKey: 's1',
+          adminLabel: '에디토리얼 상세 · 활동 무드 이미지',
+          isAdmin: isAdmin,
+        ),
+
+        // 02. 브랜드 선언
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(62), r.w(24), r.h(64)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'MADE TO\nKEEP MOVING.',
+                style: TextStyle(
+                  fontSize: r.sp(24),
+                  fontWeight: FontWeight.w900,
+                  height: 1.04,
+                  letterSpacing: -1.15,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: r.h(20)),
+              const Divider(height: 1, color: AppColors.textPrimary),
+              SizedBox(height: r.h(18)),
+              Text(
+                '좋은 스포츠웨어는 움직임을 돕되, 움직임을 대신하지 않습니다. 2FIT은 오래 입고 오래 움직일 수 있는 균형을 고민합니다.',
+                style: TextStyle(
+                    fontSize: r.sp(15),
+                    color: AppColors.textSecondary,
+                    height: 1.72),
+              ),
+            ],
+          ),
+        ),
+
+        _buildLimitedImageSlot(
+          sectionKey: 's2_fiber',
+          adminLabel: '에디토리얼 상세 · 원단 및 제작 디테일 이미지',
+          isAdmin: isAdmin,
+        ),
+
+        // 03. 소재와 제작 정보
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(48), r.w(24), r.h(50)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isGroupOrder ? '01 / CUSTOM OPTIONS' : '01 / MATERIAL & DETAIL',
+                style: TextStyle(
+                    fontSize: r.sp(11),
                     fontWeight: FontWeight.w900,
-                    height: 0.94,
-                    letterSpacing: -1.8,
-                  ),
-                ),
-                SizedBox(height: r.h(27)),
-                Text(
-                  heroCopy.accent,
-                  style: TextStyle(
-                    color: const Color(0xFFFF6A3D),
-                    fontSize: r.sp(12),
+                    letterSpacing: 1.15,
+                    color: AppColors.accent),
+              ),
+              SizedBox(height: r.h(13)),
+              Text(
+                isGroupOrder
+                    ? 'YOUR TEAM.\nYOUR DESIGN.'
+                    : 'FORM, FUNCTION,\nAND MOVEMENT.',
+                style: TextStyle(
+                    fontSize: r.sp(26),
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 0.75,
-                  ),
+                    height: 1.03,
+                    letterSpacing: -1.0,
+                    color: AppColors.textPrimary),
+              ),
+              SizedBox(height: r.h(17)),
+              Text(
+                isGroupOrder
+                    ? '수량, 색상, 디자인 등 팀에 필요한 주문 조건을 상담으로 확인할 수 있습니다.'
+                    : '상품마다 다른 원단과 디테일을 적용해, 활용 목적에 맞는 편안한 착용감을 제안합니다.',
+                style: TextStyle(
+                    fontSize: r.sp(14),
+                    color: AppColors.textSecondary,
+                    height: 1.7),
+              ),
+              SizedBox(height: r.h(22)),
+              const Divider(height: 1, color: AppColors.border),
+              SizedBox(height: r.h(13)),
+              Text(
+                material,
+                style: TextStyle(
+                  fontSize: r.sp(18),
+                  fontWeight: FontWeight.w800,
+                  height: 1.45,
+                  color: AppColors.textPrimary,
                 ),
-                SizedBox(height: r.h(10)),
-                Text(
-                  heroCopy.copy,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.82),
+              ),
+            ],
+          ),
+        ),
+
+        _buildLimitedImageSlot(
+          sectionKey: 's4',
+          adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
+          isAdmin: isAdmin,
+        ),
+
+        // 04. 핏 메시지
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(44), r.w(24), r.h(48)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Divider(height: 1, color: AppColors.textPrimary),
+              SizedBox(height: r.h(17)),
+              Text(
+                isGroupOrder ? 'ONE TEAM, ONE IDENTITY.' : 'ONE PIECE, YOUR PACE.',
+                style: TextStyle(
+                    fontSize: r.sp(23),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.6,
+                    color: AppColors.textPrimary),
+              ),
+              SizedBox(height: r.h(10)),
+              Text(
+                isGroupOrder
+                    ? '함께 달리는 팀의 정체성을 더 분명하게 보여줄 수 있도록.'
+                    : '운동을 위한 한 장. 그리고 당신의 일상에 자연스럽게 더해질 한 장.',
+                style: TextStyle(
                     fontSize: r.sp(13),
-                    height: 1.65,
-                  ),
-                ),
-              ],
-            ),
+                    color: AppColors.textSecondary,
+                    height: 1.65),
+              ),
+            ],
           ),
+        ),
 
-          // 02. 제품/활동 무드 이미지
-          _buildLimitedImageSlot(
-            sectionKey: 's1',
-            adminLabel: '에디토리얼 상세 · 활동 무드 이미지',
-            isAdmin: isAdmin,
-          ),
-
-          // 03. 브랜드 선언: 싱글렛의 대형 타이포그래피 톤 유지
-          Padding(
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(60), r.w(24), r.h(62)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'MADE TO\nKEEP MOVING.',
-                  style: TextStyle(
+        // 05. 상세 사양
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(52), r.w(24), r.h(52)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'DETAIL / SPEC',
+                style: TextStyle(
                     fontSize: r.sp(24),
                     fontWeight: FontWeight.w900,
-                    height: 1.04,
-                    letterSpacing: -1.15,
-                    color: const Color(0xFF161616),
-                  ),
-                ),
-                SizedBox(height: r.h(22)),
-                Container(width: 32, height: 2, color: const Color(0xFF161616)),
-                SizedBox(height: r.h(18)),
-                Text(
-                  '좋은 스포츠웨어는 움직임을 돕되, 움직임을 대신하지 않습니다. 2FIT은 오래 입고 오래 움직일 수 있는 균형을 고민합니다.',
-                  style: TextStyle(
-                      fontSize: r.sp(15),
-                      color: const Color(0xFF4B4B4B),
-                      height: 1.72),
-                ),
-              ],
-            ),
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.8),
+              ),
+              SizedBox(height: r.h(28)),
+              ...details.map(_buildLimitedDetailLine),
+              SizedBox(height: r.h(18)),
+              const Divider(height: 1, color: AppColors.border),
+              SizedBox(height: r.h(14)),
+              Text(
+                '2FIT SPORTSWEAR\n$productType',
+                style: TextStyle(
+                    fontSize: r.sp(13),
+                    color: AppColors.textSecondary,
+                    height: 1.8),
+              ),
+            ],
           ),
+        ),
 
-          // 04. 소재 / 제작 디테일
-          _buildLimitedImageSlot(
-            sectionKey: 's2_fiber',
-            adminLabel: '에디토리얼 상세 · 원단 및 제작 디테일 이미지',
-            isAdmin: isAdmin,
-          ),
-          Container(
-            color: const Color(0xFFF5F4F1),
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(38), r.w(24), r.h(42)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isGroupOrder
-                      ? '01 / CUSTOM OPTIONS'
-                      : '01 / MATERIAL & DETAIL',
-                  style: TextStyle(
-                      fontSize: r.sp(11),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.15,
-                      color: const Color(0xFF161616)),
-                ),
-                SizedBox(height: r.h(13)),
-                Text(
-                  isGroupOrder
-                      ? 'YOUR TEAM.\nYOUR DESIGN.'
-                      : 'FORM, FUNCTION,\nAND MOVEMENT.',
-                  style: TextStyle(
-                      fontSize: r.sp(26),
-                      fontWeight: FontWeight.w900,
-                      height: 1.03,
-                      letterSpacing: -1.0,
-                      color: const Color(0xFF161616)),
-                ),
-                SizedBox(height: r.h(16)),
-                Text(
-                  isGroupOrder
-                      ? '수량, 색상, 디자인 등 팀에 필요한 주문 조건을 상담으로 확인할 수 있습니다.'
-                      : '상품마다 다른 원단과 디테일을 적용해, 활용 목적에 맞는 편안한 착용감을 제안합니다.',
-                  style: TextStyle(
-                      fontSize: r.sp(14),
-                      color: const Color(0xFF4B4B4B),
-                      height: 1.65),
-                ),
+        // 06. 주문 안내
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(16), r.w(24), r.h(54)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Divider(height: 1, color: AppColors.textPrimary),
+              SizedBox(height: r.h(20)),
+              Text(
+                isGroupOrder ? 'ORDER GUIDE' : 'PURCHASE GUIDE',
+                style: TextStyle(
+                    fontSize: r.sp(11),
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.accent,
+                    letterSpacing: 1.35),
+              ),
+              SizedBox(height: r.h(18)),
+              if (isGroupOrder) ...[
+                _buildLimitedPolicyLine('01', '상담을 통해 수량과 제작 사양을 확인합니다.'),
+                _buildLimitedPolicyLine('02', '디자인 및 생산 일정은 주문 조건에 따라 달라질 수 있습니다.'),
+                _buildLimitedPolicyLine('03', '확정된 제작 조건은 결제 전 다시 안내합니다.'),
+              ] else ...[
+                _buildLimitedPolicyLine('01', '구매 전 상품 옵션과 사이즈 정보를 확인해 주세요.'),
+                _buildLimitedPolicyLine('02', '재고는 주문 상황에 따라 달라질 수 있습니다.'),
+                _buildLimitedPolicyLine('03', '상품별 교환·반품 기준을 명확하게 안내합니다.'),
               ],
-            ),
+            ],
           ),
+        ),
 
-          // 05. 핏 / 제품 이미지
-          _buildLimitedImageSlot(
-            sectionKey: 's4',
-            adminLabel: '에디토리얼 상세 · 핏 및 스타일링 이미지',
-            isAdmin: isAdmin,
+        _buildLimitedImageSlot(
+          sectionKey: 's5',
+          adminLabel: '에디토리얼 상세 · 브랜드 스토리 이미지',
+          isAdmin: isAdmin,
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(58)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '2FIT\nSPORTSWEAR',
+                style: TextStyle(
+                    fontSize: r.sp(26),
+                    fontWeight: FontWeight.w900,
+                    height: 1.03,
+                    letterSpacing: -1.1,
+                    color: AppColors.textPrimary),
+              ),
+              SizedBox(height: r.h(18)),
+              Text(
+                '2FIT MALL은 움직임을 멈추지 않는 사람들을 위한 스포츠웨어를 제안합니다. 목적과 취향에 맞는 한 장이 더 나은 움직임으로 이어진다고 믿습니다.',
+                style: TextStyle(
+                    fontSize: r.sp(14),
+                    color: AppColors.textSecondary,
+                    height: 1.72),
+              ),
+            ],
           ),
-          Container(
-            color: AppColors.textPrimary,
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(34), r.w(24), r.h(36)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isGroupOrder
-                      ? 'ONE TEAM, ONE IDENTITY.'
-                      : 'ONE PIECE, YOUR PACE.',
-                  style: TextStyle(
-                      fontSize: r.sp(23),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.6,
-                      color: Colors.white),
-                ),
-                SizedBox(height: r.h(10)),
-                Text(
-                  isGroupOrder
-                      ? '함께 달리는 팀의 정체성을 더 분명하게 보여줄 수 있도록.'
-                      : '운동을 위한 한 장. 그리고 당신의 일상에 자연스럽게 더해질 한 장.',
-                  style: TextStyle(
-                      fontSize: r.sp(13),
-                      color: Colors.white.withValues(alpha: 0.72),
-                      height: 1.6),
-                ),
-              ],
-            ),
-          ),
-
-          // 06. 상세 사양: 동일한 번호형 정보 레이아웃
-          Container(
-            color: Colors.white,
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(64), r.w(24), r.h(62)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'DETAIL / SPEC',
-                  style: TextStyle(
-                      fontSize: r.sp(24),
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF202020),
-                      letterSpacing: -0.8),
-                ),
-                SizedBox(height: r.h(40)),
-                ...details.map(_buildLimitedDetailLine),
-                SizedBox(height: r.h(24)),
-                Text(
-                  '2FIT SPORTSWEAR\n$productType',
-                  style: TextStyle(
-                      fontSize: r.sp(14),
-                      color: AppColors.textSecondary,
-                      height: 1.8),
-                ),
-              ],
-            ),
-          ),
-
-          // 07. 상품 정책: 한정 수량 대신 일반/단체 주문 정보를 표시
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: r.w(16)),
-            padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(30)),
-            decoration: BoxDecoration(
-                color: const Color(0xFF161616),
-                borderRadius: BorderRadius.circular(2)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isGroupOrder ? 'ORDER GUIDE' : 'PURCHASE GUIDE',
-                  style: TextStyle(
-                      fontSize: r.sp(10),
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFFFF6A3D),
-                      letterSpacing: 1.35),
-                ),
-                SizedBox(height: r.h(18)),
-                if (isGroupOrder) ...[
-                  _buildLimitedPolicyLine('01', '상담을 통해 수량과 제작 사양을 확인합니다.'),
-                  _buildLimitedPolicyLine(
-                      '02', '디자인 및 생산 일정은 주문 조건에 따라 달라질 수 있습니다.'),
-                  _buildLimitedPolicyLine('03', '확정된 제작 조건은 결제 전 다시 안내합니다.'),
-                ] else ...[
-                  _buildLimitedPolicyLine('01', '구매 전 상품 옵션과 사이즈 정보를 확인해 주세요.'),
-                  _buildLimitedPolicyLine('02', '재고는 주문 상황에 따라 달라질 수 있습니다.'),
-                  _buildLimitedPolicyLine('03', '상품별 교환·반품 기준을 명확하게 안내합니다.'),
-                ],
-              ],
-            ),
-          ),
-          SizedBox(height: r.h(52)),
-
-          // 08. 브랜드 스토리
-          _buildLimitedImageSlot(
-            sectionKey: 's5',
-            adminLabel: '에디토리얼 상세 · 브랜드 스토리 이미지',
-            isAdmin: isAdmin,
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(58)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '2FIT\nSPORTSWEAR',
-                  style: TextStyle(
-                      fontSize: r.sp(26),
-                      fontWeight: FontWeight.w900,
-                      height: 1.03,
-                      letterSpacing: -1.1,
-                      color: const Color(0xFF161616)),
-                ),
-                SizedBox(height: r.h(18)),
-                Text(
-                  '2FIT MALL은 움직임을 멈추지 않는 사람들을 위한 스포츠웨어를 제안합니다. 목적과 취향에 맞는 한 장이 더 나은 움직임으로 이어진다고 믿습니다.',
-                  style: TextStyle(
-                      fontSize: r.sp(14),
-                      color: const Color(0xFF4B4B4B),
-                      height: 1.72),
-                ),
-              ],
-            ),
-          ),
-
-          // 09. 공통 구매 안내
-          _buildLimitedNoticeSection(r),
-        ],
-      ),
+        ),
+        _buildLimitedNoticeSection(r),
+      ],
     );
   }
 
@@ -5367,327 +5228,311 @@ $productUrl
     final r = Responsive.of(context);
     final material = _limitedSingletMaterial(product);
 
-    return Container(
-      color: Colors.white,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 01. 한정 수량 선언
-          Container(
-            color: AppColors.textPrimary,
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(46), r.w(24), r.h(48)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'LIMITED RUNNING COLLECTION',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.62),
-                    fontSize: r.sp(10),
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.5,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 01. 한정 수량 선언: 색면이 아닌 숫자와 여백으로 한정성을 전달합니다.
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(58), r.w(24), r.h(52)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'LIMITED RUNNING COLLECTION',
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: r.sp(10),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
                 ),
-                SizedBox(height: r.h(16)),
-                Text(
-                  'ONLY\n200',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: r.sp(56),
-                    fontWeight: FontWeight.w900,
-                    height: 0.78,
-                    letterSpacing: -3.2,
-                  ),
+              ),
+              SizedBox(height: r.h(18)),
+              Text(
+                'ONLY\n200',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: r.sp(56),
+                  fontWeight: FontWeight.w900,
+                  height: 0.78,
+                  letterSpacing: -3.2,
                 ),
-                SizedBox(height: r.h(26)),
-                Text(
-                  '200 PIECES. 200 RUNNERS.',
-                  style: TextStyle(
-                    color: const Color(0xFFFF6A3D),
-                    fontSize: r.sp(12),
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.8,
-                  ),
+              ),
+              SizedBox(height: r.h(27)),
+              Text(
+                '200 PIECES. 200 RUNNERS.',
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: r.sp(12),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
                 ),
-                SizedBox(height: r.h(10)),
-                Text(
-                  '이 디자인은 단 200명만 구매할 수 있습니다.\n모두를 위한 대량 생산 대신, 자신만의 페이스로 달리는\n200명의 러너를 위해 만듭니다.',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.82),
-                    fontSize: r.sp(13),
-                    height: 1.65,
-                  ),
+              ),
+              SizedBox(height: r.h(14)),
+              const Divider(height: 1, color: AppColors.border),
+              SizedBox(height: r.h(14)),
+              Text(
+                '이 디자인은 단 200명만 구매할 수 있습니다. 모두를 위한 대량 생산 대신, 자신만의 페이스로 달리는 200명의 러너를 위해 만듭니다.',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: r.sp(13),
+                  height: 1.72,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
 
-          // 02. 러닝 무드 이미지: 관리자 업로드 s1 사용
-          _buildLimitedImageSlot(
-            sectionKey: 's1',
-            adminLabel: '리미티드 싱글렛 · 러닝 무드 이미지',
-            isAdmin: isAdmin,
-          ),
+        _buildLimitedImageSlot(
+          sectionKey: 's1',
+          adminLabel: '리미티드 싱글렛 · 러닝 무드 이미지',
+          isAdmin: isAdmin,
+        ),
 
-          // 03. 브랜드 선언
-          Padding(
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(64), r.w(24), r.h(64)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'NOT MASS-MADE.\nMADE MEANINGFUL.',
-                  style: TextStyle(
-                    fontSize: r.sp(24),
-                    fontWeight: FontWeight.w900,
-                    height: 1.04,
-                    letterSpacing: -1.15,
-                    color: const Color(0xFF161616),
-                  ),
+        // 02. 브랜드 선언
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(64), r.w(24), r.h(64)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'NOT MASS-MADE.\nMADE MEANINGFUL.',
+                style: TextStyle(
+                  fontSize: r.sp(24),
+                  fontWeight: FontWeight.w900,
+                  height: 1.04,
+                  letterSpacing: -1.15,
+                  color: AppColors.textPrimary,
                 ),
-                SizedBox(height: r.h(22)),
-                Container(width: 32, height: 2, color: const Color(0xFF161616)),
-                SizedBox(height: r.h(18)),
-                Text(
-                  '더 많이 만들기보다, 선택한 200명에게 오래 남을 디자인을 만듭니다.\n달리는 방식은 모두 다릅니다. 입는 디자인도 그래야 하니까.',
-                  style: TextStyle(
-                    fontSize: r.sp(15),
-                    color: const Color(0xFF4B4B4B),
-                    height: 1.72,
-                  ),
+              ),
+              SizedBox(height: r.h(22)),
+              const Divider(height: 1, color: AppColors.textPrimary),
+              SizedBox(height: r.h(18)),
+              Text(
+                '더 많이 만들기보다, 선택한 200명에게 오래 남을 디자인을 만듭니다. 달리는 방식은 모두 다릅니다. 입는 디자인도 그래야 하니까.',
+                style: TextStyle(
+                  fontSize: r.sp(15),
+                  color: AppColors.textSecondary,
+                  height: 1.72,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
 
-          // 04. 심리스 디테일
-          _buildLimitedImageSlot(
-            sectionKey: 's2_seamless',
-            adminLabel: '리미티드 싱글렛 · 심리스 디테일 이미지',
-            isAdmin: isAdmin,
-          ),
-          Container(
-            color: const Color(0xFFF5F4F1),
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(38), r.w(24), r.h(40)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '01 / SEAMLESS DESIGN',
-                  style: TextStyle(
+        _buildLimitedImageSlot(
+          sectionKey: 's2_seamless',
+          adminLabel: '리미티드 싱글렛 · 심리스 디테일 이미지',
+          isAdmin: isAdmin,
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(48), r.w(24), r.h(50)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '01 / SEAMLESS DESIGN',
+                style: TextStyle(
                     fontSize: r.sp(11),
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.15,
-                    color: const Color(0xFF161616),
-                  ),
-                ),
-                SizedBox(height: r.h(13)),
-                Text(
-                  'SEAMLESS,\nBY DESIGN.',
-                  style: TextStyle(
+                    color: AppColors.accent),
+              ),
+              SizedBox(height: r.h(13)),
+              Text(
+                'SEAMLESS,\nBY DESIGN.',
+                style: TextStyle(
                     fontSize: r.sp(26),
                     fontWeight: FontWeight.w900,
                     height: 1.03,
                     letterSpacing: -1.0,
-                    color: const Color(0xFF161616),
-                  ),
-                ),
-                SizedBox(height: r.h(16)),
-                Text(
-                  '불필요한 선은 덜고, 움직임을 위한 매끄러운 실루엣을 완성했습니다.',
-                  style: TextStyle(
-                      fontSize: r.sp(14),
-                      color: const Color(0xFF4B4B4B),
-                      height: 1.65),
-                ),
-              ],
-            ),
+                    color: AppColors.textPrimary),
+              ),
+              SizedBox(height: r.h(16)),
+              Text(
+                '불필요한 선은 덜고, 움직임을 위한 매끄러운 실루엣을 완성했습니다.',
+                style: TextStyle(
+                    fontSize: r.sp(14),
+                    color: AppColors.textSecondary,
+                    height: 1.7),
+              ),
+            ],
           ),
+        ),
 
-          // 05. 소재 정보
-          _buildLimitedImageSlot(
-            sectionKey: 's2_fiber',
-            adminLabel: '리미티드 싱글렛 · 원단 질감 이미지',
-            isAdmin: isAdmin,
+        _buildLimitedImageSlot(
+          sectionKey: 's2_fiber',
+          adminLabel: '리미티드 싱글렛 · 원단 질감 이미지',
+          isAdmin: isAdmin,
+        ),
+        // 04. 소재 정보
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(56), r.w(24), r.h(58)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'MATERIAL',
+                style: TextStyle(
+                  fontSize: r.sp(11),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                  color: AppColors.accent,
+                ),
+              ),
+              SizedBox(height: r.h(12)),
+              Text(
+                'POLYESTER 92%\nLYCRA 8%',
+                style: TextStyle(
+                  fontSize: r.sp(24),
+                  fontWeight: FontWeight.w900,
+                  height: 1.03,
+                  letterSpacing: -1.2,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: r.h(18)),
+              Text(
+                '가볍게 입고 오래 움직일 수 있도록, 폴리에스터의 경쾌함에 라이크라의 유연함을 더했습니다. 몸의 움직임에 자연스럽게 대응하는 소재 구성입니다.',
+                style: TextStyle(
+                    fontSize: r.sp(14),
+                    color: AppColors.textSecondary,
+                    height: 1.72),
+              ),
+              SizedBox(height: r.h(22)),
+              const Divider(height: 1, color: AppColors.border),
+              SizedBox(height: r.h(12)),
+              Text(
+                material,
+                style: TextStyle(
+                    fontSize: r.sp(12),
+                    color: AppColors.textSecondary,
+                    height: 1.5),
+              ),
+            ],
           ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(56), r.w(24), r.h(58)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'MATERIAL',
-                  style: TextStyle(
-                    fontSize: r.sp(11),
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
-                    color: const Color(0xFF777777),
-                  ),
-                ),
-                SizedBox(height: r.h(12)),
-                Text(
-                  'POLYESTER 92%\nLYCRA 8%',
-                  style: TextStyle(
-                    fontSize: r.sp(24),
-                    fontWeight: FontWeight.w900,
-                    height: 1.03,
-                    letterSpacing: -1.2,
-                    color: const Color(0xFF161616),
-                  ),
-                ),
-                SizedBox(height: r.h(18)),
-                Text(
-                  '가볍게 입고 오래 움직일 수 있도록, 폴리에스터의 경쾌함에 라이크라의 유연함을 더했습니다. 몸의 움직임에 자연스럽게 대응하는 소재 구성입니다.',
-                  style: TextStyle(
-                      fontSize: r.sp(14),
-                      color: const Color(0xFF4B4B4B),
-                      height: 1.72),
-                ),
-                SizedBox(height: r.h(22)),
-                Container(height: 1, color: const Color(0xFFE4E4E4)),
-                SizedBox(height: r.h(12)),
-                Text(
-                  material,
-                  style: TextStyle(
-                      fontSize: r.sp(12),
-                      color: const Color(0xFF6C6C6C),
-                      height: 1.5),
-                ),
-              ],
-            ),
-          ),
+        ),
 
-          // 06. 룩북 / 핏 이미지
-          _buildLimitedImageSlot(
-            sectionKey: 's4',
-            adminLabel: '리미티드 싱글렛 · 핏 및 스타일링 이미지',
-            isAdmin: isAdmin,
-          ),
-          Container(
-            color: AppColors.textPrimary,
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(34), r.w(24), r.h(36)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'ONE PIECE, YOUR PACE.',
-                  style: TextStyle(
+        _buildLimitedImageSlot(
+          sectionKey: 's4',
+          adminLabel: '리미티드 싱글렛 · 핏 및 스타일링 이미지',
+          isAdmin: isAdmin,
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(44), r.w(24), r.h(50)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Divider(height: 1, color: AppColors.textPrimary),
+              SizedBox(height: r.h(18)),
+              Text(
+                'ONE PIECE, YOUR PACE.',
+                style: TextStyle(
                     fontSize: r.sp(23),
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.6,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(height: r.h(10)),
-                Text(
-                  '러닝을 위한 한 장. 그리고 당신의 일상에 자연스럽게 더해질 한 장.',
-                  style: TextStyle(
-                      fontSize: r.sp(13),
-                      color: Colors.white.withValues(alpha: 0.72),
-                      height: 1.6),
-                ),
-              ],
-            ),
+                    color: AppColors.textPrimary),
+              ),
+              SizedBox(height: r.h(10)),
+              Text(
+                '러닝을 위한 한 장. 그리고 당신의 일상에 자연스럽게 더해질 한 장.',
+                style: TextStyle(
+                    fontSize: r.sp(13),
+                    color: AppColors.textSecondary,
+                    height: 1.65),
+              ),
+            ],
           ),
+        ),
 
-          // 07. 상세 사양
-          Container(
-            color: Colors.white,
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(66), r.w(24), r.h(64)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'DETAIL / FABRIC',
-                  style: TextStyle(
+        // 05. 상세 사양
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(56), r.w(24), r.h(54)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'DETAIL / FABRIC',
+                style: TextStyle(
                     fontSize: r.sp(24),
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFF202020),
-                    letterSpacing: -0.8,
-                  ),
-                ),
-                SizedBox(height: r.h(42)),
-                _buildLimitedDetailLine('디자인당 200장 한정으로 제작되는 리미티드 싱글렛'),
-                _buildLimitedDetailLine('단 200명의 러너를 위한 리미티드 컬렉션'),
-                _buildLimitedDetailLine('매끄러운 실루엣을 완성하는 심리스 디자인'),
-                _buildLimitedDetailLine('폴리에스터 92%와 라이크라 8%의 소재 구성'),
-                SizedBox(height: r.h(30)),
-                Text(
-                  'Polyester 92% · Lycra 8%\nSeamless Design\nLimited to 200 Pieces per Design\nMade for 200 Runners',
-                  style: TextStyle(
-                      fontSize: r.sp(15),
-                      color: AppColors.textSecondary,
-                      height: 1.85),
-                ),
-              ],
-            ),
+                    color: AppColors.textPrimary,
+                    letterSpacing: -0.8),
+              ),
+              SizedBox(height: r.h(30)),
+              _buildLimitedDetailLine('디자인당 200장 한정으로 제작되는 리미티드 싱글렛'),
+              _buildLimitedDetailLine('단 200명의 러너를 위한 리미티드 컬렉션'),
+              _buildLimitedDetailLine('매끄러운 실루엣을 완성하는 심리스 디자인'),
+              _buildLimitedDetailLine('폴리에스터 92%와 라이크라 8%의 소재 구성'),
+              SizedBox(height: r.h(24)),
+              const Divider(height: 1, color: AppColors.border),
+              SizedBox(height: r.h(14)),
+              Text(
+                'Polyester 92% · Lycra 8%\nSeamless Design\nLimited to 200 Pieces per Design\nMade for 200 Runners',
+                style: TextStyle(
+                    fontSize: r.sp(13),
+                    color: AppColors.textSecondary,
+                    height: 1.8),
+              ),
+            ],
           ),
+        ),
 
-          // 08. 발매 원칙
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: r.w(16)),
-            padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(30)),
-            decoration: BoxDecoration(
-              color: const Color(0xFF161616),
-              borderRadius: BorderRadius.circular(2),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'LIMITED RELEASE POLICY',
-                  style: TextStyle(
-                      fontSize: r.sp(10),
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFFFF6A3D),
-                      letterSpacing: 1.35),
-                ),
-                SizedBox(height: r.h(18)),
-                _buildLimitedPolicyLine('01', '디자인당 200장 발매'),
-                _buildLimitedPolicyLine('02', '운영 변경 시 상품 페이지와 공지로 안내'),
-                _buildLimitedPolicyLine('03', '상품별 교환·반품 기준을 명확하게 고지'),
-              ],
-            ),
+        // 06. 발매 원칙
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(14), r.w(24), r.h(54)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Divider(height: 1, color: AppColors.textPrimary),
+              SizedBox(height: r.h(20)),
+              Text(
+                'LIMITED RELEASE POLICY',
+                style: TextStyle(
+                    fontSize: r.sp(10),
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.accent,
+                    letterSpacing: 1.35),
+              ),
+              SizedBox(height: r.h(18)),
+              _buildLimitedPolicyLine('01', '디자인당 200장 발매'),
+              _buildLimitedPolicyLine('02', '운영 변경 시 상품 페이지와 공지로 안내'),
+              _buildLimitedPolicyLine('03', '상품별 교환·반품 기준을 명확하게 고지'),
+            ],
           ),
-          SizedBox(height: r.h(52)),
+        ),
 
-          // 09. 브랜드 스토리 이미지
-          _buildLimitedImageSlot(
-            sectionKey: 's5',
-            adminLabel: '리미티드 싱글렛 · 브랜드 스토리 이미지',
-            isAdmin: isAdmin,
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(58)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '2FIT LIMITED\nRUNNING COLLECTION',
-                  style: TextStyle(
+        _buildLimitedImageSlot(
+          sectionKey: 's5',
+          adminLabel: '리미티드 싱글렛 · 브랜드 스토리 이미지',
+          isAdmin: isAdmin,
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(r.w(24), r.h(54), r.w(24), r.h(58)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '2FIT LIMITED\nRUNNING COLLECTION',
+                style: TextStyle(
                     fontSize: r.sp(26),
                     fontWeight: FontWeight.w900,
                     height: 1.03,
                     letterSpacing: -1.1,
-                    color: const Color(0xFF161616),
-                  ),
-                ),
-                SizedBox(height: r.h(18)),
-                Text(
-                  '2FIT MALL은 더 많은 수량보다, 더 분명한 기준을 선택합니다. 한 디자인은 단 200장. 자신만의 기준과 취향으로 달리는 러너를 위해 만듭니다.',
-                  style: TextStyle(
-                      fontSize: r.sp(14),
-                      color: const Color(0xFF4B4B4B),
-                      height: 1.72),
-                ),
-              ],
-            ),
+                    color: AppColors.textPrimary),
+              ),
+              SizedBox(height: r.h(18)),
+              Text(
+                '2FIT MALL은 더 많은 수량보다, 더 분명한 기준을 선택합니다. 한 디자인은 단 200장. 자신만의 기준과 취향으로 달리는 러너를 위해 만듭니다.',
+                style: TextStyle(
+                    fontSize: r.sp(14),
+                    color: AppColors.textSecondary,
+                    height: 1.72),
+              ),
+            ],
           ),
-
-          // 10. 교환·반품 및 제품 안내
-          _buildLimitedNoticeSection(r),
-        ],
-      ),
+        ),
+        _buildLimitedNoticeSection(r),
+      ],
     );
   }
 
@@ -5699,8 +5544,7 @@ $productUrl
     final images = _sectionImages[sectionKey] ?? const <String>[];
     if (!isAdmin && images.isEmpty) return const SizedBox.shrink();
     final r = Responsive.of(context);
-    return Container(
-      color: Colors.white,
+    return Padding(
       padding: EdgeInsets.only(top: isAdmin ? r.h(14) : 0),
       child: isAdmin
           ? Padding(
@@ -5726,7 +5570,7 @@ $productUrl
   Widget _buildLimitedPolicyLine(String number, String text) {
     final r = Responsive.of(context);
     return Padding(
-      padding: EdgeInsets.only(bottom: r.h(12)),
+      padding: EdgeInsets.only(bottom: r.h(14)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -5736,14 +5580,14 @@ $productUrl
                 style: TextStyle(
                     fontSize: r.sp(11),
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFFFF6A3D))),
+                    color: AppColors.accent)),
           ),
           Expanded(
             child: Text(text,
                 style: TextStyle(
                     fontSize: r.sp(13),
-                    color: Colors.white.withValues(alpha: 0.84),
-                    height: 1.5)),
+                    color: AppColors.textSecondary,
+                    height: 1.6)),
           ),
         ],
       ),
@@ -5766,9 +5610,8 @@ $productUrl
       ),
     ];
 
-    return Container(
-      color: const Color(0xFFF5F4F1),
-      padding: EdgeInsets.fromLTRB(r.w(24), r.h(52), r.w(24), r.h(54)),
+    return Padding(
+      padding: EdgeInsets.fromLTRB(r.w(24), r.h(50), r.w(24), r.h(58)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: notices.asMap().entries.map((entry) {
@@ -5782,7 +5625,7 @@ $productUrl
                 style: TextStyle(
                     fontSize: r.sp(11),
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xFF222222),
+                    color: AppColors.textPrimary,
                     letterSpacing: 1.1),
               ),
               SizedBox(height: r.h(10)),
@@ -5791,11 +5634,11 @@ $productUrl
                 style: TextStyle(
                     fontSize: r.sp(12.5),
                     color: AppColors.textSecondary,
-                    height: 1.68),
+                    height: 1.72),
               ),
               if (!isLast) ...[
                 SizedBox(height: r.h(24)),
-                const Divider(height: 1, color: Color(0xFFDCDAD6)),
+                const Divider(height: 1, color: AppColors.border),
                 SizedBox(height: r.h(24)),
               ],
             ],
@@ -5825,7 +5668,7 @@ $productUrl
           trailingIcon: const Icon(Icons.bolt_rounded,
               size: 36, color: Color(0x55FFFFFF)),
         ),
-        const Divider(height: 8, thickness: 8, color: AppColors.surfaceGray),
+        const Divider(height: 1, thickness: 1, color: AppColors.border),
         // ── 섹션1 어드민 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
         if (isAdmin || (_sectionImages['s1'] ?? []).isNotEmpty)
           Container(
@@ -5876,7 +5719,7 @@ $productUrl
           trailingIcon: const Icon(Icons.layers_rounded,
               size: 36, color: Color(0x55FFFFFF)),
         ),
-        const Divider(height: 8, thickness: 8, color: AppColors.surfaceGray),
+        const Divider(height: 1, thickness: 1, color: AppColors.border),
 
         // ── 일반봉제 / 심리스 이미지 섹션 ──────────────────────────
         // 하의 카테고리일 때는 숨김
@@ -6167,7 +6010,7 @@ $productUrl
           trailingIcon: const Icon(Icons.inventory_2_rounded,
               size: 36, color: Color(0x55FFFFFF)),
         ),
-        const Divider(height: 8, thickness: 8, color: AppColors.surfaceGray),
+        const Divider(height: 1, thickness: 1, color: AppColors.border),
         // ── 섹션3 어드민 이미지 (관리자: 업로드 UI / 일반: 가로 슬라이더)
         if (isAdmin || (_sectionImages['s3'] ?? []).isNotEmpty)
           isAdmin
@@ -6268,14 +6111,7 @@ $productUrl
   // ═══════════════════════════════════════════════════════════
   Widget _buildSection6SizeChart(ProductModel product, [bool isAdmin = false]) {
     final r = Responsive.of(context);
-    // ── 성인 차트 (투핏 사이즈 조건표 기준) ──
-    const adultHeaders = [
-      'SIZE',
-      'HEIGHT\n(cm)',
-      'WEIGHT\n(kg)',
-      'CHEST\n(cm)',
-      'WAIST\n(inch)'
-    ];
+    const adultHeaders = ['SIZE', 'HEIGHT\n(cm)', 'WEIGHT\n(kg)', 'CHEST\n(cm)', 'WAIST\n(inch)'];
     const adultRows = [
       ['XS(85)', '154~159', '44~51', '85', '26~28'],
       ['S(90)', '160~165', '52~60', '90', '28~30'],
@@ -6285,7 +6121,6 @@ $productUrl
       ['2XL(110)', '182~187', '86~91', '110', '36~38'],
       ['3XL(115)', '187~191', '91~96', '115', '38~40'],
     ];
-    // ── 주니어 차트 ──
     const juniorHeaders = ['SIZE', 'HEIGHT\n(cm)', 'WEIGHT\n(kg)', 'AGE'];
     const juniorRows = [
       ['J-S(60)', '112~117', '19~21', '6~7'],
@@ -6295,258 +6130,88 @@ $productUrl
       ['J-2XL(80)', '140~153', '35~43', '-'],
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (isAdmin || (_sectionImages['s6'] ?? []).isNotEmpty)
-          Container(
-            color: AppColors.surfaceGray,
-            padding: EdgeInsets.fromLTRB(r.w(16), r.h(12), r.w(16), r.h(0)),
-            child: _buildAdminImageSection(
+    final notices = [
+      loc.sizeChartDesc1,
+      loc.sizeChartDesc2,
+      context.loc.t('제품_이미지와_색상은_모니터의_상태에_따라_다소_다르게_보일_수_있습니다',
+          '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.'),
+      context.loc.t('측정_위치에_따라_1_2cm_정도의_오차가_발생할_수_있습니다',
+          '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.'),
+      context.loc.t('제품_생산_시기_및_생산지에_따라서_동일_상품_간_컬러_및_혼_98c440',
+          '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.'),
+    ];
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(r.w(20), r.h(56), r.w(20), r.h(50)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (isAdmin || (_sectionImages['s6'] ?? []).isNotEmpty) ...[
+            _buildAdminImageSection(
                 's6', context.loc.t('섹션6_사이즈_차트', '섹션6 사이즈 차트'), isAdmin),
-          ),
-
-        // ── 메인 사이즈 차트 컨테이너 ──
-        Container(
-          color: AppColors.surfaceGray,
-          padding: EdgeInsets.fromLTRB(r.w(20), r.h(28), r.w(20), r.h(32)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 헤더 타이틀 영역
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 메인 타이틀
-                      Text(
-                        'SIZE\nCHART',
-                        style: TextStyle(
-                          fontSize: r.sp(32),
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.textPrimary,
-                          height: 1.0,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  // 브랜드 로고 영역
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: r.w(10), vertical: r.h(5)),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: Colors.black.withValues(alpha: 0.25)),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '2FiT KOREA',
-                          style: TextStyle(
-                            fontSize: r.sp(10),
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
-                            letterSpacing: 2,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: r.h(6)),
-                      Text(
-                        context.loc.t('투핏_사이즈_조건표_기준', '투핏 사이즈 조건표 기준'),
-                        style: TextStyle(
-                          fontSize: r.sp(10),
-                          color: Colors.black.withValues(alpha: 0.45),
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              // 구분선
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: r.h(20)),
-                child: Container(
-                    height: 1, color: Colors.black.withValues(alpha: 0.1)),
-              ),
-
-              // ── 탭 + 테이블 ──
-              _SizeChartTabs(
-                adultHeaders: adultHeaders,
-                adultRows: adultRows,
-                juniorHeaders: juniorHeaders,
-                juniorRows: juniorRows,
-                loc: loc,
-              ),
-
-              SizedBox(height: r.h(24)),
-
-              // ── 안내 문구 ──
-              Container(
-                padding: EdgeInsets.all(r.w(16)),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  borderRadius: BorderRadius.circular(8),
-                  border:
-                      Border.all(color: Colors.black.withValues(alpha: 0.08)),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.info_outline_rounded,
-                            size: 14,
-                            color: Colors.black.withValues(alpha: 0.4)),
-                        SizedBox(width: r.w(6)),
-                        Expanded(
-                          child: Text(
-                            loc.sizeChartDesc1,
-                            style: TextStyle(
-                              fontSize: r.sp(11),
-                              color: Colors.black.withValues(alpha: 0.55),
-                              height: 1.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: r.h(6)),
-                    Row(
-                      children: [
-                        Icon(Icons.info_outline_rounded,
-                            size: 14,
-                            color: Colors.black.withValues(alpha: 0.4)),
-                        SizedBox(width: r.w(6)),
-                        Expanded(
-                          child: Text(
-                            loc.sizeChartDesc2,
-                            style: TextStyle(
-                              fontSize: r.sp(11),
-                              color: Colors.black.withValues(alpha: 0.55),
-                              height: 1.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: r.h(6)),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.info_outline_rounded,
-                            size: 14,
-                            color: Colors.black.withValues(alpha: 0.4)),
-                        SizedBox(width: r.w(6)),
-                        Expanded(
-                          child: Text(
-                            context.loc.t(
-                                '제품_이미지와_색상은_모니터의_상태에_따라_다소_다르게_보일_수_있습니다',
-                                '제품 이미지와 색상은 모니터의 상태에 따라 다소 다르게 보일 수 있습니다.'),
-                            style: TextStyle(
-                                fontSize: r.sp(11),
-                                color: AppColors.textSecondary,
-                                height: 1.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: r.h(6)),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.info_outline_rounded,
-                            size: 14,
-                            color: Colors.black.withValues(alpha: 0.4)),
-                        SizedBox(width: r.w(6)),
-                        Expanded(
-                          child: Text(
-                            context.loc.t('측정_위치에_따라_1_2cm_정도의_오차가_발생할_수_있습니다',
-                                '측정 위치에 따라 1~2cm 정도의 오차가 발생할 수 있습니다.'),
-                            style: TextStyle(
-                                fontSize: r.sp(11),
-                                color: AppColors.textSecondary,
-                                height: 1.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: r.h(6)),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.info_outline_rounded,
-                            size: 14,
-                            color: Colors.black.withValues(alpha: 0.4)),
-                        SizedBox(width: r.w(6)),
-                        Expanded(
-                          child: Text(
-                            context.loc.t(
-                                '제품_생산_시기_및_생산지에_따라서_동일_상품_간_컬러_및_혼_98c440',
-                                '제품 생산 시기 및 생산지에 따라서 동일 상품 간 컬러 및 혼용률 차이가 발생할 수 있습니다.'),
-                            style: TextStyle(
-                                fontSize: r.sp(11),
-                                color: AppColors.textSecondary,
-                                height: 1.5),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        if (isAdmin || (_sectionImages['s6'] ?? []).isNotEmpty)
-          Container(
-            color: AppColors.surfaceGray,
-            padding: EdgeInsets.fromLTRB(r.w(20), r.h(0), r.w(20), r.h(20)),
-            child: _buildAdminImageSection(
-                's6', context.loc.t('섹션6_사이즈_차트', '섹션6 사이즈 차트'), isAdmin),
-          ),
-
-        // ── WASH TIP 헤더만 ──
-        Container(
-          width: double.infinity,
-          color: AppColors.primary,
-          padding: EdgeInsets.fromLTRB(r.w(20), r.h(22), r.w(20), r.h(20)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            SizedBox(height: r.h(20)),
+          ],
+          const Divider(height: 1, color: AppColors.textPrimary),
+          SizedBox(height: r.h(18)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'WASH TIP',
+                'SIZE\nCHART',
                 style: TextStyle(
-                  fontSize: r.sp(26),
+                  fontSize: r.sp(32),
                   fontWeight: FontWeight.w900,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
+                  height: 1.0,
                   letterSpacing: -0.5,
-                  height: 1.1,
                 ),
               ),
-              SizedBox(height: r.h(6)),
+              const Spacer(),
               Text(
-                context.loc.t('올바른_세탁으로_제품을_오래_깨끗하게', '올바른 세탁으로 제품을 오래, 깨끗하게'),
+                '2FIT KOREA\n${context.loc.t('투핏_사이즈_조건표_기준', '투핏 사이즈 조건표 기준')}',
+                textAlign: TextAlign.right,
                 style: TextStyle(
-                  fontSize: r.sp(11),
-                  color: Colors.white.withValues(alpha: 0.55),
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0.2,
+                  fontSize: r.sp(10),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 0.3,
                   height: 1.5,
                 ),
               ),
             ],
           ),
-        ),
-      ],
+          SizedBox(height: r.h(24)),
+          _SizeChartTabs(
+            adultHeaders: adultHeaders,
+            adultRows: adultRows,
+            juniorHeaders: juniorHeaders,
+            juniorRows: juniorRows,
+            loc: loc,
+          ),
+          SizedBox(height: r.h(30)),
+          ...notices.asMap().entries.map((entry) => Padding(
+                padding: EdgeInsets.only(bottom: r.h(9)),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${(entry.key + 1).toString().padLeft(2, '0')}',
+                        style: TextStyle(
+                            color: AppColors.accent,
+                            fontSize: r.sp(10),
+                            fontWeight: FontWeight.w900)),
+                    SizedBox(width: r.w(9)),
+                    Expanded(
+                      child: Text(entry.value,
+                          style: TextStyle(
+                              fontSize: r.sp(11),
+                              color: AppColors.textSecondary,
+                              height: 1.55)),
+                    ),
+                  ],
+                ),
+              )),
+        ],
+      ),
     );
   }
 
@@ -6582,50 +6247,39 @@ $productUrl
     return Consumer<ReviewProvider>(
       builder: (_, reviewProv, __) {
         final r = Responsive.of(context);
-
         final reviews = reviewProv.getProductReviews(product.id);
         final avg = reviewProv.getProductRating(product.id);
 
-        return Container(
-          color: Colors.white,
-          padding: EdgeInsets.symmetric(vertical: r.h(20), horizontal: r.w(16)),
+        return Padding(
+          padding: EdgeInsets.fromLTRB(r.w(20), r.h(46), r.w(20), r.h(34)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Divider(height: 1, color: AppColors.border),
-              SizedBox(height: r.h(28)),
-              Row(
-                children: [
-                  Text(loc.productReviewLabel,
-                      style: TextStyle(
-                          fontSize: r.sp(18), fontWeight: FontWeight.w800)),
-                  SizedBox(width: r.w(8)),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: r.w(8), vertical: r.h(3)),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text('${reviews.length}',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: r.sp(12),
-                            fontWeight: FontWeight.w700)),
-                  ),
-                ],
+              const Divider(height: 1, color: AppColors.textPrimary),
+              SizedBox(height: r.h(20)),
+              Text(
+                'REVIEW / ${reviews.length}',
+                style: TextStyle(
+                    fontSize: r.sp(11),
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.accent,
+                    letterSpacing: 1.25),
               ),
+              SizedBox(height: r.h(10)),
+              Text(loc.productReviewLabel,
+                  style: TextStyle(
+                      fontSize: r.sp(22),
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.textPrimary)),
               if (avg > 0) ...[
                 SizedBox(height: r.h(14)),
                 Row(
                   children: [
-                    Text(
-                      avg.toStringAsFixed(1),
-                      style: TextStyle(
-                          fontSize: r.sp(40),
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.primary),
-                    ),
+                    Text(avg.toStringAsFixed(1),
+                        style: TextStyle(
+                            fontSize: r.sp(40),
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary)),
                     SizedBox(width: r.w(12)),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -6649,34 +6303,33 @@ $productUrl
                   ],
                 ),
               ],
-              SizedBox(height: r.h(20)),
-              SizedBox(height: r.h(4)),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    final reviews = context
-                        .read<ReviewProvider>()
-                        .getProductReviews(product.id);
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (_) =>
-                          _AllReviewsSheet(product: product, reviews: reviews),
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.border),
-                    padding: EdgeInsets.symmetric(vertical: r.h(14)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: Consumer<LanguageProvider>(
-                      builder: (_, lp, __) => Text(lp.loc.moreReviews,
-                          style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w600))),
+              SizedBox(height: r.h(18)),
+              TextButton(
+                onPressed: () {
+                  final allReviews = context
+                      .read<ReviewProvider>()
+                      .getProductReviews(product.id);
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) =>
+                        _AllReviewsSheet(product: product, reviews: allReviews),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  foregroundColor: AppColors.textPrimary,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(context.loc.moreReviews,
+                        style: TextStyle(
+                            fontSize: r.sp(13), fontWeight: FontWeight.w800)),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.arrow_forward_rounded, size: 16),
+                  ],
                 ),
               ),
             ],
@@ -6710,17 +6363,15 @@ $productUrl
     final buyNowLabel = _isLimitedSinglet(product)
         ? '200명 중 한 명이 되기'
         : context.loc.t('바로구매', '바로구매');
+    final compactTextStyle = TextStyle(
+        fontWeight: FontWeight.w900,
+        fontSize: r.sp(_isLimitedSinglet(product) ? 13 : 14),
+        letterSpacing: -0.1);
+
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border:
-            const Border(top: BorderSide(color: AppColors.border, width: 1)),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, -4))
-        ],
+      color: Colors.white,
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
       ),
       child: SafeArea(
         top: false,
@@ -6734,97 +6385,54 @@ $productUrl
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (product.isGroupOnly) ...[
-                // ── 단체주문 전용 ──
+              if (product.isGroupOnly)
                 SizedBox(
                   width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.groups_rounded,
-                        color: Colors.white, size: 20),
+                  height: 50,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.groups_rounded, size: 18),
                     label: Text(loc.groupOrderBtn,
                         style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: r.sp(16),
-                            color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryLight,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      elevation: 0,
+                            fontWeight: FontWeight.w900, fontSize: r.sp(15))),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textPrimary,
+                      side: const BorderSide(color: AppColors.textPrimary),
+                      shape: const RoundedRectangleBorder(),
                     ),
                     onPressed: () => _showGroupOrderGuide(product),
                   ),
-                ),
-              ] else if (product.stockCount <= 0) ...[
-                // ── 품절 상태 ──
+                )
+              else if (product.stockCount <= 0)
                 Consumer<UserProvider>(
-                  builder: (_, up, __) {
-                    final r = Responsive.of(context);
-
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.symmetric(vertical: r.h(9)),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceGray,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.remove_shopping_cart_outlined,
-                                  size: 15, color: AppColors.textHint),
-                              SizedBox(width: r.w(6)),
-                              Text(
-                                  context.loc.t('현재_품절된_상품입니다', '현재 품절된 상품입니다'),
-                                  style: TextStyle(
-                                      fontSize: r.sp(13),
-                                      color: AppColors.textHint,
-                                      fontWeight: FontWeight.w600)),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: r.h(8)),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton.icon(
-                            icon: const Icon(Icons.notifications_active_rounded,
-                                size: 17, color: Colors.white),
-                            label: Text(context.loc.t('재입고_알림_신청', '재입고 알림 신청'),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: r.sp(14),
-                                    color: Colors.white)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                              elevation: 0,
-                            ),
-                            onPressed: () => _showRestockAlert(product, up),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ] else ...[
-                // ── 탑텐 스타일: 찜(하트+숫자) + 구매하기 풀버튼 ──
+                  builder: (_, up, __) => Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(context.loc.t('현재_품절된_상품입니다', '현재 품절된 상품입니다'),
+                          style: TextStyle(
+                              fontSize: r.sp(12), color: AppColors.textSecondary)),
+                      SizedBox(height: r.h(5)),
+                      TextButton.icon(
+                        onPressed: () => _showRestockAlert(product, up),
+                        icon: const Icon(Icons.notifications_active_rounded,
+                            size: 16),
+                        label: Text(context.loc.t('재입고_알림_신청', '재입고 알림 신청'),
+                            style: TextStyle(
+                                fontWeight: FontWeight.w900, fontSize: r.sp(14))),
+                        style: TextButton.styleFrom(
+                            foregroundColor: AppColors.textPrimary),
+                      ),
+                    ],
+                  ),
+                )
+              else
                 Row(
                   children: [
-                    // 찜 버튼 (탑텐: 하트 + 숫자 세로 배치, 좌측 독립)
                     Consumer<UserProvider>(
                       builder: (_, up, __) {
-                        final r = Responsive.of(context);
-
                         final isWish = up.isInWishlist(product.id);
-                        final wishCount = up.user?.wishlist.length ?? 0;
-                        return GestureDetector(
-                          onTap: () {
+                        return IconButton(
+                          tooltip: context.loc.t('찜하기', '찜하기'),
+                          onPressed: () {
                             if (up.isLoggedIn) {
                               up.toggleWishlist(product.id);
                             } else {
@@ -6833,89 +6441,37 @@ $productUrl
                               );
                             }
                           },
-                          child: SizedBox(
-                            width: 48,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  isWish
-                                      ? Icons.favorite_rounded
-                                      : Icons.favorite_border_rounded,
-                                  color: isWish
-                                      ? AppColors.error
-                                      : AppColors.textSecondary,
-                                  size: 26,
-                                ),
-                                SizedBox(height: r.h(1)),
-                                Text(
-                                  wishCount.toString(),
-                                  style: TextStyle(
-                                      fontSize: r.sp(11),
-                                      color: AppColors.textSecondary,
-                                      fontWeight: FontWeight.w500),
-                                ),
-                              ],
-                            ),
+                          icon: Icon(
+                            isWish
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: isWish ? AppColors.error : AppColors.textPrimary,
                           ),
                         );
                       },
                     ),
-                    SizedBox(width: r.w(8)),
-                    // 장바구니 버튼
                     Expanded(
-                      flex: 1,
-                      child: SizedBox(
-                        height: 52,
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(
-                                color: AppColors.primary, width: 1.5),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6)),
-                          ),
-                          icon: const Icon(Icons.shopping_bag_outlined,
-                              size: 18, color: AppColors.primary),
-                          label: Text(
-                            context.loc.t('장바구니', '장바구니'),
-                            style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize: r.sp(14),
-                                color: AppColors.primary),
-                          ),
-                          onPressed: () => _addToCart(product),
-                        ),
+                      child: TextButton.icon(
+                        onPressed: () => _addToCart(product),
+                        icon: const Icon(Icons.shopping_bag_outlined, size: 17),
+                        label: Text(context.loc.t('장바구니', '장바구니'),
+                            style: compactTextStyle),
+                        style: TextButton.styleFrom(
+                            foregroundColor: AppColors.textPrimary),
                       ),
                     ),
-                    SizedBox(width: r.w(8)),
-                    // 바로구매 버튼
+                    Container(width: 1, height: 18, color: AppColors.border),
                     Expanded(
-                      flex: 1,
-                      child: SizedBox(
-                        height: 52,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6)),
-                            elevation: 0,
-                          ),
-                          onPressed: () => _showBuyNowSheet(product),
-                          child: Text(
-                            buyNowLabel,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w800,
-                                fontSize:
-                                    r.sp(_isLimitedSinglet(product) ? 13 : 16),
-                                color: Colors.white),
-                          ),
-                        ),
+                      child: TextButton.icon(
+                        onPressed: () => _showBuyNowSheet(product),
+                        icon: const Icon(Icons.arrow_forward_rounded, size: 17),
+                        label: Text(buyNowLabel, style: compactTextStyle),
+                        style: TextButton.styleFrom(
+                            foregroundColor: AppColors.textPrimary),
                       ),
                     ),
                   ],
                 ),
-              ],
             ],
           ),
         ),
@@ -10955,10 +10511,7 @@ class _SizeChartTabs extends StatefulWidget {
 }
 
 class _SizeChartTabsState extends State<_SizeChartTabs> {
-  AppLocalizations get loc => context.watch<LanguageProvider>().loc;
-  // ignore: unused_element
-  AppLanguage get _lang => context.watch<LanguageProvider>().language;
-  int _tab = 0; // 0=성인, 1=주니어
+  int _tab = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -10966,18 +10519,16 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── 탭 버튼 ──
         Row(
           children: [
             _tabBtn(0, 'ADULT', context.loc.t('성인', '성인')),
-            SizedBox(width: r.w(8)),
+            SizedBox(width: r.w(22)),
             _tabBtn(1, 'JUNIOR', context.loc.t('주니어', '주니어')),
           ],
         ),
         SizedBox(height: r.h(16)),
-        // ── 테이블 ──
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 180),
           child: _tab == 0
               ? _buildTable(widget.adultHeaders, widget.adultRows,
                   key: const ValueKey('adult'))
@@ -10990,45 +10541,36 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
 
   Widget _tabBtn(int idx, String label, String sublabel) {
     final r = Responsive.of(context);
-    final sel = _tab == idx;
+    final selected = _tab == idx;
     return GestureDetector(
       onTap: () => setState(() => _tab = idx),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: EdgeInsets.symmetric(horizontal: r.w(18), vertical: r.h(10)),
+      child: Container(
+        padding: EdgeInsets.only(bottom: r.h(6)),
         decoration: BoxDecoration(
-          color: sel ? const Color(0xFF222222) : Colors.white,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: sel
-                ? const Color(0xFF222222)
-                : Colors.black.withValues(alpha: 0.15),
-            width: sel ? 1.5 : 1,
+          border: Border(
+            bottom: BorderSide(
+                color: selected ? AppColors.textPrimary : AppColors.border,
+                width: selected ? 2 : 1),
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: r.sp(12),
-                fontWeight: FontWeight.w900,
-                color: sel ? Colors.white : Colors.black.withValues(alpha: 0.4),
-                letterSpacing: 1.5,
-              ),
-            ),
+            Text(label,
+                style: TextStyle(
+                    fontSize: r.sp(12),
+                    fontWeight: FontWeight.w900,
+                    color: selected
+                        ? AppColors.textPrimary
+                        : AppColors.textSecondary,
+                    letterSpacing: 1.1)),
             SizedBox(width: r.w(5)),
-            Text(
-              sublabel,
-              style: TextStyle(
-                fontSize: r.sp(10),
-                fontWeight: FontWeight.w500,
-                color: sel
-                    ? Colors.white.withValues(alpha: 0.7)
-                    : Colors.black.withValues(alpha: 0.3),
-              ),
-            ),
+            Text(sublabel,
+                style: TextStyle(
+                    fontSize: r.sp(10),
+                    color: selected
+                        ? AppColors.textPrimary
+                        : AppColors.textHint)),
           ],
         ),
       ),
@@ -11037,22 +10579,17 @@ class _SizeChartTabsState extends State<_SizeChartTabs> {
 
   Widget _buildTable(List<String> headers, List<List<String>> rows,
       {Key? key}) {
-    return ClipRRect(
+    return Column(
       key: key,
-      borderRadius: BorderRadius.circular(10),
-      child: Column(
-        children: [
-          // 헤더
-          _RibTableHeader(headers: headers),
-          // 데이터 행
-          ...rows.asMap().entries.map((e) => _RibTableRow(
-                values: e.value,
-                isEven: e.key.isEven,
-                isLast: e.key == rows.length - 1,
-                isSizeCol: true,
-              )),
-        ],
-      ),
+      children: [
+        _RibTableHeader(headers: headers),
+        ...rows.asMap().entries.map((entry) => _RibTableRow(
+              values: entry.value,
+              isEven: entry.key.isEven,
+              isLast: entry.key == rows.length - 1,
+              isSizeCol: true,
+            )),
+      ],
     );
   }
 }
@@ -11857,58 +11394,41 @@ class _RibTableHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // 기본 배경 (라이트 테마)
-        Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF2A2A2A),
-          ),
-          child: Row(
-            children: headers.asMap().entries.map((e) {
-              final r = Responsive.of(context);
-
-              final isFirst = e.key == 0;
-              return Expanded(
-                flex: isFirst ? 3 : 3,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                      vertical: r.h(13), horizontal: r.w(4)),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      right: e.key < headers.length - 1
-                          ? BorderSide(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              width: 1)
-                          : BorderSide.none,
-                    ),
-                  ),
-                  child: Text(
-                    e.value,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: r.sp(9.5),
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 0.8,
-                      height: 1.3,
-                    ),
-                  ),
+    final r = Responsive.of(context);
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(color: AppColors.textPrimary),
+          bottom: BorderSide(color: AppColors.textPrimary),
+        ),
+      ),
+      child: Row(
+        children: headers.asMap().entries.map((entry) {
+          return Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: r.h(12), horizontal: r.w(3)),
+              decoration: BoxDecoration(
+                border: Border(
+                  right: entry.key < headers.length - 1
+                      ? const BorderSide(color: AppColors.border)
+                      : BorderSide.none,
                 ),
-              );
-            }).toList(),
-          ),
-        ),
-        // 골지 라인 오버레이
-        Positioned.fill(
-          child: CustomPaint(
-            painter: _RibPatternPainter(
-              lineColor: Colors.white.withValues(alpha: 0.06),
-              spacing: 4,
+              ),
+              child: Text(
+                entry.value,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: r.sp(9.5),
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                  letterSpacing: 0.45,
+                  height: 1.3,
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+          );
+        }).toList(),
+      ),
     );
   }
 }
@@ -11930,79 +11450,47 @@ class _RibTableRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = Responsive.of(context);
-    // 짝수 행: 흰색, 홀수 행: 아주 연한 회색
-    final bg = isEven ? const Color(0xFFFFFFFF) : AppColors.background;
-    final ribColor = isEven
-        ? Colors.black.withValues(alpha: 0.02)
-        : Colors.black.withValues(alpha: 0.02);
-
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: bg,
-            border: Border(
-              bottom: isLast
-                  ? BorderSide.none
-                  : BorderSide(
-                      color: Colors.black.withValues(alpha: 0.07), width: 1),
-            ),
-          ),
-          child: Row(
-            children: values.asMap().entries.map((e) {
-              final r = Responsive.of(context);
-
-              final isFirst = e.key == 0;
-              final isSize = isFirst && isSizeCol;
-              return Expanded(
-                flex: isFirst ? 3 : 3,
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                      vertical: r.h(12), horizontal: r.w(4)),
-                  decoration: BoxDecoration(
-                    color: isSize ? AppColors.border : Colors.transparent,
-                    border: Border(
-                      right: e.key < values.length - 1
-                          ? BorderSide(
-                              color: Colors.black.withValues(alpha: 0.07),
-                              width: 1)
-                          : BorderSide.none,
-                    ),
-                  ),
-                  child: Text(
-                    e.value,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontSize: isSize ? 10 : 11.5,
-                      fontWeight: isSize ? FontWeight.w800 : FontWeight.w500,
-                      color: isSize
-                          ? AppColors.textPrimary
-                          : AppColors.textPrimary,
-                      letterSpacing: isSize ? 0.3 : 0,
-                      height: 1.2,
-                    ),
-                  ),
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: isLast
+              ? BorderSide.none
+              : const BorderSide(color: AppColors.border),
+        ),
+      ),
+      child: Row(
+        children: values.asMap().entries.map((entry) {
+          final isSize = entry.key == 0 && isSizeCol;
+          return Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: r.h(11), horizontal: r.w(3)),
+              decoration: BoxDecoration(
+                border: Border(
+                  right: entry.key < values.length - 1
+                      ? const BorderSide(color: AppColors.border)
+                      : BorderSide.none,
                 ),
-              );
-            }).toList(),
-          ),
-        ),
-        // 골지 라인
-        Positioned.fill(
-          child: CustomPaint(
-            painter: _RibPatternPainter(
-              lineColor: ribColor,
-              spacing: 4,
+              ),
+              child: Text(
+                entry.value,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: r.sp(isSize ? 10 : 11),
+                  fontWeight: isSize ? FontWeight.w900 : FontWeight.w500,
+                  color: AppColors.textPrimary,
+                  letterSpacing: isSize ? 0.25 : 0,
+                  height: 1.2,
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+          );
+        }).toList(),
+      ),
     );
   }
 }
 
-// ══════════════════════════════════════════════════════════════
 // 섹션5 골지 텍스처 사각 스와치 - RibColorSwatch 래퍼
 // ══════════════════════════════════════════════════════════════
 // ignore: unused_element
