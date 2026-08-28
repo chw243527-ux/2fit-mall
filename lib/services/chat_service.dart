@@ -33,6 +33,7 @@ class ChatServiceMessage {
 
   factory ChatServiceMessage.fromMap(String id, Map<String, dynamic> data) {
     final isAdm = data['isAdmin'] as bool? ?? false;
+    final isSys = data['isSystem'] as bool? ?? false;
     final msg = data['message'] as String? ?? data['text'] as String? ?? '';
     return ChatServiceMessage(
       id: id,
@@ -40,10 +41,10 @@ class ChatServiceMessage {
       senderName: data['senderName'] as String? ?? '회원',
       text: msg,
       originalText: data['originalText'] as String? ?? msg,
-      isUser: !(isAdm),
+      isUser: !isAdm && !isSys,
       isAdmin: isAdm,
       time: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      isSystem: data['isSystem'] as bool? ?? false,
+      isSystem: isSys,
       isRead: data['isRead'] as bool? ?? false,
     );
   }

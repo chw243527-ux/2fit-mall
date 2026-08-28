@@ -808,7 +808,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessageBubble(ChatMessage message, AppLocalizations loc) {
     // ignore: unused_local_variable
     final isKorean = loc.language == AppLanguage.korean;
-    // 관리자용 번역 표시 여부
+    final isSystem = message.isSystem;
+    // 고객 메시지만 번역 원문 전환을 제공합니다.
     final hasTranslation =
         message.isUser && !isKorean && message.text != message.originalText;
 
@@ -830,8 +831,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   height: 30,
                   decoration: const BoxDecoration(
                       color: AppColors.primary, shape: BoxShape.circle),
-                  child: const Icon(Icons.support_agent_rounded,
-                      color: Colors.white, size: 16),
+                  child: Icon(
+                    isSystem ? Icons.auto_awesome_rounded : Icons.support_agent_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -841,14 +845,28 @@ class _ChatScreenState extends State<ChatScreen> {
                       ? CrossAxisAlignment.end
                       : CrossAxisAlignment.start,
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        message.isUser ? '고객' : (isSystem ? '자동 안내' : '판매자'),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: message.isUser
+                              ? AppColors.primary
+                              : (isSystem ? AppColors.info : AppColors.textSecondary),
+                        ),
+                      ),
+                    ),
                     Container(
                       constraints: BoxConstraints(
                           maxWidth: MediaQuery.of(context).size.width * 0.72),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color:
-                            message.isUser ? AppColors.primary : Colors.white,
+                        color: message.isUser
+                            ? AppColors.primary
+                            : (isSystem ? const Color(0xFFEAF2FF) : Colors.white),
                         borderRadius: BorderRadius.only(
                           topLeft: const Radius.circular(16),
                           topRight: const Radius.circular(16),
