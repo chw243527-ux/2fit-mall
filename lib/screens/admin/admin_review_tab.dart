@@ -86,6 +86,138 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
     setState(() => _filtered = list);
   }
 
+  Future<void> _showReviewEditor({ReviewModel? existing}) async {
+    final userNameCtrl = TextEditingController(text: existing?.userName ?? '관리자');
+    final productIdCtrl = TextEditingController(text: existing?.productId ?? '');
+    final contentCtrl = TextEditingController(text: existing?.content ?? '');
+    double rating = existing?.rating ?? 5;
+    final isEdit = existing != null;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Text(isEdit ? '리뷰 수정' : '리뷰 추가'),
+          content: SizedBox(
+            width: 420,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!isEdit) ...[
+                    TextField(
+                      controller: productIdCtrl,
+                      decoration: const InputDecoration(
+                        labelText: '상품 ID *',
+                        helperText: '상품 관리 목록의 상품 ID를 입력하세요.',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: userNameCtrl,
+                      decoration: const InputDecoration(labelText: '표시 작성자 *'),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  const Text('별점', style: TextStyle(fontWeight: FontWeight.w700)),
+                  DropdownButtonFormField<double>(
+                    value: rating,
+                    items: [5, 4, 3, 2, 1]
+                        .map((value) => DropdownMenuItem(
+                              value: value.toDouble(),
+                              child: Text('$value점'),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) setDialogState(() => rating = value);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: contentCtrl,
+                    maxLength: 1000,
+                    minLines: 4,
+                    maxLines: 7,
+                    decoration: const InputDecoration(
+                      labelText: '리뷰 내용 *',
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+              onPressed: () async {
+                final content = contentCtrl.text.trim();
+                final productId = productIdCtrl.text.trim();
+                final userName = userNameCtrl.text.trim();
+                if (content.isEmpty || (!isEdit && (productId.isEmpty || userName.isEmpty))) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(content: Text('필수 항목을 입력해주세요.')),
+                  );
+                  return;
+                }
+                if (!isEdit) {
+                  final product = await FirebaseFirestore.instance
+                      .collection('products')
+                      .doc(productId)
+                      .get();
+                  if (!product.exists) {
+                    if (dialogContext.mounted) {
+                      ScaffoldMessenger.of(dialogContext).showSnackBar(
+                        const SnackBar(content: Text('입력한 상품 ID를 찾을 수 없습니다.')),
+                      );
+                    }
+                    return;
+                  }
+                }
+                final review = ReviewModel(
+                  id: existing?.id ?? 'admin_review_${DateTime.now().millisecondsSinceEpoch}',
+                  userId: existing?.userId ?? 'admin_manual',
+                  userName: existing?.userName ?? userName,
+                  productId: existing?.productId ?? productId,
+                  rating: rating,
+                  content: content,
+                  images: existing?.images ?? const [],
+                  size: existing?.size ?? '',
+                  color: existing?.color ?? '',
+                  createdAt: existing?.createdAt ?? DateTime.now(),
+                );
+                final saved = isEdit
+                    ? await ReviewService.updateReview(review)
+                    : await ReviewService.addReview(review);
+                if (!dialogContext.mounted) return;
+                if (!saved) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(content: Text('리뷰 저장에 실패했습니다.')),
+                  );
+                  return;
+                }
+                Navigator.pop(dialogContext);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(isEdit ? '리뷰가 수정되었습니다.' : '리뷰가 추가되었습니다.')),
+                  );
+                  await _loadReviews();
+                }
+              },
+              child: Text(isEdit ? '저장' : '추가'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _deleteReview(ReviewModel r) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -211,6 +343,14 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
           ),
         ),
         actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              _showReviewEditor(existing: r);
+            },
+            icon: const Icon(Icons.edit_outlined, size: 16),
+            child: const Text('수정'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
@@ -243,6 +383,27 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
 
     return Column(
       children: [
+        // ── 관리 헤더 ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text('리뷰 관리',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              ),
+              ElevatedButton.icon(
+                onPressed: () => _showReviewEditor(),
+                icon: const Icon(Icons.add_rounded, size: 17),
+                label: const Text('리뷰 추가'),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(0, 42)),
+              ),
+            ],
+          ),
+        ),
         // ── 상단 통계 카드 ──
         Container(
           color: Colors.white,
@@ -325,72 +486,79 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
         Container(
           color: Colors.white,
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-          child: Row(
+          child: Column(
             children: [
-              // 검색
-              Expanded(
-                child: SizedBox(
-                  height: 36,
-                  child: TextField(
-                    controller: _searchCtrl,
-                    decoration: InputDecoration(
-                      hintText:
-                          context.loc.t('작성자 상품명 내용 검색', '작성자, 상품명, 내용 검색'),
-                      hintStyle: const TextStyle(
-                          fontSize: 12, color: AppColors.textHint),
-                      prefixIcon: const Icon(Icons.search,
-                          size: 16, color: AppColors.textHint),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, size: 14),
-                              onPressed: () {
-                                _searchCtrl.clear();
-                                setState(() => _searchQuery = '');
-                                _applyFilter();
-                              })
-                          : null,
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide:
-                              const BorderSide(color: AppColors.border)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 0),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 40,
+                      child: TextField(
+                        controller: _searchCtrl,
+                        decoration: InputDecoration(
+                          hintText: context.loc.t('작성자 상품명 내용 검색', '작성자, 상품명, 내용 검색'),
+                          hintStyle: const TextStyle(
+                              fontSize: 12, color: AppColors.textHint),
+                          prefixIcon: const Icon(Icons.search,
+                              size: 16, color: AppColors.textHint),
+                          suffixIcon: _searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 14),
+                                  onPressed: () {
+                                    _searchCtrl.clear();
+                                    setState(() => _searchQuery = '');
+                                    _applyFilter();
+                                  })
+                              : null,
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: AppColors.border)),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 0),
+                        ),
+                        style: const TextStyle(fontSize: 13),
+                        onChanged: (v) {
+                          setState(() => _searchQuery = v);
+                          _applyFilter();
+                        },
+                      ),
                     ),
-                    style: const TextStyle(fontSize: 13),
-                    onChanged: (v) {
-                      setState(() => _searchQuery = v);
-                      _applyFilter();
-                    },
                   ),
-                ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    tooltip: context.loc.t('새로고침', '새로고침'),
+                    onPressed: _loadReviews,
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              // 별점 필터
-              _FilterChip(
-                  label: '전체',
-                  selected: _filterRating == null,
-                  onTap: () {
-                    setState(() => _filterRating = null);
-                    _applyFilter();
-                  }),
-              const SizedBox(width: 4),
-              ...[5, 4, 3, 2, 1].map((s) => Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: _FilterChip(
-                      label: '$s★',
-                      selected: _filterRating == s.toDouble(),
-                      color: AppColors.warning,
-                      onTap: () {
-                        setState(() => _filterRating = s.toDouble());
-                        _applyFilter();
-                      },
-                    ),
-                  )),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                tooltip: context.loc.t('새로고침', '새로고침'),
-                onPressed: _loadReviews,
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _FilterChip(
+                        label: '전체',
+                        selected: _filterRating == null,
+                        onTap: () {
+                          setState(() => _filterRating = null);
+                          _applyFilter();
+                        }),
+                    const SizedBox(width: 4),
+                    ...[5, 4, 3, 2, 1].map((s) => Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: _FilterChip(
+                            label: '$s★',
+                            selected: _filterRating == s.toDouble(),
+                            color: AppColors.warning,
+                            onTap: () {
+                              setState(() => _filterRating = s.toDouble());
+                              _applyFilter();
+                            },
+                          ),
+                        )),
+                  ],
+                ),
               ),
             ],
           ),
@@ -423,6 +591,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                         productName: _productNames[_filtered[i].productId] ??
                             _filtered[i].productId,
                         onDelete: () => _deleteReview(_filtered[i]),
+                        onEdit: () => _showReviewEditor(existing: _filtered[i]),
                         onTap: () => _showReviewDetail(_filtered[i]),
                       ),
                     ),
@@ -437,12 +606,14 @@ class _ReviewCard extends StatelessWidget {
   final ReviewModel review;
   final String productName;
   final VoidCallback onDelete;
+  final VoidCallback onEdit;
   final VoidCallback onTap;
 
   const _ReviewCard({
     required this.review,
     required this.productName,
     required this.onDelete,
+    required this.onEdit,
     required this.onTap,
   });
 
@@ -486,6 +657,16 @@ class _ReviewCard extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 11, color: AppColors.textSecondary)),
                 const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined,
+                      size: 16, color: AppColors.info),
+                  tooltip: '수정',
+                  constraints:
+                      const BoxConstraints(minWidth: 28, minHeight: 28),
+                  padding: EdgeInsets.zero,
+                  onPressed: onEdit,
+                ),
+                const SizedBox(width: 4),
                 IconButton(
                   icon: const Icon(Icons.delete_outline_rounded,
                       size: 16, color: AppColors.error),

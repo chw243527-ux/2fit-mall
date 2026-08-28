@@ -113,7 +113,10 @@ class _SplashScreenState extends State<SplashScreen>
       );
 
       if (result.success && result.user != null) {
-        if (mounted) context.read<UserProvider>().login(result.user!);
+        if (mounted) {
+          context.read<UserProvider>().login(result.user!);
+          context.read<CouponProvider>().loadValidCoupons(result.user!.id);
+        }
         if (mounted)
           _navigateAfterLogin(deepLink,
               isLoggedIn: true, isAdmin: result.user!.isAdmin);

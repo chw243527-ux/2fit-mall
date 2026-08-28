@@ -173,7 +173,7 @@ class MainScreenState extends State<MainScreen> {
     if (_currentIndex != 0) return;
     final noticeProv = context.read<NoticeProvider>();
     if (!noticeProv.shouldShow) return;
-    final notices = noticeProv.activeNotices;
+    final notices = noticeProv.popupNotices;
     if (notices.isEmpty) return;
     final langProv = context.read<LanguageProvider>();
     final isPc = MediaQuery.of(context).size.width >= kPcBreakpoint;

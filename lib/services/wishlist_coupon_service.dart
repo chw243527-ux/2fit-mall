@@ -72,7 +72,7 @@ class CouponService {
     double? maxDiscountAmount,
     DateTime? startsAt,
     required DateTime expiresAt,
-    bool isDownloadable = false,
+    bool isDownloadable = true,
     int? downloadLimit,
   }) async {
     try {
@@ -210,6 +210,27 @@ class CouponService {
       if (kDebugMode) debugPrint('getDownloadedCouponIds error: $e');
       return {};
     }
+  }
+
+  /// 사용자가 직접 다운로드해 보유한 쿠폰 스트림 (마이페이지·결제용)
+  static Stream<List<CouponModel>> watchUserCoupons(String userId) {
+    return _db
+        .collection('user_coupons')
+        .doc(userId)
+        .collection('coupons')
+        .snapshots()
+        .map((snap) {
+          final coupons = snap.docs
+              .map((doc) => _parse(doc.id, doc.data()))
+              .where((coupon) => coupon.isValid && !coupon.isUsed)
+              .toList();
+          coupons.sort((a, b) => a.expiresAt.compareTo(b.expiresAt));
+          return coupons;
+        })
+        .handleError((e) {
+      if (kDebugMode) debugPrint('watchUserCoupons error: $e');
+      return <CouponModel>[];
+    });
   }
 
   /// 사용자 쿠폰 다운로드 (user_coupons/{uid}/coupons/{couponId} 저장)

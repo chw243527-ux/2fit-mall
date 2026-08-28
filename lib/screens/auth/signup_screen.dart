@@ -640,6 +640,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (result.success && result.user != null) {
       _SignupRateLimit.clear(); // 성공 시 초기화
       context.read<UserProvider>().login(result.user!);
+      context.read<CouponProvider>().loadValidCoupons(result.user!.id);
       _showSnack(loc.signupSuccessMsg, isSuccess: true);
       await Future.delayed(const Duration(milliseconds: 1500));
       if (mounted) {

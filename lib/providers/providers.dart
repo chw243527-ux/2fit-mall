@@ -515,17 +515,18 @@ class CouponProvider extends ChangeNotifier {
       _coupons.where((c) => c.isValid).toList();
   bool get isLoading => _loading;
 
-  /// 전체 유효 쿠폰 실시간 로드 (로그인 후 호출)
-  void loadValidCoupons() {
+  /// 로그인한 사용자가 직접 다운로드한 유효 쿠폰을 실시간 로드합니다.
+  void loadValidCoupons(String userId) {
     _loading = true;
     notifyListeners();
-    CouponService.watchValidCoupons().listen(
+    CouponService.watchUserCoupons(userId).listen(
       (list) {
         _coupons = list;
         _loading = false;
         notifyListeners();
       },
       onError: (e) {
+        _coupons = [];
         _loading = false;
         notifyListeners();
         if (kDebugMode) debugPrint('⚠️ 쿠폰 로드 실패: $e');
@@ -798,6 +799,10 @@ class NoticeModel {
   final DateTime? startDate;
   /// 노출 종료일 (null=제한없음)
   final DateTime? endDate;
+  /// 홈 팝업 노출 여부. 공지 목록 노출과 별도로 제어합니다.
+  final bool showAsPopup;
+  /// 팝업 중요도. 숫자가 클수록 먼저 노출됩니다.
+  final int popupPriority;
 
   const NoticeModel({
     required this.id,
@@ -811,6 +816,8 @@ class NoticeModel {
     this.imageUrl = '',
     this.startDate,
     this.endDate,
+    this.showAsPopup = true,
+    this.popupPriority = 0,
   });
 
   /// 현재 시각 기준 기간 내 활성 여부
@@ -883,6 +890,8 @@ class NoticeModel {
       imageUrl: data['imageUrl'] as String? ?? '',
       startDate: _parseDate(data['startDate']),
       endDate:   _parseDate(data['endDate']),
+      showAsPopup: data['showAsPopup'] as bool? ?? true,
+      popupPriority: (data['popupPriority'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -897,6 +906,8 @@ class NoticeModel {
     'imageUrl': imageUrl,
     'startDate': startDate != null ? Timestamp.fromDate(startDate!) : null,
     'endDate':   endDate   != null ? Timestamp.fromDate(endDate!)   : null,
+    'showAsPopup': showAsPopup,
+    'popupPriority': popupPriority,
   };
 }
 
@@ -964,8 +975,17 @@ class NoticeProvider extends ChangeNotifier {
 
   final List<NoticeModel> _notices = [];
 
-  List<NoticeModel> get activeNotices =>
-      _notices.where((n) => n.isActive && n.isInSchedule).toList();
+  List<NoticeModel> get activeNotices {
+    final notices = _notices.where((n) => n.isActive && n.isInSchedule).toList();
+    notices.sort((a, b) {
+      final priority = b.popupPriority.compareTo(a.popupPriority);
+      return priority != 0 ? priority : b.createdAt.compareTo(a.createdAt);
+    });
+    return notices;
+  }
+
+  List<NoticeModel> get popupNotices =>
+      activeNotices.where((n) => n.showAsPopup).toList();
   bool get isLoading => _isLoading;
 
   bool get shouldShow {
@@ -977,7 +997,7 @@ class NoticeProvider extends ChangeNotifier {
         return false;
       }
     }
-    return activeNotices.isNotEmpty;
+    return popupNotices.isNotEmpty;
   }
 
   void markShown() {}
@@ -1006,8 +1026,11 @@ class NoticeProvider extends ChangeNotifier {
       final loaded = snap.docs
           .map((d) => NoticeModel.fromFirestore(d.data(), d.id))
           .toList();
-      // 메모리에서 최신순 정렬 (Firestore 복합 인덱스 불필요)
-      loaded.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      // 중요도 우선, 같은 중요도는 최신순으로 정렬합니다.
+      loaded.sort((a, b) {
+        final priority = b.popupPriority.compareTo(a.popupPriority);
+        return priority != 0 ? priority : b.createdAt.compareTo(a.createdAt);
+      });
       // Firestore 결과로 완전 교체 (하드코딩 샘플 제거)
       _notices
         ..clear()
@@ -1055,6 +1078,10 @@ class NoticeProvider extends ChangeNotifier {
               createdAt: old.createdAt,
               theme: old.theme,
               imageUrl: old.imageUrl,
+              startDate: old.startDate,
+              endDate: old.endDate,
+              showAsPopup: old.showAsPopup,
+              popupPriority: old.popupPriority,
             );
             notifyListeners();
           }
@@ -1122,6 +1149,12 @@ class NoticeProvider extends ChangeNotifier {
       contentTranslations: old.contentTranslations,
       isActive: !old.isActive,
       createdAt: old.createdAt,
+      theme: old.theme,
+      imageUrl: old.imageUrl,
+      startDate: old.startDate,
+      endDate: old.endDate,
+      showAsPopup: old.showAsPopup,
+      popupPriority: old.popupPriority,
     );
     _notices[idx] = updated;
     notifyListeners();
@@ -1152,6 +1185,10 @@ class NoticeProvider extends ChangeNotifier {
         final loaded = snap.docs
             .map((d) => NoticeModel.fromFirestore(d.data(), d.id))
             .toList();
+        loaded.sort((a, b) {
+          final priority = b.popupPriority.compareTo(a.popupPriority);
+          return priority != 0 ? priority : b.createdAt.compareTo(a.createdAt);
+        });
         _notices.clear();
         _notices.addAll(loaded);
       }

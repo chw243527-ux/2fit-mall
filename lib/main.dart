@@ -459,7 +459,7 @@ class _AppInitState extends State<_AppInit> {
         context.read<UserProvider>().syncWishlistFromFirestore();
         context.read<NotificationProvider>().loadFromFirestore(user.id);
         context.read<SizeProfileProvider>().loadProfiles(user.id);
-        context.read<CouponProvider>().loadValidCoupons();
+        context.read<CouponProvider>().loadValidCoupons(user.id);
         context.read<PointProvider>().loadPoints(user.id);
         FcmService.saveTokenToFirestore(user.id).catchError(
           (e) { if (kDebugMode) debugPrint('⚠️ FCM 토큰 저장 실패: $e'); },

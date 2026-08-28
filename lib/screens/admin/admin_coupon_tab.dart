@@ -61,18 +61,32 @@ class _AdminCouponTabBodyState extends State<_AdminCouponTabBody> {
             child: Text('쿠폰 관리',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ),
-          ElevatedButton.icon(
-            onPressed: () => _showCouponDialog(context, null),
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: const Text('쿠폰 추가'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-          ),
+          Builder(builder: (context) {
+            final compact = MediaQuery.of(context).size.width < 480;
+            return compact
+                ? IconButton.filled(
+                    onPressed: () => _showCouponDialog(context, null),
+                    icon: const Icon(Icons.add_rounded),
+                    tooltip: '쿠폰 추가',
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(44, 44),
+                    ),
+                  )
+                : ElevatedButton.icon(
+                    onPressed: () => _showCouponDialog(context, null),
+                    icon: const Icon(Icons.add_rounded, size: 18),
+                    label: const Text('쿠폰 추가'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  );
+          }),
         ],
       ),
     );
@@ -464,7 +478,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
   DateTime? _startsAt; // null = 즉시 시작
   late DateTime _expiresAt;
   bool _saving = false;
-  bool _isDownloadable = false;
+  bool _isDownloadable = true;
 
   bool get isEdit => widget.existing != null;
 
@@ -487,7 +501,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
     _type = e?.type ?? CouponType.fixed;
     _startsAt = e?.startsAt;
     _expiresAt = e?.expiresAt ?? DateTime.now().add(const Duration(days: 30));
-    _isDownloadable = e?.isDownloadable ?? false;
+    _isDownloadable = e?.isDownloadable ?? true;
     _limitCtrl = TextEditingController(
         text: e?.downloadLimit != null ? e!.downloadLimit.toString() : '');
   }
@@ -807,7 +821,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                             ],
                           ),
                           subtitle: Text(
-                            '홈 화면 팝업에서 사용자가 직접 다운로드',
+                            '일반 고객이 홈 팝업에서 직접 다운로드',
                             style: TextStyle(
                                 fontSize: 11, color: Colors.grey[600]),
                           ),

@@ -6650,40 +6650,64 @@ class _AdminScreenState extends State<AdminScreen>
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: Row(
                 children: [
-                  Text('홈 메인 배너',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Flexible(
+                          child: Text('홈 메인 배너',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.w800)),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text('${banners.length}개',
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700)),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text('${banners.length}개',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700)),
-                  ),
-                  const Spacer(),
-                  ElevatedButton.icon(
-                    onPressed: () => _showAddBannerDialog(),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: Text('배너 추가'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      elevation: 0,
-                      textStyle: const TextStyle(
-                          fontSize: 13, fontWeight: FontWeight.w700),
-                    ),
-                  ),
+                  Builder(builder: (context) {
+                    final compact = MediaQuery.of(context).size.width < 480;
+                    return compact
+                        ? IconButton.filled(
+                            onPressed: _showAddBannerDialog,
+                            icon: const Icon(Icons.add),
+                            tooltip: '배너 추가',
+                            style: IconButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(44, 44),
+                            ),
+                          )
+                        : ElevatedButton.icon(
+                            onPressed: _showAddBannerDialog,
+                            icon: const Icon(Icons.add, size: 16),
+                            label: const Text('배너 추가'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              elevation: 0,
+                              textStyle: const TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.w700),
+                            ),
+                          );
+                  }),
                 ],
               ),
             ),
@@ -6891,6 +6915,31 @@ class _AdminScreenState extends State<AdminScreen>
                                         ],
                                       ),
                                     ),
+                                    // 표시 순서 변경
+                                    _iconBtn(Icons.keyboard_arrow_up_rounded,
+                                        i == 0
+                                            ? null
+                                            : () async {
+                                                final reordered = List<BannerModel>.from(banners);
+                                                final moved = reordered.removeAt(i);
+                                                reordered.insert(i - 1, moved);
+                                                await BannerService.reorderBanners(reordered);
+                                              },
+                                        color: i == 0
+                                            ? AppColors.textHint
+                                            : AppColors.textSecondary),
+                                    _iconBtn(Icons.keyboard_arrow_down_rounded,
+                                        i == banners.length - 1
+                                            ? null
+                                            : () async {
+                                                final reordered = List<BannerModel>.from(banners);
+                                                final moved = reordered.removeAt(i);
+                                                reordered.insert(i + 1, moved);
+                                                await BannerService.reorderBanners(reordered);
+                                              },
+                                        color: i == banners.length - 1
+                                            ? AppColors.textHint
+                                            : AppColors.textSecondary),
                                     // 활성 토글
                                     Switch(
                                       value: b.active,
@@ -8094,7 +8143,7 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
-  Widget _iconBtn(IconData icon, VoidCallback onTap,
+  Widget _iconBtn(IconData icon, VoidCallback? onTap,
       {Color color = AppColors.textSecondary}) {
     return GestureDetector(
       onTap: onTap,
@@ -17453,6 +17502,9 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
     final contentCtrl = TextEditingController(text: existing?.contentKo ?? '');
     final imageCtrl = TextEditingController(text: existing?.imageUrl ?? '');
     bool isActive = existing?.isActive ?? true;
+    bool showAsPopup = existing?.showAsPopup ?? true;
+    final popupPriorityCtrl = TextEditingController(
+        text: (existing?.popupPriority ?? 0).toString());
     String selectedTheme = existing != null ? (existing.theme) : 'auto';
     bool autoImage = existing == null || existing.imageUrl.isEmpty;
     // ── 기간 설정 ──
@@ -17885,6 +17937,31 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                       ],
                     ),
                   ),
+                  // ── 홈 팝업 노출과 중요도 ────────────────────────
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: showAsPopup,
+                    activeColor: AppColors.primaryLight,
+                    title: const Text('홈 팝업으로 노출',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                    subtitle: const Text('끄면 공지사항 목록에만 표시됩니다.',
+                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    onChanged: (value) => setD(() => showAsPopup = value),
+                  ),
+                  if (showAsPopup) ...[
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: popupPriorityCtrl,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: const InputDecoration(
+                        labelText: '팝업 중요도',
+                        helperText: '숫자가 클수록 먼저 노출됩니다. 기본값 0',
+                        prefixIcon: Icon(Icons.priority_high_rounded),
+                      ),
+                    ),
+                  ],
                   // ── 기간 설정 ──────────────────────────────────
                   const SizedBox(height: 16),
                   _buildScheduleSection(
@@ -17953,6 +18030,10 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   imageUrl: finalImageUrl,
                   startDate: scheduleStart,
                   endDate: scheduleEnd,
+                  showAsPopup: showAsPopup,
+                  popupPriority: (int.tryParse(popupPriorityCtrl.text.trim()) ?? 0)
+                      .clamp(0, 999)
+                      .toInt(),
                 );
                 final noticeProvider = context.read<NoticeProvider>();
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -18087,35 +18168,57 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                       color: AppColors.primaryLight, size: 22),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('공지사항 관리',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primary)),
-                    Text(
-                        '총 ${notices.length}개 · 활성 ${notices.where((n) => n.isActive).length}개',
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
-                  ],
-                ),
-                const Spacer(),
-                ElevatedButton.icon(
-                  onPressed: () => _openEditor(),
-                  icon: const Icon(Icons.add_rounded, size: 18),
-                  label: Text('새 공지 등록',
-                      style: TextStyle(fontWeight: FontWeight.w700)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryLight,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    elevation: 0,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('공지사항 관리',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary)),
+                      Text(
+                          '총 ${notices.length}개 · 활성 ${notices.where((n) => n.isActive).length}개',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textSecondary)),
+                    ],
                   ),
+                ),
+                const SizedBox(width: 8),
+                LayoutBuilder(
+                  builder: (context, _) {
+                    final compact = MediaQuery.of(context).size.width < 480;
+                    return compact
+                        ? IconButton.filled(
+                            onPressed: () => _openEditor(),
+                            icon: const Icon(Icons.add_rounded),
+                            tooltip: '새 공지 등록',
+                            style: IconButton.styleFrom(
+                              backgroundColor: AppColors.primaryLight,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(44, 44),
+                            ),
+                          )
+                        : ElevatedButton.icon(
+                            onPressed: () => _openEditor(),
+                            icon: const Icon(Icons.add_rounded, size: 18),
+                            label: const Text('새 공지 등록',
+                                style: TextStyle(fontWeight: FontWeight.w700)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryLight,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              elevation: 0,
+                            ),
+                          );
+                  },
                 ),
               ],
             ),
@@ -18137,7 +18240,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '활성 공지는 앱 홈화면 팝업으로 표시됩니다. 한국어로 등록하면 자동으로 5개 언어(영·일·중·몽)로 번역됩니다.',
+                      '활성 상태이면서 홈 팝업 노출이 켜진 공지만 표시됩니다. 중요도 숫자가 클수록 먼저 노출됩니다.',
                     style: TextStyle(
                         fontSize: 12, color: Color(0xFF3949AB), height: 1.5),
                   ),
@@ -18340,6 +18443,19 @@ class _NoticeCard extends StatelessWidget {
                         height: 1.5),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    notice.showAsPopup
+                        ? '홈 팝업 · 중요도 ${notice.popupPriority}'
+                        : '공지 목록 전용 · 홈 팝업 미노출',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: notice.showAsPopup
+                          ? AppColors.primaryLight
+                          : AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),

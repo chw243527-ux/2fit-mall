@@ -922,6 +922,7 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (result.success && result.user != null) {
         userProv.login(result.user!);
+        context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (_, __, ___) => const MainScreen(),
@@ -966,6 +967,7 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (result.success && result.user != null) {
         userProv.login(result.user!);
+        context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (_, __, ___) => const MainScreen(),
@@ -1010,6 +1012,7 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (result.success && result.user != null) {
         userProv.login(result.user!);
+        context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (_, __, ___) => const MainScreen(),
@@ -1178,6 +1181,7 @@ class _LoginScreenState extends State<LoginScreen>
               if (!mounted) return;
               if (result.success && result.user != null) {
                 userProv.login(result.user!);
+        context.read<CouponProvider>().loadValidCoupons(result.user!.id);
                 Navigator.of(context).pushReplacement(
                   PageRouteBuilder(
                     pageBuilder: (_, __, ___) => const MainScreen(),

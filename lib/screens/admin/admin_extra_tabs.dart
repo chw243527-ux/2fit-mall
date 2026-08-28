@@ -685,12 +685,23 @@ class AdminStaffTab extends StatefulWidget {
 }
 
 class _AdminStaffTabState extends State<AdminStaffTab> {
+  static const _staffRoles = [
+    '총괄 관리자',
+    '매장 관리자',
+    '운영 매니저',
+    'CS 담당',
+    '콘텐츠 담당',
+    '재고 담당',
+  ];
+
   void _showAddStaffDialog() {
     final emailCtrl = TextEditingController();
+    String staffRole = '운영 매니저';
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('직원 계정에 관리자 권한 부여'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+        title: const Text('직원 계정에 관리자 권한 부여'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -700,11 +711,26 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
             TextField(
               controller: emailCtrl,
               keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: '이메일',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.email_rounded),
               ),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: staffRole,
+              decoration: const InputDecoration(
+                labelText: '직급',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.badge_outlined),
+              ),
+              items: _staffRoles
+                  .map((role) => DropdownMenuItem(value: role, child: Text(role)))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) setDialogState(() => staffRole = value);
+              },
             ),
           ],
         ),
@@ -722,7 +748,11 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                   .get();
 
               if (query.docs.isNotEmpty) {
-                await query.docs.first.reference.update({'isAdmin': true});
+                await query.docs.first.reference.update({
+                  'isAdmin': true,
+                  'staffRole': staffRole,
+                  'staffRoleUpdatedAt': FieldValue.serverTimestamp(),
+                });
                 if (ctx.mounted) Navigator.pop(ctx);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -745,6 +775,56 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
           ),
         ],
       ),
+      ),
+    );
+  }
+
+  void _showStaffRoleDialog(Map<String, dynamic> staff) {
+    String staffRole = (staff['staffRole'] as String?) ?? '운영 매니저';
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('${staff['name'] ?? '직원'} 직급 설정'),
+          content: DropdownButtonFormField<String>(
+            value: _staffRoles.contains(staffRole) ? staffRole : '운영 매니저',
+            decoration: const InputDecoration(
+              labelText: '직급',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.badge_outlined),
+            ),
+            items: _staffRoles
+                .map((role) => DropdownMenuItem(value: role, child: Text(role)))
+                .toList(),
+            onChanged: (value) {
+              if (value != null) setDialogState(() => staffRole = value);
+            },
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+              onPressed: () async {
+                await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(staff['id'] as String)
+                    .update({
+                  'staffRole': staffRole,
+                  'staffRoleUpdatedAt': FieldValue.serverTimestamp(),
+                });
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('직급을 $staffRole(으)로 변경했습니다.')),
+                  );
+                }
+              },
+              child: const Text('저장'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -761,7 +841,11 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               await FirebaseFirestore.instance
                   .collection('users')
                   .doc(staff['id'] as String?)
-                  .update({'isAdmin': false});
+                  .update({
+                'isAdmin': false,
+                'staffRole': FieldValue.delete(),
+                'staffRoleUpdatedAt': FieldValue.serverTimestamp(),
+              });
               if (ctx.mounted) Navigator.pop(ctx);
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -799,21 +883,38 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
             children: [
               Row(
                 children: [
-                  Text('직원 계정 관리',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-                  const Spacer(),
-                  ElevatedButton.icon(
-                    onPressed: _showAddStaffDialog,
-                    icon: const Icon(Icons.person_add_rounded, size: 16),
-                    label: Text('직원 추가'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
-                    ),
+                  const Expanded(
+                    child: Text('직원 계정 관리',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
                   ),
+                  const SizedBox(width: 8),
+                  Builder(builder: (context) {
+                    final compact = MediaQuery.of(context).size.width < 480;
+                    return compact
+                        ? IconButton.filled(
+                            onPressed: _showAddStaffDialog,
+                            icon: const Icon(Icons.person_add_rounded),
+                            tooltip: '직원 추가',
+                            style: IconButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(44, 44),
+                            ),
+                          )
+                        : ElevatedButton.icon(
+                            onPressed: _showAddStaffDialog,
+                            icon: const Icon(Icons.person_add_rounded, size: 16),
+                            label: const Text('직원 추가'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                          );
+                  }),
                 ],
               ),
               const SizedBox(height: 8),
@@ -825,9 +926,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               ...staffList.map((staff) {
                 final email = staff['email'] as String? ?? '';
                 final name = staff['name'] as String? ?? '이름없음';
-                final memberTier = staff['memberTier'] as String? ??
-                    staff['grade'] as String? ??
-                    '';
+                final staffRole = staff['staffRole'] as String? ?? '직급 미지정';
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(16),
@@ -877,23 +976,15 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600)),
                                 ),
-                                if (memberTier.isNotEmpty) ...[
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Colors.amber.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(memberTier.toUpperCase(),
-                                        style: const TextStyle(
-                                            color: Colors.amber,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600)),
-                                  ),
-                                ],
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(staffRole,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                          color: AppColors.info,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700)),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 4),
@@ -903,11 +994,22 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                           ],
                         ),
                       ),
-                      IconButton(
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            onPressed: () => _showStaffRoleDialog(staff),
+                            icon: const Icon(Icons.edit_outlined,
+                                color: AppColors.info),
+                            tooltip: '직급 수정',
+                          ),
+                          IconButton(
                         onPressed: () => _showRevokeDialog(staff),
                         icon: const Icon(Icons.remove_circle_outline_rounded,
                             color: AppColors.error),
                         tooltip: '권한 해제',
+                      ),
+                        ],
                       ),
                     ],
                   ),

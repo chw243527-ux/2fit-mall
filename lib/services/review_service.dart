@@ -124,7 +124,7 @@ class ReviewService {
         });
   }
 
-  static Future<void> addReview(ReviewModel review) async {
+  static Future<bool> addReview(ReviewModel review) async {
     try {
       await _db.collection('reviews').doc(review.id).set({
         'id': review.id,
@@ -139,12 +139,14 @@ class ReviewService {
         'createdAt': FieldValue.serverTimestamp(),
       });
       await _updateProductRating(review.productId);
+      return true;
     } catch (e) {
       if (kDebugMode) debugPrint('addReview error: $e');
+      return false;
     }
   }
 
-  static Future<void> updateReview(ReviewModel review) async {
+  static Future<bool> updateReview(ReviewModel review) async {
     try {
       await _db.collection('reviews').doc(review.id).update({
         'rating': review.rating,
@@ -153,8 +155,10 @@ class ReviewService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
       await _updateProductRating(review.productId);
+      return true;
     } catch (e) {
       if (kDebugMode) debugPrint('updateReview error: $e');
+      return false;
     }
   }
 
