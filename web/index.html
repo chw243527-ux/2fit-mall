@@ -6,8 +6,7 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
 
-  <!-- 홈 배너 동영상 사전 로드 (로딩 지연 방지) -->
-  <link rel="preload" href="assets/assets/images/banner_video.mp4" as="video" type="video/mp4">
+  <!-- 홈 배너 동영상은 실제 홈 화면에서만 로드해 첫 화면을 가볍게 유지합니다. -->
 
   <!-- ═══════════════════════════════════════════════
        Pretendard 폰트 (한국 쇼핑몰 최적화 글씨체)
@@ -259,8 +258,8 @@
          window.showCameraPreview(x, y, w, h)
          window.hideCameraPreview()
   ═══════════════════════════════════════════════ -->
-  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
-  <script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <script defer>
     (function() {
       var _videoEl   = null;
       var _canvasEl  = null;
@@ -540,10 +539,10 @@
        Flutter Web에서 카카오 로그인 팝업을 띄우기 위해 필요
        JS 키 등록 완료: 09aadca2435b22f8b07bcda2d469a36f
   ═══════════════════════════════════════════════ -->
-  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
+  <script defer src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
           integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nka"
           crossorigin="anonymous"></script>
-  <script>
+  <script defer>
     // 카카오 JavaScript 키 등록 완료 (2026-06-17)
     // console.kakao.com → 내 애플리케이션 → 앱 키 → JavaScript 키
     if (window.Kakao && !window.Kakao.isInitialized()) {
@@ -552,9 +551,9 @@
   </script>
 
   <!-- 토스페이먼츠 결제위젯 SDK v1 -->
-  <script src="https://js.tosspayments.com/v1/payment-widget"></script>
+  <script defer src="https://js.tosspayments.com/v1/payment-widget"></script>
   <!-- 토스페이먼츠 SDK v2 (간편결제·실결제용) -->
-  <script src="https://js.tosspayments.com/v2/standard"></script>
+  <script defer src="https://js.tosspayments.com/v2/standard"></script>
   <script>
     // ── Payment Widget 전역 인스턴스 ──────────────────────────────
     // Flutter checkout 페이지에서 initTossWidget() → renderTossWidget()
