@@ -145,8 +145,15 @@ class _SplashScreenState extends State<SplashScreen>
   _DeepLink? _parseDeepLink(String fragment) {
     // fragment = "/product?id=abc" 또는 "/products" 등
     final uri = Uri.parse(fragment);
-    final path = uri.path; // "/product"
-    final q = uri.queryParameters; // {"id": "abc"}
+    final rawPath = uri.path;
+    // 공유 링크는 /product/{id}, 기존 링크는 /product?id={id} 형식을 모두 지원합니다.
+    final path = rawPath.startsWith('/product/') ? '/product' : rawPath;
+    final q = rawPath.startsWith('/product/')
+        ? {
+            ...uri.queryParameters,
+            'id': Uri.decodeComponent(rawPath.substring('/product/'.length)),
+          }
+        : uri.queryParameters;
 
     switch (path) {
       // 홈
