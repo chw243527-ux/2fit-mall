@@ -856,6 +856,14 @@ function _readCheckoutPayload(body) {
   return { items, deliveryAddress, paymentMethod, memo: String(body?.memo || '').trim().slice(0, 500), couponId: body?.couponId ? String(body.couponId).slice(0, 120) : '', usedPoints: Math.max(0, Math.floor(Number(body?.usedPoints || 0))) };
 }
 
+const _CHECKOUT_COLOR_OPTIONS = [
+  'K (블랙)', 'N (네이비)', 'W (화이트)', 'G (그레이)',
+  'DG (다크그레이)', 'SB (스카이블루)', 'B (블루)', 'DB (다크블루)',
+  'SP (스킨핑크)', 'LP (라이트핑크)', 'IO (아이보리)', 'LG (라이트그레이)',
+  'R (레드)', 'PP (퍼플네이비)', 'ND (올리브그린)', 'BB (틸블루)',
+  'FP (형광핑크)', 'FO (형광오렌지)', 'FG (형광그린)',
+];
+
 const _COLOR_ALIAS_GROUPS = [
   ['black', '블랙', '검정', '검은색'],
   ['white', '화이트', '흰색'],
@@ -912,7 +920,17 @@ async function _prepareOrderFromServerData(uid, payload) {
     if (!productSnap.exists || product.isActive === false || !Number.isFinite(Number(product.price))) throw new Error('Product is unavailable');
     if (Array.isArray(product.sizes) && product.sizes.length && !product.sizes.includes(size)) throw new Error('Invalid product size');
     const color = _resolveProductOption(requestedColor, product.colors);
-    if (Array.isArray(product.colors) && product.colors.length && !product.colors.includes(color)) throw new Error('Invalid product color');
+    const knownColor = _resolveProductOption(requestedColor, _CHECKOUT_COLOR_OPTIONS);
+    const isKnownCheckoutColor = _CHECKOUT_COLOR_OPTIONS.includes(knownColor)
+      || /^커스텀\s*\(#[0-9a-f]{6}\)$/i.test(requestedColor);
+    if (Array.isArray(product.colors) && product.colors.length && !product.colors.includes(color) && !isKnownCheckoutColor) {
+      console.error('Invalid product color', {
+        productId,
+        requestedColor,
+        allowedColors: product.colors,
+      });
+      throw new Error('Invalid product color');
+    }
     if ((Array.isArray(product.soldOutSizes) && product.soldOutSizes.includes(size)) || Number(product.stockCount || 0) < quantity) throw new Error('Product is out of stock');
     const unitPrice = Math.round(Number(product.price));
     subtotal += unitPrice * quantity;
