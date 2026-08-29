@@ -22,7 +22,7 @@ import '../mypage/size_profile_screen.dart';
 import '../notifications/notification_center_screen.dart';
 import '../not_found_screen.dart';
 import '../chat/chat_screen.dart';
-import '../payment/payment_result_screen.dart';
+import '../deferred_route_widgets.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -322,10 +322,10 @@ class _SplashScreenState extends State<SplashScreen>
         // ── 토스페이먼츠 결제 콜백 ────────────────────────────
         // top.location.href로 리다이렉트되어 pathname 방식으로 진입
         case '/payment/success':
-          target = const PaymentSuccessScreen();
+          target = const DeferredPaymentResultScreen(success: true);
           break;
         case '/payment/fail':
-          target = const PaymentFailScreen();
+          target = const DeferredPaymentResultScreen(success: false);
           break;
         default:
           target = isLoggedIn ? const MainScreen() : const LoginScreen();

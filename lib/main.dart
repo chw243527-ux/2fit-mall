@@ -40,8 +40,7 @@ import 'screens/mypage/size_profile_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/notifications/notification_center_screen.dart';
 import 'screens/main_screen.dart';
-import 'screens/payment/payment_result_screen.dart';
-import 'screens/payment/payment_checkout_screen.dart';
+import 'screens/deferred_route_widgets.dart';
 
 Future<bool> _initializeFirebaseInBackground() async {
   try {
@@ -368,19 +367,19 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
             // 토스페이먼츠 결제 성공 콜백
             case '/payment/success':
               return MaterialPageRoute(
-                builder: (_) => const PaymentSuccessScreen(),
+                builder: (_) => const DeferredPaymentResultScreen(success: true),
                 settings: settings,
               );
             // 토스페이먼츠 결제 실패 콜백
             case '/payment/fail':
               return MaterialPageRoute(
-                builder: (_) => const PaymentFailScreen(),
+                builder: (_) => const DeferredPaymentResultScreen(success: false),
                 settings: settings,
               );
             // 토스페이먼츠 Payment Widget 결제 화면
             case '/payment/checkout':
               return MaterialPageRoute(
-                builder: (_) => const PaymentCheckoutScreen(),
+                builder: (_) => const DeferredPaymentCheckoutScreen(),
                 settings: settings,
               );
             default:
