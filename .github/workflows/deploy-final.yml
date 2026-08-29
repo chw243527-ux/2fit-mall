@@ -73,6 +73,9 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
+      - name: Run Flutter tests
+        run: flutter test --no-pub
+
       - name: Analyze Flutter project
         continue-on-error: true
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
@@ -186,6 +189,11 @@ jobs:
           else
             npm install
           fi
+
+      - name: Validate Cloud Functions source
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true') }}
+        working-directory: functions
+        run: npm test
 
       - name: Authenticate Firebase with service account
         if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_firebase == 'true') }}
