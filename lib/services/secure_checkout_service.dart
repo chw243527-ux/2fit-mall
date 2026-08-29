@@ -81,20 +81,38 @@ class SecureCheckoutService {
     required T Function(String) onFailure,
   }) async {
     try {
-      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return onFailure('로그인이 필요합니다.');
+      }
+
+      // 결제 서버는 폐기·만료된 토큰을 거부하므로 최신 토큰을 사용합니다.
+      var token = await user.getIdToken(true);
       if (token == null || token.isEmpty) {
         return onFailure('로그인이 필요합니다.');
       }
-      final response = await http
+
+      Future<http.Response> send(String idToken) => http
           .post(
             Uri.parse('$_baseUrl/$path'),
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
+              'Authorization': 'Bearer $idToken',
             },
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 30));
+
+      var response = await send(token);
+      // 세션 갱신 지연으로 401이 반환되면 최신 토큰으로 한 번만 재시도합니다.
+      if (response.statusCode == 401) {
+        token = await user.getIdToken(true);
+        if (token == null || token.isEmpty) {
+          return onFailure('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+        }
+        response = await send(token);
+      }
+
       final dynamic decoded = response.body.isEmpty
           ? <String, dynamic>{}
           : jsonDecode(response.body);
