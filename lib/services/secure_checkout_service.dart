@@ -82,20 +82,47 @@ class SecureCheckoutService {
     required T Function(String) onFailure,
   }) async {
     try {
-      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
-      if (token == null || token.isEmpty) {
+      var user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
         return onFailure('로그인이 필요합니다.');
       }
-      final response = await http
-          .post(
-            Uri.parse('$_baseUrl/$path'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode(body),
-          )
-          .timeout(const Duration(seconds: 30));
+
+      // 결제처럼 중요한 요청은 캐시된 토큰을 쓰지 않고 최신 ID 토큰을 발급합니다.
+      // 예전 앱 세션에서 만료된 토큰이 남아 있는 경우에도 한 번 자동 복구합니다.
+      await user.reload();
+      user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return onFailure('로그인이 필요합니다. 다시 로그인해 주세요.');
+      }
+      var token = await user.getIdToken(true);
+      if (token == null || token.isEmpty) {
+        return onFailure('로그인 인증을 갱신할 수 없습니다. 다시 로그인해 주세요.');
+      }
+
+      Future<http.Response> sendRequest(String idToken) {
+        return http
+            .post(
+              Uri.parse('$_baseUrl/$path'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $idToken',
+              },
+              body: jsonEncode(body),
+            )
+            .timeout(const Duration(seconds: 30));
+      }
+
+      var response = await sendRequest(token);
+      if (response.statusCode == 401) {
+        // 서버가 취소·만료 토큰을 거부한 경우에만 새 토큰으로 한 번 더 시도합니다.
+        await user.reload();
+        user = FirebaseAuth.instance.currentUser;
+        token = await user?.getIdToken(true);
+        if (token != null && token.isNotEmpty) {
+          response = await sendRequest(token);
+        }
+      }
+
       final dynamic decoded = response.body.isEmpty
           ? <String, dynamic>{}
           : jsonDecode(response.body);
@@ -103,6 +130,9 @@ class SecureCheckoutService {
           decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return parser(data);
+      }
+      if (response.statusCode == 401) {
+        return onFailure('로그인 인증이 만료되었습니다. 로그아웃 후 다시 로그인해 주세요.');
       }
       return onFailure(data['error'] as String? ?? '안전한 결제 요청 처리에 실패했습니다.');
     } catch (_) {
