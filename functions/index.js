@@ -732,7 +732,25 @@ exports.createSecureOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) =
   const decoded = await requireSignedIn(req, res);
   if (!decoded) return;
   try {
-    const account = await db.collection('users').doc(decoded.uid).get();
+    // 카카오 로그인 직후 Firestore 프로필 저장이 지연되거나 실패해도,
+    // 유효한 Firebase 인증 사용자의 최소 주문 프로필은 서버에서 보완합니다.
+    const accountRef = db.collection('users').doc(decoded.uid);
+    let account = await accountRef.get();
+    if (!account.exists) {
+      await accountRef.set({
+        id: decoded.uid,
+        name: String(decoded.name || decoded.email || '회원').slice(0, 100),
+        email: String(decoded.email || '').slice(0, 254),
+        phone: '',
+        points: 0,
+        wishlist: [],
+        grade: 'bronze',
+        loginProvider: 'kakao',
+        createdAt: FieldValue.serverTimestamp(),
+        lastLoginAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      account = await accountRef.get();
+    }
     if (!account.exists || account.data()?.isBlocked === true) {
       res.status(403).json({ error: 'Account is not available for checkout' });
       return;
