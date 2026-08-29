@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
+import 'auth_service.dart';
+
 class SecureCheckoutService {
   static const _baseUrl = 'https://us-central1-fit-mall.cloudfunctions.net';
 
@@ -132,7 +134,9 @@ class SecureCheckoutService {
         return parser(data);
       }
       if (response.statusCode == 401) {
-        return onFailure('로그인 인증이 만료되었습니다. 로그아웃 후 다시 로그인해 주세요.');
+        // 강제 갱신한 토큰도 서버에서 거부되면 화면 전용 세션을 남기지 않습니다.
+        await AuthService.logout();
+        return onFailure('로그인 인증이 만료되어 로그아웃되었습니다. 다시 로그인해 주세요.');
       }
       return onFailure(data['error'] as String? ?? '안전한 결제 요청 처리에 실패했습니다.');
     } catch (_) {

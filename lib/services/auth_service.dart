@@ -355,25 +355,27 @@ class AuthService {
   // ────────────────────────────────────────────
   static Future<AuthResult> restoreSession() async {
     try {
-      // Firebase Auth 현재 사용자 확인
+      // Firebase Auth 세션이 실제로 유효할 때만 화면 로그인을 복구합니다.
+      // Hive에 남은 UID만으로 로그인 화면을 우회하면 서버 API의 ID 토큰 검증과 불일치할 수 있습니다.
       final firebaseUser = _auth.currentUser;
       if (firebaseUser != null) {
-        final user =
-            await _loadUser(firebaseUser.uid, firebaseUser.email ?? '');
-        if (user != null) {
-          return AuthResult(success: true, user: user);
+        try {
+          final token = await firebaseUser.getIdToken(true);
+          if (token != null && token.isNotEmpty) {
+            final user =
+                await _loadUser(firebaseUser.uid, firebaseUser.email ?? '');
+            if (user != null) {
+              return AuthResult(success: true, user: user);
+            }
+          }
+        } catch (_) {
+          await _auth.signOut();
         }
       }
 
-      // Hive 세션 확인 (레거시 폴백)
+      // 예전 앱 버전이 남긴 화면 전용 세션은 안전하게 정리합니다.
       final sessionBox = await _getSessionBox();
-      final savedUid = sessionBox.get('currentUid') as String?;
-      if (savedUid != null) {
-        final email = sessionBox.get('currentEmail') as String? ?? '';
-        final user = await _loadUser(savedUid, email);
-        if (user != null) return AuthResult(success: true, user: user);
-      }
-
+      await sessionBox.deleteAll(['currentUid', 'currentEmail', 'user']);
       return const AuthResult(success: false);
     } catch (_) {
       return const AuthResult(success: false);
@@ -386,7 +388,7 @@ class AuthService {
   static Future<void> logout() async {
     await _auth.signOut();
     final sessionBox = await _getSessionBox();
-    await sessionBox.deleteAll(['currentUid', 'currentEmail']);
+    await sessionBox.deleteAll(['currentUid', 'currentEmail', 'user']);
   }
 
   // ────────────────────────────────────────────
