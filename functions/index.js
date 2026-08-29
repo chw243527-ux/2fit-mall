@@ -890,6 +890,22 @@ function _readCheckoutPayload(body) {
   return { items, deliveryAddress, paymentMethod, memo: String(body?.memo || '').trim().slice(0, 500), couponId: body?.couponId ? String(body.couponId).slice(0, 120) : '', usedPoints: Math.max(0, Math.floor(Number(body?.usedPoints || 0))) };
 }
 
+const _COLOR_ALIAS_GROUPS = [
+  ['black', '블랙', '검정', '검은색'],
+  ['white', '화이트', '흰색'],
+  ['navy', '네이비'],
+  ['gray', 'grey', '그레이', '회색'],
+  ['red', '레드', '빨강', '빨간색'],
+  ['blue', '블루', '파랑', '파란색'],
+  ['pink', '핑크', '분홍', '분홍색'],
+  ['purple', '퍼플', '보라', '보라색'],
+  ['green', '그린', '초록', '초록색'],
+  ['yellow', '옐로우', '노랑', '노란색'],
+  ['orange', '오렌지', '주황', '주황색'],
+  ['beige', '베이지'],
+  ['brown', '브라운', '갈색'],
+];
+
 function _resolveProductOption(value, allowed) {
   const raw = String(value || '').trim();
   if (!Array.isArray(allowed) || allowed.length === 0 || allowed.includes(raw)) return raw;
@@ -897,9 +913,18 @@ function _resolveProductOption(value, allowed) {
   const parenthesized = raw.match(/\(([^)]+)\)/)?.[1]?.trim();
   if (parenthesized) candidates.add(parenthesized);
   candidates.add(raw.replace(/\s*\([^)]*\)\s*/g, '').trim());
-  const normalize = (text) => String(text).toLowerCase().replace(/\s+/g, '');
+  const normalize = (text) => String(text).toLowerCase().replace(/[\s_\-./]+/g, '');
+  const aliases = (text) => {
+    const normalized = normalize(text);
+    const group = _COLOR_ALIAS_GROUPS.find((items) => items.some((item) => normalize(item) === normalized));
+    return new Set([normalized, ...(group || []).map(normalize)]);
+  };
   for (const option of allowed) {
-    if ([...candidates].some((candidate) => normalize(candidate) === normalize(option))) return option;
+    const optionAliases = aliases(option);
+    if ([...candidates].some((candidate) => {
+      const candidateAliases = aliases(candidate);
+      return [...candidateAliases].some((alias) => optionAliases.has(alias));
+    })) return option;
   }
   return raw;
 }
