@@ -1350,15 +1350,27 @@ class _PcFooter extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        Text(loc.footerTerms,
+                        InkWell(
+                          onTap: () => Navigator.pushNamed(
+                              context, '/terms-of-service'),
+                          child: Text(
+                            loc.footerTerms,
                             style: TextStyle(
-                                color: Colors.white38, fontSize: r.sp(12))),
+                                color: Colors.white38, fontSize: r.sp(12)),
+                          ),
+                        ),
                         SizedBox(width: r.w(16)),
-                        Text(loc.footerPrivacy,
+                        InkWell(
+                          onTap: () => Navigator.pushNamed(
+                              context, '/privacy-policy'),
+                          child: Text(
+                            loc.footerPrivacy,
                             style: TextStyle(
                                 color: Colors.white38,
                                 fontSize: r.sp(12),
-                                fontWeight: FontWeight.w600)),
+                                fontWeight: FontWeight.w600),
+                          ),
+                        ),
                       ],
                     ),
                   ],
