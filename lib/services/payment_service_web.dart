@@ -26,7 +26,7 @@ class TossConfig {
 
   // ── 간편결제 클라이언트 키 (카카오페이·네이버페이·토스페이) ──
   // gck 키를 Payment Widget에 함께 전달하면 간편결제 버튼이 활성화됩니다.
-  static const easyPayClientKey = 'test_gck_ORzdMaqN3wyZjLgO7ozbr5AkYXQG';
+  static const easyPayClientKey = 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm';
 
   // ── Cloudflare Pages Function URL ───────────────────────────
   static const confirmEdgeFunctionUrl =
