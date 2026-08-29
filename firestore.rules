@@ -141,10 +141,9 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid || isAdmin()
       );
 
-      // 생성: 로그인 + userId 본인 일치 + 금액 검증
-      allow create: if isSignedIn()
-          && request.resource.data.userId == request.auth.uid
-          && isValidOrderAmount(request.resource.data.totalAmount);
+      // 주문 생성은 서버 결제 함수만 수행합니다. Firebase Admin SDK는 규칙을 우회합니다.
+      // 클라이언트가 상품 가격·할인·상태를 위조한 주문을 직접 만들 수 없습니다.
+      allow create: if isAdmin();
 
       // 수정: 본인(상태 변경 제한) 또는 관리자
       allow update: if isSignedIn() && (
@@ -392,10 +391,9 @@ service cloud.firestore {
       match /coupons/{couponId} {
         // 본인 쿠폰 읽기: 본인 또는 관리자
         allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
-        // 쿠폰 다운로드: 본인만 (앱 내 Transaction에서 호출)
-        allow create: if isSignedIn() && isOwner(userId);
-        // 사용 처리(isUsed 필드 업데이트): 본인 또는 관리자
-        allow update: if isSignedIn() && (isOwner(userId) || isAdmin());
+        // 쿠폰 발급·예약·사용 처리는 서버 결제 함수에서만 수행합니다.
+        // Firebase Admin SDK는 규칙을 우회하며, 관리자는 운영 목적상 접근할 수 있습니다.
+        allow create, update: if isAdmin();
         allow delete: if isAdmin();
       }
     }

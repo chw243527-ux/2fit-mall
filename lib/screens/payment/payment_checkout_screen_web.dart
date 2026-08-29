@@ -19,8 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
 import '../../services/payment_service.dart';
-import '../../services/order_service.dart';
-import '../../models/models.dart';
+import '../../services/secure_checkout_service.dart';
 
 class PaymentCheckoutScreen extends StatefulWidget {
   const PaymentCheckoutScreen({super.key});
@@ -90,67 +89,37 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
     );
   }
 
-  // ── 무통장입금: iframe 없이 직접 주문 저장 ────────────────────
+  // ── 무통장입금: 서버가 상품·할인·포인트를 검증해 주문을 생성합니다. ──
   Future<void> _onVirtualAccountPressed() async {
     final args = _args;
     if (args == null) return;
-
-    try {
-      final userProv = context.read<UserProvider>();
-      final orderProv = context.read<OrderProvider>();
-      final cart = context.read<CartProvider>();
-      final user = userProv.user;
-
-      final orderItems = cart.items
-          .map((c) => OrderItem(
-                productId: c.product.id,
-                productName: c.product.name,
-                size: c.selectedSize,
-                color: c.selectedColor,
-                quantity: c.quantity,
-                price: c.product.price,
-              ))
-          .toList();
-
-      final order = OrderModel(
-        id: args.orderId,
-        userId: user?.id ?? 'guest',
-        userName: args.customerName,
-        userPhone: args.customerPhone,
-        userAddress: '',
-        status: OrderStatus.pending,
-        totalAmount: args.amount.toDouble(),
-        shippingFee: cart.shippingFee,
-        couponId: args.couponId,
-        couponDiscount: args.couponDiscount,
-        usedPoints: args.usedPoints,
-        pointDiscount: args.pointDiscount,
-        paymentMethod: args.selectedPayment,
-        orderType: 'regular',
-        createdAt: DateTime.now(),
-        items: orderItems,
-        cashReceiptNum: user?.cashReceiptNum?.isNotEmpty == true
-            ? user!.cashReceiptNum
-            : null,
+    final cart = context.read<CartProvider>();
+    final result = await SecureCheckoutService.createOrder(
+      items: cart.items
+          .map((item) => {
+                'productId': item.product.id,
+                'size': item.selectedSize,
+                'color': item.selectedColor,
+                'quantity': item.quantity,
+                'customOptions': item.customOptions,
+              })
+          .toList(),
+      deliveryAddress: '',
+      paymentMethod: args.selectedPayment,
+      couponId: args.couponId,
+      usedPoints: args.usedPoints,
+    );
+    if (!mounted) return;
+    if (!result.success || !result.bankTransfer) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(result.error ?? '주문 처리에 실패했습니다.'),
+            backgroundColor: AppColors.error),
       );
-
-      await OrderService.saveOrder(order);
-      orderProv.addOrder(order);
-      cart.clearCart();
-
-      if (!mounted) return;
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/mypage',
-        (route) => false,
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('주문 처리 오류: $e'), backgroundColor: AppColors.error),
-        );
-      }
+      return;
     }
+    cart.clearCart();
+    Navigator.of(context).pushNamedAndRemoveUntil('/mypage', (route) => false);
   }
 
   String get _formattedAmount {

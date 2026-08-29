@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/models.dart';
+import 'secure_checkout_service.dart';
 
 class WishlistService {
   static final _db = FirebaseFirestore.instance;
@@ -128,7 +129,9 @@ class CouponService {
         'minOrderAmount': minOrderAmount,
         // null이면 FieldValue.delete()로 필드 완전 제거 (null 값 저장 방지)
         'maxDiscountAmount': maxDiscountAmount ?? FieldValue.delete(),
-        'startsAt': startsAt != null ? Timestamp.fromDate(startsAt) : FieldValue.delete(),
+        'startsAt': startsAt != null
+            ? Timestamp.fromDate(startsAt)
+            : FieldValue.delete(),
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isDownloadable': isDownloadable,
         'downloadLimit': downloadLimit ?? FieldValue.delete(),
@@ -172,13 +175,10 @@ class CouponService {
 
   /// 전체 유효 쿠폰 실시간 스트림 (checkout에서 보유 쿠폰 목록 표시)
   static Stream<List<CouponModel>> watchValidCoupons() {
-    return _db
-        .collection('admin_coupons')
-        .snapshots()
-        .map((snap) => snap.docs
-            .map((d) => _parse(d.id, d.data()))
-            .where((c) => c.isValid)
-            .toList());
+    return _db.collection('admin_coupons').snapshots().map((snap) => snap.docs
+        .map((d) => _parse(d.id, d.data()))
+        .where((c) => c.isValid)
+        .toList());
   }
 
   /// 다운로드 가능한 공개 쿠폰 스트림 (홈 팝업용)
@@ -220,74 +220,33 @@ class CouponService {
         .collection('coupons')
         .snapshots()
         .map((snap) {
-          final coupons = snap.docs
-              .map((doc) => _parse(doc.id, doc.data()))
-              .where((coupon) => coupon.isValid && !coupon.isUsed)
-              .toList();
-          coupons.sort((a, b) => a.expiresAt.compareTo(b.expiresAt));
-          return coupons;
-        })
-        .handleError((e) {
+      final coupons = snap.docs
+          .map((doc) => _parse(doc.id, doc.data()))
+          .where((coupon) => coupon.isValid && !coupon.isUsed)
+          .toList();
+      coupons.sort((a, b) => a.expiresAt.compareTo(b.expiresAt));
+      return coupons;
+    }).handleError((e) {
       if (kDebugMode) debugPrint('watchUserCoupons error: $e');
       return <CouponModel>[];
     });
   }
 
-  /// 사용자 쿠폰 다운로드 (user_coupons/{uid}/coupons/{couponId} 저장)
+  /// 사용자 쿠폰 다운로드는 서버가 공개 여부·다운로드 수·중복을 검증해 발급합니다.
   static Future<String> downloadCoupon({
     required String userId,
     required CouponModel coupon,
   }) async {
-    try {
-      // 공개 여부·중복·다운로드 수를 한 트랜잭션에서 확인합니다.
-      final couponRef = _db.collection('admin_coupons').doc(coupon.id);
-      String result = '';
-      await _db.runTransaction((tx) async {
-        final snap = await tx.get(couponRef);
-        if (!snap.exists) throw Exception('쿠폰을 찾을 수 없습니다.');
-        final data = snap.data()!;
-        if (data['isDownloadable'] != true) {
-          result = 'not_downloadable';
-          return;
-        }
-        final userCouponRef = _db
-            .collection('user_coupons')
-            .doc(userId)
-            .collection('coupons')
-            .doc(coupon.id);
-        final existing = await tx.get(userCouponRef);
-        if (existing.exists) {
-          result = 'already_downloaded';
-          return;
-        }
-        final limit = (data['downloadLimit'] as num?)?.toInt();
-        final count = (data['downloadCount'] as num?)?.toInt() ?? 0;
-        if (limit != null && count >= limit) {
-          result = 'limit_exceeded';
-          return;
-        }
-        // user_coupons에 저장
-        tx.set(userCouponRef, {
-          'couponId': coupon.id,
-          'code': coupon.code,
-          'name': coupon.name,
-          'type': coupon.type == CouponType.percent ? 'percent' : 'fixed',
-          'value': coupon.value,
-          'minOrderAmount': coupon.minOrderAmount,
-          if (coupon.maxDiscountAmount != null)
-            'maxDiscountAmount': coupon.maxDiscountAmount,
-          'expiresAt': Timestamp.fromDate(coupon.expiresAt),
-          'isUsed': false,
-          'downloadedAt': FieldValue.serverTimestamp(),
-        });
-        // 다운로드 카운트 증가
-        tx.update(couponRef, {'downloadCount': FieldValue.increment(1)});
-      });
-      return result; // '' = 성공
-    } catch (e) {
-      if (kDebugMode) debugPrint('downloadCoupon error: $e');
-      return '다운로드 중 오류가 발생했습니다.';
+    final result = await SecureCheckoutService.downloadCoupon(coupon.id);
+    if (result.isEmpty ||
+        result == 'already_downloaded' ||
+        result == 'limit_exceeded' ||
+        result == 'not_downloadable' ||
+        result == 'expired') {
+      return result;
     }
+    if (kDebugMode) debugPrint('downloadCoupon secure request failed: $result');
+    return '다운로드 중 오류가 발생했습니다.';
   }
 
   /// 결제 성공 후 고객 보유 쿠폰을 사용 처리합니다.
@@ -298,8 +257,11 @@ class CouponService {
     required String orderId,
   }) async {
     try {
-      final ref = _db.collection('user_coupons').doc(userId)
-          .collection('coupons').doc(couponId);
+      final ref = _db
+          .collection('user_coupons')
+          .doc(userId)
+          .collection('coupons')
+          .doc(couponId);
       final result = await _db.runTransaction<bool>((tx) async {
         final snap = await tx.get(ref);
         if (!snap.exists) return false;

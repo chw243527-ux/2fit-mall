@@ -9,10 +9,10 @@ import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../services/fcm_service.dart';
 import '../../services/notification_service.dart';
-import '../../services/order_service.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/payment_service.dart';
+import '../../services/secure_checkout_service.dart';
 import '../../services/point_service.dart';
 import '../main_screen.dart';
 import '../../widgets/address_search_widget.dart';
@@ -2551,100 +2551,55 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return;
     }
 
-    // 단체주문 여부 미리 확인 (orderId 접두사 결정용)
-    final _isGroupCart = widget.cart.items.any((item) {
-      final t = item.customOptions?['orderType'] as String? ?? '';
-      return t == 'group' || t == 'additional';
-    });
-    final _isAdditionalCart = widget.cart.items
-        .any((item) => item.customOptions?['orderType'] == 'additional');
-    final ts = DateTime.now().millisecondsSinceEpoch;
-    final orderId = _isGroupCart
-        ? 'GRP_${ts}${_isAdditionalCart ? '_ADD' : ''}'
-        : 'ORD-${DateTime.now().year}${DateTime.now().month.toString().padLeft(2, '0')}${DateTime.now().day.toString().padLeft(2, '0')}-${(ts % 100000).toString().padLeft(5, '0')}';
-
-    // ─── 토스페이먼츠 Payment Widget 결제 화면으로 이동 ────────────
-    final orderName = widget.cart.items.first.product.name +
-        (widget.cart.items.length > 1
-            ? ' 외 ${widget.cart.items.length - 1}건'
-            : '');
-
-    // ── 결제 전 주문을 Firestore에 미리 저장 (pending 상태) ──
-    // payment/success 에서 updateOrderStatus로 paid 처리하려면 문서가 있어야 함
-    final orderItems = widget.cart.items
-        .map((c) => OrderItem(
-              productId: c.product.id,
-              productName: c.product.name,
-              size: c.selectedSize,
-              color: c.selectedColor,
-              quantity: c.quantity,
-              price: c.product.price,
-            ))
-        .toList();
-
-    final preOrder = OrderModel(
-      id: orderId,
-      userId: user?.id ?? 'guest',
-      userName: user?.name ?? loc.buyerLabel,
-      userPhone: user?.phone ?? '',
-      userAddress: _finalAddress,
-      status: OrderStatus.pending,
-      totalAmount: _finalTotal,
-      shippingFee: widget.cart.shippingFee,
-      couponId: _appliedCoupon?.id,
-      couponDiscount: _couponDiscount,
-      usedPoints: _usedPoints,
-      pointDiscount: _pointDiscount,
+    // 서버가 상품 가격·배송비·쿠폰·포인트를 다시 계산하고 결제 의도를 생성합니다.
+    final secureOrder = await SecureCheckoutService.createOrder(
+      items: widget.cart.items
+          .map((item) => {
+                'productId': item.product.id,
+                'size': item.selectedSize,
+                'color': item.selectedColor,
+                'quantity': item.quantity,
+                'customOptions': item.customOptions,
+              })
+          .toList(),
+      deliveryAddress: _finalAddress,
       paymentMethod: _selectedPayment,
-      orderType: _isGroupCart ? 'group' : 'regular',
-      createdAt: DateTime.now(),
-      items: orderItems,
-      memo: _memoController.text.trim().isNotEmpty
-          ? _memoController.text.trim()
-          : null,
+      memo: _memoController.text.trim(),
+      couponId: _appliedCoupon?.id,
+      usedPoints: _usedPoints,
     );
-
-    try {
-      await OrderService.saveOrder(preOrder);
-      Provider.of<OrderProvider>(context, listen: false).addOrder(preOrder);
-    } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ 결제 전 주문 저장 실패: $e');
-      // 저장 실패해도 결제는 계속 진행 (success 화면에서 재시도)
-    }
-
     if (!mounted) return;
-
-    // 포인트 사용 시 먼저 차감 (실패하면 결제 중단)
-    if (_usedPoints > 0) {
-      final pointOk = await PointService.usePoints(
-        userId: user.id,
-        orderId: orderId,
-        amount: _usedPoints,
+    if (!secureOrder.success ||
+        secureOrder.orderId == null ||
+        secureOrder.amount == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(secureOrder.error ?? '주문 준비에 실패했습니다.'),
+            backgroundColor: AppColors.error),
       );
-      if (!mounted) return;
-      if (!pointOk) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('포인트 차감에 실패했습니다. 잔액을 확인해 주세요.'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        setState(() => _isProcessing = false);
-        return;
-      }
+      setState(() => _isProcessing = false);
+      return;
     }
 
-    // /payment/checkout 화면으로 이동 (무통장입금 포함)
+    // 무통장입금은 서버에서 검증된 대기 주문을 생성한 뒤 주문 내역으로 이동합니다.
+    if (secureOrder.bankTransfer) {
+      widget.cart.clearCart();
+      Navigator.of(context)
+          .pushNamedAndRemoveUntil('/mypage', (route) => false);
+      return;
+    }
+
+    // 카드·간편결제는 서버가 발급한 주문 ID·금액으로만 토스 결제 화면을 엽니다.
     Navigator.pushNamed(
       context,
       '/payment/checkout',
       arguments: PaymentCheckoutArgs(
-        orderId: orderId,
-        orderName: orderName,
-        amount: _finalTotal.toInt(),
-        customerName: user?.name ?? loc.buyerLabel,
-        customerEmail: user?.email ?? 'guest@2fit-mall.co.kr',
-        customerPhone: user?.phone ?? '',
+        orderId: secureOrder.orderId!,
+        orderName: secureOrder.orderName ?? '2FIT MALL 주문',
+        amount: secureOrder.amount!,
+        customerName: user.name,
+        customerEmail: user.email,
+        customerPhone: user.phone,
         selectedPayment: _selectedPayment,
         couponId: _appliedCoupon?.id,
         couponDiscount: _couponDiscount,
@@ -2652,8 +2607,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         pointDiscount: _pointDiscount,
       ),
     );
-    // 결제 완료 처리는 /payment/success, /payment/fail 에서 담당
-    return;
   }
 
   // ─── 주문완료 전체화면 ────────────────────────────────────────

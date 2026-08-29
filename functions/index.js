@@ -19,6 +19,8 @@ const ADMIN_TOKENS_DOC = 'admin_config/fcm_tokens';
 const SOLAPI_API_KEY = defineSecret('SOLAPI_API_KEY');
 const SOLAPI_API_SECRET = defineSecret('SOLAPI_API_SECRET');
 const SOLAPI_SENDER_PHONE = '01072276914';
+// 토스 결제 비밀키는 Firebase Secret Manager에만 저장합니다.
+const TOSS_SECRET_KEY = defineSecret('TOSS_SECRET_KEY');
 // 카카오 알림톡 식별자는 비밀키가 아니지만, 클라이언트에 노출하지 않고 서버에서만 관리합니다.
 const KAKAO_CHANNEL_ID = 'KA01PF2606170642574857w8Hjn9Czz4';
 const KAKAO_ORDER_CONFIRMED_TEMPLATE_ID = 'KA01TP260617070446140hAHwuGcxCxF';
@@ -711,6 +713,276 @@ function _chunk(items, size) {
   for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
   return chunks;
 }
+
+// ══════════════════════════════════════════════════════
+// 10) 안전한 결제 의도 생성·승인·주문 확정
+// - 금액·상품명·배송비·쿠폰·포인트는 클라이언트 값이 아닌 서버 데이터로 계산합니다.
+// - 카드/간편결제는 토스 승인 성공 후에만 orders 문서를 생성합니다.
+// ══════════════════════════════════════════════════════
+const PAYMENT_CORS = ['https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000'];
+const PAYMENT_INTENT_TTL_MS = 30 * 60 * 1000;
+const SHIPPING_FREE_THRESHOLD = 300000;
+const DEFAULT_SHIPPING_FEE = 4000;
+
+exports.createSecureOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+  const decoded = await requireSignedIn(req, res, { checkRevoked: true });
+  if (!decoded) return;
+  try {
+    const payload = _readCheckoutPayload(req.body);
+    const prepared = await _prepareOrderFromServerData(decoded.uid, payload);
+    if (prepared.isBankTransfer) {
+      await _finalizeBankTransferOrder(decoded.uid, prepared);
+      res.status(200).json({ success: true, orderId: prepared.orderId, amount: prepared.order.totalAmount, bankTransfer: true });
+      return;
+    }
+    await db.runTransaction(async (tx) => {
+      const userRef = db.collection('users').doc(decoded.uid);
+      const user = await tx.get(userRef);
+      if (!user.exists) throw new Error('User profile unavailable');
+      await _reserveBenefits(tx, decoded.uid, prepared, prepared.orderId, user.data() || {});
+      tx.set(db.collection('payment_intents').doc(prepared.orderId), {
+        userId: decoded.uid,
+        status: 'pending',
+        amount: prepared.order.totalAmount,
+        order: prepared.order,
+        couponId: prepared.couponId || null,
+        usedPoints: prepared.usedPoints,
+        expiresAt: new Date(Date.now() + PAYMENT_INTENT_TTL_MS),
+        createdAt: FieldValue.serverTimestamp(),
+      });
+    });
+    res.status(200).json({ success: true, orderId: prepared.orderId, amount: prepared.order.totalAmount, orderName: prepared.orderName });
+  } catch (error) {
+    console.error('createSecureOrder failed:', { code: error?.code || 'checkout-preparation-failed' });
+    res.status(400).json({ error: _safeCheckoutError(error) });
+  }
+});
+
+exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+  const decoded = await requireSignedIn(req, res, { checkRevoked: true });
+  if (!decoded) return;
+  const paymentKey = String(req.body?.paymentKey || '');
+  const orderId = String(req.body?.orderId || '');
+  const amount = Number(req.body?.amount);
+  if (!paymentKey || !orderId || !Number.isSafeInteger(amount) || amount <= 0) {
+    res.status(400).json({ error: 'Invalid payment confirmation request' }); return;
+  }
+  try {
+    const intentRef = db.collection('payment_intents').doc(orderId);
+    const intentSnap = await intentRef.get();
+    const intent = intentSnap.data();
+    if (!intentSnap.exists || intent.userId !== decoded.uid || intent.status !== 'pending') {
+      res.status(403).json({ error: 'Payment request is unavailable' }); return;
+    }
+    if (intent.expiresAt?.toDate?.().getTime() < Date.now() || intent.amount !== amount) {
+      res.status(400).json({ error: 'Payment amount does not match the secure order' }); return;
+    }
+    const secret = TOSS_SECRET_KEY.value();
+    if (!secret) { res.status(503).json({ error: 'Payment service is not configured' }); return; }
+    const tossResponse = await fetch('https://api.tosspayments.com/v1/payments/confirm', {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}`,
+        'Content-Type': 'application/json',
+        'Idempotency-Key': `confirm-${orderId}`,
+      },
+      body: JSON.stringify({ paymentKey, orderId, amount: intent.amount }),
+    });
+    const toss = await tossResponse.json();
+    if (!tossResponse.ok || toss.orderId !== orderId || Number(toss.totalAmount) !== intent.amount) {
+      console.warn('Toss payment confirmation rejected:', { status: tossResponse.status, code: toss?.code || 'unknown' });
+      res.status(400).json({ error: 'Payment approval failed' }); return;
+    }
+    await db.runTransaction(async (tx) => {
+      const latest = await tx.get(intentRef);
+      const latestData = latest.data();
+      if (!latest.exists || latestData.userId !== decoded.uid) throw new Error('Payment request unavailable');
+      if (latestData.status === 'confirmed') return;
+      if (latestData.status !== 'pending') throw new Error('Payment request unavailable');
+      const orderRef = db.collection('orders').doc(orderId);
+      const existingOrder = await tx.get(orderRef);
+      if (!existingOrder.exists) {
+        tx.set(orderRef, {
+          ...latestData.order,
+          status: 'confirmed',
+          paymentStatus: 'paid',
+          paymentKey,
+          paymentMethod: toss.method || latestData.order.paymentMethod,
+          paidAt: FieldValue.serverTimestamp(),
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      }
+      await _commitReservedBenefits(tx, decoded.uid, latestData, orderId);
+      tx.update(intentRef, { status: 'confirmed', paymentKey, confirmedAt: FieldValue.serverTimestamp() });
+    });
+    res.status(200).json({ success: true, orderId, paymentKey, method: toss.method || '' });
+  } catch (error) {
+    console.error('confirmSecurePayment failed:', { code: error?.code || 'payment-confirmation-failed' });
+    res.status(400).json({ error: 'Payment could not be finalized. Please contact support if payment was completed.' });
+  }
+});
+
+exports.cancelSecurePayment = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+  const decoded = await requireSignedIn(req, res, { checkRevoked: true });
+  if (!decoded) return;
+  const orderId = String(req.body?.orderId || '');
+  try { await _releasePaymentIntent(decoded.uid, orderId); res.status(200).json({ success: true }); }
+  catch (_) { res.status(400).json({ error: 'Payment cancellation could not be processed' }); }
+});
+
+exports.cleanupExpiredPaymentIntents = onSchedule('every 15 minutes', async () => {
+  const now = new Date();
+  const snapshot = await db.collection('payment_intents').where('expiresAt', '<=', now).limit(100).get();
+  for (const intent of snapshot.docs) {
+    if (intent.data().status === 'pending') await _releasePaymentIntent(String(intent.data().userId || ''), intent.id).catch(() => {});
+  }
+});
+
+function _readCheckoutPayload(body) {
+  const items = Array.isArray(body?.items) ? body.items : [];
+  if (items.length < 1 || items.length > 30) throw new Error('Invalid order items');
+  const deliveryAddress = String(body?.deliveryAddress || '').trim();
+  if (!deliveryAddress || deliveryAddress.length > 500) throw new Error('Invalid delivery address');
+  const paymentMethod = String(body?.paymentMethod || '').trim().slice(0, 60);
+  if (!paymentMethod) throw new Error('Invalid payment method');
+  return { items, deliveryAddress, paymentMethod, memo: String(body?.memo || '').trim().slice(0, 500), couponId: body?.couponId ? String(body.couponId).slice(0, 120) : '', usedPoints: Math.max(0, Math.floor(Number(body?.usedPoints || 0))) };
+}
+
+async function _prepareOrderFromServerData(uid, payload) {
+  const userSnap = await db.collection('users').doc(uid).get();
+  if (!userSnap.exists) throw new Error('User profile unavailable');
+  const user = userSnap.data() || {};
+  const items = [];
+  let subtotal = 0;
+  let isGroup = false;
+  for (const requested of payload.items) {
+    const productId = String(requested?.productId || '').slice(0, 120);
+    const quantity = Math.floor(Number(requested?.quantity || 0));
+    const size = String(requested?.size || '').slice(0, 80);
+    const color = String(requested?.color || '').slice(0, 80);
+    if (!productId || quantity < 1 || quantity > 50) throw new Error('Invalid product quantity');
+    const productSnap = await db.collection('products').doc(productId).get();
+    const product = productSnap.data();
+    if (!productSnap.exists || product.isActive === false || !Number.isFinite(Number(product.price))) throw new Error('Product is unavailable');
+    if (Array.isArray(product.sizes) && product.sizes.length && !product.sizes.includes(size)) throw new Error('Invalid product size');
+    if (Array.isArray(product.colors) && product.colors.length && !product.colors.includes(color)) throw new Error('Invalid product color');
+    if ((Array.isArray(product.soldOutSizes) && product.soldOutSizes.includes(size)) || Number(product.stockCount || 0) < quantity) throw new Error('Product is out of stock');
+    const unitPrice = Math.round(Number(product.price));
+    subtotal += unitPrice * quantity;
+    const requestedOptions = requested?.customOptions && typeof requested.customOptions === 'object' ? requested.customOptions : null;
+    if (requestedOptions?.orderType === 'group' || requestedOptions?.orderType === 'additional') isGroup = true;
+    items.push({ productId, productName: String(product.name || '').slice(0, 200), size, color, quantity, price: unitPrice, customOptions: requestedOptions || null, imageUrl: Array.isArray(product.images) ? String(product.images[0] || '') : '' });
+  }
+  const shippingFee = subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE;
+  const coupon = await _calculateCoupon(uid, payload.couponId, subtotal + shippingFee);
+  if (payload.usedPoints && (payload.usedPoints < 10000 || payload.usedPoints > subtotal + shippingFee - coupon.discount)) throw new Error('Invalid points amount');
+  const totalAmount = Math.max(0, subtotal + shippingFee - coupon.discount - payload.usedPoints);
+  if (!Number.isSafeInteger(totalAmount) || totalAmount < 0) throw new Error('Invalid payment amount');
+  const orderId = `${isGroup ? 'GRP' : 'ORD'}-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
+  const order = { id: orderId, userId: uid, userName: String(user.name || '고객').slice(0, 100), userEmail: String(user.email || '').slice(0, 254), userPhone: String(user.phone || '').slice(0, 40), userAddress: payload.deliveryAddress, items, subtotal, totalAmount, shippingFee, couponId: coupon.id || null, couponDiscount: coupon.discount, usedPoints: payload.usedPoints, pointDiscount: payload.usedPoints, paymentMethod: payload.paymentMethod, status: 'pending', orderType: isGroup ? 'group' : 'regular', memo: payload.memo || null };
+  return { orderId, order, orderName: `${items[0].productName}${items.length > 1 ? ` 외 ${items.length - 1}건` : ''}`, couponId: coupon.id, usedPoints: payload.usedPoints, isBankTransfer: payload.paymentMethod.includes('무통장') };
+}
+
+async function _calculateCoupon(uid, couponId, orderAmount) {
+  if (!couponId) return { id: '', discount: 0 };
+  const snap = await db.collection('user_coupons').doc(uid).collection('coupons').doc(couponId).get();
+  const coupon = snap.data();
+  if (!snap.exists || coupon.isUsed === true || coupon.isReserved === true || coupon.expiresAt?.toDate?.() <= new Date()) throw new Error('Coupon is unavailable');
+  const minimum = Number(coupon.minOrderAmount || 0);
+  if (orderAmount < minimum) throw new Error('Coupon minimum order amount is not met');
+  let discount = coupon.type === 'percent' ? Math.floor(orderAmount * Number(coupon.value || 0) / 100) : Math.floor(Number(coupon.value || 0));
+  if (coupon.maxDiscountAmount != null) discount = Math.min(discount, Math.floor(Number(coupon.maxDiscountAmount)));
+  return { id: couponId, discount: Math.max(0, Math.min(discount, orderAmount)) };
+}
+
+async function _finalizeBankTransferOrder(uid, prepared) {
+  await db.runTransaction(async (tx) => {
+    const userRef = db.collection('users').doc(uid);
+    const user = await tx.get(userRef);
+    if (!user.exists) throw new Error('User profile unavailable');
+    await _reserveBenefits(tx, uid, prepared, prepared.orderId, user.data() || {});
+    tx.set(db.collection('orders').doc(prepared.orderId), { ...prepared.order, paymentStatus: 'awaiting_deposit', createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  });
+}
+
+async function _reserveBenefits(tx, uid, prepared, orderId, user) {
+  if (prepared.couponId) {
+    const couponRef = db.collection('user_coupons').doc(uid).collection('coupons').doc(prepared.couponId);
+    const coupon = await tx.get(couponRef);
+    if (!coupon.exists || coupon.data().isUsed === true || coupon.data().isReserved === true) throw new Error('Coupon is unavailable');
+    tx.update(couponRef, { isReserved: true, reservedOrderId: orderId, reservedAt: FieldValue.serverTimestamp() });
+  }
+  if (prepared.usedPoints > 0) {
+    const balance = Math.floor(Number(user.points || 0));
+    if (balance < prepared.usedPoints) throw new Error('Insufficient points');
+    tx.update(db.collection('users').doc(uid), { points: balance - prepared.usedPoints });
+    tx.set(db.collection('users').doc(uid).collection('point_history').doc(`reserve_${orderId}`), { action: 'use', amount: -prepared.usedPoints, desc: `주문 ${orderId} 포인트 사용`, orderId, createdAt: FieldValue.serverTimestamp() });
+  }
+}
+
+async function _commitReservedBenefits(tx, uid, intent, orderId) {
+  if (intent.couponId) tx.update(db.collection('user_coupons').doc(uid).collection('coupons').doc(intent.couponId), { isUsed: true, usedOrderId: orderId, usedAt: FieldValue.serverTimestamp(), isReserved: false, reservedOrderId: FieldValue.delete(), reservedAt: FieldValue.delete() });
+}
+
+async function _releasePaymentIntent(uid, orderId) {
+  if (!uid || !orderId) throw new Error('Invalid payment request');
+  await db.runTransaction(async (tx) => {
+    const intentRef = db.collection('payment_intents').doc(orderId);
+    const intentSnap = await tx.get(intentRef);
+    const intent = intentSnap.data();
+    if (!intentSnap.exists || intent.userId !== uid || intent.status !== 'pending') return;
+    if (intent.couponId) tx.update(db.collection('user_coupons').doc(uid).collection('coupons').doc(intent.couponId), { isReserved: false, reservedOrderId: FieldValue.delete(), reservedAt: FieldValue.delete() });
+    if (Number(intent.usedPoints || 0) > 0) {
+      const userRef = db.collection('users').doc(uid);
+      const user = await tx.get(userRef);
+      const balance = Math.floor(Number(user.data()?.points || 0));
+      tx.update(userRef, { points: balance + Number(intent.usedPoints) });
+      tx.set(userRef.collection('point_history').doc(`refund_${orderId}`), { action: 'admin', amount: Number(intent.usedPoints), desc: `미완료 주문 ${orderId} 포인트 복구`, orderId, createdAt: FieldValue.serverTimestamp() });
+    }
+    tx.update(intentRef, { status: 'cancelled', cancelledAt: FieldValue.serverTimestamp() });
+  });
+}
+
+function _safeCheckoutError(error) {
+  const allowed = new Set(['Invalid order items', 'Invalid delivery address', 'Invalid payment method', 'Invalid product quantity', 'Product is unavailable', 'Invalid product size', 'Invalid product color', 'Product is out of stock', 'Coupon is unavailable', 'Coupon minimum order amount is not met', 'Invalid points amount', 'Insufficient points']);
+  return allowed.has(error?.message) ? error.message : 'Unable to prepare a secure order';
+}
+
+// 쿠폰 할인 조건·다운로드 수·중복 발급을 서버에서 원자적으로 검증합니다.
+exports.downloadSecureCoupon = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+  const decoded = await requireSignedIn(req, res, { checkRevoked: true });
+  if (!decoded) return;
+  const couponId = String(req.body?.couponId || '').slice(0, 120);
+  if (!couponId) { res.status(400).json({ error: 'Coupon ID is required' }); return; }
+  try {
+    const result = await db.runTransaction(async (tx) => {
+      const sourceRef = db.collection('admin_coupons').doc(couponId);
+      const targetRef = db.collection('user_coupons').doc(decoded.uid).collection('coupons').doc(couponId);
+      const source = await tx.get(sourceRef);
+      const existing = await tx.get(targetRef);
+      if (!source.exists || source.data()?.isDownloadable !== true) return 'not_downloadable';
+      if (existing.exists) return 'already_downloaded';
+      const coupon = source.data() || {};
+      const expiresAt = coupon.expiresAt?.toDate?.();
+      if (expiresAt && expiresAt <= new Date()) return 'expired';
+      const limit = Number.isFinite(Number(coupon.downloadLimit)) ? Number(coupon.downloadLimit) : null;
+      const count = Math.floor(Number(coupon.downloadCount || 0));
+      if (limit !== null && count >= limit) return 'limit_exceeded';
+      tx.set(targetRef, { couponId, code: String(coupon.code || ''), name: String(coupon.name || ''), type: coupon.type === 'percent' ? 'percent' : 'fixed', value: Math.max(0, Number(coupon.value || 0)), minOrderAmount: Math.max(0, Number(coupon.minOrderAmount || 0)), ...(coupon.maxDiscountAmount != null ? { maxDiscountAmount: Number(coupon.maxDiscountAmount) } : {}), ...(coupon.startsAt ? { startsAt: coupon.startsAt } : {}), ...(coupon.expiresAt ? { expiresAt: coupon.expiresAt } : {}), isUsed: false, downloadedAt: FieldValue.serverTimestamp() });
+      tx.update(sourceRef, { downloadCount: FieldValue.increment(1) });
+      return '';
+    });
+    res.status(200).json({ success: result === '', result });
+  } catch (error) {
+    console.error('downloadSecureCoupon failed:', { code: error?.code || 'coupon-download-failed' });
+    res.status(400).json({ error: 'Coupon could not be downloaded' });
+  }
+});
 
 exports.sendSolapiChatAlert = onRequest(
   { secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET], cors: [

@@ -7,6 +7,7 @@ import '../../utils/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/payment_service.dart';
 import '../../services/order_service.dart';
+import '../../services/secure_checkout_service.dart';
 import '../../widgets/pc_layout.dart';
 import '../main_screen.dart';
 
@@ -1146,35 +1147,48 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     setState(() => _isProcessing = true);
 
     try {
-      final userProv = context.read<UserProvider>();
-      final user = userProv.user;
-
-      // 2. 주문번호 생성
-      final orderId = OrderService.generateOrderId();
-
-      // 3. 무통장입금도 결제 화면으로 (checkout 화면에서 별도 처리)
-      // 4. 토스페이먼츠 Payment Widget 결제 화면으로 이동
+      final user = context.read<UserProvider>().user;
+      if (user == null) throw Exception('로그인이 필요합니다.');
+      final secureOrder = await SecureCheckoutService.createOrder(
+        items: widget.cart.items
+            .map((item) => {
+                  'productId': item.product.id,
+                  'size': item.selectedSize,
+                  'color': item.selectedColor,
+                  'quantity': item.quantity,
+                  'customOptions': item.customOptions,
+                })
+            .toList(),
+        deliveryAddress: _addressCtrl.text.trim(),
+        paymentMethod: _selectedPayment!,
+      );
       if (!mounted) return;
+      if (!secureOrder.success ||
+          secureOrder.orderId == null ||
+          secureOrder.amount == null) {
+        throw Exception(secureOrder.error ?? '주문 준비에 실패했습니다.');
+      }
       setState(() => _isProcessing = false);
-
-      // 바텀시트 닫기
       Navigator.pop(context);
-
-      // 결제 전용 화면으로 이동 (주문 저장은 payment_result_screen에서 처리됨)
+      if (secureOrder.bankTransfer) {
+        widget.cart.clearCart();
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil('/mypage', (route) => false);
+        return;
+      }
       Navigator.pushNamed(
         context,
         '/payment/checkout',
         arguments: PaymentCheckoutArgs(
-          orderId: orderId,
-          orderName: '2FIT MALL 주문 (${widget.cart.itemCount}개)',
-          amount: widget.cart.total.toInt(),
-          customerName: _nameCtrl.text.trim(),
-          customerEmail: user?.email ?? 'guest@2fit-mall.co.kr',
-          customerPhone: _phoneCtrl.text.trim(),
+          orderId: secureOrder.orderId!,
+          orderName: secureOrder.orderName ?? '2FIT MALL 주문',
+          amount: secureOrder.amount!,
+          customerName: user.name,
+          customerEmail: user.email,
+          customerPhone: user.phone,
           selectedPayment: _selectedPayment!,
         ),
       );
-      return;
     } catch (e) {
       if (mounted) {
         setState(() => _isProcessing = false);

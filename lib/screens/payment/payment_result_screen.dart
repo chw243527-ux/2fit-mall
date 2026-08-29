@@ -7,11 +7,7 @@ import '../../utils/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
-import '../../services/payment_service.dart';
-import '../../services/order_service.dart';
-import '../../services/wishlist_coupon_service.dart';
-import '../../services/point_service.dart';
-import '../../models/models.dart';
+import '../../services/secure_checkout_service.dart';
 
 // ══════════════════════════════════════════════════════════════
 // 결제 성공 화면
@@ -50,8 +46,8 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
         return;
       }
 
-      // Cloudflare Pages Function으로 결제 승인
-      final result = await PaymentService.confirmPayment(
+      // Firebase 서버가 결제 의도·주문 소유자·금액을 검증한 뒤 토스 승인을 수행합니다.
+      final result = await SecureCheckoutService.confirmPayment(
         paymentKey: paymentKey,
         orderId: orderId,
         amount: amount,
@@ -60,40 +56,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
       if (!mounted) return;
 
       if (result.success) {
-        // 결제 승인 완료 → 주문 상태를 confirmed로 업데이트
-        await OrderService.updateOrderStatus(orderId, OrderStatus.confirmed);
-
-        // 주문에 기록된 쿠폰은 결제 성공 시 1회 사용 처리
-        final savedOrder = await OrderService.getOrderById(orderId);
-        final userId = context.read<UserProvider>().user?.id;
-        if (savedOrder?.couponId != null && userId != null && userId.isNotEmpty) {
-          await CouponService.markUserCouponUsed(
-            userId: userId,
-            couponId: savedOrder!.couponId!,
-            orderId: orderId,
-          );
-        }
-
-        // 현금영수증 자동 발급
-        if (!mounted) return;
-        final userProv = context.read<UserProvider>();
-        final cashNum = userProv.user?.cashReceiptNum;
-        if (cashNum != null &&
-            cashNum.isNotEmpty &&
-            result.paymentKey != null) {
-          final receiptType =
-              cashNum.replaceAll('-', '').replaceAll(' ', '').length == 10
-                  ? '지출증빙'
-                  : '소득공제';
-          await PaymentService.issueCashReceipt(
-            paymentKey: result.paymentKey!,
-            customerIdentityNumber: cashNum,
-            type: receiptType,
-          );
-        }
-
-        if (!mounted) return;
-
+        // 주문 확정·쿠폰 사용 처리는 서버 트랜잭션에서 이미 완료되었습니다.
         // 장바구니 비우기
         context.read<CartProvider>().clearCart();
 
@@ -187,13 +150,8 @@ class _PaymentFailScreenState extends State<PaymentFailScreen> {
     final uri = Uri.parse(Uri.base.toString());
     final orderId = uri.queryParameters['orderId'] ?? '';
     if (orderId.isEmpty) return;
-    final order = await OrderService.getOrderById(orderId);
-    if (!mounted || order == null || order.usedPoints <= 0) return;
-    await PointService.refundPoints(
-      userId: order.userId,
-      orderId: orderId,
-      amount: order.usedPoints,
-    );
+    // 결제 실패 시 서버 트랜잭션이 예약된 쿠폰·포인트를 한 번만 해제합니다.
+    await SecureCheckoutService.cancelPaymentIntent(orderId);
   }
 
   @override
