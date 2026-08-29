@@ -371,6 +371,18 @@ class AuthService {
   // ────────────────────────────────────────────
   static Future<AuthResult> restoreSession() async {
     try {
+      // 웹에서는 IndexedDB의 Firebase Auth 세션 복원이 비동기입니다.
+      // authStateChanges()의 첫 이벤트를 기다리지 않고 currentUser를 읽으면
+      // 새로고침 직후 일시적으로 null이 되어 로그인 화면으로 잘못 이동할 수 있습니다.
+      if (kIsWeb) {
+        try {
+          await _auth.authStateChanges().first.timeout(
+                const Duration(seconds: 3),
+              );
+        } catch (_) {
+          // 아래 currentUser 확인으로 최종 판단합니다.
+        }
+      }
       // Firebase Auth 세션이 실제로 유효할 때만 화면 로그인을 복구합니다.
       // Hive에 남은 UID만으로 로그인 화면을 우회하면 서버 API의 ID 토큰 검증과 불일치할 수 있습니다.
       final firebaseUser = _auth.currentUser;
