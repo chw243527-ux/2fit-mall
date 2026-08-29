@@ -3,7 +3,7 @@
 // 토스페이먼츠 결제 서비스 — Payment Widget 방식 (v2)
 //
 // 🔑 연동 구성:
-//   • clientKey  : Toss Payments 결제위젯 연동용 클라이언트 키 (앱 포함 가능)
+//   • clientKey  : Toss Payments 결제위젯 연동 키의 클라이언트 키 (gck)
 //   • secretKey  : Cloudflare Pages 환경변수 TOSS_SECRET_KEY (서버 전용)
 //   • 결제 승인   : https://2fit-mall.co.kr/api/confirm-payment (CF Pages Function)
 //   • 현금영수증  : https://2fit-mall.co.kr/api/issue-cash-receipt (CF Pages Function)
@@ -21,11 +21,11 @@ import 'package:http/http.dart' as http;
 
 // ─── 🔑 키 설정 ────────────────────────────────────────────────
 class TossConfig {
-  static const clientKey = 'test_ck_jExPeJWYVQGXBaJoGMdg849R5gvN';
+  static const clientKey = 'test_gck_ORzdMaqN3wyZjLgO7ozbr5AkYXQG';
   static const secretKey = ''; // 앱에서 직접 사용 안 함 — CF Pages Function 전용
 
   // ── 간편결제 클라이언트 키 (카카오페이·네이버페이·토스페이) ──
-  // gck 키를 Payment Widget에 함께 전달하면 간편결제 버튼이 활성화됩니다.
+  // 결제위젯 연동 키를 사용하며, gck 키는 위젯에서 지원되는 클라이언트 키입니다.
   static const easyPayClientKey = 'test_gck_ORzdMaqN3wyZjLgO7ozbr5AkYXQG';
 
   // ── Cloudflare Pages Function URL ───────────────────────────
