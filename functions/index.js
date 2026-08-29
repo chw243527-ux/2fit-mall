@@ -905,12 +905,13 @@ async function _prepareOrderFromServerData(uid, payload) {
     const productId = String(requested?.productId || '').slice(0, 120);
     const quantity = Math.floor(Number(requested?.quantity || 0));
     const size = String(requested?.size || '').slice(0, 80);
-    const color = String(requested?.color || '').slice(0, 80);
+    const requestedColor = String(requested?.color || '').slice(0, 80);
     if (!productId || quantity < 1 || quantity > 50) throw new Error('Invalid product quantity');
     const productSnap = await db.collection('products').doc(productId).get();
     const product = productSnap.data();
     if (!productSnap.exists || product.isActive === false || !Number.isFinite(Number(product.price))) throw new Error('Product is unavailable');
     if (Array.isArray(product.sizes) && product.sizes.length && !product.sizes.includes(size)) throw new Error('Invalid product size');
+    const color = _resolveProductOption(requestedColor, product.colors);
     if (Array.isArray(product.colors) && product.colors.length && !product.colors.includes(color)) throw new Error('Invalid product color');
     if ((Array.isArray(product.soldOutSizes) && product.soldOutSizes.includes(size)) || Number(product.stockCount || 0) < quantity) throw new Error('Product is out of stock');
     const unitPrice = Math.round(Number(product.price));
