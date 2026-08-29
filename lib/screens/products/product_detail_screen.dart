@@ -270,6 +270,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         context,
         Scaffold(
           backgroundColor: Colors.white,
+          bottomNavigationBar: _buildBottomBar(product),
           body: Stack(
             children: [
               CustomScrollView(
@@ -325,10 +326,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                   SliverToBoxAdapter(child: SizedBox(height: r.h(120))),
                 ],
               ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: _buildBottomBar(product),
-              ),
             ],
           ),
         ));
@@ -342,6 +339,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         context,
         Scaffold(
           backgroundColor: Colors.white,
+          bottomNavigationBar: _buildBottomBar(product),
           body: Stack(
             children: [
               CustomScrollView(
@@ -398,15 +396,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
                     ),
                   ),
                 ],
-              ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 720),
-                    child: _buildBottomBar(product),
-                  ),
-                ),
               ),
             ],
           ),
