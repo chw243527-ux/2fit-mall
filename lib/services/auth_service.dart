@@ -64,6 +64,18 @@ class AuthService {
     return await Hive.openBox(_sessionBox);
   }
 
+  // Safari를 포함한 웹 브라우저에서 로그인 완료 후에도 Firebase 세션을 유지합니다.
+  // 화면 상태만 남기고 인증 세션이 사라지는 경우를 막기 위해 로그인 전에 실행합니다.
+  static Future<bool> _preparePersistentFirebaseSession() async {
+    try {
+      if (kIsWeb) await _auth.setPersistence(Persistence.LOCAL);
+      return true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('Firebase 세션 저장소 설정 실패: $e');
+      return false;
+    }
+  }
+
   // ────────────────────────────────────────────
   // 전화번호 SMS 인증 - 코드 발송
   // ────────────────────────────────────────────
@@ -316,6 +328,10 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    if (!await _preparePersistentFirebaseSession()) {
+      return const AuthResult(
+          success: false, error: '로그인 저장소를 준비할 수 없습니다. 브라우저 설정을 확인해 주세요.');
+    }
     final emailKey = email.trim().toLowerCase();
 
     // ① 로컬 계정 먼저 확인 (Firebase 연결 없이도 동작)
@@ -702,6 +718,10 @@ class AuthService {
   );
 
   static Future<AuthResult> signInWithGoogle() async {
+    if (!await _preparePersistentFirebaseSession()) {
+      return const AuthResult(
+          success: false, error: '로그인 저장소를 준비할 수 없습니다. 브라우저 설정을 확인해 주세요.');
+    }
     try {
       GoogleSignInAccount? googleUser;
       if (kIsWeb) {
@@ -834,6 +854,10 @@ class AuthService {
   // Flutter Web: 카카오 JS SDK → OAuthToken 발급
   // Android/iOS: 카카오톡 앱 또는 카카오계정 웹뷰 로그인
   static Future<AuthResult> signInWithKakao() async {
+    if (!await _preparePersistentFirebaseSession()) {
+      return const AuthResult(
+          success: false, error: '로그인 저장소를 준비할 수 없습니다. 브라우저 설정을 확인해 주세요.');
+    }
     // ── Step 1: 카카오 SDK 토큰 발급 ──────────────────────────
     kakao.OAuthToken token;
     try {
@@ -1030,6 +1054,10 @@ class AuthService {
   // 네이버 소셜 로그인
   // ────────────────────────────────────────────
   static Future<AuthResult> signInWithNaver() async {
+    if (!await _preparePersistentFirebaseSession()) {
+      return const AuthResult(
+          success: false, error: '로그인 저장소를 준비할 수 없습니다. 브라우저 설정을 확인해 주세요.');
+    }
     try {
       if (kIsWeb) {
         // ── 웹: JS 팝업 OAuth 방식 ──

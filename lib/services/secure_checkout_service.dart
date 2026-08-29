@@ -86,6 +86,18 @@ class SecureCheckoutService {
     try {
       var user = FirebaseAuth.instance.currentUser;
       if (user == null) {
+        // 웹 소셜 로그인은 화면 전환보다 Firebase Auth 상태 전파가 늦을 수 있습니다.
+        // 짧게 기다린 뒤에도 없을 때만 로그인 필요로 판단합니다.
+        try {
+          user = await FirebaseAuth.instance
+              .authStateChanges()
+              .where((candidate) => candidate != null)
+              .cast<User>()
+              .first
+              .timeout(const Duration(seconds: 3));
+        } catch (_) {}
+      }
+      if (user == null) {
         return onFailure('로그인이 필요합니다.');
       }
 
