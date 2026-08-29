@@ -186,7 +186,9 @@
       // _redirect 모드면 main() 실행 안 함
       if (p.get('_redirect') === '1') return;
 
-      const clientKey           = p.get('easyPayClientKey') || p.get('clientKey') || '';
+      // 결제위젯은 일반 위젯 클라이언트 키(test_ck_/live_ck_)로 초기화합니다.
+      // 간편결제용 gck 키는 위젯 초기화 키로 사용하지 않습니다.
+      const clientKey           = p.get('clientKey') || '';
       const rawCustomerKey      = p.get('customerKey')          || '';
       const orderId             = p.get('orderId')              || '';
       const orderName           = p.get('orderName')            || '주문';
