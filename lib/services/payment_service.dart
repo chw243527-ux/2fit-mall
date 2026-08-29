@@ -1,46 +1,34 @@
 // payment_service.dart
 // ══════════════════════════════════════════════════════════════
-// 토스페이먼츠 결제 서비스 (테스트 → 실결제 전환 가이드 포함)
+// 토스페이먼츠 결제 서비스 — 실결제(Live) JS SDK v2 연동
 //
-// 🔑 실결제 전환 4단계:
-//   1. clientKey  → 'live_ck_...' 로 교체  (TossConfig.clientKey)
-//   2. secretKey  → 'live_sk_...' 로 교체  (TossConfig.secretKey)
-//      ⚠️  secretKey 는 절대 Git·앱 배포본에 포함하지 마세요.
-//          실 운영 시 반드시 Supabase Edge Function 또는 별도 서버에서만 사용
-//   3. confirmEdgeFunctionUrl → Supabase Edge Function URL 입력
-//   4. 토스페이먼츠 대시보드에서 실결제 채널 활성화 확인
-//      https://developers.tosspayments.com → 결제 → API 키
+// 🔑 연동 구성:
+//   • clientKey  : live_ck_kYG57Eba3GbJ4WOYa1vE8pWDOxmA (앱 포함 가능)
+//   • secretKey  : Cloudflare Pages 환경변수 TOSS_SECRET_KEY (서버 전용)
+//   • 결제 승인   : https://2fit-mall.co.kr/api/confirm-payment (CF Pages Function)
+//   • 현금영수증  : https://2fit-mall.co.kr/api/issue-cash-receipt (CF Pages Function)
+//   • SDK        : https://js.tosspayments.com/v2/standard (web/index.html)
+//
+// ⚠️ secretKey는 절대 Git·앱 배포본에 포함하지 마세요.
 // ══════════════════════════════════════════════════════════════
+import 'dart:async';
 import 'dart:convert';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
+import 'dart:js' as js;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'supabase_service.dart';
 
 // ─── 🔑 키 설정 ────────────────────────────────────────────────
 class TossConfig {
-  // ── 현재: 테스트 키 ─────────────────────────────────────────
-  // 심사 통과 후 아래 값을 live_ck_ / live_sk_ 키로 교체하세요.
-  // 발급: https://developers.tosspayments.com → 개발 → API 키
-  static const clientKey = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
-  // TODO (심사 통과 후): static const clientKey = 'live_ck_여기에입력';
+  static const clientKey = 'live_ck_kYG57Eba3GbJ4WOYa1vE8pWDOxmA';
+  static const secretKey = ''; // 앱에서 직접 사용 안 함 — CF Pages Function 전용
 
-  // ⚠️ secretKey 는 절대 앱 배포본에 포함하지 마세요.
-  // 아래 값은 개발/테스트 전용입니다.
-  // 실 운영 시 반드시 Supabase Edge Function 또는 별도 서버에서만 사용하세요.
-  static const secretKey = 'test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R';
-  // TODO (심사 통과 후): static const secretKey = 'live_sk_여기에입력';
-
-  // ── Supabase Edge Function URL (결제 승인용) ────────────────
-  // Supabase 프로젝트 배포 후 아래 주석 해제 및 URL 입력:
-  // static const confirmEdgeFunctionUrl =
-  //     'https://YOUR_PROJECT.supabase.co/functions/v1/confirm-payment';
-  static const confirmEdgeFunctionUrl = '';
-
-  // ── Supabase Edge Function URL (현금영수증 발급용) ──────────
-  // 배포 후 아래 주석 해제 및 URL 입력:
-  // static const cashReceiptEdgeFunctionUrl =
-  //     'https://YOUR_PROJECT.supabase.co/functions/v1/issue-cash-receipt';
-  static const cashReceiptEdgeFunctionUrl = '';
+  // ── Cloudflare Pages Function URL ───────────────────────────
+  static const confirmEdgeFunctionUrl =
+      'https://2fit-mall.co.kr/api/confirm-payment';
+  static const cashReceiptEdgeFunctionUrl =
+      'https://2fit-mall.co.kr/api/issue-cash-receipt';
 
   static bool get useEdgeFunction => confirmEdgeFunctionUrl.isNotEmpty;
   static bool get isLiveMode => !clientKey.startsWith('test_');
@@ -51,7 +39,7 @@ class TossConfig {
 // ══════════════════════════════════════════════════════════════
 class PaymentService {
 
-  // ─── 결제 요청 (웹·앱 공통 진입점) ──────────────────────────
+  // ─── 결제 요청 (JS SDK v2 호출) ──────────────────────────────
   static Future<PaymentResult> requestPayment(
     BuildContext context, {
     required String orderId,
@@ -61,15 +49,79 @@ class PaymentService {
     required String customerEmail,
     required String paymentMethod,
   }) async {
-    return await _showPaymentDialog(
-      context,
-      orderId: orderId,
-      orderName: orderName,
-      amount: amount,
-      customerName: customerName,
-      customerEmail: customerEmail,
-      paymentMethod: paymentMethod,
-    );
+    // 고객 키: userId 기반 (없으면 orderId 사용)
+    final customerKey = 'customer_$orderId';
+
+    // successUrl / failUrl — 결제 완료 후 토스가 리디렉션하는 URL
+    final baseUrl = html.window.location.origin;
+    final successUrl =
+        '$baseUrl/payment/success?orderId=$orderId&amount=$amount';
+    final failUrl = '$baseUrl/payment/fail?orderId=$orderId';
+
+    // 결제 수단 매핑
+    final method = _mapMethodForSdk(paymentMethod);
+
+    final completer = Completer<PaymentResult>();
+
+    // 취소 콜백 등록
+    js.context['_tossPaymentCancelCallback'] =
+        js.allowInterop((String msg) {
+      if (!completer.isCompleted) {
+        completer.complete(PaymentResult(success: false, error: msg));
+      }
+    });
+
+    // JS 파라미터 객체
+    final params = js.JsObject.jsify({
+      'clientKey': TossConfig.clientKey,
+      'customerKey': customerKey,
+      'amount': amount,
+      'orderId': orderId,
+      'orderName': orderName,
+      'customerName': customerName,
+      'customerEmail': customerEmail,
+      'successUrl': successUrl,
+      'failUrl': failUrl,
+    });
+
+    try {
+      if (method == 'EASY_PAY') {
+        // 간편결제 (카카오페이/네이버페이/토스페이)
+        final easyPayCompany = _mapEasyPayCompany(paymentMethod);
+        final easyParams = js.JsObject.jsify({
+          'clientKey': TossConfig.clientKey,
+          'customerKey': customerKey,
+          'amount': amount,
+          'orderId': orderId,
+          'orderName': orderName,
+          'customerName': customerName,
+          'customerEmail': customerEmail,
+          'easyPayCompany': easyPayCompany,
+          'successUrl': successUrl,
+          'failUrl': failUrl,
+        });
+        js.context.callMethod('requestTossEasyPay', [easyParams]);
+      } else if (method == 'VIRTUAL_ACCOUNT') {
+        js.context.callMethod('requestTossVirtualAccount', [params]);
+      } else {
+        js.context.callMethod('requestTossPayment',
+            [js.JsObject.jsify({...params as Map, 'method': method})]);
+      }
+    } catch (e) {
+      return PaymentResult(success: false, error: '결제창 호출 오류: $e');
+    }
+
+    // successUrl로 리디렉션되므로 — 취소 콜백 대기 (30초 타임아웃)
+    // 실제 성공은 payment/success 라우트에서 처리됨
+    try {
+      return await completer.future.timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => const PaymentResult(
+            success: false, error: '결제 시간이 초과되었습니다.'),
+      );
+    } catch (_) {
+      return const PaymentResult(success: false, error: '결제가 취소되었습니다.');
+    }
   }
 
   // ─── 결제 승인 — 보안 라우팅 ─────────────────────────────────
@@ -96,7 +148,7 @@ class PaymentService {
     }
   }
 
-  // ── Edge Function 경유 승인 (운영 권장) ──
+  // ── Cloudflare Pages Function 경유 승인 (운영 권장) ──
   static Future<PaymentResult> _confirmViaEdgeFunction({
     required String paymentKey,
     required String orderId,
@@ -107,8 +159,6 @@ class PaymentService {
         Uri.parse(TossConfig.confirmEdgeFunctionUrl),
         headers: {
           'Content-Type': 'application/json',
-          'apikey': SupabaseConfig.supabaseAnonKey,
-          'Authorization': 'Bearer ${SupabaseConfig.supabaseAnonKey}',
         },
         body: jsonEncode({
           'paymentKey': paymentKey,
@@ -252,7 +302,7 @@ class PaymentService {
     );
   }
 
-  // ── Edge Function 경유 현금영수증 발급 (운영 권장) ──
+  // ── Cloudflare Pages Function 경유 현금영수증 발급 (운영 권장) ──
   static Future<CashReceiptResult> _issueCashReceiptViaEdge({
     required String paymentKey,
     required String customerIdentityNumber,
@@ -264,8 +314,6 @@ class PaymentService {
         Uri.parse(TossConfig.cashReceiptEdgeFunctionUrl),
         headers: {
           'Content-Type': 'application/json',
-          'apikey': SupabaseConfig.supabaseAnonKey,
-          'Authorization': 'Bearer ${SupabaseConfig.supabaseAnonKey}',
         },
         body: jsonEncode({
           'paymentKey': paymentKey,
@@ -348,21 +396,43 @@ class PaymentService {
     }
   }
 
-  // ─── 결제 수단 매핑 ───────────────────────────────────────────
+  // ─── 결제 수단 매핑 (기존 호환용) ────────────────────────────
   static String mapPaymentMethod(String method) {
     switch (method) {
-      case '카카오페이':   return 'KAKAO_PAY';
-      case '네이버페이':   return 'NAVER_PAY';
-      case '토스페이':    return 'TOSS_PAY';
+      case '카카오페이':    return 'KAKAO_PAY';
+      case '네이버페이':    return 'NAVER_PAY';
+      case '토스페이':     return 'TOSS_PAY';
       case '신용/체크카드': return 'CARD';
-      case '무통장입금':   return 'VIRTUAL_ACCOUNT';
-      default:           return 'CARD';
+      case '무통장입금':    return 'VIRTUAL_ACCOUNT';
+      default:            return 'CARD';
+    }
+  }
+
+  // ─── JS SDK v2 결제 수단 매핑 ─────────────────────────────────
+  static String _mapMethodForSdk(String method) {
+    switch (method) {
+      case '카카오페이':
+      case '네이버페이':
+      case '토스페이':
+        return 'EASY_PAY';
+      case '무통장입금':
+        return 'VIRTUAL_ACCOUNT';
+      default:
+        return 'CARD';
+    }
+  }
+
+  // ─── 간편결제사 매핑 ──────────────────────────────────────────
+  static String _mapEasyPayCompany(String method) {
+    switch (method) {
+      case '카카오페이': return 'KAKAOPAY';
+      case '네이버페이': return 'NAVERPAY';
+      case '토스페이':  return 'TOSSPAY';
+      default:        return 'KAKAOPAY';
     }
   }
 
   // ─── 현금영수증 필요 결제수단 여부 ────────────────────────────
-  // 가상계좌·계좌이체는 토스페이먼츠가 자동 발급 → API 불필요
-  // 카드·간편결제는 별도 API 호출 필요
   static bool needsCashReceiptApiCall(String? paymentMethod) {
     if (paymentMethod == null) return false;
     const autoIssueMethods = ['무통장입금', 'VIRTUAL_ACCOUNT'];

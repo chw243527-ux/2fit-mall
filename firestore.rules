@@ -140,10 +140,13 @@ service cloud.firestore {
       allow update: if isSignedIn() && (
         (
           resource.data.userId == request.auth.uid
-          // 고객은 status를 'cancelled'로만 변경 가능 (pending 상태에서만)
+          // 고객은 status를 'cancelled'로만 변경 가능 (pending 또는 confirmed 상태에서)
           && (
             !('status' in request.resource.data.diff(resource.data).affectedKeys())
-            || (request.resource.data.status == 'cancelled' && resource.data.status == 'pending')
+            || (
+              request.resource.data.status == 'cancelled'
+              && (resource.data.status == 'pending' || resource.data.status == 'confirmed')
+            )
           )
           // 고객은 totalAmount 변경 불가
           && !('totalAmount' in request.resource.data.diff(resource.data).affectedKeys())

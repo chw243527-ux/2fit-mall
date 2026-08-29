@@ -410,37 +410,6 @@ class _LoginScreenState extends State<LoginScreen>
                       ],
                     ),
 
-                    // ── 관리자 계정 힌트 (개발용) ──
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFE8E8E8)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.admin_panel_settings_rounded,
-                                  size: 14, color: Colors.grey.shade500),
-                              const SizedBox(width: 6),
-                              Text(loc.loginAdminAccount,
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.grey.shade500)),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          _hintRow('chw243527@gmail.com', 'Admin2fit2024!'),
-                          const SizedBox(height: 2),
-                          _hintRow('tbrk2435@naver.com', 'manager2fit'),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -633,21 +602,6 @@ class _LoginScreenState extends State<LoginScreen>
                                     child: Text(loc.signUp, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary)),
                                   ),
                                 ],
-                              ),
-                              const SizedBox(height: 24),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE8E8E8))),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(children: [Icon(Icons.admin_panel_settings_rounded, size: 14, color: Colors.grey.shade500), const SizedBox(width: 6), Text(loc.loginAdminAccount, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade500))]),
-                                    const SizedBox(height: 6),
-                                    _hintRow('chw243527@gmail.com', 'Admin2fit2024!'),
-                                    const SizedBox(height: 2),
-                                    _hintRow('tbrk2435@naver.com', 'manager2fit'),
-                                  ],
-                                ),
                               ),
                               const SizedBox(height: 20),
                             ],
