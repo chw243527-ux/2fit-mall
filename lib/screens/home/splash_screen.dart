@@ -84,16 +84,18 @@ class _SplashScreenState extends State<SplashScreen>
     if (kIsWeb) {
       try {
         final pathname = Uri.base.path;
-        final search = Uri.base.query; // ?paymentKey=...
-        if (pathname == '/payment/success' || pathname == '/payment/fail') {
-          // search string → query map
-          final qMap = <String, String>{};
-          if (search.length > 1) {
-            Uri.splitQueryString(search.substring(1)).forEach((k, v) {
-              qMap[k] = v;
-            });
-          }
-          deepLink = _DeepLink(pathname, qMap, requiresAuth: false);
+        final query = Uri.base.queryParameters;
+        // 브라우저 주소창으로 직접 여는 공개 페이지와 결제 콜백은
+        // hash(#) 없이도 현재 pathname을 딥링크로 인식해야 합니다.
+        const publicPathRoutes = {
+          '/privacy-policy',
+          '/terms-of-service',
+          '/refund-policy',
+          '/payment/success',
+          '/payment/fail',
+        };
+        if (publicPathRoutes.contains(pathname)) {
+          deepLink = _DeepLink(pathname, query, requiresAuth: false);
         } else {
           // fragment 기반 hash-routing: https://2fit-mall.co.kr/#/path?query
           final fragment = Uri.base.fragment; // e.g. "/product?id=abc123"
