@@ -286,7 +286,7 @@ jobs:
             echo "| 항목 | 값 |"
             echo "|---|---|"
             echo "| 빌드 번호 | #${{ github.run_number }} |"
-            echo "| 커밋 | \\`$(echo '${{ github.sha }}' | cut -c1-7)\\` |"
+            echo "| 커밋 | ${SHORT_SHA} |"
             echo "| Flutter | ${FLUTTER_VERSION} |"
             echo "| Firebase | ${FIREBASE_PROJECT} |"
             echo "| Cloudflare Pages | ${CF_PROJECT} |"
