@@ -29,6 +29,7 @@ class SecureCheckoutService {
         orderId: data['orderId'] as String?,
         orderName: data['orderName'] as String?,
         amount: (data['amount'] as num?)?.toInt(),
+        customerKey: data['customerKey'] as String?,
         bankTransfer: data['bankTransfer'] == true,
         error: data['error'] as String?,
       ),
@@ -115,6 +116,7 @@ class SecureOrderResult {
   final String? orderId;
   final String? orderName;
   final int? amount;
+  final String? customerKey;
   final bool bankTransfer;
   final String? error;
 
@@ -123,6 +125,7 @@ class SecureOrderResult {
     this.orderId,
     this.orderName,
     this.amount,
+    this.customerKey,
     this.bankTransfer = false,
     this.error,
   });

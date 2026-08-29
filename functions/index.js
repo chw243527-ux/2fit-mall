@@ -752,7 +752,14 @@ exports.createSecureOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) =
         createdAt: FieldValue.serverTimestamp(),
       });
     });
-    res.status(200).json({ success: true, orderId: prepared.orderId, amount: prepared.order.totalAmount, orderName: prepared.orderName });
+    res.status(200).json({
+      success: true,
+      orderId: prepared.orderId,
+      amount: prepared.order.totalAmount,
+      orderName: prepared.orderName,
+      // 이메일·전화번호 대신 UID 해시를 사용해 토스 고객 키를 안정적으로 만듭니다.
+      customerKey: _createTossCustomerKey(decoded.uid),
+    });
   } catch (error) {
     console.error('createSecureOrder failed:', { code: error?.code || 'checkout-preparation-failed' });
     res.status(400).json({ error: _safeCheckoutError(error) });
@@ -945,6 +952,10 @@ async function _releasePaymentIntent(uid, orderId) {
     }
     tx.update(intentRef, { status: 'cancelled', cancelledAt: FieldValue.serverTimestamp() });
   });
+}
+
+function _createTossCustomerKey(uid) {
+  return `twofit_${crypto.createHash('sha256').update(uid).digest('hex').slice(0, 32)}`;
 }
 
 function _safeCheckoutError(error) {

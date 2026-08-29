@@ -2571,7 +2571,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (!mounted) return;
     if (!secureOrder.success ||
         secureOrder.orderId == null ||
-        secureOrder.amount == null) {
+        secureOrder.amount == null ||
+        secureOrder.customerKey == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(secureOrder.error ?? '주문 준비에 실패했습니다.'),
@@ -2600,6 +2601,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         customerName: user.name,
         customerEmail: user.email,
         customerPhone: user.phone,
+        customerKey: secureOrder.customerKey!,
         selectedPayment: _selectedPayment,
         couponId: _appliedCoupon?.id,
         couponDiscount: _couponDiscount,

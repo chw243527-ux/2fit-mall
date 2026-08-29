@@ -62,6 +62,9 @@ android {
 dependencies {
     // ✅ core library desugaring 라이브러리
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // 토스페이먼츠 Android 네이티브 결제위젯 SDK
+    implementation("com.github.tosspayments:payment-sdk-android:0.1.22")
+    implementation("androidx.appcompat:appcompat:1.7.1")
 }
 
 flutter {

@@ -49,9 +49,6 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
     if (_registered) return;
     _registered = true;
 
-    final uid = context.read<UserProvider>().user?.id;
-    final customerKey = (uid != null && uid.isNotEmpty) ? uid : '@@ANONYMOUS';
-
     final successUrl =
         PaymentService.buildSuccessUrl(args.orderId, args.amount);
     final failUrl = PaymentService.buildFailUrl(args.orderId);
@@ -62,7 +59,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
       queryParameters: {
         'clientKey': TossConfig.clientKey,
         'easyPayClientKey': TossConfig.easyPayClientKey, // 카카오페이·네이버페이·토스페이
-        'customerKey': customerKey,
+        'customerKey': args.customerKey,
         'orderId': args.orderId,
         'orderName': args.orderName,
         'amount': args.amount.toString(),

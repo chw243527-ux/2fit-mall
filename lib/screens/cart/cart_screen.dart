@@ -1165,7 +1165,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
       if (!mounted) return;
       if (!secureOrder.success ||
           secureOrder.orderId == null ||
-          secureOrder.amount == null) {
+          secureOrder.amount == null ||
+          secureOrder.customerKey == null) {
         throw Exception(secureOrder.error ?? '주문 준비에 실패했습니다.');
       }
       setState(() => _isProcessing = false);
@@ -1186,6 +1187,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
           customerName: user.name,
           customerEmail: user.email,
           customerPhone: user.phone,
+          customerKey: secureOrder.customerKey!,
           selectedPayment: _selectedPayment!,
         ),
       );
