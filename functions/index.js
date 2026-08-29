@@ -920,10 +920,12 @@ async function _prepareOrderFromServerData(uid, payload) {
     if (!productSnap.exists || product.isActive === false || !Number.isFinite(Number(product.price))) throw new Error('Product is unavailable');
     if (Array.isArray(product.sizes) && product.sizes.length && !product.sizes.includes(size)) throw new Error('Invalid product size');
     const color = _resolveProductOption(requestedColor, product.colors);
+    // 색상 선택이 없는 상품은 클라이언트가 '-'를 전송하므로 검증에서 제외합니다.
+    const hasColorSelection = !['', '-', '없음', '미지정'].includes(requestedColor.trim());
     const knownColor = _resolveProductOption(requestedColor, _CHECKOUT_COLOR_OPTIONS);
     const isKnownCheckoutColor = _CHECKOUT_COLOR_OPTIONS.includes(knownColor)
       || /^커스텀\s*\(#[0-9a-f]{6}\)$/i.test(requestedColor);
-    if (Array.isArray(product.colors) && product.colors.length && !product.colors.includes(color) && !isKnownCheckoutColor) {
+    if (hasColorSelection && Array.isArray(product.colors) && product.colors.length && !product.colors.includes(color) && !isKnownCheckoutColor) {
       console.error('Invalid product color', {
         productId,
         requestedColor,
