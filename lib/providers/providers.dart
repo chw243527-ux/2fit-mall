@@ -18,7 +18,8 @@ import '../services/banner_service.dart';
 import '../services/point_service.dart';
 
 // ── 언어 Provider ──────────────────────────────────────
-class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge {
+class LanguageProvider extends ChangeNotifier
+    implements LanguageProviderBridge {
   static const _kLangKey = 'selected_language';
   AppLanguage _language = AppLanguage.korean;
   Timer? _translateTimer;
@@ -37,7 +38,8 @@ class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge 
       final prefs = await SharedPreferences.getInstance();
       final code = prefs.getString(_kLangKey);
       if (code != null) {
-        final found = AppLanguage.values.where((l) => l.code == code).firstOrNull;
+        final found =
+            AppLanguage.values.where((l) => l.code == code).firstOrNull;
         if (found != null && found != _language) {
           if (found == AppLanguage.korean) {
             _language = found;
@@ -46,7 +48,8 @@ class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge 
             // 저장된 외국어 복원: pending 키 등록 대기 후 번역
             _language = found;
             notifyListeners();
-            _schedulePendingTranslations(delay: const Duration(milliseconds: 600));
+            _schedulePendingTranslations(
+                delay: const Duration(milliseconds: 600));
           }
         }
       }
@@ -91,7 +94,8 @@ class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge 
         if (korean.isEmpty) return;
         if (AppLocalizations.isCached(key, langCode)) return;
         try {
-          final translated = await TranslationService.translateSingle(korean, langCode);
+          final translated =
+              await TranslationService.translateSingle(korean, langCode);
           if (translated != null && translated.isNotEmpty) {
             AppLocalizations.cacheTranslation(key, langCode, translated);
           }
@@ -115,7 +119,8 @@ class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge 
   }
 
   // 백그라운드 번역 스케줄러 (신규 pending 키용)
-  void _schedulePendingTranslations({Duration delay = const Duration(milliseconds: 150)}) {
+  void _schedulePendingTranslations(
+      {Duration delay = const Duration(milliseconds: 150)}) {
     _translateTimer?.cancel();
     _translateTimer = Timer(delay, () async {
       await _processNewPendingTranslations();
@@ -142,7 +147,8 @@ class LanguageProvider extends ChangeNotifier implements LanguageProviderBridge 
           if (korean == null || korean.isEmpty) return;
           if (AppLocalizations.isCached(key, langCode)) return;
           try {
-            final translated = await TranslationService.translateSingle(korean, langCode);
+            final translated =
+                await TranslationService.translateSingle(korean, langCode);
             if (translated != null && translated.isNotEmpty) {
               AppLocalizations.cacheTranslation(key, langCode, translated);
             }
@@ -176,20 +182,29 @@ class CartProvider extends ChangeNotifier {
 
   List<CartItem> get items => List.unmodifiable(_items);
   int get itemCount => _items.fold(0, (sum, item) => sum + item.quantity);
-  
+
   double get subtotal => _items.fold(0, (sum, item) => sum + item.totalPrice);
-  double get shippingFee => subtotal >= 300000 ? 0 : 4000; // 30만원 이상 무료배송, 미만 4,000원
+  double get shippingFee =>
+      subtotal >= 300000 ? 0 : 4000; // 30만원 이상 무료배송, 미만 4,000원
   double get total => subtotal + shippingFee;
 
   bool get isEmpty => _items.isEmpty;
 
-  void addItem(ProductModel product, String size, String color, {int quantity = 1, double extraPrice = 0, Map<String, dynamic>? customOptions}) {
+  void addItem(ProductModel product, String size, String color,
+      {int quantity = 1,
+      double extraPrice = 0,
+      Map<String, dynamic>? customOptions}) {
     // 단체주문/추가제작 아이템은 항상 새로 추가 (customOptions 다를 수 있음)
     final isGroupOrder = customOptions != null &&
-        (customOptions['orderType'] == 'group' || customOptions['orderType'] == 'additional');
+        (customOptions['orderType'] == 'group' ||
+            customOptions['orderType'] == 'additional');
     if (!isGroupOrder) {
       final existingIndex = _items.indexWhere(
-        (item) => item.product.id == product.id && item.selectedSize == size && item.selectedColor == color && item.extraPrice == extraPrice,
+        (item) =>
+            item.product.id == product.id &&
+            item.selectedSize == size &&
+            item.selectedColor == color &&
+            item.extraPrice == extraPrice,
       );
       if (existingIndex >= 0) {
         _items[existingIndex].quantity += quantity;
@@ -254,16 +269,17 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void logout() {
-    // 소셜 로그인 제공자에 맞게 로그아웃
+  Future<void> logout() async {
+    // Firebase 로그아웃이 끝난 뒤에만 로그인 화면을 다시 열 수 있게 순차 처리합니다.
+    // 그렇지 않으면 이전 signOut 요청이 새 로그인 직후 실행될 수 있습니다.
     final provider = _user?.loginProvider ?? 'email';
-    AuthService.logout(); // Firebase Auth 로그아웃
+    await AuthService.logout();
     if (provider == 'google') {
-      AuthService.signOutGoogle().catchError((_) {});
+      await AuthService.signOutGoogle();
     } else if (provider == 'kakao') {
-      AuthService.signOutKakao().catchError((_) {});
+      await AuthService.signOutKakao();
     } else if (provider == 'naver') {
-      AuthService.signOutNaver().catchError((_) {});
+      await AuthService.signOutNaver();
     }
     _user = null;
     notifyListeners();
@@ -274,16 +290,22 @@ class UserProvider extends ChangeNotifier {
     try {
       final messaging = FirebaseMessaging.instance;
       final settings = await messaging.requestPermission(
-        alert: true, badge: true, sound: true,
+        alert: true,
+        badge: true,
+        sound: true,
       );
       if (settings.authorizationStatus != AuthorizationStatus.authorized &&
-          settings.authorizationStatus != AuthorizationStatus.provisional) return;
+          settings.authorizationStatus != AuthorizationStatus.provisional)
+        return;
 
       String? token;
       if (kIsWeb) {
-        token = await messaging.getToken(
-          vapidKey: 'BPOVoK3gRuXzSCDkS5jtfKFNV1PV3BXnJJXVlFJhk6KQQMK5zqJ_N3G5zYYsNJT1JoV7tKMvVsZJfS5rqF5o3M',
-        ).catchError((_) => null);
+        token = await messaging
+            .getToken(
+              vapidKey:
+                  'BPOVoK3gRuXzSCDkS5jtfKFNV1PV3BXnJJXVlFJhk6KQQMK5zqJ_N3G5zYYsNJT1JoV7tKMvVsZJfS5rqF5o3M',
+            )
+            .catchError((_) => null);
       } else {
         token = await messaging.getToken();
       }
@@ -301,7 +323,8 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> updateUserProfile({String? name, String? phone, String? cashReceiptNum}) async {
+  Future<void> updateUserProfile(
+      {String? name, String? phone, String? cashReceiptNum}) async {
     if (_user == null) return;
     // cashReceiptNum: '' 전달 시 삭제 처리 (null로 저장)
     final newCashReceipt = (cashReceiptNum != null && cashReceiptNum.isEmpty)
@@ -331,9 +354,8 @@ class UserProvider extends ChangeNotifier {
         if (phone != null) 'phone': phone,
         // 빈 문자열로 삭제 요청 시 → 필드 자체 삭제
         if (cashReceiptNum != null)
-          'cashReceiptNum': cashReceiptNum.isEmpty
-              ? FieldValue.delete()
-              : cashReceiptNum,
+          'cashReceiptNum':
+              cashReceiptNum.isEmpty ? FieldValue.delete() : cashReceiptNum,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
@@ -357,14 +379,13 @@ class UserProvider extends ChangeNotifier {
     );
     notifyListeners();
     // Firestore 동기화 (비동기, 실패해도 UI 즉시 반영)
-    FirebaseFirestore.instance
-        .collection('users')
-        .doc(_user!.id)
-        .update({
+    FirebaseFirestore.instance.collection('users').doc(_user!.id).update({
       'addresses': addresses.map((a) => a.toJson()).toList(),
       'updatedAt': FieldValue.serverTimestamp(),
     }).catchError(
-      (e) { if (kDebugMode) debugPrint('⚠️ 주소 저장 실패: $e'); },
+      (e) {
+        if (kDebugMode) debugPrint('⚠️ 주소 저장 실패: $e');
+      },
     );
   }
 
@@ -378,7 +399,9 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
     // Firestore 동기화 (비동기, 실패해도 UI는 즉시 반영)
     WishlistService.toggleWishlist(_user!.id, productId).catchError(
-      (e) { if (kDebugMode) debugPrint('⚠️ 찜 동기화 실패: $e'); },
+      (e) {
+        if (kDebugMode) debugPrint('⚠️ 찜 동기화 실패: $e');
+      },
     );
   }
 
@@ -509,6 +532,7 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
+
 // ── 쿠폰 Provider ─────────────────────────────────────
 class CouponProvider extends ChangeNotifier {
   List<CouponModel> _coupons = [];
@@ -569,14 +593,15 @@ class ReviewProvider extends ChangeNotifier {
 
   // 상품별 실시간 스트림 구독
   Stream<List<ReviewModel>> watchProductReviews(String productId) {
-    return ReviewService.watchProductReviews(productId)..listen((reviews) {
-      _cache[productId] = reviews;
-      if (reviews.isNotEmpty) {
-        _ratings[productId] =
-            reviews.fold(0.0, (s, r) => s + r.rating) / reviews.length;
-      }
-      notifyListeners();
-    });
+    return ReviewService.watchProductReviews(productId)
+      ..listen((reviews) {
+        _cache[productId] = reviews;
+        if (reviews.isNotEmpty) {
+          _ratings[productId] =
+              reviews.fold(0.0, (s, r) => s + r.rating) / reviews.length;
+        }
+        notifyListeners();
+      });
   }
 
   // 유저별 스트림 (마이페이지)
@@ -643,8 +668,7 @@ class NotificationProvider extends ChangeNotifier {
 
   List<NotificationModel> get notifications =>
       List.unmodifiable(_notifications);
-  int get unreadCount =>
-      _notifications.where((n) => !n.isRead).length;
+  int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
   /// Firestore에서 알림 로드
   Future<void> loadFromFirestore(String userId) async {
@@ -699,46 +723,54 @@ class NotificationProvider extends ChangeNotifier {
 // NoticeThemeHelper — 제목/내용 키워드 → 테마 자동 감지 + 이미지 매핑
 // ══════════════════════════════════════════════════════════════
 class NoticeThemeHelper {
-
   // ── A) 테마별 이모지 배너 (이미지 없을 때 텍스트 배너로 표시) ──
   static const Map<String, String> themeEmoji = {
-    'general':  '📢',
-    'event':    '🎉',
+    'general': '📢',
+    'event': '🎉',
     'delivery': '🚚',
-    'warning':  '⚠️',
-    'update':   '✅',
-    'promo':    '🛒',
-    'holiday':  '🗓️',
-    'weather':  '🌤️',
-    'newitem':  '🆕',
-    'review':   '⭐',
+    'warning': '⚠️',
+    'update': '✅',
+    'promo': '🛒',
+    'holiday': '🗓️',
+    'weather': '🌤️',
+    'newitem': '🆕',
+    'review': '⭐',
   };
 
   static const Map<String, String> themeLabel = {
-    'general':  '일반 공지',
-    'event':    '이벤트',
+    'general': '일반 공지',
+    'event': '이벤트',
     'delivery': '배송 안내',
-    'warning':  '주의 사항',
-    'update':   '업데이트',
-    'promo':    '할인/프로모션',
-    'holiday':  '휴무/일정',
-    'weather':  '날씨/계절',
-    'newitem':  '신상품',
-    'review':   '리뷰/후기',
+    'warning': '주의 사항',
+    'update': '업데이트',
+    'promo': '할인/프로모션',
+    'holiday': '휴무/일정',
+    'weather': '날씨/계절',
+    'newitem': '신상품',
+    'review': '리뷰/후기',
   };
 
   // ── B) 테마별 일러스트 이미지 URL (무료 오픈소스 SVG — unDraw / OpenMoji) ──
   static const Map<String, String> themeImageUrl = {
-    'holiday':  'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c5.svg',
-    'event':    'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f389.svg',
-    'delivery': 'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f69a.svg',
-    'warning':  'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/26a0.svg',
-    'update':   'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2705.svg',
-    'promo':    'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6d2.svg',
-    'newitem':  'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f195.svg',
-    'weather':  'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/26c5.svg',
-    'review':   'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2b50.svg',
-    'general':  '',  // 일반공지는 이미지 없음
+    'holiday':
+        'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f4c5.svg',
+    'event':
+        'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f389.svg',
+    'delivery':
+        'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f69a.svg',
+    'warning':
+        'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/26a0.svg',
+    'update':
+        'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2705.svg',
+    'promo':
+        'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f6d2.svg',
+    'newitem':
+        'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/1f195.svg',
+    'weather':
+        'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/26c5.svg',
+    'review':
+        'https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/2b50.svg',
+    'general': '', // 일반공지는 이미지 없음
   };
 
   // ── 키워드 → 테마 자동 감지 ──
@@ -746,32 +778,71 @@ class NoticeThemeHelper {
     final text = '${title.toLowerCase()} ${content.toLowerCase()}';
 
     // 휴무/일정 (달력)
-    if (_has(text, ['휴무', '휴일', '공휴일', '달력', '일정', '영업시간', '운영시간',
-                    '쉬는날', '명절', '연휴', '설날', '추석', '크리스마스'])) return 'holiday';
+    if (_has(text, [
+      '휴무',
+      '휴일',
+      '공휴일',
+      '달력',
+      '일정',
+      '영업시간',
+      '운영시간',
+      '쉬는날',
+      '명절',
+      '연휴',
+      '설날',
+      '추석',
+      '크리스마스'
+    ])) return 'holiday';
 
     // 이벤트
-    if (_has(text, ['이벤트', '기념', '축제', '파티', '선물', '경품', '추첨',
-                    'event', '기회', '특별'])) return 'event';
+    if (_has(
+        text, ['이벤트', '기념', '축제', '파티', '선물', '경품', '추첨', 'event', '기회', '특별']))
+      return 'event';
 
     // 배송
-    if (_has(text, ['배송', '출고', '택배', '발송', '배달', '도착', '운송',
-                    'delivery', '입고', '재고'])) return 'delivery';
+    if (_has(text, [
+      '배송',
+      '출고',
+      '택배',
+      '발송',
+      '배달',
+      '도착',
+      '운송',
+      'delivery',
+      '입고',
+      '재고'
+    ])) return 'delivery';
 
     // 신상품
-    if (_has(text, ['신상', '신제품', '새로운', '출시', '런칭', 'new', '신규'])) return 'newitem';
+    if (_has(text, ['신상', '신제품', '새로운', '출시', '런칭', 'new', '신규']))
+      return 'newitem';
 
     // 할인/프로모
-    if (_has(text, ['할인', '세일', '프로모', '쿠폰', '적립', '혜택', '특가',
-                    'sale', '% off', '무료', '증정'])) return 'promo';
+    if (_has(text, [
+      '할인',
+      '세일',
+      '프로모',
+      '쿠폰',
+      '적립',
+      '혜택',
+      '특가',
+      'sale',
+      '% off',
+      '무료',
+      '증정'
+    ])) return 'promo';
 
     // 주의/안내
-    if (_has(text, ['주의', '경고', '중요', '긴급', '안전', '필독', '꼭 확인'])) return 'warning';
+    if (_has(text, ['주의', '경고', '중요', '긴급', '안전', '필독', '꼭 확인']))
+      return 'warning';
 
     // 업데이트
-    if (_has(text, ['업데이트', '개선', '변경', '수정', '패치', '버전', '기능 추가'])) return 'update';
+    if (_has(text, ['업데이트', '개선', '변경', '수정', '패치', '버전', '기능 추가']))
+      return 'update';
 
     // 날씨/계절
-    if (_has(text, ['날씨', '기온', '여름', '겨울', '봄', '가을', '비', '눈', '더위', '추위'])) return 'weather';
+    if (_has(text, ['날씨', '기온', '여름', '겨울', '봄', '가을', '비', '눈', '더위', '추위']))
+      return 'weather';
 
     // 리뷰
     if (_has(text, ['리뷰', '후기', '평점', '만족', '추천'])) return 'review';
@@ -795,16 +866,22 @@ class NoticeModel {
   final Map<String, String> contentTranslations;
   final bool isActive;
   final DateTime createdAt;
+
   /// 테마: 'general'|'event'|'delivery'|'warning'|'update'|'promo'
   final String theme;
+
   /// 본문 위에 표시할 이미지 URL (선택)
   final String imageUrl;
+
   /// 노출 시작일 (null=제한없음)
   final DateTime? startDate;
+
   /// 노출 종료일 (null=제한없음)
   final DateTime? endDate;
+
   /// 홈 팝업 노출 여부. 공지 목록 노출과 별도로 제어합니다.
   final bool showAsPopup;
+
   /// 팝업 중요도. 숫자가 클수록 먼저 노출됩니다.
   final int popupPriority;
 
@@ -828,20 +905,28 @@ class NoticeModel {
   bool get isInSchedule {
     final now = DateTime.now();
     if (startDate != null && now.isBefore(startDate!)) return false;
-    if (endDate   != null && now.isAfter(endDate!))    return false;
+    if (endDate != null && now.isAfter(endDate!)) return false;
     return true;
   }
 
   String localizedTitle(AppLanguage lang) {
     switch (lang) {
       case AppLanguage.english:
-        return titleTranslations['en']?.isNotEmpty == true ? titleTranslations['en']! : titleKo;
+        return titleTranslations['en']?.isNotEmpty == true
+            ? titleTranslations['en']!
+            : titleKo;
       case AppLanguage.japanese:
-        return titleTranslations['ja']?.isNotEmpty == true ? titleTranslations['ja']! : titleKo;
+        return titleTranslations['ja']?.isNotEmpty == true
+            ? titleTranslations['ja']!
+            : titleKo;
       case AppLanguage.chinese:
-        return titleTranslations['zh']?.isNotEmpty == true ? titleTranslations['zh']! : titleKo;
+        return titleTranslations['zh']?.isNotEmpty == true
+            ? titleTranslations['zh']!
+            : titleKo;
       case AppLanguage.mongolian:
-        return titleTranslations['mn']?.isNotEmpty == true ? titleTranslations['mn']! : titleKo;
+        return titleTranslations['mn']?.isNotEmpty == true
+            ? titleTranslations['mn']!
+            : titleKo;
       default:
         return titleKo;
     }
@@ -850,13 +935,21 @@ class NoticeModel {
   String localizedContent(AppLanguage lang) {
     switch (lang) {
       case AppLanguage.english:
-        return contentTranslations['en']?.isNotEmpty == true ? contentTranslations['en']! : contentKo;
+        return contentTranslations['en']?.isNotEmpty == true
+            ? contentTranslations['en']!
+            : contentKo;
       case AppLanguage.japanese:
-        return contentTranslations['ja']?.isNotEmpty == true ? contentTranslations['ja']! : contentKo;
+        return contentTranslations['ja']?.isNotEmpty == true
+            ? contentTranslations['ja']!
+            : contentKo;
       case AppLanguage.chinese:
-        return contentTranslations['zh']?.isNotEmpty == true ? contentTranslations['zh']! : contentKo;
+        return contentTranslations['zh']?.isNotEmpty == true
+            ? contentTranslations['zh']!
+            : contentKo;
       case AppLanguage.mongolian:
-        return contentTranslations['mn']?.isNotEmpty == true ? contentTranslations['mn']! : contentKo;
+        return contentTranslations['mn']?.isNotEmpty == true
+            ? contentTranslations['mn']!
+            : contentKo;
       default:
         return contentKo;
     }
@@ -878,10 +971,12 @@ class NoticeModel {
       if (v is String) return DateTime.tryParse(v);
       return null;
     }
+
     return NoticeModel(
       id: id,
       titleKo: data['titleKo'] as String? ?? data['title'] as String? ?? '',
-      contentKo: data['contentKo'] as String? ?? data['content'] as String? ?? '',
+      contentKo:
+          data['contentKo'] as String? ?? data['content'] as String? ?? '',
       titleTranslations: data['titleTranslations'] != null
           ? Map<String, String>.from(data['titleTranslations'] as Map)
           : const {},
@@ -893,26 +988,26 @@ class NoticeModel {
       theme: data['theme'] as String? ?? 'general',
       imageUrl: data['imageUrl'] as String? ?? '',
       startDate: _parseDate(data['startDate']),
-      endDate:   _parseDate(data['endDate']),
+      endDate: _parseDate(data['endDate']),
       showAsPopup: data['showAsPopup'] as bool? ?? true,
       popupPriority: (data['popupPriority'] as num?)?.toInt() ?? 0,
     );
   }
 
   Map<String, dynamic> toFirestore() => {
-    'titleKo': titleKo,
-    'contentKo': contentKo,
-    'titleTranslations': titleTranslations,
-    'contentTranslations': contentTranslations,
-    'isActive': isActive,
-    'createdAt': Timestamp.fromDate(createdAt),
-    'theme': theme,
-    'imageUrl': imageUrl,
-    'startDate': startDate != null ? Timestamp.fromDate(startDate!) : null,
-    'endDate':   endDate   != null ? Timestamp.fromDate(endDate!)   : null,
-    'showAsPopup': showAsPopup,
-    'popupPriority': popupPriority,
-  };
+        'titleKo': titleKo,
+        'contentKo': contentKo,
+        'titleTranslations': titleTranslations,
+        'contentTranslations': contentTranslations,
+        'isActive': isActive,
+        'createdAt': Timestamp.fromDate(createdAt),
+        'theme': theme,
+        'imageUrl': imageUrl,
+        'startDate': startDate != null ? Timestamp.fromDate(startDate!) : null,
+        'endDate': endDate != null ? Timestamp.fromDate(endDate!) : null,
+        'showAsPopup': showAsPopup,
+        'popupPriority': popupPriority,
+      };
 }
 
 class NoticeProvider extends ChangeNotifier {
@@ -925,8 +1020,9 @@ class NoticeProvider extends ChangeNotifier {
   static const String _kPopupDismissKey = 'popup_dismiss_date';
 
   // UID 포함 dismiss 키 → 유저별로 팝업 상태 분리
-  String _dismissKey(String? uid) =>
-      uid != null && uid.isNotEmpty ? '${_kPopupDismissKey}_$uid' : _kPopupDismissKey;
+  String _dismissKey(String? uid) => uid != null && uid.isNotEmpty
+      ? '${_kPopupDismissKey}_$uid'
+      : _kPopupDismissKey;
 
   /// 로그인한 유저가 바뀔 때 호출 — 새 유저의 dismiss 상태 로드
   Future<void> onUserChanged(String? uid) async {
@@ -980,7 +1076,8 @@ class NoticeProvider extends ChangeNotifier {
   final List<NoticeModel> _notices = [];
 
   List<NoticeModel> get activeNotices {
-    final notices = _notices.where((n) => n.isActive && n.isInSchedule).toList();
+    final notices =
+        _notices.where((n) => n.isActive && n.isInSchedule).toList();
     notices.sort((a, b) {
       final priority = b.popupPriority.compareTo(a.popupPriority);
       return priority != 0 ? priority : b.createdAt.compareTo(a.createdAt);
@@ -1012,7 +1109,8 @@ class NoticeProvider extends ChangeNotifier {
     // UID 포함 키로 저장 → 유저별 독립 관리
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_dismissKey(_currentUid), _dismissedDate!.toIso8601String());
+      await prefs.setString(
+          _dismissKey(_currentUid), _dismissedDate!.toIso8601String());
     } catch (_) {}
     notifyListeners();
   }
@@ -1049,8 +1147,10 @@ class NoticeProvider extends ChangeNotifier {
 
   Future<void> _autoTranslateNotices(List<NoticeModel> notices) async {
     for (final notice in notices) {
-      final needsTitle = notice.titleTranslations.isEmpty || !notice.titleTranslations.containsKey('en');
-      final needsContent = notice.contentTranslations.isEmpty || !notice.contentTranslations.containsKey('en');
+      final needsTitle = notice.titleTranslations.isEmpty ||
+          !notice.titleTranslations.containsKey('en');
+      final needsContent = notice.contentTranslations.isEmpty ||
+          !notice.contentTranslations.containsKey('en');
       if (!needsTitle && !needsContent) continue;
       try {
         Map<String, String> titleT = notice.titleTranslations;
@@ -1059,7 +1159,8 @@ class NoticeProvider extends ChangeNotifier {
           titleT = await TranslationService.translateWithCache(notice.titleKo);
         }
         if (needsContent && notice.contentKo.isNotEmpty) {
-          contentT = await TranslationService.translateLongText(notice.contentKo);
+          contentT =
+              await TranslationService.translateLongText(notice.contentKo);
         }
         if (titleT.isNotEmpty || contentT.isNotEmpty) {
           final updateData = <String, dynamic>{};
@@ -1076,8 +1177,10 @@ class NoticeProvider extends ChangeNotifier {
               id: old.id,
               titleKo: old.titleKo,
               contentKo: old.contentKo,
-              titleTranslations: titleT.isNotEmpty ? titleT : old.titleTranslations,
-              contentTranslations: contentT.isNotEmpty ? contentT : old.contentTranslations,
+              titleTranslations:
+                  titleT.isNotEmpty ? titleT : old.titleTranslations,
+              contentTranslations:
+                  contentT.isNotEmpty ? contentT : old.contentTranslations,
               isActive: old.isActive,
               createdAt: old.createdAt,
               theme: old.theme,
@@ -1216,14 +1319,18 @@ class ProductProvider extends ChangeNotifier {
   bool _isGroupOnlyLoading = false; // 단체주문 전용 로딩 상태
   String? _error;
   String _currentCategory = '전체';
+
   /// 상품ID → 실제 판매 수량 캐시
   Map<String, int> _salesCountMap = {};
+
   /// 판매 수 집계 로드 완료 여부
   bool _salesCountsLoaded = false;
 
   List<ProductModel> get products => _products;
+
   /// 관리자 전용: isActive 무관 전체 상품 목록
   List<ProductModel> get adminProducts => _adminProducts;
+
   /// 단체주문 전용 상품 목록 (isGroupOnly=true, isActive=true)
   List<ProductModel> get groupOnlyProducts => _groupOnlyProducts;
   bool get isLoading => _isLoading;
@@ -1231,6 +1338,7 @@ class ProductProvider extends ChangeNotifier {
   bool get isGroupOnlyLoading => _isGroupOnlyLoading;
   String? get error => _error;
   String get currentCategory => _currentCategory;
+
   /// 판매 수 집계 로드 완료 여부 (홈화면 베스트 섹션 로딩 표시용)
   bool get salesCountsLoaded => _salesCountsLoaded;
 
@@ -1274,9 +1382,8 @@ class ProductProvider extends ChangeNotifier {
       if (kDebugMode) debugPrint('⚠️ 단체주문 전용 상품 로드 실패: $e');
       _isGroupOnlyLoading = false;
       // 폴백: 전체 상품에서 필터링
-      _groupOnlyProducts = _products
-          .where((p) => p.isGroupOnly && p.isActive)
-          .toList();
+      _groupOnlyProducts =
+          _products.where((p) => p.isGroupOnly && p.isActive).toList();
       notifyListeners();
     }
   }
@@ -1341,7 +1448,8 @@ class ProductProvider extends ChangeNotifier {
           nameT = await TranslationService.translateWithCache(product.name);
         }
         if (needsDescTranslation && product.description.isNotEmpty) {
-          descT = await TranslationService.translateLongText(product.description);
+          descT =
+              await TranslationService.translateLongText(product.description);
         }
 
         if (nameT.isNotEmpty || descT.isNotEmpty) {
@@ -1481,27 +1589,36 @@ class ProductProvider extends ChangeNotifier {
   }
 
   /// 메인 이미지 업데이트 → 즉시 notifyListeners
-  Future<bool> updateMainImages(
-      String productId, List<String> urls) async {
-    final result =
-        await ProductService.updateMainImages(productId, urls);
+  Future<bool> updateMainImages(String productId, List<String> urls) async {
+    final result = await ProductService.updateMainImages(productId, urls);
     if (result) {
       final idx = _products.indexWhere((p) => p.id == productId);
       if (idx >= 0) {
         final p = _products[idx];
         _products[idx] = ProductModel(
-          id: p.id, name: p.name, category: p.category,
+          id: p.id,
+          name: p.name,
+          category: p.category,
           subCategory: p.subCategory,
-          price: p.price, originalPrice: p.originalPrice,
-          description: p.description, images: urls,
-          sizes: p.sizes, colors: p.colors, material: p.material,
-          isNew: p.isNew, newExpiresAt: p.newExpiresAt,
-          isSale: p.isSale, isFreeShipping: p.isFreeShipping,
+          price: p.price,
+          originalPrice: p.originalPrice,
+          description: p.description,
+          images: urls,
+          sizes: p.sizes,
+          colors: p.colors,
+          material: p.material,
+          isNew: p.isNew,
+          newExpiresAt: p.newExpiresAt,
+          isSale: p.isSale,
+          isFreeShipping: p.isFreeShipping,
           isGroupOnly: p.isGroupOnly,
           isActive: p.isActive,
-          rating: p.rating, reviewCount: p.reviewCount, stockCount: p.stockCount,
+          rating: p.rating,
+          reviewCount: p.reviewCount,
+          stockCount: p.stockCount,
           salesCount: p.salesCount,
-          createdAt: p.createdAt, sectionImages: p.sectionImages,
+          createdAt: p.createdAt,
+          sectionImages: p.sectionImages,
         );
         notifyListeners();
       }
@@ -1509,7 +1626,6 @@ class ProductProvider extends ChangeNotifier {
     return result;
   }
 }
-
 
 // ══════════════════════════════════════════════════════
 // SizeProfileProvider — 사이즈 프로필 상태 관리
@@ -1576,7 +1692,6 @@ class SizeProfileProvider extends ChangeNotifier {
   }
 }
 
-
 // ── 배너 Provider ─────────────────────────────────────────────────────────
 /// Firestore /banners 컬렉션 실시간 구독.
 /// HomeScreen·AdminScreen 양쪽이 동일한 데이터를 참조한다.
@@ -1607,7 +1722,8 @@ class BannerProvider extends ChangeNotifier {
     try {
       await BannerService.seedDefaultBanners();
     } catch (e) {
-      if (kDebugMode) debugPrint('BannerProvider: seedDefaultBanners error: $e');
+      if (kDebugMode)
+        debugPrint('BannerProvider: seedDefaultBanners error: $e');
     }
 
     // 기존 구독 취소 후 재구독

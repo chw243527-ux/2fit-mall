@@ -212,8 +212,7 @@ class _MyPageScreenState extends State<MyPageScreen>
             ),
             onPressed: () async {
               Navigator.pop(ctx);
-              await AuthService.logout();
-              up.logout();
+              await up.logout();
               if (ctx.mounted) {
                 ctx.read<SizeProfileProvider>().clear();
                 ctx.read<CartProvider>().clearCart();
@@ -443,17 +442,16 @@ class _MyPageScreenState extends State<MyPageScreen>
                       }
 
                       Navigator.pop(dialogCtx);
-                      await AuthService.logout();
+                      await up.logout();
                       if (!ctx.mounted) return;
-                      up.logout();
                       ctx.read<CartProvider>().clearCart();
                       ctx.read<SizeProfileProvider>().clear();
                       ctx.read<CouponProvider>().clear();
                       ctx.read<PointProvider>().clear();
                       ScaffoldMessenger.of(ctx).showSnackBar(
                         SnackBar(
-                          content: Text(ctx.loc
-                              .t('회원 탈퇴가 완료되었습니다', '회원 탈퇴가 완료되었습니다.')),
+                          content: Text(
+                              ctx.loc.t('회원 탈퇴가 완료되었습니다', '회원 탈퇴가 완료되었습니다.')),
                           backgroundColor: AppColors.error,
                         ),
                       );

@@ -825,10 +825,10 @@ class _AdminScreenState extends State<AdminScreen>
       {'icon': Icons.bar_chart_rounded, 'label': '매출통계'},
       // ── 주문관리 소분류 (들여쓰기로 표시) ──
       {'icon': Icons.folder_special_rounded, 'label': '카테고리관리', 'sub': true},
-       {'icon': Icons.layers_rounded, 'label': '섹션관리', 'sub': true},
-       {'icon': Icons.local_activity_rounded, 'label': '쿠폰관리', 'sub': true},
-       {'icon': Icons.palette_rounded, 'label': '색상관리', 'sub': true},
-     ];
+      {'icon': Icons.layers_rounded, 'label': '섹션관리', 'sub': true},
+      {'icon': Icons.local_activity_rounded, 'label': '쿠폰관리', 'sub': true},
+      {'icon': Icons.palette_rounded, 'label': '색상관리', 'sub': true},
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -1145,9 +1145,8 @@ class _AdminScreenState extends State<AdminScreen>
                                 ),
                               );
                               if (confirmed == true && context.mounted) {
-                                await AuthService.logout();
+                                await context.read<UserProvider>().logout();
                                 if (!context.mounted) return;
-                                context.read<UserProvider>().logout();
                                 context.read<CartProvider>().clearCart();
                                 Navigator.of(context).pushAndRemoveUntil(
                                     MaterialPageRoute(
@@ -1368,9 +1367,8 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
               );
               if (confirmed == true && context.mounted) {
-                await AuthService.logout();
+                await context.read<UserProvider>().logout();
                 if (!context.mounted) return;
-                context.read<UserProvider>().logout();
                 context.read<CartProvider>().clearCart();
                 Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -6918,26 +6916,36 @@ class _AdminScreenState extends State<AdminScreen>
                                       ),
                                     ),
                                     // 표시 순서 변경
-                                    _iconBtn(Icons.keyboard_arrow_up_rounded,
+                                    _iconBtn(
+                                        Icons.keyboard_arrow_up_rounded,
                                         i == 0
                                             ? null
                                             : () async {
-                                                final reordered = List<BannerModel>.from(banners);
-                                                final moved = reordered.removeAt(i);
+                                                final reordered =
+                                                    List<BannerModel>.from(
+                                                        banners);
+                                                final moved =
+                                                    reordered.removeAt(i);
                                                 reordered.insert(i - 1, moved);
-                                                await BannerService.reorderBanners(reordered);
+                                                await BannerService
+                                                    .reorderBanners(reordered);
                                               },
                                         color: i == 0
                                             ? AppColors.textHint
                                             : AppColors.textSecondary),
-                                    _iconBtn(Icons.keyboard_arrow_down_rounded,
+                                    _iconBtn(
+                                        Icons.keyboard_arrow_down_rounded,
                                         i == banners.length - 1
                                             ? null
                                             : () async {
-                                                final reordered = List<BannerModel>.from(banners);
-                                                final moved = reordered.removeAt(i);
+                                                final reordered =
+                                                    List<BannerModel>.from(
+                                                        banners);
+                                                final moved =
+                                                    reordered.removeAt(i);
                                                 reordered.insert(i + 1, moved);
-                                                await BannerService.reorderBanners(reordered);
+                                                await BannerService
+                                                    .reorderBanners(reordered);
                                               },
                                         color: i == banners.length - 1
                                             ? AppColors.textHint
@@ -7950,8 +7958,8 @@ class _AdminScreenState extends State<AdminScreen>
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
                 Text(order.userName,
-                    style:
-                        const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 10, color: AppColors.textSecondary),
                     overflow: TextOverflow.ellipsis),
               ],
             ),
@@ -10011,7 +10019,8 @@ class _AdminScreenState extends State<AdminScreen>
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(children: [
             const Icon(Icons.stars_rounded, color: AppColors.accent, size: 22),
             const SizedBox(width: 8),
@@ -10048,43 +10057,49 @@ class _AdminScreenState extends State<AdminScreen>
           ),
           actions: [
             TextButton(
-              onPressed: saving ? null : () {
-                amountCtrl.dispose();
-                reasonCtrl.dispose();
-                Navigator.pop(ctx);
-              },
+              onPressed: saving
+                  ? null
+                  : () {
+                      amountCtrl.dispose();
+                      reasonCtrl.dispose();
+                      Navigator.pop(ctx);
+                    },
               child: const Text('취소'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              onPressed: saving ? null : () async {
-                final amount = int.tryParse(amountCtrl.text.trim()) ?? 0;
-                final reason = reasonCtrl.text.trim();
-                if (amount <= 0 || reason.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('적립 포인트와 사유를 입력해 주세요')),
-                  );
-                  return;
-                }
-                setDialogState(() => saving = true);
-                final ok = await PointService.adminCreditPoints(
-                  userId: uid,
-                  amount: amount,
-                  reason: reason,
-                );
-                if (!ctx.mounted) return;
-                amountCtrl.dispose();
-                reasonCtrl.dispose();
-                Navigator.pop(ctx);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(ok
-                        ? '$name 회원에게 ${amount.toString()}P가 적립되었습니다'
-                        : '포인트 적립에 실패했습니다'),
-                    backgroundColor: ok ? AppColors.success : AppColors.error,
-                  ),
-                );
-              },
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              onPressed: saving
+                  ? null
+                  : () async {
+                      final amount = int.tryParse(amountCtrl.text.trim()) ?? 0;
+                      final reason = reasonCtrl.text.trim();
+                      if (amount <= 0 || reason.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('적립 포인트와 사유를 입력해 주세요')),
+                        );
+                        return;
+                      }
+                      setDialogState(() => saving = true);
+                      final ok = await PointService.adminCreditPoints(
+                        userId: uid,
+                        amount: amount,
+                        reason: reason,
+                      );
+                      if (!ctx.mounted) return;
+                      amountCtrl.dispose();
+                      reasonCtrl.dispose();
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(ok
+                              ? '$name 회원에게 ${amount.toString()}P가 적립되었습니다'
+                              : '포인트 적립에 실패했습니다'),
+                          backgroundColor:
+                              ok ? AppColors.success : AppColors.error,
+                        ),
+                      );
+                    },
               child: Text('적립', style: const TextStyle(color: Colors.white)),
             ),
           ],
@@ -11887,9 +11902,10 @@ class _AdminScreenState extends State<AdminScreen>
                                 ),
                                 const SizedBox(width: 4),
                                 GestureDetector(
-                                  onTap: () => _reservedSectionKeys.contains(key)
-                                      ? _toggleSectionActive(i)
-                                      : _confirmDeleteSection(i),
+                                  onTap: () =>
+                                      _reservedSectionKeys.contains(key)
+                                          ? _toggleSectionActive(i)
+                                          : _confirmDeleteSection(i),
                                   child: Container(
                                     width: 24,
                                     height: 24,
@@ -12129,8 +12145,8 @@ class _AdminScreenState extends State<AdminScreen>
   void _showEditSectionDialog(int index) {
     final section = _customSections[index];
     final titleCtrl = TextEditingController(text: section['title'] as String);
-    final descCtrl = TextEditingController(
-        text: (section['description'] as String?) ?? '');
+    final descCtrl =
+        TextEditingController(text: (section['description'] as String?) ?? '');
     bool active = section['active'] != false;
 
     showDialog(
@@ -12155,8 +12171,7 @@ class _AdminScreenState extends State<AdminScreen>
                 ),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('섹션 보관 상태',
-                      style: TextStyle(fontSize: 13)),
+                  title: const Text('섹션 보관 상태', style: TextStyle(fontSize: 13)),
                   subtitle: const Text('기본 키의 상품 이미지 참조를 보호하는 안전 상태입니다',
                       style: TextStyle(fontSize: 11)),
                   value: active,
@@ -12166,7 +12181,8 @@ class _AdminScreenState extends State<AdminScreen>
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1A1A2E),
@@ -12221,9 +12237,8 @@ class _AdminScreenState extends State<AdminScreen>
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(nextActive
-              ? '기본 섹션을 다시 표시합니다'
-              : '기본 섹션을 보관했습니다. 상품 이미지는 유지됩니다.'),
+          content: Text(
+              nextActive ? '기본 섹션을 다시 표시합니다' : '기본 섹션을 보관했습니다. 상품 이미지는 유지됩니다.'),
           backgroundColor: const Color(0xFF6A1B9A),
         ),
       );
@@ -12238,16 +12253,19 @@ class _AdminScreenState extends State<AdminScreen>
       builder: (ctx) => AlertDialog(
         title: const Text('섹션 삭제',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        content: Text('"${sec['title']}" 섹션 정의를 삭제하시겠습니까?\n연결된 상품 이미지는 삭제되지 않지만, 이 키로 다시 표시하려면 새 섹션을 만들어야 합니다.'),
+        content: Text(
+            '"${sec['title']}" 섹션 정의를 삭제하시겠습니까?\n연결된 상품 이미지는 삭제되지 않지만, 이 키로 다시 표시하려면 새 섹션을 만들어야 합니다.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             onPressed: () async {
               final removed = Map<String, dynamic>.from(sec);
               setState(() => _customSections.removeAt(index));
               final saved = await _persistContentCatalogs();
               if (!saved) {
-                if (mounted) setState(() => _customSections.insert(index, removed));
+                if (mounted)
+                  setState(() => _customSections.insert(index, removed));
                 return;
               }
               if (ctx.mounted) Navigator.pop(ctx);
@@ -12338,8 +12356,8 @@ class _AdminScreenState extends State<AdminScreen>
                           onPressed: _showAddColorDialog,
                           icon: const Icon(Icons.add_rounded),
                           color: AppColors.primary,
-                          constraints: const BoxConstraints(
-                              minWidth: 44, minHeight: 44),
+                          constraints:
+                              const BoxConstraints(minWidth: 44, minHeight: 44),
                         )
                       else
                         ElevatedButton.icon(
@@ -12362,43 +12380,43 @@ class _AdminScreenState extends State<AdminScreen>
                   const SizedBox(height: 10),
                   // 카테고리 필터
                   SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _colorCategories.map((cat) {
-                    final isSelected = _colorCategoryFilter == cat;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: GestureDetector(
-                        onTap: () => setState(() {
-                          _colorCategoryFilter = cat;
-                          _selectedColorIds.clear();
-                        }),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.surfaceGray,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            cat,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isSelected
-                                  ? Colors.white
-                                  : AppColors.textSecondary,
-                              fontWeight: isSelected
-                                  ? FontWeight.w700
-                                  : FontWeight.w400,
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _colorCategories.map((cat) {
+                        final isSelected = _colorCategoryFilter == cat;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: GestureDetector(
+                            onTap: () => setState(() {
+                              _colorCategoryFilter = cat;
+                              _selectedColorIds.clear();
+                            }),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : AppColors.surfaceGray,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                cat,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.textSecondary,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ],
               );
@@ -12792,29 +12810,37 @@ class _AdminScreenState extends State<AdminScreen>
                                                               foregroundColor:
                                                                   Colors.white),
                                                       onPressed: () async {
-                                                        final removed =
-                                                            Map<String, dynamic>.from(c);
+                                                        final removed = Map<
+                                                            String,
+                                                            dynamic>.from(c);
                                                         setState(() => _colorItems
-                                                            .removeWhere((item) =>
-                                                                item['id'] == id));
+                                                            .removeWhere(
+                                                                (item) =>
+                                                                    item[
+                                                                        'id'] ==
+                                                                    id));
                                                         final saved =
                                                             await _persistContentCatalogs();
                                                         if (!saved) {
                                                           if (mounted) {
                                                             setState(() =>
-                                                                _colorItems.add(removed));
+                                                                _colorItems.add(
+                                                                    removed));
                                                           }
                                                           return;
                                                         }
                                                         if (context.mounted) {
-                                                          Navigator.pop(context);
-                                                          ScaffoldMessenger.of(context)
+                                                          Navigator.pop(
+                                                              context);
+                                                          ScaffoldMessenger.of(
+                                                                  context)
                                                               .showSnackBar(
                                                             SnackBar(
                                                                 content: Text(
                                                                     '"${c['name']}" 색상이 삭제되었습니다'),
                                                                 backgroundColor:
-                                                                    const Color(0xFFE53935)),
+                                                                    const Color(
+                                                                        0xFFE53935)),
                                                           );
                                                         }
                                                       },
@@ -12876,7 +12902,8 @@ class _AdminScreenState extends State<AdminScreen>
           '${ids.length}개의 색상을 목록에서 삭제하시겠습니까?\n이미 등록된 상품의 색상 텍스트와 이미지는 변경되지 않습니다.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFE53935),
@@ -13267,7 +13294,6 @@ class _AdminScreenState extends State<AdminScreen>
                         backgroundColor: Color(0xFF1A1A2E)),
                   );
                 }
-
               },
               child: Text('저장'),
             ),
@@ -13952,7 +13978,8 @@ class _AdminScreenState extends State<AdminScreen>
                                             _showAddAdminNoteDialog(req))),
                                 const SizedBox(width: 6),
                                 GestureDetector(
-                                  onTap: () => _confirmArchiveDesignRequest(req),
+                                  onTap: () =>
+                                      _confirmArchiveDesignRequest(req),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 10, vertical: 7),
@@ -14080,7 +14107,10 @@ class _AdminScreenState extends State<AdminScreen>
 
     final orderId = req['orderId'] as String? ?? req['id'] as String;
     try {
-      await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+      await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(orderId)
+          .update({
         'designRevisionRequest.status': fsStatus,
         'designRevisionRequest.handledAt': FieldValue.serverTimestamp(),
       });
@@ -14109,10 +14139,11 @@ class _AdminScreenState extends State<AdminScreen>
       builder: (ctx) => AlertDialog(
         title: const Text('디자인 요청 보관',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        content: const Text(
-            '이 요청을 관리자 목록에서 보관하시겠습니까? 주문과 고객 요청 원본은 삭제되지 않습니다.'),
+        content:
+            const Text('이 요청을 관리자 목록에서 보관하시겠습니까? 주문과 고객 요청 원본은 삭제되지 않습니다.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('취소')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFE53935),
@@ -14120,9 +14151,13 @@ class _AdminScreenState extends State<AdminScreen>
             onPressed: () async {
               final orderId = req['orderId'] as String? ?? req['id'] as String;
               try {
-                await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+                await FirebaseFirestore.instance
+                    .collection('orders')
+                    .doc(orderId)
+                    .update({
                   'designRevisionRequest.archived': true,
-                  'designRevisionRequest.archivedAt': FieldValue.serverTimestamp(),
+                  'designRevisionRequest.archivedAt':
+                      FieldValue.serverTimestamp(),
                   'designRevisionRequest.archivedBy':
                       FirebaseAuth.instance.currentUser?.uid ?? '',
                 });
@@ -14189,7 +14224,10 @@ class _AdminScreenState extends State<AdminScreen>
                   });
               final orderId = req['orderId'] as String? ?? req['id'] as String;
               try {
-                await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
+                await FirebaseFirestore.instance
+                    .collection('orders')
+                    .doc(orderId)
+                    .update({
                   'designRevisionRequest.adminNote': note,
                   'designRevisionRequest.noteUpdatedAt':
                       FieldValue.serverTimestamp(),
@@ -17615,8 +17653,8 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
     final imageCtrl = TextEditingController(text: existing?.imageUrl ?? '');
     bool isActive = existing?.isActive ?? true;
     bool showAsPopup = existing?.showAsPopup ?? true;
-    final popupPriorityCtrl = TextEditingController(
-        text: (existing?.popupPriority ?? 0).toString());
+    final popupPriorityCtrl =
+        TextEditingController(text: (existing?.popupPriority ?? 0).toString());
     String selectedTheme = existing != null ? (existing.theme) : 'auto';
     bool autoImage = existing == null || existing.imageUrl.isEmpty;
     // ── 기간 설정 ──
@@ -18056,9 +18094,11 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                     value: showAsPopup,
                     activeColor: AppColors.primaryLight,
                     title: const Text('홈 팝업으로 노출',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                        style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w700)),
                     subtitle: const Text('끄면 공지사항 목록에만 표시됩니다.',
-                        style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                        style: TextStyle(
+                            fontSize: 11, color: AppColors.textSecondary)),
                     onChanged: (value) => setD(() => showAsPopup = value),
                   ),
                   if (showAsPopup) ...[
@@ -18143,9 +18183,10 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                   startDate: scheduleStart,
                   endDate: scheduleEnd,
                   showAsPopup: showAsPopup,
-                  popupPriority: (int.tryParse(popupPriorityCtrl.text.trim()) ?? 0)
-                      .clamp(0, 999)
-                      .toInt(),
+                  popupPriority:
+                      (int.tryParse(popupPriorityCtrl.text.trim()) ?? 0)
+                          .clamp(0, 999)
+                          .toInt(),
                 );
                 final noticeProvider = context.read<NoticeProvider>();
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -18352,7 +18393,7 @@ class _NoticeManagementTabState extends State<_NoticeManagementTab> {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                      '활성 상태이면서 홈 팝업 노출이 켜진 공지만 표시됩니다. 중요도 숫자가 클수록 먼저 노출됩니다.',
+                    '활성 상태이면서 홈 팝업 노출이 켜진 공지만 표시됩니다. 중요도 숫자가 클수록 먼저 노출됩니다.',
                     style: TextStyle(
                         fontSize: 12, color: Color(0xFF3949AB), height: 1.5),
                   ),

@@ -669,9 +669,9 @@ class _AppDrawerState extends State<AppDrawer> {
               const Spacer(),
               if (userProvider.isLoggedIn)
                 GestureDetector(
-                  onTap: () {
-                    userProvider.logout();
-                    Navigator.pop(context);
+                  onTap: () async {
+                    await userProvider.logout();
+                    if (context.mounted) Navigator.pop(context);
                   },
                   child: const Text(
                     'LOG OUT',

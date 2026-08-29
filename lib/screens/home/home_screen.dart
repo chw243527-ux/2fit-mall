@@ -1280,9 +1280,8 @@ class _HomeScreenState extends State<HomeScreen>
                           ),
                         );
                         if (confirm == true && mounted) {
-                          await AuthService.logout();
+                          await context.read<UserProvider>().logout();
                           if (mounted) {
-                            context.read<UserProvider>().logout();
                             context.read<CartProvider>().clearCart();
                             context.read<CouponProvider>().clear();
                             context.read<PointProvider>().clear();
