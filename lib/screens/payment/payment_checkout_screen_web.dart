@@ -30,6 +30,7 @@ class PaymentCheckoutScreen extends StatefulWidget {
 
 class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
   PaymentCheckoutArgs? _args;
+  String? _viewType;
   bool _registered = false;
 
   @override
@@ -48,6 +49,9 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
   void _registerIframe(PaymentCheckoutArgs args) {
     if (_registered) return;
     _registered = true;
+    // 결제 화면을 다시 열 때 동일 viewType을 재등록하면
+    // platformViewRegistry가 예외를 발생시키므로 주문별 고유 타입을 사용합니다.
+    _viewType = 'toss-payment-iframe-${args.orderId}-${identityHashCode(this)}';
 
     final successUrl =
         PaymentService.buildSuccessUrl(args.orderId, args.amount);
@@ -73,7 +77,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
 
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory(
-      'toss-payment-iframe',
+      _viewType!,
       (int viewId) {
         final iframe = html.IFrameElement()
           ..src = uri.toString()
@@ -209,6 +213,6 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return const HtmlElementView(viewType: 'toss-payment-iframe');
+    return HtmlElementView(viewType: _viewType!);
   }
 }
