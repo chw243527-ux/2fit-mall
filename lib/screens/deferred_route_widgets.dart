@@ -27,7 +27,7 @@ class _DeferredPaymentCheckoutScreenState
         if (snapshot.hasError) {
           return const _DeferredErrorScreen();
         }
-        return const payment_checkout.PaymentCheckoutScreen();
+        return payment_checkout.PaymentCheckoutScreen();
       },
     );
   }
@@ -63,8 +63,8 @@ class _DeferredPaymentResultScreenState
           return const _DeferredErrorScreen();
         }
         return widget.success
-            ? const payment_result.PaymentSuccessScreen()
-            : const payment_result.PaymentFailScreen();
+            ? payment_result.PaymentSuccessScreen()
+            : payment_result.PaymentFailScreen();
       },
     );
   }
