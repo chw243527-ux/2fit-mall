@@ -726,7 +726,10 @@ const DEFAULT_SHIPPING_FEE = 4000;
 
 exports.createSecureOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
-  const decoded = await requireSignedIn(req, res, { checkRevoked: true });
+  // 결제 요청은 ID 토큰의 서명·발급자·대상 검증을 수행합니다.
+  // checkRevoked=true는 Firebase Auth REST 호출을 추가로 요구해
+  // 런타임 OAuth 토큰 오류로 결제창 진입 전 요청이 막힐 수 있습니다.
+  const decoded = await requireSignedIn(req, res);
   if (!decoded) return;
   try {
     const payload = _readCheckoutPayload(req.body);
@@ -761,7 +764,8 @@ exports.createSecureOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) =
 
 exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
-  const decoded = await requireSignedIn(req, res, { checkRevoked: true });
+  // 결제 승인도 기본 ID 토큰 검증만 사용해 런타임 OAuth 의존성을 피합니다.
+  const decoded = await requireSignedIn(req, res);
   if (!decoded) return;
   const paymentKey = String(req.body?.paymentKey || '');
   const orderId = String(req.body?.orderId || '');
@@ -827,7 +831,7 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
 
 exports.cancelSecurePayment = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
-  const decoded = await requireSignedIn(req, res, { checkRevoked: true });
+  const decoded = await requireSignedIn(req, res);
   if (!decoded) return;
   const orderId = String(req.body?.orderId || '');
   try { await _releasePaymentIntent(decoded.uid, orderId); res.status(200).json({ success: true }); }
