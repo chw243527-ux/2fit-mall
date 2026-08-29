@@ -193,6 +193,19 @@ jobs:
           printf '%s' "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" > "${RUNNER_TEMP}/firebase-service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/firebase-service-account.json" >> "${GITHUB_ENV}"
 
+      - name: Configure Firebase Functions artifact cleanup policy
+        shell: bash
+        run: |
+          set -euo pipefail
+          firebase functions:artifacts:setpolicy \
+            --project "${FIREBASE_PROJECT}" \
+            --location us-central1 \
+            --force
+          firebase functions:artifacts:setpolicy \
+            --project "${FIREBASE_PROJECT}" \
+            --location asia-northeast3 \
+            --force
+
       - name: Deploy Firestore Rules, Storage Rules, and Cloud Functions
         shell: bash
         run: |
