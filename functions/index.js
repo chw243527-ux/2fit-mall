@@ -726,9 +726,17 @@ const DEFAULT_SHIPPING_FEE = 4000;
 
 exports.createSecureOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
-  const decoded = await requireSignedIn(req, res, { checkRevoked: true });
+  // 결제는 Firebase 서명·만료 검증을 통과한 ID 토큰만 사용합니다.
+  // 매 요청마다 revoke 상태까지 원격 조회하면 Safari 카카오 로그인 직후 유효 토큰도
+  // 불필요하게 거부될 수 있으므로, 계정 차단 여부는 서버 DB에서 직접 확인합니다.
+  const decoded = await requireSignedIn(req, res);
   if (!decoded) return;
   try {
+    const account = await db.collection('users').doc(decoded.uid).get();
+    if (!account.exists || account.data()?.isBlocked === true) {
+      res.status(403).json({ error: 'Account is not available for checkout' });
+      return;
+    }
     const payload = _readCheckoutPayload(req.body);
     const prepared = await _prepareOrderFromServerData(decoded.uid, payload);
     if (prepared.isBankTransfer) {
@@ -768,8 +776,13 @@ exports.createSecureOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) =
 
 exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
-  const decoded = await requireSignedIn(req, res, { checkRevoked: true });
+  const decoded = await requireSignedIn(req, res);
   if (!decoded) return;
+  const account = await db.collection('users').doc(decoded.uid).get();
+  if (!account.exists || account.data()?.isBlocked === true) {
+    res.status(403).json({ error: 'Account is not available for checkout' });
+    return;
+  }
   const paymentKey = String(req.body?.paymentKey || '');
   const orderId = String(req.body?.orderId || '');
   const amount = Number(req.body?.amount);

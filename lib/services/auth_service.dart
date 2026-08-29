@@ -932,6 +932,23 @@ class AuthService {
       return const AuthResult(success: false, error: '카카오 로그인 실패: 사용자 정보 없음');
     }
 
+    // 카카오 화면 로그인만 성공하고 Firebase 인증이 비어 있는 상태로 넘어가지 않도록
+    // 서버가 검증 가능한 ID 토큰 발급까지 완료한 뒤에만 로그인 성공으로 처리합니다.
+    try {
+      final firebaseToken = await user.getIdToken(true);
+      if (firebaseToken == null ||
+          firebaseToken.isEmpty ||
+          _auth.currentUser?.uid != user.uid) {
+        await _auth.signOut();
+        return const AuthResult(
+            success: false, error: '카카오 로그인 인증을 완료하지 못했습니다. 다시 시도해 주세요.');
+      }
+    } on FirebaseAuthException catch (_) {
+      await _auth.signOut();
+      return const AuthResult(
+          success: false, error: '카카오 로그인 인증을 완료하지 못했습니다. 다시 시도해 주세요.');
+    }
+
     // 사용자 이름 업데이트 (비동기, 실패해도 무시)
     if (user.displayName == null || user.displayName!.isEmpty) {
       user.updateDisplayName(name).catchError((_) {});
