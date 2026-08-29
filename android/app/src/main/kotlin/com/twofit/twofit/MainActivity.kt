@@ -1,4 +1,4 @@
-package com.twofit.twofit_mall
+package com.twofit.twofit
 
 import io.flutter.embedding.android.FlutterActivity
 
