@@ -978,6 +978,16 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
         'icon': '🏦',
         'label': loc.checkoutBankMethod
       },
+      {
+        'id': loc.checkoutVirtualAccountMethod,
+        'icon': '🏧',
+        'label': loc.checkoutVirtualAccountMethod
+      },
+      {
+        'id': loc.checkoutAccountTransferMethod,
+        'icon': '🔄',
+        'label': loc.checkoutAccountTransferMethod
+      },
     ];
     return Wrap(
       spacing: 8,
