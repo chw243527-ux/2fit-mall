@@ -270,7 +270,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         context,
         Scaffold(
           backgroundColor: Colors.white,
-          bottomNavigationBar: _buildBottomBar(product),
+          bottomNavigationBar: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: _buildBottomBar(product),
+            ),
+          ),
           body: Stack(
             children: [
               CustomScrollView(
@@ -339,7 +344,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         context,
         Scaffold(
           backgroundColor: Colors.white,
-          bottomNavigationBar: _buildBottomBar(product),
+          bottomNavigationBar: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: _buildBottomBar(product),
+            ),
+          ),
           body: Stack(
             children: [
               CustomScrollView(
