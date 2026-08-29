@@ -1,6 +1,4 @@
 import '../../utils/theme.dart';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
@@ -85,8 +83,8 @@ class _SplashScreenState extends State<SplashScreen>
     _DeepLink? deepLink;
     if (kIsWeb) {
       try {
-        final pathname = html.window.location.pathname ?? '';
-        final search = html.window.location.search ?? ''; // ?paymentKey=...
+        final pathname = Uri.base.path;
+        final search = Uri.base.query; // ?paymentKey=...
         if (pathname == '/payment/success' || pathname == '/payment/fail') {
           // search string → query map
           final qMap = <String, String>{};

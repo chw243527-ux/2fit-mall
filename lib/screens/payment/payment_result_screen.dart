@@ -4,8 +4,6 @@ import '../../utils/theme.dart';
 // successUrl: /payment/success?paymentKey=...&orderId=...&amount=...
 // failUrl:    /payment/fail?code=...&message=...&orderId=...
 
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/providers.dart';
@@ -38,7 +36,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
   Future<void> _processSuccess() async {
     try {
       // URL 파라미터 파싱
-      final uri = Uri.parse(html.window.location.href);
+      final uri = Uri.parse(Uri.base.toString());
       final paymentKey = uri.queryParameters['paymentKey'] ?? '';
       final orderId = uri.queryParameters['orderId'] ?? '';
       final amountStr = uri.queryParameters['amount'] ?? '0';
@@ -186,7 +184,7 @@ class _PaymentFailScreenState extends State<PaymentFailScreen> {
   }
 
   Future<void> _refundReservedPoints() async {
-    final uri = Uri.parse(html.window.location.href);
+    final uri = Uri.parse(Uri.base.toString());
     final orderId = uri.queryParameters['orderId'] ?? '';
     if (orderId.isEmpty) return;
     final order = await OrderService.getOrderById(orderId);
@@ -200,7 +198,7 @@ class _PaymentFailScreenState extends State<PaymentFailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final uri = Uri.parse(html.window.location.href);
+    final uri = Uri.parse(Uri.base.toString());
     final message = uri.queryParameters['message'] ?? '결제에 실패했습니다.';
     final code = uri.queryParameters['code'] ?? '';
 

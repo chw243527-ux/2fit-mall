@@ -1,4 +1,4 @@
-import 'dart:js_interop';
+import 'dart:js_interop' if (dart.library.io) '../../utils/js_interop_stub.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
@@ -2057,6 +2057,13 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
 
   void _startScanner() {
     if (!mounted) return;
+    if (!kIsWeb) {
+      setState(() {
+        _scanning = false;
+        _errorMsg = '카메라 스캔은 웹에서만 지원됩니다.';
+      });
+      return;
+    }
     setState(() {
       _scanning = true;
       _errorMsg = null;
@@ -2104,7 +2111,7 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
   }
 
   void _positionPreview() {
-    if (!mounted || _errorMsg != null) return;
+    if (!kIsWeb || !mounted || _errorMsg != null) return;
     final ctx = _cameraKey.currentContext;
     if (ctx == null) return;
     final box = ctx.findRenderObject() as RenderBox?;
@@ -2116,7 +2123,7 @@ class _BarcodeScannerDialogState extends State<_BarcodeScannerDialog> {
 
   @override
   void dispose() {
-    _jsStop();
+    if (kIsWeb) _jsStop();
     super.dispose();
   }
 
