@@ -7,6 +7,7 @@ const { initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
+const { getStorage } = require('firebase-admin/storage');
 const crypto = require('crypto');
 
 initializeApp();
@@ -474,7 +475,7 @@ const ALLOWED_ORDER_NOTIFICATION_KINDS = new Set([
   'order_confirmed', 'shipped', 'delivered', 'cancelled',
 ]);
 
-async function requireSignedIn(req, res) {
+async function requireSignedIn(req, res, { checkRevoked = false } = {}) {
   const header = req.get('authorization') || '';
   const match = header.match(/^Bearer\s+(.+)$/i);
   if (!match) {
@@ -482,12 +483,233 @@ async function requireSignedIn(req, res) {
     return null;
   }
   try {
-    return await getAuth().verifyIdToken(match[1]);
+    return await getAuth().verifyIdToken(match[1], checkRevoked);
   } catch (error) {
     console.error('HTTP authentication failed:', error.message);
     res.status(401).json({ error: 'Invalid or expired Firebase ID token' });
     return null;
   }
+}
+
+// ══════════════════════════════════════════════════════
+// 9) 본인 계정 삭제 (인증 사용자 전용)
+// - 고객의 직접 확인 + Firebase ID 토큰 검증을 거칩니다.
+// - 주문·결제 등 보존이 필요한 기록은 개인식별정보만 익명화합니다.
+// - 나머지 계정 데이터, 채팅, 알림, 리뷰, 저장 파일은 제거합니다.
+// ══════════════════════════════════════════════════════
+exports.deleteMyAccount = onRequest(
+  { cors: ['https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000'] },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Method Not Allowed' });
+      return;
+    }
+
+    // 무단 호출을 막기 위해 취소·폐기된 토큰도 거부합니다.
+    const decoded = await requireSignedIn(req, res, { checkRevoked: true });
+    if (!decoded) return;
+    if (req.body?.confirmAccountDeletion !== true) {
+      res.status(400).json({ error: 'Explicit account deletion confirmation is required' });
+      return;
+    }
+
+    // 오래된 로그인 토큰만으로 실행되는 실수·탈취 위험을 줄입니다.
+    const authTimeMs = Number(decoded.auth_time || 0) * 1000;
+    const maxAuthAgeMs = 15 * 60 * 1000;
+    if (!authTimeMs || Date.now() - authTimeMs > maxAuthAgeMs) {
+      res.status(401).json({
+        error: 'Recent sign-in required',
+        code: 'recent-login-required',
+      });
+      return;
+    }
+
+    const uid = decoded.uid;
+    try {
+      const userDoc = await db.collection('users').doc(uid).get();
+      if (userDoc.data()?.isAdmin === true || decoded.isAdmin === true) {
+        res.status(403).json({
+          error: 'Administrator accounts must be deleted through an owner-approved process.',
+          code: 'admin-account-protected',
+        });
+        return;
+      }
+
+      const summary = await _removeAccountData(uid, decoded.email || '');
+      // 데이터 처리에 성공한 뒤 인증 계정을 마지막에 삭제합니다.
+      await getAuth().deleteUser(uid);
+      console.log('Account deletion completed:', { summary });
+      res.status(200).json({ success: true, summary });
+    } catch (error) {
+      // 이메일·전화번호·주문 내용 등 개인정보는 오류 로그에 남기지 않습니다.
+      console.error('deleteMyAccount failed:', {
+        code: error?.code || 'unknown',
+      });
+      res.status(500).json({
+        error: 'Account deletion could not be completed. Please try again or contact support.',
+      });
+    }
+  }
+);
+
+async function _removeAccountData(uid, email) {
+  const summary = {
+    deleted: {},
+    anonymizedOrders: 0,
+    anonymizedRequests: 0,
+  };
+
+  // 1) 보존 의무가 있을 수 있는 주문 기록은 거래 증빙만 남기고 개인식별정보를 제거합니다.
+  const orderSnapshot = await db.collection('orders').where('userId', '==', uid).get();
+  const orderIds = orderSnapshot.docs.map((doc) => doc.id);
+  await _anonymizeDocuments(orderSnapshot.docs, {
+    userId: '',
+    userName: '탈퇴회원',
+    userEmail: '',
+    userPhone: '',
+    userAddress: '',
+    recipientName: '',
+    recipientPhone: '',
+    shippingAddress: '',
+    deletedUser: true,
+    anonymizedAt: FieldValue.serverTimestamp(),
+  });
+  summary.anonymizedOrders = orderSnapshot.size;
+
+  // 주문을 표시하는 관리자 알림에서도 고객 이름을 지웁니다.
+  for (const orderIdChunk of _chunk(orderIds, 30)) {
+    const notifications = await db.collection('admin_notifications')
+      .where('orderId', 'in', orderIdChunk).get();
+    await _anonymizeDocuments(notifications.docs, {
+      customerName: '탈퇴회원',
+      body: '탈퇴회원의 주문 기록',
+      anonymizedAt: FieldValue.serverTimestamp(),
+    });
+  }
+
+  // 2) 공개 리뷰·리뷰 이미지·고객 상담은 삭제합니다.
+  const reviewSnapshot = await db.collection('reviews').where('userId', '==', uid).get();
+  const productIds = [...new Set(reviewSnapshot.docs
+    .map((doc) => String(doc.data().productId || ''))
+    .filter(Boolean))];
+  for (const reviewDoc of reviewSnapshot.docs) {
+    await _deleteStoragePrefix(`reviews/${reviewDoc.id}/`);
+  }
+  summary.deleted.reviews = await _deleteDocumentRefs(reviewSnapshot.docs);
+  await _refreshProductReviewStats(productIds);
+
+  await _recursiveDeleteDocument(db.collection('chats').doc(uid));
+  await db.collection('chat_rooms').doc(uid).delete().catch(() => {});
+  summary.deleted.chat = 1;
+
+  // 3) 즉시 삭제할 개인 설정·알림·신청·동의 이력입니다.
+  summary.deleted.notifications = await _deleteQuery(
+    db.collection('notifications').where('userId', '==', uid)
+  );
+  summary.deleted.restockAlerts = await _deleteQuery(
+    db.collection('restock_alerts').where('userId', '==', uid)
+  );
+  summary.deleted.privacyRequests = await _deleteQuery(
+    db.collection('privacy_requests').where('userId', '==', uid)
+  );
+  summary.deleted.consentHistory = await _deleteQuery(
+    db.collection('consent_history').where('userId', '==', uid)
+  );
+
+  // 교환·반품·디자인 요청은 주문 증빙을 위해 남길 수 있으므로 식별 정보만 익명화합니다.
+  for (const collectionName of ['exchange_requests', 'design_requests']) {
+    const snapshot = await db.collection(collectionName).where('userId', '==', uid).get();
+    await _anonymizeDocuments(snapshot.docs, {
+      userId: '',
+      userName: '탈퇴회원',
+      userEmail: '',
+      userPhone: '',
+      userAddress: '',
+      customerName: '탈퇴회원',
+      customerEmail: '',
+      customerPhone: '',
+      address: '',
+      deletedUser: true,
+      anonymizedAt: FieldValue.serverTimestamp(),
+    });
+    summary.anonymizedRequests += snapshot.size;
+  }
+
+  // 사용자 문서의 하위 컬렉션(포인트 이력 포함)과 별도 사용자 트리를 정리합니다.
+  await _recursiveDeleteDocument(db.collection('user_coupons').doc(uid));
+  await _recursiveDeleteDocument(db.collection('size_profiles').doc(uid));
+  await db.collection('fcmTokens').doc(uid).delete().catch(() => {});
+  await _recursiveDeleteDocument(db.collection('users').doc(uid));
+  summary.deleted.userData = 1;
+
+  // 발송되지 않은 이메일에 남은 주소도 제거합니다. 이메일이 없는 소셜 계정은 건너뜁니다.
+  if (email) {
+    summary.deleted.queuedEmails = await _deleteQuery(
+      db.collection('email_queue').where('params.to_email', '==', email)
+    );
+  }
+
+  return summary;
+}
+
+async function _deleteQuery(query) {
+  const snapshot = await query.get();
+  return _deleteDocumentRefs(snapshot.docs);
+}
+
+async function _deleteDocumentRefs(docs) {
+  let deleted = 0;
+  for (const docsChunk of _chunk(docs, 400)) {
+    const batch = db.batch();
+    for (const doc of docsChunk) batch.delete(doc.ref);
+    await batch.commit();
+    deleted += docsChunk.length;
+  }
+  return deleted;
+}
+
+async function _anonymizeDocuments(docs, values) {
+  for (const docsChunk of _chunk(docs, 400)) {
+    const batch = db.batch();
+    for (const doc of docsChunk) batch.set(doc.ref, values, { merge: true });
+    await batch.commit();
+  }
+}
+
+async function _recursiveDeleteDocument(docRef) {
+  const snapshot = await docRef.get();
+  if (snapshot.exists) await db.recursiveDelete(docRef);
+}
+
+async function _deleteStoragePrefix(prefix) {
+  try {
+    await getStorage().bucket().deleteFiles({ prefix, force: true });
+  } catch (error) {
+    // 저장 파일이 없는 경우 등은 탈퇴 전체를 막지 않습니다.
+    if (error?.code !== 404) console.warn('Storage cleanup skipped:', { prefix, code: error?.code });
+  }
+}
+
+async function _refreshProductReviewStats(productIds) {
+  for (const productId of productIds) {
+    const snapshot = await db.collection('reviews').where('productId', '==', productId).get();
+    const ratings = snapshot.docs
+      .map((doc) => Number(doc.data().rating || 0))
+      .filter((rating) => Number.isFinite(rating) && rating > 0);
+    const rating = ratings.length
+      ? Number((ratings.reduce((sum, value) => sum + value, 0) / ratings.length).toFixed(1))
+      : 0;
+    await db.collection('products').doc(productId).set({
+      rating,
+      reviewCount: ratings.length,
+    }, { merge: true });
+  }
+}
+
+function _chunk(items, size) {
+  const chunks = [];
+  for (let i = 0; i < items.length; i += size) chunks.push(items.slice(i, i + size));
+  return chunks;
 }
 
 exports.sendSolapiChatAlert = onRequest(

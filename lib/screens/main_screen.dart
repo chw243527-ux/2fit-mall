@@ -1371,6 +1371,18 @@ class _PcFooter extends StatelessWidget {
                                 fontWeight: FontWeight.w600),
                           ),
                         ),
+                        SizedBox(width: r.w(16)),
+                        InkWell(
+                          onTap: () => Navigator.pushNamed(
+                              context, '/account-deletion'),
+                          child: Text(
+                            context.loc.t('계정 삭제 요청', '계정 삭제 요청'),
+                            style: TextStyle(
+                              color: Colors.white38,
+                              fontSize: r.sp(12),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ],

@@ -16,6 +16,7 @@ import '../../providers/providers.dart';
 import '../../models/models.dart';
 import '../../services/product_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/account_deletion_service.dart';
 import '../../services/email_service.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../services/point_service.dart';
@@ -364,7 +365,6 @@ class _MyPageScreenState extends State<MyPageScreen>
   }
 
   void _showDeleteAccountDialog(BuildContext ctx, UserProvider up) {
-    final passwordCtrl = TextEditingController();
     bool isLoading = false;
     String? errorMsg;
 
@@ -376,35 +376,32 @@ class _MyPageScreenState extends State<MyPageScreen>
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(children: [
             Icon(Icons.warning_rounded, color: AppColors.error, size: 22),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(context.loc.t('회원_탈퇴', '회원 탈퇴'),
-                style: TextStyle(
+                style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
                     color: AppColors.error)),
           ]),
           content: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                  context.loc.t('탈퇴하시면_모든_데이터가_삭_535520',
-                      '탈퇴하시면 모든 데이터가 삭제되며 복구할 수 없습니다.\n비밀번호를 입력하여 탈퇴를 확인해주세요.'),
-                  style:
-                      TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passwordCtrl,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: context.loc.t('비밀번호', '비밀번호'),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  isDense: true,
-                  prefixIcon: const Icon(Icons.lock_outline, size: 18),
-                ),
+                context.loc.t('계정_삭제_안내',
+                    '탈퇴하면 로그인 계정, 채팅, 알림, 리뷰, 사이즈 정보와 개인 설정이 삭제되며 복구할 수 없습니다.'),
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary, height: 1.5),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                context.loc.t('계정_삭제_보존_안내',
+                    '주문·결제 및 교환·반품 기록은 관련 법령과 분쟁 처리 목적에 따라 필요한 항목만 익명화하여 보관될 수 있습니다.'),
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary, height: 1.5),
               ),
               if (errorMsg != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(errorMsg!,
                     style:
                         const TextStyle(color: AppColors.error, fontSize: 13)),
@@ -430,43 +427,36 @@ class _MyPageScreenState extends State<MyPageScreen>
                         isLoading = true;
                         errorMsg = null;
                       });
-                      final user2 = up.user;
-                      if (user2 == null) return;
-                      try {
-                        final result = await AuthService.updateProfile(
-                          email: user2.email,
-                          currentPassword: passwordCtrl.text,
-                        );
-                        if (result) {
-                          await AuthService.deleteUserDocument(user2.id);
-                          await AuthService.logout();
-                          if (ctx.mounted) {
-                            up.logout();
-                            ctx.read<CartProvider>().clearCart();
-                            ctx.read<SizeProfileProvider>().clear();
-                            ctx.read<CouponProvider>().clear();
-                            ctx.read<PointProvider>().clear();
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              SnackBar(
-                                  content: Text(context.loc
-                                      .t('회원 탈퇴가 완료되었습니다', '회원 탈퇴가 완료되었습니다.')),
-                                  backgroundColor: AppColors.error),
-                            );
-                          }
-                        } else {
-                          setD(() {
-                            isLoading = false;
-                            errorMsg = context.loc
-                                .t('비밀번호가_올바르지_않습니다', '비밀번호가 올바르지 않습니다.');
-                          });
-                        }
-                      } catch (e) {
+
+                      final result =
+                          await AccountDeletionService.deleteCurrentAccount();
+                      if (!dialogCtx.mounted) return;
+
+                      if (!result.success) {
                         setD(() {
                           isLoading = false;
-                          errorMsg = context.loc
-                              .t('탈퇴_처리_중_오류가_발생했습니다', '탈퇴 처리 중 오류가 발생했습니다.');
+                          errorMsg = result.errorMessage ??
+                              dialogCtx.loc.t(
+                                  '탈퇴_처리_중_오류가_발생했습니다', '탈퇴 처리 중 오류가 발생했습니다.');
                         });
+                        return;
                       }
+
+                      Navigator.pop(dialogCtx);
+                      await AuthService.logout();
+                      if (!ctx.mounted) return;
+                      up.logout();
+                      ctx.read<CartProvider>().clearCart();
+                      ctx.read<SizeProfileProvider>().clear();
+                      ctx.read<CouponProvider>().clear();
+                      ctx.read<PointProvider>().clear();
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(
+                          content: Text(ctx.loc
+                              .t('회원 탈퇴가 완료되었습니다', '회원 탈퇴가 완료되었습니다.')),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
                     },
               child: isLoading
                   ? const SizedBox(
@@ -2473,7 +2463,8 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                     divider(),
                   ],
                   if (o.usedPoints > 0) ...[
-                    row('포인트 사용', '-${fmtPrice(o.pointDiscount)}원 (${o.usedPoints}P)'),
+                    row('포인트 사용',
+                        '-${fmtPrice(o.pointDiscount)}원 (${o.usedPoints}P)'),
                     divider(),
                   ],
                   row('결제 금액', '${fmtPrice(o.totalAmount)}원',
@@ -3248,7 +3239,6 @@ class _MobileProfileHeader extends StatelessWidget {
         return Colors.brown[300]!;
     }
   }
-
 }
 
 class _InfoChip extends StatelessWidget {
@@ -6234,11 +6224,13 @@ Future<void> _showUserOrderDetail(
                               ? context.loc.t('무료', '무료')
                               : '${fmtPrice(o.shippingFee)}원'),
                       if (o.couponDiscount > 0)
-                        detailRow(Icons.local_offer_outlined,
+                        detailRow(
+                            Icons.local_offer_outlined,
                             context.loc.t('쿠폰할인', '쿠폰 할인'),
                             '-${fmtPrice(o.couponDiscount)}원'),
                       if (o.usedPoints > 0)
-                        detailRow(Icons.stars_outlined,
+                        detailRow(
+                            Icons.stars_outlined,
                             context.loc.t('포인트사용', '포인트 사용'),
                             '-${fmtPrice(o.pointDiscount)}원 (${o.usedPoints}P)'),
                       detailRow(Icons.receipt_outlined, '합계',
@@ -10840,7 +10832,8 @@ class _PcPointTab extends StatelessWidget {
   const _PcPointTab({required this.userProvider, required this.loc});
 
   @override
-  Widget build(BuildContext context) => const _PointHistoryPanel(isMobile: false);
+  Widget build(BuildContext context) =>
+      const _PointHistoryPanel(isMobile: false);
 }
 
 class _MobilePointTab extends StatelessWidget {
@@ -10849,7 +10842,8 @@ class _MobilePointTab extends StatelessWidget {
   const _MobilePointTab({required this.userProvider, required this.loc});
 
   @override
-  Widget build(BuildContext context) => const _PointHistoryPanel(isMobile: true);
+  Widget build(BuildContext context) =>
+      const _PointHistoryPanel(isMobile: true);
 }
 
 class _PointHistoryPanel extends StatefulWidget {
@@ -10875,184 +10869,198 @@ class _PointHistoryPanelState extends State<_PointHistoryPanel> {
   Widget build(BuildContext context) {
     try {
       return Consumer<PointProvider>(
-      builder: (ctx, pp, _) {
-        final history = _filtered(pp.history);
-        final earned = pp.history
-            .where((item) => item.amount > 0)
-            .fold<int>(0, (sum, item) => sum + item.amount);
-        final used = pp.history
-            .where((item) => item.amount < 0)
-            .fold<int>(0, (sum, item) => sum + item.amount.abs());
-        final number = (int value) => value.toString().replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
-        final horizontal = widget.isMobile ? 16.0 : 24.0;
-        final minPoints = PointService.minUsePoints;
-        final canUse = pp.balance >= minPoints;
-        final now = DateTime.now();
-        final expiringSoon = pp.history.where((item) {
-          final expires = item.expiresAt;
-          if (item.amount <= 0 || expires == null) return false;
-          final days = expires.difference(now).inDays;
-          return days >= 0 && days <= 30;
-        }).fold<int>(0, (sum, item) => sum + item.amount);
-        final nearestExpiry = pp.history
-            .where((item) => item.amount > 0 && item.expiresAt != null &&
-                !item.expiresAt!.isBefore(now))
-            .map((item) => item.expiresAt!)
-            .fold<DateTime?>(null, (nearest, date) =>
-                nearest == null || date.isBefore(nearest) ? date : nearest);
+        builder: (ctx, pp, _) {
+          final history = _filtered(pp.history);
+          final earned = pp.history
+              .where((item) => item.amount > 0)
+              .fold<int>(0, (sum, item) => sum + item.amount);
+          final used = pp.history
+              .where((item) => item.amount < 0)
+              .fold<int>(0, (sum, item) => sum + item.amount.abs());
+          final number = (int value) => value.toString().replaceAllMapped(
+              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+          final horizontal = widget.isMobile ? 16.0 : 24.0;
+          final minPoints = PointService.minUsePoints;
+          final canUse = pp.balance >= minPoints;
+          final now = DateTime.now();
+          final expiringSoon = pp.history.where((item) {
+            final expires = item.expiresAt;
+            if (item.amount <= 0 || expires == null) return false;
+            final days = expires.difference(now).inDays;
+            return days >= 0 && days <= 30;
+          }).fold<int>(0, (sum, item) => sum + item.amount);
+          final nearestExpiry = pp.history
+              .where((item) =>
+                  item.amount > 0 &&
+                  item.expiresAt != null &&
+                  !item.expiresAt!.isBefore(now))
+              .map((item) => item.expiresAt!)
+              .fold<DateTime?>(
+                  null,
+                  (nearest, date) => nearest == null || date.isBefore(nearest)
+                      ? date
+                      : nearest);
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (!widget.isMobile)
-              _PcTabHeader(
-                icon: Icons.stars_rounded,
-                title: context.loc.t('포인트', '포인트'),
-                color: AppColors.accent,
-              ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(horizontal, widget.isMobile ? 16 : 0,
-                  horizontal, 16),
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(widget.isMobile ? 18 : 22),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(14),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!widget.isMobile)
+                _PcTabHeader(
+                  icon: Icons.stars_rounded,
+                  title: context.loc.t('포인트', '포인트'),
+                  color: AppColors.accent,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.stars_rounded,
-                            color: Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                        Text(context.loc.t('보유_포인트', '보유 포인트'),
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 13)),
-                        const Spacer(),
-                        Text(canUse ? '사용 가능' : '${number(minPoints)}P부터 사용',
-                            style: TextStyle(
-                                color: canUse
-                                    ? AppColors.accent
-                                    : Colors.white70,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text('${number(pp.balance)} P',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 30,
-                            fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _PointSummary(label: '누적 적립', value: '+${number(earned)}P'),
-                        ),
-                        Expanded(
-                          child: _PointSummary(label: '누적 사용', value: '-${number(used)}P'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            if (expiringSoon > 0)
               Padding(
-                padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 12),
+                padding: EdgeInsets.fromLTRB(
+                    horizontal, widget.isMobile ? 16 : 0, horizontal, 16),
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(14),
+                  padding: EdgeInsets.all(widget.isMobile ? 18 : 22),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF7E6),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFFFD98A)),
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.schedule_rounded,
-                          size: 18, color: Color(0xFFB7791F)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          nearestExpiry == null
-                              ? '30일 이내 소멸 예정 포인트 ${number(expiringSoon)}P'
-                              : '30일 이내 ${number(expiringSoon)}P가 소멸 예정입니다.\n'
-                                  '소멸 예정일: ${nearestExpiry.year}.${nearestExpiry.month}.${nearestExpiry.day}',
+                      Row(
+                        children: [
+                          const Icon(Icons.stars_rounded,
+                              color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          Text(context.loc.t('보유_포인트', '보유 포인트'),
+                              style: const TextStyle(
+                                  color: Colors.white70, fontSize: 13)),
+                          const Spacer(),
+                          Text(canUse ? '사용 가능' : '${number(minPoints)}P부터 사용',
+                              style: TextStyle(
+                                  color: canUse
+                                      ? AppColors.accent
+                                      : Colors.white70,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text('${number(pp.balance)} P',
                           style: const TextStyle(
-                            color: Color(0xFF8A5A00),
-                            fontSize: 12,
-                            height: 1.45,
-                            fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _PointSummary(
+                                label: '누적 적립', value: '+${number(earned)}P'),
                           ),
-                        ),
+                          Expanded(
+                            child: _PointSummary(
+                                label: '누적 사용', value: '-${number(used)}P'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
               ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(horizontal, 4, horizontal, 8),
-              child: Row(
-                children: [
-                  Text(context.loc.t('포인트_내역', '포인트 내역'),
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.w800)),
-                  const Spacer(),
-                  Text('${history.length}건',
-                      style: TextStyle(
-                          color: Colors.grey.shade500, fontSize: 12)),
-                ],
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 12),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
+              if (expiringSoon > 0)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 12),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF7E6),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFFFD98A)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.schedule_rounded,
+                            size: 18, color: Color(0xFFB7791F)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            nearestExpiry == null
+                                ? '30일 이내 소멸 예정 포인트 ${number(expiringSoon)}P'
+                                : '30일 이내 ${number(expiringSoon)}P가 소멸 예정입니다.\n'
+                                    '소멸 예정일: ${nearestExpiry.year}.${nearestExpiry.month}.${nearestExpiry.day}',
+                            style: const TextStyle(
+                              color: Color(0xFF8A5A00),
+                              fontSize: 12,
+                              height: 1.45,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(horizontal, 4, horizontal, 8),
                 child: Row(
                   children: [
-                    _PointFilterChip(label: '전체', selected: _filter == 0,
-                        onTap: () => setState(() => _filter = 0)),
-                    _PointFilterChip(label: '적립', selected: _filter == 1,
-                        onTap: () => setState(() => _filter = 1)),
-                    _PointFilterChip(label: '사용', selected: _filter == 2,
-                        onTap: () => setState(() => _filter = 2)),
+                    Text(context.loc.t('포인트_내역', '포인트 내역'),
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w800)),
+                    const Spacer(),
+                    Text('${history.length}건',
+                        style: TextStyle(
+                            color: Colors.grey.shade500, fontSize: 12)),
                   ],
                 ),
               ),
-            ),
-            if (pp.isLoading)
-              const Expanded(child: Center(child: CircularProgressIndicator()))
-            else if (history.isEmpty)
-              Expanded(
-                child: Center(
-                  child: Text(
-                    _filter == 0
-                        ? context.loc.t('포인트_내역_없음', '포인트 내역이 없습니다.')
-                        : '해당 내역이 없습니다.',
-                    style: TextStyle(color: Colors.grey.shade500),
+              Padding(
+                padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 12),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _PointFilterChip(
+                          label: '전체',
+                          selected: _filter == 0,
+                          onTap: () => setState(() => _filter = 0)),
+                      _PointFilterChip(
+                          label: '적립',
+                          selected: _filter == 1,
+                          onTap: () => setState(() => _filter = 1)),
+                      _PointFilterChip(
+                          label: '사용',
+                          selected: _filter == 2,
+                          onTap: () => setState(() => _filter = 2)),
+                    ],
                   ),
                 ),
-              )
-            else
-              Expanded(
-                child: ListView.separated(
-                  padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 24),
-                  itemCount: history.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (_, i) => _PointHistoryTile(item: history[i]),
-                ),
               ),
-          ],
-        );
-      },
+              if (pp.isLoading)
+                const Expanded(
+                    child: Center(child: CircularProgressIndicator()))
+              else if (history.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      _filter == 0
+                          ? context.loc.t('포인트_내역_없음', '포인트 내역이 없습니다.')
+                          : '해당 내역이 없습니다.',
+                      style: TextStyle(color: Colors.grey.shade500),
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.separated(
+                    padding: EdgeInsets.fromLTRB(horizontal, 0, horizontal, 24),
+                    itemCount: history.length,
+                    separatorBuilder: (_, __) => const Divider(height: 1),
+                    itemBuilder: (_, i) => _PointHistoryTile(item: history[i]),
+                  ),
+                ),
+            ],
+          );
+        },
       );
     } catch (error) {
       return Center(
@@ -11078,9 +11086,14 @@ class _PointSummary extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+          Text(label,
+              style: const TextStyle(color: Colors.white60, fontSize: 11)),
           const SizedBox(height: 3),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
+          Text(value,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800)),
         ],
       );
 }
@@ -11089,7 +11102,8 @@ class _PointFilterChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  const _PointFilterChip({required this.label, required this.selected, required this.onTap});
+  const _PointFilterChip(
+      {required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -11104,7 +11118,8 @@ class _PointFilterChip extends StatelessWidget {
               color: selected ? Colors.white : AppColors.textSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w700),
-          side: BorderSide(color: selected ? AppColors.primary : AppColors.border          ),
+          side: BorderSide(
+              color: selected ? AppColors.primary : AppColors.border),
         ),
       );
 }

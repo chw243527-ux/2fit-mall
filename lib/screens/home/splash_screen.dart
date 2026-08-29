@@ -13,6 +13,7 @@ import '../products/product_detail_by_id_screen.dart';
 import '../products/category_by_name_screen.dart';
 import '../policy/terms_of_service_screen.dart';
 import '../policy/privacy_policy_screen.dart';
+import '../policy/account_deletion_screen.dart';
 import '../orders/group_order_landing_screen.dart';
 import '../orders/group_order_form_screen.dart';
 import '../orders/group_order_only_screen.dart';
@@ -89,6 +90,7 @@ class _SplashScreenState extends State<SplashScreen>
         // hash(#) 없이도 현재 pathname을 딥링크로 인식해야 합니다.
         const publicPathRoutes = {
           '/privacy-policy',
+          '/account-deletion',
           '/terms-of-service',
           '/refund-policy',
           '/payment/success',
@@ -198,6 +200,9 @@ class _SplashScreenState extends State<SplashScreen>
       // 개인정보처리방침
       case '/privacy-policy':
         return _DeepLink(path, q, requiresAuth: false);
+      // 계정 삭제 요청
+      case '/account-deletion':
+        return _DeepLink(path, q, requiresAuth: false);
       // 사이즈 프로필
       case '/size-profile':
         return _DeepLink(path, q, requiresAuth: true);
@@ -302,6 +307,9 @@ class _SplashScreenState extends State<SplashScreen>
           break;
         case '/privacy-policy':
           target = const PrivacyPolicyScreen();
+          break;
+        case '/account-deletion':
+          target = const AccountDeletionScreen();
           break;
         case '/size-profile':
           target = isLoggedIn ? const SizeProfileScreen() : const LoginScreen();

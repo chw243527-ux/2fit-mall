@@ -30,6 +30,7 @@ import 'screens/auth/login_screen.dart';
 import 'services/category_service.dart';
 import 'screens/chat/chat_screen.dart';
 import 'screens/policy/privacy_policy_screen.dart';
+import 'screens/policy/account_deletion_screen.dart';
 import 'screens/admin/admin_screen.dart';
 import 'screens/policy/terms_of_service_screen.dart';
 import 'screens/not_found_screen.dart';
@@ -254,6 +255,11 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
             case '/privacy-policy':
               return MaterialPageRoute(
                 builder: (_) => const PrivacyPolicyScreen(),
+                settings: settings,
+              );
+            case '/account-deletion':
+              return MaterialPageRoute(
+                builder: (_) => const AccountDeletionScreen(),
                 settings: settings,
               );
             case '/terms-of-service':
