@@ -31,7 +31,6 @@ import 'services/category_service.dart';
 import 'screens/chat/chat_screen.dart';
 import 'screens/policy/privacy_policy_screen.dart';
 import 'screens/policy/account_deletion_screen.dart';
-import 'screens/admin/admin_screen.dart';
 import 'screens/policy/terms_of_service_screen.dart';
 import 'screens/not_found_screen.dart';
 import 'screens/products/product_detail_by_id_screen.dart';
@@ -361,7 +360,7 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 else if (tab is int) initialTab = tab;
               }
               return MaterialPageRoute(
-                builder: (_) => AdminScreen(initialTab: initialTab),
+                builder: (_) => DeferredAdminScreen(initialTab: initialTab),
                 settings: settings,
               );
             // 토스페이먼츠 결제 성공 콜백

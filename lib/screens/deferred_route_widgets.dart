@@ -1,7 +1,38 @@
 import 'package:flutter/material.dart';
 
+import 'admin/admin_screen.dart' deferred as admin_screen;
 import 'payment/payment_checkout_screen.dart' deferred as payment_checkout;
 import 'payment/payment_result_screen.dart' deferred as payment_result;
+
+/// 관리자 화면은 일반 쇼핑·로그인 화면에서 사용하지 않으므로 필요할 때만 로드합니다.
+class DeferredAdminScreen extends StatefulWidget {
+  final int initialTab;
+
+  const DeferredAdminScreen({super.key, this.initialTab = 0});
+
+  @override
+  State<DeferredAdminScreen> createState() => _DeferredAdminScreenState();
+}
+
+class _DeferredAdminScreenState extends State<DeferredAdminScreen> {
+  late final Future<void> _libraryFuture = admin_screen.loadLibrary();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _libraryFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _DeferredLoadingScreen();
+        }
+        if (snapshot.hasError) {
+          return const _DeferredErrorScreen();
+        }
+        return admin_screen.AdminScreen(initialTab: widget.initialTab);
+      },
+    );
+  }
+}
 
 /// 결제 화면은 일반 쇼핑·로그인 화면에서 사용하지 않으므로 필요할 때만 로드합니다.
 class DeferredPaymentCheckoutScreen extends StatefulWidget {

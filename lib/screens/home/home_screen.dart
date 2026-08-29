@@ -22,7 +22,7 @@ import '../products/category_detail_screen.dart';
 import '../orders/group_order_landing_screen.dart';
 import '../orders/group_order_only_screen.dart';
 import '../orders/order_guide_screen.dart';
-import '../admin/admin_screen.dart';
+import '../deferred_route_widgets.dart';
 import '../../services/analytics_service.dart';
 import '../chat/chat_screen.dart';
 import '../../widgets/app_drawer.dart';
@@ -1248,7 +1248,7 @@ class _HomeScreenState extends State<HomeScreen>
                           onPressed: () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (_) => const AdminScreen())))
+                                  builder: (_) => const DeferredAdminScreen())))
                       : const SizedBox.shrink(),
                 ),
                 // ── PC 로그아웃 버튼 ──
@@ -1840,7 +1840,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   onPressed: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (_) => const AdminScreen()),
+                                        builder: (_) => const DeferredAdminScreen()),
                                   ),
                                 ),
                               )
@@ -7314,7 +7314,7 @@ class _MobileHeaderDelegate extends SliverPersistentHeaderDelegate {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => const AdminScreen()),
+                                    builder: (_) => const DeferredAdminScreen()),
                               ),
                               child: const Center(
                                 child: Icon(Icons.admin_panel_settings_rounded,

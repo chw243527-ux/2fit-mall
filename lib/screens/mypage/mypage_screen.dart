@@ -25,7 +25,7 @@ import '../../utils/theme.dart';
 import '../../utils/web_utils.dart'
     if (dart.library.html) '../../utils/web_utils_html.dart';
 import '../products/product_detail_screen.dart';
-import '../admin/admin_screen.dart';
+import '../deferred_route_widgets.dart';
 import '../auth/login_screen.dart';
 import '../orders/group_order_form_screen.dart';
 import '../../widgets/color_picker_widget.dart';
@@ -637,7 +637,7 @@ class _PcMyPage extends StatelessWidget {
                             onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (_) => const AdminScreen())),
+                                    builder: (_) => const DeferredAdminScreen())),
                             child: Container(
                               width: double.infinity,
                               padding: const EdgeInsets.symmetric(vertical: 12),

@@ -6,7 +6,7 @@ import '../screens/products/category_detail_screen.dart';
 import '../screens/orders/group_order_landing_screen.dart';
 import '../screens/chat/chat_screen.dart';
 import '../screens/auth/login_screen.dart';
-import '../screens/admin/admin_screen.dart';
+import '../screens/deferred_route_widgets.dart';
 import '../screens/support/brand_story_screen.dart';
 import '../screens/support/notices_screen.dart';
 import '../services/category_service.dart';
@@ -436,7 +436,7 @@ class _AppDrawerState extends State<AppDrawer> {
         Navigator.pop(context);
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const AdminScreen()),
+          MaterialPageRoute(builder: (_) => const DeferredAdminScreen()),
         );
       },
       child: Container(

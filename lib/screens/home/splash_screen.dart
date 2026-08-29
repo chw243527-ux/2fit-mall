@@ -8,7 +8,6 @@ import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
 import '../auth/signup_screen.dart';
 import '../main_screen.dart';
-import '../admin/admin_screen.dart';
 import '../products/product_detail_by_id_screen.dart';
 import '../products/category_by_name_screen.dart';
 import '../policy/terms_of_service_screen.dart';
@@ -278,7 +277,7 @@ class _SplashScreenState extends State<SplashScreen>
             else if (tab == 'products')
               initialTab = 2;
             else if (tab == 'users') initialTab = 3;
-            target = AdminScreen(initialTab: initialTab);
+            target = DeferredAdminScreen(initialTab: initialTab);
           } else if (isLoggedIn) {
             target = const MainScreen();
           } else {
