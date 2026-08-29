@@ -10,8 +10,6 @@ import '../../widgets/color_picker_widget.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
 
-import '../../utils/theme.dart';
-
 // ══════════════════════════════════════════════════════════════
 // 단체 커스텀 오더 화면
 // - 상품 상세에서 상품을 선택한 후 진입
@@ -29,9 +27,8 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
   AppLanguage get _lang => context.watch<LanguageProvider>().language;
   // ── 색상 ──
-  String?
-      _selectedColor; //// 색상 이름 (예: context.loc.t('k_블랙', 'K (블랙)') 또는 context.loc.t('커스텀_ff3366', '커스텀 (#FF3366)'))
-  Color? _selectedColorValue; // 실제 Color 값
+  String? _selectedColor;      //// 색상 이름 (예: context.loc.t('k_블랙', 'K (블랙)') 또는 context.loc.t('커스텀_ff3366', '커스텀 (#FF3366)'))
+  Color?  _selectedColorValue; // 실제 Color 값
 
   // ── 하의 길이 ──
   String? _selectedBottomLength;
@@ -40,14 +37,14 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   final List<_PersonEntry> _persons = [];
 
   // ── 팀 정보 ──
-  final _teamNameCtrl = TextEditingController();
+  final _teamNameCtrl    = TextEditingController();
   final _managerNameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _memoCtrl = TextEditingController();
+  final _phoneCtrl       = TextEditingController();
+  final _emailCtrl       = TextEditingController();
+  final _memoCtrl        = TextEditingController();
 
   // ── 원단/무게 ──
-  String _fabricType = AppConstants.fabricTypes.first;
+  String _fabricType   = AppConstants.fabricTypes.first;
   String _fabricWeight = AppConstants.defaultFabricWeight;
 
   // 스크롤
@@ -140,8 +137,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
     }
     // 10명 이상이면 이름 필수
     if (_persons.length >= 10) {
-      final unnamed =
-          _persons.where((p) => p.nameCtrl.text.trim().isEmpty).toList();
+      final unnamed = _persons.where((p) => p.nameCtrl.text.trim().isEmpty).toList();
       if (unnamed.isNotEmpty) {
         _showSnack(loc.customTenPersonNameRequiredSnackFull(unnamed.length));
         return false;
@@ -152,7 +148,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
 
   void _showSnack(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: AppColors.primary),
+      SnackBar(content: Text(msg), backgroundColor: const Color(0xFF6A1B9A)),
     );
   }
 
@@ -164,12 +160,9 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            const Icon(Icons.check_circle_rounded,
-                color: AppColors.primary, size: 24),
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF6A1B9A), size: 24),
             const SizedBox(width: 8),
-            Text(loc.orderComplete2,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+            Text(loc.orderComplete2, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
           ],
         ),
         content: Column(
@@ -180,11 +173,9 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             _dialogRow(loc.colorLabel, _selectedColor ?? '-'),
             if (_needsBottomLength)
               _dialogRow(loc.bottomLengthSelect, _selectedBottomLength ?? '-'),
-            _dialogRow(
-                loc.personSizeInput, loc.totalPersonCountN(_persons.length)),
+            _dialogRow(loc.personSizeInput, loc.totalPersonCountN(_persons.length)),
             _dialogRow(loc.teamName, _teamNameCtrl.text),
-            _dialogRow(loc.managerName,
-                _managerNameCtrl.text.isEmpty ? '-' : _managerNameCtrl.text),
+            _dialogRow(loc.managerName, _managerNameCtrl.text.isEmpty ? '-' : _managerNameCtrl.text),
             _dialogRow(loc.contactPhone, _phoneCtrl.text),
             _dialogRow(loc.fabricWeight, _fabricType),
             const SizedBox(height: 12),
@@ -196,8 +187,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
               ),
               child: Text(
                 loc.orderCompleteMsg,
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.primary, height: 1.5),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF6A1B9A), height: 1.5),
               ),
             ),
           ],
@@ -209,14 +199,12 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: const Color(0xFF6A1B9A),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
-            child: Text(loc.confirm,
-                style: const TextStyle(fontWeight: FontWeight.w800)),
+            child: Text(loc.confirm, style: const TextStyle(fontWeight: FontWeight.w800)),
           ),
         ],
       ),
@@ -224,123 +212,110 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   }
 
   Widget _dialogRow(String label, String value) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-                width: 70,
-                child: Text(label,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary))),
-            Expanded(
-                child: Text(value,
-                    style: const TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w600))),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: 70, child: Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF888888)))),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
     final isMobile = !isPcWeb(context);
-    return wrapWithPopScope(
-        context,
-        Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            backgroundColor: AppColors.primaryLight,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              onPressed: () => goBackOrHome(context),
-            ),
-            title: Text(loc.groupOrderFormTitle2,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-            centerTitle: true,
-          ),
-          body: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollCtrl,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                          maxWidth: isMobile ? double.infinity : 760),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // ── 선택된 상품 카드 ──
-                            _buildSelectedProductCard(),
-                            const SizedBox(height: 16),
+    return wrapWithPopScope(context, Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF4A148C),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                onPressed: () => goBackOrHome(context),
+              ),
+        title: Text(loc.groupOrderFormTitle2, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+        centerTitle: true,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              controller: _scrollCtrl,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: isMobile ? double.infinity : 760),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── 선택된 상품 카드 ──
+                        _buildSelectedProductCard(),
+                        const SizedBox(height: 16),
 
-                            // ── 디자인 이미지 ──
-                            _buildDesignImageSection(),
+                        // ── 디자인 이미지 ──
+                        _buildDesignImageSection(),
 
-                            // ── 색상 선택 ──
-                            _buildSectionCard(
-                              title: loc.colorSelect2,
-                              child: _buildColorSection(),
-                            ),
-                            const SizedBox(height: 16),
-
-                            // ── 원단 / 무게 ──
-                            _buildSectionCard(
-                              title: loc.fabricWeight,
-                              child: _buildFabricSection(),
-                            ),
-                            const SizedBox(height: 16),
-
-                            // ── 하의 길이 선택 ──
-                            if (_needsBottomLength) ...[
-                              _buildSectionCard(
-                                title: loc.bottomLengthSelect,
-                                subtitle: loc.bottomLengthNote,
-                                child: _buildBottomLengthSection(),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-
-                            // ── 인원별 사이즈 입력 ──
-                            _buildSectionCard(
-                              title: loc.personSizeInput,
-                              subtitle: loc.personSizeInputNote,
-                              child: _buildPersonListSection(),
-                            ),
-                            const SizedBox(height: 16),
-
-                            // ── 팀 기본 정보 ──
-                            _buildSectionCard(
-                              title: loc.teamInfoSection,
-                              child: _buildTeamInfoSection(),
-                            ),
-                            const SizedBox(height: 16),
-
-                            // ── 메모 ──
-                            _buildSectionCard(
-                              title: loc.memoSection,
-                              child: _buildMemoSection(),
-                            ),
-                            const SizedBox(height: 80),
-                          ],
+                        // ── 색상 선택 ──
+                        _buildSectionCard(
+                          title: loc.colorSelect2,
+                          child: _buildColorSection(),
                         ),
-                      ),
+                        const SizedBox(height: 16),
+
+                        // ── 원단 / 무게 ──
+                        _buildSectionCard(
+                          title: loc.fabricWeight,
+                          child: _buildFabricSection(),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // ── 하의 길이 선택 ──
+                        if (_needsBottomLength) ...[
+                          _buildSectionCard(
+                            title: loc.bottomLengthSelect,
+                            subtitle: loc.bottomLengthNote,
+                            child: _buildBottomLengthSection(),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // ── 인원별 사이즈 입력 ──
+                        _buildSectionCard(
+                          title: loc.personSizeInput,
+                          subtitle: loc.personSizeInputNote,
+                          child: _buildPersonListSection(),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // ── 팀 기본 정보 ──
+                        _buildSectionCard(
+                          title: loc.teamInfoSection,
+                          child: _buildTeamInfoSection(),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // ── 메모 ──
+                        _buildSectionCard(
+                          title: loc.memoSection,
+                          child: _buildMemoSection(),
+                        ),
+                        const SizedBox(height: 80),
+                      ],
                     ),
                   ),
                 ),
               ),
-
-              // ── 하단 제출 바 ──
-              _buildSubmitBar(),
-            ],
+            ),
           ),
-        ));
+
+          // ── 하단 제출 바 ──
+          _buildSubmitBar(),
+        ],
+      ),
+    ));
   }
 
   // ══════════════════════════════════════════════════════════════
@@ -352,12 +327,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2))
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       padding: const EdgeInsets.all(14),
       child: Row(
@@ -368,16 +338,13 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             child: p.images.isNotEmpty
                 ? NetImage(
                     p.images.first,
-                    width: 80,
-                    height: 80,
+                    width: 80, height: 80,
                     fit: BoxFit.cover,
                   )
                 : Container(
-                    width: 80,
-                    height: 80,
-                    color: AppColors.surfaceGray,
-                    child: const Icon(Icons.checkroom_rounded,
-                        color: AppColors.border, size: 32),
+                    width: 80, height: 80,
+                    color: const Color(0xFFF0F0F0),
+                    child: const Icon(Icons.checkroom_rounded, color: Color(0xFFCCCCCC), size: 32),
                   ),
           ),
           const SizedBox(width: 14),
@@ -388,32 +355,22 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                 // 태그
                 Row(
                   children: [
-                    _tag(loc.groupCustomTag, AppColors.primary),
+                    _tag(loc.groupCustomTag, const Color(0xFF6A1B9A)),
                     const SizedBox(width: 6),
-                    if (p.subCategory.isNotEmpty)
-                      _tag(p.subCategory, AppColors.info),
+                    if (p.subCategory.isNotEmpty) _tag(p.subCategory, const Color(0xFF1565C0)),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(p.name,
-                    style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary)),
+                Text(p.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
                 const SizedBox(height: 4),
                 Text(
                   '${_fmt(p.price.toInt())}${loc.wonUnit}',
-                  style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF6A1B9A)),
                 ),
                 if (p.material.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 2),
-                    child: Text(p.material,
-                        style: const TextStyle(
-                            fontSize: 11, color: AppColors.textSecondary)),
+                    child: Text(p.material, style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
                   ),
               ],
             ),
@@ -424,46 +381,29 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   }
 
   Widget _tag(String t, Color c) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-        decoration: BoxDecoration(
-            color: c.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: c.withValues(alpha: 0.3))),
-        child: Text(t,
-            style:
-                TextStyle(fontSize: 10, color: c, fontWeight: FontWeight.w700)),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+    decoration: BoxDecoration(color: c.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4), border: Border.all(color: c.withValues(alpha: 0.3))),
+    child: Text(t, style: TextStyle(fontSize: 10, color: c, fontWeight: FontWeight.w700)),
+  );
 
   // ══════════════════════════════════════════════════════════════
   // 섹션 카드 래퍼
   // ══════════════════════════════════════════════════════════════
-  Widget _buildSectionCard(
-      {required String title, String? subtitle, required Widget child}) {
+  Widget _buildSectionCard({required String title, String? subtitle, required Widget child}) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2))
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary)),
+          Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
           if (subtitle != null) ...[
             const SizedBox(height: 3),
-            Text(subtitle,
-                style: const TextStyle(
-                    fontSize: 11, color: AppColors.textSecondary)),
+            Text(subtitle, style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
           ],
           const SizedBox(height: 12),
           child,
@@ -524,12 +464,12 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             decoration: BoxDecoration(
               color: hasColor
                   ? _selectedColorValue!.withValues(alpha: 0.07)
-                  : AppColors.surfaceGray,
+                  : const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: hasColor
                     ? _selectedColorValue!.withValues(alpha: 0.5)
-                    : AppColors.border,
+                    : const Color(0xFFDDDDDD),
                 width: hasColor ? 1.5 : 1,
               ),
             ),
@@ -537,26 +477,20 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
               children: [
                 // 색상 원
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 40, height: 40,
                   decoration: BoxDecoration(
-                    color: hasColor ? _selectedColorValue : AppColors.border,
+                    color: hasColor ? _selectedColorValue : const Color(0xFFEEEEEE),
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.border, width: 1),
-                    boxShadow: hasColor
-                        ? [
-                            BoxShadow(
-                              color:
-                                  _selectedColorValue!.withValues(alpha: 0.4),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                        : null,
+                    border: Border.all(color: const Color(0xFFCCCCCC), width: 1),
+                    boxShadow: hasColor ? [
+                      BoxShadow(
+                        color: _selectedColorValue!.withValues(alpha: 0.4),
+                        blurRadius: 8, offset: const Offset(0, 2),
+                      ),
+                    ] : null,
                   ),
                   child: !hasColor
-                      ? const Icon(Icons.palette_outlined,
-                          size: 20, color: AppColors.textHint)
+                      ? const Icon(Icons.palette_outlined, size: 20, color: Color(0xFFAAAAAA))
                       : null,
                 ),
                 const SizedBox(width: 12),
@@ -565,15 +499,11 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        hasColor
-                            ? _selectedColor!
-                            : context.loc.t('색상을_선택하세요', '색상을 선택하세요'),
+                        hasColor ? _selectedColor! : context.loc.t('색상을_선택하세요', '색상을 선택하세요'),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: hasColor
-                              ? AppColors.primary
-                              : AppColors.textSecondary,
+                          color: hasColor ? const Color(0xFF1A1A1A) : const Color(0xFF999999),
                         ),
                       ),
                       if (hasColor) ...[
@@ -583,10 +513,8 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                             Text(
                               hexStr,
                               style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
-                                letterSpacing: 1.0,
+                                fontSize: 11, fontWeight: FontWeight.w600,
+                                color: Color(0xFF6A1B9A), letterSpacing: 1.0,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -597,26 +525,20 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                                   SnackBar(
                                     content: Text('$hexStr 복사됨'),
                                     duration: const Duration(seconds: 1),
-                                    backgroundColor: AppColors.primary,
+                                    backgroundColor: const Color(0xFF6A1B9A),
                                   ),
                                 );
                               },
-                              child: const Icon(Icons.copy_rounded,
-                                  size: 13, color: AppColors.primary),
+                              child: const Icon(Icons.copy_rounded, size: 13, color: Color(0xFF6A1B9A)),
                             ),
                           ],
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          isFree
-                              ? context.loc.t('기본색상_추가비용_없음', '기본색상 (추가비용 없음)')
-                              : '+20,000원 추가',
+                          isFree ? context.loc.t('기본색상_추가비용_없음', '기본색상 (추가비용 없음)') : '+20,000원 추가',
                           style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: isFree
-                                ? AppColors.success
-                                : const Color(0xFFCC0000),
+                            fontSize: 11, fontWeight: FontWeight.w700,
+                            color: isFree ? const Color(0xFF2E7D32) : const Color(0xFFCC0000),
                           ),
                         ),
                       ],
@@ -625,23 +547,17 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppColors.primary,
+                    color: const Color(0xFF6A1B9A),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.palette_rounded,
-                          size: 14, color: Colors.white),
+                      Icon(Icons.palette_rounded, size: 14, color: Colors.white),
                       SizedBox(width: 4),
-                      Text(context.loc.t('색상_선택', '색상 선택'),
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700)),
+                      Text(context.loc.t('색상_선택', '색상 선택'), style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w700)),
                     ],
                   ),
                 ),
@@ -652,20 +568,16 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
         const SizedBox(height: 10),
 
         // ── 골지 19색 빠른 선택 그리드 ──
-        Text(context.loc.t('골지_기본_19색', '골지 기본 19색'),
-            style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textSecondary)),
+        Text(context.loc.t('골지_기본_19색', '골지 기본 19색'), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
           runSpacing: 8,
           children: AppColorPalette.registeredColors.map((c) {
             final name = c['name'] as String;
-            final hex = c['hex'] as int;
+            final hex  = c['hex'] as int;
             final code = c['code'] as String;
-            final sel = _selectedColor == name;
+            final sel  = _selectedColor == name;
             return GestureDetector(
               onTap: () => setState(() {
                 _selectedColor = name;
@@ -675,46 +587,35 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 decoration: BoxDecoration(
-                  color: sel ? Color(hex) : AppColors.surfaceGray,
+                  color: sel ? Color(hex) : const Color(0xFFF5F5F5),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(
-                    color: sel ? Color(hex) : AppColors.border,
+                    color: sel ? Color(hex) : const Color(0xFFDDDDDD),
                     width: sel ? 2 : 1,
                   ),
-                  boxShadow: sel
-                      ? [
-                          BoxShadow(
-                              color: Color(hex).withValues(alpha: 0.4),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2)),
-                        ]
-                      : null,
+                  boxShadow: sel ? [
+                    BoxShadow(color: Color(hex).withValues(alpha: 0.4), blurRadius: 4, offset: const Offset(0,2)),
+                  ] : null,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 14,
-                      height: 14,
+                      width: 14, height: 14,
                       decoration: BoxDecoration(
                         color: Color(hex),
                         shape: BoxShape.circle,
-                        border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.5),
-                            width: 0.5),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 0.5),
                       ),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       code,
                       style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 11, fontWeight: FontWeight.w700,
                         color: sel
-                            ? (Color(hex).computeLuminance() > 0.5
-                                ? AppColors.textPrimary
-                                : Colors.white)
-                            : AppColors.textSecondary,
+                            ? (Color(hex).computeLuminance() > 0.5 ? const Color(0xFF333333) : Colors.white)
+                            : const Color(0xFF444444),
                       ),
                     ),
                   ],
@@ -733,26 +634,19 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFF3E5F5),
               borderRadius: BorderRadius.circular(8),
-              border:
-                  Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              border: Border.all(color: const Color(0xFF6A1B9A).withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.color_lens_rounded,
-                    size: 16, color: AppColors.primary),
+                Icon(Icons.color_lens_rounded, size: 16, color: Color(0xFF6A1B9A)),
                 SizedBox(width: 6),
                 Text(
-                  context.loc
-                      .t('더_많은_색상_보기_HEX_코드_입력', '더 많은 색상 보기 · HEX 코드 직접 입력'),
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700),
+                  context.loc.t('더_많은_색상_보기_HEX_코드_입력', '더 많은 색상 보기 · HEX 코드 직접 입력'),
+                  style: TextStyle(fontSize: 12, color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700),
                 ),
                 SizedBox(width: 4),
-                Icon(Icons.chevron_right_rounded,
-                    size: 16, color: AppColors.primary),
+                Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFF6A1B9A)),
               ],
             ),
           ),
@@ -760,8 +654,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
 
         const SizedBox(height: 6),
         Text(loc.productColorExtraFull,
-            style:
-                const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+            style: const TextStyle(fontSize: 10, color: Color(0xFF999999))),
       ],
     );
   }
@@ -773,11 +666,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(loc.customFabricType,
-            style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600)),
+        Text(loc.customFabricType, style: const TextStyle(fontSize: 12, color: Color(0xFF555555), fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         Row(
           children: AppConstants.fabricTypes.map((f) {
@@ -789,28 +678,16 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   margin: const EdgeInsets.only(right: 8),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                   decoration: BoxDecoration(
                     color: sel ? const Color(0xFFF3E5F5) : Colors.white,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                        color: sel ? AppColors.primary : AppColors.border,
-                        width: sel ? 2 : 1),
+                    border: Border.all(color: sel ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD), width: sel ? 2 : 1),
                   ),
                   child: Column(
                     children: [
-                      Text(f,
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: sel
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary)),
-                      if (extra > 0)
-                        Text('+${_fmt(extra)}${loc.wonUnit}',
-                            style: const TextStyle(
-                                fontSize: 10, color: AppColors.error)),
+                      Text(f, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: sel ? const Color(0xFF6A1B9A) : const Color(0xFF333333))),
+                      if (extra > 0) Text('+${_fmt(extra)}${loc.wonUnit}', style: const TextStyle(fontSize: 10, color: Color(0xFFE53935))),
                     ],
                   ),
                 ),
@@ -819,11 +696,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
           }).toList(),
         ),
         const SizedBox(height: 14),
-        Text(loc.customFabricWeightLabel,
-            style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600)),
+        Text(loc.customFabricWeightLabel, style: const TextStyle(fontSize: 12, color: Color(0xFF555555), fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         Row(
           children: AppConstants.fabricWeights.map((w) {
@@ -838,18 +711,10 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                   decoration: BoxDecoration(
                     color: sel ? const Color(0xFFF3E5F5) : Colors.white,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                        color: sel ? AppColors.primary : AppColors.border,
-                        width: sel ? 2 : 1),
+                    border: Border.all(color: sel ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD), width: sel ? 2 : 1),
                   ),
                   child: Center(
-                    child: Text(w,
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: sel
-                                ? AppColors.primary
-                                : AppColors.textPrimary)),
+                    child: Text(w, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: sel ? const Color(0xFF6A1B9A) : const Color(0xFF333333))),
                   ),
                 ),
               ),
@@ -871,35 +736,23 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
           runSpacing: 8,
           children: AppConstants.bottomLengths.map((bl) {
             final label = bl['label']!;
-            final desc = bl['desc']!;
-            final sel = _selectedBottomLength == label;
+            final desc  = bl['desc']!;
+            final sel   = _selectedBottomLength == label;
             return GestureDetector(
               onTap: () => setState(() => _selectedBottomLength = label),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: sel ? AppColors.primary : Colors.white,
+                  color: sel ? const Color(0xFF6A1B9A) : Colors.white,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                      color: sel ? AppColors.primary : AppColors.border,
-                      width: sel ? 2 : 1),
+                  border: Border.all(color: sel ? const Color(0xFF6A1B9A) : const Color(0xFFDDDDDD), width: sel ? 2 : 1),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(label,
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: sel ? Colors.white : AppColors.primary)),
-                    Text(desc,
-                        style: TextStyle(
-                            fontSize: 10,
-                            color: sel
-                                ? Colors.white70
-                                : AppColors.textSecondary)),
+                    Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: sel ? Colors.white : const Color(0xFF1A1A1A))),
+                    Text(desc, style: TextStyle(fontSize: 10, color: sel ? Colors.white70 : const Color(0xFF888888))),
                   ],
                 ),
               ),
@@ -915,14 +768,12 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline_rounded,
-                  size: 14, color: AppColors.primary),
+              const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF6A1B9A)),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   loc.lengthApplyAllDesc,
-                  style: const TextStyle(
-                      fontSize: 11, color: AppColors.primary, height: 1.4),
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF6A1B9A), height: 1.4),
                 ),
               ),
             ],
@@ -946,22 +797,16 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFE8F5E9),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                  color: const Color(0xFF388E3C).withValues(alpha: 0.4)),
+              border: Border.all(color: const Color(0xFF388E3C).withValues(alpha: 0.4)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded,
-                    size: 16, color: AppColors.success),
+                const Icon(Icons.info_outline_rounded, size: 16, color: Color(0xFF2E7D32)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     loc.customBottomLengthInfo,
-                    style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.success,
-                        fontWeight: FontWeight.w600,
-                        height: 1.5),
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF2E7D32), fontWeight: FontWeight.w600, height: 1.5),
                   ),
                 ),
               ],
@@ -976,25 +821,16 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primary,
+                color: const Color(0xFF6A1B9A),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(loc.totalPersonCountN(_persons.length),
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800)),
+              child: Text(loc.totalPersonCountN(_persons.length), style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
             ),
             const Spacer(),
             TextButton.icon(
               onPressed: _addPerson,
-              icon: const Icon(Icons.person_add_rounded,
-                  size: 16, color: AppColors.primary),
-              label: Text(loc.customAddPerson,
-                  style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13)),
+              icon: const Icon(Icons.person_add_rounded, size: 16, color: Color(0xFF6A1B9A)),
+              label: Text(loc.customAddPerson, style: const TextStyle(color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700, fontSize: 13)),
             ),
           ],
         ),
@@ -1007,21 +843,16 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFFFF3E0),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                  color: const Color(0xFFFF9800).withValues(alpha: 0.4)),
+              border: Border.all(color: const Color(0xFFFF9800).withValues(alpha: 0.4)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded,
-                    size: 15, color: AppColors.accent),
+                const Icon(Icons.info_outline_rounded, size: 15, color: Color(0xFFE65100)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     loc.customTenPersonNameRequired,
-                    style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w600),
+                    style: const TextStyle(fontSize: 12, color: Color(0xFFE65100), fontWeight: FontWeight.w600),
                   ),
                 ),
               ],
@@ -1037,16 +868,14 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
         ],
 
         // 인원 카드 목록
-        ...List.generate(
-            _persons.length,
-            (i) => _PersonRowWidget(
-                  key: ValueKey('person_$i'),
-                  entry: _persons[i],
-                  onRemove: _persons.length > 1 ? () => _removePerson(i) : null,
-                  isBottomProduct: _isBottomProduct,
-                  nameRequired: _persons.length >= 10,
-                  totalCount: _persons.length,
-                )),
+        ...List.generate(_persons.length, (i) => _PersonRowWidget(
+          key: ValueKey('person_$i'),
+          entry: _persons[i],
+          onRemove: _persons.length > 1 ? () => _removePerson(i) : null,
+          isBottomProduct: _isBottomProduct,
+          nameRequired: _persons.length >= 10,
+          totalCount: _persons.length,
+        )),
 
         const SizedBox(height: 10),
         // 인원 추가 버튼 (하단)
@@ -1054,15 +883,11 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: _addPerson,
-            icon: const Icon(Icons.add_circle_outline_rounded,
-                size: 18, color: AppColors.primary),
-            label: Text(loc.customAddPersonBtn,
-                style: const TextStyle(
-                    color: AppColors.primary, fontWeight: FontWeight.w700)),
+            icon: const Icon(Icons.add_circle_outline_rounded, size: 18, color: Color(0xFF6A1B9A)),
+            label: Text(loc.customAddPersonBtn, style: const TextStyle(color: Color(0xFF6A1B9A), fontWeight: FontWeight.w700)),
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: AppColors.primary),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+              side: const BorderSide(color: Color(0xFF6A1B9A)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               padding: const EdgeInsets.symmetric(vertical: 12),
             ),
           ),
@@ -1073,44 +898,32 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
 
   // 하의 사이즈 참고표
   Widget _buildSizeReferenceTable() {
-    final headers = [
-      loc.customSizeTableHeader,
-      loc.customSizeTableWaist,
-      loc.customSizeTableHip,
-      loc.customSizeTableThigh
-    ];
+    final headers = [loc.customSizeTableHeader, loc.customSizeTableWaist, loc.customSizeTableHip, loc.customSizeTableThigh];
     const rows = [
-      ['XS', '60~64', '82~86', '47~50'],
-      ['S', '64~68', '86~90', '50~53'],
-      ['M', '68~72', '90~94', '53~56'],
-      ['L', '72~76', '94~98', '56~59'],
-      ['XL', '76~80', '98~102', '59~62'],
-      ['XXL', '80~86', '102~108', '62~66'],
+      ['XS',  '60~64',  '82~86',  '47~50'],
+      ['S',   '64~68',  '86~90',  '50~53'],
+      ['M',   '68~72',  '90~94',  '53~56'],
+      ['L',   '72~76',  '94~98',  '56~59'],
+      ['XL',  '76~80',  '98~102', '59~62'],
+      ['XXL', '80~86',  '102~108','62~66'],
     ];
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: Column(
         children: [
           Container(
             decoration: const BoxDecoration(
-              color: AppColors.primaryLight,
+              color: Color(0xFF4A148C),
               borderRadius: BorderRadius.vertical(top: Radius.circular(7)),
             ),
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
-              children: headers
-                  .map((h) => Expanded(
-                        child: Text(h,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700)),
-                      ))
-                  .toList(),
+              children: headers.map((h) => Expanded(
+                child: Text(h, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+              )).toList(),
             ),
           ),
           ...rows.asMap().entries.map((e) {
@@ -1119,14 +932,9 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
               color: even ? Colors.white : const Color(0xFFFAFAFA),
               padding: const EdgeInsets.symmetric(vertical: 7),
               child: Row(
-                children: e.value
-                    .map((cell) => Expanded(
-                          child: Text(cell,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  fontSize: 11, color: AppColors.textPrimary)),
-                        ))
-                    .toList(),
+                children: e.value.map((cell) => Expanded(
+                  child: Text(cell, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, color: Color(0xFF333333))),
+                )).toList(),
               ),
             );
           }),
@@ -1138,13 +946,9 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded,
-                    size: 12, color: AppColors.primary),
+                const Icon(Icons.info_outline_rounded, size: 12, color: Color(0xFF6A1B9A)),
                 const SizedBox(width: 4),
-                Expanded(
-                    child: Text(loc.customNoSizeMeasureHint,
-                        style: const TextStyle(
-                            fontSize: 11, color: AppColors.primary))),
+                Expanded(child: Text(loc.customNoSizeMeasureHint, style: const TextStyle(fontSize: 11, color: Color(0xFF6A1B9A)))),
               ],
             ),
           ),
@@ -1159,17 +963,13 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
   Widget _buildTeamInfoSection() {
     return Column(
       children: [
-        _inputField(loc.teamNameFieldLabel, _teamNameCtrl,
-            hint: context.loc.t('예_서울마라톤클럽', '예: 서울마라톤클럽')),
+        _inputField(loc.teamNameFieldLabel, _teamNameCtrl, hint: context.loc.t('예_서울마라톤클럽', '예: 서울마라톤클럽')),
         const SizedBox(height: 10),
-        _inputField(loc.managerNameFieldLabel, _managerNameCtrl,
-            hint: context.loc.t('예_홍길동', '예: 홍길동')),
+        _inputField(loc.managerNameFieldLabel, _managerNameCtrl, hint: context.loc.t('예_홍길동', '예: 홍길동')),
         const SizedBox(height: 10),
-        _inputField(loc.phoneFieldLabel, _phoneCtrl,
-            hint: '010-0000-0000', type: TextInputType.phone),
+        _inputField(loc.phoneFieldLabel, _phoneCtrl, hint: '010-0000-0000', type: TextInputType.phone),
         const SizedBox(height: 10),
-        _inputField(loc.emailQuotationLabel, _emailCtrl,
-            hint: 'example@email.com', type: TextInputType.emailAddress),
+        _inputField(loc.emailQuotationLabel, _emailCtrl, hint: 'example@email.com', type: TextInputType.emailAddress),
       ],
     );
   }
@@ -1179,48 +979,33 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
       controller: _memoCtrl,
       maxLines: 4,
       decoration: InputDecoration(
-        hintText: loc.customOrderMemoHint,
-        hintStyle: const TextStyle(fontSize: 12, color: AppColors.textHint),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.border)),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+         hintText: loc.customOrderMemoHint,
+        hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF6A1B9A), width: 2)),
         filled: true,
-        fillColor: AppColors.background,
+        fillColor: const Color(0xFFF8F8F8),
       ),
     );
   }
 
-  Widget _inputField(String label, TextEditingController ctrl,
-      {String? hint, TextInputType type = TextInputType.text}) {
+  Widget _inputField(String label, TextEditingController ctrl, {String? hint, TextInputType type = TextInputType.text}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textSecondary)),
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
         const SizedBox(height: 5),
         TextField(
           controller: ctrl,
           keyboardType: type,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(fontSize: 13, color: AppColors.textHint),
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: AppColors.border)),
-            focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide:
-                    const BorderSide(color: AppColors.primary, width: 2)),
+            hintStyle: const TextStyle(fontSize: 13, color: Color(0xFFBBBBBB)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF6A1B9A), width: 2)),
             filled: true,
             fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
         ),
       ],
@@ -1238,10 +1023,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-              color: Color(0x15000000), blurRadius: 12, offset: Offset(0, -3))
-        ],
+        boxShadow: [BoxShadow(color: Color(0x15000000), blurRadius: 12, offset: Offset(0, -3))],
       ),
       child: SafeArea(
         top: false,
@@ -1251,33 +1033,21 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                    '$total${loc.groupFormPersonUnit} × ${_fmt(unitPrice)}${loc.wonUnit}',
-                    style: const TextStyle(
-                        fontSize: 13, color: AppColors.textSecondary)),
-                Text('${_fmt(subtotal)}${loc.wonUnit}',
-                    style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.primary)),
+                Text('$total${loc.groupFormPersonUnit} × ${_fmt(unitPrice)}${loc.wonUnit}', style: const TextStyle(fontSize: 13, color: Color(0xFF888888))),
+                Text('${_fmt(subtotal)}${loc.wonUnit}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
               ],
             ),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: _submit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: const Color(0xFF6A1B9A),
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
-              child: Text(loc.customSubmitBtn,
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5)),
+              child: Text(loc.customSubmitBtn, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
             ),
           ],
         ),
@@ -1311,10 +1081,8 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                context.loc
-                    .t('상품_디자인_참고_이미지입니다', '상품 디자인 참고 이미지입니다. 이미지를 탭하면 확대됩니다.'),
-                style: TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary, height: 1.5),
+                context.loc.t('상품_디자인_참고_이미지입니다', '상품 디자인 참고 이미지입니다. 이미지를 탭하면 확대됩니다.'),
+                style: TextStyle(fontSize: 12, color: Color(0xFF888888), height: 1.5),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -1332,14 +1100,12 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
                             borderRadius: BorderRadius.circular(10),
                             child: NetImage(
                               imgs[i],
-                              width: 110,
-                              height: 110,
+                              width: 110, height: 110,
                               fit: BoxFit.cover,
                             ),
                           ),
                           Positioned(
-                            right: 5,
-                            bottom: 5,
+                            right: 5, bottom: 5,
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
@@ -1368,8 +1134,7 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.95),
-      builder: (_) =>
-          _DesignLightboxDialog(images: imgs, initialIndex: initialIndex),
+      builder: (_) => _DesignLightboxDialog(images: imgs, initialIndex: initialIndex),
     );
   }
 }
@@ -1379,18 +1144,16 @@ class _GroupCustomOrderScreenState extends State<GroupCustomOrderScreen> {
 // ══════════════════════════════════════════════════════════════
 class _PersonEntry {
   int index;
-  String gender; //// '남' | '여'
+  String gender;                //// '남' | '여'
   bool useBodyMeasure;
-  final TextEditingController nameCtrl = TextEditingController();
-  final TextEditingController memoCtrl = TextEditingController(); // 특이사항
-  final TextEditingController topSizeCtrl =
-      TextEditingController(); // 상의 사이즈 직접입력
-  final TextEditingController bottomSizeCtrl =
-      TextEditingController(); // 하의 사이즈 직접입력
-  final TextEditingController heightCtrl = TextEditingController();
-  final TextEditingController weightCtrl = TextEditingController();
-  final TextEditingController waistCtrl = TextEditingController();
-  final TextEditingController thighCtrl = TextEditingController();
+  final TextEditingController nameCtrl      = TextEditingController();
+  final TextEditingController memoCtrl      = TextEditingController(); // 특이사항
+  final TextEditingController topSizeCtrl   = TextEditingController(); // 상의 사이즈 직접입력
+  final TextEditingController bottomSizeCtrl= TextEditingController(); // 하의 사이즈 직접입력
+  final TextEditingController heightCtrl    = TextEditingController();
+  final TextEditingController weightCtrl    = TextEditingController();
+  final TextEditingController waistCtrl     = TextEditingController();
+  final TextEditingController thighCtrl     = TextEditingController();
 
   _PersonEntry({required this.index})
       : gender = '남',
@@ -1415,8 +1178,8 @@ class _PersonRowWidget extends StatefulWidget {
   final _PersonEntry entry;
   final VoidCallback? onRemove;
   final bool isBottomProduct;
-  final bool nameRequired; // 10명 이상이면 true
-  final int totalCount; // 전체 인원 수
+  final bool nameRequired;    // 10명 이상이면 true
+  final int totalCount;       // 전체 인원 수
 
   const _PersonRowWidget({
     super.key,
@@ -1439,10 +1202,10 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
   @override
   Widget build(BuildContext context) {
     final e = widget.entry;
-    final isMale = e.gender == loc.genderMale;
-    final accent = isMale ? AppColors.info : const Color(0xFFAD1457);
-    final bgLight = isMale ? const Color(0xFFF0F4FF) : const Color(0xFFFFF0F5);
-    final headerBg = isMale ? AppColors.info : const Color(0xFFAD1457);
+    final isMale    = e.gender == loc.genderMale;
+    final accent    = isMale ? const Color(0xFF1565C0) : const Color(0xFFAD1457);
+    final bgLight   = isMale ? const Color(0xFFF0F4FF) : const Color(0xFFFFF0F5);
+    final headerBg  = isMale ? const Color(0xFF1565C0) : const Color(0xFFAD1457);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -1451,39 +1214,32 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: accent.withValues(alpha: 0.3), width: 1.5),
         boxShadow: [
-          BoxShadow(
-              color: accent.withValues(alpha: 0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 3)),
+          BoxShadow(color: accent.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 3)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
           // ━━━ 헤더 바 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: headerBg,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(13)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(13)),
             ),
             child: Row(
               children: [
                 // 번호 뱃지
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 28, height: 28,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.25),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text('${e.index}',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900)),
+                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900)),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1494,46 +1250,37 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                     children: [
                       TextField(
                         controller: e.nameCtrl,
-                        enabled: widget.nameRequired, // 10명 이상일 때만 활성화
+                        enabled: widget.nameRequired,  // 10명 이상일 때만 활성화
                         onChanged: (_) => setState(() {}),
                         style: TextStyle(
-                          color: widget.nameRequired
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.4),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                          color: widget.nameRequired ? Colors.white : Colors.white.withValues(alpha: 0.4),
+                          fontSize: 14, fontWeight: FontWeight.w600,
                         ),
                         decoration: InputDecoration(
                           hintText: widget.nameRequired
                               ? loc.customNameRequiredHint
                               : context.loc.t('10명_이상_시_입력', '10명 이상 시 입력'),
                           hintStyle: TextStyle(
-                            color: Colors.white.withValues(
-                                alpha: widget.nameRequired ? 0.6 : 0.35),
+                            color: Colors.white.withValues(alpha: widget.nameRequired ? 0.6 : 0.35),
                             fontSize: 12,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.3)),
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.35)),
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.35)),
                           ),
                           disabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.15)),
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(
-                                color: Colors.white, width: 1.5),
+                            borderSide: const BorderSide(color: Colors.white, width: 1.5),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           isDense: true,
                           filled: true,
                           fillColor: widget.nameRequired
@@ -1546,8 +1293,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                         Positioned(
                           right: 8,
                           child: Icon(Icons.lock_outline_rounded,
-                              size: 14,
-                              color: Colors.white.withValues(alpha: 0.4)),
+                              size: 14, color: Colors.white.withValues(alpha: 0.4)),
                         ),
                     ],
                   ),
@@ -1565,8 +1311,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                         color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.close_rounded,
-                          size: 16, color: Colors.white),
+                      child: const Icon(Icons.close_rounded, size: 16, color: Colors.white),
                     ),
                   ),
                 ],
@@ -1580,55 +1325,41 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
                 // ── 섹션 1: 사이즈 직접 입력 (상의/하의 나란히) ──
-                _sectionLabel(Icons.straighten_rounded,
-                    loc.customSizeSectionLabel, accent),
+                _sectionLabel(Icons.straighten_rounded, loc.customSizeSectionLabel, accent),
                 const SizedBox(height: 6),
 
                 // 주니어 사이즈 안내 배너
                 Container(
                   margin: const EdgeInsets.only(bottom: 10),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+                  padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFF8E1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                        color: const Color(0xFFFFCC02).withValues(alpha: 0.7)),
+                    border: Border.all(color: const Color(0xFFFFCC02).withValues(alpha: 0.7)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.info_outline_rounded,
-                              size: 14, color: Color(0xFF7A5000)),
+                          const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF7A5000)),
                           const SizedBox(width: 6),
                           Text(
                             context.loc.t('사이즈_입력_안내', '사이즈 입력 안내'),
-                            style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF7A5000)),
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF7A5000)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        context.loc
-                            .t('성인_사이즈_목록', '• 성인: S, M, L, XL, 2XL, 3XL'),
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF7A5000),
-                            height: 1.5),
+                        context.loc.t('성인_사이즈_목록', '• 성인: S, M, L, XL, 2XL, 3XL'),
+                        style: TextStyle(fontSize: 11, color: Color(0xFF7A5000), height: 1.5),
                       ),
                       Text(
-                        context.loc.t('주니어_사이즈_목록',
-                            '• 주니어: J-S, J-M, J-L, J-XL (앞에 J- 를 붙여주세요)'),
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF7A5000),
-                            height: 1.5),
+                        context.loc.t('주니어_사이즈_목록', '• 주니어: J-S, J-M, J-L, J-XL (앞에 J- 를 붙여주세요)'),
+                        style: TextStyle(fontSize: 11, color: Color(0xFF7A5000), height: 1.5),
                       ),
                     ],
                   ),
@@ -1676,17 +1407,12 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                 GestureDetector(
                   onTap: () => setState(() => _showMeasure = !_showMeasure),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
-                      color: _showMeasure
-                          ? accent.withValues(alpha: 0.08)
-                          : bgLight,
+                      color: _showMeasure ? accent.withValues(alpha: 0.08) : bgLight,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: _showMeasure
-                            ? accent.withValues(alpha: 0.4)
-                            : accent.withValues(alpha: 0.15),
+                        color: _showMeasure ? accent.withValues(alpha: 0.4) : accent.withValues(alpha: 0.15),
                       ),
                     ),
                     child: Row(
@@ -1694,9 +1420,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                         Icon(
                           Icons.accessibility_new_rounded,
                           size: 16,
-                          color: _showMeasure
-                              ? accent
-                              : accent.withValues(alpha: 0.5),
+                          color: _showMeasure ? accent : accent.withValues(alpha: 0.5),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -1708,27 +1432,21 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,
-                                  color: _showMeasure
-                                      ? accent
-                                      : AppColors.textSecondary,
+                                  color: _showMeasure ? accent : const Color(0xFF555555),
                                 ),
                               ),
                               Text(
                                 loc.customMeasureInputDesc,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: _showMeasure
-                                      ? accent.withValues(alpha: 0.7)
-                                      : AppColors.textSecondary,
+                                  color: _showMeasure ? accent.withValues(alpha: 0.7) : const Color(0xFF999999),
                                 ),
                               ),
                             ],
                           ),
                         ),
                         Icon(
-                          _showMeasure
-                              ? Icons.expand_less_rounded
-                              : Icons.expand_more_rounded,
+                          _showMeasure ? Icons.expand_less_rounded : Icons.expand_more_rounded,
                           size: 20,
                           color: accent.withValues(alpha: 0.6),
                         ),
@@ -1751,46 +1469,18 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                         // 키 / 몸무게
                         Row(
                           children: [
-                            Expanded(
-                                child: _measureField(
-                                    loc.customHeightLabel,
-                                    e.heightCtrl,
-                                    'cm',
-                                    Icons.height_rounded,
-                                    accent,
-                                    bgLight)),
+                            Expanded(child: _measureField(loc.customHeightLabel, e.heightCtrl, 'cm', Icons.height_rounded, accent, bgLight)),
                             const SizedBox(width: 8),
-                            Expanded(
-                                child: _measureField(
-                                    loc.customWeightLabel,
-                                    e.weightCtrl,
-                                    'kg',
-                                    Icons.monitor_weight_outlined,
-                                    accent,
-                                    bgLight)),
+                            Expanded(child: _measureField(loc.customWeightLabel, e.weightCtrl, 'kg', Icons.monitor_weight_outlined, accent, bgLight)),
                           ],
                         ),
                         const SizedBox(height: 8),
                         // 허리 / 허벅지 (가슴·엉덩이 제외)
                         Row(
                           children: [
-                            Expanded(
-                                child: _measureField(
-                                    loc.waistLabel,
-                                    e.waistCtrl,
-                                    'cm',
-                                    Icons.straighten_rounded,
-                                    accent,
-                                    bgLight)),
+                            Expanded(child: _measureField(loc.waistLabel, e.waistCtrl, 'cm', Icons.straighten_rounded, accent, bgLight)),
                             const SizedBox(width: 8),
-                            Expanded(
-                                child: _measureField(
-                                    loc.customThighLabel,
-                                    e.thighCtrl,
-                                    'cm',
-                                    Icons.accessibility_new_rounded,
-                                    accent,
-                                    bgLight)),
+                            Expanded(child: _measureField(loc.customThighLabel, e.thighCtrl, 'cm', Icons.accessibility_new_rounded, accent, bgLight)),
                           ],
                         ),
                       ],
@@ -1803,8 +1493,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                 const SizedBox(height: 14),
 
                 // ── 섹션 3: 특이사항 / 요청 ──────────────────────
-                _sectionLabel(
-                    Icons.edit_note_rounded, loc.specialRequestLabel, accent),
+                _sectionLabel(Icons.edit_note_rounded, loc.specialRequestLabel, accent),
                 const SizedBox(height: 8),
                 TextField(
                   controller: e.memoCtrl,
@@ -1812,26 +1501,22 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
                   style: const TextStyle(fontSize: 13),
                   decoration: InputDecoration(
                     hintText: loc.customOrderPersonMemoHint,
-                    hintStyle: const TextStyle(
-                        fontSize: 12, color: AppColors.textHint),
+                    hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB)),
                     filled: true,
                     fillColor: bgLight,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          BorderSide(color: accent.withValues(alpha: 0.2)),
+                      borderSide: BorderSide(color: accent.withValues(alpha: 0.2)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          BorderSide(color: accent.withValues(alpha: 0.2)),
+                      borderSide: BorderSide(color: accent.withValues(alpha: 0.2)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(color: accent, width: 1.5),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     isDense: true,
                   ),
                 ),
@@ -1852,7 +1537,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
       children: genderValues.map((g) {
         final sel = e.gender == g;
         final isMale = g == loc.genderMale;
-        final color = isMale ? AppColors.info : const Color(0xFFAD1457);
+        final color = isMale ? const Color(0xFF1565C0) : const Color(0xFFAD1457);
         return GestureDetector(
           onTap: () => setState(() => e.gender = g),
           child: AnimatedContainer(
@@ -1882,9 +1567,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
       children: [
         Icon(icon, size: 15, color: color),
         const SizedBox(width: 6),
-        Text(text,
-            style: TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w800, color: color)),
+        Text(text, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: color)),
       ],
     );
   }
@@ -1900,10 +1583,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textSecondary)),
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF666666))),
         const SizedBox(height: 5),
         TextField(
           controller: ctrl,
@@ -1912,31 +1592,25 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: ctrl.text.isNotEmpty ? accent : AppColors.textPrimary,
+            color: ctrl.text.isNotEmpty ? accent : const Color(0xFF333333),
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textHint,
-                fontWeight: FontWeight.w400),
+            hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFBBBBBB), fontWeight: FontWeight.w400),
             isDense: true,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
             filled: true,
             fillColor: ctrl.text.isNotEmpty
                 ? accent.withValues(alpha: 0.06)
-                : AppColors.background,
+                : const Color(0xFFF8F8F8),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(7),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(7),
               borderSide: BorderSide(
-                color: ctrl.text.isNotEmpty
-                    ? accent.withValues(alpha: 0.5)
-                    : AppColors.border,
+                color: ctrl.text.isNotEmpty ? accent.withValues(alpha: 0.5) : const Color(0xFFDDDDDD),
                 width: ctrl.text.isNotEmpty ? 1.5 : 1,
               ),
             ),
@@ -1967,10 +1641,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
             Icon(icon, size: 12, color: accent.withValues(alpha: 0.7)),
             const SizedBox(width: 4),
             Text(label,
-                style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: accent.withValues(alpha: 0.8))),
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: accent.withValues(alpha: 0.8))),
           ],
         ),
         const SizedBox(height: 4),
@@ -1980,12 +1651,9 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
             hintText: '-',
-            hintStyle: const TextStyle(fontSize: 13, color: AppColors.border),
+            hintStyle: const TextStyle(fontSize: 13, color: Color(0xFFCCCCCC)),
             suffixText: unit,
-            suffixStyle: TextStyle(
-                fontSize: 11,
-                color: accent.withValues(alpha: 0.6),
-                fontWeight: FontWeight.w600),
+            suffixStyle: TextStyle(fontSize: 11, color: accent.withValues(alpha: 0.6), fontWeight: FontWeight.w600),
             filled: true,
             fillColor: bgColor,
             border: OutlineInputBorder(
@@ -2000,8 +1668,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: accent, width: 1.5),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             isDense: true,
           ),
         ),
@@ -2016,8 +1683,7 @@ class _PersonRowWidgetState extends State<_PersonRowWidget> {
 class _DesignLightboxDialog extends StatefulWidget {
   final List<String> images;
   final int initialIndex;
-  const _DesignLightboxDialog(
-      {required this.images, required this.initialIndex});
+  const _DesignLightboxDialog({required this.images, required this.initialIndex});
   @override
   State<_DesignLightboxDialog> createState() => _DesignLightboxDialogState();
 }
@@ -2064,8 +1730,7 @@ class _DesignLightboxDialogState extends State<_DesignLightboxDialog> {
             ),
             // 닫기 버튼
             Positioned(
-              top: 48,
-              right: 16,
+              top: 48, right: 16,
               child: GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
                 child: Container(
@@ -2081,9 +1746,7 @@ class _DesignLightboxDialogState extends State<_DesignLightboxDialog> {
             // 인덱스 표시
             if (widget.images.length > 1)
               Positioned(
-                bottom: 32,
-                left: 0,
-                right: 0,
+                bottom: 32, left: 0, right: 0,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(widget.images.length, (i) {
@@ -2105,4 +1768,5 @@ class _DesignLightboxDialogState extends State<_DesignLightboxDialog> {
       ),
     );
   }
+
 }

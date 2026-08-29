@@ -1,4 +1,3 @@
-import '../../utils/theme.dart';
 // admin_review_tab.dart — 리뷰 관리 탭
 import 'package:flutter/material.dart';
 import '../../utils/app_localizations.dart';
@@ -73,83 +72,50 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
     }
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
-      list = list
-          .where(
-            (r) =>
-                r.userName.toLowerCase().contains(q) ||
-                r.content.toLowerCase().contains(q) ||
-                (_productNames[r.productId] ?? '').toLowerCase().contains(q) ||
-                r.productId.toLowerCase().contains(q),
-          )
-          .toList();
+      list = list.where((r) =>
+        r.userName.toLowerCase().contains(q) ||
+        r.content.toLowerCase().contains(q) ||
+        (_productNames[r.productId] ?? '').toLowerCase().contains(q) ||
+        r.productId.toLowerCase().contains(q),
+      ).toList();
     }
     setState(() => _filtered = list);
   }
 
-  Future<void> _toggleBestReview(ReviewModel review) async {
-    final saved = await ReviewService.setBestReview(
-      reviewId: review.id,
-      productId: review.productId,
-      isBest: !review.isBest,
-    );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(saved
-          ? (review.isBest ? '베스트 리뷰를 해제했습니다.' : '베스트 리뷰로 선정했습니다.')
-          : '베스트 상태 저장에 실패했습니다.')),
-    );
-    if (saved) await _loadReviews();
-  }
-
-  Future<void> _showAdminReplyDialog(ReviewModel review) async {
-    final controller = TextEditingController(text: review.adminReply);
-    final saved = await showDialog<bool>(
+  Future<void> _deleteReview(ReviewModel r) async {
+    final confirm = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(review.adminReply.isEmpty ? '리뷰 답변 작성' : '리뷰 답변 수정'),
-        content: SizedBox(
-          width: 420,
-          child: TextField(
-            controller: controller,
-            autofocus: true,
-            minLines: 4,
-            maxLines: 8,
-            maxLength: 1000,
-            decoration: const InputDecoration(
-              labelText: '고객에게 보여질 답변',
-              hintText: '리뷰에 대한 감사와 안내를 입력하세요.',
-              alignLabelWithHint: true,
-              border: OutlineInputBorder(),
-            ),
-          ),
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: Text(context.loc.t('리뷰 삭제', '리뷰 삭제'), style: TextStyle(fontWeight: FontWeight.w700)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(context.loc.t('작성자 _', '작성자: ${r.userName}'), style: TextStyle(fontSize: 13)),
+            const SizedBox(height: 4),
+            Text(r.content, maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13, color: Color(0xFF555555))),
+            const SizedBox(height: 10),
+            Text(context.loc.t('이 리뷰를 삭제하시겠습니까', '이 리뷰를 삭제하시겠습니까?'),
+                style: TextStyle(fontSize: 13, color: Colors.red)),
+          ],
         ),
         actions: [
-          if (review.adminReply.isNotEmpty)
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('답변 삭제'),
-            ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('취소'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(context.loc.t('취소', '취소'))),
           ElevatedButton(
-            onPressed: () async {
-              final ok = await ReviewService.saveAdminReply(
-                reviewId: review.id,
-                reply: controller.text,
-              );
-              if (dialogContext.mounted) Navigator.pop(dialogContext, ok);
-            },
-            child: const Text('저장'),
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            child: Text(context.loc.t('삭제', '삭제')),
           ),
         ],
       ),
     );
-    controller.dispose();
-    if (saved == true && mounted) {
+    if (confirm != true) return;
+    await ReviewService.deleteReview(r.id, r.productId);
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('리뷰 답변이 저장되었습니다.')),
+        SnackBar(content: Text(context.loc.t('리뷰가 삭제되었습니다', '리뷰가 삭제되었습니다')), backgroundColor: Colors.red),
       );
       await _loadReviews();
     }
@@ -167,9 +133,8 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(r.userName,
-                  style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w700),
-                  overflow: TextOverflow.ellipsis),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                overflow: TextOverflow.ellipsis),
             ),
           ],
         ),
@@ -181,35 +146,24 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _DetailRow(context.loc.t('상품', '상품'), productName),
-                _DetailRow(context.loc.t('사이즈', '사이즈'),
-                    r.size.isNotEmpty ? r.size : '-'),
-                _DetailRow(context.loc.t('색상', '색상'),
-                    r.color.isNotEmpty ? r.color : '-'),
+                _DetailRow(context.loc.t('사이즈', '사이즈'), r.size.isNotEmpty ? r.size : '-'),
+                _DetailRow(context.loc.t('색상', '색상'), r.color.isNotEmpty ? r.color : '-'),
                 _DetailRow(context.loc.t('작성일', '작성일'), _fmtDate(r.createdAt)),
                 const SizedBox(height: 10),
-                Text(context.loc.t('내용', '내용'),
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w600)),
+                Text(context.loc.t('내용', '내용'), style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceGray,
+                    color: const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(r.content,
-                      style: const TextStyle(fontSize: 14, height: 1.5)),
+                  child: Text(r.content, style: const TextStyle(fontSize: 14, height: 1.5)),
                 ),
                 if (r.images.isNotEmpty) ...[
                   const SizedBox(height: 12),
-                  Text(context.loc.t('첨부 이미지', '첨부 이미지'),
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w600)),
+                  Text(context.loc.t('첨부 이미지', '첨부 이미지'), style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   SizedBox(
                     height: 80,
@@ -219,8 +173,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                       separatorBuilder: (_, __) => const SizedBox(width: 6),
                       itemBuilder: (_, i) => ClipRRect(
                         borderRadius: BorderRadius.circular(6),
-                        child: Image.network(r.images[i],
-                            width: 80, height: 80, fit: BoxFit.cover),
+                        child: Image.network(r.images[i], width: 80, height: 80, fit: BoxFit.cover),
                       ),
                     ),
                   ),
@@ -230,34 +183,19 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
           ),
         ),
         actions: [
-          TextButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              _toggleBestReview(r);
-            },
-            icon: Icon(r.isBest
-                ? Icons.emoji_events_rounded
-                : Icons.emoji_events_outlined),
-            label: Text(r.isBest ? '베스트 해제' : '베스트 선정'),
-          ),
-          TextButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              _showAdminReplyDialog(r);
-            },
-            icon: const Icon(Icons.reply_outlined),
-            label: Text(r.adminReply.isEmpty ? '답변 작성' : '답변 수정'),
-          ),
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(context.loc.t('닫기', '닫기'))),
+            onPressed: () { Navigator.pop(context); _deleteReview(r); },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(context.loc.t('삭제', '삭제')),
+          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(context.loc.t('닫기', '닫기'))),
         ],
       ),
     );
   }
 
   String _fmtDate(DateTime d) =>
-      '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
+      '${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')}';
 
   @override
   Widget build(BuildContext context) {
@@ -272,23 +210,6 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
 
     return Column(
       children: [
-        // ── 관리 헤더 ──
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-          child: Row(
-            children: [
-              const Expanded(
-                child: Text('리뷰 관리',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              ),
-              const Text('원문 보호 · 베스트 선정 · 답변 관리',
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600)),
-            ],
-          ),
-        ),
         // ── 상단 통계 카드 ──
         Container(
           color: Colors.white,
@@ -308,15 +229,11 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                 child: Column(
                   children: [
                     Text(avgRating.toStringAsFixed(1),
-                        style: const TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.warning)),
+                      style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w900, color: Color(0xFFF57F17))),
                     _StarRow(avgRating),
                     const SizedBox(height: 4),
                     Text(context.loc.t('총 _개 리뷰', '총 ${_reviews.length}개 리뷰'),
-                        style: const TextStyle(
-                            fontSize: 11, color: AppColors.textSecondary)),
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF888888))),
                   ],
                 ),
               ),
@@ -331,11 +248,7 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                       padding: const EdgeInsets.symmetric(vertical: 2),
                       child: Row(
                         children: [
-                          Text('$star★',
-                              style: const TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.warning,
-                                  fontWeight: FontWeight.w600)),
+                          Text('$star★', style: const TextStyle(fontSize: 11, color: Color(0xFFF57F17), fontWeight: FontWeight.w600)),
                           const SizedBox(width: 6),
                           Expanded(
                             child: ClipRRect(
@@ -343,20 +256,15 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                               child: LinearProgressIndicator(
                                 value: pct,
                                 minHeight: 8,
-                                backgroundColor: AppColors.border,
-                                valueColor: const AlwaysStoppedAnimation(
-                                    AppColors.warning),
+                                backgroundColor: const Color(0xFFEEEEEE),
+                                valueColor: const AlwaysStoppedAnimation(Color(0xFFF57F17)),
                               ),
                             ),
                           ),
                           const SizedBox(width: 6),
-                          SizedBox(
-                              width: 28,
-                              child: Text('$cnt',
-                                  textAlign: TextAlign.right,
-                                  style: const TextStyle(
-                                      fontSize: 11,
-                                      color: AppColors.textSecondary))),
+                          SizedBox(width: 28,
+                            child: Text('$cnt', textAlign: TextAlign.right,
+                              style: const TextStyle(fontSize: 11, color: Color(0xFF666666)))),
                         ],
                       ),
                     );
@@ -371,79 +279,54 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
         Container(
           color: Colors.white,
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-          child: Column(
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 40,
-                      child: TextField(
-                        controller: _searchCtrl,
-                        decoration: InputDecoration(
-                          hintText: context.loc.t('작성자 상품명 내용 검색', '작성자, 상품명, 내용 검색'),
-                          hintStyle: const TextStyle(
-                              fontSize: 12, color: AppColors.textHint),
-                          prefixIcon: const Icon(Icons.search,
-                              size: 16, color: AppColors.textHint),
-                          suffixIcon: _searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, size: 14),
-                                  onPressed: () {
-                                    _searchCtrl.clear();
-                                    setState(() => _searchQuery = '');
-                                    _applyFilter();
-                                  })
-                              : null,
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: AppColors.border)),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 0),
-                        ),
-                        style: const TextStyle(fontSize: 13),
-                        onChanged: (v) {
-                          setState(() => _searchQuery = v);
-                          _applyFilter();
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(Icons.refresh_rounded, size: 18),
-                    tooltip: context.loc.t('새로고침', '새로고침'),
-                    onPressed: _loadReviews,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _FilterChip(
-                        label: '전체',
-                        selected: _filterRating == null,
-                        onTap: () {
-                          setState(() => _filterRating = null);
-                          _applyFilter();
-                        }),
-                    const SizedBox(width: 4),
-                    ...[5, 4, 3, 2, 1].map((s) => Padding(
-                          padding: const EdgeInsets.only(left: 4),
-                          child: _FilterChip(
-                            label: '$s★',
-                            selected: _filterRating == s.toDouble(),
-                            color: AppColors.warning,
-                            onTap: () {
-                              setState(() => _filterRating = s.toDouble());
+              // 검색
+              Expanded(
+                child: SizedBox(
+                  height: 36,
+                  child: TextField(
+                    controller: _searchCtrl,
+                    decoration: InputDecoration(
+                      hintText: context.loc.t('작성자 상품명 내용 검색', '작성자, 상품명, 내용 검색'),
+                      hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
+                      prefixIcon: const Icon(Icons.search, size: 16, color: Color(0xFFAAAAAA)),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(icon: const Icon(Icons.clear, size: 14), onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() => _searchQuery = '');
                               _applyFilter();
-                            },
-                          ),
-                        )),
-                  ],
+                            })
+                          : null,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFEEEEEE))),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                    onChanged: (v) {
+                      setState(() => _searchQuery = v);
+                      _applyFilter();
+                    },
+                  ),
                 ),
+              ),
+              const SizedBox(width: 8),
+              // 별점 필터
+              _FilterChip(label: '전체', selected: _filterRating == null, onTap: () { setState(() => _filterRating = null); _applyFilter(); }),
+              const SizedBox(width: 4),
+              ...[5, 4, 3, 2, 1].map((s) => Padding(
+                padding: const EdgeInsets.only(left: 4),
+                child: _FilterChip(
+                  label: '$s★',
+                  selected: _filterRating == s.toDouble(),
+                  color: const Color(0xFFF57F17),
+                  onTap: () { setState(() => _filterRating = s.toDouble()); _applyFilter(); },
+                ),
+              )),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                tooltip: context.loc.t('새로고침', '새로고침'),
+                onPressed: _loadReviews,
               ),
             ],
           ),
@@ -458,12 +341,9 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.rate_review_outlined,
-                              size: 48, color: Colors.grey[300]),
+                          Icon(Icons.rate_review_outlined, size: 48, color: Colors.grey[300]),
                           const SizedBox(height: 12),
-                          Text(context.loc.t('리뷰가 없습니다', '리뷰가 없습니다'),
-                              style: TextStyle(
-                                  color: Colors.grey[400], fontSize: 14)),
+                          Text(context.loc.t('리뷰가 없습니다', '리뷰가 없습니다'), style: TextStyle(color: Colors.grey[400], fontSize: 14)),
                         ],
                       ),
                     )
@@ -473,10 +353,8 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
                       itemBuilder: (_, i) => _ReviewCard(
                         review: _filtered[i],
-                        productName: _productNames[_filtered[i].productId] ??
-                            _filtered[i].productId,
-                        onBest: () => _toggleBestReview(_filtered[i]),
-                        onReply: () => _showAdminReplyDialog(_filtered[i]),
+                        productName: _productNames[_filtered[i].productId] ?? _filtered[i].productId,
+                        onDelete: () => _deleteReview(_filtered[i]),
                         onTap: () => _showReviewDetail(_filtered[i]),
                       ),
                     ),
@@ -490,20 +368,18 @@ class _AdminReviewTabState extends State<AdminReviewTab> {
 class _ReviewCard extends StatelessWidget {
   final ReviewModel review;
   final String productName;
-  final VoidCallback onBest;
-  final VoidCallback onReply;
+  final VoidCallback onDelete;
   final VoidCallback onTap;
 
   const _ReviewCard({
     required this.review,
     required this.productName,
-    required this.onBest,
-    required this.onReply,
+    required this.onDelete,
     required this.onTap,
   });
 
   String _fmtDate(DateTime d) =>
-      '${d.year}.${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')}';
+      '${d.year}.${d.month.toString().padLeft(2,'0')}.${d.day.toString().padLeft(2,'0')}';
 
   @override
   Widget build(BuildContext context) {
@@ -515,13 +391,8 @@ class _ReviewCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 2))
-          ],
-          border: Border.all(color: AppColors.surfaceGray),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6, offset: const Offset(0, 2))],
+          border: Border.all(color: const Color(0xFFF0F0F0)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -532,50 +403,18 @@ class _ReviewCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(productName,
-                      style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.info,
-                          fontWeight: FontWeight.w600),
-                      overflow: TextOverflow.ellipsis),
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF1565C0), fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis),
                 ),
-                if (review.isBest)
-                  const Padding(
-                    padding: EdgeInsets.only(right: 6),
-                    child: Icon(Icons.emoji_events_rounded,
-                        size: 17, color: AppColors.warning),
-                  ),
                 Text(_fmtDate(review.createdAt),
-                    style: const TextStyle(
-                        fontSize: 11, color: AppColors.textSecondary)),
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF999999))),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: Icon(review.isBest
-                      ? Icons.emoji_events_rounded
-                      : Icons.emoji_events_outlined,
-                      size: 18,
-                      color: review.isBest
-                          ? AppColors.warning
-                          : AppColors.textSecondary),
-                  tooltip: review.isBest ? '베스트 해제' : '베스트 선정',
-                  constraints:
-                      const BoxConstraints(minWidth: 32, minHeight: 32),
+                  icon: const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.red),
+                  tooltip: context.loc.t('삭제', '삭제'),
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                   padding: EdgeInsets.zero,
-                  onPressed: onBest,
-                ),
-                const SizedBox(width: 2),
-                IconButton(
-                  icon: Icon(review.adminReply.isEmpty
-                      ? Icons.reply_outlined
-                      : Icons.reply_rounded,
-                      size: 18,
-                      color: review.adminReply.isEmpty
-                          ? AppColors.textSecondary
-                          : AppColors.info),
-                  tooltip: review.adminReply.isEmpty ? '답변 작성' : '답변 수정',
-                  constraints:
-                      const BoxConstraints(minWidth: 32, minHeight: 32),
-                  padding: EdgeInsets.zero,
-                  onPressed: onReply,
+                  onPressed: onDelete,
                 ),
               ],
             ),
@@ -583,66 +422,39 @@ class _ReviewCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceGray,
+                    color: const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(review.userName,
-                      style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600)),
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF555555), fontWeight: FontWeight.w600)),
                 ),
                 if (review.size.isNotEmpty) ...[
                   const SizedBox(width: 6),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(
-                        color: const Color(0xFFF0F4FF),
-                        borderRadius: BorderRadius.circular(6)),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(color: const Color(0xFFF0F4FF), borderRadius: BorderRadius.circular(6)),
                     child: Text(context.loc.t('사이즈 _', '사이즈: ${review.size}'),
-                        style: const TextStyle(
-                            fontSize: 11, color: AppColors.info)),
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF1565C0))),
                   ),
                 ],
                 if (review.color.isNotEmpty) ...[
                   const SizedBox(width: 6),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(
-                        color: const Color(0xFFFFF3E0),
-                        borderRadius: BorderRadius.circular(6)),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(color: const Color(0xFFFFF3E0), borderRadius: BorderRadius.circular(6)),
                     child: Text(context.loc.t('색상 _', '색상: ${review.color}'),
-                        style: const TextStyle(
-                            fontSize: 11, color: AppColors.accent)),
+                      style: const TextStyle(fontSize: 11, color: Color(0xFFE65100))),
                   ),
                 ],
               ],
             ),
             const SizedBox(height: 8),
             Text(review.content,
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textPrimary, height: 1.5),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis),
-            if (review.adminReply.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              const Text('관리자 답변',
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.info,
-                      fontWeight: FontWeight.w800)),
-              const SizedBox(height: 2),
-              Text(review.adminReply,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary)),
-            ],
+              style: const TextStyle(fontSize: 13, color: Color(0xFF333333), height: 1.5),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis),
             if (review.images.isNotEmpty) ...[
               const SizedBox(height: 8),
               SizedBox(
@@ -653,8 +465,7 @@ class _ReviewCard extends StatelessWidget {
                   separatorBuilder: (_, __) => const SizedBox(width: 4),
                   itemBuilder: (_, i) => ClipRRect(
                     borderRadius: BorderRadius.circular(4),
-                    child: Image.network(review.images[i],
-                        width: 60, height: 60, fit: BoxFit.cover),
+                    child: Image.network(review.images[i], width: 60, height: 60, fit: BoxFit.cover),
                   ),
                 ),
               ),
@@ -677,14 +488,11 @@ class _StarRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (i) {
         if (i < rating.floor()) {
-          return const Icon(Icons.star_rounded,
-              size: 14, color: AppColors.warning);
+          return const Icon(Icons.star_rounded, size: 14, color: Color(0xFFF57F17));
         } else if (i < rating) {
-          return const Icon(Icons.star_half_rounded,
-              size: 14, color: AppColors.warning);
+          return const Icon(Icons.star_half_rounded, size: 14, color: Color(0xFFF57F17));
         }
-        return const Icon(Icons.star_border_rounded,
-            size: 14, color: AppColors.border);
+        return const Icon(Icons.star_border_rounded, size: 14, color: Color(0xFFDDDDDD));
       }),
     );
   }
@@ -696,32 +504,25 @@ class _FilterChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final Color? color;
-  const _FilterChip(
-      {required this.label,
-      required this.selected,
-      required this.onTap,
-      this.color});
+  const _FilterChip({required this.label, required this.selected, required this.onTap, this.color});
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.info;
+    final c = color ?? const Color(0xFF1565C0);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: selected ? c.withValues(alpha: 0.12) : AppColors.surfaceGray,
+          color: selected ? c.withValues(alpha: 0.12) : const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-              color: selected ? c : AppColors.border,
-              width: selected ? 1.5 : 1),
+          border: Border.all(color: selected ? c : const Color(0xFFDDDDDD), width: selected ? 1.5 : 1),
         ),
         child: Text(label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? c : AppColors.textSecondary,
-            )),
+          style: TextStyle(
+            fontSize: 11, fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? c : const Color(0xFF666666),
+          )),
       ),
     );
   }
@@ -740,17 +541,9 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-              width: 48,
-              child: Text(label,
-                  style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600))),
-          Expanded(
-              child: Text(value,
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.textPrimary))),
+          SizedBox(width: 48,
+            child: Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF888888), fontWeight: FontWeight.w600))),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 12, color: Color(0xFF333333)))),
         ],
       ),
     );

@@ -1,4 +1,3 @@
-import '../utils/theme.dart';
 // address_search_widget.dart
 // 주소 검색 위젯
 // - 웹: HtmlElementView로 kakao_postcode.html iframe 직접 임베드 → postMessage 수신
@@ -61,7 +60,7 @@ class _AddressSearchSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: AppColors.border,
+              color: const Color(0xFFDDDDDD),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -71,12 +70,12 @@ class _AddressSearchSheet extends StatelessWidget {
             child: Row(
               children: [
                 const Icon(Icons.location_on_rounded,
-                    color: AppColors.primary, size: 20),
+                    color: Color(0xFF6A1B9A), size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(context.loc.t('주소 검색', '주소 검색'),
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                      style: TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w800)),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded, size: 22),
@@ -87,18 +86,17 @@ class _AddressSearchSheet extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
           // 안내 텍스트
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             color: const Color(0xFFF3E5F5),
             child: Text(
-              context.loc.t('도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다',
-                  '도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다.'),
+              context.loc.t('도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다', '도로명·지번·건물명으로 검색 후 선택하면 자동 입력됩니다.'),
               style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.primary,
+                  color: Color(0xFF6A1B9A),
                   fontWeight: FontWeight.w500),
             ),
           ),
@@ -211,7 +209,7 @@ new daum.Postcode({
       WebViewWidget(controller: _ctrl),
       if (_loading)
         const Center(
-            child: CircularProgressIndicator(color: AppColors.primary)),
+            child: CircularProgressIndicator(color: Color(0xFF6A1B9A))),
     ]);
   }
 }

@@ -1,4 +1,3 @@
-import '../../utils/theme.dart';
 // group_order_only_screen.dart
 // 단체주문 전용 상품 목록 — 카테고리 탭 + 그리드 뷰
 import 'package:flutter/material.dart';
@@ -28,16 +27,19 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
 
   // 카테고리 메타 (아이콘 + 색상)
   static const Map<String, Map<String, dynamic>> _catMeta = {
-    '전체': {'icon': Icons.apps_rounded, 'color': AppColors.primary},
-    '싱글렛 A타입세트': {'icon': Icons.sports_rounded, 'color': AppColors.info},
-    '타이즈': {'icon': Icons.fitness_center_rounded, 'color': AppColors.primary},
-    '스킨슈트': {'icon': Icons.directions_run_rounded, 'color': AppColors.success},
-    '트레이닝복세트': {'icon': Icons.dry_cleaning_rounded, 'color': AppColors.accent},
+    '전체': {'icon': Icons.apps_rounded, 'color': Color(0xFF1A1A2E)},
+    '싱글렛 A타입세트': {'icon': Icons.sports_rounded, 'color': Color(0xFF1565C0)},
+    '타이즈': {'icon': Icons.fitness_center_rounded, 'color': Color(0xFF6A1B9A)},
+    '스킨슈트': {'icon': Icons.directions_run_rounded, 'color': Color(0xFF2E7D32)},
+    '트레이닝복세트': {'icon': Icons.dry_cleaning_rounded, 'color': Color(0xFFE65100)},
     '기타': {'icon': Icons.category_rounded, 'color': Color(0xFF546E7A)},
   };
 
-  String _fmt(double v) => v.toInt().toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  String _fmt(double v) => v
+      .toInt()
+      .toString()
+      .replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
   @override
   void initState() {
@@ -83,8 +85,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
 
     // 탭이 실제로 바뀐 경우에만 갱신 (동일하면 스킵)
     final tabsChanged = _tabs.length != tabs.length ||
-        !List.generate(
-                tabs.length, (i) => _tabs.length > i && _tabs[i] == tabs[i])
+        !List.generate(tabs.length, (i) => _tabs.length > i && _tabs[i] == tabs[i])
             .every((e) => e);
     if (!tabsChanged && _tabCtrl != null) return;
 
@@ -116,12 +117,12 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     // Firestore 로딩 중이고 탭이 아직 없으면 로딩 표시
     if ((pp.isLoading || pp.isGroupOnlyLoading) && _tabs.isEmpty) {
       return Scaffold(
-        backgroundColor: AppColors.primary,
+        backgroundColor: const Color(0xFF1A1A2E),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(color: AppColors.accent),
+              const CircularProgressIndicator(color: Color(0xFFFF6B35)),
               const SizedBox(height: 16),
               Text(context.loc.t('단체주문_상품을_불러오는_중', '단체주문 상품을 불러오는 중...'),
                   style: TextStyle(
@@ -138,9 +139,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     if (_tabs.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _initTabs());
       return Scaffold(
-        backgroundColor: AppColors.primary,
-        body: const Center(
-            child: CircularProgressIndicator(color: AppColors.accent)),
+        backgroundColor: const Color(0xFF1A1A2E),
+        body: const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B35))),
       );
     }
 
@@ -154,14 +154,14 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     return wrapWithPopScope(
       context,
       Scaffold(
-        backgroundColor: AppColors.surfaceGray,
+        backgroundColor: const Color(0xFFF5F5F5),
         body: NestedScrollView(
           headerSliverBuilder: (_, __) => [
             // ── SliverAppBar (히어로 배너 포함) ──
             SliverAppBar(
               expandedHeight: 200,
               pinned: true,
-              backgroundColor: AppColors.primary,
+              backgroundColor: const Color(0xFF1A1A2E),
               foregroundColor: Colors.white,
               leading: Navigator.canPop(context)
                   ? IconButton(
@@ -187,7 +187,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                   onPressed: _goToLanding,
                   child: Text(context.loc.t('주문안내', '주문안내'),
                       style: TextStyle(
-                          color: AppColors.accent,
+                          color: Color(0xFFFF6B35),
                           fontSize: 12,
                           fontWeight: FontWeight.w800)),
                 ),
@@ -200,12 +200,12 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 controller: _tabCtrl,
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,
-                indicatorColor: AppColors.accent,
+                indicatorColor: const Color(0xFFFF6B35),
                 indicatorWeight: 3,
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white54,
-                labelStyle:
-                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                labelStyle: const TextStyle(
+                    fontWeight: FontWeight.w800, fontSize: 13),
                 unselectedLabelStyle:
                     const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                 tabs: _tabs.map((t) => Tab(text: t)).toList(),
@@ -237,16 +237,16 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     return wrapWithPopScope(
       context,
       Scaffold(
-        backgroundColor: AppColors.surfaceGray,
+        backgroundColor: const Color(0xFFF5F5F5),
         appBar: AppBar(
           backgroundColor: Colors.white,
-          foregroundColor: AppColors.primary,
+          foregroundColor: const Color(0xFF1A1A2E),
           elevation: 0,
           surfaceTintColor: Colors.transparent,
           leading: Navigator.canPop(context)
               ? IconButton(
                   icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                      size: 20, color: AppColors.primary),
+                      size: 20, color: Color(0xFF1A1A2E)),
                   onPressed: () => goBackOrHome(context),
                 )
               : null,
@@ -254,13 +254,15 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
               style: TextStyle(
                   fontWeight: FontWeight.w900,
                   fontSize: 17,
-                  color: AppColors.primary)),
+                  color: Color(0xFF1A1A2E))),
           actions: [
             // 그리드/리스트 토글
             IconButton(
               icon: Icon(
-                _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
-                color: AppColors.textSecondary,
+                _isGridView
+                    ? Icons.view_list_rounded
+                    : Icons.grid_view_rounded,
+                color: const Color(0xFF888888),
                 size: 22,
               ),
               onPressed: () => setState(() => _isGridView = !_isGridView),
@@ -273,11 +275,11 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 onPressed: _goToLanding,
                 icon: const Icon(Icons.info_outline_rounded, size: 16),
                 label: Text(context.loc.t('단체주문_안내', '단체주문 안내'),
-                    style:
-                        TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                    style: TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  side: const BorderSide(color: AppColors.border),
+                  foregroundColor: const Color(0xFF1A1A2E),
+                  side: const BorderSide(color: Color(0xFFDDDDDD)),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   shape: RoundedRectangleBorder(
@@ -288,7 +290,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
-            child: Container(height: 1, color: AppColors.border),
+            child: Container(height: 1, color: const Color(0xFFEEEEEE)),
           ),
         ),
         body: Consumer<ProductProvider>(
@@ -308,20 +310,18 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         controller: _tabCtrl,
                         isScrollable: true,
                         tabAlignment: TabAlignment.start,
-                        indicatorColor: AppColors.primary,
+                        indicatorColor: const Color(0xFF1A1A2E),
                         indicatorWeight: 3,
-                        labelColor: AppColors.primary,
-                        unselectedLabelColor: AppColors.textSecondary,
+                        labelColor: const Color(0xFF1A1A2E),
+                        unselectedLabelColor: const Color(0xFF888888),
                         labelStyle: const TextStyle(
                             fontWeight: FontWeight.w800, fontSize: 14),
                         dividerHeight: 0,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         tabs: _tabs.map((t) {
                           final meta = _catMeta[t] ??
-                              {
-                                'icon': Icons.category_rounded,
-                                'color': AppColors.primary
-                              };
+                              {'icon': Icons.category_rounded,
+                               'color': const Color(0xFF1A1A2E)};
                           return Tab(
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -337,7 +337,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                     ),
                   ),
                 ),
-                Container(height: 1, color: AppColors.border),
+                Container(height: 1, color: const Color(0xFFEEEEEE)),
 
                 // 상품 그리드
                 Expanded(
@@ -391,8 +391,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           ),
           // 텍스트
           Positioned(
-            left: 20,
-            bottom: 52,
+            left: 20, bottom: 52,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -401,7 +400,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.info,
+                    color: const Color(0xFF1565C0),
                     borderRadius: BorderRadius.circular(3),
                   ),
                   child: const Text('GROUP ORDER ONLY',
@@ -419,10 +418,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         fontWeight: FontWeight.w900,
                         height: 1.2)),
                 const SizedBox(height: 4),
-                Text(
-                    context.loc
-                        .t('10인_이상_팀_맞춤_제작__bb552f', '10인 이상 팀 맞춤 제작 · 무료배송'),
-                    style: TextStyle(color: Colors.white70, fontSize: 11)),
+                Text(context.loc.t('10인_이상_팀_맞춤_제작__bb552f', '10인 이상 팀 맞춤 제작 · 무료배송'),
+                    style: TextStyle(
+                        color: Colors.white70, fontSize: 11)),
               ],
             ),
           ),
@@ -470,7 +468,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: AppColors.info,
+                              color: const Color(0xFF1565C0),
                               borderRadius: BorderRadius.circular(3),
                             ),
                             child: const Text('GROUP ORDER ONLY',
@@ -488,9 +486,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: -0.5)),
                           const SizedBox(height: 6),
-                          Text(
-                              context.loc.t('10인_이상_팀_맞춤_제작__d95012',
-                                  '10인 이상 팀 맞춤 제작 전용 · 무료배송 · 14~21일 제작'),
+                          Text(context.loc.t('10인_이상_팀_맞춤_제작__d95012', '10인 이상 팀 맞춤 제작 전용 · 무료배송 · 14~21일 제작'),
                               style: TextStyle(
                                   color: Colors.white70, fontSize: 13)),
                         ],
@@ -503,21 +499,21 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                           icon: Icons.local_shipping_rounded,
                           label: context.loc.t('무료배송', '무료배송'),
                           sub: context.loc.t('단체전용', '단체전용'),
-                          color: AppColors.success,
+                          color: const Color(0xFF2E7D32),
                         ),
                         const SizedBox(width: 12),
                         _heroCta(
                           icon: Icons.discount_rounded,
                           label: context.loc.t('단체_맞춤', '단체 맞춤'),
                           sub: '5인 이상',
-                          color: AppColors.accent,
+                          color: const Color(0xFFFF6B35),
                         ),
                         const SizedBox(width: 12),
                         _heroCta(
                           icon: Icons.palette_rounded,
                           label: context.loc.t('맞춤_제작', '맞춤 제작'),
                           sub: context.loc.t('컬러_로고_마킹', '컬러·로고·마킹'),
-                          color: AppColors.info,
+                          color: const Color(0xFF1565C0),
                         ),
                       ],
                     ),
@@ -542,8 +538,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
-        border:
-            Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1),
+        border: Border.all(
+            color: Colors.white.withValues(alpha: 0.25), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -565,7 +561,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                   fontWeight: FontWeight.w800)),
           const SizedBox(height: 2),
           Text(sub,
-              style: const TextStyle(color: Colors.white60, fontSize: 10)),
+              style: const TextStyle(
+                  color: Colors.white60, fontSize: 10)),
         ],
       ),
     );
@@ -587,32 +584,30 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.surfaceGray,
+                  color: const Color(0xFFF0F0F0),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(Icons.inventory_2_outlined,
-                    size: 40, color: AppColors.textHint),
+                    size: 40, color: Color(0xFFBBBBBB)),
               ),
               const SizedBox(height: 16),
               Text(context.loc.t('준비_중인_상품입니다', '준비 중인 상품입니다'),
                   style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textSecondary)),
+                      color: Color(0xFF444444))),
               const SizedBox(height: 6),
-              Text(
-                  context.loc
-                      .t('단체주문_문의는_주문안내를__1ea171', '단체주문 문의는 주문안내를 확인해주세요.'),
-                  style:
-                      TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              Text(context.loc.t('단체주문_문의는_주문안내를__1ea171', '단체주문 문의는 주문안내를 확인해주세요.'),
+                  style: TextStyle(
+                      fontSize: 13, color: Color(0xFF888888))),
               const SizedBox(height: 20),
               OutlinedButton.icon(
                 onPressed: _goToLanding,
                 icon: const Icon(Icons.chat_rounded, size: 16),
                 label: Text(context.loc.t('단체주문_안내_보기', '단체주문 안내 보기')),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.info,
-                  side: const BorderSide(color: AppColors.info),
+                  foregroundColor: const Color(0xFF1565C0),
+                  side: const BorderSide(color: Color(0xFF1565C0)),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
                 ),
@@ -647,7 +642,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
               style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textSecondary)),
+                  color: Color(0xFF444444))),
           const Spacer(),
           // 그리드/리스트 토글 (모바일용 - appBar에도 있지만 여기에도 작은 토글 표시)
           GestureDetector(
@@ -659,15 +654,13 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                       ? Icons.grid_view_rounded
                       : Icons.view_list_rounded,
                   size: 18,
-                  color: AppColors.textSecondary,
+                  color: const Color(0xFF444444),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  _isGridView
-                      ? context.loc.t('그리드', '그리드')
-                      : context.loc.t('리스트', '리스트'),
+                  _isGridView ? context.loc.t('그리드', '그리드') : context.loc.t('리스트', '리스트'),
                   style: const TextStyle(
-                      fontSize: 12, color: AppColors.textSecondary),
+                      fontSize: 12, color: Color(0xFF666666)),
                 ),
               ],
             ),
@@ -697,8 +690,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   }
 
   Widget _buildGridCard(ProductModel p) {
-    final accentColor =
-        _catMeta[p.subCategory]?['color'] as Color? ?? AppColors.info;
+    final accentColor = _catMeta[p.subCategory]?['color'] as Color? ??
+        const Color(0xFF1565C0);
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -711,7 +704,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: const Color(0xFFEEEEEE)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -743,67 +736,62 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                                 )
                               : _imgPlaceholder(full: true),
                         ),
-                        if (p.isSale || p.isNewActive)
-                          Positioned(
-                            top: 8,
-                            left: 8,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (p.isSale)
-                                  _gridBadge('SALE', const Color(0xFFC62828)),
-                                if (p.isSale && p.isNewActive)
-                                  const SizedBox(height: 4),
-                                if (p.isNewActive)
-                                  _gridBadge('NEW', AppColors.info),
-                              ],
-                            ),
+                    if (p.isSale || p.isNewActive)
+                      Positioned(
+                        top: 8, left: 8,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (p.isSale) _gridBadge('SALE', const Color(0xFFC62828)),
+                            if (p.isSale && p.isNewActive) const SizedBox(height: 4),
+                            if (p.isNewActive) _gridBadge('NEW', const Color(0xFF1565C0)),
+                          ],
+                        ),
+                      ),
+                    if (p.isFreeShipping)
+                      Positioned(
+                        bottom: 8, right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.65),
+                            borderRadius: BorderRadius.circular(4),
                           ),
-                        if (p.isFreeShipping)
-                          Positioned(
-                            bottom: 8,
-                            right: 8,
+                          child: Text(context.loc.t('무료배송', '무료배송'),
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w700)),
+                        ),
+                      ),
+                    if (p.stockCount <= 0)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          child: Center(
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 7, vertical: 3),
+                                  horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.65),
+                                color: Colors.white.withValues(alpha: 0.95),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: Text(context.loc.t('무료배송', '무료배송'),
+                              child: const Text('SOLD OUT',
                                   style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w700)),
+                                      color: Color(0xFF111111),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2)),
                             ),
                           ),
-                        if (p.stockCount <= 0)
-                          Positioned.fill(
-                            child: Container(
-                              color: Colors.black.withValues(alpha: 0.55),
-                              child: Center(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.95),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text('SOLD OUT',
-                                      style: TextStyle(
-                                          color: AppColors.textPrimary,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 1.2)),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
+            ),
+            ),
               // 정보 영역
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
@@ -821,7 +809,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.primary),
+                            color: Color(0xFF1A1A1A)),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis),
                     const SizedBox(height: 6),
@@ -833,7 +821,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                           style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w900,
-                              color: AppColors.primary),
+                              color: Color(0xFF1A1A2E)),
                         ),
                         if (p.originalPrice != null &&
                             p.originalPrice! > p.price) ...[
@@ -842,7 +830,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                             '${_fmt(p.originalPrice!)}원',
                             style: const TextStyle(
                               fontSize: 11,
-                              color: AppColors.textHint,
+                              color: Color(0xFFAAAAAA),
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
@@ -859,7 +847,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
     );
   }
 
-  // ── 리스트 뷰 ──
+    // ── 리스트 뷰 ──
   Widget _buildListView(List<ProductModel> list) {
     return ListView.separated(
       padding: const EdgeInsets.all(12),
@@ -870,8 +858,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   }
 
   Widget _buildListCard(ProductModel p) {
-    final accentColor =
-        _catMeta[p.subCategory]?['color'] as Color? ?? AppColors.info;
+    final accentColor = _catMeta[p.subCategory]?['color'] as Color? ??
+        const Color(0xFF1565C0);
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -882,7 +870,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: const Color(0xFFEEEEEE)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -919,9 +907,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                       Row(
                         children: [
                           if (p.isSale) _badge('SALE', const Color(0xFFC62828)),
-                          if (p.isSale && p.isNewActive)
-                            const SizedBox(width: 4),
-                          if (p.isNewActive) _badge('NEW', AppColors.info),
+                          if (p.isSale && p.isNewActive) const SizedBox(width: 4),
+                          if (p.isNewActive) _badge('NEW', const Color(0xFF1565C0)),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -930,7 +917,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.primary),
+                            color: Color(0xFF1A1A1A)),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis),
                     if (p.subCategory.isNotEmpty) ...[
@@ -949,14 +936,14 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                             style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w900,
-                                color: AppColors.primary)),
+                                color: Color(0xFF1A1A2E))),
                         if (p.originalPrice != null &&
                             p.originalPrice! > p.price) ...[
                           const SizedBox(width: 6),
                           Text('${_fmt(p.originalPrice!)}원',
                               style: const TextStyle(
                                 fontSize: 12,
-                                color: AppColors.textHint,
+                                color: Color(0xFFAAAAAA),
                                 decoration: TextDecoration.lineThrough,
                               )),
                           const SizedBox(width: 4),
@@ -964,7 +951,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                             '${(((p.originalPrice! - p.price) / p.originalPrice!) * 100).round()}%',
                             style: const TextStyle(
                                 fontSize: 12,
-                                color: AppColors.error,
+                                color: Color(0xFFE53935),
                                 fontWeight: FontWeight.w700),
                           ),
                         ],
@@ -976,7 +963,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
                         child: Text(context.loc.t('무료배송', '무료배송'),
                             style: TextStyle(
                                 fontSize: 11,
-                                color: AppColors.success,
+                                color: Color(0xFF2E7D32),
                                 fontWeight: FontWeight.w700)),
                       ),
                   ],
@@ -986,7 +973,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
             const Padding(
               padding: EdgeInsets.only(right: 8, top: 44),
               child: Icon(Icons.chevron_right_rounded,
-                  color: AppColors.textHint, size: 22),
+                  color: Color(0xFFBBBBBB), size: 22),
             ),
           ],
         ),
@@ -1003,7 +990,7 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.border)),
+        border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
       ),
       child: SizedBox(
         width: double.infinity,
@@ -1012,12 +999,13 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
           onPressed: _goToLanding,
           icon: const Icon(Icons.edit_note_rounded, size: 20),
           label: Text(context.loc.t('단체주문서_작성하기', '단체주문서 작성하기'),
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+              style: TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.w800)),
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
+            backgroundColor: const Color(0xFF1A1A2E),
             foregroundColor: Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
             elevation: 0,
           ),
         ),
@@ -1050,7 +1038,9 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
       ),
       child: Text(label,
           style: const TextStyle(
-              color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
+              color: Colors.white,
+              fontSize: 9,
+              fontWeight: FontWeight.w800)),
     );
   }
 
@@ -1070,8 +1060,8 @@ class _GroupOrderOnlyScreenState extends State<GroupOrderOnlyScreen>
   Widget _imgPlaceholder({bool full = false}) => Container(
         width: full ? double.infinity : 110,
         height: full ? double.infinity : 120,
-        color: AppColors.border,
+        color: const Color(0xFFEEEEEE),
         child: const Icon(Icons.checkroom_rounded,
-            color: AppColors.textHint, size: 36),
+            color: Color(0xFFAAAAAA), size: 36),
       );
 }

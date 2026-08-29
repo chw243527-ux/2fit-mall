@@ -1,4 +1,3 @@
-import '../../utils/theme.dart';
 // admin_delivery_tab.dart — 배송관리 탭
 // 기능: 배송 현황 요약 / 배송중 주문 목록 / 운송장 일괄 입력 / 배송 상태 변경 / 배송 추적 링크
 
@@ -16,14 +15,14 @@ import '../../services/order_service.dart';
 // ─────────────────────────────────────────────
 // 색상 상수
 // ─────────────────────────────────────────────
-const _kPrimary = AppColors.primary;
-const _kAccent = Color(0xFFE94560);
-const _kShipping = AppColors.info; // 배송중
-const _kDelivered = AppColors.success; // 배송완료
-const _kReady = AppColors.accent; // 출고준비 (processing)
+const _kPrimary   = Color(0xFF1A1A2E);
+const _kAccent    = Color(0xFFE94560);
+const _kShipping  = Color(0xFF1565C0); // 배송중
+const _kDelivered = Color(0xFF2E7D32); // 배송완료
+const _kReady     = Color(0xFFE65100); // 출고준비 (processing)
 // ignore: unused_element
-const _kPending = AppColors.primary; // 대기
-const _kGrey = Color(0xFF9E9E9E);
+const _kPending   = Color(0xFF6A1B9A); // 대기
+const _kGrey      = Color(0xFF9E9E9E);
 
 // ─────────────────────────────────────────────
 // 메인 탭 위젯
@@ -41,7 +40,7 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
 
   // 필터
   String _searchQuery = '';
-  OrderStatus? _statusFilter; // null = 전체
+  OrderStatus? _statusFilter;           // null = 전체
   final _searchCtrl = TextEditingController();
 
   // 선택 모드
@@ -83,15 +82,12 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
         final allOrders = snap.data ?? [];
 
         // 배송 관련 주문만 (취소/환불 제외)
-        final deliveryOrders = allOrders
-            .where(
-              (o) =>
-                  o.status != OrderStatus.pending &&
-                  o.status != OrderStatus.confirmed &&
-                  o.status != OrderStatus.cancelled &&
-                  o.status != OrderStatus.refunded,
-            )
-            .toList()
+        final deliveryOrders = allOrders.where((o) =>
+          o.status != OrderStatus.pending &&
+          o.status != OrderStatus.confirmed &&
+          o.status != OrderStatus.cancelled &&
+          o.status != OrderStatus.refunded,
+        ).toList()
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
         // 검색 필터
@@ -102,21 +98,15 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
               o.userName.toLowerCase().contains(q) ||
               o.userPhone.contains(q) ||
               (o.customOptions?['trackingNumber'] as String? ?? '').contains(q);
-          final matchStatus =
-              _statusFilter == null || o.status == _statusFilter;
+          final matchStatus = _statusFilter == null || o.status == _statusFilter;
           return matchSearch && matchStatus;
         }).toList();
 
         // 탭별 카운트
-        final cntAll = deliveryOrders.length;
-        final cntReady = deliveryOrders
-            .where((o) => o.status == OrderStatus.processing)
-            .length;
-        final cntShipping =
-            deliveryOrders.where((o) => o.status == OrderStatus.shipped).length;
-        final cntDone = deliveryOrders
-            .where((o) => o.status == OrderStatus.delivered)
-            .length;
+        final cntAll       = deliveryOrders.length;
+        final cntReady     = deliveryOrders.where((o) => o.status == OrderStatus.processing).length;
+        final cntShipping  = deliveryOrders.where((o) => o.status == OrderStatus.shipped).length;
+        final cntDone      = deliveryOrders.where((o) => o.status == OrderStatus.delivered).length;
 
         return Column(
           children: [
@@ -137,8 +127,7 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
                 indicatorColor: _kAccent,
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white54,
-                labelStyle:
-                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
                 tabs: [
                   Tab(text: '전체 ($cntAll)'),
                   Tab(text: '출고준비 ($cntReady)'),
@@ -158,12 +147,8 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
                 _selectMode = !_selectMode;
                 _selected.clear();
               }),
-              onBulkShip: _selected.isNotEmpty
-                  ? () => _bulkUpdateStatus(filtered, OrderStatus.shipped)
-                  : null,
-              onBulkDeliver: _selected.isNotEmpty
-                  ? () => _bulkUpdateStatus(filtered, OrderStatus.delivered)
-                  : null,
+              onBulkShip: _selected.isNotEmpty ? () => _bulkUpdateStatus(filtered, OrderStatus.shipped) : null,
+              onBulkDeliver: _selected.isNotEmpty ? () => _bulkUpdateStatus(filtered, OrderStatus.delivered) : null,
               onSelectAll: () => setState(() {
                 if (_selected.length == filtered.length) {
                   _selected.clear();
@@ -176,33 +161,28 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
 
             // ── 주문 목록
             Expanded(
-              child: snap.connectionState == ConnectionState.waiting &&
-                      snap.data == null
-                  ? const Center(
-                      child: CircularProgressIndicator(color: _kPrimary))
-                  : filtered.isEmpty
-                      ? _EmptyState(statusFilter: _statusFilter)
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          itemCount: filtered.length,
-                          itemBuilder: (_, i) => _DeliveryCard(
-                            order: filtered[i],
-                            selectMode: _selectMode,
-                            selected: _selected.contains(filtered[i].id),
-                            onSelectChanged: (v) => setState(() {
-                              if (v == true) {
-                                _selected.add(filtered[i].id);
-                              } else {
-                                _selected.remove(filtered[i].id);
-                              }
-                            }),
-                            onStatusChanged: (order, status) =>
-                                _changeStatus(order, status),
-                            onTrackingInput: (order) =>
-                                _showTrackingDialog(order),
-                          ),
-                        ),
+              child: snap.connectionState == ConnectionState.waiting && snap.data == null
+                ? const Center(child: CircularProgressIndicator(color: _kPrimary))
+                : filtered.isEmpty
+                  ? _EmptyState(statusFilter: _statusFilter)
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      itemCount: filtered.length,
+                      itemBuilder: (_, i) => _DeliveryCard(
+                        order: filtered[i],
+                        selectMode: _selectMode,
+                        selected: _selected.contains(filtered[i].id),
+                        onSelectChanged: (v) => setState(() {
+                          if (v == true) {
+                            _selected.add(filtered[i].id);
+                          } else {
+                            _selected.remove(filtered[i].id);
+                          }
+                        }),
+                        onStatusChanged: (order, status) => _changeStatus(order, status),
+                        onTrackingInput: (order) => _showTrackingDialog(order),
+                      ),
+                    ),
             ),
           ],
         );
@@ -229,28 +209,23 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
   }
 
   // ── 운송장 입력 다이얼로그
-  Future<void> _showTrackingDialog(OrderModel order,
-      {OrderStatus? presetStatus}) async {
+  Future<void> _showTrackingDialog(OrderModel order, {OrderStatus? presetStatus}) async {
     // Firestore에서 기존 운송장 정보 가져오기
     String initCompany = '한진택배';
     String initTracking = '';
     String initMemo = '';
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('orders')
-          .doc(order.id)
-          .get();
+      final doc = await FirebaseFirestore.instance.collection('orders').doc(order.id).get();
       if (doc.exists) {
-        initCompany = doc.data()?['shippingCompany'] as String? ??
-            context.loc.t('한진택배', '한진택배');
+        initCompany = doc.data()?['shippingCompany'] as String? ?? context.loc.t('한진택배', '한진택배');
         initTracking = doc.data()?['trackingNumber'] as String? ?? '';
         initMemo = doc.data()?['adminMemo'] as String? ?? '';
       }
     } catch (_) {}
 
-    final companyCtrl = TextEditingController(text: initCompany);
+    final companyCtrl  = TextEditingController(text: initCompany);
     final trackingCtrl = TextEditingController(text: initTracking);
-    final memoCtrl = TextEditingController(text: initMemo);
+    final memoCtrl     = TextEditingController(text: initMemo);
 
     if (!mounted) return;
     await showDialog(
@@ -277,8 +252,7 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
           context.read<OrderProvider>().updateOrderStatus(order.id, status);
           // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(context.loc.t('배송 정보 저장  운송장 _  미입력  trackingNum',
-                '배송 정보 저장 ✅ 운송장: ${trackingNum.isEmpty ? "미입력" : trackingNum}')),
+            content: Text(context.loc.t('배송 정보 저장  운송장 _  미입력  trackingNum', '배송 정보 저장 ✅ 운송장: ${trackingNum.isEmpty ? "미입력" : trackingNum}')),
             backgroundColor: _kPrimary,
           ));
         },
@@ -287,8 +261,7 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
   }
 
   // ── 일괄 상태 변경
-  Future<void> _bulkUpdateStatus(
-      List<OrderModel> filtered, OrderStatus newStatus) async {
+  Future<void> _bulkUpdateStatus(List<OrderModel> filtered, OrderStatus newStatus) async {
     final targets = filtered.where((o) => _selected.contains(o.id)).toList();
     if (targets.isEmpty) return;
 
@@ -302,17 +275,13 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('${newStatus.label} 일괄 변경'),
-        content: Text(context.loc.t('선택한 _건을 _으로 변경하시겠습니까',
-            '선택한 ${targets.length}건을 "${newStatus.label}"으로 변경하시겠습니까?')),
+        content: Text(context.loc.t('선택한 _건을 _으로 변경하시겠습니까', '선택한 ${targets.length}건을 "${newStatus.label}"으로 변경하시겠습니까?')),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(context.loc.t('취소', '취소'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.loc.t('취소', '취소'))),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: _kPrimary),
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(context.loc.t('변경', '변경'),
-                style: TextStyle(color: Colors.white)),
+            child: Text(context.loc.t('변경', '변경'), style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -320,15 +289,10 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
     if (confirmed != true || !mounted) return;
 
     for (final o in targets) {
-      await OrderService.updateOrderStatusWithTracking(
-          orderId: o.id, status: newStatus);
-      if (mounted)
-        context.read<OrderProvider>().updateOrderStatus(o.id, newStatus);
+      await OrderService.updateOrderStatusWithTracking(orderId: o.id, status: newStatus);
+      if (mounted) context.read<OrderProvider>().updateOrderStatus(o.id, newStatus);
     }
-    setState(() {
-      _selected.clear();
-      _selectMode = false;
-    });
+    setState(() { _selected.clear(); _selectMode = false; });
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('${targets.length}건 → ${newStatus.label} 일괄 변경 완료'),
@@ -356,18 +320,13 @@ class _AdminDeliveryTabState extends State<AdminDeliveryTab>
               );
               if (mounted) {
                 // ignore: use_build_context_synchronously
-                context
-                    .read<OrderProvider>()
-                    .updateOrderStatus(entry.orderId, OrderStatus.shipped);
+                context.read<OrderProvider>().updateOrderStatus(entry.orderId, OrderStatus.shipped);
               }
               count++;
             }
           }
           if (!mounted) return;
-          setState(() {
-            _selected.clear();
-            _selectMode = false;
-          });
+          setState(() { _selected.clear(); _selectMode = false; });
           // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('$count건 운송장 등록 및 배송중 처리 완료'),
@@ -398,17 +357,13 @@ class _SummaryBar extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
       child: Row(
         children: [
-          _statCard(context.loc.t('전체', '전체'), cntAll,
-              Icons.local_shipping_rounded, Colors.white70),
+          _statCard(context.loc.t('전체', '전체'), cntAll, Icons.local_shipping_rounded, Colors.white70),
           const SizedBox(width: 8),
-          _statCard(context.loc.t('출고준비', '출고준비'), cntReady,
-              Icons.inventory_2_rounded, _kReady),
+          _statCard(context.loc.t('출고준비', '출고준비'), cntReady, Icons.inventory_2_rounded, _kReady),
           const SizedBox(width: 8),
-          _statCard(context.loc.t('배송중', '배송중'), cntShipping,
-              Icons.local_shipping_rounded, _kShipping),
+          _statCard(context.loc.t('배송중', '배송중'), cntShipping, Icons.local_shipping_rounded, _kShipping),
           const SizedBox(width: 8),
-          _statCard(context.loc.t('완료', '완료'), cntDone,
-              Icons.check_circle_rounded, _kDelivered),
+          _statCard(context.loc.t('완료', '완료'), cntDone, Icons.check_circle_rounded, _kDelivered),
         ],
       ),
     );
@@ -427,11 +382,8 @@ class _SummaryBar extends StatelessWidget {
           children: [
             Icon(icon, color: color, size: 18),
             const SizedBox(height: 4),
-            Text('$count',
-                style: TextStyle(
-                    color: color, fontSize: 20, fontWeight: FontWeight.w900)),
-            Text(label,
-                style: const TextStyle(color: Colors.white60, fontSize: 10)),
+            Text('$count', style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.w900)),
+            Text(label, style: const TextStyle(color: Colors.white60, fontSize: 10)),
           ],
         ),
       ),
@@ -478,23 +430,18 @@ class _SearchActionBar extends StatelessWidget {
             controller: ctrl,
             onChanged: onChanged,
             decoration: InputDecoration(
-              hintText: context.loc
-                  .t('주문번호  이름  연락처  운송장 번호 검색', '주문번호 / 이름 / 연락처 / 운송장 번호 검색'),
+              hintText: context.loc.t('주문번호  이름  연락처  운송장 번호 검색', '주문번호 / 이름 / 연락처 / 운송장 번호 검색'),
               hintStyle: const TextStyle(fontSize: 12),
               prefixIcon: const Icon(Icons.search, size: 18, color: _kGrey),
               suffixIcon: ctrl.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.close, size: 16),
-                      onPressed: () {
-                        ctrl.clear();
-                        onChanged('');
-                      },
-                    )
-                  : null,
+                ? IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    onPressed: () { ctrl.clear(); onChanged(''); },
+                  )
+                : null,
               filled: true,
               fillColor: Colors.white,
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -512,17 +459,14 @@ class _SearchActionBar extends StatelessWidget {
             children: [
               // 선택 모드 토글
               _actionBtn(
-                selectMode
-                    ? context.loc.t('선택취소', '선택취소')
-                    : context.loc.t('선택모드', '선택모드'),
+                selectMode ? context.loc.t('선택취소', '선택취소') : context.loc.t('선택모드', '선택모드'),
                 selectMode ? Icons.close : Icons.checklist_rounded,
                 selectMode ? Colors.grey.shade600 : _kPrimary,
                 onToggleSelect,
               ),
               if (selectMode) ...[
                 const SizedBox(width: 6),
-                _actionBtn(context.loc.t('전체선택', '전체선택'), Icons.select_all,
-                    _kGrey, onSelectAll),
+                _actionBtn(context.loc.t('전체선택', '전체선택'), Icons.select_all, _kGrey, onSelectAll),
                 const SizedBox(width: 6),
                 _actionBtn(
                   context.loc.t('배송중_', '배송중($selectedCount)'),
@@ -541,10 +485,7 @@ class _SearchActionBar extends StatelessWidget {
               const Spacer(),
               Text(
                 context.loc.t('총 _', '총 $totalFiltered건'),
-                style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -553,33 +494,22 @@ class _SearchActionBar extends StatelessWidget {
     );
   }
 
-  Widget _actionBtn(
-      String label, IconData icon, Color color, VoidCallback? onTap) {
+  Widget _actionBtn(String label, IconData icon, Color color, VoidCallback? onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: onTap == null
-              ? Colors.grey.shade200
-              : color.withValues(alpha: 0.1),
+          color: onTap == null ? Colors.grey.shade200 : color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-              color: onTap == null
-                  ? Colors.grey.shade300
-                  : color.withValues(alpha: 0.4)),
+          border: Border.all(color: onTap == null ? Colors.grey.shade300 : color.withValues(alpha: 0.4)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon,
-                size: 13, color: onTap == null ? Colors.grey.shade400 : color),
+            Icon(icon, size: 13, color: onTap == null ? Colors.grey.shade400 : color),
             const SizedBox(width: 4),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 11,
-                    color: onTap == null ? Colors.grey.shade400 : color,
-                    fontWeight: FontWeight.w600)),
+            Text(label, style: TextStyle(fontSize: 11, color: onTap == null ? Colors.grey.shade400 : color, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -611,10 +541,7 @@ class _DeliveryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Firestore 실시간 데이터를 StreamBuilder로 가져오기
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('orders')
-          .doc(order.id)
-          .snapshots(),
+      stream: FirebaseFirestore.instance.collection('orders').doc(order.id).snapshots(),
       builder: (ctx, snap) {
         final data = snap.data?.data() as Map<String, dynamic>?;
         final trackingNumber = data?['trackingNumber'] as String? ?? '';
@@ -632,18 +559,11 @@ class _DeliveryCard extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: selected
-                  ? _kPrimary
-                  : (isShipping
-                      ? _kShipping.withValues(alpha: 0.3)
-                      : Colors.grey.shade200),
+              color: selected ? _kPrimary : (isShipping ? _kShipping.withValues(alpha: 0.3) : Colors.grey.shade200),
               width: selected ? 1.5 : 1,
             ),
             boxShadow: [
-              BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2)),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2)),
             ],
           ),
           child: Column(
@@ -662,49 +582,36 @@ class _DeliveryCard extends StatelessWidget {
                       ),
                     // 상태 뱃지
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                            color: statusColor.withValues(alpha: 0.3)),
+                        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         order.status.label,
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: statusColor,
-                            fontWeight: FontWeight.w700),
+                        style: TextStyle(fontSize: 11, color: statusColor, fontWeight: FontWeight.w700),
                       ),
                     ),
                     const SizedBox(width: 8),
                     // 주문 유형 뱃지
-                    if (order.orderType == 'group' ||
-                        order.orderType == 'additional')
+                    if (order.orderType == 'group' || order.orderType == 'additional')
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: _kPrimary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          order.orderType == 'additional'
-                              ? context.loc.t('추가제작', '추가제작')
-                              : context.loc.t('단체', '단체'),
-                          style: const TextStyle(
-                              fontSize: 10,
-                              color: _kPrimary,
-                              fontWeight: FontWeight.w600),
+                          order.orderType == 'additional' ? context.loc.t('추가제작', '추가제작') : context.loc.t('단체', '단체'),
+                          style: const TextStyle(fontSize: 10, color: _kPrimary, fontWeight: FontWeight.w600),
                         ),
                       ),
                     const Spacer(),
                     // 날짜
                     Text(
                       _fmtDate(order.createdAt),
-                      style:
-                          TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                     ),
                   ],
                 ),
@@ -725,21 +632,16 @@ class _DeliveryCard extends StatelessWidget {
                               // 주문자 + 연락처
                               Row(
                                 children: [
-                                  const Icon(Icons.person_rounded,
-                                      size: 13, color: _kGrey),
+                                  const Icon(Icons.person_rounded, size: 13, color: _kGrey),
                                   const SizedBox(width: 4),
                                   Text(
                                     order.userName,
-                                    style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700),
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     _fmtPhone(order.userPhone),
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey.shade600),
+                                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                                   ),
                                 ],
                               ),
@@ -747,26 +649,19 @@ class _DeliveryCard extends StatelessWidget {
                               // 주문 ID
                               Row(
                                 children: [
-                                  const Icon(Icons.receipt_rounded,
-                                      size: 12, color: _kGrey),
+                                  const Icon(Icons.receipt_rounded, size: 12, color: _kGrey),
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: GestureDetector(
                                       onTap: () {
-                                        Clipboard.setData(
-                                            ClipboardData(text: order.id));
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                              content: Text(context.loc
-                                                  .t('주문번호 복사됨', '주문번호 복사됨')),
-                                              duration: Duration(seconds: 1)),
+                                        Clipboard.setData(ClipboardData(text: order.id));
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text(context.loc.t('주문번호 복사됨', '주문번호 복사됨')), duration: Duration(seconds: 1)),
                                         );
                                       },
                                       child: Text(
                                         order.id,
-                                        style: const TextStyle(
-                                            fontSize: 11, color: _kGrey),
+                                        style: const TextStyle(fontSize: 11, color: _kGrey),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -777,17 +672,12 @@ class _DeliveryCard extends StatelessWidget {
                               // 배송지
                               Row(
                                 children: [
-                                  const Icon(Icons.location_on_rounded,
-                                      size: 12, color: _kGrey),
+                                  const Icon(Icons.location_on_rounded, size: 12, color: _kGrey),
                                   const SizedBox(width: 4),
                                   Expanded(
                                     child: Text(
-                                      order.userAddress.isEmpty
-                                          ? context.loc.t('배송지 없음', '배송지 없음')
-                                          : order.userAddress,
-                                      style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.grey.shade600),
+                                      order.userAddress.isEmpty ? context.loc.t('배송지 없음', '배송지 없음') : order.userAddress,
+                                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -802,15 +692,11 @@ class _DeliveryCard extends StatelessWidget {
                           children: [
                             Text(
                               '${_fmtWon(order.totalAmount)}원',
-                              style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: _kPrimary),
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: _kPrimary),
                             ),
                             Text(
                               order.paymentMethod,
-                              style: TextStyle(
-                                  fontSize: 11, color: Colors.grey.shade500),
+                              style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                             ),
                           ],
                         ),
@@ -828,17 +714,12 @@ class _DeliveryCard extends StatelessWidget {
                         trackingNumber: trackingNumber,
                         shippingCompany: shippingCompany,
                         onCopy: () {
-                          Clipboard.setData(
-                              ClipboardData(text: trackingNumber));
+                          Clipboard.setData(ClipboardData(text: trackingNumber));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(
-                                    context.loc.t('운송장 번호 복사됨', '운송장 번호 복사됨')),
-                                duration: Duration(seconds: 1)),
+                            SnackBar(content: Text(context.loc.t('운송장 번호 복사됨', '운송장 번호 복사됨')), duration: Duration(seconds: 1)),
                           );
                         },
-                        onTrack: () => _launchTracking(
-                            context, trackingNumber, shippingCompany),
+                        onTrack: () => _launchTracking(context, trackingNumber, shippingCompany),
                       ),
                     ],
 
@@ -846,8 +727,7 @@ class _DeliveryCard extends StatelessWidget {
                     if (adminMemo.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
                           color: Colors.amber.shade50,
                           borderRadius: BorderRadius.circular(6),
@@ -855,13 +735,10 @@ class _DeliveryCard extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.sticky_note_2_rounded,
-                                size: 13, color: AppColors.warning),
+                            const Icon(Icons.sticky_note_2_rounded, size: 13, color: Colors.orange),
                             const SizedBox(width: 6),
                             Expanded(
-                              child: Text(adminMemo,
-                                  style: const TextStyle(
-                                      fontSize: 12, color: Colors.brown)),
+                              child: Text(adminMemo, style: const TextStyle(fontSize: 12, color: Colors.brown)),
                             ),
                           ],
                         ),
@@ -872,21 +749,16 @@ class _DeliveryCard extends StatelessWidget {
               ),
 
               // ── 액션 버튼 행
-              const Divider(
-                  height: 16, thickness: 0.5, indent: 12, endIndent: 12),
+              const Divider(height: 16, thickness: 0.5, indent: 12, endIndent: 12),
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
                 child: Row(
                   children: [
                     // 운송장 입력/수정 버튼
                     _cardBtn(
-                      hasTracking
-                          ? context.loc.t('운송장 수정', '운송장 수정')
-                          : context.loc.t('운송장 입력', '운송장 입력'),
+                      hasTracking ? context.loc.t('운송장 수정', '운송장 수정') : context.loc.t('운송장 입력', '운송장 입력'),
                       hasTracking ? Icons.edit_rounded : Icons.add_box_rounded,
-                      hasTracking
-                          ? AppColors.warning.withValues(alpha: 0.82)
-                          : _kShipping,
+                      hasTracking ? Colors.orange.shade700 : _kShipping,
                       () => onTrackingInput(order),
                     ),
                     const SizedBox(width: 8),
@@ -894,21 +766,13 @@ class _DeliveryCard extends StatelessWidget {
                     // 상태 변경 버튼
                     if (!isDelivered) ...[
                       if (order.status == OrderStatus.processing)
-                        _cardBtn(
-                            context.loc.t('배송중 처리', '배송중 처리'),
-                            Icons.local_shipping_rounded,
-                            _kShipping,
-                            () => onStatusChanged(order, OrderStatus.shipped)),
+                        _cardBtn(context.loc.t('배송중 처리', '배송중 처리'), Icons.local_shipping_rounded, _kShipping,
+                          () => onStatusChanged(order, OrderStatus.shipped)),
                       if (isShipping)
-                        _cardBtn(
-                            context.loc.t('배송완료 처리', '배송완료 처리'),
-                            Icons.check_circle_rounded,
-                            _kDelivered,
-                            () =>
-                                onStatusChanged(order, OrderStatus.delivered)),
+                        _cardBtn(context.loc.t('배송완료 처리', '배송완료 처리'), Icons.check_circle_rounded, _kDelivered,
+                          () => onStatusChanged(order, OrderStatus.delivered)),
                     ] else
-                      _cardBtn(context.loc.t('배송완료', '배송완료 ✓'),
-                          Icons.check_circle_rounded, _kDelivered, null),
+                      _cardBtn(context.loc.t('배송완료', '배송완료 ✓'), Icons.check_circle_rounded, _kDelivered, null),
 
                     const Spacer(),
 
@@ -917,9 +781,8 @@ class _DeliveryCard extends StatelessWidget {
                       _cardBtn(
                         context.loc.t('배송조회', '배송조회'),
                         Icons.open_in_new_rounded,
-                        AppColors.primary.withValues(alpha: 0.82),
-                        () => _launchTracking(
-                            context, trackingNumber, shippingCompany),
+                        Colors.teal.shade700,
+                        () => _launchTracking(context, trackingNumber, shippingCompany),
                       ),
                   ],
                 ),
@@ -949,87 +812,65 @@ class _DeliveryCard extends StatelessWidget {
     );
   }
 
-  Widget _cardBtn(
-      String label, IconData icon, Color color, VoidCallback? onTap) {
+  Widget _cardBtn(String label, IconData icon, Color color, VoidCallback? onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: onTap == null
-              ? Colors.grey.shade100
-              : color.withValues(alpha: 0.1),
+          color: onTap == null ? Colors.grey.shade100 : color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-              color: onTap == null
-                  ? Colors.grey.shade300
-                  : color.withValues(alpha: 0.4)),
+          border: Border.all(color: onTap == null ? Colors.grey.shade300 : color.withValues(alpha: 0.4)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon,
-                size: 13, color: onTap == null ? Colors.grey.shade400 : color),
+            Icon(icon, size: 13, color: onTap == null ? Colors.grey.shade400 : color),
             const SizedBox(width: 4),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 11,
-                    color: onTap == null ? Colors.grey.shade400 : color,
-                    fontWeight: FontWeight.w600)),
+            Text(label, style: TextStyle(fontSize: 11, color: onTap == null ? Colors.grey.shade400 : color, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
     );
   }
 
-  static void _launchTracking(
-      BuildContext context, String trackingNumber, String company) async {
+  static void _launchTracking(BuildContext context, String trackingNumber, String company) async {
     String url;
     final lowerCompany = company.toLowerCase();
     if (lowerCompany.contains(context.loc.t('한진', '한진'))) {
-      url =
-          'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillSch.do?mCode=MN038&schLang=KR&wblnumText2=$trackingNumber';
-    } else if (lowerCompany.contains(context.loc.t('롯데', '롯데')) ||
-        lowerCompany.contains('lotte')) {
-      url =
-          'https://www.lotteglogis.com/home/reservation/tracking/index?InvNo=$trackingNumber';
-    } else if (lowerCompany.contains(context.loc.t('우체국', '우체국')) ||
-        lowerCompany.contains('epost')) {
-      url =
-          'https://service.epost.go.kr/trace.RetrieveRegiTraceList.comm?sid1=$trackingNumber';
-    } else if (lowerCompany.contains('cj') ||
-        lowerCompany.contains(context.loc.t('대한통운', '대한통운'))) {
-      url =
-          'https://www.cjlogistics.com/ko/tool/parcel/tracking?gnbInvcNo=$trackingNumber';
+      url = 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillSch.do?mCode=MN038&schLang=KR&wblnumText2=$trackingNumber';
+    } else if (lowerCompany.contains(context.loc.t('롯데', '롯데')) || lowerCompany.contains('lotte')) {
+      url = 'https://www.lotteglogis.com/home/reservation/tracking/index?InvNo=$trackingNumber';
+    } else if (lowerCompany.contains(context.loc.t('우체국', '우체국')) || lowerCompany.contains('epost')) {
+      url = 'https://service.epost.go.kr/trace.RetrieveRegiTraceList.comm?sid1=$trackingNumber';
+    } else if (lowerCompany.contains('cj') || lowerCompany.contains(context.loc.t('대한통운', '대한통운'))) {
+      url = 'https://www.cjlogistics.com/ko/tool/parcel/tracking?gnbInvcNo=$trackingNumber';
     } else {
-      url =
-          'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillSch.do?mCode=MN038&schLang=KR&wblnumText2=$trackingNumber';
+      url = 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillSch.do?mCode=MN038&schLang=KR&wblnumText2=$trackingNumber';
     }
     try {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(context.loc.t('브라우저 열기 실패 _', '브라우저 열기 실패: $e'))),
+          SnackBar(content: Text(context.loc.t('브라우저 열기 실패 _', '브라우저 열기 실패: $e'))),
         );
       }
     }
   }
 
   static Color _statusColor(OrderStatus s) => switch (s) {
-        OrderStatus.processing => _kReady,
-        OrderStatus.shipped => _kShipping,
-        OrderStatus.delivered => _kDelivered,
-        _ => _kGrey,
-      };
+    OrderStatus.processing => _kReady,
+    OrderStatus.shipped    => _kShipping,
+    OrderStatus.delivered  => _kDelivered,
+    _                      => _kGrey,
+  };
 
   static String _fmtDate(DateTime d) =>
-      '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    '${d.month.toString().padLeft(2, '0')}.${d.day.toString().padLeft(2, '0')} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
 
   static String _fmtPhone(String p) {
-    if (p.length == 11)
-      return '${p.substring(0, 3)}-${p.substring(3, 7)}-${p.substring(7)}';
+    if (p.length == 11) return '${p.substring(0,3)}-${p.substring(3,7)}-${p.substring(7)}';
     return p;
   }
 
@@ -1078,17 +919,10 @@ class _TrackingInfo extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (shippingCompany.isNotEmpty)
-                  Text(shippingCompany,
-                      style: const TextStyle(
-                          fontSize: 11,
-                          color: _kShipping,
-                          fontWeight: FontWeight.w600)),
+                  Text(shippingCompany, style: const TextStyle(fontSize: 11, color: _kShipping, fontWeight: FontWeight.w600)),
                 Text(
                   trackingNumber,
-                  style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: _kPrimary),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: _kPrimary),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -1110,11 +944,7 @@ class _TrackingInfo extends StatelessWidget {
                 color: _kShipping,
                 borderRadius: BorderRadius.circular(5),
               ),
-              child: Text(context.loc.t('조회', '조회'),
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700)),
+              child: Text(context.loc.t('조회', '조회'), style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700)),
             ),
           ),
         ],
@@ -1174,15 +1004,10 @@ class _TrackingDialogState extends State<_TrackingDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(context.loc.t('배송 정보 입력', '배송 정보 입력'),
-                    style:
-                        TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                Text(context.loc.t('배송 정보 입력', '배송 정보 입력'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 Text(
                   '${widget.order.userName} · ${widget.order.id}',
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w400),
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.w400),
                 ),
               ],
             ),
@@ -1197,11 +1022,7 @@ class _TrackingDialogState extends State<_TrackingDialog> {
             const SizedBox(height: 4),
 
             // 택배사 선택
-            Text(context.loc.t('택배사', '택배사'),
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _kPrimary)),
+            Text(context.loc.t('택배사', '택배사'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _kPrimary)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 6,
@@ -1211,21 +1032,18 @@ class _TrackingDialogState extends State<_TrackingDialog> {
                 return GestureDetector(
                   onTap: () => setState(() => widget.companyCtrl.text = c),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: isSelected ? _kPrimary : Colors.grey.shade100,
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                          color: isSelected ? _kPrimary : Colors.grey.shade300),
+                      border: Border.all(color: isSelected ? _kPrimary : Colors.grey.shade300),
                     ),
                     child: Text(
                       c,
                       style: TextStyle(
                         fontSize: 12,
                         color: isSelected ? Colors.white : Colors.grey.shade700,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.w400,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                       ),
                     ),
                   ),
@@ -1239,8 +1057,7 @@ class _TrackingDialogState extends State<_TrackingDialog> {
               controller: widget.companyCtrl,
               decoration: InputDecoration(
                 labelText: context.loc.t('택배사 직접 입력', '택배사 직접 입력'),
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 isDense: true,
               ),
               onChanged: (_) => setState(() {}),
@@ -1253,16 +1070,14 @@ class _TrackingDialogState extends State<_TrackingDialog> {
               decoration: InputDecoration(
                 labelText: context.loc.t('운송장 번호', '운송장 번호'),
                 hintText: context.loc.t('숫자 입력', '숫자 입력'),
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 isDense: true,
                 suffixIcon: widget.trackingCtrl.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.close, size: 16),
-                        onPressed: () =>
-                            setState(() => widget.trackingCtrl.clear()),
-                      )
-                    : null,
+                  ? IconButton(
+                      icon: const Icon(Icons.close, size: 16),
+                      onPressed: () => setState(() => widget.trackingCtrl.clear()),
+                    )
+                  : null,
               ),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -1271,11 +1086,7 @@ class _TrackingDialogState extends State<_TrackingDialog> {
             const SizedBox(height: 12),
 
             // 배송 상태 선택
-            Text(context.loc.t('배송 상태', '배송 상태'),
-                style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _kPrimary)),
+            Text(context.loc.t('배송 상태', '배송 상태'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _kPrimary)),
             const SizedBox(height: 6),
             Row(
               children: [
@@ -1295,18 +1106,15 @@ class _TrackingDialogState extends State<_TrackingDialog> {
                         decoration: BoxDecoration(
                           color: selected ? color : Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(7),
-                          border: Border.all(
-                              color: selected ? color : Colors.grey.shade200),
+                          border: Border.all(color: selected ? color : Colors.grey.shade200),
                         ),
                         child: Text(
                           s.label,
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 11,
-                            color:
-                                selected ? Colors.white : Colors.grey.shade600,
-                            fontWeight:
-                                selected ? FontWeight.w700 : FontWeight.w400,
+                            color: selected ? Colors.white : Colors.grey.shade600,
+                            fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
                           ),
                         ),
                       ),
@@ -1323,8 +1131,7 @@ class _TrackingDialogState extends State<_TrackingDialog> {
               decoration: InputDecoration(
                 labelText: context.loc.t('관리자 메모 선택', '관리자 메모 (선택)'),
                 hintText: context.loc.t('내부 참고 메모', '내부 참고 메모'),
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 isDense: true,
               ),
               maxLines: 2,
@@ -1344,37 +1151,27 @@ class _TrackingDialogState extends State<_TrackingDialog> {
                   side: BorderSide(color: Colors.grey.shade300),
                   padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
-                child: Text(context.loc.t('취소', '취소'),
-                    style: TextStyle(color: Colors.grey)),
+                child: Text(context.loc.t('취소', '취소'), style: TextStyle(color: Colors.grey)),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: ElevatedButton(
-                onPressed: _saving
-                    ? null
-                    : () async {
-                        setState(() => _saving = true);
-                        await widget.onSave(_selectedStatus);
-                        if (!mounted) return;
-                        // ignore: use_build_context_synchronously
-                        Navigator.pop(context);
-                      },
+                onPressed: _saving ? null : () async {
+                  setState(() => _saving = true);
+                  await widget.onSave(_selectedStatus);
+                  if (!mounted) return;
+                  // ignore: use_build_context_synchronously
+                  Navigator.pop(context);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _kPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 child: _saving
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : Text(context.loc.t('저장', '저장'),
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.w700)),
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Text(context.loc.t('저장', '저장'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ),
           ],
@@ -1384,11 +1181,11 @@ class _TrackingDialogState extends State<_TrackingDialog> {
   }
 
   static Color _statusColor(OrderStatus s) => switch (s) {
-        OrderStatus.processing => _kReady,
-        OrderStatus.shipped => _kShipping,
-        OrderStatus.delivered => _kDelivered,
-        _ => _kGrey,
-      };
+    OrderStatus.processing => _kReady,
+    OrderStatus.shipped    => _kShipping,
+    OrderStatus.delivered  => _kDelivered,
+    _                      => _kGrey,
+  };
 }
 
 // ─────────────────────────────────────────────
@@ -1400,11 +1197,7 @@ class _BulkEntry {
   String company;
   String trackingNumber;
   // ignore: unused_element
-  _BulkEntry(
-      {required this.orderId,
-      required this.userName,
-      this.company = '한진택배',
-      this.trackingNumber = ''});
+  _BulkEntry({required this.orderId, required this.userName, this.company = '한진택배', this.trackingNumber = ''});
 }
 
 class _BulkTrackingDialog extends StatefulWidget {
@@ -1425,17 +1218,13 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
   @override
   void initState() {
     super.initState();
-    _entries = widget.orders
-        .map((o) => _BulkEntry(orderId: o.id, userName: o.userName))
-        .toList();
+    _entries = widget.orders.map((o) => _BulkEntry(orderId: o.id, userName: o.userName)).toList();
     _ctrls = _entries.map((_) => TextEditingController()).toList();
   }
 
   @override
   void dispose() {
-    for (final c in _ctrls) {
-      c.dispose();
-    }
+    for (final c in _ctrls) { c.dispose(); }
     super.dispose();
   }
 
@@ -1447,8 +1236,7 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
         children: [
           const Icon(Icons.local_shipping_rounded, color: _kShipping, size: 22),
           const SizedBox(width: 8),
-          Text(context.loc.t('운송장 일괄 입력 _건', '운송장 일괄 입력 (${_entries.length}건)'),
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+          Text(context.loc.t('운송장 일괄 입력 _건', '운송장 일괄 입력 (${_entries.length}건)'), style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
         ],
       ),
       content: SizedBox(
@@ -1459,38 +1247,25 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
             // 일괄 택배사 설정 버튼
             Row(
               children: [
-                Text(context.loc.t('일괄 택배사', '일괄 택배사:'),
-                    style:
-                        TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                Text(context.loc.t('일괄 택배사', '일괄 택배사:'), style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
                 const SizedBox(width: 8),
-                ...[
-                  context.loc.t('한진택배', '한진택배'),
-                  context.loc.t('롯데택배', '롯데택배')
-                ].map((c) => Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: GestureDetector(
-                        onTap: () => setState(() {
-                          for (final e in _entries) {
-                            e.company = c;
-                          }
-                        }),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _kPrimary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(5),
-                            border: Border.all(
-                                color: _kPrimary.withValues(alpha: 0.2)),
-                          ),
-                          child: Text(c,
-                              style: const TextStyle(
-                                  fontSize: 11,
-                                  color: _kPrimary,
-                                  fontWeight: FontWeight.w600)),
-                        ),
+                ...[context.loc.t('한진택배', '한진택배'), context.loc.t('롯데택배', '롯데택배')].map((c) => Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: GestureDetector(
+                    onTap: () => setState(() {
+                      for (final e in _entries) { e.company = c; }
+                    }),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _kPrimary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(color: _kPrimary.withValues(alpha: 0.2)),
                       ),
-                    )),
+                      child: Text(c, style: const TextStyle(fontSize: 11, color: _kPrimary, fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                )),
               ],
             ),
             const SizedBox(height: 10),
@@ -1508,10 +1283,7 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
                       children: [
                         SizedBox(
                           width: 80,
-                          child: Text(e.userName,
-                              style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.w600),
-                              overflow: TextOverflow.ellipsis),
+                          child: Text(e.userName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -1519,16 +1291,12 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
                             controller: _ctrls[i],
                             decoration: InputDecoration(
                               hintText: context.loc.t('운송장 번호', '운송장 번호'),
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(6)),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                             ),
                             keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly
-                            ],
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             onChanged: (v) => e.trackingNumber = v,
                           ),
                         ),
@@ -1548,39 +1316,29 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
             Expanded(
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(context.loc.t('취소', '취소'),
-                    style: TextStyle(color: Colors.grey)),
+                child: Text(context.loc.t('취소', '취소'), style: TextStyle(color: Colors.grey)),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: ElevatedButton(
-                onPressed: _saving
-                    ? null
-                    : () async {
-                        setState(() => _saving = true);
-                        for (int i = 0; i < _entries.length; i++) {
-                          _entries[i].trackingNumber = _ctrls[i].text.trim();
-                        }
-                        await widget.onSave(_entries);
-                        if (!mounted) return;
-                        // ignore: use_build_context_synchronously
-                        Navigator.pop(context);
-                      },
+                onPressed: _saving ? null : () async {
+                  setState(() => _saving = true);
+                  for (int i = 0; i < _entries.length; i++) {
+                    _entries[i].trackingNumber = _ctrls[i].text.trim();
+                  }
+                  await widget.onSave(_entries);
+                  if (!mounted) return;
+                  // ignore: use_build_context_synchronously
+                  Navigator.pop(context);
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _kPrimary,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 child: _saving
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : Text(context.loc.t('일괄 저장', '일괄 저장'),
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.w700)),
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Text(context.loc.t('일괄 저장', '일괄 저장'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ),
           ],
@@ -1599,18 +1357,14 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = statusFilter == null
-        ? context.loc.t('배송 관련 주문이 없습니다', '배송 관련 주문이 없습니다.')
-        : '${statusFilter!.label} 주문이 없습니다.';
+    final label = statusFilter == null ? context.loc.t('배송 관련 주문이 없습니다', '배송 관련 주문이 없습니다.') : '${statusFilter!.label} 주문이 없습니다.';
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.local_shipping_outlined,
-              size: 64, color: Colors.grey.shade300),
+          Icon(Icons.local_shipping_outlined, size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          Text(label,
-              style: TextStyle(fontSize: 15, color: Colors.grey.shade500)),
+          Text(label, style: TextStyle(fontSize: 15, color: Colors.grey.shade500)),
         ],
       ),
     );

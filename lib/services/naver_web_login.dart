@@ -1,4 +1,5 @@
-// 웹(dart.library.html) 빌드용 — 서버 Authorization Code OAuth 팝업 연동
+// naver_web_login.dart
+// 웹(dart.library.html) 빌드용 — JS interop으로 팝업 OAuth 호출
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:async';
 import 'dart:js_util' as js_util;
@@ -7,12 +8,8 @@ import 'package:js/js.dart';
 @JS('naverOAuthLogin')
 external dynamic _naverOAuthLogin();
 
-String _readString(dynamic object, String property) {
-  final value = js_util.getProperty<dynamic>(object, property);
-  return value is String ? value : '';
-}
-
-/// 서버 교환용 {code, state, redirectUri}를 반환합니다.
+/// index.html에 등록된 window.naverOAuthLogin() 팝업을 호출하고
+/// {token, naverId, email, name, photoUrl} Map을 반환합니다.
 Future<Map<String, String>?> callNaverOAuth() async {
   try {
     final promise = _naverOAuthLogin();
@@ -21,12 +18,13 @@ Future<Map<String, String>?> callNaverOAuth() async {
     if (result == null) return null;
 
     return {
-      'code': _readString(result, 'code'),
-      'state': _readString(result, 'state'),
-      'redirectUri': _readString(result, 'redirectUri'),
-      'error': _readString(result, 'error'),
+      'token'   : js_util.getProperty<String>(result, 'token')    ?? '',
+      'naverId' : js_util.getProperty<String>(result, 'naverId')  ?? '',
+      'email'   : js_util.getProperty<String>(result, 'email')    ?? '',
+      'name'    : js_util.getProperty<String>(result, 'name')     ?? '',
+      'photoUrl': js_util.getProperty<String>(result, 'photoUrl') ?? '',
     };
-  } catch (_) {
+  } catch (e) {
     return null;
   }
 }

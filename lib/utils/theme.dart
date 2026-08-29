@@ -13,54 +13,45 @@ import 'package:flutter/material.dart';
 /// - Refined typography with balanced spacing
 class AppColors {
   // ── Core ──
-  static const Color primary = Color(0xFF1A1A2E); // deep navy-charcoal
+  static const Color primary      = Color(0xFF1A1A2E); // deep navy-charcoal
   static const Color primaryLight = Color(0xFF2D2D44);
-  static const Color accent = Color(0xFFE53935); // refined red
+  static const Color accent       = Color(0xFFE53935); // refined red
   static const Color accentOrange = Color(0xFFFF6B35);
-  static const Color accentGold = Color(0xFFFFD600);
+  static const Color accentGold   = Color(0xFFFFD600);
 
   // ── Background ──
-  static const Color background = Color(0xFFF8F8FA); // warm off-white
-  static const Color surface = Color(0xFFFFFFFF); // pure white cards
-  static const Color cardBg = Color(0xFFFFFFFF);
-  static const Color surfaceGray = Color(0xFFF2F2F6); // subtle section bg
+  static const Color background   = Color(0xFFF8F8FA); // warm off-white
+  static const Color surface      = Color(0xFFFFFFFF); // pure white cards
+  static const Color cardBg       = Color(0xFFFFFFFF);
+  static const Color surfaceGray  = Color(0xFFF2F2F6); // subtle section bg
 
   // ── Text ──
-  static const Color textPrimary = Color(0xFF1A1A2E);
+  static const Color textPrimary   = Color(0xFF1A1A2E);
   static const Color textSecondary = Color(0xFF6B6B80);
-  static const Color textHint = Color(0xFFB0B0C0);
-  static const Color textWhite = Color(0xFFFFFFFF);
+  static const Color textHint      = Color(0xFFB0B0C0);
+  static const Color textWhite     = Color(0xFFFFFFFF);
 
   // ── Border / Divider ──
-  static const Color border = Color(0xFFEAEAF0);
+  static const Color border  = Color(0xFFEAEAF0);
   static const Color divider = Color(0xFFF0F0F5);
 
   // ── Status ──
   static const Color success = Color(0xFF00A651);
-  static const Color error = Color(0xFFE53935);
+  static const Color error   = Color(0xFFE53935);
   static const Color warning = Color(0xFFFFB300);
-  static const Color info = Color(0xFF2979FF);
+  static const Color info    = Color(0xFF2979FF);
 
   // ── Category ──
-  static const Color catTop = Color(0xFF1A1A2E);
-  static const Color catBottom = Color(0xFF1A1A2E);
-  static const Color catSet = Color(0xFF1A1A2E);
+  static const Color catTop       = Color(0xFF1A1A2E);
+  static const Color catBottom    = Color(0xFF1A1A2E);
+  static const Color catSet       = Color(0xFF1A1A2E);
   static const Color catOuterwear = Color(0xFF1A1A2E);
   static const Color catAccessory = Color(0xFF1A1A2E);
 
   // ── Gradient ──
-  static const List<Color> primaryGradient = [
-    Color(0xFF1A1A2E),
-    Color(0xFF2D2D44)
-  ];
-  static const List<Color> accentGradient = [
-    Color(0xFFE53935),
-    Color(0xFFC62828)
-  ];
-  static const List<Color> heroGradient = [
-    Color(0xFF0F0F1E),
-    Color(0xFF1A1A2E)
-  ];
+  static const List<Color> primaryGradient = [Color(0xFF1A1A2E), Color(0xFF2D2D44)];
+  static const List<Color> accentGradient  = [Color(0xFFE53935), Color(0xFFC62828)];
+  static const List<Color> heroGradient    = [Color(0xFF0F0F1E), Color(0xFF1A1A2E)];
 }
 
 class AppTheme {
@@ -72,42 +63,42 @@ class AppTheme {
   // 모바일(< 600): 기준, 태블릿(600~899): ×1.05, PC(≥ 900): ×1.10
   static TextTheme responsiveTextTheme(double screenWidth) {
     final double s = screenWidth < 600
-        ? 1.00 // 모바일
+        ? 1.00   // 모바일
         : screenWidth < 900
-            ? 1.05 // 태블릿
-            : 1.10; // PC
+            ? 1.05   // 태블릿
+            : 1.10;  // PC
 
     return TextTheme(
       // 대형 제목 (헤로 배너, 섹션 제목)
-      displayLarge: _ts(32 * s, FontWeight.w900, -1.0),
+      displayLarge:  _ts(32 * s, FontWeight.w900, -1.0),
       displayMedium: _ts(28 * s, FontWeight.w900, -0.8),
-      displaySmall: _ts(24 * s, FontWeight.w800, -0.6),
+      displaySmall:  _ts(24 * s, FontWeight.w800, -0.6),
       // 화면 제목
-      headlineLarge: _ts(22 * s, FontWeight.w800, -0.5),
+      headlineLarge:  _ts(22 * s, FontWeight.w800, -0.5),
       headlineMedium: _ts(20 * s, FontWeight.w700, -0.4),
-      headlineSmall: _ts(18 * s, FontWeight.w700, -0.3),
+      headlineSmall:  _ts(18 * s, FontWeight.w700, -0.3),
       // AppBar / 카드 제목
-      titleLarge: _ts(17 * s, FontWeight.w700, -0.3),
+      titleLarge:  _ts(17 * s, FontWeight.w700, -0.3),
       titleMedium: _ts(15 * s, FontWeight.w600, -0.2),
-      titleSmall: _ts(13 * s, FontWeight.w600, -0.1),
+      titleSmall:  _ts(13 * s, FontWeight.w600, -0.1),
       // 본문
-      bodyLarge: _ts(15 * s, FontWeight.w400, 0.0),
-      bodyMedium: _ts(14 * s, FontWeight.w400, 0.0),
-      bodySmall: _ts(12 * s, FontWeight.w400, 0.0),
+      bodyLarge:   _ts(15 * s, FontWeight.w400,  0.0),
+      bodyMedium:  _ts(14 * s, FontWeight.w400,  0.0),
+      bodySmall:   _ts(12 * s, FontWeight.w400,  0.0),
       // 라벨 (버튼, 탭, 뱃지)
-      labelLarge: _ts(14 * s, FontWeight.w600, -0.1),
+      labelLarge:  _ts(14 * s, FontWeight.w600, -0.1),
       labelMedium: _ts(12 * s, FontWeight.w600, -0.1),
-      labelSmall: _ts(10 * s, FontWeight.w500, 0.0),
+      labelSmall:  _ts(10 * s, FontWeight.w500,  0.0),
     );
   }
 
   static TextStyle _ts(double size, FontWeight weight, double ls) => TextStyle(
-        fontFamily: fontFamily,
-        fontSize: size,
-        fontWeight: weight,
-        letterSpacing: ls,
-        color: AppColors.textPrimary,
-      );
+    fontFamily: fontFamily,
+    fontSize: size,
+    fontWeight: weight,
+    letterSpacing: ls,
+    color: AppColors.textPrimary,
+  );
 
   static ThemeData lightTheme({double screenWidth = 390}) {
     final textTheme = responsiveTextTheme(screenWidth);
@@ -232,8 +223,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         hintStyle: const TextStyle(
           color: AppColors.textHint,
           fontSize: 14,
@@ -267,70 +257,6 @@ class AppTheme {
           fontWeight: FontWeight.w400,
           letterSpacing: -0.1,
         ),
-      ),
-
-      // ── Dialog: consistent premium surface ──
-      dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 8,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.border, width: 0.8),
-        ),
-        titleTextStyle: const TextStyle(
-          fontFamily: fontFamily,
-          color: AppColors.textPrimary,
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-        ),
-        contentTextStyle: const TextStyle(
-          fontFamily: fontFamily,
-          color: AppColors.textSecondary,
-          fontSize: 14,
-          height: 1.45,
-        ),
-      ),
-
-      // ── Checkbox / radio / switch: one brand accent ──
-      checkboxTheme: CheckboxThemeData(
-        fillColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected)
-                ? AppColors.primary
-                : AppColors.surface),
-        checkColor: const WidgetStatePropertyAll(AppColors.textWhite),
-        side: const BorderSide(color: AppColors.border, width: 1.2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      ),
-      radioTheme: RadioThemeData(
-        fillColor: const WidgetStatePropertyAll(AppColors.primary),
-      ),
-      switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected)
-                ? AppColors.primary
-                : AppColors.textHint),
-        trackColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected)
-                ? AppColors.primary.withValues(alpha: 0.35)
-                : AppColors.surfaceGray),
-      ),
-
-      // ── SnackBar / FAB: consistent action surface ──
-      snackBarTheme: const SnackBarThemeData(
-        backgroundColor: AppColors.primary,
-        contentTextStyle: TextStyle(
-          fontFamily: fontFamily,
-          color: AppColors.textWhite,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.textWhite,
-        elevation: 2,
       ),
 
       // ── Chip: soft pill shape ──

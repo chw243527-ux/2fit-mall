@@ -7,46 +7,12 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:187081765755:android:4f9ebe1675815a725d03de",
-        "android_client_info": {
-          "package_name": "com.twofit.twofit"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "187081765755-hbucij2qnqaqsgvah5lnqdofb7ma7d1s.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDu72VZ2IlUI8gxWROsfPJFuC1qORCdkAE"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "187081765755-hbucij2qnqaqsgvah5lnqdofb7ma7d1s.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:187081765755:android:90a8ccb9af4b91515d03de",
         "android_client_info": {
           "package_name": "com.twofit.twofit_mall"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "187081765755-hbucij2qnqaqsgvah5lnqdofb7ma7d1s.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
           "current_key": "AIzaSyDu72VZ2IlUI8gxWROsfPJFuC1qORCdkAE"
@@ -54,12 +20,7 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "187081765755-hbucij2qnqaqsgvah5lnqdofb7ma7d1s.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

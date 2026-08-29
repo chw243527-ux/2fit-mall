@@ -1,4 +1,3 @@
-import '../utils/theme.dart';
 // address_search_web_impl.dart
 // 웹 전용: HtmlElementView iframe 임베드 + window.onMessage 수신
 // ignore: avoid_web_libraries_in_flutter
@@ -70,8 +69,7 @@ void cancelAddressListener() {
 /// iframe src 리로드 (재검색 시)
 void reloadIframe() {
   try {
-    _iframeEl?.src =
-        '/kakao_postcode.html?t=${DateTime.now().millisecondsSinceEpoch}';
+    _iframeEl?.src = '/kakao_postcode.html?t=${DateTime.now().millisecondsSinceEpoch}';
   } catch (_) {}
 }
 
@@ -117,7 +115,8 @@ class _KakaoIframeWidgetState extends State<KakaoIframeWidget> {
             color: const Color(0xFFFFFFFF),
             child: Center(
               child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      const Color(0xFF6A1B9A))),
             ),
           ),
       ],

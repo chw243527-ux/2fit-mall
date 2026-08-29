@@ -7,7 +7,6 @@ import '../../utils/app_localizations.dart';
 import '../../models/models.dart';
 import '../../services/payment_service.dart';
 import '../../services/order_service.dart';
-import '../../services/secure_checkout_service.dart';
 import '../../widgets/pc_layout.dart';
 import '../main_screen.dart';
 
@@ -19,9 +18,9 @@ class CartScreen extends StatelessWidget {
 
   String _formatPrice(double price) {
     return price.toStringAsFixed(0).replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]},',
-        );
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
   }
 
   void _handleBack(BuildContext context) {
@@ -39,22 +38,18 @@ class CartScreen extends StatelessWidget {
     if (isPcWeb(context)) {
       return Consumer<CartProvider>(
         builder: (context, cart, _) => Scaffold(
-          backgroundColor: AppColors.surfaceGray,
+          backgroundColor: const Color(0xFFF5F5F5),
           appBar: AppBar(
-            backgroundColor: AppColors.textPrimary,
+            backgroundColor: const Color(0xFF111111),
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_rounded,
-                  color: Colors.white, size: 20),
+              icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
               onPressed: () => _handleBack(context),
             ),
             title: Consumer<LanguageProvider>(
               builder: (_, lp, __) => Text(
                 '${lp.loc.cart} (${cart.itemCount})',
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800),
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
               ),
             ),
             actions: [
@@ -64,8 +59,7 @@ class CartScreen extends StatelessWidget {
                   child: Consumer<LanguageProvider>(
                     builder: (_, lp, __) => Text(
                       lp.loc.deleteSelected,
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 13),
+                      style: const TextStyle(color: Colors.white70, fontSize: 13),
                     ),
                   ),
                 ),
@@ -79,20 +73,18 @@ class CartScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceGray,
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: AppColors.textPrimary,
+        backgroundColor: const Color(0xFF111111),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded,
-              color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
           onPressed: () => _handleBack(context),
         ),
         title: Consumer2<CartProvider, LanguageProvider>(
           builder: (context, cart, lp, _) => Text(
             '${lp.loc.cart} (${cart.itemCount})',
-            style: const TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
           ),
         ),
         actions: [
@@ -120,22 +112,19 @@ class CartScreen extends StatelessWidget {
               // 상단 안내 바
               Container(
                 color: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_outline_rounded,
-                        size: 14, color: AppColors.success),
+                    const Icon(Icons.check_circle_outline_rounded, size: 14, color: Color(0xFF2E7D32)),
                     const SizedBox(width: 6),
                     Text(loc.cartOrderSelectedNote,
-                        style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary)),
+                        style: const TextStyle(fontSize: 12, color: Color(0xFF555555))),
                   ],
                 ),
               ),
               Expanded(
                 child: RefreshIndicator(
-                  color: AppColors.primary,
+                  color: const Color(0xFF1A1A2E),
                   backgroundColor: Colors.white,
                   onRefresh: () => context.read<ProductProvider>().refresh(),
                   child: ListView.builder(
@@ -173,12 +162,7 @@ class CartScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2))
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
                     ),
                     child: Column(
                       children: [
@@ -186,29 +170,18 @@ class CartScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(20),
                           child: Row(
                             children: [
-                              Text(loc.cartLabel,
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w800)),
+                              Text(loc.cartLabel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                    color: AppColors.primary,
-                                    borderRadius: BorderRadius.circular(20)),
-                                child: Text('${cart.itemCount}',
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700)),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(20)),
+                                child: Text('${cart.itemCount}', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
                               ),
                             ],
                           ),
                         ),
                         const Divider(height: 1),
-                        ...cart.items
-                            .map((item) => _buildCartItem(context, cart, item)),
+                        ...cart.items.map((item) => _buildCartItem(context, cart, item)),
                       ],
                     ),
                   ),
@@ -222,40 +195,23 @@ class CartScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2))
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(loc.cartOrderSummary,
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.w800)),
+                        Text(loc.cartOrderSummary, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                         const SizedBox(height: 20),
-                        _pcSummaryRow(loc.cartSubtotal,
-                            '${_formatPrice(cart.subtotal)}${loc.wonUnit2}'),
-                        _pcSummaryRow(
-                            loc.cartShipping,
-                            cart.subtotal >= 300000
-                                ? loc.cartFreeShipNone
-                                : loc.cartShippingFee),
+                        _pcSummaryRow(loc.cartSubtotal, '${_formatPrice(cart.subtotal)}${loc.wonUnit2}'),
+                        _pcSummaryRow(loc.cartShipping, cart.subtotal >= 300000 ? loc.cartFreeShipNone : loc.cartShippingFee),
                         const Divider(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(loc.cartTotal,
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w800)),
+                            Text(loc.cartTotal, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                             Text(
                               '${_formatPrice(cart.total)}${loc.wonUnit2}',
-                              style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.primary),
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A)),
                             ),
                           ],
                         ),
@@ -264,23 +220,16 @@ class CartScreen extends StatelessWidget {
                           width: double.infinity,
                           height: 52,
                           child: ElevatedButton(
-                            onPressed: () =>
-                                Navigator.pushNamed(context, '/checkout'),
+                            onPressed: () => Navigator.pushNamed(context, '/checkout'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
+                              backgroundColor: const Color(0xFF1A1A1A),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
-                            child: Text(loc.cartCheckout,
-                                style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white)),
+                            child: Text(loc.cartCheckout, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white)),
                           ),
                         ),
                         const SizedBox(height: 12),
-                        _pcInfoChip(Icons.local_shipping_outlined,
-                            loc.cartFreeShipNote),
+                        _pcInfoChip(Icons.local_shipping_outlined, loc.cartFreeShipNote),
                         const SizedBox(height: 8),
                         _pcInfoChip(Icons.replay_rounded, loc.cartExchangeNote),
                       ],
@@ -296,29 +245,23 @@ class CartScreen extends StatelessWidget {
   }
 
   Widget _pcSummaryRow(String label, String value) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.textSecondary)),
-            Text(value,
-                style:
-                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 14, color: Color(0xFF666666))),
+        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+      ],
+    ),
+  );
 
   Widget _pcInfoChip(IconData icon, String label) => Row(
-        children: [
-          Icon(icon, size: 14, color: AppColors.textSecondary),
-          const SizedBox(width: 6),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 12, color: AppColors.textSecondary)),
-        ],
-      );
+    children: [
+      Icon(icon, size: 14, color: const Color(0xFF888888)),
+      const SizedBox(width: 6),
+      Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF888888))),
+    ],
+  );
 
   Widget _buildEmptyCart(BuildContext context) {
     // ignore: unused_local_variable
@@ -327,8 +270,7 @@ class CartScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.shopping_bag_outlined,
-              size: 80, color: AppColors.border),
+          const Icon(Icons.shopping_bag_outlined, size: 80, color: AppColors.border),
           const SizedBox(height: 20),
           Consumer<LanguageProvider>(
             builder: (_, lp, __) => Text(
@@ -358,8 +300,7 @@ class CartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCartItem(
-      BuildContext context, CartProvider cart, CartItem item) {
+  Widget _buildCartItem(BuildContext context, CartProvider cart, CartItem item) {
     final langProvider = context.watch<LanguageProvider>();
     final loc = langProvider.loc;
     final lang = langProvider.language;
@@ -462,7 +403,8 @@ class CartScreen extends StatelessWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: Text(label,
-          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          style: const TextStyle(
+              fontSize: 11, color: AppColors.textSecondary)),
     );
   }
 
@@ -541,27 +483,18 @@ class CartScreen extends StatelessWidget {
                   if (cart.shippingFee == 0) ...[
                     Container(
                       margin: const EdgeInsets.only(right: 6),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.success.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(loc.cartFreeShipNote,
-                          style: const TextStyle(
-                              fontSize: 9,
-                              color: AppColors.success,
-                              fontWeight: FontWeight.w700)),
+                      child: Text(loc.cartFreeShipNote, style: const TextStyle(fontSize: 9, color: Color(0xFF2E7D32), fontWeight: FontWeight.w700)),
                     ),
                   ],
                   Text(
-                    cart.shippingFee == 0
-                        ? loc.cartFreeShipNone
-                        : '${_formatPrice(cart.shippingFee)}${loc.wonUnit2}',
+                    cart.shippingFee == 0 ? loc.cartFreeShipNone : '${_formatPrice(cart.shippingFee)}${loc.wonUnit2}',
                     style: TextStyle(
-                      fontWeight: cart.shippingFee == 0
-                          ? FontWeight.w700
-                          : FontWeight.normal,
+                      fontWeight: cart.shippingFee == 0 ? FontWeight.w700 : FontWeight.normal,
                       color: cart.shippingFee == 0 ? AppColors.success : null,
                     ),
                   ),
@@ -581,13 +514,13 @@ class CartScreen extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isFree
-                    ? AppColors.success.withValues(alpha: 0.06)
-                    : AppColors.info.withValues(alpha: 0.04),
+                    ? const Color(0xFF43A047).withValues(alpha: 0.06)
+                    : const Color(0xFF1565C0).withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isFree
-                      ? AppColors.success.withValues(alpha: 0.25)
-                      : AppColors.info.withValues(alpha: 0.15),
+                      ? const Color(0xFF43A047).withValues(alpha: 0.25)
+                      : const Color(0xFF1565C0).withValues(alpha: 0.15),
                 ),
               ),
               child: Column(
@@ -595,11 +528,9 @@ class CartScreen extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        isFree
-                            ? Icons.local_shipping_rounded
-                            : Icons.local_shipping_outlined,
+                        isFree ? Icons.local_shipping_rounded : Icons.local_shipping_outlined,
                         size: 13,
-                        color: isFree ? AppColors.success : AppColors.info,
+                        color: isFree ? const Color(0xFF2E7D32) : const Color(0xFF1565C0),
                       ),
                       const SizedBox(width: 5),
                       Expanded(
@@ -610,7 +541,7 @@ class CartScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: isFree ? AppColors.success : AppColors.info,
+                            color: isFree ? const Color(0xFF2E7D32) : const Color(0xFF1565C0),
                           ),
                         ),
                       ),
@@ -622,9 +553,9 @@ class CartScreen extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 5,
-                      backgroundColor: AppColors.border,
+                      backgroundColor: const Color(0xFFE0E0E0),
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        isFree ? AppColors.success : const Color(0xFF1E88E5),
+                        isFree ? const Color(0xFF43A047) : const Color(0xFF1E88E5),
                       ),
                     ),
                   ),
@@ -656,12 +587,12 @@ class CartScreen extends StatelessWidget {
             height: 54,
             child: ElevatedButton(
               onPressed: () => _showCheckoutSheet(context, cart),
-              style:
-                  ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary),
               child: Text(
                 '${cart.itemCount}${loc.cartItemCount}',
-                style:
-                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                    fontSize: 17, fontWeight: FontWeight.w800),
               ),
             ),
           ),
@@ -686,7 +617,8 @@ class CartScreen extends StatelessWidget {
               cart.clearCart();
               Navigator.pop(context);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: Text(loc.cartDelete),
           ),
         ],
@@ -697,12 +629,12 @@ class CartScreen extends StatelessWidget {
   void _showCheckoutSheet(BuildContext context, CartProvider cart) {
     // 로그인 체크
     final user = context.read<UserProvider>().user;
-    final loc = context.read<LanguageProvider>().loc;
+    final loc  = context.read<LanguageProvider>().loc;
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc.loginRequired),
-          backgroundColor: AppColors.error,
+          backgroundColor: Colors.redAccent,
           action: SnackBarAction(
             label: loc.login,
             textColor: Colors.white,
@@ -712,9 +644,14 @@ class CartScreen extends StatelessWidget {
       );
       return;
     }
-    // 쿠폰·포인트 입력과 주문 저장이 연결된 전체 결제 화면으로 이동합니다.
-    // 레거시 주문 시트는 할인 입력란이 없어 장바구니 결제 진입에서 사용하지 않습니다.
-    Navigator.pushNamed(context, '/checkout');
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _CheckoutSheet(cart: cart),
+    );
   }
 }
 
@@ -731,11 +668,11 @@ class _CheckoutSheet extends StatefulWidget {
 
 class _CheckoutSheetState extends State<_CheckoutSheet> {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
-  final _nameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
+  final _nameCtrl    = TextEditingController();
+  final _phoneCtrl   = TextEditingController();
   final _addressCtrl = TextEditingController();
-  String? _selectedPayment; // null → build 시점에 loc 값으로 초기화
-  bool _isProcessing = false;
+  String? _selectedPayment;   // null → build 시점에 loc 값으로 초기화
+  bool   _isProcessing    = false;
 
   @override
   void initState() {
@@ -749,7 +686,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
       final user = context.read<UserProvider>().user;
       final l = context.read<LanguageProvider>().loc;
       if (user != null) {
-        _nameCtrl.text = user.name;
+        _nameCtrl.text  = user.name;
         _phoneCtrl.text = user.phone;
       }
       setState(() => _selectedPayment = l.checkoutKakaoPayMethod);
@@ -764,8 +701,10 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     super.dispose();
   }
 
-  String _fmt(double price) => price.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  String _fmt(double price) => price
+      .toStringAsFixed(0)
+      .replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},');
 
   @override
   Widget build(BuildContext context) {
@@ -797,7 +736,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
             ),
             // ── 헤더 ──
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -821,19 +761,13 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                   children: [
                     _sectionTitle('📦 ${loc.checkoutShippingInfo}'),
                     const SizedBox(height: 10),
-                    _buildTextField(_nameCtrl, '${loc.checkoutRecipient} *',
-                        Icons.person_outline),
+                    _buildTextField(_nameCtrl, '${loc.checkoutRecipient} *', Icons.person_outline),
                     const SizedBox(height: 10),
-                    _buildTextField(
-                        _phoneCtrl,
-                        '${loc.checkoutPhoneLabel} * (010-0000-0000)',
+                    _buildTextField(_phoneCtrl, '${loc.checkoutPhoneLabel} * (010-0000-0000)',
                         Icons.phone_outlined,
                         type: TextInputType.phone),
                     const SizedBox(height: 10),
-                    _buildTextField(
-                        _addressCtrl,
-                        '${loc.checkoutAddressLabel} *',
-                        Icons.location_on_outlined),
+                    _buildTextField(_addressCtrl, '${loc.checkoutAddressLabel} *', Icons.location_on_outlined),
                     const SizedBox(height: 24),
                     _sectionTitle('💳 ${loc.payMethod}'),
                     const SizedBox(height: 12),
@@ -841,14 +775,12 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                     const SizedBox(height: 24),
                     _sectionTitle('🧾 ${loc.checkoutOrderedItems}'),
                     const SizedBox(height: 10),
-                    ...widget.cart.items
-                        .map((item) => _buildOrderItem(item, lang)),
+                    ...widget.cart.items.map((item) => _buildOrderItem(item, lang)),
                     const SizedBox(height: 16),
                     _buildPriceSummary(),
                     const SizedBox(height: 8),
                     // 무통장 안내
-                    if (_selectedPayment == loc.checkoutBankMethod &&
-                        _selectedPayment != null)
+                    if (_selectedPayment == loc.checkoutBankMethod && _selectedPayment != null)
                       Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(12),
@@ -862,7 +794,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                           children: [
                             Text(loc.bankTransferGuide,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700, fontSize: 13)),
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 13)),
                             const SizedBox(height: 6),
                             Text(loc.bankAccount,
                                 style: const TextStyle(fontSize: 12)),
@@ -924,7 +857,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
 
   Widget _sectionTitle(String title) => Text(
         title,
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        style:
+            const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
       );
 
   Widget _buildTextField(
@@ -940,7 +874,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
         hintText: hint,
         prefixIcon: Icon(icon, size: 20, color: AppColors.textHint),
         filled: true,
-        fillColor: AppColors.surfaceGray,
+        fillColor: const Color(0xFFF5F5F5),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -953,41 +887,11 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
 
   Widget _buildPaymentMethods() {
     final methods = [
-      {
-        'id': loc.checkoutKakaoPayMethod,
-        'icon': '💛',
-        'label': loc.checkoutKakaoPayMethod
-      },
-      {
-        'id': loc.checkoutTossPayMethod,
-        'icon': '💙',
-        'label': loc.checkoutTossPayMethod
-      },
-      {
-        'id': loc.checkoutNaverPayMethod,
-        'icon': '💚',
-        'label': loc.checkoutNaverPayMethod
-      },
-      {
-        'id': loc.checkoutCardMethod,
-        'icon': '💳',
-        'label': loc.checkoutCardMethod
-      },
-      {
-        'id': loc.checkoutBankMethod,
-        'icon': '🏦',
-        'label': loc.checkoutBankMethod
-      },
-      {
-        'id': loc.checkoutVirtualAccountMethod,
-        'icon': '🏧',
-        'label': loc.checkoutVirtualAccountMethod
-      },
-      {
-        'id': loc.checkoutAccountTransferMethod,
-        'icon': '🔄',
-        'label': loc.checkoutAccountTransferMethod
-      },
+      {'id': loc.checkoutKakaoPayMethod, 'icon': '💛', 'label': loc.checkoutKakaoPayMethod},
+      {'id': loc.checkoutTossPayMethod, 'icon': '💙', 'label': loc.checkoutTossPayMethod},
+      {'id': loc.checkoutNaverPayMethod, 'icon': '💚', 'label': loc.checkoutNaverPayMethod},
+      {'id': loc.checkoutCardMethod, 'icon': '💳', 'label': loc.checkoutCardMethod},
+      {'id': loc.checkoutBankMethod, 'icon': '🏦', 'label': loc.checkoutBankMethod},
     ];
     return Wrap(
       spacing: 8,
@@ -998,7 +902,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
           onTap: () => setState(() => _selectedPayment = m['id']!),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: isSelected
                   ? AppColors.primary.withValues(alpha: 0.08)
@@ -1043,8 +948,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
               width: 48,
               height: 48,
               child: item.product.images.isNotEmpty
-                  ? NetImage(
-                      item.product.images.first,
+                  ? NetImage(item.product.images.first,
                       fit: BoxFit.cover,
                     )
                   : Container(color: AppColors.background),
@@ -1069,7 +973,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
           ),
           Text(
             '${_fmt(item.totalPrice)}${loc.wonUnit2}',
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            style: const TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -1080,14 +985,15 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: const Color(0xFFF8F8F8),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           _priceRow(loc.cartProductAmount, widget.cart.subtotal),
           const SizedBox(height: 6),
-          _priceRow(loc.cartShipping, widget.cart.shippingFee,
+          _priceRow(loc.cartShipping,
+              widget.cart.shippingFee,
               free: widget.cart.shippingFee == 0),
           const Divider(height: 16),
           Row(
@@ -1117,8 +1023,8 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
-            style:
-                const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            style: const TextStyle(
+                color: AppColors.textSecondary, fontSize: 13)),
         Text(
           free ? loc.cartFreeShip : '${_fmt(amount)}${loc.wonUnit2}',
           style: TextStyle(
@@ -1136,7 +1042,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc.checkoutSelectPayment),
-          backgroundColor: AppColors.error,
+          backgroundColor: Colors.redAccent,
         ),
       );
       return;
@@ -1148,7 +1054,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(loc.cartShippingInfoRequired),
-          backgroundColor: AppColors.error,
+          backgroundColor: Colors.redAccent,
         ),
       );
       return;
@@ -1157,57 +1063,94 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     setState(() => _isProcessing = true);
 
     try {
-      final user = context.read<UserProvider>().user;
-      if (user == null) throw Exception('로그인이 필요합니다.');
-      final secureOrder = await SecureCheckoutService.createOrder(
-        items: widget.cart.items
-            .map((item) => {
-                  'productId': item.product.id,
-                  'size': item.selectedSize,
-                  'color': item.selectedColor,
-                  'quantity': item.quantity,
-                  'customOptions': item.customOptions,
-                })
-            .toList(),
-        deliveryAddress: _addressCtrl.text.trim(),
-        paymentMethod: _selectedPayment!,
-      );
-      if (!mounted) return;
-      if (!secureOrder.success ||
-          secureOrder.orderId == null ||
-          secureOrder.amount == null ||
-          secureOrder.customerKey == null) {
-        throw Exception(secureOrder.error ?? '주문 준비에 실패했습니다.');
-      }
-      setState(() => _isProcessing = false);
-      Navigator.pop(context);
-      if (secureOrder.bankTransfer) {
-        widget.cart.clearCart();
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/mypage', (route) => false);
+      final userProv  = context.read<UserProvider>();
+      final orderProv = context.read<OrderProvider>();
+      final user      = userProv.user;
+
+      // 2. 주문번호 생성
+      final orderId = OrderService.generateOrderId();
+
+      // 3. 무통장입금 → 바로 주문 저장
+      if (_selectedPayment == loc.checkoutBankMethod) {
+        await _saveAndComplete(
+          orderId:    orderId,
+          orderProv:  orderProv,
+          userProv:   userProv,
+          paid:       false,
+          payMethod:  loc.checkoutBankMethod,
+        );
         return;
       }
-      Navigator.pushNamed(
+
+      // 4. 토스페이먼츠 결제창 호출
+      if (!mounted) return;
+      final result = await PaymentService.requestPayment(
         context,
-        '/payment/checkout',
-        arguments: PaymentCheckoutArgs(
-          orderId: secureOrder.orderId!,
-          orderName: secureOrder.orderName ?? '2FIT MALL 주문',
-          amount: secureOrder.amount!,
-          customerName: user.name,
-          customerEmail: user.email,
-          customerPhone: user.phone,
-          customerKey: secureOrder.customerKey!,
-          selectedPayment: _selectedPayment!,
-        ),
+        orderId:       orderId,
+        orderName:     '2FIT MALL 주문 (${widget.cart.itemCount}개)',
+        amount:        widget.cart.total.toInt(),
+        customerName:  _nameCtrl.text.trim(),
+        customerEmail: user?.email ?? 'guest@2fit-mall.co.kr',
+        paymentMethod: _selectedPayment!,
       );
+
+      if (!mounted) return;
+
+      if (result.success) {
+        // 5. 결제 성공 → 주문 저장
+        await _saveAndComplete(
+          orderId:    orderId,
+          orderProv:  orderProv,
+          userProv:   userProv,
+          paid:       true,
+          payMethod:  _selectedPayment!,
+          paymentKey: result.paymentKey,
+        );
+
+        // 6. 현금영수증 자동 발급
+        //    - 마이페이지에 번호 등록 + 카드/간편결제 수단인 경우에만 API 호출
+        //    - 가상계좌·계좌이체는 토스페이먼츠가 자동 발급하므로 스킵
+        final cashNum = userProv.user?.cashReceiptNum;
+        if (cashNum != null &&
+            cashNum.isNotEmpty &&
+            result.paymentKey != null &&
+            PaymentService.needsCashReceiptApiCall(_selectedPayment)) {
+          final receiptType = _isBusiness(cashNum) ? '지출증빙' : '소득공제';
+          final receiptResult = await PaymentService.issueCashReceipt(
+            paymentKey: result.paymentKey!,
+            customerIdentityNumber: cashNum,
+            type: receiptType,
+          );
+          if (!receiptResult.success) {
+            // 현금영수증 발급 실패는 주문 자체를 막지 않고 스낵바 안내만
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      '현금영수증 발급 실패: ${receiptResult.error ?? context.loc.t('잠시_후_마이페이지에서_재신청하세요', '잠시 후 마이페이지에서 재신청하세요.')}'),
+                  backgroundColor: Colors.orange,
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+            }
+          }
+        }
+      } else {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error ?? loc.paymentCancelled),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(loc.paymentError(e.toString())),
-            backgroundColor: AppColors.error,
+            backgroundColor: Colors.redAccent,
           ),
         );
       }
@@ -1222,45 +1165,41 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
   }
 
   Future<void> _saveAndComplete({
-    required String orderId,
+    required String       orderId,
     required OrderProvider orderProv,
-    required UserProvider userProv,
-    required bool paid,
-    required String payMethod,
-    String? paymentKey,
+    required UserProvider  userProv,
+    required bool          paid,
+    required String        payMethod,
+    String?                paymentKey,
   }) async {
     final user = userProv.user;
 
     // OrderItem 리스트 변환
-    final orderItems = widget.cart.items
-        .map((c) => OrderItem(
-              productId: c.product.id,
-              productName: c.product.name,
-              size: c.selectedSize,
-              color: c.selectedColor,
-              quantity: c.quantity,
-              price: c.product.price,
-            ))
-        .toList();
+    final orderItems = widget.cart.items.map((c) => OrderItem(
+      productId:   c.product.id,
+      productName: c.product.name,
+      size:        c.selectedSize,
+      color:       c.selectedColor,
+      quantity:    c.quantity,
+      price:       c.product.price,
+    )).toList();
 
     final order = OrderModel(
-      id: orderId,
-      userId: user?.id ?? 'guest',
-      userName: _nameCtrl.text.trim(),
-      userPhone: _phoneCtrl.text.trim(),
+      id:          orderId,
+      userId:      user?.id ?? 'guest',
+      userName:    _nameCtrl.text.trim(),
+      userPhone:   _phoneCtrl.text.trim(),
       userAddress: _addressCtrl.text.trim(),
-      status: paid ? OrderStatus.confirmed : OrderStatus.pending,
+      status:      paid ? OrderStatus.confirmed : OrderStatus.pending,
       totalAmount: widget.cart.total,
       shippingFee: widget.cart.shippingFee,
       paymentMethod: payMethod,
-      orderType: 'regular',
-      createdAt: DateTime.now(),
-      items: orderItems,
-      paymentKey: paymentKey,
+      orderType:   'regular',
+      createdAt:   DateTime.now(),
+      items:       orderItems,
+      paymentKey:  paymentKey,
       // 현금영수증 번호: 마이페이지에 저장된 번호 자동 적용
-      cashReceiptNum: user?.cashReceiptNum?.isNotEmpty == true
-          ? user!.cashReceiptNum
-          : null,
+      cashReceiptNum: user?.cashReceiptNum?.isNotEmpty == true ? user!.cashReceiptNum : null,
     );
 
     // Hive에 영구 저장
@@ -1280,11 +1219,11 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => _OrderCompleteDialog(
-        orderId: orderId,
-        total: order.totalAmount,
+        orderId:     orderId,
+        total:       order.totalAmount,
         shippingFee: order.shippingFee,
-        payMethod: payMethod,
-        paid: paid,
+        payMethod:   payMethod,
+        paid:        paid,
       ),
     );
   }
@@ -1298,7 +1237,7 @@ class _OrderCompleteDialog extends StatelessWidget {
   final double total;
   final double shippingFee;
   final String payMethod;
-  final bool paid;
+  final bool   paid;
 
   const _OrderCompleteDialog({
     required this.orderId,
@@ -1308,8 +1247,10 @@ class _OrderCompleteDialog extends StatelessWidget {
     required this.paid,
   });
 
-  String _fmt(double v) => v.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
+  String _fmt(double v) => v
+      .toStringAsFixed(0)
+      .replaceAllMapped(
+          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]},');
 
   @override
   Widget build(BuildContext context) {
@@ -1339,8 +1280,8 @@ class _OrderCompleteDialog extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               paid ? loc.orderCompleteMsg : loc.bankTransferDeadline,
-              style:
-                  const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              style: const TextStyle(
+                  color: AppColors.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 20),
             // 주문 정보 카드
@@ -1348,7 +1289,7 @@ class _OrderCompleteDialog extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: const Color(0xFFF8F8F8),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -1357,11 +1298,7 @@ class _OrderCompleteDialog extends StatelessWidget {
                   const SizedBox(height: 6),
                   _infoRow(loc.payMethod, payMethod),
                   const SizedBox(height: 6),
-                  _infoRow(
-                      loc.checkoutPaymentInfo,
-                      paid
-                          ? '✅ ${loc.checkoutPaymentApproved}'
-                          : '⏳ ${loc.checkoutPaymentPending}'),
+                  _infoRow(loc.checkoutPaymentInfo, paid ? '✅ ${loc.checkoutPaymentApproved}' : '⏳ ${loc.checkoutPaymentPending}'),
                   const SizedBox(height: 6),
                   _infoRow(loc.cartPayAmount, '${_fmt(total)}${loc.wonUnit2}'),
                   if (shippingFee == 0) ...[
@@ -1392,8 +1329,7 @@ class _OrderCompleteDialog extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context);
                       // MainScreen의 마이페이지(인덱스 4)로 이동
-                      final mainState =
-                          context.findAncestorStateOfType<MainScreenState>();
+                      final mainState = context.findAncestorStateOfType<MainScreenState>();
                       mainState?.navigateToMyPage();
                     },
                     style: ElevatedButton.styleFrom(
@@ -1419,11 +1355,13 @@ class _OrderCompleteDialog extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label,
-            style:
-                const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            style: const TextStyle(
+                fontSize: 12, color: AppColors.textSecondary)),
         Text(value,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            style: const TextStyle(
+                fontSize: 12, fontWeight: FontWeight.w600)),
       ],
     );
   }
 }
+

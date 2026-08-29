@@ -1,9 +1,6 @@
 [build]
   publish = "build/web"
-  command = "bash netlify-build.sh"
-
-[build.environment]
-  FLUTTER_VERSION = "3.32.2"
+  command = ""
 
 [[redirects]]
   from = "/*"

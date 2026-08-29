@@ -14,13 +14,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'iOS Firebase is not configured. Add GoogleService-Info.plist and regenerate firebase_options.dart.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'macOS Firebase is not configured. Register the macOS app and regenerate firebase_options.dart.',
-        );
+        return macos;
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
@@ -44,7 +40,7 @@ class DefaultFirebaseOptions {
   // ── Android ────────────────────────────────────────────────
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDu72VZ2IlUI8gxWROsfPJFuC1qORCdkAE',
-    appId: '1:187081765755:android:4f9ebe1675815a725d03de',
+    appId: '1:187081765755:android:90a8ccb9af4b91515d03de',
     messagingSenderId: '187081765755',
     projectId: 'fit-mall',
     storageBucket: 'fit-mall.firebasestorage.app',

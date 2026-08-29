@@ -10657,20 +10657,6 @@ class AppLocalizations {
     case AppLanguage.mongolian: return 'Банкны шилжүүлэг';
     default: return '무통장입금';
   }}
-  String get checkoutVirtualAccountMethod { switch (language) {
-    case AppLanguage.english: return 'Virtual Account';
-    case AppLanguage.japanese: return 'バーチャル口座';
-    case AppLanguage.chinese: return '虚拟账户';
-    case AppLanguage.mongolian: return 'Виртуал данс';
-    default: return '가상계좌';
-  }}
-  String get checkoutAccountTransferMethod { switch (language) {
-    case AppLanguage.english: return 'Account Transfer';
-    case AppLanguage.japanese: return '口座振替';
-    case AppLanguage.chinese: return '账户转账';
-    case AppLanguage.mongolian: return 'Дансны шилжүүлэг';
-    default: return '계좌이체';
-  }}
   String get checkoutSelectPayment { switch (language) {
     case AppLanguage.english: return 'Please select a payment method.';
     case AppLanguage.japanese: return 'お支払い方法を選択してください。';

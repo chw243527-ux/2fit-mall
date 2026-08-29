@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../utils/theme.dart';
-
 /// PC/태블릿 기준 breakpoint (main_screen.dart 와 동일)
 const double kPcBreak = 900;
 
@@ -31,7 +29,7 @@ class PcCenterBox extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!isPcWeb(context)) return child;
     return Container(
-      color: bgColor ?? AppColors.surfaceGray,
+      color: bgColor ?? const Color(0xFFF5F5F5),
       width: double.infinity,
       child: Center(
         child: ConstrainedBox(
@@ -63,7 +61,7 @@ class PcScaffoldWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!isPcWeb(context)) return body;
     return Scaffold(
-      backgroundColor: AppColors.surfaceGray,
+      backgroundColor: const Color(0xFFF5F5F5),
       body: Column(
         children: [
           // 상단 페이지 헤더
@@ -87,7 +85,7 @@ class PcScaffoldWrapper extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+                          color: Color(0xFF1A1A1A),
                         ),
                       ),
                       const Spacer(),
@@ -98,15 +96,14 @@ class PcScaffoldWrapper extends StatelessWidget {
               ),
             ),
           ),
-          const Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
           Expanded(
             child: SingleChildScrollView(
               child: Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: maxWidth),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                     child: body,
                   ),
                 ),

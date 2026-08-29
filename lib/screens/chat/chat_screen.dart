@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../../utils/theme.dart';
 import '../../utils/constants.dart';
@@ -53,7 +52,8 @@ class _ChatScreenState extends State<ChatScreen> {
   // ignore: unused_field
   bool _isLoadingRoom = true;
 
-  AppLocalizations get _loc => context.watch<LanguageProvider>().loc;
+  AppLocalizations get _loc =>
+      context.watch<LanguageProvider>().loc;
 
   @override
   void initState() {
@@ -69,17 +69,9 @@ class _ChatScreenState extends State<ChatScreen> {
   // Firestore 채팅방 초기화 및 실시간 메시지 수신
   Future<void> _initFirestoreChat() async {
     final user = context.read<UserProvider>().user;
-    final firebaseUser = FirebaseAuth.instance.currentUser;
-    final userId = firebaseUser?.uid;
-    final userName = user?.name ?? firebaseUser?.displayName ?? _loc.chatVisitor;
+    final userId = user?.id ?? 'guest_${DateTime.now().millisecondsSinceEpoch}';
+    final userName = user?.name ?? _loc.chatVisitor;
     final lang = _loc.language.code;
-
-    if (userId == null) {
-      if (!mounted) return;
-      setState(() => _isLoadingRoom = false);
-      _initializeChat();
-      return;
-    }
 
     try {
       final roomId = await ChatService.getOrCreateRoom(
@@ -121,12 +113,9 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() => _isChatCompleted = completed);
       });
     } catch (e) {
-      // Firestore 저장이 실패하면 로컬 성공처럼 보이지 않도록 서버 채팅을 중단합니다.
+      // Firestore 연결 실패 시 로컬 모드로 폴백
       if (!mounted) return;
-      setState(() {
-        _isLoadingRoom = false;
-        _roomId = null;
-      });
+      setState(() => _isLoadingRoom = false);
       _initializeChat();
     }
   }
@@ -153,23 +142,18 @@ class _ChatScreenState extends State<ChatScreen> {
   /// FAQ 키 -> 답변 맵 (현재 언어 기준)
   List<Map<String, String>> _getFaqItems(AppLocalizations loc) {
     return [
-      {'q': loc.faqOrderStatus, 'a': loc.faqOrderStatusAns, 'icon': '📦'},
-      {'q': loc.faqShipping, 'a': loc.faqShippingAns, 'icon': '🚚'},
-      {
-        'q': loc.faqOverseasShipping,
-        'a': loc.faqOverseasShippingAns,
-        'icon': '🌏'
-      },
-      {'q': loc.faqSize, 'a': loc.faqSizeAns, 'icon': '📏'},
-      {'q': loc.faqCustomOrder, 'a': loc.faqCustomOrderAns, 'icon': '🎨'},
-      {'q': loc.faqReturn, 'a': loc.faqReturnAns, 'icon': '🔄'},
-      {'q': loc.faqGroupOrder, 'a': loc.faqGroupOrderAns, 'icon': '👥'},
-      {'q': loc.faqEliteAthlete, 'a': '', 'icon': '🏆'},
+      {'q': loc.faqOrderStatus,        'a': loc.faqOrderStatusAns,       'icon': '📦'},
+      {'q': loc.faqShipping,           'a': loc.faqShippingAns,          'icon': '🚚'},
+      {'q': loc.faqOverseasShipping,   'a': loc.faqOverseasShippingAns,  'icon': '🌏'},
+      {'q': loc.faqSize,               'a': loc.faqSizeAns,              'icon': '📏'},
+      {'q': loc.faqCustomOrder,        'a': loc.faqCustomOrderAns,       'icon': '🎨'},
+      {'q': loc.faqReturn,             'a': loc.faqReturnAns,            'icon': '🔄'},
+      {'q': loc.faqGroupOrder,         'a': loc.faqGroupOrderAns,        'icon': '👥'},
+      {'q': loc.faqEliteAthlete,       'a': '',                          'icon': '🏆'},
     ];
   }
 
-  void _sendFaqMessage(
-      String questionText, String answerText, AppLocalizations loc) {
+  void _sendFaqMessage(String questionText, String answerText, AppLocalizations loc) {
     if (questionText == loc.faqEliteAthlete) {
       _showEliteDialog(loc);
       return;
@@ -179,7 +163,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final isOverseasShipping = questionText == loc.faqOverseasShipping;
 
     // ignore: unused_local_variable
-    final isKorean = loc.language == AppLanguage.korean;
+        final isKorean = loc.language == AppLanguage.korean;
     String koreanQuestion = _toKoreanFaqQuestion(questionText, loc);
     final user = context.read<UserProvider>().user;
     final userId = user?.id ?? 'guest';
@@ -198,11 +182,33 @@ class _ChatScreenState extends State<ChatScreen> {
       );
       Future.delayed(const Duration(milliseconds: 800), () {
         if (!mounted || _roomId == null) return;
-        ChatService.systemReply(roomId: _roomId!, text: answerText);
+        ChatService.adminReply(roomId: _roomId!, text: answerText);
       });
     } else {
-      _showLoginRequiredMessage();
-      return;
+      // 폴백: 로컬 즉시 표시
+      setState(() {
+        _messages.add(ChatMessage(
+          text: displayQuestion,
+          originalText: questionText,
+          isUser: true,
+          time: DateTime.now(),
+        ));
+        _isTyping = true;
+      });
+      _scrollToBottom();
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (!mounted) return;
+        setState(() {
+          _isTyping = false;
+          _messages.add(ChatMessage(
+            text: answerText,
+            isUser: false,
+            time: DateTime.now(),
+            showRateSheet: isOverseasShipping,
+          ));
+        });
+        _scrollToBottom();
+      });
     }
 
     AdminNotificationStore.addChatNotification(
@@ -211,11 +217,16 @@ class _ChatScreenState extends State<ChatScreen> {
       language: loc.language.code,
     );
 
-    // 관리자 알림: 이메일 + 브라우저 알림 + Firestore 서버 트리거 알림톡
+    // 관리자 알림 3종: 이메일 + SMS/알림톡 + 브라우저 알림
     EmailService.sendChatAlert(
       userName: userName,
       message: displayQuestion,
       userId: userId,
+    );
+    NotificationService.sendChatAlertToAdmin(
+      userName: userName,
+      message: displayQuestion,
+      language: loc.language.code,
     );
 
     // 해외배송비 FAQ: 답변 표시 후 요금표 모달 열기
@@ -231,7 +242,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.trim().isEmpty) return;
 
     // ignore: unused_local_variable
-    final isKorean = loc.language == AppLanguage.korean;
+        final isKorean = loc.language == AppLanguage.korean;
     final user = context.read<UserProvider>().user;
     final userId = user?.id ?? 'guest';
     final userName = user?.name ?? _loc.chatVisitor;
@@ -251,14 +262,33 @@ class _ChatScreenState extends State<ChatScreen> {
       if (_messages.where((m) => m.isUser).length <= 1) {
         Future.delayed(const Duration(milliseconds: 1000), () {
           if (_roomId == null || !mounted) return;
-          final autoReply =
-              '${loc.chatAutoReplyMsg}${AppConstants.customerServicePhone}';
-          ChatService.systemReply(roomId: _roomId!, text: autoReply);
+          final autoReply = '${loc.chatAutoReplyMsg}${AppConstants.customerServicePhone}';
+          ChatService.adminReply(roomId: _roomId!, text: autoReply);
         });
       }
     } else {
-      _showLoginRequiredMessage();
-      return;
+      // 폴백: 로컬 모드
+      setState(() {
+        _messages.add(ChatMessage(
+          text: text.trim(),
+          originalText: text.trim(),
+          isUser: true,
+          time: DateTime.now(),
+        ));
+        _isTyping = true;
+      });
+      _scrollToBottom();
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (!mounted) return;
+        final defaultReply = '${loc.chatWelcome2}\n\n'
+            '${loc.chatOfflineMsg}\n'
+            '${AppConstants.customerServicePhone}';
+        setState(() {
+          _isTyping = false;
+          _messages.add(ChatMessage(text: defaultReply, isUser: false, time: DateTime.now()));
+        });
+        _scrollToBottom();
+      });
     }
 
     AdminNotificationStore.addChatNotification(
@@ -267,18 +297,17 @@ class _ChatScreenState extends State<ChatScreen> {
       language: loc.language.code,
     );
 
-    // 관리자 알림: 이메일 + 브라우저 알림 + Firestore 서버 트리거 알림톡
+    // 관리자 알림 3종 발송: 이메일 + SMS/알림톡 + 브라우저 알림
     EmailService.sendChatAlert(
       userName: userName,
       message: text.trim(),
       userId: userId,
     );
-  }
-
-  void _showLoginRequiredMessage() {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_loc.loginRequired)),
+    // SMS / 카카오 알림톡 (관리자 핸드폰)
+    NotificationService.sendChatAlertToAdmin(
+      userName: userName,
+      message: text.trim(),
+      language: loc.language.code,
     );
   }
 
@@ -312,24 +341,15 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(children: [
-          Icon(Icons.check_circle_outline_rounded,
-              color: AppColors.success, size: 22),
+          Icon(Icons.check_circle_outline_rounded, color: Color(0xFF2E7D32), size: 22),
           SizedBox(width: 8),
-          Text(context.loc.t('상담 종료', '상담 종료'),
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text(context.loc.t('상담 종료', '상담 종료'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ]),
-        content: Text(
-            context.loc.t('상담을 완료로 처리하시겠습니까 종료 후에는 새 채팅을 시작하셔야 합니다',
-                '상담을 완료로 처리하시겠습니까?\n종료 후에는 새 채팅을 시작하셔야 합니다.'),
-            style: TextStyle(fontSize: 14)),
+        content: Text(context.loc.t('상담을 완료로 처리하시겠습니까 종료 후에는 새 채팅을 시작하셔야 합니다', '상담을 완료로 처리하시겠습니까?\n종료 후에는 새 채팅을 시작하셔야 합니다.'), style: TextStyle(fontSize: 14)),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(context.loc.t('취소', '취소'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.loc.t('취소', '취소'))),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.success,
-                foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2E7D32), foregroundColor: Colors.white),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(context.loc.t('종료하기', '종료하기')),
           ),
@@ -342,9 +362,8 @@ class _ChatScreenState extends State<ChatScreen> {
       setState(() => _isChatCompleted = true);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(context.loc.t('상담이 완료되었습니다 감사합니다', '상담이 완료되었습니다. 감사합니다!')),
-          backgroundColor: AppColors.success,
+          content: Text(context.loc.t('상담이 완료되었습니다 감사합니다', '상담이 완료되었습니다. 감사합니다!')),
+          backgroundColor: Color(0xFF2E7D32),
           duration: Duration(seconds: 3),
         ),
       );
@@ -360,9 +379,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             const Text('🏆', style: TextStyle(fontSize: 20)),
             const SizedBox(width: 8),
-            Text(loc.chatEliteTitle,
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            Text(loc.chatEliteTitle, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           ],
         ),
         content: Column(
@@ -377,15 +394,11 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.phone_in_talk_rounded,
-                      size: 40, color: Color(0xFFFF6F00)),
+                  const Icon(Icons.phone_in_talk_rounded, size: 40, color: Color(0xFFFF6F00)),
                   const SizedBox(height: 8),
                   const Text(
                     AppConstants.eliteAthletePhone,
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFFFF6F00)),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFFFF6F00)),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -399,8 +412,7 @@ class _ChatScreenState extends State<ChatScreen> {
             const SizedBox(height: 12),
             Text(
               loc.chatWeekdayHours,
-              style:
-                  const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -412,13 +424,10 @@ class _ChatScreenState extends State<ChatScreen> {
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF6F00),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            icon:
-                const Icon(Icons.phone_rounded, size: 16, color: Colors.white),
-            label: Text(loc.chatCallNow,
-                style: const TextStyle(color: Colors.white)),
+            icon: const Icon(Icons.phone_rounded, size: 16, color: Colors.white),
+            label: Text(loc.chatCallNow, style: const TextStyle(color: Colors.white)),
             onPressed: () => Navigator.pop(ctx),
           ),
         ],
@@ -482,12 +491,11 @@ class _ChatScreenState extends State<ChatScreen> {
         return Scaffold(
           backgroundColor: const Color(0xFFF4F6FA),
           appBar: AppBar(
-            backgroundColor: AppColors.primary,
+            backgroundColor: const Color(0xFF1A1A2E),
             foregroundColor: Colors.white,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_rounded,
-                  size: 18, color: Colors.white),
+              icon: const Icon(Icons.arrow_back_ios_rounded, size: 18, color: Colors.white),
               onPressed: () => goBackOrHome(context),
               tooltip: loc.back,
             ),
@@ -500,28 +508,21 @@ class _ChatScreenState extends State<ChatScreen> {
                     color: Colors.white.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.headset_mic_rounded,
-                      color: Colors.white, size: 18),
+                  child: const Icon(Icons.headset_mic_rounded, color: Colors.white, size: 18),
                 ),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(loc.chatTitle,
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w700)),
+                    Text(loc.chatTitle, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                     Row(
                       children: [
                         Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                              color: Color(0xFF4CAF50), shape: BoxShape.circle),
+                          width: 6, height: 6,
+                          decoration: const BoxDecoration(color: Color(0xFF4CAF50), shape: BoxShape.circle),
                         ),
                         const SizedBox(width: 4),
-                        Text(loc.chatOnline,
-                            style: const TextStyle(
-                                fontSize: 10, color: Colors.white70)),
+                        Text(loc.chatOnline, style: const TextStyle(fontSize: 10, color: Colors.white70)),
                       ],
                     ),
                   ],
@@ -533,22 +534,16 @@ class _ChatScreenState extends State<ChatScreen> {
                 TextButton(
                   onPressed: () => _endConsultation(loc),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(context.loc.t('상담종료', '상담종료'),
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700)),
+                    child: Text(context.loc.t('상담종료', '상담종료'), style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
                   ),
                 ),
               IconButton(
-                icon: const Icon(Icons.phone_rounded,
-                    color: Colors.white, size: 20),
+                icon: const Icon(Icons.phone_rounded, color: Colors.white, size: 20),
                 onPressed: () => _showCallDialog(loc),
                 tooltip: loc.chatPhoneInquiry,
               ),
@@ -563,24 +558,18 @@ class _ChatScreenState extends State<ChatScreen> {
                       width: 320,
                       decoration: const BoxDecoration(
                         color: Colors.white,
-                        border:
-                            Border(right: BorderSide(color: AppColors.border)),
+                        border: Border(right: BorderSide(color: AppColors.border)),
                       ),
                       child: Column(
                         children: [
                           Container(
                             padding: const EdgeInsets.all(16),
-                            color: AppColors.primary,
+                            color: const Color(0xFF1A1A2E),
                             child: Row(
                               children: [
-                                const Icon(Icons.quiz_rounded,
-                                    color: Colors.white, size: 18),
+                                const Icon(Icons.quiz_rounded, color: Colors.white, size: 18),
                                 const SizedBox(width: 8),
-                                Text(loc.chatQuickTitle,
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14)),
+                                Text(loc.chatQuickTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
                               ],
                             ),
                           ),
@@ -590,8 +579,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               children: _getFaqItems(loc).map((faq) {
                                 return InkWell(
                                   onTap: () => faq['a']!.isNotEmpty
-                                      ? _sendFaqMessage(
-                                          faq['q']!, faq['a']!, loc)
+                                      ? _sendFaqMessage(faq['q']!, faq['a']!, loc)
                                       : _showEliteDialog(loc),
                                   borderRadius: BorderRadius.circular(8),
                                   child: Container(
@@ -600,24 +588,16 @@ class _ChatScreenState extends State<ChatScreen> {
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFF8F9FA),
                                       borderRadius: BorderRadius.circular(8),
-                                      border:
-                                          Border.all(color: AppColors.border),
+                                      border: Border.all(color: const Color(0xFFEEEEEE)),
                                     ),
                                     child: Row(
                                       children: [
-                                        Text(faq['icon']!,
-                                            style:
-                                                const TextStyle(fontSize: 18)),
+                                        Text(faq['icon']!, style: const TextStyle(fontSize: 18)),
                                         const SizedBox(width: 10),
                                         Expanded(
-                                          child: Text(faq['q']!,
-                                              style: const TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w600)),
+                                          child: Text(faq['q']!, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                                         ),
-                                        const Icon(Icons.chevron_right_rounded,
-                                            size: 16,
-                                            color: AppColors.textHint),
+                                        const Icon(Icons.chevron_right_rounded, size: 16, color: Color(0xFFBBBBBB)),
                                       ],
                                     ),
                                   ),
@@ -628,17 +608,14 @@ class _ChatScreenState extends State<ChatScreen> {
                           // 전화 문의 버튼
                           Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: const BoxDecoration(
-                                border: Border(
-                                    top: BorderSide(color: AppColors.border))),
+                            decoration: const BoxDecoration(border: Border(top: BorderSide(color: AppColors.border))),
                             child: OutlinedButton.icon(
                               onPressed: () => _showCallDialog(loc),
                               icon: const Icon(Icons.phone_rounded, size: 16),
                               label: Text(loc.chatPhoneInquiry),
                               style: OutlinedButton.styleFrom(
                                 minimumSize: const Size(double.infinity, 40),
-                                side:
-                                    const BorderSide(color: AppColors.primary),
+                                side: const BorderSide(color: AppColors.primary),
                                 foregroundColor: AppColors.primary,
                               ),
                             ),
@@ -652,25 +629,19 @@ class _ChatScreenState extends State<ChatScreen> {
                         children: [
                           Expanded(
                             child: _messages.isEmpty
-                                ? const Center(
-                                    child: CircularProgressIndicator(
-                                        color: AppColors.primary,
-                                        strokeWidth: 2))
+                                ? const Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2))
                                 : ListView.builder(
                                     controller: _scrollController,
-                                    padding: const EdgeInsets.fromLTRB(
-                                        16, 12, 16, 8),
-                                    itemCount:
-                                        _messages.length + (_isTyping ? 1 : 0),
+                                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                                    itemCount: _messages.length + (_isTyping ? 1 : 0),
                                     itemBuilder: (context, index) {
-                                      if (index == _messages.length)
-                                        return _buildTypingIndicator();
-                                      return _buildMessageBubble(
-                                          _messages[index], loc);
+                                      if (index == _messages.length) return _buildTypingIndicator();
+                                      return _buildMessageBubble(_messages[index], loc);
                                     },
                                   ),
                           ),
                           _buildInputArea(loc),
+                          _buildBusinessInfoFooter(),
                         ],
                       ),
                     ),
@@ -682,22 +653,19 @@ class _ChatScreenState extends State<ChatScreen> {
                     _buildFaqPanel(loc),
                     Expanded(
                       child: _messages.isEmpty
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                  color: AppColors.primary, strokeWidth: 2))
+                          ? const Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2))
                           : ListView.builder(
                               controller: _scrollController,
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                               itemCount: _messages.length + (_isTyping ? 1 : 0),
                               itemBuilder: (context, index) {
-                                if (index == _messages.length)
-                                  return _buildTypingIndicator();
-                                return _buildMessageBubble(
-                                    _messages[index], loc);
+                                if (index == _messages.length) return _buildTypingIndicator();
+                                return _buildMessageBubble(_messages[index], loc);
                               },
                             ),
                     ),
                     _buildInputArea(loc),
+                    _buildBusinessInfoFooter(),
                   ],
                 ),
         );
@@ -713,10 +681,7 @@ class _ChatScreenState extends State<ChatScreen> {
         color: Colors.white,
         border: const Border(bottom: BorderSide(color: AppColors.border)),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 4,
-              offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -732,16 +697,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 6),
                   Text(
                     loc.chatQuickTitle,
-                    style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary),
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)),
                   ),
                   const Spacer(),
                   Icon(
-                    _faqExpanded
-                        ? Icons.keyboard_arrow_up_rounded
-                        : Icons.keyboard_arrow_down_rounded,
+                    _faqExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
                     size: 20,
                     color: AppColors.textSecondary,
                   ),
@@ -761,33 +721,25 @@ class _ChatScreenState extends State<ChatScreen> {
                   return GestureDetector(
                     onTap: () => _sendFaqMessage(faq['q']!, faq['a']!, loc),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isElite
-                            ? const Color(0xFFFFF3E0)
-                            : const Color(0xFFF0F4FF),
+                        color: isElite ? const Color(0xFFFFF3E0) : const Color(0xFFF0F4FF),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isElite
-                              ? const Color(0xFFFF9800)
-                              : const Color(0xFF7986CB),
+                          color: isElite ? const Color(0xFFFF9800) : const Color(0xFF7986CB),
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(faq['icon']!,
-                              style: const TextStyle(fontSize: 12)),
+                          Text(faq['icon']!, style: const TextStyle(fontSize: 12)),
                           const SizedBox(width: 4),
                           Text(
                             faq['q']!,
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: isElite
-                                  ? AppColors.accent
-                                  : const Color(0xFF3949AB),
+                              color: isElite ? const Color(0xFFE65100) : const Color(0xFF3949AB),
                             ),
                           ),
                         ],
@@ -805,96 +757,56 @@ class _ChatScreenState extends State<ChatScreen> {
   // ────────── 메시지 버블 ──────────
   Widget _buildMessageBubble(ChatMessage message, AppLocalizations loc) {
     // ignore: unused_local_variable
-    final isKorean = loc.language == AppLanguage.korean;
-    final isSystem = message.isSystem;
-    // 고객 메시지만 번역 원문 전환을 제공합니다.
-    final hasTranslation =
-        message.isUser && !isKorean && message.text != message.originalText;
+        final isKorean = loc.language == AppLanguage.korean;
+    // 관리자용 번역 표시 여부
+    final hasTranslation = message.isUser &&
+        !isKorean &&
+        message.text != message.originalText;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
-        crossAxisAlignment:
-            message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: message.isUser
-                ? MainAxisAlignment.end
-                : MainAxisAlignment.start,
+            mainAxisAlignment: message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!message.isUser) ...[
                 Container(
                   width: 30,
                   height: 30,
-                  decoration: const BoxDecoration(
-                      color: AppColors.primary, shape: BoxShape.circle),
-                  child: Icon(
-                    isSystem ? Icons.auto_awesome_rounded : Icons.support_agent_rounded,
-                    color: Colors.white,
-                    size: 16,
-                  ),
+                  decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                  child: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 16),
                 ),
                 const SizedBox(width: 8),
               ],
               Flexible(
                 child: Column(
-                  crossAxisAlignment: message.isUser
-                      ? CrossAxisAlignment.end
-                      : CrossAxisAlignment.start,
+                  crossAxisAlignment: message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Text(
-                        message.isUser ? '고객' : (isSystem ? '자동 안내' : '판매자'),
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: message.isUser
-                              ? AppColors.primary
-                              : (isSystem ? AppColors.info : AppColors.textSecondary),
-                        ),
-                      ),
-                    ),
                     Container(
-                      constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.72),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 10),
+                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: message.isUser
-                            ? AppColors.primary
-                            : (isSystem ? const Color(0xFFEAF2FF) : Colors.white),
+                        color: message.isUser ? AppColors.primary : Colors.white,
                         borderRadius: BorderRadius.only(
                           topLeft: const Radius.circular(16),
                           topRight: const Radius.circular(16),
-                          bottomLeft: message.isUser
-                              ? const Radius.circular(16)
-                              : const Radius.circular(4),
-                          bottomRight: message.isUser
-                              ? const Radius.circular(4)
-                              : const Radius.circular(16),
+                          bottomLeft: message.isUser ? const Radius.circular(16) : const Radius.circular(4),
+                          bottomRight: message.isUser ? const Radius.circular(4) : const Radius.circular(16),
                         ),
-                        border: message.isUser
-                            ? null
-                            : Border.all(color: AppColors.border),
+                        border: message.isUser ? null : Border.all(color: AppColors.border),
                         boxShadow: [
-                          BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2)),
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2)),
                         ],
                       ),
                       child: Text(
                         // 원문 보기가 켜져 있으면 원문, 아니면 현재 표시 텍스트
-                        message.showOriginal
-                            ? message.originalText
-                            : message.text,
+                        message.showOriginal ? message.originalText : message.text,
                         style: TextStyle(
                           fontSize: 14,
-                          color: message.isUser
-                              ? Colors.white
-                              : AppColors.textPrimary,
+                          color: message.isUser ? Colors.white : AppColors.textPrimary,
                           height: 1.5,
                         ),
                       ),
@@ -905,17 +817,15 @@ class _ChatScreenState extends State<ChatScreen> {
                       GestureDetector(
                         onTap: () => showOverseasRateSheet(context),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 7),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                           decoration: BoxDecoration(
-                            color: AppColors.info,
+                            color: const Color(0xFF1565C0),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.table_chart_outlined,
-                                  size: 13, color: Colors.white),
+                              const Icon(Icons.table_chart_outlined, size: 13, color: Colors.white),
                               const SizedBox(width: 5),
                               Text(
                                 loc.t('국가별_요금표_보기', '국가별 요금표 보기'),
@@ -926,8 +836,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 ),
                               ),
                               const SizedBox(width: 2),
-                              const Icon(Icons.chevron_right_rounded,
-                                  size: 14, color: Colors.white),
+                              const Icon(Icons.chevron_right_rounded, size: 14, color: Colors.white),
                             ],
                           ),
                         ),
@@ -939,23 +848,16 @@ class _ChatScreenState extends State<ChatScreen> {
                       children: [
                         Text(
                           '${message.time.hour.toString().padLeft(2, '0')}:${message.time.minute.toString().padLeft(2, '0')}',
-                          style: const TextStyle(
-                              fontSize: 10, color: AppColors.textHint),
+                          style: const TextStyle(fontSize: 10, color: AppColors.textHint),
                         ),
                         // 번역된 메시지의 경우 원문 보기 버튼
                         if (hasTranslation) ...[
                           const SizedBox(width: 6),
                           GestureDetector(
-                            onTap: () => setState(() =>
-                                message.showOriginal = !message.showOriginal),
+                            onTap: () => setState(() => message.showOriginal = !message.showOriginal),
                             child: Text(
-                              message.showOriginal
-                                  ? loc.chatShowOriginal
-                                  : loc.chatTranslatedLabel,
-                              style: const TextStyle(
-                                  fontSize: 10,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600),
+                              message.showOriginal ? loc.chatShowOriginal : loc.chatTranslatedLabel,
+                              style: const TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600),
                             ),
                           ),
                         ],
@@ -979,12 +881,9 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         children: [
           Container(
-            width: 30,
-            height: 30,
-            decoration: const BoxDecoration(
-                color: AppColors.primary, shape: BoxShape.circle),
-            child: const Icon(Icons.support_agent_rounded,
-                color: Colors.white, size: 16),
+            width: 30, height: 30,
+            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+            child: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 16),
           ),
           const SizedBox(width: 8),
           Container(
@@ -1016,8 +915,7 @@ class _ChatScreenState extends State<ChatScreen> {
       duration: const Duration(milliseconds: 600),
       builder: (_, value, __) {
         return Container(
-          width: 7,
-          height: 7,
+          width: 7, height: 7,
           decoration: BoxDecoration(
             color: AppColors.textHint.withValues(alpha: 0.3 + (value * 0.7)),
             shape: BoxShape.circle,
@@ -1033,9 +931,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (_isChatCompleted) {
       return Container(
         padding: EdgeInsets.only(
-          left: 12,
-          right: 12,
-          top: 12,
+          left: 12, right: 12, top: 12,
           bottom: MediaQuery.of(context).padding.bottom + 12,
         ),
         decoration: const BoxDecoration(
@@ -1045,33 +941,23 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle_rounded,
-                color: AppColors.success, size: 18),
+            const Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 18),
             const SizedBox(width: 6),
-            Text(context.loc.t('상담이 완료되었습니다', '상담이 완료되었습니다'),
-                style: TextStyle(
-                    fontSize: 13,
-                    color: AppColors.success,
-                    fontWeight: FontWeight.w600)),
+            Text(context.loc.t('상담이 완료되었습니다', '상담이 완료되었습니다'), style: TextStyle(fontSize: 13, color: Color(0xFF2E7D32), fontWeight: FontWeight.w600)),
           ],
         ),
       );
     }
     return Container(
       padding: EdgeInsets.only(
-        left: 12,
-        right: 12,
-        top: 8,
+        left: 12, right: 12, top: 8,
         bottom: MediaQuery.of(context).padding.bottom + 8,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
         border: const Border(top: BorderSide(color: AppColors.border)),
         boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 8,
-              offset: const Offset(0, -2)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, -2)),
         ],
       ),
       child: Row(
@@ -1081,8 +967,7 @@ class _ChatScreenState extends State<ChatScreen> {
               controller: _messageController,
               decoration: InputDecoration(
                 hintText: loc.chatInputHint,
-                hintStyle:
-                    const TextStyle(fontSize: 14, color: AppColors.textHint),
+                hintStyle: const TextStyle(fontSize: 14, color: AppColors.textHint),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: const BorderSide(color: AppColors.border),
@@ -1095,8 +980,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   borderRadius: BorderRadius.circular(24),
                   borderSide: const BorderSide(color: AppColors.primary),
                 ),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 filled: true,
                 fillColor: const Color(0xFFF4F6FA),
               ),
@@ -1107,13 +991,10 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(width: 8),
           Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-                color: AppColors.primary, shape: BoxShape.circle),
+            width: 42, height: 42,
+            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
             child: IconButton(
-              icon:
-                  const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+              icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
               onPressed: () => _sendMessage(_messageController.text, loc),
             ),
           ),
@@ -1122,6 +1003,67 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  // ────────── 사업자 정보 Footer ──────────
+  Widget _buildBusinessInfoFooter() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFF1A1A2E),
+        border: Border(top: BorderSide(color: Color(0xFF2D2B55), width: 1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppConstants.companyName,
+            style: const TextStyle(
+              color: Color(0xFFCE93D8),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 4),
+          _footerInfoRow(Icons.person_outline_rounded,
+              context.loc.t('대표자 _', '대표자: ${AppConstants.ceoName}')),
+          _footerInfoRow(Icons.location_on_outlined,
+              AppConstants.companyAddress),
+          _footerInfoRow(Icons.business_outlined,
+              context.loc.t('사업자등록번호 _', '사업자등록번호: ${AppConstants.businessRegNumber}')),
+          _footerInfoRow(Icons.storefront_outlined,
+              context.loc.t('통신판매업신고번호 심사 중', '통신판매업신고번호: 심사 중')),
+          _footerInfoRow(Icons.phone_outlined,
+              AppConstants.customerServicePhone),
+          _footerInfoRow(Icons.email_outlined,
+              AppConstants.customerServiceEmail),
+        ],
+      ),
+    );
+  }
+
+  Widget _footerInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 11, color: const Color(0xFF9E9E9E)),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFFB0B0B0),
+                fontSize: 10,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1171,8 +1113,7 @@ class _AdminMsgTile extends StatelessWidget {
               child: CircleAvatar(
                 radius: 14,
                 backgroundColor: AppColors.primary,
-                child: Icon(Icons.support_agent_rounded,
-                    size: 14, color: Colors.white),
+                child: Icon(Icons.support_agent_rounded, size: 14, color: Colors.white),
               ),
             ),
           Flexible(
@@ -1186,46 +1127,32 @@ class _AdminMsgTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (message.isUser &&
-                      message.originalText != message.text) ...[
+                  if (message.isUser && message.originalText != message.text) ...[
                     Row(children: [
-                      const Icon(Icons.translate_rounded,
-                          size: 12, color: AppColors.info),
+                      const Icon(Icons.translate_rounded, size: 12, color: Color(0xFF1565C0)),
                       const SizedBox(width: 4),
-                      Text(loc.chatOriginalLabel,
-                          style: const TextStyle(
-                              fontSize: 10,
-                              color: AppColors.info,
-                              fontWeight: FontWeight.w700)),
+                      Text(loc.chatOriginalLabel, style: const TextStyle(fontSize: 10, color: Color(0xFF1565C0), fontWeight: FontWeight.w700)),
                     ]),
                     const SizedBox(height: 2),
                     Text(
                       displayText,
-                      style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w500),
+                      style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${loc.chatOriginalText}${message.text}',
-                      style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary,
-                          fontStyle: FontStyle.italic),
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontStyle: FontStyle.italic),
                     ),
                   ] else
                     Text(
                       displayText,
-                      style: const TextStyle(
-                          fontSize: 13, color: AppColors.textPrimary),
+                      style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
                     ),
                   const SizedBox(height: 4),
                   Text(
                     '${message.time.hour.toString().padLeft(2, '0')}:'
                     '${message.time.minute.toString().padLeft(2, '0')}',
-                    style: const TextStyle(
-                        fontSize: 10, color: AppColors.textHint),
+                    style: const TextStyle(fontSize: 10, color: AppColors.textHint),
                   ),
                 ],
               ),

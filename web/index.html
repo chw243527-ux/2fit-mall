@@ -6,7 +6,8 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
 
-  <!-- 홈 배너 동영상은 실제 홈 화면에서만 로드해 첫 화면을 가볍게 유지합니다. -->
+  <!-- 홈 배너 동영상 사전 로드 (로딩 지연 방지) -->
+  <link rel="preload" href="assets/assets/images/banner_video.mp4" as="video" type="video/mp4">
 
   <!-- ═══════════════════════════════════════════════
        Pretendard 폰트 (한국 쇼핑몰 최적화 글씨체)
@@ -201,51 +202,6 @@
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Mobile viewport safeguards ───────────────────────────
-       Flutter UI is laid out in Dart; these rules protect the HTML shell,
-       PWA install banner and iOS/Android browser safe areas. */
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-      background: #ffffff;
-    }
-    body {
-      min-height: 100vh;
-      min-height: 100dvh;
-      overflow-x: hidden;
-      overscroll-behavior-x: none;
-    }
-    #loading-screen {
-      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
-               max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-    }
-    @media (max-width: 360px) {
-      .loading-logo {
-        width: 64px;
-        height: 64px;
-        border-radius: 14px;
-        margin-bottom: 16px;
-      }
-      .loading-logo span { font-size: 18px; }
-      .loading-spinner { width: 30px; height: 30px; }
-      #pwa-install-banner {
-        left: max(12px, env(safe-area-inset-left)) !important;
-        right: max(12px, env(safe-area-inset-right)) !important;
-        /* 하단 고정 구매 바(약 64px)와 겹치지 않도록 위로 띄웁니다. */
-        bottom: max(84px, calc(env(safe-area-inset-bottom) + 64px)) !important;
-        width: auto !important;
-        max-width: none !important;
-        padding: 12px 14px !important;
-        gap: 8px !important;
-      }
-      #pwa-install-banner #pwa-install-btn { padding: 8px 10px !important; font-size: 12px !important; }
-    }
-    @media (max-width: 360px) and (max-height: 700px) {
-      #pwa-install-banner {
-        bottom: max(72px, calc(env(safe-area-inset-bottom) + 56px)) !important;
-      }
-    }
   </style>
 
   <!-- ═══════════════════════════════════════════════
@@ -258,8 +214,8 @@
          window.showCameraPreview(x, y, w, h)
          window.hideCameraPreview()
   ═══════════════════════════════════════════════ -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
-  <script defer>
+  <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js"></script>
+  <script>
     (function() {
       var _videoEl   = null;
       var _canvasEl  = null;
@@ -482,51 +438,43 @@
        팝업창에서 콜백을 받아 Flutter로 전달
   ═══════════════════════════════════════════════ -->
   <script>
-    // 네이버 OAuth 팝업 로그인: Secret은 Firebase Functions 서버에서만 사용
-    window.naverOAuthLogin = async function() {
-      var redirectUri = window.location.origin + '/naver_callback.html';
-      var startEndpoint = 'https://us-central1-fit-mall.cloudfunctions.net/startNaverOAuth';
+    // 네이버 OAuth 팝업 로그인
+    window.naverOAuthLogin = function() {
+      var clientId = 'RTeQb5TSs920qoowhcra';
+      var redirectUri = encodeURIComponent(window.location.origin + '/naver_callback.html');
+      var state = Math.random().toString(36).substring(2);
+      sessionStorage.setItem('naver_oauth_state', state);
 
-      // Open synchronously during the user gesture. iOS Safari can drop
-      // window.opener if window.open happens after an awaited fetch.
-      var popup = window.open('about:blank', 'naverLogin',
+      var url = 'https://nid.naver.com/oauth2.0/authorize'
+        + '?response_type=token'
+        + '&client_id=' + clientId
+        + '&redirect_uri=' + redirectUri
+        + '&state=' + state;
+
+      var popup = window.open(url, 'naverLogin',
         'width=500,height=600,scrollbars=yes,resizable=yes');
-      if (!popup) throw new Error('팝업이 차단되었습니다. 팝업을 허용해 주세요.');
-
-      try {
-        var response = await fetch(startEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ redirectUri: redirectUri })
-        });
-        var start = await response.json();
-        if (!response.ok || !start.authorizeUrl) {
-          popup.close();
-          throw new Error(start.error || '네이버 로그인을 시작할 수 없습니다.');
-        }
-        popup.location.href = start.authorizeUrl;
-      } catch (error) {
-        try { popup.close(); } catch (_) {}
-        throw error;
-      }
 
       return new Promise(function(resolve, reject) {
         var timer = setInterval(function() {
-          if (popup.closed) {
+          if (popup && popup.closed) {
             clearInterval(timer);
-            window.removeEventListener('message', onMessage);
             reject(new Error('팝업이 닫혔습니다.'));
           }
         }, 500);
 
+        // 팝업에서 postMessage로 사용자 정보 전달
         function onMessage(e) {
           if (e.origin !== window.location.origin) return;
-          if (e.data && e.data.type === 'NAVER_CODE') {
+          if (e.data && e.data.type === 'NAVER_TOKEN') {
             clearInterval(timer);
             window.removeEventListener('message', onMessage);
-            popup.close();
-            if (e.data.error) reject(new Error(e.data.error));
-            else resolve(e.data);
+            if (popup) popup.close();
+            if (e.data.error) {
+              reject(new Error(e.data.error));
+            } else {
+              // {token, naverId, email, name, photoUrl} 객체 전체 전달
+              resolve(e.data);
+            }
           }
         }
         window.addEventListener('message', onMessage);
@@ -537,7 +485,7 @@
   <!-- ═══════════════════════════════════════════════
        카카오 JavaScript SDK
        Flutter Web에서 카카오 로그인 팝업을 띄우기 위해 필요
-       JS 키 등록 완료: cc9800839ee51bb010cd0d7046f4b565
+       JS 키 등록 완료: 09aadca2435b22f8b07bcda2d469a36f
   ═══════════════════════════════════════════════ -->
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
           integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nka"
@@ -548,107 +496,6 @@
     if (window.Kakao && !window.Kakao.isInitialized()) {
       window.Kakao.init('cc9800839ee51bb010cd0d7046f4b565');
     }
-  </script>
-
-  <!-- 토스페이먼츠 결제위젯 SDK v1 -->
-  <script defer src="https://js.tosspayments.com/v1/payment-widget"></script>
-  <!-- 토스페이먼츠 SDK v2 (간편결제·실결제용) -->
-  <script defer src="https://js.tosspayments.com/v2/standard"></script>
-  <script>
-    // ── Payment Widget 전역 인스턴스 ──────────────────────────────
-    // Flutter checkout 페이지에서 initTossWidget() → renderTossWidget()
-    // → submitTossWidget() 순서로 호출합니다.
-    window._tossWidgets = null;   // PaymentWidget 인스턴스
-    window._tossAmount   = 0;     // 금액 (renderPaymentMethods 호출 시 사용)
-
-    /**
-     * 1단계: 위젯 초기화 (금액 저장만 — 렌더 시 사용)
-     *  params: { clientKey, customerKey, amount }
-     *  비로그인: customerKey = '@@ANONYMOUS'
-     *
-     *  v1 API: PaymentWidget(clientKey, customerKey) → instance
-     *  setAmount() 없음 — 금액은 renderPaymentMethods(selector, amount) 두번째 인자로 전달
-     */
-    window.initTossWidget = async function(params) {
-      try {
-        const widgets = PaymentWidget(params.clientKey, params.customerKey);
-        window._tossWidgets = widgets;
-        window._tossAmount  = params.amount;
-        if (window._tossWidgetInitCallback) {
-          window._tossWidgetInitCallback('ok');
-        }
-      } catch (e) {
-        if (window._tossWidgetInitCallback) {
-          window._tossWidgetInitCallback('error:' + (e.message || e.toString()));
-        }
-      }
-    };
-
-    /**
-     * 2단계: 결제수단 UI + 이용약관 렌더링
-     *  DOM에 id="payment-method" 와 id="agreement" div가 있어야 합니다.
-     *
-     *  v1 API:
-     *    renderPaymentMethods(selector, amount, options?) → PaymentMethodsWidget
-     *    renderAgreement(selector, options?)              → AgreementWidget
-     */
-    window.renderTossWidget = async function() {
-      try {
-        if (!window._tossWidgets) throw new Error('widget not initialized');
-        await Promise.all([
-          window._tossWidgets.renderPaymentMethods(
-            '#payment-method',
-            { currency: 'KRW', value: window._tossAmount }
-          ),
-          window._tossWidgets.renderAgreement('#agreement'),
-        ]);
-        if (window._tossWidgetRenderCallback) {
-          window._tossWidgetRenderCallback('ok');
-        }
-      } catch (e) {
-        if (window._tossWidgetRenderCallback) {
-          window._tossWidgetRenderCallback('error:' + (e.message || e.toString()));
-        }
-      }
-    };
-
-    /**
-     * 금액 업데이트 (쿠폰 등 적용 시)
-     *  params: { amount }
-     *  v1: PaymentMethodsWidget.updateAmount(amount) 사용
-     */
-    window.updateTossWidgetAmount = async function(params) {
-      try {
-        if (!window._tossPaymentMethodsWidget) return;
-        window._tossPaymentMethodsWidget.updateAmount(params.amount);
-        window._tossAmount = params.amount;
-      } catch (e) { /* ignore */ }
-    };
-
-    /**
-     * 3단계: 결제 요청 (결제하기 버튼 클릭 시)
-     *  params: { orderId, orderName, customerName, customerEmail,
-     *            customerMobilePhone, successUrl, failUrl }
-     */
-    window.submitTossWidget = async function(params) {
-      try {
-        if (!window._tossWidgets) throw new Error('widget not initialized');
-        await window._tossWidgets.requestPayment({
-          orderId:             params.orderId,
-          orderName:           params.orderName,
-          customerName:        params.customerName,
-          customerEmail:       params.customerEmail,
-          customerMobilePhone: params.customerMobilePhone || '',
-          successUrl:          params.successUrl,
-          failUrl:             params.failUrl,
-        });
-        // 성공 시 successUrl로 리디렉션되므로 여기에 도달하지 않음
-      } catch (e) {
-        if (window._tossWidgetSubmitCallback) {
-          window._tossWidgetSubmitCallback('error:' + (e.message || e.toString()));
-        }
-      }
-    };
   </script>
 </head>
 <body>
@@ -710,13 +557,12 @@
     })();
 
     // ── Service Worker 등록 & 자동 업데이트 ──────────────────────────────
-    // Firebase Messaging과 Flutter PWA 처리를 통합한 워커를 등록합니다.
-    // firebase-messaging-sw.js가 내부에서 flutter_service_worker.js를 로드합니다.
+    // Flutter 빌드 시 생성되는 flutter_service_worker.js를 등록합니다.
     // 새 버전이 배포되면 SW가 자동 감지 → 페이지를 자동 새로고침하여
     // 홈화면 추가(PWA) 상태에서도 항상 최신 버전이 표시됩니다.
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('firebase-messaging-sw.js', {scope: '/'})
+        navigator.serviceWorker.register('flutter_service_worker.js', {scope: '/'})
           .then(function(reg) {
             // ── 페이지 로드 시 즉시 업데이트 체크 (캐시 우회) ──
             reg.update();
@@ -776,9 +622,9 @@
     }
     window.addEventListener('flutter-first-frame', removeLoadingScreen);
 
-    // 안전장치: 첫 프레임 이벤트가 누락되어도 8초 후에는 앱 화면을 표시
-    // Flutter 화면이 준비된 상태에서 로딩 오버레이가 오래 남지 않도록 합니다.
-    setTimeout(removeLoadingScreen, 8000);
+    // 안전장치: 30초 후에도 flutter-first-frame 없으면 강제 제거
+    // (CanvasKit WASM 초기 로드 시간 확보 — 느린 네트워크 대응)
+    setTimeout(removeLoadingScreen, 30000);
   </script>
 
   <script src="flutter_bootstrap.js" async></script>

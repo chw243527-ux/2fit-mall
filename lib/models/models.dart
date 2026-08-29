@@ -49,16 +49,6 @@ class ProductModel {
   /// inventory 컬렉션 대체 — products 문서에 직접 저장
   final Map<String, Map<String, int>> stockData;
 
-  /// 관리용 일괄 카피 스크립트가 생성하는 에디토리얼 상세페이지 문구
-  final String editorialLabel;
-  final String editorialTitle;
-  final String editorialAccent;
-  final String editorialSubtitle;
-  final String editorialMaterialKey;
-  final String editorialMaterialText;
-  final String editorialSource;
-  final bool editorialLocked;
-
   ProductModel({
     required this.id,
     required this.name,
@@ -91,14 +81,6 @@ class ProductModel {
     this.bottomLength = '',
     this.sizeStocks = const {},
     this.stockData = const {},
-    this.editorialLabel = '',
-    this.editorialTitle = '',
-    this.editorialAccent = '',
-    this.editorialSubtitle = '',
-    this.editorialMaterialKey = '',
-    this.editorialMaterialText = '',
-    this.editorialSource = '',
-    this.editorialLocked = false,
   });
 
   /// 현재 언어에 맞는 상품명 반환 (번역 없으면 원본 한국어 사용)
@@ -163,14 +145,6 @@ class ProductModel {
       bottomLength: bottomLength,
       sizeStocks: sizeStocks,
       stockData: stockData,
-      editorialLabel: editorialLabel,
-      editorialTitle: editorialTitle,
-      editorialAccent: editorialAccent,
-      editorialSubtitle: editorialSubtitle,
-      editorialMaterialKey: editorialMaterialKey,
-      editorialMaterialText: editorialMaterialText,
-      editorialSource: editorialSource,
-      editorialLocked: editorialLocked,
     );
   }
 
@@ -224,14 +198,6 @@ class ProductModel {
       sizes: json['sizes'] != null ? List<String>.from(json['sizes'] as List) : const [],
       colors: json['colors'] != null ? List<String>.from(json['colors'] as List) : const [],
       material: json['material'] as String? ?? '78% Nylon, 22% Spandex',
-      editorialLabel: json['editorialLabel'] as String? ?? '',
-      editorialTitle: json['editorialTitle'] as String? ?? '',
-      editorialAccent: json['editorialAccent'] as String? ?? '',
-      editorialSubtitle: json['editorialSubtitle'] as String? ?? '',
-      editorialMaterialKey: json['editorialMaterialKey'] as String? ?? '',
-      editorialMaterialText: json['editorialMaterialText'] as String? ?? '',
-      editorialSource: json['editorialSource'] as String? ?? '',
-      editorialLocked: json['editorialLocked'] as bool? ?? false,
       bottomLength: json['bottomLength'] as String? ?? '',
       isNew: json['isNew'] as bool? ?? false,
       newExpiresAt: json['newExpiresAt'] != null
@@ -284,14 +250,6 @@ class ProductModel {
       'sizes': sizes,
       'colors': colors,
       'material': material,
-      'editorialLabel': editorialLabel,
-      'editorialTitle': editorialTitle,
-      'editorialAccent': editorialAccent,
-      'editorialSubtitle': editorialSubtitle,
-      'editorialMaterialKey': editorialMaterialKey,
-      'editorialMaterialText': editorialMaterialText,
-      'editorialSource': editorialSource,
-      'editorialLocked': editorialLocked,
       'bottomLength': bottomLength,
       'isNew': isNew,
       'newExpiresAt': newExpiresAt?.toIso8601String(),
@@ -336,14 +294,6 @@ class ProductModel {
       nameTranslations: nameTranslations,
       descriptionTranslations: descriptionTranslations,
       bottomLength: bottomLength,
-      editorialLabel: editorialLabel,
-      editorialTitle: editorialTitle,
-      editorialAccent: editorialAccent,
-      editorialSubtitle: editorialSubtitle,
-      editorialMaterialKey: editorialMaterialKey,
-      editorialMaterialText: editorialMaterialText,
-      editorialSource: editorialSource,
-      editorialLocked: editorialLocked,
     );
   }
 }
@@ -379,15 +329,8 @@ class OrderModel {
   final String userPhone;
   final String userAddress;
   final List<OrderItem> items;
-  /// 쿠폰·포인트 적용 후 실제 결제 금액
   final double totalAmount;
   final double shippingFee;
-  /// 적용한 쿠폰 식별자와 할인 금액
-  final String? couponId;
-  final double couponDiscount;
-  /// 사용한 포인트와 포인트 할인 금액 (1P = 1원)
-  final int usedPoints;
-  final double pointDiscount;
   final String paymentMethod;
   final OrderStatus status;
   final String orderType; // personal, group, additional
@@ -425,10 +368,6 @@ class OrderModel {
     required this.items,
     required this.totalAmount,
     this.shippingFee = 0,
-    this.couponId,
-    this.couponDiscount = 0,
-    this.usedPoints = 0,
-    this.pointDiscount = 0,
     required this.paymentMethod,
     this.status = OrderStatus.pending,
     this.orderType = 'personal',
@@ -525,10 +464,6 @@ class OrderModel {
     DateTime? deliveredAt,
     String? paymentKey,
     String? cashReceiptNum,
-    String? couponId,
-    double? couponDiscount,
-    int? usedPoints,
-    double? pointDiscount,
   }) {
     return OrderModel(
       id: id,
@@ -540,10 +475,6 @@ class OrderModel {
       items: items,
       totalAmount: totalAmount,
       shippingFee: shippingFee,
-      couponId: couponId ?? this.couponId,
-      couponDiscount: couponDiscount ?? this.couponDiscount,
-      usedPoints: usedPoints ?? this.usedPoints,
-      pointDiscount: pointDiscount ?? this.pointDiscount,
       paymentMethod: paymentMethod,
       status: status ?? this.status,
       orderType: orderType,
@@ -573,10 +504,6 @@ class OrderModel {
       'items': items.map((e) => e.toJson()).toList(),
       'totalAmount': totalAmount,
       'shippingFee': shippingFee,
-      'couponId': couponId,
-      'couponDiscount': couponDiscount,
-      'usedPoints': usedPoints,
-      'pointDiscount': pointDiscount,
       'paymentMethod': paymentMethod,
       'status': status.name,
       'orderType': orderType,
@@ -675,9 +602,6 @@ class ReviewModel {
   final String size;
   final String color;
   final DateTime createdAt;
-  final bool isBest;
-  final String adminReply;
-  final DateTime? adminReplyAt;
 
   ReviewModel({
     required this.id,
@@ -690,9 +614,6 @@ class ReviewModel {
     required this.size,
     required this.color,
     required this.createdAt,
-    this.isBest = false,
-    this.adminReply = '',
-    this.adminReplyAt,
   });
 }
 
@@ -707,12 +628,8 @@ class CouponModel {
   final double value;           // 고정 금액 or 퍼센트
   final double minOrderAmount;  // 최소 주문금액 (0 = 제한 없음)
   final double? maxDiscountAmount; // 최대 할인 금액 (percent 전용)
-  final DateTime? startsAt;     // 쿠폰 시작일 (null = 즉시 유효)
   final DateTime expiresAt;
   bool isUsed;
-  final bool isDownloadable;    // 사용자가 팝업/배너에서 다운로드 가능한 공개 쿠폰
-  final int? downloadLimit;     // 최대 다운로드 수 (null = 무제한)
-  final int downloadCount;      // 현재 다운로드 수
 
   CouponModel({
     required this.id,
@@ -722,24 +639,11 @@ class CouponModel {
     required this.value,
     this.minOrderAmount = 0,
     this.maxDiscountAmount,
-    this.startsAt,
     required this.expiresAt,
     this.isUsed = false,
-    this.isDownloadable = false,
-    this.downloadLimit,
-    this.downloadCount = 0,
   });
 
-  bool get isValid {
-    final now = DateTime.now();
-    if (isUsed) return false;
-    if (startsAt != null && now.isBefore(startsAt!)) return false;
-    return expiresAt.isAfter(now);
-  }
-
-  bool get canDownload =>
-      isDownloadable && isValid &&
-      (downloadLimit == null || downloadCount < downloadLimit!);
+  bool get isValid => !isUsed && expiresAt.isAfter(DateTime.now());
 
   double calculateDiscount(double orderAmount) {
     if (!isValid || orderAmount < minOrderAmount) return 0;
@@ -1009,10 +913,9 @@ class BannerModel {
   final String imageUrl;    // 배경 이미지 URL (Firebase Storage)
   final String? videoUrl;   // 동영상 URL (1번 슬라이드 전용, null이면 이미지)
   final int accentColor;    // accent 색상 (ARGB int)
-  final int btnAction;      // 0=신상, 1=베스트, 2=단체주문, 3=쿠폰다운로드
+  final int btnAction;      // 0=신상, 1=베스트, 2=단체주문
   final DateTime? startDate; // 노출 시작일 (null=제한없음)
   final DateTime? endDate;   // 노출 종료일 (null=제한없음)
-  final String? couponId;   // btnAction==3 일 때 연결할 쿠폰 ID
 
   const BannerModel({
     required this.id,
@@ -1030,7 +933,6 @@ class BannerModel {
     this.btnAction = 0,
     this.startDate,
     this.endDate,
-    this.couponId,
   });
 
   /// 현재 시각 기준 기간 내 노출 여부
@@ -1064,7 +966,6 @@ class BannerModel {
       btnAction: (d['btnAction'] as num?)?.toInt() ?? 0,
       startDate: _parseDate(d['startDate']),
       endDate:   _parseDate(d['endDate']),
-      couponId: d['couponId'] as String?,
     );
   }
 
@@ -1085,7 +986,6 @@ class BannerModel {
     else 'startDate': null,
     if (endDate != null)   'endDate':   Timestamp.fromDate(endDate!)
     else 'endDate': null,
-    'couponId': couponId,
   };
 
   BannerModel copyWith({
@@ -1093,7 +993,6 @@ class BannerModel {
     String? titleKo, String? titleEn, String? ctaKo, String? ctaEn,
     String? imageUrl, String? videoUrl, int? accentColor, int? btnAction,
     Object? startDate = _sentinel, Object? endDate = _sentinel,
-    Object? couponId = _sentinel,
   }) => BannerModel(
     id: id ?? this.id,
     order: order ?? this.order,
@@ -1110,7 +1009,6 @@ class BannerModel {
     btnAction: btnAction ?? this.btnAction,
     startDate: startDate == _sentinel ? this.startDate : startDate as DateTime?,
     endDate:   endDate   == _sentinel ? this.endDate   : endDate   as DateTime?,
-    couponId: couponId == _sentinel ? this.couponId : couponId as String?,
   );
 }
 

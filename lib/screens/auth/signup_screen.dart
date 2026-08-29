@@ -17,8 +17,8 @@ import '../../utils/navigation_helper.dart';
 // ══════════════════════════════════════════
 class _SignupRateLimit {
   static final List<DateTime> _attempts = [];
-  static const int _maxAttempts = 3; // 3회
-  static const int _windowMinutes = 10; // 10분 내
+  static const int _maxAttempts = 3;       // 3회
+  static const int _windowMinutes = 10;    // 10분 내
 
   static bool isBlocked() {
     final now = DateTime.now();
@@ -115,16 +115,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   _Country _selectedCountry = _countries[0]; // 기본 한국
 
   // ── 전화번호 SMS 인증 상태 ──
-  bool _phoneSending = false; // SMS 발송 중
-  bool _phoneVerified = false; // 인증 완료 여부
-  String? _verificationId; // Firebase verificationId
+  bool _phoneSending = false;        // SMS 발송 중
+  bool _phoneVerified = false;       // 인증 완료 여부
+  String? _verificationId;           // Firebase verificationId
   // ignore: unused_field
-  int? _resendToken; // 재발송 토큰 (향후 재발송 최적화에 사용)
+  int? _resendToken;                 // 재발송 토큰 (향후 재발송 최적화에 사용)
   final _otpCtrl = TextEditingController();
-  Timer? _otpTimer; // OTP 만료 카운트다운
-  int _otpRemaining = 0; // 남은 초 (60초)
-  bool _otpSent = false; // OTP 발송 완료 여부
-  bool _otpVerifying = false; // OTP 확인 중
+  Timer? _otpTimer;                  // OTP 만료 카운트다운
+  int _otpRemaining = 0;             // 남은 초 (60초)
+  bool _otpSent = false;             // OTP 발송 완료 여부
+  bool _otpVerifying = false;        // OTP 확인 중
 
   // rate limit 타이머
   Timer? _blockTimer;
@@ -161,9 +161,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final hasUpper = RegExp(r'[A-Z]').hasMatch(pw);
     final hasLower = RegExp(r'[a-z]').hasMatch(pw);
     final hasDigit = RegExp(r'[0-9]').hasMatch(pw);
-    final hasSpecial = pw
-        .split('')
-        .any((c) => '!@#\$%^&*()_+-=[]{}|;:,.<>?/`~\\"\'\\\\'.contains(c));
+    final hasSpecial = pw.split('').any((c) =>
+        '!@#\$%^&*()_+-=[]{}|;:,.<>?/`~\\"\'\\\\'.contains(c));
     setState(() {
       _passwordChecks = [hasLength, hasUpper, hasLower, hasDigit, hasSpecial];
       final score = _passwordChecks.where((c) => c).length;
@@ -172,27 +171,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _passwordStrengthLabel = '';
         _passwordStrengthColor = Colors.grey.shade300;
       } else if (score <= 1) {
-        _passwordStrengthLabel =
-            context.read<LanguageProvider>().loc.signupPasswordStrengthVeryWeak;
-        _passwordStrengthColor = AppColors.error.withValues(alpha: 0.45);
+        _passwordStrengthLabel = context.read<LanguageProvider>().loc.signupPasswordStrengthVeryWeak;
+        _passwordStrengthColor = Colors.red.shade400;
       } else if (score == 2) {
-        _passwordStrengthLabel =
-            context.read<LanguageProvider>().loc.signupPasswordStrengthWeak;
-        _passwordStrengthColor = AppColors.warning.withValues(alpha: 0.45);
+        _passwordStrengthLabel = context.read<LanguageProvider>().loc.signupPasswordStrengthWeak;
+        _passwordStrengthColor = Colors.orange.shade400;
       } else if (score == 3) {
-        _passwordStrengthLabel =
-            context.read<LanguageProvider>().loc.signupPasswordStrengthFair;
+        _passwordStrengthLabel = context.read<LanguageProvider>().loc.signupPasswordStrengthFair;
         _passwordStrengthColor = Colors.amber.shade500;
       } else if (score == 4) {
-        _passwordStrengthLabel =
-            context.read<LanguageProvider>().loc.signupPasswordStrengthStrong;
+        _passwordStrengthLabel = context.read<LanguageProvider>().loc.signupPasswordStrengthStrong;
         _passwordStrengthColor = Colors.lightGreen.shade500;
       } else {
-        _passwordStrengthLabel = context
-            .read<LanguageProvider>()
-            .loc
-            .signupPasswordStrengthVeryStrong;
-        _passwordStrengthColor = AppColors.success.withValues(alpha: 0.70);
+        _passwordStrengthLabel = context.read<LanguageProvider>().loc.signupPasswordStrengthVeryStrong;
+        _passwordStrengthColor = Colors.green.shade600;
       }
     });
   }
@@ -212,14 +204,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _emailChecking = true);
     final available = await AuthService.checkEmailAvailable(email);
     if (mounted) {
-      setState(() {
-        _emailChecking = false;
-        _emailAvailable = available;
-      });
-      _showSnack(
-          available
-              ? context.read<LanguageProvider>().loc.signupEmailAvailable
-              : context.read<LanguageProvider>().loc.signupEmailAlreadyUsed,
+      setState(() { _emailChecking = false; _emailAvailable = available; });
+      _showSnack(available ? context.read<LanguageProvider>().loc.signupEmailAvailable : context.read<LanguageProvider>().loc.signupEmailAlreadyUsed,
           isSuccess: available);
     }
   }
@@ -234,20 +220,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       builder: (_) => Column(
         children: [
           const SizedBox(height: 12),
-          Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+          Container(width: 40, height: 4,
+              decoration: BoxDecoration(color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 12),
-          Builder(
-              builder: (ctx) => Text(
-                  ctx.watch<LanguageProvider>().loc.signupCountrySelect,
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary))),
+          Builder(builder: (ctx) => Text(ctx.watch<LanguageProvider>().loc.signupCountrySelect, style: const TextStyle(fontSize: 16,
+              fontWeight: FontWeight.w700, color: Color(0xFF1A1A2E)))),
           const SizedBox(height: 8),
           Expanded(
             child: ListView.builder(
@@ -258,10 +236,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   leading: Text(c.flag, style: const TextStyle(fontSize: 24)),
                   title: Text(c.name, style: const TextStyle(fontSize: 14)),
                   trailing: Text(c.code,
-                      style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600)),
+                      style: const TextStyle(fontSize: 13,
+                          color: Color(0xFF1A1A2E), fontWeight: FontWeight.w600)),
                   onTap: () => Navigator.pop(context, c),
                 );
               },
@@ -278,17 +254,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     // 한국 번호 자동 하이픈
     if (digits.startsWith('02')) {
       if (digits.length <= 2) return digits;
-      if (digits.length <= 5)
-        return '${digits.substring(0, 2)}-${digits.substring(2)}';
-      if (digits.length <= 9)
-        return '${digits.substring(0, 2)}-${digits.substring(2, 5)}-${digits.substring(5)}';
+      if (digits.length <= 5) return '${digits.substring(0, 2)}-${digits.substring(2)}';
+      if (digits.length <= 9) return '${digits.substring(0, 2)}-${digits.substring(2, 5)}-${digits.substring(5)}';
       return '${digits.substring(0, 2)}-${digits.substring(2, 6)}-${digits.substring(6, 10)}';
     } else {
       if (digits.length <= 3) return digits;
-      if (digits.length <= 6)
-        return '${digits.substring(0, 3)}-${digits.substring(3)}';
-      if (digits.length <= 10)
-        return '${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}';
+      if (digits.length <= 6) return '${digits.substring(0, 3)}-${digits.substring(3)}';
+      if (digits.length <= 10) return '${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}';
       return '${digits.substring(0, 3)}-${digits.substring(3, 7)}-${digits.substring(7, 11)}';
     }
   }
@@ -324,18 +296,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
     final digits = phoneRaw.replaceAll(RegExp(r'[^0-9]'), '');
-    if (_selectedCountry.code == '+82' &&
-        (digits.length < 9 || digits.length > 11)) {
-      _showSnack(
-          context.loc.t('올바른_한국_휴대폰_번호를_입력해주세요', '올바른 한국 휴대폰 번호를 입력해주세요.'));
+    if (_selectedCountry.code == '+82' && (digits.length < 9 || digits.length > 11)) {
+      _showSnack(context.loc.t('올바른_한국_휴대폰_번호를_입력해주세요', '올바른 한국 휴대폰 번호를 입력해주세요.'));
       return;
     }
     final e164 = _toE164(_selectedCountry.code, phoneRaw);
-    setState(() {
-      _phoneSending = true;
-      _phoneVerified = false;
-      _otpSent = false;
-    });
+    setState(() { _phoneSending = true; _phoneVerified = false; _otpSent = false; });
 
     final result = await AuthService.sendPhoneVerification(phoneNumber: e164);
 
@@ -345,25 +311,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (result['status'] == 'code_sent' || result['status'] == 'timeout') {
       _verificationId = result['verificationId'] as String?;
       _resendToken = result['resendToken'] as int?;
-      setState(() {
-        _otpSent = true;
-        _otpRemaining = 60;
-      });
+      setState(() { _otpSent = true; _otpRemaining = 60; });
       _startOtpTimer();
-      _showSnack(
-          context.loc.t(
-              '인증번호가_발송되었습니다_60초_내에_입력해주세요', '인증번호가 발송되었습니다. 60초 내에 입력해주세요.'),
-          isSuccess: true);
+      _showSnack(context.loc.t('인증번호가_발송되었습니다_60초_내에_입력해주세요', '인증번호가 발송되었습니다. 60초 내에 입력해주세요.'), isSuccess: true);
     } else if (result['status'] == 'auto_verified') {
-      setState(() {
-        _phoneVerified = true;
-        _otpSent = false;
-      });
-      _showSnack(context.loc.t('전화번호가_자동으로_인증되었습니다', '전화번호가 자동으로 인증되었습니다.'),
-          isSuccess: true);
+      setState(() { _phoneVerified = true; _otpSent = false; });
+      _showSnack(context.loc.t('전화번호가_자동으로_인증되었습니다', '전화번호가 자동으로 인증되었습니다.'), isSuccess: true);
     } else {
-      _showSnack(result['message'] as String? ??
-          context.loc.t('sms_발송에_실패했습니다', 'SMS 발송에 실패했습니다.'));
+      _showSnack(result['message'] as String? ?? context.loc.t('sms_발송에_실패했습니다', 'SMS 발송에 실패했습니다.'));
     }
   }
 
@@ -371,19 +326,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void _startOtpTimer() {
     _otpTimer?.cancel();
     _otpTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) {
-        t.cancel();
-        return;
-      }
+      if (!mounted) { t.cancel(); return; }
       setState(() => _otpRemaining--);
       if (_otpRemaining <= 0) {
         t.cancel();
-        setState(() {
-          _otpSent = false;
-          _verificationId = null;
-        });
-        _showSnack(context.loc
-            .t('인증번호가_만료되었습니다_다시_발송해주세요', '인증번호가 만료되었습니다. 다시 발송해주세요.'));
+        setState(() { _otpSent = false; _verificationId = null; });
+        _showSnack(context.loc.t('인증번호가_만료되었습니다_다시_발송해주세요', '인증번호가 만료되었습니다. 다시 발송해주세요.'));
       }
     });
   }
@@ -409,15 +357,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     if (result['status'] == 'verified') {
       _otpTimer?.cancel();
-      setState(() {
-        _phoneVerified = true;
-        _otpSent = false;
-      });
-      _showSnack(context.loc.t('전화번호_인증이_완료되었습니다', '전화번호 인증이 완료되었습니다.'),
-          isSuccess: true);
+      setState(() { _phoneVerified = true; _otpSent = false; });
+      _showSnack(context.loc.t('전화번호_인증이_완료되었습니다', '전화번호 인증이 완료되었습니다.'), isSuccess: true);
     } else {
-      _showSnack(result['message'] as String? ??
-          context.loc.t('인증에_실패했습니다', '인증에 실패했습니다.'));
+      _showSnack(result['message'] as String? ?? context.loc.t('인증에_실패했습니다', '인증에 실패했습니다.'));
     }
   }
 
@@ -437,19 +380,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         builder: (_, controller) => Column(
           children: [
             const SizedBox(height: 12),
-            Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+            Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(2))),
             Padding(
               padding: EdgeInsets.all(16),
               child: Text(context.loc.t('개인정보처리방침', '개인정보처리방침'),
-                  style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary)),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A2E))),
             ),
             const Divider(height: 1),
             Expanded(
@@ -457,39 +395,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 controller: controller,
                 padding: const EdgeInsets.all(20),
                 children: [
-                  _PolicySection(
-                      title: context.loc
-                          .t('제1조_수집하는_개인정보_항목', '제1조 (수집하는 개인정보 항목)'),
-                      content: context.loc.t('개인정보_수집항목_전체',
-                          '2FIT MALL은 회원가입 및 서비스 이용을 위해 아래와 같은 개인정보를 수집합니다.\n\n• 필수항목: 이름, 이메일 주소, 비밀번호, 휴대폰 번호\n• 선택항목: 마케팅 수신 동의\n• 자동수집: 서비스 이용기록, 접속 로그, 쿠키, IP 주소')),
-                  _PolicySection(
-                      title: context.loc
-                          .t('제2조_개인정보의_수집_및_이용목적', '제2조 (개인정보의 수집 및 이용목적)'),
-                      content: context.loc.t('개인정보_이용목적_전체',
-                          '• 회원가입 및 본인 확인\n• 서비스 제공 및 계약 이행\n• 주문/배송/결제 처리\n• 고객 문의 및 불만 처리\n• 마케팅 및 광고 활용 (동의 시)')),
-                  _PolicySection(
-                      title: context.loc
-                          .t('제3조_개인정보_보유_및_이용기간', '제3조 (개인정보 보유 및 이용기간)'),
-                      content: context.loc.t('개인정보_보유기간_전체',
-                          '회원 탈퇴 시 즉시 삭제합니다. 단, 관련 법령에 따라 아래 기간 동안 보관합니다.\n\n• 계약/청약철회 기록: 5년 (전자상거래법)\n• 소비자 불만/분쟁처리 기록: 3년\n• 접속 로그: 3개월 (통신비밀보호법)')),
-                  _PolicySection(
-                      title:
-                          context.loc.t('제4조_개인정보_제3자_제공', '제4조 (개인정보 제3자 제공)'),
-                      content: context.loc.t('k_2fit_mall은_원칙적으로_이용자의_개인정보를_외부',
-                          '2FIT MALL은 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 단, 배송 처리를 위해 택배사에 최소한의 정보(수령인, 주소, 연락처)를 제공합니다.')),
-                  _PolicySection(
-                      title: context.loc.t('제5조_개인정보처리_위탁', '제5조 (개인정보처리 위탁)'),
-                      content: context.loc.t('개인정보_처리위탁_전체',
-                          '• Firebase (Google): 회원 인증 및 데이터 저장\n• EmailJS: 이메일 발송 서비스\n• 택배사: 배송 처리')),
-                  _PolicySection(
-                      title: context.loc.t('제6조_이용자의_권리', '제6조 (이용자의 권리)'),
-                      content: context.loc.t('이용자_권리_전체',
-                          '이용자는 언제든지 아래 권리를 행사할 수 있습니다.\n\n• 개인정보 열람 요청\n• 오류 정정 요청\n• 삭제 요청 (회원 탈퇴)\n• 처리 정지 요청\n\n문의: chw243527@gmail.com')),
-                  _PolicySection(
-                      title:
-                          context.loc.t('제7조_개인정보_보호책임자', '제7조 (개인정보 보호책임자)'),
-                      content: context.loc.t('개인정보_보호책임자_전체',
-                          '• 책임자: 2FIT MALL 운영팀\n• 이메일: chw243527@gmail.com\n\n본 방침은 2025년 3월 21일부터 적용됩니다.')),
+                  _PolicySection(title: context.loc.t('제1조_수집하는_개인정보_항목', '제1조 (수집하는 개인정보 항목)'),
+                    content: context.loc.t('개인정보_수집항목_전체', '2FIT MALL은 회원가입 및 서비스 이용을 위해 아래와 같은 개인정보를 수집합니다.\n\n• 필수항목: 이름, 이메일 주소, 비밀번호, 휴대폰 번호\n• 선택항목: 마케팅 수신 동의\n• 자동수집: 서비스 이용기록, 접속 로그, 쿠키, IP 주소')),
+                  _PolicySection(title: context.loc.t('제2조_개인정보의_수집_및_이용목적', '제2조 (개인정보의 수집 및 이용목적)'),
+                    content: context.loc.t('개인정보_이용목적_전체', '• 회원가입 및 본인 확인\n• 서비스 제공 및 계약 이행\n• 주문/배송/결제 처리\n• 고객 문의 및 불만 처리\n• 마케팅 및 광고 활용 (동의 시)')),
+                  _PolicySection(title: context.loc.t('제3조_개인정보_보유_및_이용기간', '제3조 (개인정보 보유 및 이용기간)'),
+                    content: context.loc.t('개인정보_보유기간_전체', '회원 탈퇴 시 즉시 삭제합니다. 단, 관련 법령에 따라 아래 기간 동안 보관합니다.\n\n• 계약/청약철회 기록: 5년 (전자상거래법)\n• 소비자 불만/분쟁처리 기록: 3년\n• 접속 로그: 3개월 (통신비밀보호법)')),
+                  _PolicySection(title: context.loc.t('제4조_개인정보_제3자_제공', '제4조 (개인정보 제3자 제공)'),
+                    content: context.loc.t('k_2fit_mall은_원칙적으로_이용자의_개인정보를_외부', '2FIT MALL은 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다. 단, 배송 처리를 위해 택배사에 최소한의 정보(수령인, 주소, 연락처)를 제공합니다.')),
+                  _PolicySection(title: context.loc.t('제5조_개인정보처리_위탁', '제5조 (개인정보처리 위탁)'),
+                    content: context.loc.t('개인정보_처리위탁_전체', '• Firebase (Google): 회원 인증 및 데이터 저장\n• EmailJS: 이메일 발송 서비스\n• 택배사: 배송 처리')),
+                  _PolicySection(title: context.loc.t('제6조_이용자의_권리', '제6조 (이용자의 권리)'),
+                    content: context.loc.t('이용자_권리_전체', '이용자는 언제든지 아래 권리를 행사할 수 있습니다.\n\n• 개인정보 열람 요청\n• 오류 정정 요청\n• 삭제 요청 (회원 탈퇴)\n• 처리 정지 요청\n\n문의: chw243527@gmail.com')),
+                  _PolicySection(title: context.loc.t('제7조_개인정보_보호책임자', '제7조 (개인정보 보호책임자)'),
+                    content: context.loc.t('개인정보_보호책임자_전체', '• 책임자: 2FIT MALL 운영팀\n• 이메일: chw243527@gmail.com\n\n본 방침은 2025년 3월 21일부터 적용됩니다.')),
                 ],
               ),
             ),
@@ -515,21 +434,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
         builder: (_, controller) => Column(
           children: [
             const SizedBox(height: 12),
-            Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+            Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(2))),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Builder(builder: (bCtx) {
                 final bLoc = bCtx.watch<LanguageProvider>().loc;
                 return Text(bLoc.signupTermsTitleShort,
-                    style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary));
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800,
+                        color: Color(0xFF1A1A2E)));
               }),
             ),
             const Divider(height: 1),
@@ -538,30 +452,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 controller: controller,
                 padding: const EdgeInsets.all(20),
                 children: [
-                  _PolicySection(
-                      title: context.loc.t('제1조_목적', '제1조 (목적)'),
-                      content: context.loc.t('본_약관은_2fit_mall이하_회사이_제공하는_쇼핑몰',
-                          '본 약관은 2FIT MALL(이하 "회사")이 제공하는 쇼핑몰 서비스의 이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.')),
-                  _PolicySection(
-                      title: context.loc.t('제2조_회원가입', '제2조 (회원가입)'),
-                      content: context.loc.t('회원가입조건_전체',
-                          '• 만 14세 이상 이용 가능합니다.\n• 타인의 정보 도용 가입은 금지됩니다.\n• 허위 정보 제공 시 서비스 이용이 제한될 수 있습니다.')),
-                  _PolicySection(
-                      title: context.loc.t('제3조_서비스_이용', '제3조 (서비스 이용)'),
-                      content: context.loc.t('서비스는_연중무휴_24시간_제공을_원칙으로_합니다n_시',
-                          '• 서비스는 연중무휴 24시간 제공을 원칙으로 합니다.\n• 시스템 정기점검, 천재지변 등 불가피한 경우 서비스가 중단될 수 있습니다.')),
-                  _PolicySection(
-                      title: context.loc.t('제4조_구매_및_결제', '제4조 (구매 및 결제)'),
-                      content: context.loc.t('구매결제조건_전체',
-                          '• 주문 후 입금 확인 시 배송이 시작됩니다.\n• 단순 변심에 의한 반품은 수령 후 7일 이내 가능합니다.\n• 상품 하자의 경우 수령 후 3개월 이내 교환/환불이 가능합니다.')),
-                  _PolicySection(
-                      title: context.loc.t('제5조_금지행위', '제5조 (금지행위)'),
-                      content: context.loc.t('금지행위_전체',
-                          '• 타인의 계정 무단 사용\n• 서비스 운영 방해\n• 허위 리뷰 작성\n• 불법 콘텐츠 유포')),
-                  _PolicySection(
-                      title: context.loc.t('제6조_면책조항', '제6조 (면책조항)'),
-                      content: context.loc.t('천재지변_전쟁_등_불가항력으로_인한_서비스_중단에_대해',
-                          '천재지변, 전쟁 등 불가항력으로 인한 서비스 중단에 대해 회사는 책임을 지지 않습니다.')),
+                  _PolicySection(title: context.loc.t('제1조_목적', '제1조 (목적)'),
+                    content: context.loc.t('본_약관은_2fit_mall이하_회사이_제공하는_쇼핑몰', '본 약관은 2FIT MALL(이하 "회사")이 제공하는 쇼핑몰 서비스의 이용조건 및 절차, 회사와 이용자 간의 권리·의무 관계를 규정함을 목적으로 합니다.')),
+                  _PolicySection(title: context.loc.t('제2조_회원가입', '제2조 (회원가입)'),
+                    content: context.loc.t('회원가입조건_전체', '• 만 14세 이상 이용 가능합니다.\n• 타인의 정보 도용 가입은 금지됩니다.\n• 허위 정보 제공 시 서비스 이용이 제한될 수 있습니다.')),
+                  _PolicySection(title: context.loc.t('제3조_서비스_이용', '제3조 (서비스 이용)'),
+                    content: context.loc.t('서비스는_연중무휴_24시간_제공을_원칙으로_합니다n_시', '• 서비스는 연중무휴 24시간 제공을 원칙으로 합니다.\n• 시스템 정기점검, 천재지변 등 불가피한 경우 서비스가 중단될 수 있습니다.')),
+                  _PolicySection(title: context.loc.t('제4조_구매_및_결제', '제4조 (구매 및 결제)'),
+                    content: context.loc.t('구매결제조건_전체', '• 주문 후 입금 확인 시 배송이 시작됩니다.\n• 단순 변심에 의한 반품은 수령 후 7일 이내 가능합니다.\n• 상품 하자의 경우 수령 후 3개월 이내 교환/환불이 가능합니다.')),
+                  _PolicySection(title: context.loc.t('제5조_금지행위', '제5조 (금지행위)'),
+                    content: context.loc.t('금지행위_전체', '• 타인의 계정 무단 사용\n• 서비스 운영 방해\n• 허위 리뷰 작성\n• 불법 콘텐츠 유포')),
+                  _PolicySection(title: context.loc.t('제6조_면책조항', '제6조 (면책조항)'),
+                    content: context.loc.t('천재지변_전쟁_등_불가항력으로_인한_서비스_중단에_대해', '천재지변, 전쟁 등 불가항력으로 인한 서비스 중단에 대해 회사는 책임을 지지 않습니다.')),
                 ],
               ),
             ),
@@ -576,8 +478,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     // rate limit 체크
     if (_SignupRateLimit.isBlocked()) {
       final secs = _SignupRateLimit.remainingSeconds();
-      _showSnack(
-          context.read<LanguageProvider>().loc.signupRateLimitSecondsMsg(secs));
+      _showSnack(context.read<LanguageProvider>().loc.signupRateLimitSecondsMsg(secs));
       _startBlockTimer();
       return;
     }
@@ -624,14 +525,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         phone: phoneWithCode,
       ).timeout(
         const Duration(seconds: 30),
-        onTimeout: () =>
-            AuthResult(success: false, error: loc.signupTimeoutError),
+        onTimeout: () => AuthResult(
+            success: false, error: loc.signupTimeoutError),
       );
     } catch (e) {
       result = AuthResult(
-          success: false,
-          error:
-              '회원가입 오류: ${e.toString().length > 100 ? e.toString().substring(0, 100) : e.toString()}');
+          success: false, error: '회원가입 오류: ${e.toString().length > 100 ? e.toString().substring(0, 100) : e.toString()}');
     }
 
     if (!mounted) return;
@@ -640,14 +539,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (result.success && result.user != null) {
       _SignupRateLimit.clear(); // 성공 시 초기화
       context.read<UserProvider>().login(result.user!);
-      context.read<CouponProvider>().loadValidCoupons(result.user!.id);
       _showSnack(loc.signupSuccessMsg, isSuccess: true);
       await Future.delayed(const Duration(milliseconds: 1500));
       if (mounted) {
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const MainScreen()),
-            (_) => false);
+        Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (_) => const MainScreen()), (_) => false);
       }
     } else {
       _showSnack(result.error ?? loc.signupFailMsg);
@@ -658,10 +554,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _blockTimer?.cancel();
     setState(() => _blockRemaining = _SignupRateLimit.remainingSeconds());
     _blockTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) {
-        t.cancel();
-        return;
-      }
+      if (!mounted) { t.cancel(); return; }
       setState(() => _blockRemaining = _SignupRateLimit.remainingSeconds());
       if (_blockRemaining <= 0) t.cancel();
     });
@@ -675,7 +568,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         const SizedBox(width: 8),
         Expanded(child: Text(msg, style: const TextStyle(fontSize: 13))),
       ]),
-      backgroundColor: isSuccess ? AppColors.success : AppColors.primary,
+      backgroundColor: isSuccess ? const Color(0xFF2E7D32) : const Color(0xFF1A1A2E),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     ));
@@ -683,689 +576,518 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return wrapWithPopScope(
-        context,
-        Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_rounded,
-                  color: AppColors.primary, size: 20),
-              onPressed: () => goBackOrHome(context),
-            ),
-            title: Text(loc.signupTitle,
-                style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800)),
-            actions: const [
-              Padding(
-                  padding: EdgeInsets.only(right: 8),
-                  child: LanguageSelectorWidget()),
-            ],
-          ),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── 헤더 ──
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                            colors: [AppColors.primary, Color(0xFF2D2D5E)]),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(children: [
-                        const Icon(Icons.security_rounded,
-                            color: Colors.white70, size: 28),
-                        const SizedBox(width: 12),
-                        Expanded(
-                            child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(loc.signupBenefitTitle,
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 2),
-                            Text(loc.signupPasswordSafetyHint,
-                                style: const TextStyle(
-                                    color: Colors.white70, fontSize: 11)),
-                          ],
-                        )),
-                      ]),
-                    ),
-                    const SizedBox(height: 28),
-
-                    // ── rate limit 경고 배너 ──
-                    if (_blockRemaining > 0)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.error.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: AppColors.error.withValues(alpha: 0.20)),
-                        ),
-                        child: Row(children: [
-                          Icon(Icons.timer_outlined,
-                              color: AppColors.error.withValues(alpha: 0.45),
-                              size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                              child: Text(
-                            '${loc.signupContinuousAttemptDetected} '
-                            '${loc.signupContinuousAttemptWait(_blockRemaining ~/ 60, _blockRemaining % 60)}',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.error.withValues(alpha: 0.82)),
-                          )),
-                        ]),
-                      ),
-
-                    // ── 이름 ──
-                    _buildLabel('${loc.signupName} *'),
-                    const SizedBox(height: 8),
-                    _buildField(
-                      controller: _nameCtrl,
-                      hint: loc.signupNameHint,
-                      icon: Icons.person_outline_rounded,
-                      // inputFormatters 제거: 웹 한글 IME 조합 입력 차단 문제 방지
-                      // 대신 validator에서만 검증
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty)
-                          return loc.signupNameEmptyError;
-                        if (v.trim().length < 2) return loc.signupNameError;
-                        if (v.trim().length > 20) return loc.signupNameTooLong;
-                        // 한글/영문/공백만 허용 (숫자·특수문자·이모지 차단)
-                        if (!RegExp(r'^[가-힣a-zA-Z\s]+$').hasMatch(v.trim())) {
-                          return loc.signupNameFormatError;
-                        }
-                        // 연속 공백 불허
-                        if (v.trim().contains(RegExp(r'\s{2,}'))) {
-                          return loc.signupNameSpaceError;
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ── 이메일 + 중복확인 ──
-                    _buildLabel('${loc.signupEmailLabel} *'),
-                    const SizedBox(height: 8),
-                    Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _emailCtrl,
-                              keyboardType: TextInputType.emailAddress,
-                              style: const TextStyle(
-                                  fontSize: 14, color: AppColors.primary),
-                              decoration: InputDecoration(
-                                hintText: 'example@email.com',
-                                hintStyle: TextStyle(
-                                    fontSize: 13, color: Colors.grey.shade400),
-                                prefixIcon: Icon(Icons.email_outlined,
-                                    size: 18, color: Colors.grey.shade400),
-                                suffixIcon: _emailAvailable == true
-                                    ? const Icon(Icons.check_circle,
-                                        color: AppColors.success, size: 20)
-                                    : _emailAvailable == false
-                                        ? const Icon(Icons.cancel,
-                                            color: AppColors.error, size: 20)
-                                        : null,
-                                filled: true,
-                                fillColor: AppColors.surfaceGray,
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: BorderSide.none),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: _emailAvailable == true
-                                      ? const BorderSide(
-                                          color: AppColors.success, width: 1.5)
-                                      : _emailAvailable == false
-                                          ? const BorderSide(
-                                              color: AppColors.error,
-                                              width: 1.5)
-                                          : BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.primary, width: 1.5)),
-                                errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.error, width: 1)),
-                                focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.error, width: 1.5)),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
-                              ),
-                              validator: (v) {
-                                if (v == null ||
-                                    !RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$')
-                                        .hasMatch(v.trim())) {
-                                  return loc.signupEmailError;
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed:
-                                  _emailChecking ? null : _checkEmailDuplicate,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                                elevation: 0,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 14),
-                              ),
-                              child: _emailChecking
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                          color: Colors.white, strokeWidth: 2))
-                                  : Text(context.loc.t('중복확인', '중복확인'),
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.white)),
-                            ),
-                          ),
-                        ]),
-                    const SizedBox(height: 16),
-
-                    // ── 휴대폰 (국제번호 + SMS 인증) ──
-                    _buildLabel(context.loc
-                        .t('휴대폰_번호_sms_인증_필수', '휴대폰 번호 * (SMS 인증 필수)')),
-                    const SizedBox(height: 4),
-                    Text(
-                      _selectedCountry.code == '+82'
-                          ? context.loc.t('한국_01000000000_형식으로_자동_입력됩니다',
-                              '한국: 010-0000-0000 형식으로 자동 입력됩니다.')
-                          : context.loc.t('국가_코드_선택_후_번호를_입력해주세요',
-                              '국가 코드 선택 후 번호를 입력해주세요.'),
-                      style:
-                          TextStyle(fontSize: 11, color: Colors.grey.shade500),
-                    ),
-                    const SizedBox(height: 8),
-                    // 전화번호 입력 + 인증번호 받기 버튼
-                    Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 국가 코드 선택
-                          GestureDetector(
-                            onTap: _phoneVerified
-                                ? null
-                                : () async {
-                                    await _showCountryPicker();
-                                    _phoneCtrl.clear();
-                                    setState(() {
-                                      _otpSent = false;
-                                      _phoneVerified = false;
-                                    });
-                                  },
-                            child: Container(
-                              height: 50,
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              decoration: BoxDecoration(
-                                color: _phoneVerified
-                                    ? Colors.grey.shade100
-                                    : AppColors.surfaceGray,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: Colors.grey.shade200),
-                              ),
-                              child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(_selectedCountry.flag,
-                                        style: const TextStyle(fontSize: 20)),
-                                    const SizedBox(width: 4),
-                                    Text(_selectedCountry.code,
-                                        style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.primary)),
-                                    const SizedBox(width: 2),
-                                    Icon(Icons.arrow_drop_down,
-                                        color: Colors.grey.shade500, size: 18),
-                                  ]),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _phoneCtrl,
-                              keyboardType: TextInputType.phone,
-                              enabled: !_phoneVerified,
-                              onChanged: (v) {
-                                _onPhoneChanged(v);
-                                if (_otpSent || _phoneVerified) {
-                                  setState(() {
-                                    _otpSent = false;
-                                    _phoneVerified = false;
-                                    _otpCtrl.clear();
-                                  });
-                                }
-                              },
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                    RegExp(r'[0-9\-]'))
-                              ],
-                              style: const TextStyle(
-                                  fontSize: 14, color: AppColors.primary),
-                              decoration: InputDecoration(
-                                hintText: _selectedCountry.code == '+82'
-                                    ? '010-0000-0000'
-                                    : _selectedCountry.code == '+1'
-                                        ? '555-123-4567'
-                                        : _selectedCountry.code == '+81'
-                                            ? '90-0000-0000'
-                                            : 'Phone number',
-                                hintStyle: TextStyle(
-                                    fontSize: 13, color: Colors.grey.shade400),
-                                suffixIcon: _phoneVerified
-                                    ? const Icon(Icons.check_circle,
-                                        color: AppColors.success, size: 20)
-                                    : null,
-                                filled: true,
-                                fillColor: _phoneVerified
-                                    ? AppColors.success.withValues(alpha: 0.05)
-                                    : AppColors.surfaceGray,
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: BorderSide.none),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: _phoneVerified
-                                      ? const BorderSide(
-                                          color: AppColors.success, width: 1.5)
-                                      : BorderSide.none,
-                                ),
-                                disabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(
-                                      color: AppColors.success, width: 1.5),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.primary, width: 1.5)),
-                                errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.error, width: 1)),
-                                focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.error, width: 1.5)),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
-                              ),
-                              validator: (v) {
-                                if (v == null || v.trim().isEmpty)
-                                  return context.loc
-                                      .t('휴대폰_번호는_필수입니다', '휴대폰 번호는 필수입니다.');
-                                final digits =
-                                    v.replaceAll(RegExp(r'[^0-9]'), '');
-                                if (_selectedCountry.code == '+82') {
-                                  if (digits.length < 9 || digits.length > 11) {
-                                    return context.loc.t(
-                                        '올바른_한국_휴대폰_번호를_입력해주세요',
-                                        '올바른 한국 휴대폰 번호를 입력해주세요.');
-                                  }
-                                } else {
-                                  if (digits.length < 6 || digits.length > 15) {
-                                    return context.loc.t(
-                                        '올바른_전화번호를_입력해주세요_615자리',
-                                        '올바른 전화번호를 입력해주세요. (6~15자리)');
-                                  }
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // 인증번호 받기 버튼
-                          SizedBox(
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed: (_phoneSending || _phoneVerified)
-                                  ? null
-                                  : _sendOtp,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: _phoneVerified
-                                    ? AppColors.success
-                                    : AppColors.primary,
-                                disabledBackgroundColor: Colors.grey.shade300,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                                elevation: 0,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                              ),
-                              child: _phoneSending
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                          color: Colors.white, strokeWidth: 2))
-                                  : _phoneVerified
-                                      ? const Icon(Icons.check,
-                                          color: Colors.white, size: 18)
-                                      : Text(
-                                          _otpSent
-                                              ? context.loc.t('재발송', '재발송')
-                                              : context.loc.t('인증받기', '인증받기'),
-                                          style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.white),
-                                        ),
-                            ),
-                          ),
-                        ]),
-
-                    // ── OTP 입력란 (발송 후 표시) ──
-                    if (_otpSent && !_phoneVerified) ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF0F4FF),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                              color: AppColors.primary.withValues(alpha: 0.15)),
-                        ),
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(children: [
-                                const Icon(Icons.sms_outlined,
-                                    size: 16, color: AppColors.primary),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                      context.loc.t('문자로_발송된_6자리_인증번호를_입력하세요',
-                                          '문자로 발송된 6자리 인증번호를 입력하세요.'),
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                                // 카운트다운
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: _otpRemaining <= 10
-                                        ? AppColors.error
-                                            .withValues(alpha: 0.10)
-                                        : AppColors.primary
-                                            .withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    '${_otpRemaining ~/ 60}:${(_otpRemaining % 60).toString().padLeft(2, '0')}',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: _otpRemaining <= 10
-                                          ? AppColors.error
-                                              .withValues(alpha: 0.70)
-                                          : AppColors.primary,
-                                    ),
-                                  ),
-                                ),
-                              ]),
-                              const SizedBox(height: 10),
-                              Row(children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _otpCtrl,
-                                    keyboardType: TextInputType.number,
-                                    maxLength: 6,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly
-                                    ],
-                                    style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 6,
-                                        color: AppColors.primary),
-                                    decoration: InputDecoration(
-                                      hintText: '000000',
-                                      hintStyle: TextStyle(
-                                          fontSize: 18,
-                                          letterSpacing: 6,
-                                          color: Colors.grey.shade300,
-                                          fontWeight: FontWeight.w700),
-                                      counterText: '',
-                                      filled: true,
-                                      fillColor: Colors.white,
-                                      border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          borderSide: BorderSide.none),
-                                      enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          borderSide: BorderSide(
-                                              color: Colors.grey.shade200)),
-                                      focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          borderSide: const BorderSide(
-                                              color: AppColors.primary,
-                                              width: 1.5)),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 14),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                SizedBox(
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    onPressed:
-                                        _otpVerifying ? null : _verifyOtp,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.primary,
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12)),
-                                      elevation: 0,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16),
-                                    ),
-                                    child: _otpVerifying
-                                        ? const SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                                color: Colors.white,
-                                                strokeWidth: 2))
-                                        : Text(context.loc.t('확인', '확인'),
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.white)),
-                                  ),
-                                ),
-                              ]),
-                            ]),
-                      ),
-                    ],
-
-                    // ── 인증 완료 배지 ──
-                    if (_phoneVerified) ...[
-                      const SizedBox(height: 8),
-                      Row(children: [
-                        const Icon(Icons.verified_rounded,
-                            color: AppColors.success, size: 16),
-                        const SizedBox(width: 6),
-                        Text(context.loc.t('전화번호_인증_완료', '전화번호 인증 완료'),
-                            style: TextStyle(
-                                fontSize: 12,
-                                color:
-                                    AppColors.success.withValues(alpha: 0.82),
-                                fontWeight: FontWeight.w600)),
-                      ]),
-                    ],
-                    const SizedBox(height: 16),
-
-                    // ── 비밀번호 ──
-                    _buildLabel('${loc.signupPasswordLabel} *'),
-                    const SizedBox(height: 8),
-                    _buildField(
-                      controller: _passwordCtrl,
-                      hint: context.loc
-                          .t('k_8자_이상_대소문자_숫자_특수문자', '8자 이상, 대/소문자, 숫자, 특수문자'),
-                      icon: Icons.lock_outline_rounded,
-                      obscure: _obscurePass,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                            _obscurePass
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Colors.grey.shade400,
-                            size: 20),
-                        onPressed: () =>
-                            setState(() => _obscurePass = !_obscurePass),
-                      ),
-                      validator: (v) {
-                        if (v == null || v.isEmpty)
-                          return context.loc.t('비밀번호를_입력해주세요', '비밀번호를 입력해주세요.');
-                        if (v.length < 8)
-                          return context.loc
-                              .t('비밀번호는_8자_이상이어야_합니다', '비밀번호는 8자 이상이어야 합니다.');
-                        if (_passwordChecks.where((c) => c).length < 3) {
-                          return context.loc
-                              .t('비밀번호_강도가_부족합니다', '비밀번호 강도가 부족합니다.');
-                        }
-                        return null;
-                      },
-                    ),
-                    if (_passwordCtrl.text.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      _buildPasswordStrengthIndicator(),
-                    ],
-                    const SizedBox(height: 16),
-
-                    // ── 비밀번호 확인 ──
-                    _buildLabel('${loc.signupPasswordConfirmLabel} *'),
-                    const SizedBox(height: 8),
-                    _buildField(
-                      controller: _confirmCtrl,
-                      hint: loc.signupPasswordConfirmHint2,
-                      icon: Icons.lock_outline_rounded,
-                      obscure: _obscureConfirm,
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                            _obscureConfirm
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            color: Colors.grey.shade400,
-                            size: 20),
-                        onPressed: () =>
-                            setState(() => _obscureConfirm = !_obscureConfirm),
-                      ),
-                      validator: (v) {
-                        if (v != _passwordCtrl.text)
-                          return loc.signupConfirmPasswordError;
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 28),
-
-                    // ── 약관 동의 ──
-                    _buildAgreementSection(),
-                    const SizedBox(height: 28),
-
-                    // ── 가입 버튼 ──
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: ElevatedButton(
-                        onPressed: (_isLoading || _blockRemaining > 0)
-                            ? null
-                            : _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          disabledBackgroundColor: Colors.grey.shade300,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
-                          elevation: 0,
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2))
-                            : _blockRemaining > 0
-                                ? Text(
-                                    loc.signupRateLimitCountdown(
-                                        _blockRemaining ~/ 60,
-                                        _blockRemaining % 60),
-                                    style: const TextStyle(
-                                        fontSize: 14, color: Colors.white70))
-                                : Text(loc.signupSubmitBtn,
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white)),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // ── 로그인 이동 ──
-                    Center(
-                      child: GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                                fontSize: 13, color: Colors.grey.shade500),
-                            children: [
-                              TextSpan(text: loc.signupAlreadyHaveAccount),
-                              TextSpan(
-                                  text: loc.signupLoginLink,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primary)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+    return wrapWithPopScope(context, Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Color(0xFF1A1A2E), size: 20),
+          onPressed: () => goBackOrHome(context),
+        ),
+        title: Text(loc.signupTitle,
+            style: const TextStyle(color: Color(0xFF1A1A2E),
+                fontSize: 18, fontWeight: FontWeight.w800)),
+        actions: const [
+          Padding(padding: EdgeInsets.only(right: 8), child: LanguageSelectorWidget()),
+        ],
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── 헤더 ──
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                        colors: [Color(0xFF1A1A2E), Color(0xFF2D2D5E)]),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.security_rounded, color: Colors.white70, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(loc.signupBenefitTitle,
+                            style: const TextStyle(color: Colors.white,
+                                fontSize: 14, fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 2),
+                        Text(loc.signupPasswordSafetyHint,
+                            style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                      ],
+                    )),
+                  ]),
                 ),
-              ),
+                const SizedBox(height: 28),
+
+                // ── rate limit 경고 배너 ──
+                if (_blockRemaining > 0)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Row(children: [
+                      Icon(Icons.timer_outlined, color: Colors.red.shade400, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(
+                        '${loc.signupContinuousAttemptDetected} '
+                        '${loc.signupContinuousAttemptWait(_blockRemaining ~/ 60, _blockRemaining % 60)}',
+                        style: TextStyle(fontSize: 12, color: Colors.red.shade700),
+                      )),
+                    ]),
+                  ),
+
+                // ── 이름 ──
+                _buildLabel('${loc.signupName} *'),
+                const SizedBox(height: 8),
+                _buildField(
+                  controller: _nameCtrl,
+                  hint: loc.signupNameHint,
+                  icon: Icons.person_outline_rounded,
+                  // inputFormatters 제거: 웹 한글 IME 조합 입력 차단 문제 방지
+                  // 대신 validator에서만 검증
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return loc.signupNameEmptyError;
+                    if (v.trim().length < 2) return loc.signupNameError;
+                    if (v.trim().length > 20) return loc.signupNameTooLong;
+                    // 한글/영문/공백만 허용 (숫자·특수문자·이모지 차단)
+                    if (!RegExp(r'^[가-힣a-zA-Z\s]+$').hasMatch(v.trim())) {
+                      return loc.signupNameFormatError;
+                    }
+                    // 연속 공백 불허
+                    if (v.trim().contains(RegExp(r'\s{2,}'))) {
+                      return loc.signupNameSpaceError;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // ── 이메일 + 중복확인 ──
+                _buildLabel('${loc.signupEmailLabel} *'),
+                const SizedBox(height: 8),
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _emailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E)),
+                      decoration: InputDecoration(
+                        hintText: 'example@email.com',
+                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                        prefixIcon: Icon(Icons.email_outlined, size: 18, color: Colors.grey.shade400),
+                        suffixIcon: _emailAvailable == true
+                            ? const Icon(Icons.check_circle, color: Colors.green, size: 20)
+                            : _emailAvailable == false
+                                ? const Icon(Icons.cancel, color: Colors.red, size: 20)
+                                : null,
+                        filled: true,
+                        fillColor: const Color(0xFFF5F5F5),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: _emailAvailable == true
+                              ? const BorderSide(color: Colors.green, width: 1.5)
+                              : _emailAvailable == false
+                                  ? const BorderSide(color: Colors.red, width: 1.5)
+                                  : BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Color(0xFF1A1A2E), width: 1.5)),
+                        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Colors.redAccent, width: 1)),
+                        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ),
+                      validator: (v) {
+                        if (v == null || !RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$').hasMatch(v.trim())) {
+                          return loc.signupEmailError;
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _emailChecking ? null : _checkEmailDuplicate,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1A1A2E),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                      ),
+                      child: _emailChecking
+                          ? const SizedBox(width: 16, height: 16,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text(context.loc.t('중복확인', '중복확인'),
+                              style: TextStyle(fontSize: 12, color: Colors.white)),
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 16),
+
+                // ── 휴대폰 (국제번호 + SMS 인증) ──
+                _buildLabel(context.loc.t('휴대폰_번호_sms_인증_필수', '휴대폰 번호 * (SMS 인증 필수)')),
+                const SizedBox(height: 4),
+                Text(
+                  _selectedCountry.code == '+82'
+                      ? context.loc.t('한국_01000000000_형식으로_자동_입력됩니다', '한국: 010-0000-0000 형식으로 자동 입력됩니다.')
+                      : context.loc.t('국가_코드_선택_후_번호를_입력해주세요', '국가 코드 선택 후 번호를 입력해주세요.'),
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                ),
+                const SizedBox(height: 8),
+                // 전화번호 입력 + 인증번호 받기 버튼
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  // 국가 코드 선택
+                  GestureDetector(
+                    onTap: _phoneVerified ? null : () async {
+                      await _showCountryPicker();
+                      _phoneCtrl.clear();
+                      setState(() { _otpSent = false; _phoneVerified = false; });
+                    },
+                    child: Container(
+                      height: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: _phoneVerified ? Colors.grey.shade100 : const Color(0xFFF5F5F5),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Text(_selectedCountry.flag,
+                            style: const TextStyle(fontSize: 20)),
+                        const SizedBox(width: 4),
+                        Text(_selectedCountry.code,
+                            style: const TextStyle(fontSize: 13,
+                                fontWeight: FontWeight.w600, color: Color(0xFF1A1A2E))),
+                        const SizedBox(width: 2),
+                        Icon(Icons.arrow_drop_down, color: Colors.grey.shade500, size: 18),
+                      ]),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _phoneCtrl,
+                      keyboardType: TextInputType.phone,
+                      enabled: !_phoneVerified,
+                      onChanged: (v) {
+                        _onPhoneChanged(v);
+                        if (_otpSent || _phoneVerified) {
+                          setState(() { _otpSent = false; _phoneVerified = false; _otpCtrl.clear(); });
+                        }
+                      },
+                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9\-]'))],
+                      style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E)),
+                      decoration: InputDecoration(
+                        hintText: _selectedCountry.code == '+82'
+                            ? '010-0000-0000'
+                            : _selectedCountry.code == '+1'
+                                ? '555-123-4567'
+                                : _selectedCountry.code == '+81'
+                                    ? '90-0000-0000'
+                                    : 'Phone number',
+                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                        suffixIcon: _phoneVerified
+                            ? const Icon(Icons.check_circle, color: Colors.green, size: 20)
+                            : null,
+                        filled: true,
+                        fillColor: _phoneVerified ? Colors.green.shade50 : const Color(0xFFF5F5F5),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide.none),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: _phoneVerified
+                              ? const BorderSide(color: Colors.green, width: 1.5)
+                              : BorderSide.none,
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Colors.green, width: 1.5),
+                        ),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Color(0xFF1A1A2E), width: 1.5)),
+                        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Colors.redAccent, width: 1)),
+                        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return context.loc.t('휴대폰_번호는_필수입니다', '휴대폰 번호는 필수입니다.');
+                        final digits = v.replaceAll(RegExp(r'[^0-9]'), '');
+                        if (_selectedCountry.code == '+82') {
+                          if (digits.length < 9 || digits.length > 11) {
+                            return context.loc.t('올바른_한국_휴대폰_번호를_입력해주세요', '올바른 한국 휴대폰 번호를 입력해주세요.');
+                          }
+                        } else {
+                          if (digits.length < 6 || digits.length > 15) {
+                            return context.loc.t('올바른_전화번호를_입력해주세요_615자리', '올바른 전화번호를 입력해주세요. (6~15자리)');
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // 인증번호 받기 버튼
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: (_phoneSending || _phoneVerified) ? null : _sendOtp,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _phoneVerified
+                            ? Colors.green
+                            : const Color(0xFF1A1A2E),
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      child: _phoneSending
+                          ? const SizedBox(width: 16, height: 16,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : _phoneVerified
+                              ? const Icon(Icons.check, color: Colors.white, size: 18)
+                              : Text(
+                                  _otpSent ? context.loc.t('재발송', '재발송') : context.loc.t('인증받기', '인증받기'),
+                                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                                ),
+                    ),
+                  ),
+                ]),
+
+                // ── OTP 입력란 (발송 후 표시) ──
+                if (_otpSent && !_phoneVerified) ...[  
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0F4FF),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFF1A1A2E).withValues(alpha: 0.15)),
+                    ),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: [
+                        const Icon(Icons.sms_outlined, size: 16, color: Color(0xFF1A1A2E)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(context.loc.t('문자로_발송된_6자리_인증번호를_입력하세요', '문자로 발송된 6자리 인증번호를 입력하세요.'),
+                              style: TextStyle(fontSize: 12, color: Color(0xFF1A1A2E),
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                        // 카운트다운
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: _otpRemaining <= 10
+                                ? Colors.red.shade100
+                                : const Color(0xFF1A1A2E).withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${_otpRemaining ~/ 60}:${(_otpRemaining % 60).toString().padLeft(2, '0')}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: _otpRemaining <= 10
+                                  ? Colors.red.shade600
+                                  : const Color(0xFF1A1A2E),
+                            ),
+                          ),
+                        ),
+                      ]),
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _otpCtrl,
+                            keyboardType: TextInputType.number,
+                            maxLength: 6,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            style: const TextStyle(fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 6,
+                                color: Color(0xFF1A1A2E)),
+                            decoration: InputDecoration(
+                              hintText: '000000',
+                              hintStyle: TextStyle(fontSize: 18,
+                                  letterSpacing: 6, color: Colors.grey.shade300,
+                                  fontWeight: FontWeight.w700),
+                              counterText: '',
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none),
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(color: Colors.grey.shade200)),
+                              focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFF1A1A2E), width: 1.5)),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 14),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _otpVerifying ? null : _verifyOtp,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1A1A2E),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            child: _otpVerifying
+                                ? const SizedBox(width: 16, height: 16,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2))
+                                : Text(context.loc.t('확인', '확인'),
+                                    style: TextStyle(fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white)),
+                          ),
+                        ),
+                      ]),
+                    ]),
+                  ),
+                ],
+
+                // ── 인증 완료 배지 ──
+                if (_phoneVerified) ...[  
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    const Icon(Icons.verified_rounded, color: Colors.green, size: 16),
+                    const SizedBox(width: 6),
+                    Text(context.loc.t('전화번호_인증_완료', '전화번호 인증 완료'),
+                        style: TextStyle(fontSize: 12,
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.w600)),
+                  ]),
+                ],
+                const SizedBox(height: 16),
+
+                // ── 비밀번호 ──
+                _buildLabel('${loc.signupPasswordLabel} *'),
+                const SizedBox(height: 8),
+                _buildField(
+                  controller: _passwordCtrl,
+                  hint: context.loc.t('k_8자_이상_대소문자_숫자_특수문자', '8자 이상, 대/소문자, 숫자, 특수문자'),
+                  icon: Icons.lock_outline_rounded,
+                  obscure: _obscurePass,
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: Colors.grey.shade400, size: 20),
+                    onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return context.loc.t('비밀번호를_입력해주세요', '비밀번호를 입력해주세요.');
+                    if (v.length < 8) return context.loc.t('비밀번호는_8자_이상이어야_합니다', '비밀번호는 8자 이상이어야 합니다.');
+                    if (_passwordChecks.where((c) => c).length < 3) {
+                      return context.loc.t('비밀번호_강도가_부족합니다', '비밀번호 강도가 부족합니다.');
+                    }
+                    return null;
+                  },
+                ),
+                if (_passwordCtrl.text.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _buildPasswordStrengthIndicator(),
+                ],
+                const SizedBox(height: 16),
+
+                // ── 비밀번호 확인 ──
+                _buildLabel('${loc.signupPasswordConfirmLabel} *'),
+                const SizedBox(height: 8),
+                _buildField(
+                  controller: _confirmCtrl,
+                  hint: loc.signupPasswordConfirmHint2,
+                  icon: Icons.lock_outline_rounded,
+                  obscure: _obscureConfirm,
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: Colors.grey.shade400, size: 20),
+                    onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                  ),
+                  validator: (v) {
+                    if (v != _passwordCtrl.text) return loc.signupConfirmPasswordError;
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 28),
+
+                // ── 약관 동의 ──
+                _buildAgreementSection(),
+                const SizedBox(height: 28),
+
+                // ── 가입 버튼 ──
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: (_isLoading || _blockRemaining > 0) ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1A1A2E),
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 0,
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(width: 22, height: 22,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : _blockRemaining > 0
+                            ? Text(loc.signupRateLimitCountdown(_blockRemaining ~/ 60, _blockRemaining % 60),
+                                style: const TextStyle(fontSize: 14, color: Colors.white70))
+                            : Text(loc.signupSubmitBtn,
+                                style: const TextStyle(fontSize: 16,
+                                    fontWeight: FontWeight.w800, color: Colors.white)),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // ── 로그인 이동 ──
+                Center(
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                        children: [
+                          TextSpan(text: loc.signupAlreadyHaveAccount),
+                          TextSpan(text: loc.signupLoginLink,
+                              style: const TextStyle(fontWeight: FontWeight.w700,
+                                  color: AppColors.primary)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
           ),
-        ));
+        ),
+      ),
+    ));
   }
 
   // ── 비밀번호 강도 표시기 ──
@@ -1380,8 +1102,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        Expanded(
-            child: ClipRRect(
+        Expanded(child: ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: _passwordStrength,
@@ -1392,33 +1113,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
         )),
         const SizedBox(width: 10),
         Text(_passwordStrengthLabel,
-            style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
                 color: _passwordStrengthColor)),
       ]),
       const SizedBox(height: 10),
-      Wrap(
-        spacing: 8,
-        runSpacing: 6,
+      Wrap(spacing: 8, runSpacing: 6,
         children: checks.map((c) {
           final met = c['met'] as bool;
           return Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(
-                met
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_unchecked_rounded,
-                size: 14,
-                color: met
-                    ? AppColors.success.withValues(alpha: 0.70)
-                    : Colors.grey.shade400),
+            Icon(met ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                size: 14, color: met ? Colors.green.shade600 : Colors.grey.shade400),
             const SizedBox(width: 4),
             Text(c['label'] as String,
-                style: TextStyle(
-                    fontSize: 11,
-                    color: met
-                        ? AppColors.success.withValues(alpha: 0.70)
-                        : Colors.grey.shade500,
+                style: TextStyle(fontSize: 11,
+                    color: met ? Colors.green.shade600 : Colors.grey.shade500,
                     fontWeight: met ? FontWeight.w600 : FontWeight.w400)),
           ]);
         }).toList(),
@@ -1427,8 +1135,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Widget _buildLabel(String label) => Text(label,
-      style: const TextStyle(
-          fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary));
+      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+          color: Color(0xFF1A1A2E)));
 
   Widget _buildField({
     required TextEditingController controller,
@@ -1446,31 +1154,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
       obscureText: obscure,
       validator: validator,
       inputFormatters: inputFormatters,
-      style: const TextStyle(fontSize: 14, color: AppColors.primary),
+      style: const TextStyle(fontSize: 14, color: Color(0xFF1A1A2E)),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
         prefixIcon: Icon(icon, size: 18, color: Colors.grey.shade400),
         suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: AppColors.surfaceGray,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+        filled: true, fillColor: const Color(0xFFF5F5F5),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
             borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
-        errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.error, width: 1)),
-        focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.error, width: 1.5)),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFF1A1A2E), width: 1.5)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 1)),
+        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }
@@ -1486,19 +1187,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(loc.signupTermsTitle,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary)),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A2E))),
         const SizedBox(height: 12),
         _buildAgreementTile(
           label: loc.signupAgreeAll,
           value: _agreeTerms && _agreePrivacy && _agreeMarketing,
           isBold: true,
           onChanged: (v) => setState(() {
-            _agreeTerms = v!;
-            _agreePrivacy = v;
-            _agreeMarketing = v;
+            _agreeTerms = v!; _agreePrivacy = v; _agreeMarketing = v;
           }),
         ),
         const Divider(height: 16, thickness: 0.5),
@@ -1538,13 +1235,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     bool isRequired = false,
   }) {
     return Row(children: [
-      SizedBox(
-        width: 24,
-        height: 24,
+      SizedBox(width: 24, height: 24,
         child: Checkbox(
-          value: value,
-          onChanged: onChanged,
-          activeColor: AppColors.primary,
+          value: value, onChanged: onChanged,
+          activeColor: const Color(0xFF1A1A2E),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           side: BorderSide(color: Colors.grey.shade300),
         ),
@@ -1554,30 +1248,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Container(
           margin: const EdgeInsets.only(right: 6),
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-          decoration: BoxDecoration(
-              color: AppColors.primary, borderRadius: BorderRadius.circular(4)),
+          decoration: BoxDecoration(color: const Color(0xFF1A1A2E),
+              borderRadius: BorderRadius.circular(4)),
           child: Text(context.loc.t('필수', '필수'),
-              style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700)),
+              style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
         ),
       Expanded(
         child: GestureDetector(
           onTap: () => onChanged(!value),
           child: Text(label,
-              style:
-                  const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
+              style: const TextStyle(fontSize: 13, color: Color(0xFF333333))),
         ),
       ),
       GestureDetector(
         onTap: onViewTap,
         child: Text(context.loc.t('전문보기', '전문보기'),
-            style: TextStyle(
-                fontSize: 12,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-                decoration: TextDecoration.underline)),
+            style: TextStyle(fontSize: 12, color: Color(0xFF1A1A2E),
+                fontWeight: FontWeight.w600, decoration: TextDecoration.underline)),
       ),
     ]);
   }
@@ -1593,51 +1280,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: Row(children: [
-        SizedBox(
-          width: 24,
-          height: 24,
+        SizedBox(width: 24, height: 24,
           child: Checkbox(
-            value: value,
-            onChanged: onChanged,
-            activeColor: AppColors.primary,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            value: value, onChanged: onChanged,
+            activeColor: const Color(0xFF1A1A2E),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
             side: BorderSide(color: Colors.grey.shade300),
           ),
         ),
         const SizedBox(width: 8),
         if (isRequired)
-          Container(
-            margin: const EdgeInsets.only(right: 6),
+          Container(margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-            decoration: BoxDecoration(
-                color: AppColors.primary,
+            decoration: BoxDecoration(color: const Color(0xFF1A1A2E),
                 borderRadius: BorderRadius.circular(4)),
             child: Text(context.loc.t('필수', '필수'),
-                style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700)),
+                style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
           ),
         if (isOptional)
-          Container(
-            margin: const EdgeInsets.only(right: 6),
+          Container(margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-            decoration: BoxDecoration(
-                color: Colors.grey.shade400,
+            decoration: BoxDecoration(color: Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(4)),
             child: Text(context.loc.t('선택', '선택'),
-                style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700)),
+                style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w700)),
           ),
-        Expanded(
-            child: Text(label,
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
-                    color: AppColors.textPrimary))),
+        Expanded(child: Text(label,
+            style: TextStyle(fontSize: 13,
+                fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
+                color: const Color(0xFF333333)))),
       ]),
     );
   }
@@ -1655,14 +1326,11 @@ class _PolicySection extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(title,
-            style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary)),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
+                color: Color(0xFF1A1A2E))),
         const SizedBox(height: 8),
         Text(content,
-            style: TextStyle(
-                fontSize: 13, color: Colors.grey.shade700, height: 1.6)),
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.6)),
       ]),
     );
   }

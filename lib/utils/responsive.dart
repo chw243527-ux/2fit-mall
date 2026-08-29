@@ -17,15 +17,13 @@
 import 'package:flutter/material.dart';
 
 // ── 브레이크포인트 상수 ──────────────────────────
-// 320px: iPhone SE(1세대) 계열, 360px: Galaxy S 계열의 일반적인 최소 CSS 폭
-const double kNarrowMobileBreakpoint = 360;
 const double kMobileBreakpoint = 600;
 const double kTabletBreakpoint = 900;   // = kPcBreakpoint 와 동일
 const double kPcMaxWidth       = 1280;  // PC 콘텐츠 최대 너비
 
 // ── 폰트 스케일 상한/하한 ────────────────────────
 const double kMinFontScale = 0.85;  // 아주 작은 기기에서 너무 작아지지 않게
-const double kMaxFontScale = 1.15;  // PC/4K 모니터에서 텍스트 과도하게 커지지 않게
+const double kMaxFontScale = 1.30;  // 4K 모니터에서 너무 커지지 않게
 
 class Responsive {
   final double screenWidth;
@@ -49,20 +47,8 @@ class Responsive {
 
   // ── 기기 구분 ────────────────────────────────
   bool get isMobile => screenWidth < kMobileBreakpoint;
-  bool get isNarrowMobile => screenWidth <= kNarrowMobileBreakpoint;
   bool get isTablet => screenWidth >= kMobileBreakpoint && screenWidth < kTabletBreakpoint;
   bool get isPc     => screenWidth >= kTabletBreakpoint;
-
-  /// 모바일 본문 공통 좌우 여백. 320~360px에서는 12px로 줄여 콘텐츠 폭을 확보합니다.
-  double get contentGutter {
-    if (isNarrowMobile) return 12.0;
-    if (isMobile) return 16.0;
-    if (isTablet) return 24.0;
-    return 32.0;
-  }
-
-  /// 가로 버튼·칩·카드에 사용할 최소 터치 영역입니다.
-  double get minTouchTarget => isNarrowMobile ? 44.0 : 48.0;
 
   // ── 기준 너비 (기기별) ─────────────────────────
   double get _baseWidth {
@@ -94,10 +80,6 @@ class Responsive {
 
   /// 폰트 크기 (화면 크기 비례, 클램프 적용)
   double sp(double designFontSize) => designFontSize * fontScale;
-
-  /// 소형 화면에서만 값이 너무 커지는 것을 막기 위한 컴팩트 값 선택기입니다.
-  T compact<T>({required T normal, T? narrow}) =>
-      isNarrowMobile ? (narrow ?? normal) : normal;
 
   /// 패딩/마진 — 너비 비례
   EdgeInsets padding({

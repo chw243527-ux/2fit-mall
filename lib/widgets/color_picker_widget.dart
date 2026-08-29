@@ -19,14 +19,14 @@ class RibTexturePainter extends CustomPainter {
 
     // ─── 골지 리브 파라미터 ───
     // 골: 어두운 줄 (오목한 부분)
-    const ribPeriod = 5.0; // 리브 1주기 = 5px
-    const darkW = 1.6; // 어두운 골 두께
+    const ribPeriod = 5.0;  // 리브 1주기 = 5px
+    const darkW     = 1.6;  // 어두운 골 두께
 
     final darkAlpha = lum > 0.6
-        ? 0.28 // 밝은 색
+        ? 0.28   // 밝은 색
         : lum > 0.3
-            ? 0.22 // 중간
-            : 0.18; // 어두운 색
+            ? 0.22   // 중간
+            : 0.18;  // 어두운 색
 
     final darkPaint = Paint()
       ..color = lum > 0.5
@@ -57,7 +57,6 @@ class RibColorSwatch extends StatelessWidget {
   final Widget? child;
   final double? height;
   final double? borderRadius;
-
   /// true: 골지 세로 리브 텍스처 표시 / false: 단색 매끈한 원형 (기본 false)
   final bool showRib;
 
@@ -107,8 +106,7 @@ class RibColorSwatch extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             // 골지 텍스처 (showRib=true 일 때만)
-            if (showRib)
-              CustomPaint(painter: RibTexturePainter(baseColor: color)),
+            if (showRib) CustomPaint(painter: RibTexturePainter(baseColor: color)),
             // 체크 아이콘
             if (child != null) Center(child: child!),
           ],
@@ -127,90 +125,25 @@ class AppColorPalette {
   // 실물 촬영 이미지 픽선 직접 추출 — median sampling (2026-05-28)
   // product_detail_screen.dart _goljiColorMap / allGoljiColors와 완전 동일
   static const List<Map<String, dynamic>> registeredColors = [
-    {'name': 'K (블랙)', 'nameEn': 'K-Black', 'code': 'K', 'hex': 0xFF3A3A3A},
-    {'name': 'N (네이비)', 'nameEn': 'N-Navy', 'code': 'N', 'hex': 0xFF2A3668},
-    {'name': 'W (화이트)', 'nameEn': 'W-White', 'code': 'W', 'hex': 0xFFF2F2F2},
-    {'name': 'G (그레이)', 'nameEn': 'G-Gray', 'code': 'G', 'hex': 0xFF9E9E9E},
-    {
-      'name': 'DG (다크그레이)',
-      'nameEn': 'DG-DarkGray',
-      'code': 'DG',
-      'hex': 0xFF424242
-    },
-    {
-      'name': 'SB (스카이블루)',
-      'nameEn': 'SB-SkyBlue',
-      'code': 'SB',
-      'hex': 0xFF92C9F8
-    },
-    {'name': 'B (블루)', 'nameEn': 'B-Blue', 'code': 'B', 'hex': 0xFF3A6ACD},
-    {
-      'name': 'DB (다크블루)',
-      'nameEn': 'DB-DarkBlue',
-      'code': 'DB',
-      'hex': 0xFF485685
-    },
-    {
-      'name': 'SP (스킨핑크)',
-      'nameEn': 'SP-SkinPink',
-      'code': 'SP',
-      'hex': 0xFFE7C6BF
-    },
-    {
-      'name': 'LP (라이트핑크)',
-      'nameEn': 'LP-LightPink',
-      'code': 'LP',
-      'hex': 0xFFE6A8B1
-    },
-    {
-      'name': 'IO (아이보리)',
-      'nameEn': 'IO-Ivory',
-      'code': 'IO',
-      'hex': 0xFFD2CEC3
-    },
-    {
-      'name': 'LG (라이트그레이)',
-      'nameEn': 'LG-LightGray',
-      'code': 'LG',
-      'hex': 0xFFBDBDBD
-    },
-    {'name': 'R (레드)', 'nameEn': 'R-Red', 'code': 'R', 'hex': 0xFFE03430},
-    {
-      'name': 'PP (퍼플네이비)',
-      'nameEn': 'PP-PurpleNavy',
-      'code': 'PP',
-      'hex': 0xFF363752
-    },
-    {
-      'name': 'ND (올리브그린)',
-      'nameEn': 'ND-OliveGreen',
-      'code': 'ND',
-      'hex': 0xFF4B5441
-    },
-    {
-      'name': 'BB (틸블루)',
-      'nameEn': 'BB-TealBlue',
-      'code': 'BB',
-      'hex': 0xFF116977
-    },
-    {
-      'name': 'FP (형광핑크)',
-      'nameEn': 'FP-FluoPink',
-      'code': 'FP',
-      'hex': 0xFFFD1691
-    },
-    {
-      'name': 'FO (형광오렌지)',
-      'nameEn': 'FO-FluoOrange',
-      'code': 'FO',
-      'hex': 0xFFFE6502
-    },
-    {
-      'name': 'FG (형광그린)',
-      'nameEn': 'FG-FluoGreen',
-      'code': 'FG',
-      'hex': 0xFF7FD905
-    },
+    {'name': 'K (블랙)',         'nameEn': 'K-Black',       'code': 'K',  'hex': 0xFF3A3A3A},
+    {'name': 'N (네이비)',       'nameEn': 'N-Navy',        'code': 'N',  'hex': 0xFF2A3668},
+    {'name': 'W (화이트)',       'nameEn': 'W-White',       'code': 'W',  'hex': 0xFFF2F2F2},
+    {'name': 'G (그레이)',       'nameEn': 'G-Gray',        'code': 'G',  'hex': 0xFF9E9E9E},
+    {'name': 'DG (다크그레이)',  'nameEn': 'DG-DarkGray',   'code': 'DG', 'hex': 0xFF424242},
+    {'name': 'SB (스카이블루)',  'nameEn': 'SB-SkyBlue',    'code': 'SB', 'hex': 0xFF92C9F8},
+    {'name': 'B (블루)',         'nameEn': 'B-Blue',        'code': 'B',  'hex': 0xFF3A6ACD},
+    {'name': 'DB (다크블루)',    'nameEn': 'DB-DarkBlue',   'code': 'DB', 'hex': 0xFF485685},
+    {'name': 'SP (스킨핑크)',    'nameEn': 'SP-SkinPink',   'code': 'SP', 'hex': 0xFFE7C6BF},
+    {'name': 'LP (라이트핑크)',  'nameEn': 'LP-LightPink',  'code': 'LP', 'hex': 0xFFE6A8B1},
+    {'name': 'IO (아이보리)',    'nameEn': 'IO-Ivory',      'code': 'IO', 'hex': 0xFFD2CEC3},
+    {'name': 'LG (라이트그레이)','nameEn': 'LG-LightGray',  'code': 'LG', 'hex': 0xFFBDBDBD},
+    {'name': 'R (레드)',         'nameEn': 'R-Red',         'code': 'R',  'hex': 0xFFE03430},
+    {'name': 'PP (퍼플네이비)',  'nameEn': 'PP-PurpleNavy', 'code': 'PP', 'hex': 0xFF363752},
+    {'name': 'ND (올리브그린)', 'nameEn': 'ND-OliveGreen',  'code': 'ND', 'hex': 0xFF4B5441},
+    {'name': 'BB (틸블루)',      'nameEn': 'BB-TealBlue',   'code': 'BB', 'hex': 0xFF116977},
+    {'name': 'FP (형광핑크)',    'nameEn': 'FP-FluoPink',   'code': 'FP', 'hex': 0xFFFD1691},
+    {'name': 'FO (형광오렌지)', 'nameEn': 'FO-FluoOrange',  'code': 'FO', 'hex': 0xFFFE6502},
+    {'name': 'FG (형광그린)',    'nameEn': 'FG-FluoGreen',  'code': 'FG', 'hex': 0xFF7FD905},
   ];
 
   static List<Map<String, dynamic>> get fullPalette => registeredColors;
@@ -339,8 +272,8 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints:
-          BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.88),
+      constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.88),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -351,8 +284,7 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
           // 핸들
           Container(
             margin: const EdgeInsets.only(top: 12),
-            width: 40,
-            height: 4,
+            width: 40, height: 4,
             decoration: BoxDecoration(
               color: const Color(0xFFE0E0E0),
               borderRadius: BorderRadius.circular(2),
@@ -364,16 +296,14 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
             child: Row(
               children: [
                 Text(loc.colorPickerTitle,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w900)),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                 const SizedBox(width: 10),
                 if (widget.selectedColorName != null) ...[
                   RibColorSwatch(
                     color: widget.selectedColor ?? Colors.transparent,
                     size: 20,
                     isLight: (widget.selectedColor ?? Colors.white)
-                            .computeLuminance() >
-                        0.5,
+                        .computeLuminance() > 0.5,
                   ),
                   const SizedBox(width: 6),
                   Text(widget.selectedColorName!,
@@ -406,10 +336,10 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
               indicatorSize: TabBarIndicatorSize.tab,
               labelColor: Colors.white,
               unselectedLabelColor: const Color(0xFF555555),
-              labelStyle:
-                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-              unselectedLabelStyle:
-                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              labelStyle: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w700),
+              unselectedLabelStyle: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w500),
               dividerColor: Colors.transparent,
               tabs: [
                 Tab(text: loc.colorPickerRib19),
@@ -477,14 +407,18 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w900,
-                    color: isSel ? AppColors.accent : const Color(0xFF222222),
+                    color: isSel
+                        ? AppColors.accent
+                        : const Color(0xFF222222),
                   ),
                   textAlign: TextAlign.center),
               Text(
                 (c['name'] as String).split(' ').first,
                 style: TextStyle(
                   fontSize: 8,
-                  color: isSel ? AppColors.accent : const Color(0xFF888888),
+                  color: isSel
+                      ? AppColors.accent
+                      : const Color(0xFF888888),
                 ),
                 textAlign: TextAlign.center,
                 softWrap: true,
@@ -572,7 +506,8 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
                   color: Color(0xFF222222))),
           const SizedBox(height: 4),
           Text(loc.colorPickerHexExample,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF999999))),
+              style:
+                  const TextStyle(fontSize: 11, color: Color(0xFF999999))),
           const SizedBox(height: 16),
           // 미리보기
           AnimatedContainer(
@@ -595,7 +530,8 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
                 children: [
                   ColoredBox(color: _previewColor),
                   CustomPaint(
-                      painter: RibTexturePainter(baseColor: _previewColor)),
+                      painter:
+                          RibTexturePainter(baseColor: _previewColor)),
                   Center(
                     child: Text(
                       '#${_colorToHex(_previewColor)}',
@@ -624,7 +560,8 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
                 fontFamily: 'monospace'),
             textCapitalization: TextCapitalization.characters,
             inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9A-Fa-f#]')),
+              FilteringTextInputFormatter.allow(
+                  RegExp(r'[0-9A-Fa-f#]')),
               LengthLimitingTextInputFormatter(7),
             ],
             decoration: InputDecoration(
@@ -639,24 +576,27 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget>
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              prefixIconConstraints: const BoxConstraints(minWidth: 50),
+              prefixIconConstraints:
+                  const BoxConstraints(minWidth: 50),
               filled: true,
               fillColor: const Color(0xFFF8F8F8),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                borderSide:
+                    const BorderSide(color: Color(0xFFE0E0E0)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                borderSide:
+                    const BorderSide(color: Color(0xFFE0E0E0)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    const BorderSide(color: Color(0xFF1A1A1A), width: 2),
+                borderSide: const BorderSide(
+                    color: Color(0xFF1A1A1A), width: 2),
               ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 14),
             ),
             onChanged: (v) {
               final raw = v.trim().replaceAll('#', '');
@@ -737,7 +677,8 @@ class _HueBarState extends State<_HueBar> {
   double _sat = 1.0;
   double _val = 0.8;
 
-  Color get _current => HSVColor.fromAHSV(1.0, _hue, _sat, _val).toColor();
+  Color get _current =>
+      HSVColor.fromAHSV(1.0, _hue, _sat, _val).toColor();
 
   @override
   Widget build(BuildContext context) {
@@ -756,7 +697,8 @@ class _HueBarState extends State<_HueBar> {
               borderRadius: BorderRadius.circular(10),
               child: Stack(fit: StackFit.expand, children: [
                 ColoredBox(color: _current),
-                CustomPaint(painter: RibTexturePainter(baseColor: _current)),
+                CustomPaint(
+                    painter: RibTexturePainter(baseColor: _current)),
                 Center(
                   child: Text(
                     context.loc.t('탭하여 이 색상 선택', '탭하여 이 색상 선택'),
@@ -774,13 +716,10 @@ class _HueBarState extends State<_HueBar> {
           ),
         ),
         const SizedBox(height: 10),
-        _slider(context.loc.t('색조', '색조'), _hue, 0, 360,
-            (v) => setState(() => _hue = v),
+        _slider(context.loc.t('색조', '색조'), _hue, 0, 360, (v) => setState(() => _hue = v),
             isHue: true),
-        _slider(context.loc.t('채도', '채도'), _sat, 0, 1,
-            (v) => setState(() => _sat = v)),
-        _slider(context.loc.t('명도', '명도'), _val, 0, 1,
-            (v) => setState(() => _val = v)),
+        _slider(context.loc.t('채도', '채도'), _sat, 0, 1, (v) => setState(() => _sat = v)),
+        _slider(context.loc.t('명도', '명도'), _val, 0, 1, (v) => setState(() => _val = v)),
       ],
     );
   }
@@ -798,23 +737,25 @@ class _HueBarState extends State<_HueBar> {
         SizedBox(
           width: 28,
           child: Text(label,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF888888))),
+              style: const TextStyle(
+                  fontSize: 10, color: Color(0xFF888888))),
         ),
         Expanded(
           child: isHue
               ? SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     trackHeight: 8,
-                    thumbShape:
-                        const RoundSliderThumbShape(enabledThumbRadius: 8),
+                    thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 8),
                     overlayShape: SliderComponentShape.noOverlay,
                   ),
                   child: Slider(
                     value: value,
                     min: min,
                     max: max,
-                    activeColor:
-                        HSVColor.fromAHSV(1.0, value, 1.0, 1.0).toColor(),
+                    activeColor: HSVColor.fromAHSV(
+                            1.0, value, 1.0, 1.0)
+                        .toColor(),
                     inactiveColor: const Color(0xFFE0E0E0),
                     onChanged: onChanged,
                   ),
@@ -831,8 +772,11 @@ class _HueBarState extends State<_HueBar> {
         SizedBox(
           width: 36,
           child: Text(
-            isHue ? '${value.round()}°' : '${(value * 100).round()}%',
-            style: const TextStyle(fontSize: 10, color: Color(0xFF888888)),
+            isHue
+                ? '${value.round()}°'
+                : '${(value * 100).round()}%',
+            style: const TextStyle(
+                fontSize: 10, color: Color(0xFF888888)),
             textAlign: TextAlign.end,
           ),
         ),
@@ -865,7 +809,8 @@ class ColorSelectButton extends StatelessWidget {
     return GestureDetector(
       onTap: () => _showColorPicker(context),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: selectedColorName != null
               ? selectedColor?.withValues(alpha: 0.08)
@@ -973,9 +918,7 @@ class _InlineColorChartState extends State<InlineColorChart>
   bool _showAdjust = false;
 
   void _applyHSL() {
-    final c = HSLColor.fromAHSL(
-            1.0, _hue, _sat.clamp(0.0, 1.0), _lit.clamp(0.05, 0.95))
-        .toColor();
+    final c = HSLColor.fromAHSL(1.0, _hue, _sat.clamp(0.0, 1.0), _lit.clamp(0.05, 0.95)).toColor();
     final hex = c.toARGB32().toRadixString(16).substring(2).toUpperCase();
     widget.onColorSelected(context.loc.t('커스텀 _', '커스텀 (#$hex)'), c);
   }
@@ -983,10 +926,10 @@ class _InlineColorChartState extends State<InlineColorChart>
   void _selectBaseColor(Color color, String name) {
     final hsl = HSLColor.fromColor(color);
     setState(() {
-      _baseColor = color;
-      _hue = hsl.hue;
-      _sat = hsl.saturation;
-      _lit = hsl.lightness;
+      _baseColor  = color;
+      _hue        = hsl.hue;
+      _sat        = hsl.saturation;
+      _lit        = hsl.lightness;
       _showAdjust = true;
     });
     widget.onColorSelected(name, color);
@@ -1040,9 +983,7 @@ class _InlineColorChartState extends State<InlineColorChart>
       }
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-          content: Text(
-              context.loc.t('6자리_HEX_코드를_입력해_21e929', '6자리 HEX 코드를 입력해주세요'))),
+      SnackBar(content: Text(context.loc.t('6자리_HEX_코드를_입력해_21e929', '6자리 HEX 코드를 입력해주세요'))),
     );
   }
 
@@ -1074,8 +1015,7 @@ class _InlineColorChartState extends State<InlineColorChart>
           Row(
             children: [
               Container(
-                width: 4,
-                height: 16,
+                width: 4, height: 16,
                 decoration: BoxDecoration(
                   color: widget.accentColor,
                   borderRadius: BorderRadius.circular(2),
@@ -1084,8 +1024,7 @@ class _InlineColorChartState extends State<InlineColorChart>
               const SizedBox(width: 8),
               Text(widget.label,
                   style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 14, fontWeight: FontWeight.w700,
                       color: Color(0xFF1A1A1A))),
               if (widget.required) ...const [
                 SizedBox(width: 4),
@@ -1101,8 +1040,7 @@ class _InlineColorChartState extends State<InlineColorChart>
                   color: widget.selectedColor ?? Colors.transparent,
                   size: 20,
                   isLight: (widget.selectedColor ?? Colors.white)
-                          .computeLuminance() >
-                      0.5,
+                      .computeLuminance() > 0.5,
                   accentColor: widget.accentColor,
                 ),
                 const SizedBox(width: 6),
@@ -1133,8 +1071,8 @@ class _InlineColorChartState extends State<InlineColorChart>
               indicatorSize: TabBarIndicatorSize.tab,
               labelColor: Colors.white,
               unselectedLabelColor: const Color(0xFF666666),
-              labelStyle:
-                  const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+              labelStyle: const TextStyle(
+                  fontSize: 11, fontWeight: FontWeight.w700),
               unselectedLabelStyle:
                   const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
               dividerColor: Colors.transparent,
@@ -1187,15 +1125,17 @@ class _InlineColorChartState extends State<InlineColorChart>
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 130),
                   width: 40,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 3, horizontal: 2),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 3, horizontal: 2),
                   decoration: BoxDecoration(
                     color: isSel
                         ? color.withValues(alpha: 0.10)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: isSel ? widget.accentColor : Colors.transparent,
+                      color: isSel
+                          ? widget.accentColor
+                          : Colors.transparent,
                       width: isSel ? 2 : 0,
                     ),
                   ),
@@ -1211,15 +1151,18 @@ class _InlineColorChartState extends State<InlineColorChart>
                         child: isSel
                             ? Icon(Icons.check_rounded,
                                 size: 12,
-                                color: isLight ? Colors.black87 : Colors.white)
+                                color: isLight
+                                    ? Colors.black87
+                                    : Colors.white)
                             : null,
                       ),
                       const SizedBox(height: 2),
                       Text(code,
                           style: TextStyle(
                             fontSize: 8.5,
-                            fontWeight:
-                                isSel ? FontWeight.w900 : FontWeight.w600,
+                            fontWeight: isSel
+                                ? FontWeight.w900
+                                : FontWeight.w600,
                             color: isSel
                                 ? widget.accentColor
                                 : const Color(0xFF444444),
@@ -1242,20 +1185,20 @@ class _InlineColorChartState extends State<InlineColorChart>
                   style: const TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w600),
                   decoration: InputDecoration(
-                    hintText:
-                        context.loc.t('코드 입력 예 K N FP', '코드 입력 (예: K, N, FP)'),
-                    hintStyle:
-                        const TextStyle(fontSize: 12, color: Color(0xFFAAAAAA)),
+                    hintText: context.loc.t('코드 입력 예 K N FP', '코드 입력 (예: K, N, FP)'),
+                    hintStyle: const TextStyle(
+                        fontSize: 12, color: Color(0xFFAAAAAA)),
                     isDense: true,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
+                        borderSide: const BorderSide(
+                            color: Color(0xFFDDDDDD))),
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide:
-                            BorderSide(color: widget.accentColor, width: 1.5)),
+                        borderSide: BorderSide(
+                            color: widget.accentColor, width: 1.5)),
                     errorText: _codeError,
                     errorStyle: const TextStyle(fontSize: 10),
                   ),
@@ -1268,8 +1211,8 @@ class _InlineColorChartState extends State<InlineColorChart>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: widget.accentColor,
                   foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 8),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
                   minimumSize: const Size(0, 38),
@@ -1304,8 +1247,7 @@ class _InlineColorChartState extends State<InlineColorChart>
         final isLight = color.computeLuminance() > 0.5;
         final isSel = _showAdjust && _baseColor.toARGB32() == color.toARGB32();
         return GestureDetector(
-          onTap: () => _selectBaseColor(color,
-              context.loc.t('커스텀 _color', '커스텀 (#${_colorToHex(color)})')),
+          onTap: () => _selectBaseColor(color, context.loc.t('커스텀 _color', '커스텀 (#${_colorToHex(color)})')),
           child: RibColorSwatch(
             color: color,
             size: 26,
@@ -1314,8 +1256,8 @@ class _InlineColorChartState extends State<InlineColorChart>
             accentColor: widget.accentColor,
             isLight: isLight,
             child: isSel
-                ? Icon(Icons.check_rounded,
-                    size: 10, color: isLight ? Colors.black87 : Colors.white)
+                ? Icon(Icons.check_rounded, size: 10,
+                    color: isLight ? Colors.black87 : Colors.white)
                 : null,
           ),
         );
@@ -1342,8 +1284,7 @@ class _InlineColorChartState extends State<InlineColorChart>
           Row(
             children: [
               Container(
-                width: 30,
-                height: 30,
+                width: 30, height: 30,
                 decoration: BoxDecoration(
                   color: adjColor,
                   borderRadius: BorderRadius.circular(6),
@@ -1353,25 +1294,20 @@ class _InlineColorChartState extends State<InlineColorChart>
               const SizedBox(width: 8),
               Expanded(
                 child: Text('#${_colorToHex(adjColor)}',
-                    style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1)),
+                    style: const TextStyle(fontSize: 12,
+                        fontWeight: FontWeight.w700, letterSpacing: 1)),
               ),
               GestureDetector(
                 onTap: _applyHSL,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: widget.accentColor,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(context.loc.t('적용', '적용'),
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700)),
+                      style: TextStyle(color: Colors.white,
+                          fontSize: 11, fontWeight: FontWeight.w700)),
                 ),
               ),
             ],
@@ -1381,18 +1317,10 @@ class _InlineColorChartState extends State<InlineColorChart>
             label: context.loc.t('색조', '색조'),
             value: _hue / 360,
             trackGradient: const LinearGradient(colors: [
-              Color(0xFFFF0000),
-              Color(0xFFFFFF00),
-              Color(0xFF00FF00),
-              Color(0xFF00FFFF),
-              Color(0xFF0000FF),
-              Color(0xFFFF00FF),
-              Color(0xFFFF0000),
+              Color(0xFFFF0000), Color(0xFFFFFF00), Color(0xFF00FF00),
+              Color(0xFF00FFFF), Color(0xFF0000FF), Color(0xFFFF00FF), Color(0xFFFF0000),
             ]),
-            onChanged: (v) => setState(() {
-              _hue = v * 360;
-              _applyHSL();
-            }),
+            onChanged: (v) => setState(() { _hue = v * 360; _applyHSL(); }),
           ),
           _SliderRow(
             label: context.loc.t('채도', '채도'),
@@ -1401,10 +1329,7 @@ class _InlineColorChartState extends State<InlineColorChart>
               HSLColor.fromAHSL(1.0, _hue, 0.0, _lit).toColor(),
               HSLColor.fromAHSL(1.0, _hue, 1.0, _lit).toColor(),
             ]),
-            onChanged: (v) => setState(() {
-              _sat = v;
-              _applyHSL();
-            }),
+            onChanged: (v) => setState(() { _sat = v; _applyHSL(); }),
           ),
           _SliderRow(
             label: context.loc.t('밝기', '밝기'),
@@ -1414,10 +1339,7 @@ class _InlineColorChartState extends State<InlineColorChart>
               HSLColor.fromAHSL(1.0, _hue, _sat, 0.5).toColor(),
               Colors.white,
             ]),
-            onChanged: (v) => setState(() {
-              _lit = v;
-              _applyHSL();
-            }),
+            onChanged: (v) => setState(() { _lit = v; _applyHSL(); }),
           ),
         ],
       ),
@@ -1432,12 +1354,14 @@ class _InlineColorChartState extends State<InlineColorChart>
         // 미리보기 바
         Container(
           height: 44,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Stack(fit: StackFit.expand, children: [
               ColoredBox(color: _hexPreview),
-              CustomPaint(painter: RibTexturePainter(baseColor: _hexPreview)),
+              CustomPaint(
+                  painter: RibTexturePainter(baseColor: _hexPreview)),
               Center(
                 child: Text(
                   '#${_colorToHex(_hexPreview)}',
@@ -1462,7 +1386,8 @@ class _InlineColorChartState extends State<InlineColorChart>
                 controller: _hexCtrl,
                 textCapitalization: TextCapitalization.characters,
                 inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9A-Fa-f#]')),
+                  FilteringTextInputFormatter.allow(
+                      RegExp(r'[0-9A-Fa-f#]')),
                   LengthLimitingTextInputFormatter(7),
                 ],
                 style: const TextStyle(
@@ -1471,18 +1396,19 @@ class _InlineColorChartState extends State<InlineColorChart>
                     letterSpacing: 1.5),
                 decoration: InputDecoration(
                   hintText: '#FF0000',
-                  hintStyle:
-                      const TextStyle(fontSize: 13, color: Color(0xFFCCCCCC)),
+                  hintStyle: const TextStyle(
+                      fontSize: 13, color: Color(0xFFCCCCCC)),
                   isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFDDDDDD))),
+                      borderSide: const BorderSide(
+                          color: Color(0xFFDDDDDD))),
                   focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          BorderSide(color: widget.accentColor, width: 1.5)),
+                      borderSide: BorderSide(
+                          color: widget.accentColor, width: 1.5)),
                 ),
                 onChanged: (v) {
                   final raw = v.trim().replaceAll('#', '');
@@ -1502,8 +1428,8 @@ class _InlineColorChartState extends State<InlineColorChart>
               style: ElevatedButton.styleFrom(
                 backgroundColor: widget.accentColor,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 10),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8)),
                 minimumSize: const Size(0, 42),
@@ -1528,7 +1454,8 @@ class _InlineColorChartState extends State<InlineColorChart>
               onTap: () {
                 setState(() {
                   _hexPreview = color;
-                  _hexCtrl.text = '#${_colorToHex(color)}';
+                  _hexCtrl.text =
+                      '#${_colorToHex(color)}';
                 });
               },
               child: Tooltip(
@@ -1586,10 +1513,8 @@ class _SliderRow extends StatelessWidget {
               SliderTheme(
                 data: SliderThemeData(
                   trackHeight: 10,
-                  thumbShape:
-                      const RoundSliderThumbShape(enabledThumbRadius: 7),
-                  overlayShape:
-                      const RoundSliderOverlayShape(overlayRadius: 12),
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
                   activeTrackColor: Colors.transparent,
                   inactiveTrackColor: Colors.transparent,
                   thumbColor: Colors.white,

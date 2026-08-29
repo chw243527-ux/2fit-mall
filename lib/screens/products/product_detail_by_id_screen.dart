@@ -31,22 +31,13 @@ class _ProductDetailByIdScreenState extends State<ProductDetailByIdScreen> {
       final p = await ProductService.getProductById(widget.productId);
       if (!mounted) return;
       if (p == null) {
-        setState(() {
-          _loading = false;
-          _notFound = true;
-        });
+        setState(() { _loading = false; _notFound = true; });
       } else {
-        setState(() {
-          _loading = false;
-          _product = p;
-        });
+        setState(() { _loading = false; _product = p; });
       }
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _notFound = true;
-      });
+      setState(() { _loading = false; _notFound = true; });
     }
   }
 

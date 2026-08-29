@@ -4,7 +4,7 @@
 // ══════════════════════════════════════════════════════════════
 import 'dart:async';
 import 'dart:convert';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/models.dart';
@@ -12,20 +12,62 @@ import 'supabase_service.dart';
 import 'notification_web_stub.dart'
     if (dart.library.html) 'notification_web_impl.dart' as web_notif;
 
-// ─── 서버 알림 설정 ─────────────────────────────────────────────
-// SOLAPI 자격증명과 발신번호는 Firebase Functions 서버에만 존재합니다.
-// 클라이언트는 Firebase ID Token으로 서버 함수를 호출합니다.
+// ─── 🔑 SOLAPI 카카오 알림톡 설정 ───────────────────────────────
+// 발송 방식: SOLAPI (console.solapi.com) 경유
+// 참고: https://docs.solapi.com/references/messages/send-many-detail
+class KakaoConfig {
+  // ══ API 키 발급 위치 ═══════════════════════════════════════════
+  // console.solapi.com → 개발(</>) → API 키 관리
+  // → API Key + API Secret 복사
+  // ═════════════════════════════════════════════════════════════
+
+  // ✅ SOLAPI API Key — 설정 완료 (2026-06-17)
+  static const apiKey = 'NCSZ6J3N1XWLA5WJ';
+
+  // ✅ SOLAPI API Secret — 설정 완료 (2026-06-17)
+  static const apiSecret = 'BH8J2NRD1NQ04UVHG6CNRFKYZFEZWTXS';
+
+  // ✅ 발신프로필 키 — SOLAPI 채널 연동 완료 (2026-06-17)
+  static const senderKey = 'KA01PF2606170642574857w8Hjn9Czz4';
+
+  // ✅ 발신번호 — SOLAPI 등록 완료 (2026-06-17)
+  static const senderPhone = '01072276914';
+
+  // ── 알림톡 템플릿 코드 (SOLAPI 검수 완료 — 2026-06-17) ────────
+  static const templateOrderConfirm = 'T6E6wLoEmf'; // 주문 확인
+  static const templateShipped      = '1o2lfrsB54'; // 배송 시작
+  static const templateDelivered    = 'GmR1Ij666P'; // 배송 완료
+  static const templateCancelled    = 'EOMxrky4zz'; // 주문 취소
+  // ⚠️ 채팅 알림톡 템플릿: SOLAPI에서 검수 후 실제 코드로 교체
+  // console.solapi.com → 카카오 알림톡 → 템플릿 관리 → 새 템플릿 등록
+  // 템플릿 내용 예시:
+  //   [2FIT MALL] 새 채팅 문의가 도착했습니다.
+  //   고객명: #{고객명} / #{시간}
+  //   내용: #{메시지}
+  //   관리자 확인: https://2fit-mall.co.kr/#/admin?tab=chat
+  static const templateChatAlert = ''; // 등록 후 코드 입력 (현재 SMS로 대체 발송)
+
+  static bool get isConfigured =>
+      apiKey.isNotEmpty && apiSecret.isNotEmpty && senderKey.isNotEmpty;
+
+  // SOLAPI 알림톡 발송 엔드포인트
+  static const apiUrl = 'https://api.solapi.com/messages/v4/send';
+}
 
 // ─── 관리자 설정 ────────────────────────────────────────────
 class AdminConfig {
   // 주문 알림을 받을 관리자 이메일
   static const adminEmail = 'chw243527@gmail.com';
 
+  // ✅ 관리자 핸드폰 번호 (SMS/알림톡 수신)
+  static const adminPhone = '01072276914';
+
   // Supabase Edge Function URL (이메일 발송용) — 사용 시 입력
   static const emailEdgeFunctionUrl = '';
 
   static bool get hasEmail => adminEmail.isNotEmpty;
   static bool get hasEdgeFunction => emailEdgeFunctionUrl.isNotEmpty;
+  static bool get hasPhone => adminPhone.isNotEmpty;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -36,7 +78,18 @@ class NotificationService {
   // ─── 주문 접수 알림 (고객 + 관리자) ─────────────────────────
   static Future<void> sendOrderConfirmed(OrderModel order) async {
     await Future.wait([
-      _sendOrderNotification(order: order, kind: 'order_confirmed'),
+      _sendKakaoAlimtalk(
+        phone: order.userPhone,
+        templateCode: KakaoConfig.templateOrderConfirm,
+        params: {
+          '#{주문번호}': order.id,
+          '#{고객명}': order.userName,
+          '#{상품명}': _buildItemSummary(order),
+          '#{결제금액}': _formatPrice(order.totalAmount),
+          '#{결제수단}': order.paymentMethod,
+          '#{배송주소}': order.userAddress,
+        },
+      ),
       _notifyAdmin(
         subject: '[2FIT] 새 주문 접수 — ${order.id}',
         body: _buildAdminOrderEmail(order),
@@ -50,16 +103,30 @@ class NotificationService {
     required String trackingNumber,
     required String courierName,
   }) async {
-    await _sendOrderNotification(
-      order: order,
-      kind: 'shipped',
-      params: {'trackingNumber': trackingNumber, 'courierName': courierName},
+    await _sendKakaoAlimtalk(
+      phone: order.userPhone,
+      templateCode: KakaoConfig.templateShipped,
+      params: {
+        '#{주문번호}': order.id,
+        '#{고객명}': order.userName,
+        '#{택배사}': courierName,
+        '#{운송장번호}': trackingNumber,
+        '#{배송조회URL}': 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillSch.do?mCode=MN038&schLang=KR&wblnumText2=$trackingNumber',
+      },
     );
   }
 
   // ─── 배송 완료 알림 ──────────────────────────────────────────
   static Future<void> sendDelivered(OrderModel order) async {
-    await _sendOrderNotification(order: order, kind: 'delivered');
+    await _sendKakaoAlimtalk(
+      phone: order.userPhone,
+      templateCode: KakaoConfig.templateDelivered,
+      params: {
+        '#{주문번호}': order.id,
+        '#{고객명}': order.userName,
+        '#{상품명}': _buildItemSummary(order),
+      },
+    );
   }
 
   // ─── 주문 취소 알림 ──────────────────────────────────────────
@@ -67,10 +134,15 @@ class NotificationService {
     required OrderModel order,
     required String reason,
   }) async {
-    await _sendOrderNotification(
-      order: order,
-      kind: 'cancelled',
-      params: {'reason': reason},
+    await _sendKakaoAlimtalk(
+      phone: order.userPhone,
+      templateCode: KakaoConfig.templateCancelled,
+      params: {
+        '#{주문번호}': order.id,
+        '#{고객명}': order.userName,
+        '#{취소사유}': reason,
+        '#{환불금액}': _formatPrice(order.totalAmount),
+      },
     );
   }
 
@@ -81,62 +153,149 @@ class NotificationService {
     required String message,
     String language = 'KO',
   }) async {
-    await _postServerNotification(
-      endpoint: 'sendSolapiChatAlimtalk',
-      body: {
-        'userName': userName,
-        'message': message,
-        'language': language,
-      },
-    );
-  }
+    if (!AdminConfig.hasPhone) return;
 
-  // ── Firebase Functions 서버 알림 호출 ─────────────────────────
-  static const _functionsBaseUrl =
-      'https://us-central1-fit-mall.cloudfunctions.net';
+    final now = DateTime.now();
+    final timeStr =
+        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    final shortMsg = message.length > 30 ? '${message.substring(0, 30)}...' : message;
 
-  static Future<void> _postServerNotification({
-    required String endpoint,
-    required Map<String, dynamic> body,
-  }) async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        if (kDebugMode) debugPrint('알림 스킵: Firebase 로그인이 필요합니다.');
-        return;
-      }
-      final idToken = await user.getIdToken();
-      if (idToken == null || idToken.isEmpty) return;
-      final response = await http.post(
-        Uri.parse('$_functionsBaseUrl/$endpoint'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $idToken',
+    // 1) 카카오 알림톡 시도 (템플릿 등록된 경우)
+    if (KakaoConfig.templateChatAlert.isNotEmpty) {
+      await _sendKakaoAlimtalk(
+        phone: AdminConfig.adminPhone,
+        templateCode: KakaoConfig.templateChatAlert,
+        params: {
+          '#{고객명}': userName,
+          '#{시간}': timeStr,
+          '#{메시지}': shortMsg,
         },
-        body: jsonEncode(body),
-      ).timeout(const Duration(seconds: 10));
-      if (response.statusCode >= 400 && kDebugMode) {
-        debugPrint('서버 알림 실패: ${response.statusCode}');
-      }
-    } catch (e) {
-      // 알림 실패가 주문·결제 흐름을 막지 않도록 처리합니다.
-      if (kDebugMode) debugPrint('서버 알림 호출 실패: $e');
+      );
+    } else {
+      // 2) 알림톡 템플릿 미등록 시 → SMS로 대체 발송
+      await _sendSms(
+        phone: AdminConfig.adminPhone,
+        text: '[2FIT MALL] 새 채팅 문의\n'
+            '고객: $userName ($timeStr)\n'
+            '내용: $shortMsg\n'
+            '확인: 2fit-mall.co.kr/#/admin?tab=chat',
+      );
     }
   }
 
-  static Future<void> _sendOrderNotification({
-    required OrderModel order,
-    required String kind,
-    Map<String, String> params = const {},
+  // ══════════════════════════════════════════════════════════════
+  // 카카오 알림톡 발송 (내부) — SOLAPI 경유
+  // 참고: https://docs.solapi.com/references/messages/send-many-detail
+  // ══════════════════════════════════════════════════════════════
+  static Future<void> _sendKakaoAlimtalk({
+    required String phone,
+    required String templateCode,
+    required Map<String, String> params,
   }) async {
-    await _postServerNotification(
-      endpoint: 'sendSolapiOrderNotification',
-      body: {
-        'orderId': order.id,
-        'kind': kind,
-        'params': params,
-      },
-    );
+    if (!KakaoConfig.isConfigured) {
+      // API 키 미설정 시 시뮬레이션 로그만 출력
+      if (kDebugMode) {
+        debugPrint('📱 [알림톡 시뮬레이션] → $phone');
+        debugPrint('   템플릿: $templateCode');
+        params.forEach((k, v) => debugPrint('   $k = $v'));
+      }
+      return;
+    }
+
+    try {
+      // 파라미터를 템플릿 문자열에 치환
+      var message = _getTemplateText(templateCode);
+      params.forEach((key, value) {
+        message = message.replaceAll(key, value);
+      });
+
+      // HMAC-SHA256 인증 헤더 생성
+      final date = DateTime.now().toUtc().toIso8601String();
+      final salt = DateTime.now().millisecondsSinceEpoch.toString();
+      final hmacData = '$date$salt';
+      final hmacBytes = _hmacSha256(KakaoConfig.apiSecret, hmacData);
+      final signature = hmacBytes;
+
+      // SOLAPI 알림톡 발송 요청
+      // variables 키: SOLAPI는 #{변수명} 형식 그대로 사용
+      final response = await http.post(
+        Uri.parse(KakaoConfig.apiUrl),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Authorization':
+              'HMAC-SHA256 apiKey=${KakaoConfig.apiKey}, date=$date, salt=$salt, signature=$signature',
+        },
+        body: jsonEncode({
+          'message': {
+            'to': phone.replaceAll('-', ''),
+            'from': KakaoConfig.senderPhone,
+            'type': 'ATA', // 알림톡
+            'kakaoOptions': {
+              'pfId': KakaoConfig.senderKey,
+              'templateCode': templateCode,
+              'variables': params, // ex) {'#{고객명}': '홍길동', ...}
+            },
+          },
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      final data = jsonDecode(response.body);
+      if (kDebugMode) {
+        debugPrint('📱 알림톡 발송 결과: ${response.statusCode}');
+        debugPrint('   응답: $data');
+      }
+    } catch (e) {
+      // 알림톡 실패는 결제 흐름을 막지 않음
+      if (kDebugMode) debugPrint('⚠️ 알림톡 발송 실패: $e');
+    }
+  }
+
+  // ── HMAC-SHA256 서명 생성 (SOLAPI 인증용) ────────────────────
+  static String _hmacSha256(String secret, String data) {
+    final key = utf8.encode(secret);
+    final bytes = utf8.encode(data);
+    final hmac = Hmac(sha256, key);
+    return hmac.convert(bytes).toString();
+  }
+
+  // ── SMS 문자 발송 (SOLAPI) ───────────────────────────────────
+  static Future<void> _sendSms({
+    required String phone,
+    required String text,
+  }) async {
+    if (!KakaoConfig.isConfigured) {
+      if (kDebugMode) debugPrint('📲 [SMS 시뮬레이션] → $phone\n$text');
+      return;
+    }
+    try {
+      final date = DateTime.now().toUtc().toIso8601String();
+      final salt = DateTime.now().millisecondsSinceEpoch.toString();
+      final signature = _hmacSha256(KakaoConfig.apiSecret, '$date$salt');
+
+      final response = await http.post(
+        Uri.parse(KakaoConfig.apiUrl),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Authorization':
+              'HMAC-SHA256 apiKey=${KakaoConfig.apiKey}, date=$date, salt=$salt, signature=$signature',
+        },
+        body: jsonEncode({
+          'message': {
+            'to': phone.replaceAll('-', ''),
+            'from': KakaoConfig.senderPhone,
+            'type': text.length > 90 ? 'LMS' : 'SMS',
+            'text': text,
+          },
+        }),
+      ).timeout(const Duration(seconds: 10));
+
+      if (kDebugMode) {
+        debugPrint('📲 SMS 발송 결과: ${response.statusCode}');
+        debugPrint('   응답: ${response.body}');
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ SMS 발송 실패: $e');
+    }
   }
 
   // ── 관리자 이메일 알림 ──────────────────────────────────────
@@ -231,6 +390,56 @@ class NotificationService {
 </html>''';
   }
 
+  // ── 알림톡 템플릿 텍스트 (카카오 심사 완료 후 실제 내용으로 교체) ─
+  static String _getTemplateText(String code) {
+    switch (code) {
+      case KakaoConfig.templateOrderConfirm:
+        return '''안녕하세요, #{고객명}님!
+2FIT MALL 주문이 확인되었습니다.
+
+■ 주문번호: #{주문번호}
+■ 주문상품: #{상품명}
+■ 결제금액: #{결제금액}원
+■ 결제수단: #{결제수단}
+■ 배송주소: #{배송주소}
+
+주문해 주셔서 감사합니다 :)''';
+
+      case KakaoConfig.templateShipped:
+        return '''안녕하세요, #{고객명}님!
+주문하신 상품이 발송되었습니다.
+
+■ 주문번호: #{주문번호}
+■ 택배사: #{택배사}
+■ 운송장번호: #{운송장번호}
+■ 배송조회: #{배송조회URL}
+
+빠른 배송으로 찾아뵙겠습니다!''';
+
+      case KakaoConfig.templateDelivered:
+        return '''안녕하세요, #{고객명}님!
+주문하신 상품이 배송 완료되었습니다.
+
+■ 주문번호: #{주문번호}
+■ 상품: #{상품명}
+
+2FIT MALL을 이용해 주셔서 감사합니다.
+상품이 마음에 드셨다면 리뷰를 남겨주세요!''';
+
+      case KakaoConfig.templateCancelled:
+        return '''안녕하세요, #{고객명}님.
+주문이 취소되었습니다.
+
+■ 주문번호: #{주문번호}
+■ 취소사유: #{취소사유}
+■ 환불금액: #{환불금액}원
+
+환불은 3~5 영업일 이내 처리됩니다.''';
+
+      default:
+        return '';
+    }
+  }
 }
 
 // ══════════════════════════════════════════════════════════════

@@ -1,4 +1,3 @@
-import '../utils/theme.dart';
 // kakao_address_search.dart
 // 카카오 우편번호 서비스
 // - 웹(kIsWeb): JS interop + 팝업 방식
@@ -14,8 +13,8 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 // 웹 전용 구현은 별도 파일로 분리 (조건부 import)
 import 'kakao_address_web_stub.dart'
-    if (dart.library.html) 'kakao_address_web_impl.dart' as web_impl;
 import '../utils/app_localizations.dart';
+    if (dart.library.html) 'kakao_address_web_impl.dart' as web_impl;
 
 class KakaoAddressResult {
   final String zonecode;
@@ -55,10 +54,9 @@ class _KakaoAddressSheet extends StatelessWidget {
         children: [
           Container(
             margin: const EdgeInsets.only(top: 12, bottom: 4),
-            width: 40,
-            height: 4,
+            width: 40, height: 4,
             decoration: BoxDecoration(
-              color: AppColors.border,
+              color: const Color(0xFFDDDDDD),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -66,13 +64,11 @@ class _KakaoAddressSheet extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
-                const Icon(Icons.location_on_rounded,
-                    color: AppColors.primary, size: 20),
+                const Icon(Icons.location_on_rounded, color: Color(0xFF1A1A2E), size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(loc.kakaoAddressSearch,
-                      style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.w800)),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close_rounded, size: 22),
@@ -83,9 +79,11 @@ class _KakaoAddressSheet extends StatelessWidget {
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.border),
+          const Divider(height: 1, color: Color(0xFFEEEEEE)),
           Expanded(
-            child: kIsWeb ? const _KakaoWebViewWeb() : const _KakaoWebView(),
+            child: kIsWeb
+                ? const _KakaoWebViewWeb()
+                : const _KakaoWebView(),
           ),
         ],
       ),
@@ -153,15 +151,11 @@ if(document.readyState==='loading'){
     _ctrl = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(NavigationDelegate(
-        onPageStarted: (_) => setState(() {
-          _isLoading = true;
-          _errMsg = null;
-        }),
+        onPageStarted: (_) => setState(() { _isLoading = true; _errMsg = null; }),
         onPageFinished: (_) => setState(() => _isLoading = false),
         onWebResourceError: (err) => setState(() {
           _isLoading = false;
-          _errMsg =
-              context.loc.t('주소_검색_로딩_실패', '주소 검색 로딩 실패\n인터넷 연결을 확인해주세요.');
+          _errMsg = context.loc.t('주소_검색_로딩_실패', '주소 검색 로딩 실패\n인터넷 연결을 확인해주세요.');
           if (kDebugMode) debugPrint('WebView error: ${err.description}');
         }),
       ))
@@ -169,15 +163,14 @@ if(document.readyState==='loading'){
         try {
           final data = jsonDecode(msg.message) as Map<String, dynamic>;
           final result = KakaoAddressResult(
-            zonecode: data['zonecode'] as String? ?? '',
-            address: data['address'] as String? ?? '',
-            roadAddress: data['roadAddress'] as String? ?? '',
-            jibunAddress: data['jibunAddress'] as String? ?? '',
+            zonecode:    data['zonecode']     as String? ?? '',
+            address:     data['address']      as String? ?? '',
+            roadAddress: data['roadAddress']  as String? ?? '',
+            jibunAddress:data['jibunAddress'] as String? ?? '',
           );
           if (mounted) Navigator.pop(context, result);
         } catch (e) {
-          if (kDebugMode)
-            debugPrint(context.loc.t('주소 파싱 오류 _', '주소 파싱 오류: $e'));
+          if (kDebugMode) debugPrint(context.loc.t('주소 파싱 오류 _', '주소 파싱 오류: $e'));
         }
       })
       ..loadHtmlString(_pageHtml);
@@ -191,26 +184,20 @@ if(document.readyState==='loading'){
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.wifi_off_rounded,
-                size: 48, color: AppColors.textHint),
+            const Icon(Icons.wifi_off_rounded, size: 48, color: Color(0xFFBBBBBB)),
             const SizedBox(height: 12),
-            Text(_errMsg!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 14, color: AppColors.textSecondary)),
+            Text(_errMsg!, textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF888888))),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
-                setState(() {
-                  _isLoading = true;
-                  _errMsg = null;
-                });
+                setState(() { _isLoading = true; _errMsg = null; });
                 _ctrl.loadHtmlString(_pageHtml);
               },
               icon: const Icon(Icons.refresh_rounded, size: 16),
               label: Text(loc.kakaoAddressRetry),
-              style:
-                  ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A1A2E)),
             ),
           ],
         ),
@@ -227,11 +214,11 @@ if(document.readyState==='loading'){
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const CircularProgressIndicator(
-                      color: AppColors.primary, strokeWidth: 3),
+                      color: Color(0xFF1A1A2E), strokeWidth: 3),
                   const SizedBox(height: 12),
                   Text(loc.kakaoAddressLoading,
                       style: const TextStyle(
-                          fontSize: 13, color: AppColors.textSecondary)),
+                          fontSize: 13, color: Color(0xFF888888))),
                 ],
               ),
             ),
@@ -260,9 +247,9 @@ class _KakaoWebViewWebState extends State<_KakaoWebViewWeb> {
       if (_done || !mounted) return;
       _done = true;
       final result = KakaoAddressResult(
-        zonecode: data['zonecode'] as String? ?? '',
-        address: data['address'] as String? ?? '',
-        roadAddress: data['roadAddress'] as String? ?? '',
+        zonecode:     data['zonecode']     as String? ?? '',
+        address:      data['address']      as String? ?? '',
+        roadAddress:  data['roadAddress']  as String? ?? '',
         jibunAddress: data['jibunAddress'] as String? ?? '',
       );
       // BottomSheet를 닫으면서 결과를 반환

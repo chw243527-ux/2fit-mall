@@ -33,7 +33,6 @@ class ChatServiceMessage {
 
   factory ChatServiceMessage.fromMap(String id, Map<String, dynamic> data) {
     final isAdm = data['isAdmin'] as bool? ?? false;
-    final isSys = data['isSystem'] as bool? ?? false;
     final msg = data['message'] as String? ?? data['text'] as String? ?? '';
     return ChatServiceMessage(
       id: id,
@@ -41,10 +40,10 @@ class ChatServiceMessage {
       senderName: data['senderName'] as String? ?? '회원',
       text: msg,
       originalText: data['originalText'] as String? ?? msg,
-      isUser: !isAdm && !isSys,
+      isUser: !(isAdm),
       isAdmin: isAdm,
       time: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      isSystem: isSys,
+      isSystem: data['isSystem'] as bool? ?? false,
       isRead: data['isRead'] as bool? ?? false,
     );
   }
@@ -133,7 +132,7 @@ class ChatService {
       return userId; // roomId = userId
     } catch (e) {
       if (kDebugMode) debugPrint('getOrCreateRoom error: $e');
-      rethrow;
+      return userId;
     }
   }
 
@@ -229,26 +228,6 @@ class ChatService {
       message: msg,
       isAdmin: true,
     );
-  }
-
-  /// 고객 화면에서 표시할 자동 안내 답변. 관리자 권한을 위조하지 않습니다.
-  static Future<void> systemReply({
-    required String roomId,
-    required String text,
-  }) async {
-    final msg = text.trim();
-    if (msg.isEmpty) return;
-    await _db.collection('chats').doc(roomId).collection('messages').add({
-      'senderId': 'system',
-      'senderName': '2FIT 고객센터',
-      'message': msg,
-      'text': msg,
-      'originalText': msg,
-      'isAdmin': false,
-      'isSystem': true,
-      'createdAt': FieldValue.serverTimestamp(),
-      'isRead': true,
-    });
   }
 
   static Stream<List<ChatRoom>> watchAllRooms() {

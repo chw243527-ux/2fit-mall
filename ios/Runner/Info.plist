@@ -52,7 +52,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>twofitmall</string>
+				<string>naverlogin</string>
 			</array>
 		</dict>
 	</array>
@@ -61,6 +61,14 @@
 		<string>naversearchapp</string>
 		<string>naversearchthirdlogin</string>
 	</array>
-
+	<!-- 네이버 로그인 앱 키 -->
+	<key>NaverServiceAppUrlScheme</key>
+	<string>naverlogin</string>
+	<key>NaverConsumerKey</key>
+	<string>RTeQb5TSs920qoowhcra</string>
+	<key>NaverConsumerSecret</key>
+	<string>l5P3RChcnd</string>
+	<key>NaverServiceAppName</key>
+	<string>2FIT mall</string>
 </dict>
 </plist>
