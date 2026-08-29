@@ -890,6 +890,20 @@ function _readCheckoutPayload(body) {
   return { items, deliveryAddress, paymentMethod, memo: String(body?.memo || '').trim().slice(0, 500), couponId: body?.couponId ? String(body.couponId).slice(0, 120) : '', usedPoints: Math.max(0, Math.floor(Number(body?.usedPoints || 0))) };
 }
 
+function _resolveProductOption(value, allowed) {
+  const raw = String(value || '').trim();
+  if (!Array.isArray(allowed) || allowed.length === 0 || allowed.includes(raw)) return raw;
+  const candidates = new Set([raw]);
+  const parenthesized = raw.match(/\(([^)]+)\)/)?.[1]?.trim();
+  if (parenthesized) candidates.add(parenthesized);
+  candidates.add(raw.replace(/\s*\([^)]*\)\s*/g, '').trim());
+  const normalize = (text) => String(text).toLowerCase().replace(/\s+/g, '');
+  for (const option of allowed) {
+    if ([...candidates].some((candidate) => normalize(candidate) === normalize(option))) return option;
+  }
+  return raw;
+}
+
 async function _prepareOrderFromServerData(uid, payload) {
   const userSnap = await db.collection('users').doc(uid).get();
   if (!userSnap.exists) throw new Error('User profile unavailable');
@@ -901,12 +915,13 @@ async function _prepareOrderFromServerData(uid, payload) {
     const productId = String(requested?.productId || '').slice(0, 120);
     const quantity = Math.floor(Number(requested?.quantity || 0));
     const size = String(requested?.size || '').slice(0, 80);
-    const color = String(requested?.color || '').slice(0, 80);
+    const requestedColor = String(requested?.color || '').slice(0, 80);
     if (!productId || quantity < 1 || quantity > 50) throw new Error('Invalid product quantity');
     const productSnap = await db.collection('products').doc(productId).get();
     const product = productSnap.data();
     if (!productSnap.exists || product.isActive === false || !Number.isFinite(Number(product.price))) throw new Error('Product is unavailable');
     if (Array.isArray(product.sizes) && product.sizes.length && !product.sizes.includes(size)) throw new Error('Invalid product size');
+    const color = _resolveProductOption(requestedColor, product.colors);
     if (Array.isArray(product.colors) && product.colors.length && !product.colors.includes(color)) throw new Error('Invalid product color');
     if ((Array.isArray(product.soldOutSizes) && product.soldOutSizes.includes(size)) || Number(product.stockCount || 0) < quantity) throw new Error('Product is out of stock');
     const unitPrice = Math.round(Number(product.price));
