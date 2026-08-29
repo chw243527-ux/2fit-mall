@@ -127,7 +127,9 @@ jobs:
           fi
 
           if [ -f "${BUILD_DIR}/flutter_service_worker.js" ]; then
-            sed -i "s|main\.dart\.js|main.dart.js?v=${BUILD_VER}|g" \
+            # Exact main entry/CORE references만 version query를 붙입니다.
+            # main.dart.js_*.part.js 같은 deferred chunk 파일명은 그대로 유지해야 합니다.
+            sed -i "s|\"main\.dart\.js\"|\"main.dart.js?v=${BUILD_VER}\"|g" \
               "${BUILD_DIR}/flutter_service_worker.js"
             sed -i "s|'flutter-app-cache'|'flutter-app-cache-${BUILD_VER}'|g" \
               "${BUILD_DIR}/flutter_service_worker.js"
