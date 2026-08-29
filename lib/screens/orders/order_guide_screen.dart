@@ -137,7 +137,7 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
               const Icon(Icons.groups_rounded, color: Colors.white, size: 32),
               const SizedBox(height: 10),
               Consumer<LanguageProvider>(
-                  builder: (_, lp, __) => Text(lp.loc.groupCustomOrder,
+                  builder: (_, lp, __) => Text(context.loc.t('단체주문방법', '단체주문방법'),
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -153,70 +153,22 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 11)),
               const SizedBox(height: 16),
-              // ── 주문안내 확인 체크박스 ──
-              GestureDetector(
-                onTap: () => setState(() => _guideChecked = !_guideChecked),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _guideChecked
-                        ? Colors.white.withValues(alpha: 0.2)
-                        : Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _guideChecked ? Colors.white : Colors.white38,
-                      width: _guideChecked ? 1.5 : 1,
-                    ),
-                  ),
-                  child: Row(children: [
-                    Icon(
-                      _guideChecked
-                          ? Icons.check_box_rounded
-                          : Icons.check_box_outline_blank_rounded,
-                      color: _guideChecked ? Colors.white : Colors.white54,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        context.loc
-                            .t('주문_안내_내용을_모두_확인했습니다', '주문 안내 내용을 모두 확인했습니다.'),
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ]),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // ── 단체주문서 바로가기 (체크 후 활성화) ──
-              SizedBox(
+              Container(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _guideChecked
-                      ? () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  const GroupOrderFormScreen(initialCount: 5)))
-                      : null,
-                  icon: const Icon(Icons.assignment_outlined, size: 18),
-                  label: Text(context.loc.t('단체주문서_바로가기', '단체주문서 바로가기'),
-                      style:
-                          TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _guideChecked ? Colors.white : Colors.white38,
-                    foregroundColor: AppColors.primary,
-                    disabledBackgroundColor: Colors.white24,
-                    disabledForegroundColor: Colors.white54,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    minimumSize: const Size(0, 46),
-                    elevation: 0,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  context.loc.t(
+                    '단체주문_안내_요약',
+                    '5명 이상 주문 시 단체 맞춤 제작이 가능합니다. 상품과 수량을 정한 뒤 디자인, 컬러, 로고 및 마킹을 상담하고 최종 견적과 제작 일정을 안내해드립니다. 자세한 내용은 아래 단체주문 안내에서 확인해 주세요.',
+                  ),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    height: 1.55,
                   ),
                 ),
               ),
@@ -666,98 +618,24 @@ class _OrderGuideScreenState extends State<OrderGuideScreen> {
                 .toList(),
           ),
           const SizedBox(height: 12),
-          // ── 주문안내 확인 체크박스 (단체주문에만 표시) ──
-          if (onGuideCheckChanged != null) ...[
-            GestureDetector(
-              onTap: () => onGuideCheckChanged(!guideChecked),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                decoration: BoxDecoration(
-                  color: guideChecked
-                      ? color.withValues(alpha: 0.06)
-                      : const Color(0xFFFFF8E1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: guideChecked
-                        ? color.withValues(alpha: 0.4)
-                        : const Color(0xFFFFC107).withValues(alpha: 0.6),
-                  ),
-                ),
-                child: Row(children: [
-                  Icon(
-                    guideChecked
-                        ? Icons.check_box_rounded
-                        : Icons.check_box_outline_blank_rounded,
-                    size: 20,
-                    color: guideChecked ? color : const Color(0xFFFFA000),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                        context.loc.t(
-                            '주문_안내_내용을_모두_확인_899c8d', '주문 안내 내용을 모두 확인했습니다.'),
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary)),
-                  ),
-                ]),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              context.loc.t(
+                '단체주문_안내_카드_요약',
+                '5명 이상 단체 주문은 상품과 수량을 확인한 뒤 디자인·컬러·로고·마킹을 상담하고, 최종 견적과 제작 일정을 안내하는 방식으로 진행됩니다. 자세한 문의는 고객센터로 연락해 주세요.',
+              ),
+              style: const TextStyle(
+                fontSize: 12,
+                height: 1.55,
+                color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 8),
-          ],
-          // 버튼 2개
-          Row(
-            children: [
-              // 주문 안내 버튼
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onGuide,
-                  icon:
-                      Icon(Icons.info_outline_rounded, size: 15, color: color),
-                  label: Text(
-                    context.loc.t('주문_안내', '주문 안내'),
-                    style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: color),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: color.withValues(alpha: 0.5)),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // 주문서 작성 버튼
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: onForm,
-                  icon: const Icon(Icons.assignment_rounded, size: 15),
-                  label: Text(
-                    onGuideCheckChanged != null && !guideChecked
-                        ? context.loc.t('확인_후_작성_가능', '확인 후 작성 가능')
-                        : context.loc.t('주문서_작성', '주문서 작성'),
-                    style: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        onForm != null ? color : Colors.grey.shade300,
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.grey.shade300,
-                    disabledForegroundColor: Colors.grey.shade500,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    elevation: 0,
-                  ),
-                ),
-              ),
-            ],
           ),
         ],
       ),

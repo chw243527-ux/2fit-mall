@@ -9,10 +9,10 @@ import '../../providers/providers.dart';
 
 import '../../utils/theme.dart';
 // ═══════════════════════════════════════════════════════════════
-// GroupOrderLandingScreen — 사이드바 "단체주문하기" 전용 랜딩 페이지
+// GroupOrderLandingScreen — 사이드바 "단체주문방법" 안내 페이지
 // • product 파라미터 없음 (사이드바 진입 전용)
-// • 탭1: 단체주문 안내
-// • 탭2: 주문서 바로가기 (카테고리 선택 → GroupOrderGuideScreen)
+// • 단체주문 절차와 조건을 텍스트로 안내
+// • 주문서 이동 버튼 없이 문의 중심으로 제공
 // • Provider / AppLocalizations 의존성 없음
 // • 탑텐 스타일: AppColors.primary, flat black/white, 정사각 블랙 아이콘, sharp border
 // ═══════════════════════════════════════════════════════════════
@@ -77,7 +77,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             onPressed: () => goBackOrHome(context),
           ),
           title: Text(
-            context.loc.t('단체주문하기', '단체주문하기'),
+            context.loc.t('단체주문방법', '단체주문방법'),
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
         ),
@@ -103,34 +103,18 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
             onPressed: () => goBackOrHome(context),
           ),
           title: Text(
-            context.loc.t('단체주문하기', '단체주문하기'),
+            context.loc.t('단체주문방법', '단체주문방법'),
             style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
           ),
         ),
         body: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1280),
+            constraints: const BoxConstraints(maxWidth: 900),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 6,
-                    child: Container(
-                      color: Colors.white,
-                      child: _buildGuideTab(),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    flex: 4,
-                    child: Container(
-                      color: Colors.white,
-                      child: _buildOrderFormTab(),
-                    ),
-                  ),
-                ],
+              child: Container(
+                color: Colors.white,
+                child: _buildGuideTab(),
               ),
             ),
           ),
@@ -282,26 +266,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           _buildContactCard(),
           const SizedBox(height: 20),
 
-          // CTA 버튼
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: _goToForm,
-              icon: const Icon(Icons.edit_note_rounded, size: 20),
-              label: Text(
-                context.loc.t('단체주문서_바로_작성하기', '단체주문서 바로 작성하기'),
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _kBlack,
-                foregroundColor: Colors.white,
-                shape: const RoundedRectangleBorder(),
-                elevation: 0,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
         ],
       ),
     );

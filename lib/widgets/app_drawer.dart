@@ -150,7 +150,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 _buildMenuTile(
                   context,
                   icon: Icons.edit_note_rounded,
-                  label: loc.t('단체주문하기', '단체주문하기'),
+                  label: loc.t('단체주문방법', '단체주문방법'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
