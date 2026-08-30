@@ -221,6 +221,31 @@
       padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
                max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
+    @media (max-width: 600px) {
+      /* 모바일에서는 하단 고정 배너가 로그인·결제 버튼을 가리지 않도록 상단으로 이동합니다. */
+      #pwa-install-banner > div {
+        top: max(56px, calc(env(safe-area-inset-top) + 52px)) !important;
+        bottom: auto !important;
+        left: max(12px, env(safe-area-inset-left)) !important;
+        right: max(12px, env(safe-area-inset-right)) !important;
+        transform: none !important;
+        width: auto !important;
+        max-width: none !important;
+        padding: 8px 12px !important;
+        gap: 8px !important;
+      }
+      #pwa-install-banner > div > img {
+        width: 34px !important;
+        height: 34px !important;
+      }
+      #pwa-install-banner #pwa-install-btn {
+        padding: 7px 10px !important;
+        font-size: 12px !important;
+      }
+      #pwa-install-banner #pwa-close-btn {
+        font-size: 18px !important;
+      }
+    }
     @media (max-width: 360px) {
       .loading-logo {
         width: 64px;
@@ -230,21 +255,23 @@
       }
       .loading-logo span { font-size: 18px; }
       .loading-spinner { width: 30px; height: 30px; }
-      #pwa-install-banner {
+      #pwa-install-banner > div {
+        top: max(56px, calc(env(safe-area-inset-top) + 52px)) !important;
+        bottom: auto !important;
         left: max(12px, env(safe-area-inset-left)) !important;
         right: max(12px, env(safe-area-inset-right)) !important;
-        /* 하단 고정 구매 바(약 64px)와 겹치지 않도록 위로 띄웁니다. */
-        bottom: max(84px, calc(env(safe-area-inset-bottom) + 64px)) !important;
+        transform: none !important;
         width: auto !important;
         max-width: none !important;
-        padding: 12px 14px !important;
+        padding: 8px 12px !important;
         gap: 8px !important;
       }
       #pwa-install-banner #pwa-install-btn { padding: 8px 10px !important; font-size: 12px !important; }
     }
     @media (max-width: 360px) and (max-height: 700px) {
-      #pwa-install-banner {
-        bottom: max(72px, calc(env(safe-area-inset-bottom) + 56px)) !important;
+      #pwa-install-banner > div {
+        top: max(48px, calc(env(safe-area-inset-top) + 44px)) !important;
+        bottom: auto !important;
       }
     }
   </style>
