@@ -312,8 +312,8 @@ class _AdminScreenState extends State<AdminScreen>
         context.read<ProductProvider>().loadAdminProducts();
         // 카테고리 서비스 로드
         CategoryService.load();
-        // 🔔 브라우저 알림 권한 자동 요청 (채팅 알림용)
-        _requestBrowserNotificationPermission();
+        // FCM이 권한과 토큰을 관리하므로 별도의 브라우저 권한 안내를 자동 표시하지 않습니다.
+        // 자동 안내가 FCM 전송 성공 메시지와 충돌하는 문제를 방지합니다.
       }
     });
   }
