@@ -14,6 +14,14 @@ initializeApp();
 const db = getFirestore();
 
 const ADMIN_TOKENS_DOC = 'admin_config/fcm_tokens';
+// 기존 관리자 계정의 1회 Claims 마이그레이션 허용 목록입니다.
+// 발급 후 실제 권한 판단은 Firebase Auth Custom Claims의 admin=true만 사용합니다.
+const CLAIM_MIGRATION_ADMIN_EMAILS = new Set([
+  'chw243527@gmail.com',
+  'tbrk2435@naver.com',
+  'admin@2fitkorea.com',
+  'cs@2fitkorea.com',
+]);
 
 // Secret Manager values are available only to server-side Functions.
 const SOLAPI_API_KEY = defineSecret('SOLAPI_API_KEY');
@@ -359,8 +367,7 @@ async function requireAdmin(req, res) {
 
   try {
     const decoded = await getAuth().verifyIdToken(match[1]);
-    const profile = await db.collection('users').doc(decoded.uid).get();
-    const isAdmin = decoded.isAdmin === true || profile.data()?.isAdmin === true;
+    const isAdmin = decoded.admin === true;
     if (!isAdmin) {
       res.status(403).json({ error: 'Admin access required' });
       return false;
@@ -372,6 +379,34 @@ async function requireAdmin(req, res) {
     return false;
   }
 }
+
+// 기존 관리자 계정의 1회 Custom Claims 마이그레이션.
+exports.syncAdminClaim = onRequest(
+  { cors: ['https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000'] },
+  async (req, res) => {
+    if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+    const header = req.get('authorization') || '';
+    const match = header.match(/^Bearer\s+(.+)$/i);
+    if (!match) { res.status(401).json({ error: 'Missing Firebase ID token' }); return; }
+    try {
+      const decoded = await getAuth().verifyIdToken(match[1], true);
+      const email = String(decoded.email || '').toLowerCase();
+      if (decoded.email_verified !== true || !CLAIM_MIGRATION_ADMIN_EMAILS.has(email)) {
+        res.status(403).json({ error: 'Admin claim migration is not available for this account' });
+        return;
+      }
+      const account = await getAuth().getUser(decoded.uid);
+      await getAuth().setCustomUserClaims(decoded.uid, {
+        ...(account.customClaims || {}),
+        admin: true,
+      });
+      res.json({ success: true, requiresTokenRefresh: true });
+    } catch (error) {
+      console.error('syncAdminClaim failed:', error.message);
+      res.status(500).json({ error: 'Admin claim migration failed' });
+    }
+  }
+);
 
 // ══════════════════════════════════════════════════════
 // 8) 서버 전용 Naver OAuth
@@ -554,7 +589,7 @@ exports.deleteMyAccount = onRequest(
     const uid = decoded.uid;
     try {
       const userDoc = await db.collection('users').doc(uid).get();
-      if (userDoc.data()?.isAdmin === true || decoded.isAdmin === true) {
+      if (decoded.admin === true) {
         res.status(403).json({
           error: 'Administrator accounts must be deleted through an owner-approved process.',
           code: 'admin-account-protected',
@@ -1115,8 +1150,7 @@ exports.sendSolapiOrderNotification = onRequest(
     const orderSnap = await db.collection('orders').doc(orderId).get();
     if (!orderSnap.exists) { res.status(404).json({ error: 'Order not found' }); return; }
     const order = orderSnap.data();
-    const profile = await db.collection('users').doc(decoded.uid).get();
-    const isAdminUser = decoded.isAdmin === true || profile.data()?.isAdmin === true;
+    const isAdminUser = decoded.admin === true;
     if (!isAdminUser && order.userId !== decoded.uid) {
       res.status(403).json({ error: 'Order access denied' }); return;
     }

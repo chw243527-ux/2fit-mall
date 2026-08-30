@@ -16,12 +16,10 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // 관리자 여부 (Custom Claims 우선, 없으면 Firestore users 문서 확인)
+    // 관리자 여부는 Firebase Auth Custom Claims만 신뢰합니다.
+    // users 문서의 isAdmin 필드는 표시용 레거시 값이며 권한 판단에 사용하지 않습니다.
     function isAdmin() {
-      return isSignedIn() && (
-        request.auth.token.get('isAdmin', false) == true ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isAdmin', false) == true
-      );
+      return isSignedIn() && request.auth.token.get('admin', false) == true;
     }
 
     // 관리자 FCM 토큰 필드 검증

@@ -254,7 +254,8 @@ class AuthService {
 
       final uid = credential.user!.uid;
       final emailKey = email.trim().toLowerCase();
-      final isAdmin = _adminEmails.contains(emailKey);
+      // 관리자 권한은 서버가 발급한 Custom Claim으로만 결정합니다.
+      const isAdmin = false;
 
       // Firebase Auth 표시 이름 설정
       await credential.user!.updateDisplayName(name.trim());
@@ -333,6 +334,7 @@ class AuthService {
       );
 
       final uid = credential.user!.uid;
+      await _syncLegacyAdminClaim(emailKey);
       final user = await _loadUser(uid, emailKey);
       if (user == null) {
         return const AuthResult(success: false, error: '사용자 정보를 불러올 수 없습니다.');
@@ -506,6 +508,38 @@ class AuthService {
   // 내부 유틸리티
   // ────────────────────────────────────────────
 
+  /// 기존 관리자 계정의 1회 Claims 마이그레이션을 요청합니다.
+  static Future<void> _syncLegacyAdminClaim(String email) async {
+    if (!_adminEmails.contains(email)) return;
+    try {
+      final firebaseUser = _auth.currentUser;
+      final idToken = await firebaseUser?.getIdToken();
+      if (idToken == null || idToken.isEmpty) return;
+      await http.post(
+        Uri.parse('https://us-central1-fit-mall.cloudfunctions.net/syncAdminClaim'),
+        headers: {
+          'Authorization': 'Bearer $idToken',
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 8));
+      await firebaseUser?.getIdTokenResult(true);
+    } catch (e) {
+      if (kDebugMode) debugPrint('관리자 Claims 동기화 건너뜀: $e');
+    }
+  }
+
+  /// 현재 Firebase ID 토큰의 관리자 Custom Claim만 확인합니다.
+  static Future<bool> _hasAdminClaim({bool forceRefresh = false}) async {
+    try {
+      final firebaseUser = _auth.currentUser;
+      if (firebaseUser == null) return false;
+      final token = await firebaseUser.getIdTokenResult(forceRefresh);
+      return token.claims?['admin'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Firestore에서 사용자 정보 읽기
   static Future<UserModel?> _loadUser(String uid, String email) async {
     try {
@@ -514,8 +548,7 @@ class AuthService {
       if (doc.exists) {
         final data = doc.data()!;
         final emailKey = (data['email'] as String?) ?? email;
-        final isAdmin =
-            (data['isAdmin'] as bool?) ?? _adminEmails.contains(emailKey);
+        final isAdmin = await _hasAdminClaim();
         return UserModel(
           id: uid,
           name: (data['name'] as String?) ?? '회원',
@@ -543,7 +576,7 @@ class AuthService {
       }
 
       // Firestore 문서가 없으면 기본 생성
-      final isAdmin = _adminEmails.contains(email);
+      final isAdmin = await _hasAdminClaim();
       final displayName = _auth.currentUser?.displayName ?? '회원';
       final user = UserModel(
         id: uid,
@@ -752,7 +785,8 @@ class AuthService {
         return const AuthResult(success: false, error: '로그인 실패');
 
       final emailKey = (user.email ?? '').toLowerCase();
-      final isAdmin = _adminEmails.contains(emailKey);
+      await _syncLegacyAdminClaim(emailKey);
+      final isAdmin = await _hasAdminClaim();
 
       // Firestore에 사용자 문서 생성/업데이트 (assertion 에러 시 폴백)
       Map<String, dynamic>? firestoreData;
@@ -813,7 +847,7 @@ class AuthService {
             data['profileImageUrl'] as String? ?? user.photoURL ?? '',
         memberTier: tier,
         grade: tier,
-        isAdmin: (data['isAdmin'] as bool?) ?? isAdmin,
+        isAdmin: isAdmin,
         wishlist: List<String>.from(data['wishlist'] as List? ?? []),
         createdAt: DateTime.now(),
         loginProvider: 'google',
@@ -948,7 +982,8 @@ class AuthService {
     }
 
     final emailKey = email.toLowerCase();
-    final isAdmin = _adminEmails.contains(emailKey);
+    await _syncLegacyAdminClaim(emailKey);
+    final isAdmin = await _hasAdminClaim();
 
     // ── Step 4: Firestore 사용자 문서 생성/업데이트 ──────────
     // Firestore assertion 에러(Auth 토큰 갱신 경쟁 상태)가 발생해도
@@ -1017,7 +1052,7 @@ class AuthService {
       profileImageUrl: data['profileImageUrl'] as String? ?? photoUrl,
       memberTier: tier,
       grade: tier,
-      isAdmin: (data['isAdmin'] as bool?) ?? isAdmin,
+      isAdmin: isAdmin,
       wishlist: List<String>.from(data['wishlist'] as List? ?? []),
       createdAt: DateTime.now(),
       loginProvider: 'kakao',
@@ -1102,7 +1137,7 @@ class AuthService {
       return await _exchangeNaverCodeForFirebase(info);
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 네이버 로그인 실패: $e');
-      return AuthResult(success: false, error: '네이버 로그인 실패: $e');
+      return const AuthResult(success: false, error: '네이버 로그인에 실패했습니다. 다시 시도해주세요.');
     }
   }
 
@@ -1131,8 +1166,8 @@ class AuthService {
       return const AuthResult(
           success: false, error: 'Firebase 사용자 정보를 받지 못했습니다.');
     }
-    final doc = await _db.collection('users').doc(firebaseUser.uid).get();
-    final data = doc.data() ?? <String, dynamic>{};
+    await _syncLegacyAdminClaim((firebaseUser.email ?? '').toLowerCase());
+    final data = (await _db.collection('users').doc(firebaseUser.uid).get()).data() ?? <String, dynamic>{};
     final tier =
         data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
     final userModel = UserModel(
@@ -1143,7 +1178,7 @@ class AuthService {
       profileImageUrl: data['profileImageUrl'] as String? ?? '',
       memberTier: tier,
       grade: tier,
-      isAdmin: data['isAdmin'] as bool? ?? false,
+      isAdmin: await _hasAdminClaim(),
       wishlist: List<String>.from(data['wishlist'] as List? ?? const []),
       createdAt: DateTime.now(),
       loginProvider: 'naver',
@@ -1230,7 +1265,7 @@ class AuthService {
         profileImageUrl: data['profileImageUrl'] as String? ?? '',
         memberTier: tier,
         grade: tier,
-        isAdmin: data['isAdmin'] as bool? ?? false,
+        isAdmin: await _hasAdminClaim(),
         wishlist: List<String>.from(data['wishlist'] as List? ?? const []),
         createdAt: DateTime.now(),
         loginProvider: 'naver',
