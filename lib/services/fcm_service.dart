@@ -1,15 +1,25 @@
 // fcm_service.dart - Firebase Cloud Messaging + 웹 브라우저 알림
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../models/models.dart';
+import 'notification_web_stub.dart'
+    if (dart.library.html) 'notification_web_impl.dart' as web_notif;
 
 class FcmService {
   static final _db = FirebaseFirestore.instance;
   static String? _currentToken;
+  static Future<void>? _initializeFuture;
+  static StreamSubscription<String>? _tokenRefreshSubscription;
+  static StreamSubscription<RemoteMessage>? _messageSubscription;
 
   // ── 초기화 ────────────────────────────────────────────
-  static Future<void> initialize() async {
+  static Future<void> initialize() {
+    return _initializeFuture ??= _initialize();
+  }
+
+  static Future<void> _initialize() async {
     try {
       final messaging = FirebaseMessaging.instance;
 
@@ -27,6 +37,12 @@ class FcmService {
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
+        // Flutter 앱과 별도로 등록되는 Firebase Service Worker가 먼저 활성화될 때까지 대기합니다.
+        if (kIsWeb) {
+          await web_notif.ensureServiceWorkerReady()
+              .timeout(const Duration(seconds: 10));
+        }
+
         // FCM 토큰 가져오기
         try {
           if (kIsWeb) {
@@ -43,14 +59,14 @@ class FcmService {
         }
 
         // 포그라운드 메시지 핸들러
-        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        _messageSubscription ??= FirebaseMessaging.onMessage.listen((RemoteMessage message) {
           if (kDebugMode) {
             debugPrint('포그라운드 메시지: ${message.notification?.title}');
           }
         });
 
         // 토큰 갱신 핸들러
-        messaging.onTokenRefresh.listen((newToken) {
+        _tokenRefreshSubscription ??= messaging.onTokenRefresh.listen((newToken) {
           _currentToken = newToken;
           if (kDebugMode) debugPrint('FCM 토큰 갱신됨');
         });
@@ -60,7 +76,16 @@ class FcmService {
     }
   }
 
-  static Future<String?> getToken() async => _currentToken;
+  static Future<String?> getToken() async {
+    await initialize();
+    // 앱 시작 시 권한 팝업이 아직 처리되지 않아 초기화가 끝났더라도,
+    // 사용자가 나중에 권한을 허용하면 한 번 더 토큰 발급을 시도합니다.
+    if (kIsWeb && (_currentToken == null || _currentToken!.isEmpty)) {
+      _initializeFuture = null;
+      await initialize();
+    }
+    return _currentToken;
+  }
 
   static Future<bool> _isNotificationEnabled(
       String userId, String field, bool fallback) async {
@@ -78,7 +103,10 @@ class FcmService {
   static Future<void> saveTokenToFirestore(String userId) async {
     if (userId.isEmpty) return;
     try {
-      final token = _currentToken ?? 'web_${DateTime.now().millisecondsSinceEpoch}';
+      await initialize();
+      final token = _currentToken;
+      // 실제 FCM 토큰이 없을 때 가짜 토큰을 저장하면 서버가 영구적으로 실패하므로 저장하지 않습니다.
+      if (token == null || token.isEmpty) return;
       await _db.collection('users').doc(userId).update({
         'fcmToken': token,
         'tokenUpdatedAt': FieldValue.serverTimestamp(),

@@ -7,6 +7,23 @@ import 'dart:js_util' as js_util;
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
 
+// FCM getToken() 호출 전에 현재 origin의 Service Worker가 활성화될 때까지 대기합니다.
+// Firebase Messaging은 활성 Service Worker가 없으면 웹 토큰을 발급하지 않습니다.
+Future<void> ensureServiceWorkerReady() async {
+  try {
+    final navigator = js_util.getProperty(js.context, 'navigator');
+    if (navigator == null) return;
+    final serviceWorker = js_util.getProperty(navigator, 'serviceWorker');
+    if (serviceWorker == null) return;
+    final ready = js_util.getProperty(serviceWorker, 'ready');
+    if (ready != null) {
+      await js_util.promiseToFuture<Object>(ready as Object);
+    }
+  } catch (_) {
+    // Service Worker가 없는 환경에서는 getToken()이 구체적인 오류를 반환하도록 둡니다.
+  }
+}
+
 // ── 브라우저 알림 표시 ──────────────────────────────────────
 void showBrowserNotification(String title, [String body = '']) {
   try {

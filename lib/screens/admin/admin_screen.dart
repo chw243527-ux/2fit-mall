@@ -649,7 +649,11 @@ class _AdminScreenState extends State<AdminScreen>
       if (token == null || token.isEmpty || user == null) {
         throw Exception('기기 알림 권한 또는 로그인 상태를 확인해 주세요.');
       }
-      final idToken = await user.getIdToken();
+      // 테스트 전송 직전에 Firebase ID 토큰을 갱신해 만료된 세션으로 401이 나지 않게 합니다.
+      final idToken = await user.getIdToken(true);
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('로그인 인증 토큰을 갱신할 수 없습니다. 다시 로그인해 주세요.');
+      }
       final response = await http.post(
         Uri.parse(
             'https://us-central1-fit-mall.cloudfunctions.net/sendTestNotification'),
@@ -665,8 +669,12 @@ class _AdminScreenState extends State<AdminScreen>
       );
       if (!mounted) return;
       final ok = response.statusCode >= 200 && response.statusCode < 300;
+      String message = ok ? '테스트 푸시를 전송했습니다.' : '테스트 푸시 전송에 실패했습니다.';
+      if (!ok && response.body.isNotEmpty) {
+        message = '테스트 푸시 실패 (${response.statusCode}): ${response.body}';
+      }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(ok ? '테스트 푸시를 전송했습니다.' : '테스트 푸시 전송에 실패했습니다.'),
+        content: Text(message),
         backgroundColor: ok ? AppColors.success : AppColors.error,
       ));
     } catch (e) {
