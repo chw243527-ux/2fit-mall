@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
@@ -18,8 +20,13 @@ import '../models/models.dart';
 class AuthService {
   static const _sessionBox = 'session';
   static const _sessionVersionKey = 'authSessionVersion';
-  static const _rememberedEmailsKey = 'rememberedEmails';
+  static const _rememberedEmailsKeyPrefix = 'rememberedEmails';
+  static const _legacyRememberedEmailsKey = 'rememberedEmails';
   static const _legacyRememberMeEmailKey = 'rememberMeEmail';
+  static const _deviceScopeStorageKey = 'deviceInstallationScope';
+  static final FlutterSecureStorage _deviceStorage = FlutterSecureStorage();
+  static String? _deviceScope;
+  static Future<String>? _deviceScopeInFlight;
   static Completer<Map<String, String>>? _naverMobileCodeWaiter;
   static Future<AuthResult>? _restoreSessionInFlight;
   static const _naverRedirectUri =
@@ -59,6 +66,50 @@ class AuthService {
   static Future<Box> _getSessionBox() async {
     if (Hive.isBoxOpen(_sessionBox)) return Hive.box(_sessionBox);
     return await Hive.openBox(_sessionBox);
+  }
+
+  /// secure storage에 설치별 식별자를 저장해 아이디 저장값을 기기별로 격리합니다.
+  static Future<String> _getDeviceScope() {
+    final cached = _deviceScope;
+    if (cached != null) return Future.value(cached);
+    final inFlight = _deviceScopeInFlight;
+    if (inFlight != null) return inFlight;
+
+    final future = _loadOrCreateDeviceScope();
+    _deviceScopeInFlight = future;
+    return future.whenComplete(() {
+      if (identical(_deviceScopeInFlight, future)) {
+        _deviceScopeInFlight = null;
+      }
+    });
+  }
+
+  static Future<String> _loadOrCreateDeviceScope() async {
+    try {
+      final saved = await _deviceStorage.read(key: _deviceScopeStorageKey);
+      if (saved != null && saved.isNotEmpty) {
+        _deviceScope = saved;
+        return saved;
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('기기 범위 secure storage 읽기 실패: $e');
+    }
+
+    final created = Uuid().v4();
+    _deviceScope = created;
+    try {
+      await _deviceStorage.write(key: _deviceScopeStorageKey, value: created);
+    } catch (e) {
+      // 백업될 수 있는 Hive 값을 fallback으로 사용하지 않습니다. 이 경우에는
+      // 현재 앱 실행 동안만 같은 범위를 사용하고, 재실행 시 새로 생성합니다.
+      if (kDebugMode) debugPrint('기기 범위 secure storage 저장 실패: $e');
+    }
+    return created;
+  }
+
+  static Future<String> _rememberedEmailsStorageKey() async {
+    final scope = await _getDeviceScope();
+    return '${_rememberedEmailsKeyPrefix}_$scope';
   }
 
   /// 웹에서도 Firebase Auth의 로컬 persistence를 명시적으로 사용합니다.
@@ -559,23 +610,23 @@ class AuthService {
   // ────────────────────────────────────────────
   // 로그인 상태 유지 (Remember Me)
   // ────────────────────────────────────────────
-  /// 사용자별로 저장된 아이디 목록을 최근 사용 순서로 반환합니다.
+  /// 현재 기기에서 저장된 아이디 목록을 최근 사용 순서로 반환합니다.
   static Future<List<String>> getRememberedEmails() async {
     final sessionBox = await _getSessionBox();
-    final stored = sessionBox.get(_rememberedEmailsKey);
+    final deviceKey = await _rememberedEmailsStorageKey();
+    final stored = sessionBox.get(deviceKey);
     final emails = stored is List
-        ? stored.whereType<String>().map((e) => e.trim().toLowerCase()).where((e) => e.isNotEmpty).toSet().toList()
+        ? stored
+            .whereType<String>()
+            .map((e) => e.trim().toLowerCase())
+            .where((e) => e.isNotEmpty)
+            .toSet()
+            .toList()
         : <String>[];
 
-    // 기존 버전의 단일 아이디 저장값을 목록으로 한 번만 마이그레이션합니다.
-    final legacy = sessionBox.get(_legacyRememberMeEmailKey) as String?;
-    if (legacy != null && legacy.trim().isNotEmpty && !emails.contains(legacy.trim().toLowerCase())) {
-      emails.insert(0, legacy.trim().toLowerCase());
-    }
-    if (emails.isNotEmpty) {
-      await sessionBox.put(_rememberedEmailsKey, emails);
-    }
-    if (legacy != null) await sessionBox.delete(_legacyRememberMeEmailKey);
+    // 이전 버전의 전역 저장값은 다른 기기로 복원될 수 있으므로 사용하지 않고 삭제합니다.
+    await sessionBox.delete(_legacyRememberedEmailsKey);
+    await sessionBox.delete(_legacyRememberMeEmailKey);
     return emails;
   }
 
@@ -586,8 +637,9 @@ class AuthService {
     emails.remove(normalized);
     emails.insert(0, normalized);
     // 무제한으로 계정 식별자가 쌓이지 않도록 최근 10개만 보관합니다.
-    await (await _getSessionBox()).put(
-      _rememberedEmailsKey,
+    final sessionBox = await _getSessionBox();
+    await sessionBox.put(
+      await _rememberedEmailsStorageKey(),
       emails.take(10).toList(),
     );
   }
@@ -599,8 +651,10 @@ class AuthService {
 
   static Future<void> clearRememberMe([String? email]) async {
     final sessionBox = await _getSessionBox();
+    final deviceKey = await _rememberedEmailsStorageKey();
     if (email == null || email.trim().isEmpty) {
-      await sessionBox.delete(_rememberedEmailsKey);
+      await sessionBox.delete(deviceKey);
+      await sessionBox.delete(_legacyRememberedEmailsKey);
       await sessionBox.delete(_legacyRememberMeEmailKey);
       return;
     }
@@ -608,9 +662,9 @@ class AuthService {
     final emails = await getRememberedEmails();
     emails.remove(normalized);
     if (emails.isEmpty) {
-      await sessionBox.delete(_rememberedEmailsKey);
+      await sessionBox.delete(deviceKey);
     } else {
-      await sessionBox.put(_rememberedEmailsKey, emails);
+      await sessionBox.put(deviceKey, emails);
     }
   }
 
