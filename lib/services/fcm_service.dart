@@ -101,6 +101,24 @@ class FcmService {
     return _currentToken;
   }
 
+  // 테스트 전송 전 현재 Service Worker와 VAPID 설정으로 웹 구독을 재생성합니다.
+  // 오래된 브라우저 PushSubscription이 남아 서버 전송만 성공하는 문제를 방지합니다.
+  static Future<String?> refreshWebToken() async {
+    if (!kIsWeb) return getToken();
+    try {
+      final messaging = FirebaseMessaging.instance;
+      await messaging.deleteToken();
+      _currentToken = await messaging.getToken(
+        vapidKey: 'BNR5gKg1dAUGcgrbSw8MMf0ekkB9zK2mWLM5EqTINWn7CQTpqsQewNo3KtuYJyTZ3OHs05nGBtCydQKCqpSIx-U',
+      );
+      _lastError = null;
+      return _currentToken;
+    } catch (e) {
+      _lastError = 'FCM 웹 토큰 재발급 실패: $e';
+      return null;
+    }
+  }
+
   static Future<bool> _isNotificationEnabled(
       String userId, String field, bool fallback) async {
     if (userId.isEmpty) return false;

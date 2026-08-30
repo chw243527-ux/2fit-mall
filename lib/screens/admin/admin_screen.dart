@@ -648,7 +648,7 @@ class _AdminScreenState extends State<AdminScreen>
   Future<void> _sendTestPush() async {
     try {
       await FcmService.initialize();
-      final token = await FcmService.getToken();
+      final token = await FcmService.refreshWebToken();
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         throw Exception('Firebase 로그인이 확인되지 않습니다. 다시 로그인해 주세요.');
