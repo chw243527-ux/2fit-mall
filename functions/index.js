@@ -837,6 +837,7 @@ exports.createSecureOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) =
         amount: prepared.order.totalAmount,
         order: prepared.order,
         couponId: prepared.couponId || null,
+        couponIds: prepared.couponIds,
         usedPoints: prepared.usedPoints,
         expiresAt: new Date(Date.now() + PAYMENT_INTENT_TTL_MS),
         createdAt: FieldValue.serverTimestamp(),
@@ -940,7 +941,23 @@ function _readCheckoutPayload(body) {
   if (!deliveryAddress || deliveryAddress.length > 500) throw new Error('Invalid delivery address');
   const paymentMethod = String(body?.paymentMethod || '').trim().slice(0, 60);
   if (!paymentMethod) throw new Error('Invalid payment method');
-  return { items, deliveryAddress, paymentMethod, memo: String(body?.memo || '').trim().slice(0, 500), couponId: body?.couponId ? String(body.couponId).slice(0, 120) : '', usedPoints: Math.max(0, Math.floor(Number(body?.usedPoints || 0))) };
+  const rawCouponIds = Array.isArray(body?.couponIds)
+    ? body.couponIds
+    : (body?.couponId ? [body.couponId] : []);
+  const couponIds = [...new Set(rawCouponIds
+    .map((id) => String(id || '').trim().slice(0, 120))
+    .filter(Boolean))];
+  if (couponIds.length > 10) throw new Error('Too many coupons');
+  return {
+    items,
+    deliveryAddress,
+    paymentMethod,
+    memo: String(body?.memo || '').trim().slice(0, 500),
+    couponIds,
+    // 이전 클라이언트와의 호환을 위해 첫 번째 쿠폰 ID도 유지합니다.
+    couponId: couponIds[0] || '',
+    usedPoints: Math.max(0, Math.floor(Number(body?.usedPoints || 0))),
+  };
 }
 
 const _CHECKOUT_COLOR_OPTIONS = [
@@ -1028,25 +1045,62 @@ async function _prepareOrderFromServerData(uid, payload) {
     items.push({ productId, productName: String(product.name || '').slice(0, 200), size, color, quantity, price: unitPrice, customOptions: requestedOptions || null, imageUrl: Array.isArray(product.images) ? String(product.images[0] || '') : '' });
   }
   const shippingFee = subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : DEFAULT_SHIPPING_FEE;
-  const coupon = await _calculateCoupon(uid, payload.couponId, subtotal + shippingFee);
-  if (payload.usedPoints && (payload.usedPoints < 10000 || payload.usedPoints > subtotal + shippingFee - coupon.discount)) throw new Error('Invalid points amount');
-  const totalAmount = Math.max(0, subtotal + shippingFee - coupon.discount - payload.usedPoints);
+  const coupons = await _calculateCoupons(uid, payload.couponIds, subtotal + shippingFee);
+  if (payload.usedPoints && (payload.usedPoints < 10000 || payload.usedPoints > subtotal + shippingFee - coupons.discount)) throw new Error('Invalid points amount');
+  const totalAmount = Math.max(0, subtotal + shippingFee - coupons.discount - payload.usedPoints);
   if (!Number.isSafeInteger(totalAmount) || totalAmount < 0) throw new Error('Invalid payment amount');
   const orderId = `${isGroup ? 'GRP' : 'ORD'}-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
-  const order = { id: orderId, userId: uid, userName: String(user.name || '고객').slice(0, 100), userEmail: String(user.email || '').slice(0, 254), userPhone: String(user.phone || '').slice(0, 40), userAddress: payload.deliveryAddress, items, subtotal, totalAmount, shippingFee, couponId: coupon.id || null, couponDiscount: coupon.discount, usedPoints: payload.usedPoints, pointDiscount: payload.usedPoints, paymentMethod: payload.paymentMethod, status: 'pending', orderType: isGroup ? 'group' : 'regular', memo: payload.memo || null };
-  return { orderId, order, orderName: `${items[0].productName}${items.length > 1 ? ` 외 ${items.length - 1}건` : ''}`, couponId: coupon.id, usedPoints: payload.usedPoints, isBankTransfer: payload.paymentMethod.includes('무통장') };
+  const order = { id: orderId, userId: uid, userName: String(user.name || '고객').slice(0, 100), userEmail: String(user.email || '').slice(0, 254), userPhone: String(user.phone || '').slice(0, 40), userAddress: payload.deliveryAddress, items, subtotal, totalAmount, shippingFee, couponId: coupons.ids[0] || null, couponIds: coupons.ids, couponDiscount: coupons.discount, couponDiscounts: coupons.discounts, usedPoints: payload.usedPoints, pointDiscount: payload.usedPoints, paymentMethod: payload.paymentMethod, status: 'pending', orderType: isGroup ? 'group' : 'regular', memo: payload.memo || null };
+  return { orderId, order, orderName: `${items[0].productName}${items.length > 1 ? ` 외 ${items.length - 1}건` : ''}`, couponId: coupons.ids[0] || '', couponIds: coupons.ids, usedPoints: payload.usedPoints, isBankTransfer: payload.paymentMethod.includes('무통장') };
 }
 
-async function _calculateCoupon(uid, couponId, orderAmount) {
-  if (!couponId) return { id: '', discount: 0 };
-  const snap = await db.collection('user_coupons').doc(uid).collection('coupons').doc(couponId).get();
-  const coupon = snap.data();
-  if (!snap.exists || coupon.isUsed === true || coupon.isReserved === true || coupon.expiresAt?.toDate?.() <= new Date()) throw new Error('Coupon is unavailable');
-  const minimum = Number(coupon.minOrderAmount || 0);
-  if (orderAmount < minimum) throw new Error('Coupon minimum order amount is not met');
-  let discount = coupon.type === 'percent' ? Math.floor(orderAmount * Number(coupon.value || 0) / 100) : Math.floor(Number(coupon.value || 0));
-  if (coupon.maxDiscountAmount != null) discount = Math.min(discount, Math.floor(Number(coupon.maxDiscountAmount)));
-  return { id: couponId, discount: Math.max(0, Math.min(discount, orderAmount)) };
+async function _calculateCoupons(uid, couponIds, orderAmount) {
+  const ids = Array.isArray(couponIds) ? couponIds : [];
+  if (ids.length === 0) return { ids: [], discounts: [], discount: 0 };
+
+  const coupons = [];
+  for (const couponId of ids) {
+    const snap = await db.collection('user_coupons').doc(uid).collection('coupons').doc(couponId).get();
+    const coupon = snap.data();
+    if (!snap.exists || coupon.isUsed === true || coupon.isReserved === true || coupon.expiresAt?.toDate?.() <= new Date()) {
+      throw new Error('Coupon is unavailable');
+    }
+    // 관리자 수정사항은 이미 발급된 쿠폰에도 반영합니다.
+    // 원본이 삭제된 경우에는 발급 당시의 사용자 쿠폰 설정을 유지합니다.
+    const sourceSnap = await db.collection('admin_coupons').doc(couponId).get();
+    const source = sourceSnap.data();
+    const effectiveCoupon = sourceSnap.exists
+      ? { ...coupon, isStackable: source?.isStackable === true }
+      : coupon;
+    coupons.push({ id: couponId, data: effectiveCoupon });
+  }
+
+  // 한 장만 쓸 때는 기존 쿠폰도 사용할 수 있지만, 여러 장이면
+  // 선택된 모든 쿠폰이 관리자 설정상 중복 사용 허용이어야 합니다.
+  if (coupons.length > 1 && coupons.some(({ data }) => data.isStackable !== true)) {
+    throw new Error('Coupons cannot be combined');
+  }
+
+  const discounts = [];
+  let remaining = orderAmount;
+  for (const { data: coupon } of coupons) {
+    const minimum = Number(coupon.minOrderAmount || 0);
+    if (orderAmount < minimum) throw new Error('Coupon minimum order amount is not met');
+    let discount = coupon.type === 'percent'
+      ? Math.floor(remaining * Number(coupon.value || 0) / 100)
+      : Math.floor(Number(coupon.value || 0));
+    if (coupon.maxDiscountAmount != null) {
+      discount = Math.min(discount, Math.floor(Number(coupon.maxDiscountAmount)));
+    }
+    discount = Math.max(0, Math.min(discount, remaining));
+    discounts.push(discount);
+    remaining -= discount;
+  }
+  return {
+    ids: coupons.map(({ id }) => id),
+    discounts,
+    discount: discounts.reduce((sum, value) => sum + value, 0),
+  };
 }
 
 async function _finalizeBankTransferOrder(uid, prepared) {
@@ -1060,11 +1114,19 @@ async function _finalizeBankTransferOrder(uid, prepared) {
 }
 
 async function _reserveBenefits(tx, uid, prepared, orderId, user) {
-  if (prepared.couponId) {
-    const couponRef = db.collection('user_coupons').doc(uid).collection('coupons').doc(prepared.couponId);
-    const coupon = await tx.get(couponRef);
-    if (!coupon.exists || coupon.data().isUsed === true || coupon.data().isReserved === true) throw new Error('Coupon is unavailable');
-    tx.update(couponRef, { isReserved: true, reservedOrderId: orderId, reservedAt: FieldValue.serverTimestamp() });
+  const couponIds = Array.isArray(prepared.couponIds)
+    ? prepared.couponIds
+    : (prepared.couponId ? [prepared.couponId] : []);
+  const couponRefs = couponIds.map((couponId) =>
+    db.collection('user_coupons').doc(uid).collection('coupons').doc(couponId));
+  const couponSnaps = [];
+  for (const couponRef of couponRefs) couponSnaps.push(await tx.get(couponRef));
+  for (let i = 0; i < couponSnaps.length; i += 1) {
+    const coupon = couponSnaps[i];
+    if (!coupon.exists || coupon.data().isUsed === true || coupon.data().isReserved === true) {
+      throw new Error('Coupon is unavailable');
+    }
+    tx.update(couponRefs[i], { isReserved: true, reservedOrderId: orderId, reservedAt: FieldValue.serverTimestamp() });
   }
   if (prepared.usedPoints > 0) {
     const balance = Math.floor(Number(user.points || 0));
@@ -1075,7 +1137,19 @@ async function _reserveBenefits(tx, uid, prepared, orderId, user) {
 }
 
 async function _commitReservedBenefits(tx, uid, intent, orderId) {
-  if (intent.couponId) tx.update(db.collection('user_coupons').doc(uid).collection('coupons').doc(intent.couponId), { isUsed: true, usedOrderId: orderId, usedAt: FieldValue.serverTimestamp(), isReserved: false, reservedOrderId: FieldValue.delete(), reservedAt: FieldValue.delete() });
+  const couponIds = Array.isArray(intent.couponIds)
+    ? intent.couponIds
+    : (intent.couponId ? [intent.couponId] : []);
+  for (const couponId of couponIds) {
+    tx.update(db.collection('user_coupons').doc(uid).collection('coupons').doc(couponId), {
+      isUsed: true,
+      usedOrderId: orderId,
+      usedAt: FieldValue.serverTimestamp(),
+      isReserved: false,
+      reservedOrderId: FieldValue.delete(),
+      reservedAt: FieldValue.delete(),
+    });
+  }
 }
 
 async function _releasePaymentIntent(uid, orderId) {
@@ -1085,7 +1159,16 @@ async function _releasePaymentIntent(uid, orderId) {
     const intentSnap = await tx.get(intentRef);
     const intent = intentSnap.data();
     if (!intentSnap.exists || intent.userId !== uid || intent.status !== 'pending') return;
-    if (intent.couponId) tx.update(db.collection('user_coupons').doc(uid).collection('coupons').doc(intent.couponId), { isReserved: false, reservedOrderId: FieldValue.delete(), reservedAt: FieldValue.delete() });
+    const couponIds = Array.isArray(intent.couponIds)
+      ? intent.couponIds
+      : (intent.couponId ? [intent.couponId] : []);
+    for (const couponId of couponIds) {
+      tx.update(db.collection('user_coupons').doc(uid).collection('coupons').doc(couponId), {
+        isReserved: false,
+        reservedOrderId: FieldValue.delete(),
+        reservedAt: FieldValue.delete(),
+      });
+    }
     if (Number(intent.usedPoints || 0) > 0) {
       const userRef = db.collection('users').doc(uid);
       const user = await tx.get(userRef);
@@ -1098,7 +1181,7 @@ async function _releasePaymentIntent(uid, orderId) {
 }
 
 function _safeCheckoutError(error) {
-  const allowed = new Set(['Invalid order items', 'Invalid delivery address', 'Invalid payment method', 'Invalid product quantity', 'Product is unavailable', 'Invalid product size', 'Invalid product color', 'Product is out of stock', 'Coupon is unavailable', 'Coupon minimum order amount is not met', 'Invalid points amount', 'Insufficient points']);
+  const allowed = new Set(['Invalid order items', 'Invalid delivery address', 'Invalid payment method', 'Invalid product quantity', 'Product is unavailable', 'Invalid product size', 'Invalid product color', 'Product is out of stock', 'Coupon is unavailable', 'Coupon minimum order amount is not met', 'Coupons cannot be combined', 'Too many coupons', 'Invalid points amount', 'Insufficient points']);
   return allowed.has(error?.message) ? error.message : 'Unable to prepare a secure order';
 }
 
@@ -1123,7 +1206,7 @@ exports.downloadSecureCoupon = onRequest({ cors: PAYMENT_CORS }, async (req, res
       const limit = Number.isFinite(Number(coupon.downloadLimit)) ? Number(coupon.downloadLimit) : null;
       const count = Math.floor(Number(coupon.downloadCount || 0));
       if (limit !== null && count >= limit) return 'limit_exceeded';
-      tx.set(targetRef, { couponId, code: String(coupon.code || ''), name: String(coupon.name || ''), type: coupon.type === 'percent' ? 'percent' : 'fixed', value: Math.max(0, Number(coupon.value || 0)), minOrderAmount: Math.max(0, Number(coupon.minOrderAmount || 0)), ...(coupon.maxDiscountAmount != null ? { maxDiscountAmount: Number(coupon.maxDiscountAmount) } : {}), ...(coupon.startsAt ? { startsAt: coupon.startsAt } : {}), ...(coupon.expiresAt ? { expiresAt: coupon.expiresAt } : {}), isUsed: false, downloadedAt: FieldValue.serverTimestamp() });
+      tx.set(targetRef, { couponId, code: String(coupon.code || ''), name: String(coupon.name || ''), type: coupon.type === 'percent' ? 'percent' : 'fixed', value: Math.max(0, Number(coupon.value || 0)), minOrderAmount: Math.max(0, Number(coupon.minOrderAmount || 0)), ...(coupon.maxDiscountAmount != null ? { maxDiscountAmount: Number(coupon.maxDiscountAmount) } : {}), ...(coupon.startsAt ? { startsAt: coupon.startsAt } : {}), ...(coupon.expiresAt ? { expiresAt: coupon.expiresAt } : {}), isUsed: false, isStackable: coupon.isStackable === true, downloadedAt: FieldValue.serverTimestamp() });
       tx.update(sourceRef, { downloadCount: FieldValue.increment(1) });
       return '';
     });

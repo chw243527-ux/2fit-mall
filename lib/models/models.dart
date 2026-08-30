@@ -384,7 +384,9 @@ class OrderModel {
   final double shippingFee;
   /// 적용한 쿠폰 식별자와 할인 금액
   final String? couponId;
+  final List<String> couponIds;
   final double couponDiscount;
+  final List<double> couponDiscounts;
   /// 사용한 포인트와 포인트 할인 금액 (1P = 1원)
   final int usedPoints;
   final double pointDiscount;
@@ -426,7 +428,9 @@ class OrderModel {
     required this.totalAmount,
     this.shippingFee = 0,
     this.couponId,
+    this.couponIds = const [],
     this.couponDiscount = 0,
+    this.couponDiscounts = const [],
     this.usedPoints = 0,
     this.pointDiscount = 0,
     required this.paymentMethod,
@@ -526,7 +530,9 @@ class OrderModel {
     String? paymentKey,
     String? cashReceiptNum,
     String? couponId,
+    List<String>? couponIds,
     double? couponDiscount,
+    List<double>? couponDiscounts,
     int? usedPoints,
     double? pointDiscount,
   }) {
@@ -541,7 +547,9 @@ class OrderModel {
       totalAmount: totalAmount,
       shippingFee: shippingFee,
       couponId: couponId ?? this.couponId,
+      couponIds: couponIds ?? this.couponIds,
       couponDiscount: couponDiscount ?? this.couponDiscount,
+      couponDiscounts: couponDiscounts ?? this.couponDiscounts,
       usedPoints: usedPoints ?? this.usedPoints,
       pointDiscount: pointDiscount ?? this.pointDiscount,
       paymentMethod: paymentMethod,
@@ -574,7 +582,9 @@ class OrderModel {
       'totalAmount': totalAmount,
       'shippingFee': shippingFee,
       'couponId': couponId,
+      'couponIds': couponIds,
       'couponDiscount': couponDiscount,
+      'couponDiscounts': couponDiscounts,
       'usedPoints': usedPoints,
       'pointDiscount': pointDiscount,
       'paymentMethod': paymentMethod,
@@ -711,6 +721,8 @@ class CouponModel {
   final DateTime expiresAt;
   bool isUsed;
   final bool isDownloadable;    // 사용자가 팝업/배너에서 다운로드 가능한 공개 쿠폰
+  /// 다른 쿠폰과 함께 사용할 수 있도록 관리자가 허용한 쿠폰
+  final bool isStackable;
   final int? downloadLimit;     // 최대 다운로드 수 (null = 무제한)
   final int downloadCount;      // 현재 다운로드 수
 
@@ -726,6 +738,7 @@ class CouponModel {
     required this.expiresAt,
     this.isUsed = false,
     this.isDownloadable = false,
+    this.isStackable = false,
     this.downloadLimit,
     this.downloadCount = 0,
   });
@@ -741,13 +754,26 @@ class CouponModel {
       isDownloadable && isValid &&
       (downloadLimit == null || downloadCount < downloadLimit!);
 
-  double calculateDiscount(double orderAmount) {
+  double calculateDiscount(double orderAmount) =>
+      calculateDiscountAt(orderAmount, discountBase: orderAmount);
+
+  /// [orderAmount]로 사용 조건을 확인하고 [discountBase]에 할인율을 적용합니다.
+  /// 중복 쿠폰에서는 최소 주문금액은 원 주문금액으로 판단하되,
+  /// 퍼센트 할인은 앞선 쿠폰 적용 후 남은 금액에 적용해야 합니다.
+  double calculateDiscountAt(double orderAmount, {double? discountBase}) {
     if (!isValid || orderAmount < minOrderAmount) return 0;
-    if (type == CouponType.fixed) return value;
-    final discount = orderAmount * value / 100;
-    return maxDiscountAmount != null
+    final base = discountBase ?? orderAmount;
+    final discount = type == CouponType.fixed ? value : base * value / 100;
+    final capped = maxDiscountAmount != null
         ? discount.clamp(0, maxDiscountAmount!)
         : discount;
+    return capped.clamp(0, base).toDouble();
+  }
+
+  /// 여러 장을 함께 적용할 때는 선택한 모든 쿠폰이 허용되어야 합니다.
+  static bool canStack(Iterable<CouponModel> coupons) {
+    final list = coupons.toList(growable: false);
+    return list.length <= 1 || list.every((coupon) => coupon.isStackable);
   }
 
   String get typeLabel =>

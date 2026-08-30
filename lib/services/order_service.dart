@@ -560,7 +560,9 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       'totalAmount': order.totalAmount,
       'shippingFee': order.shippingFee,
       'couponId': order.couponId,
+      'couponIds': order.couponIds,
       'couponDiscount': order.couponDiscount,
+      'couponDiscounts': order.couponDiscounts,
       'usedPoints': order.usedPoints,
       'pointDiscount': order.pointDiscount,
       'paymentMethod': order.paymentMethod,
@@ -727,7 +729,16 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       totalAmount: (data['totalAmount'] as num?)?.toDouble() ?? 0,
       shippingFee: (data['shippingFee'] as num?)?.toDouble() ?? 0,
       couponId: data['couponId'] as String?,
+      couponIds: data['couponIds'] is List
+          ? List<String>.from(data['couponIds'] as List)
+          : (data['couponId'] is String ? [data['couponId'] as String] : const []),
       couponDiscount: (data['couponDiscount'] as num?)?.toDouble() ?? 0,
+      couponDiscounts: data['couponDiscounts'] is List
+          ? (data['couponDiscounts'] as List)
+              .whereType<num>()
+              .map((value) => value.toDouble())
+              .toList()
+          : const [],
       usedPoints: (data['usedPoints'] as num?)?.toInt() ?? 0,
       pointDiscount: (data['pointDiscount'] as num?)?.toDouble() ?? 0,
       paymentMethod: data['paymentMethod'] as String? ?? '',
@@ -833,7 +844,16 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       totalAmount: (data['totalAmount'] as num?)?.toDouble() ?? 0,
       shippingFee: (data['shippingFee'] as num?)?.toDouble() ?? 0,
       couponId: data['couponId'] as String?,
+      couponIds: data['couponIds'] is List
+          ? List<String>.from(data['couponIds'] as List)
+          : (data['couponId'] is String ? [data['couponId'] as String] : const []),
       couponDiscount: (data['couponDiscount'] as num?)?.toDouble() ?? 0,
+      couponDiscounts: data['couponDiscounts'] is List
+          ? (data['couponDiscounts'] as List)
+              .whereType<num>()
+              .map((value) => value.toDouble())
+              .toList()
+          : const [],
       usedPoints: (data['usedPoints'] as num?)?.toInt() ?? 0,
       pointDiscount: (data['pointDiscount'] as num?)?.toDouble() ?? 0,
       paymentMethod: data['paymentMethod'] as String? ?? '',

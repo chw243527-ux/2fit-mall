@@ -11,6 +11,7 @@ class SecureCheckoutService {
     required String deliveryAddress,
     required String paymentMethod,
     String? memo,
+    List<String> couponIds = const [],
     String? couponId,
     int usedPoints = 0,
   }) async {
@@ -21,7 +22,9 @@ class SecureCheckoutService {
         'deliveryAddress': deliveryAddress,
         'paymentMethod': paymentMethod,
         'memo': memo ?? '',
-        'couponId': couponId ?? '',
+        'couponIds': couponIds.isNotEmpty
+            ? couponIds
+            : (couponId == null || couponId.isEmpty ? <String>[] : [couponId]),
         'usedPoints': usedPoints,
       },
       parser: (data) => SecureOrderResult(

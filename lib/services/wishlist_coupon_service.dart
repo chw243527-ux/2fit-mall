@@ -74,6 +74,7 @@ class CouponService {
     DateTime? startsAt,
     required DateTime expiresAt,
     bool isDownloadable = true,
+    bool isStackable = false,
     int? downloadLimit,
   }) async {
     try {
@@ -97,6 +98,7 @@ class CouponService {
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isUsed': false,
         'isDownloadable': isDownloadable,
+        'isStackable': isStackable,
         if (downloadLimit != null) 'downloadLimit': downloadLimit,
         'downloadCount': 0,
         'createdAt': FieldValue.serverTimestamp(),
@@ -119,6 +121,7 @@ class CouponService {
     DateTime? startsAt,
     required DateTime expiresAt,
     bool isDownloadable = false,
+    bool isStackable = false,
     int? downloadLimit,
   }) async {
     try {
@@ -134,6 +137,7 @@ class CouponService {
             : FieldValue.delete(),
         'expiresAt': Timestamp.fromDate(expiresAt),
         'isDownloadable': isDownloadable,
+        'isStackable': isStackable,
         'downloadLimit': downloadLimit ?? FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -299,6 +303,7 @@ class CouponService {
           DateTime.now().add(const Duration(days: 30)),
       isUsed: data['isUsed'] as bool? ?? false,
       isDownloadable: data['isDownloadable'] as bool? ?? false,
+      isStackable: data['isStackable'] as bool? ?? false,
       downloadLimit: data['downloadLimit'] as int?,
       downloadCount: (data['downloadCount'] as num?)?.toInt() ?? 0,
     );

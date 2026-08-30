@@ -67,6 +67,6 @@ class CashReceiptResult {
   const CashReceiptResult({required this.success, this.receiptKey, this.orderId, this.error});
 }
 class PaymentCheckoutArgs {
-  final String orderId; final String orderName; final int amount; final String customerName; final String customerEmail; final String customerPhone; final String selectedPayment; final String? couponId; final double couponDiscount; final int usedPoints; final double pointDiscount;
-  const PaymentCheckoutArgs({required this.orderId, required this.orderName, required this.amount, required this.customerName, required this.customerEmail, required this.customerPhone, required this.selectedPayment, this.couponId, this.couponDiscount = 0, this.usedPoints = 0, this.pointDiscount = 0});
+  final String orderId; final String orderName; final int amount; final String customerName; final String customerEmail; final String customerPhone; final String selectedPayment; final String? couponId; final List<String> couponIds; final double couponDiscount; final int usedPoints; final double pointDiscount;
+  const PaymentCheckoutArgs({required this.orderId, required this.orderName, required this.amount, required this.customerName, required this.customerEmail, required this.customerPhone, required this.selectedPayment, this.couponId, this.couponIds = const [], this.couponDiscount = 0, this.usedPoints = 0, this.pointDiscount = 0});
 }

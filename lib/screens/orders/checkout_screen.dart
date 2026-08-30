@@ -50,7 +50,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   // 쿠폰
   final _couponCodeController = TextEditingController();
-  CouponModel? _appliedCoupon;
+  final List<CouponModel> _appliedCoupons = [];
   bool _couponLoading = false;
 
   // 포인트 사용
@@ -149,10 +149,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  // 쿠폰 할인액
+  // 쿠폰 할인액: 선택 순서대로 남은 금액에 순차 적용합니다.
   double get _couponDiscount {
-    if (_appliedCoupon == null) return 0;
-    return _appliedCoupon!.calculateDiscount(widget.cart.total);
+    var remaining = widget.cart.total;
+    var discount = 0.0;
+    for (final coupon in _appliedCoupons) {
+      final current = coupon.calculateDiscountAt(
+        widget.cart.total,
+        discountBase: remaining,
+      );
+      discount += current;
+      remaining -= current;
+    }
+    return discount;
+  }
+
+  double _discountForCouponAt(int index) {
+    var remaining = widget.cart.total;
+    for (var i = 0; i <= index; i++) {
+      final discount = _appliedCoupons[i].calculateDiscountAt(
+        widget.cart.total,
+        discountBase: remaining,
+      );
+      if (i == index) return discount;
+      remaining -= discount;
+    }
+    return 0;
   }
 
   // 포인트 할인 (사용포인트 = 원화 동일, 1P = 1원)
@@ -1702,10 +1724,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
           _buildPriceRow(loc.productAmount, subtotal),
           // 쿠폰 할인
-          if (_appliedCoupon != null)
+          for (var i = 0; i < _appliedCoupons.length; i++)
             _buildPriceRow(
-              context.loc.t('쿠폰_할인', '쿠폰 할인 (${_appliedCoupon!.name})'),
-              -_couponDiscount,
+              context.loc.t('쿠폰_할인', '쿠폰 할인 (${_appliedCoupons[i].name})'),
+              -_discountForCouponAt(i),
               isDiscount: true,
             ),
           // 포인트 할인
@@ -2059,94 +2081,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildCouponSection() {
     final allCoupons = context.watch<CouponProvider>().validCoupons;
     final orderTotal = widget.cart.total;
-
-    // 사용 가능 / 불가 분리
-    final usableCoupons =
-        allCoupons.where((c) => orderTotal >= c.minOrderAmount).toList();
-    final unusableCoupons =
-        allCoupons.where((c) => orderTotal < c.minOrderAmount).toList();
-
-    // 드롭다운 아이템 목록 구성
-    // null = "쿠폰 선택 안 함" sentinel
-    final dropdownItems = <DropdownMenuItem<String>>[
-      const DropdownMenuItem(
-        value: '__none__',
-        child: Text('쿠폰을 선택하세요',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-      ),
-      if (usableCoupons.isNotEmpty) ...[
-        // 구분 헤더 (비선택)
-        const DropdownMenuItem(
-          value: '__header_usable__',
-          enabled: false,
-          child: Text('── 사용 가능',
-              style: TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF0064FF),
-                  fontWeight: FontWeight.w700)),
-        ),
-        ...usableCoupons.map((c) {
-          final disc = c.calculateDiscount(orderTotal);
-          return DropdownMenuItem(
-            value: c.id,
-            child: Row(
-              children: [
-                const Icon(Icons.local_activity_rounded,
-                    size: 15, color: Color(0xFF0064FF)),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    '${c.name}  (-${_formatPrice(disc)}원)',
-                    style:
-                        const TextStyle(fontSize: 13, color: AppColors.primary),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
-      if (unusableCoupons.isNotEmpty) ...[
-        const DropdownMenuItem(
-          value: '__header_unusable__',
-          enabled: false,
-          child: Text('── 최소 주문금액 미달',
-              style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-        ),
-        ...unusableCoupons.map((c) => DropdownMenuItem(
-              value: '__disabled_${c.id}__',
-              enabled: false,
-              child: Row(
-                children: [
-                  const Icon(Icons.local_activity_outlined,
-                      size: 15, color: AppColors.border),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      '${c.name}  (${_formatPrice(c.minOrderAmount)}원 이상)',
-                      style: const TextStyle(
-                          fontSize: 13, color: AppColors.textHint),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            )),
-      ],
-    ];
-
-    // 현재 선택 값 (드롭다운용)
-    final dropdownValue = _appliedCoupon?.id ?? '__none__';
+    final appliedIds = _appliedCoupons.map((c) => c.id).toSet();
+    final canStackWithCurrent = CouponModel.canStack(_appliedCoupons);
+    final usableCoupons = allCoupons
+        .where((coupon) => orderTotal >= coupon.minOrderAmount)
+        .toList();
+    final unusableCoupons = allCoupons
+        .where((coupon) => orderTotal < coupon.minOrderAmount)
+        .toList();
 
     return _buildSection(
       '쿠폰 할인',
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── 드롭다운 ─────────────────────────────────────────
           if (allCoupons.isEmpty)
-            // 보유 쿠폰 없음
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
@@ -2161,91 +2110,126 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   Icon(Icons.local_activity_outlined,
                       color: AppColors.border, size: 18),
                   SizedBox(width: 8),
-                  Text('보유한 쿠폰이 없습니다',
+                  Text('보유한 유효 쿠폰이 없습니다',
                       style: TextStyle(
                           fontSize: 13, color: AppColors.textSecondary)),
                 ],
               ),
             )
-          else
-            // 보유 쿠폰 있음 → 드롭다운
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: _appliedCoupon != null
-                      ? AppColors.success
-                      : AppColors.border,
-                  width: _appliedCoupon != null ? 1.5 : 1,
-                ),
-              ),
-              child: DropdownButton<String>(
-                value: dropdownValue,
-                isExpanded: true,
-                underline: const SizedBox.shrink(),
-                icon: _appliedCoupon != null
-                    ? GestureDetector(
-                        onTap: _removeCoupon,
-                        child: const Icon(Icons.cancel_rounded,
-                            color: AppColors.textHint, size: 20),
-                      )
-                    : const Icon(Icons.expand_more_rounded,
-                        color: AppColors.textSecondary),
-                items: dropdownItems,
-                onChanged: (val) {
-                  if (val == null ||
-                      val == '__none__' ||
-                      val.startsWith('__header') ||
-                      val.startsWith('__disabled')) {
-                    _removeCoupon();
-                    return;
-                  }
-                  final picked =
-                      usableCoupons.where((c) => c.id == val).firstOrNull;
-                  if (picked != null) {
-                    setState(() {
-                      _appliedCoupon = picked;
-                      _couponCodeController.clear();
-                    });
-                  }
-                },
-              ),
-            ),
-
-          // ── 적용된 쿠폰 할인 배너 ────────────────────────────
-          if (_appliedCoupon != null) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                    color: AppColors.success.withValues(alpha: 0.45)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.check_circle_rounded,
-                      color: AppColors.success, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '${_appliedCoupon!.typeLabel}  ·  -${_formatPrice(_couponDiscount)}원 할인',
-                      style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.success),
-                    ),
+          else ...[
+            if (_appliedCoupons.isNotEmpty) ...[
+              ...List.generate(_appliedCoupons.length, (index) {
+                final coupon = _appliedCoupons[index];
+                final discount = _discountForCouponAt(index);
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(9),
+                    border: Border.all(
+                        color: AppColors.success.withValues(alpha: 0.45)),
                   ),
-                ],
-              ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle_rounded,
+                          color: AppColors.success, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${coupon.name} · -${_formatPrice(discount)}원',
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.success),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => _removeCoupon(coupon),
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                        color: AppColors.textSecondary,
+                        tooltip: '쿠폰 해제',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+              if (_appliedCoupons.length > 1)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _clearCoupons,
+                    child: const Text('적용 쿠폰 모두 해제'),
+                  ),
+                ),
+              if (!canStackWithCurrent)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    '현재 쿠폰은 단독 사용만 가능합니다. 다른 쿠폰을 추가하려면 먼저 해제해 주세요.',
+                    style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  ),
+                ),
+            ],
+            Text(
+              _appliedCoupons.isEmpty ? '사용할 쿠폰 선택' : '추가할 쿠폰 선택',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
+            const SizedBox(height: 6),
+            ...usableCoupons.map((coupon) {
+              final selected = appliedIds.contains(coupon.id);
+              final canSelect = selected ||
+                  (_appliedCoupons.isEmpty ||
+                      (canStackWithCurrent && coupon.isStackable));
+              return CheckboxListTile(
+                dense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                controlAffinity: ListTileControlAffinity.leading,
+                value: selected,
+                onChanged: canSelect ? (_) => _toggleCoupon(coupon) : null,
+                activeColor: AppColors.primary,
+                title: Text(
+                  '${coupon.name}  (-${_formatPrice(coupon.calculateDiscount(orderTotal))}원)',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: canSelect ? AppColors.textPrimary : AppColors.textHint,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  coupon.isStackable ? '중복 사용 가능' : '단독 사용만 가능',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: coupon.isStackable
+                        ? const Color(0xFF1565C0)
+                        : AppColors.textSecondary,
+                  ),
+                ),
+              );
+            }),
+            if (unusableCoupons.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              const Text('최소 주문금액 미달',
+                  style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+              ...unusableCoupons.map((coupon) => ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                    leading: const Icon(Icons.local_activity_outlined,
+                        size: 18, color: AppColors.border),
+                    title: Text(
+                      '${coupon.name} (${_formatPrice(coupon.minOrderAmount)}원 이상)',
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.textHint),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  )),
+            ],
           ],
-
-          // ── 코드 직접 입력 (보유 목록에 없는 쿠폰) ──────────
           const SizedBox(height: 10),
           Row(
             children: [
@@ -2253,8 +2237,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Text('코드 직접 입력',
-                    style:
-                        TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
               ),
               const Expanded(child: Divider()),
             ],
@@ -2265,17 +2248,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               Expanded(
                 child: TextFormField(
                   controller: _couponCodeController,
-                  enabled: _appliedCoupon == null,
-                  decoration: InputDecoration(
+                  enabled: !_couponLoading,
+                  decoration: const InputDecoration(
                     hintText: '쿠폰 코드 입력',
-                    prefixIcon:
-                        const Icon(Icons.local_activity_rounded, size: 20),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 14),
+                    prefixIcon: Icon(Icons.local_activity_rounded, size: 20),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     filled: true,
-                    fillColor: _appliedCoupon != null
-                        ? AppColors.surfaceGray
-                        : Colors.white,
+                    fillColor: Colors.white,
                   ),
                   textCapitalization: TextCapitalization.characters,
                   onChanged: (_) => setState(() {}),
@@ -2285,13 +2265,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               SizedBox(
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _appliedCoupon != null
-                      ? _removeCoupon
-                      : (_couponLoading ? null : _applyCoupon),
+                  onPressed: _couponLoading ? null : _applyCoupon,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _appliedCoupon != null
-                        ? AppColors.textSecondary
-                        : AppColors.primary,
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -2302,13 +2278,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           height: 18,
                           child: CircularProgressIndicator(
                               strokeWidth: 2, color: Colors.white))
-                      : Text(
-                          _appliedCoupon != null ? '취소' : '적용',
-                          style: const TextStyle(
+                      : const Text('적용',
+                          style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: Colors.white),
-                        ),
+                              color: Colors.white)),
                 ),
               ),
             ],
@@ -2349,9 +2323,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             backgroundColor: AppColors.error,
           ),
         );
+      } else if (_appliedCoupons.any((c) => c.id == coupon.id)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('이미 적용된 쿠폰입니다.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      } else if (!CouponModel.canStack([..._appliedCoupons, coupon])) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('중복 사용 허용으로 설정된 쿠폰끼리만 함께 사용할 수 있습니다.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       } else {
         setState(() {
-          _appliedCoupon = coupon;
+          _appliedCoupons.add(coupon);
           _couponCodeController.clear();
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2367,9 +2355,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     }
   }
 
-  void _removeCoupon() {
+  void _toggleCoupon(CouponModel coupon) {
+    if (_appliedCoupons.any((c) => c.id == coupon.id)) {
+      _removeCoupon(coupon);
+      return;
+    }
+    if (!CouponModel.canStack([..._appliedCoupons, coupon])) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('중복 사용 허용으로 설정된 쿠폰끼리만 함께 사용할 수 있습니다.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    setState(() => _appliedCoupons.add(coupon));
+  }
+
+  void _removeCoupon(CouponModel coupon) {
+    setState(() => _appliedCoupons.removeWhere((c) => c.id == coupon.id));
+  }
+
+  void _clearCoupons() {
     setState(() {
-      _appliedCoupon = null;
+      _appliedCoupons.clear();
       _couponCodeController.clear();
     });
   }
@@ -2565,7 +2574,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       deliveryAddress: _finalAddress,
       paymentMethod: _selectedPayment,
       memo: _memoController.text.trim(),
-      couponId: _appliedCoupon?.id,
+      couponIds: _appliedCoupons.map((coupon) => coupon.id).toList(),
       usedPoints: _usedPoints,
     );
     if (!mounted) return;
@@ -2601,7 +2610,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         customerEmail: user.email,
         customerPhone: user.phone,
         selectedPayment: _selectedPayment,
-        couponId: _appliedCoupon?.id,
+        couponIds: _appliedCoupons.map((coupon) => coupon.id).toList(),
         couponDiscount: _couponDiscount,
         usedPoints: _usedPoints,
         pointDiscount: _pointDiscount,
