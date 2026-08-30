@@ -646,8 +646,12 @@ class _AdminScreenState extends State<AdminScreen>
       await FcmService.initialize();
       final token = await FcmService.getToken();
       final user = FirebaseAuth.instance.currentUser;
-      if (token == null || token.isEmpty || user == null) {
-        throw Exception('기기 알림 권한 또는 로그인 상태를 확인해 주세요.');
+      if (user == null) {
+        throw Exception('Firebase 로그인이 확인되지 않습니다. 다시 로그인해 주세요.');
+      }
+      if (token == null || token.isEmpty) {
+        final detail = FcmService.lastError;
+        throw Exception(detail ?? 'FCM 토큰이 없습니다. 브라우저 알림 권한을 허용한 뒤 다시 시도해 주세요.');
       }
       // 테스트 전송 직전에 Firebase ID 토큰을 갱신해 만료된 세션으로 401이 나지 않게 합니다.
       final idToken = await user.getIdToken(true);

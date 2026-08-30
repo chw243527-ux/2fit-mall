@@ -10,6 +10,7 @@ import 'notification_web_stub.dart'
 class FcmService {
   static final _db = FirebaseFirestore.instance;
   static String? _currentToken;
+  static String? _lastError;
   static Future<void>? _initializeFuture;
   static StreamSubscription<String>? _tokenRefreshSubscription;
   static StreamSubscription<RemoteMessage>? _messageSubscription;
@@ -20,6 +21,7 @@ class FcmService {
   }
 
   static Future<void> _initialize() async {
+    _lastError = null;
     try {
       final messaging = FirebaseMessaging.instance;
 
@@ -49,13 +51,14 @@ class FcmService {
             // 웹: VAPID 키 없으면 토큰 없이 진행
             _currentToken = await messaging.getToken(
               vapidKey: 'BPOVoK3gRuXzSCDkS5jtfKFNV1PV3BXnJJXVlFJhk6KQQMK5zqJ_N3G5zYYsNJT1JoV7tKMvVsZJfS5rqF5o3M',
-            ).catchError((_) => null);
+            );
           } else {
             _currentToken = await messaging.getToken();
           }
           if (kDebugMode) debugPrint('FCM 토큰: ${_currentToken?.substring(0, 20)}...');
         } catch (e) {
-          if (kDebugMode) debugPrint('FCM 토큰 가져오기 실패 (정상): $e');
+          _lastError = 'FCM 토큰 발급 실패: $e';
+          if (kDebugMode) debugPrint(_lastError!);
         }
 
         // 포그라운드 메시지 핸들러
@@ -72,9 +75,12 @@ class FcmService {
         });
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('FCM 초기화 오류 (무시): $e');
+      _lastError = 'FCM 초기화 실패: $e';
+      if (kDebugMode) debugPrint(_lastError!);
     }
   }
+
+  static String? get lastError => _lastError;
 
   static Future<String?> getToken() async {
     await initialize();
