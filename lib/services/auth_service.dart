@@ -292,10 +292,10 @@ class AuthService {
       return AuthResult(success: false, error: _authError(e.code));
     } catch (e) {
       if (kDebugMode) debugPrint('회원가입 오류 상세: $e');
-      return AuthResult(
-          success: false,
-          error:
-              '오류: ${e.toString().length > 80 ? e.toString().substring(0, 80) : e.toString()}');
+      return const AuthResult(
+        success: false,
+        error: '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+      );
     }
   }
 
@@ -355,8 +355,16 @@ class AuthService {
   // ────────────────────────────────────────────
   static Future<AuthResult> restoreSession() async {
     try {
-      // Firebase Auth 현재 사용자 확인
-      final firebaseUser = _auth.currentUser;
+      // 새로고침 직후 Firebase Auth가 IndexedDB 세션을 복원할 때까지 기다립니다.
+      User? firebaseUser = _auth.currentUser;
+      if (firebaseUser == null) {
+        try {
+          firebaseUser = await _auth.authStateChanges().first.timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => null,
+          );
+        } catch (_) {}
+      }
       if (firebaseUser != null) {
         final user =
             await _loadUser(firebaseUser.uid, firebaseUser.email ?? '');
@@ -365,13 +373,16 @@ class AuthService {
         }
       }
 
-      // Hive 세션 확인 (레거시 폴백)
+      // 레거시 Hive 세션은 Firebase Auth가 동일 UID로 복원된 경우에만 신뢰합니다.
       final sessionBox = await _getSessionBox();
       final savedUid = sessionBox.get('currentUid') as String?;
-      if (savedUid != null) {
+      final activeUid = _auth.currentUser?.uid;
+      if (savedUid != null && activeUid != null && savedUid == activeUid) {
         final email = sessionBox.get('currentEmail') as String? ?? '';
         final user = await _loadUser(savedUid, email);
         if (user != null) return AuthResult(success: true, user: user);
+      } else if (savedUid != null && activeUid == null) {
+        await sessionBox.deleteAll(['currentUid', 'currentEmail']);
       }
 
       return const AuthResult(success: false);
@@ -410,9 +421,9 @@ class AuthService {
       }
       if (phone != null) updates['phone'] = phone.trim();
 
-      if (newPassword != null &&
-          newPassword.length >= 6 &&
-          currentPassword != null) {
+      if (newPassword != null && newPassword.isNotEmpty) {
+        if (currentPassword == null || currentPassword.isEmpty) return false;
+        if (validatePasswordStrength(newPassword) != null) return false;
         // 재인증 후 비밀번호 변경
         final cred = EmailAuthProvider.credential(
           email: firebaseUser.email!,
@@ -435,11 +446,27 @@ class AuthService {
   // 비밀번호 재설정 이메일 발송
   // ────────────────────────────────────────────
   static Future<AuthResult> resetPassword({required String email}) async {
+    final emailKey = email.trim().toLowerCase();
+    if (!RegExp(r'^[\w.\-+]+@[\w.\-]+\.\w{2,}$').hasMatch(emailKey)) {
+      return const AuthResult(success: false, error: '유효한 이메일 주소를 입력해주세요.');
+    }
     try {
-      await _auth.sendPasswordResetEmail(email: email.trim().toLowerCase());
+      await _auth.sendPasswordResetEmail(email: emailKey);
       return const AuthResult(success: true);
     } on FirebaseAuthException catch (e) {
-      return AuthResult(success: false, error: _authError(e.code));
+      // 등록 여부를 구분해 계정 존재 여부를 노출하지 않습니다.
+      if (e.code == 'user-not-found' || e.code == 'invalid-credential') {
+        return const AuthResult(success: true);
+      }
+      return const AuthResult(
+        success: false,
+        error: '비밀번호 재설정 요청을 처리할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+      );
+    } catch (_) {
+      return const AuthResult(
+        success: false,
+        error: '비밀번호 재설정 요청을 처리할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+      );
     }
   }
 
@@ -567,7 +594,6 @@ class AuthService {
       case 'weak-password':
         return '비밀번호는 6자 이상이어야 합니다.';
       case 'user-not-found':
-        return '가입되지 않은 이메일입니다.';
       case 'wrong-password':
       case 'invalid-credential':
         return '이메일 또는 비밀번호가 올바르지 않습니다.';
@@ -578,7 +604,7 @@ class AuthService {
       case 'network-request-failed':
         return '네트워크 연결을 확인해주세요.';
       default:
-        return '오류가 발생했습니다. 다시 시도해주세요. ($code)';
+        return '오류가 발생했습니다. 다시 시도해주세요.';
     }
   }
 

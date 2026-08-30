@@ -627,11 +627,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
         onTimeout: () =>
             AuthResult(success: false, error: loc.signupTimeoutError),
       );
-    } catch (e) {
-      result = AuthResult(
-          success: false,
-          error:
-              '회원가입 오류: ${e.toString().length > 100 ? e.toString().substring(0, 100) : e.toString()}');
+        } catch (_) {
+      result = const AuthResult(
+        success: false,
+        error: '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
+      );
     }
 
     if (!mounted) return;
