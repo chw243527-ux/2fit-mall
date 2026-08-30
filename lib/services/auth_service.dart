@@ -101,7 +101,7 @@ class AuthService {
               msg = '전화번호 인증이 활성화되지 않았습니다. 관리자에게 문의하세요.';
               break;
             default:
-              msg = 'SMS 발송 실패: ${e.message ?? e.code}';
+              msg = '문자 인증 요청에 실패했습니다. 잠시 후 다시 시도해주세요.';
           }
           completer.complete({'status': 'error', 'message': msg});
         }
@@ -154,7 +154,7 @@ class AuthService {
           msg = '인증번호가 만료되었습니다. 다시 발송해주세요.';
           break;
         default:
-          msg = '인증 실패: ${e.message ?? e.code}';
+          msg = '인증번호 확인에 실패했습니다. 다시 시도해주세요.';
       }
       return {'status': 'error', 'message': msg};
     } catch (e) {
