@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/models.dart';
 import 'notification_web_stub.dart'
     if (dart.library.html) 'notification_web_impl.dart' as web_notif;
@@ -85,8 +86,20 @@ class FcmService {
         });
 
         // 토큰 갱신 핸들러
-        _tokenRefreshSubscription ??= messaging.onTokenRefresh.listen((newToken) {
+        _tokenRefreshSubscription ??= messaging.onTokenRefresh.listen((newToken) async {
           _currentToken = newToken;
+          final userId = FirebaseAuth.instance.currentUser?.uid;
+          if (userId != null && userId.isNotEmpty) {
+            try {
+              await _db.collection('users').doc(userId).update({
+                'fcmToken': newToken,
+                'tokenUpdatedAt': FieldValue.serverTimestamp(),
+                'platform': kIsWeb ? 'web' : 'android',
+              });
+            } catch (e) {
+              if (kDebugMode) debugPrint('FCM 갱신 토큰 저장 실패: $e');
+            }
+          }
           if (kDebugMode) debugPrint('FCM 토큰 갱신됨');
         });
       }
@@ -109,20 +122,20 @@ class FcmService {
     return _currentToken;
   }
 
-  // 테스트 전송 전 현재 Service Worker와 VAPID 설정으로 웹 구독을 재생성합니다.
-  // 오래된 브라우저 PushSubscription이 남아 서버 전송만 성공하는 문제를 방지합니다.
+  // 테스트 전송마다 기존 구독을 삭제하지 않고 현재 토큰을 재사용합니다.
+  // 매번 deleteToken()을 호출하면 PushSubscription 교체 중 알림이 누락될 수 있습니다.
   static Future<String?> refreshWebToken() async {
     if (!kIsWeb) return getToken();
     try {
-      final messaging = FirebaseMessaging.instance;
-      await messaging.deleteToken();
-      _currentToken = await messaging.getToken(
-        vapidKey: 'BNR5gKg1dAUGcgrbSw8MMf0ekkB9zK2mWLM5EqTINWn7CQTpqsQewNo3KtuYJyTZ3OHs05nGBtCydQKCqpSIx-U',
-      );
+      await initialize();
+      if (_currentToken == null || _currentToken!.isEmpty) {
+        _initializeFuture = null;
+        await initialize();
+      }
       _lastError = null;
       return _currentToken;
     } catch (e) {
-      _lastError = 'FCM 웹 토큰 재발급 실패: $e';
+      _lastError = 'FCM 웹 토큰 확인 실패: $e';
       return null;
     }
   }
