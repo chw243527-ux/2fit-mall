@@ -50,7 +50,7 @@ class FcmService {
           if (kIsWeb) {
             // 웹: VAPID 키 없으면 토큰 없이 진행
             _currentToken = await messaging.getToken(
-              vapidKey: 'BPOVoK3gRuXzSCDkS5jtfKFNV1PV3BXnJJXVlFJhk6KQQMK5zqJ_N3G5zYYsNJT1JoV7tKMvVsZJfS5rqF5o3M',
+              vapidKey: 'BNR5gKg1dAUGcgrbSw8MMf0ekkB9zK2mWLM5EqTINWn7CQTpqsQewNo3KtuYJyTZ3OHs05nGBtCydQKCqpSIx-U',
             );
           } else {
             _currentToken = await messaging.getToken();
