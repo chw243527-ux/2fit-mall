@@ -25,9 +25,10 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function(payload) {
   console.log('[SW] 백그라운드 메시지 수신:', payload);
 
-  const notificationTitle = payload.notification?.title || '2FIT MALL';
+  const data = payload.data || {};
+  const notificationTitle = payload.notification?.title || data.title || '2FIT MALL';
   const notificationOptions = {
-    body: payload.notification?.body || '새로운 알림이 있습니다.',
+    body: payload.notification?.body || data.body || '새로운 알림이 있습니다.',
     icon: '/icons/Icon-192.png',
     badge: '/icons/Icon-192.png',
     tag: payload.data?.type || 'general',
