@@ -3,7 +3,7 @@ Future<void> ensureServiceWorkerReady() async {
   // 비웹 플랫폼에서는 Service Worker를 사용하지 않습니다.
 }
 
-void showBrowserNotification(String title, [String body = '']) {
+Future<void> showBrowserNotification(String title, [String body = '']) async {
   // 웹이 아닌 플랫폼에서는 아무것도 하지 않음
 }
 

@@ -25,7 +25,7 @@ Future<void> ensureServiceWorkerReady() async {
 }
 
 // ── 브라우저 알림 표시 ──────────────────────────────────────
-void showBrowserNotification(String title, [String body = '']) {
+Future<void> showBrowserNotification(String title, [String body = '']) async {
   try {
     final permission = js_util.getProperty(
         js_util.getProperty(js.context, 'Notification'), 'permission') as String?;
@@ -41,10 +41,13 @@ void showBrowserNotification(String title, [String body = '']) {
     js_util.setProperty(options, 'requireInteraction', false);
     js_util.setProperty(options, 'silent', false);
 
-    js_util.callConstructor(
-      js_util.getProperty(js.context, 'Notification') as Object,
-      [title, options],
-    );
+    // Android Chrome에서는 페이지의 new Notification()보다
+    // 활성 Service Worker의 showNotification()이 안정적으로 표시됩니다.
+    final navigator = js_util.getProperty(js.context, 'navigator');
+    final serviceWorker = js_util.getProperty(navigator, 'serviceWorker');
+    final ready = js_util.getProperty(serviceWorker, 'ready');
+    final registration = await js_util.promiseToFuture<Object>(ready as Object);
+    js_util.callMethod(registration, 'showNotification', [title, options]);
   } catch (e) {
     // 알림 실패는 무시 (앱 동작에 영향 없음)
   }
