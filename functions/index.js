@@ -129,6 +129,8 @@ exports.sendTestNotification = onRequest(
     if (!token) { res.status(400).json({ error: 'token required' }); return; }
     const notificationTitle = title || '테스트 알림';
     const notificationBody = body || '알림이 정상 작동합니다!';
+    const startedAt = Date.now();
+    const sentAt = new Date().toISOString();
     await getMessaging().send({
       token,
       notification: { title: notificationTitle, body: notificationBody },
@@ -137,6 +139,7 @@ exports.sendTestNotification = onRequest(
         title: notificationTitle,
         body: notificationBody,
         type: 'test',
+        sentAt,
       },
       webpush: {
         headers: { Urgency: 'high' },
@@ -150,7 +153,7 @@ exports.sendTestNotification = onRequest(
         fcmOptions: { link: 'https://2fit-mall.co.kr/' },
       },
     });
-    res.json({ success: true });
+    res.json({ success: true, sentAt, serverDurationMs: Date.now() - startedAt });
     } catch (e) { res.status(500).json({ error: String(e) }); }
   }
 );
@@ -1228,10 +1231,12 @@ async function _getAdminTokens() {
 
 async function _sendMulticast(tokens, { title, body, data: msgData = {} }) {
   if (tokens.length === 0) return;
+  const startedAt = Date.now();
+  const sentAt = new Date().toISOString();
   const response = await getMessaging().sendEachForMulticast({
     tokens,
     notification: { title, body },
-    data: msgData,
+    data: { ...msgData, sentAt },
     android: { notification: { channelId: 'chat_alerts', priority: 'high', sound: 'default' } },
     apns:    { payload: { aps: { sound: 'default', badge: 1 } } },
     webpush: {
@@ -1239,7 +1244,7 @@ async function _sendMulticast(tokens, { title, body, data: msgData = {} }) {
       fcmOptions: { link: 'https://2fit-mall.co.kr/#/admin?tab=chat' },
     },
   });
-  console.log(`FCM: 성공 ${response.successCount}, 실패 ${response.failureCount}`);
+  console.log(`FCM multicast timing: sentAt=${sentAt}, serverDurationMs=${Date.now() - startedAt}, success=${response.successCount}, failure=${response.failureCount}`);
 
   // 만료 토큰 제거
   const invalid = [];
