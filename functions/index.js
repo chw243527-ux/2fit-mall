@@ -40,7 +40,7 @@ const NAVER_ALLOWED_REDIRECTS = new Set([
 // 1) 새 주문 접수 알림 (기존)
 // ══════════════════════════════════════════════════════
 exports.onNewOrder = onDocumentCreated(
-  { document: 'orders/{orderId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET] },
+  { document: 'orders/{orderId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET], minInstances: 1 },
   async (event) => {
   const data = event.data?.data();
   if (!data) return;
@@ -120,7 +120,7 @@ exports.sendPromoNotification = onRequest(async (req, res) => {
 // 5) 테스트 알림 (기존)
 // ══════════════════════════════════════════════════════
 exports.sendTestNotification = onRequest(
-  { cors: ['https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000'] },
+  { cors: ['https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000'], minInstances: 1 },
   async (req, res) => {
   if (req.method !== 'POST') { res.status(405).send('Method Not Allowed'); return; }
   if (!(await requireAdmin(req, res))) return;
