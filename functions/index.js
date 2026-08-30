@@ -747,6 +747,46 @@ const PAYMENT_INTENT_TTL_MS = 30 * 60 * 1000;
 const SHIPPING_FREE_THRESHOLD = 300000;
 const DEFAULT_SHIPPING_FEE = 4000;
 
+// 신규 회원 가입 축하 포인트: 사용자 본인만 호출할 수 있고,
+// users/{uid}/point_history/welcome_bonus 문서를 멱등 키로 사용합니다.
+exports.claimWelcomeBonus = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method Not Allowed' });
+    return;
+  }
+  const decoded = await requireSignedIn(req, res);
+  if (!decoded) return;
+
+  try {
+    const userRef = db.collection('users').doc(decoded.uid);
+    const bonusRef = userRef.collection('point_history').doc('welcome_bonus');
+    let granted = false;
+
+    await db.runTransaction(async (tx) => {
+      const bonusSnap = await tx.get(bonusRef);
+      if (bonusSnap.exists) return;
+
+      const userSnap = await tx.get(userRef);
+      if (!userSnap.exists) throw new Error('User profile not found');
+      const currentPoints = Number(userSnap.data()?.points || 0);
+      tx.update(userRef, { points: currentPoints + 1000 });
+      tx.set(bonusRef, {
+        action: 'admin',
+        amount: 1000,
+        desc: '회원가입 축하 포인트',
+        createdAt: FieldValue.serverTimestamp(),
+        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      });
+      granted = true;
+    });
+
+    res.json({ success: true, granted, amount: granted ? 1000 : 0 });
+  } catch (error) {
+    console.error('claimWelcomeBonus failed:', { code: error?.code || 'welcome-bonus-failed' });
+    res.status(400).json({ error: 'Welcome bonus could not be processed' });
+  }
+});
+
 exports.createSecureOrder = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
   // 결제 요청은 ID 토큰의 서명·발급자·대상 검증을 수행합니다.

@@ -641,7 +641,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _SignupRateLimit.clear(); // 성공 시 초기화
       context.read<UserProvider>().login(result.user!);
       context.read<CouponProvider>().loadValidCoupons(result.user!.id);
-      _showSnack(loc.signupSuccessMsg, isSuccess: true);
+      final bonusMessage = result.welcomeBonusGranted
+          ? loc.signupBonusGrantedMsg
+          : loc.signupBonusPendingMsg;
+      _showSnack('${loc.signupSuccessMsg} $bonusMessage', isSuccess: true);
       await Future.delayed(const Duration(milliseconds: 1500));
       if (mounted) {
         Navigator.pushAndRemoveUntil(
@@ -736,7 +739,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     fontSize: 14,
                                     fontWeight: FontWeight.w800)),
                             const SizedBox(height: 2),
-                            Text(loc.signupPasswordSafetyHint,
+                            Text(loc.signupBenefitDesc,
                                 style: const TextStyle(
                                     color: Colors.white70, fontSize: 11)),
                           ],

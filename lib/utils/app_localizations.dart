@@ -5576,11 +5576,11 @@ class AppLocalizations {
   }
   String get signupBenefitDesc {
     switch (language) {
-      case AppLanguage.english: return 'Get 1,000P instantly + New member discount coupon';
-      case AppLanguage.japanese: return '即時1,000P付与 + 新規会員割引クーポン';
-      case AppLanguage.chinese: return '立即获得1,000P + 新会员折扣券';
-      case AppLanguage.mongolian: return 'Нэн даруй 1,000P олгох + шинэ гишүүний хөнгөлөлтийн купон';
-      case AppLanguage.korean: return '가입 즉시 1,000P 지급';
+      case AppLanguage.english: return 'Enjoy order tracking, wishlist, and member services';
+      case AppLanguage.japanese: return '注文追跡、お気に入り、会員サービスをご利用いただけます';
+      case AppLanguage.chinese: return '可使用订单查询、收藏和会员服务';
+      case AppLanguage.mongolian: return 'Захиалга хянах, дуртай зүйлс болон гишүүний үйлчилгээг ашиглах боломжтой';
+      case AppLanguage.korean: return '주문 조회·찜 목록·회원 서비스를 이용할 수 있습니다';
     }
   }
   String get signupNameLabel {
@@ -5747,11 +5747,29 @@ class AppLocalizations {
   }
   String get signupSuccessMsg {
     switch (language) {
-      case AppLanguage.english: return 'Sign up complete! 1,000P bonus points have been awarded 🎉';
-      case AppLanguage.japanese: return '会員登録が完了しました！1,000Pボーナスポイントが付与されました🎉';
-      case AppLanguage.chinese: return '注册完成！已获得1,000P积分奖励🎉';
-      case AppLanguage.mongolian: return 'Бүртгэл амжилттай! 1,000P урамшуулал олгогдлоо 🎉';
-      case AppLanguage.korean: return '회원가입이 완료되었습니다! 가입 축하 포인트 1,000P가 지급되었습니다 🎉';
+      case AppLanguage.english: return 'Sign up is complete!';
+      case AppLanguage.japanese: return '会員登録が完了しました！';
+      case AppLanguage.chinese: return '注册完成！';
+      case AppLanguage.mongolian: return 'Бүртгэл амжилттай боллоо!';
+      case AppLanguage.korean: return '회원가입이 완료되었습니다!';
+    }
+  }
+  String get signupBonusGrantedMsg {
+    switch (language) {
+      case AppLanguage.english: return 'A 1,000P welcome bonus has been added.';
+      case AppLanguage.japanese: return '入会特典として1,000Pを付与しました。';
+      case AppLanguage.chinese: return '已发放1,000P注册奖励。';
+      case AppLanguage.mongolian: return 'Бүртгэлийн урамшуулал болох 1,000P нэмэгдлээ.';
+      case AppLanguage.korean: return '가입 축하 포인트 1,000P가 지급되었습니다.';
+    }
+  }
+  String get signupBonusPendingMsg {
+    switch (language) {
+      case AppLanguage.english: return 'Your welcome bonus is being processed.';
+      case AppLanguage.japanese: return '入会特典を処理中です。';
+      case AppLanguage.chinese: return '注册奖励正在处理中。';
+      case AppLanguage.mongolian: return 'Бүртгэлийн урамшууллыг боловсруулж байна.';
+      case AppLanguage.korean: return '가입 축하 포인트 지급을 처리 중입니다.';
     }
   }
   String get signupFailMsg {

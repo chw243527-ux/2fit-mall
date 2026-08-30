@@ -269,18 +269,26 @@ class AuthService {
         // Firestore 저장 실패해도 Firebase Auth 계정은 생성됨 → 계속 진행
       }
 
+      final bonusGranted = await _claimWelcomeBonus();
       final user = UserModel(
         id: uid,
         name: name.trim(),
         email: emailKey,
         phone: phone.trim(),
         isAdmin: isAdmin,
+        points: bonusGranted ? 1000 : 0,
         createdAt: DateTime.now(),
       );
 
       await _saveSession(uid);
-      if (kDebugMode) debugPrint('✅ Firebase 회원 등록 완료: $emailKey');
-      return AuthResult(success: true, user: user);
+      if (kDebugMode) {
+        debugPrint('✅ Firebase 회원 등록 완료: $emailKey (welcomeBonus=$bonusGranted)');
+      }
+      return AuthResult(
+        success: true,
+        user: user,
+        welcomeBonusGranted: bonusGranted,
+      );
     } on FirebaseAuthException catch (e) {
       return AuthResult(success: false, error: _authError(e.code));
     } catch (e) {
@@ -289,6 +297,30 @@ class AuthService {
         success: false,
         error: '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
       );
+    }
+  }
+
+  static Future<bool> _claimWelcomeBonus() async {
+    try {
+      final firebaseUser = _auth.currentUser;
+      if (firebaseUser == null) return false;
+      final idToken = await firebaseUser.getIdToken();
+      if (idToken == null || idToken.isEmpty) return false;
+      final response = await http.post(
+        Uri.parse(
+            'https://us-central1-fit-mall.cloudfunctions.net/claimWelcomeBonus'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $idToken',
+        },
+        body: jsonEncode({}),
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) return false;
+      final payload = jsonDecode(response.body);
+      return payload is Map && payload['success'] == true;
+    } catch (e) {
+      if (kDebugMode) debugPrint('가입 축하 포인트 지급 실패: $e');
+      return false;
     }
   }
 
