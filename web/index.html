@@ -763,7 +763,7 @@
     // 홈화면 추가(PWA) 상태에서도 항상 최신 버전이 표시됩니다.
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('firebase-messaging-sw.js?v=20260830-2', {scope: '/'})
+        navigator.serviceWorker.register('firebase-messaging-sw.js', {scope: '/'})
           .then(function(reg) {
             // ── 페이지 로드 시 즉시 업데이트 체크 (캐시 우회) ──
             reg.update();

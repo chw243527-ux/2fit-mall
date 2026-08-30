@@ -1,5 +1,6 @@
 // firebase-messaging-sw.js
 // FCM 웹 푸시 알림을 위한 Service Worker
+// cache version: 2026-08-30-3
 // 위치: web/firebase-messaging-sw.js
 
 importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js');
