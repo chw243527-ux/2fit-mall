@@ -47,9 +47,24 @@ Future<void> showBrowserNotification(String title, [String body = '']) async {
     final serviceWorker = js_util.getProperty(navigator, 'serviceWorker');
     final ready = js_util.getProperty(serviceWorker, 'ready');
     final registration = await js_util.promiseToFuture<Object>(ready as Object);
-    js_util.callMethod(registration, 'showNotification', [title, options]);
+    final result = js_util.callMethod(
+        registration, 'showNotification', [title, options]);
+    if (result != null) {
+      await js_util.promiseToFuture<Object>(result as Object);
+    }
   } catch (e) {
-    // 알림 실패는 무시 (앱 동작에 영향 없음)
+    // Service Worker 표시가 실패한 브라우저에서는 페이지 알림으로 대체합니다.
+    try {
+      final options = js_util.newObject();
+      if (body.isNotEmpty) js_util.setProperty(options, 'body', body);
+      js_util.setProperty(options, 'icon', '/icons/Icon-192.png');
+      js_util.callConstructor(
+        js_util.getProperty(js.context, 'Notification') as Object,
+        [title, options],
+      );
+    } catch (_) {
+      // 알림 API를 지원하지 않는 환경에서는 조용히 종료합니다.
+    }
   }
 }
 
