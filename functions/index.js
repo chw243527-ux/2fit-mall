@@ -40,7 +40,7 @@ const NAVER_ALLOWED_REDIRECTS = new Set([
 // 1) 새 주문 접수 알림 (기존)
 // ══════════════════════════════════════════════════════
 exports.onNewOrder = onDocumentCreated(
-  { document: 'orders/{orderId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET], minInstances: 1 },
+  { document: 'orders/{orderId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET] },
   async (event) => {
   const data = event.data?.data();
   if (!data) return;
