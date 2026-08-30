@@ -806,13 +806,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     // ── 이메일 + 중복확인 ──
                     _buildLabel('${loc.signupEmailLabel} *'),
                     const SizedBox(height: 8),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final compact = constraints.maxWidth < 520;
-                        if (compact) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
+                    // ── 이메일 입력 + 중복확인 (모바일 안전형 세로 배치) ──
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                           SizedBox(
                             width: double.infinity,
                             child: TextFormField(
@@ -900,101 +897,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
 
-                            ],
-                          );
-                        }
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _emailCtrl,
-                              keyboardType: TextInputType.emailAddress,
-                              style: const TextStyle(
-                                  fontSize: 14, color: AppColors.primary),
-                              decoration: InputDecoration(
-                                hintText: 'example@email.com',
-                                hintStyle: TextStyle(
-                                    fontSize: 13, color: Colors.grey.shade400),
-                                prefixIcon: Icon(Icons.email_outlined,
-                                    size: 18, color: Colors.grey.shade400),
-                                suffixIcon: _emailAvailable == true
-                                    ? const Icon(Icons.check_circle,
-                                        color: AppColors.success, size: 20)
-                                    : _emailAvailable == false
-                                        ? const Icon(Icons.cancel,
-                                            color: AppColors.error, size: 20)
-                                        : null,
-                                filled: true,
-                                fillColor: AppColors.surfaceGray,
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: BorderSide.none),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: _emailAvailable == true
-                                      ? const BorderSide(
-                                          color: AppColors.success, width: 1.5)
-                                      : _emailAvailable == false
-                                          ? const BorderSide(
-                                              color: AppColors.error,
-                                              width: 1.5)
-                                          : BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.primary, width: 1.5)),
-                                errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.error, width: 1)),
-                                focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.error, width: 1.5)),
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
-                              ),
-                              validator: (v) {
-                                if (v == null ||
-                                    !RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$')
-                                        .hasMatch(v.trim())) {
-                                  return loc.signupEmailError;
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            height: 50,
-                            child: ElevatedButton(
-                              onPressed:
-                                  _emailChecking ? null : _checkEmailDuplicate,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12)),
-                                elevation: 0,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 14),
-                              ),
-                              child: _emailChecking
-                                  ? const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                          color: Colors.white, strokeWidth: 2))
-                                  : Text(context.loc.t('중복확인', '중복확인'),
-                                      style: TextStyle(
-                                          fontSize: 12, color: Colors.white)),
-                            ),
-                          ),
-
-                          ],
-                        );
-                      },
+                      ],
                     ),
                     const SizedBox(height: 16),
 
