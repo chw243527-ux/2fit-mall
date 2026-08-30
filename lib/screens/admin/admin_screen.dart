@@ -386,6 +386,10 @@ class _AdminScreenState extends State<AdminScreen>
 
   /// 브라우저 알림 권한 거부 시 상세 안내 다이얼로그
   void _showNotificationDeniedDialog() {
+    // FCM 테스트 전송은 정상인데 Android Chrome/PWA의 Notification API 상태가
+    // 다르게 반환되어 오탐 안내가 발생할 수 있으므로 이 다이얼로그는 표시하지 않습니다.
+    return;
+    /*
     if (!mounted) return;
     showDialog(
       context: context,
@@ -475,6 +479,7 @@ class _AdminScreenState extends State<AdminScreen>
         ],
       ),
     );
+    */
   }
 
   Widget _notifStep(String num, String text) => Padding(
