@@ -322,20 +322,19 @@ class _AdminScreenState extends State<AdminScreen>
   Future<void> _requestBrowserNotificationPermission() async {
     if (!mounted) return;
     final status = AdminWebNotifier.permissionStatus;
-    if (status == 'granted') return; // 이미 허용됨
-    // denied 상태에도 안내 배너는 표시 (기기 설정은 됐지만 브라우저 설정 안 된 경우 대비)
+    // FCM 토큰이 이미 발급된 환경에서는 별도의 Notification API 안내를 띄우지 않습니다.
+    // Android Chrome/PWA에서는 앱 알림 설정과 페이지 Notification.permission 값이
+    // 다르게 보일 수 있어, denied 상태를 반복적인 차단 안내로 오인하지 않습니다.
+    if (status == 'granted' || status == 'denied') return;
 
-    // 'default' 또는 'denied' 상태일 때 배너 표시
+    // 실제로 아직 묻지 않은 'default' 상태에서만 허용 안내를 표시합니다.
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
     final currentStatus = AdminWebNotifier.permissionStatus;
 
-    // denied 상태면 바로 상세 안내 다이얼로그 표시
-    if (currentStatus == 'denied') {
-      _showNotificationDeniedDialog();
-      return;
-    }
+    // 설정이 다른 화면에서 이미 변경됐으면 더 이상 안내하지 않습니다.
+    if (currentStatus != 'default') return;
 
     // default 상태: 허용 요청 배너
     ScaffoldMessenger.of(context).showSnackBar(
