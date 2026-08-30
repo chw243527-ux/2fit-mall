@@ -93,6 +93,8 @@ class _SplashScreenState extends State<SplashScreen>
           '/account-deletion',
           '/terms-of-service',
           '/refund-policy',
+          '/signup',
+          '/login',
           '/payment/success',
           '/payment/fail',
         };
