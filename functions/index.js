@@ -119,7 +119,9 @@ exports.sendPromoNotification = onRequest(async (req, res) => {
 // ══════════════════════════════════════════════════════
 // 5) 테스트 알림 (기존)
 // ══════════════════════════════════════════════════════
-exports.sendTestNotification = onRequest(async (req, res) => {
+exports.sendTestNotification = onRequest(
+  { cors: ['https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000'] },
+  async (req, res) => {
   if (req.method !== 'POST') { res.status(405).send('Method Not Allowed'); return; }
   if (!(await requireAdmin(req, res))) return;
   try {
@@ -130,8 +132,9 @@ exports.sendTestNotification = onRequest(async (req, res) => {
       notification: { title: title || '테스트 알림', body: body || '알림이 정상 작동합니다!' },
     });
     res.json({ success: true });
-  } catch (e) { res.status(500).json({ error: String(e) }); }
-});
+    } catch (e) { res.status(500).json({ error: String(e) }); }
+  }
+);
 
 // ══════════════════════════════════════════════════════
 // 6) 🆕 새 채팅 문의 → 관리자 FCM 푸시 알림
