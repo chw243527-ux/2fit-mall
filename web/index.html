@@ -221,10 +221,21 @@
       padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
                max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     }
+    /* PWA 배너가 표시되는 동안 Flutter viewport 자체를 안전 영역만큼 축소합니다. */
+    body.pwa-banner-visible flutter-view {
+      top: 0 !important;
+      bottom: 104px !important;
+      height: auto !important;
+    }
     @media (max-width: 600px) {
-      /* 모바일에서는 하단 고정 배너가 로그인·결제 버튼을 가리지 않도록 상단으로 이동합니다. */
+      /* 모바일에서는 상단 안전 영역을 확보해 헤더·본문과 겹치지 않도록 합니다. */
+      body.pwa-banner-visible flutter-view {
+        top: 112px !important;
+        bottom: 0 !important;
+        height: auto !important;
+      }
       #pwa-install-banner > div {
-        top: max(56px, calc(env(safe-area-inset-top) + 52px)) !important;
+        top: max(8px, calc(env(safe-area-inset-top) + 4px)) !important;
         bottom: auto !important;
         left: max(12px, env(safe-area-inset-left)) !important;
         right: max(12px, env(safe-area-inset-right)) !important;
@@ -256,7 +267,7 @@
       .loading-logo span { font-size: 18px; }
       .loading-spinner { width: 30px; height: 30px; }
       #pwa-install-banner > div {
-        top: max(56px, calc(env(safe-area-inset-top) + 52px)) !important;
+        top: max(8px, calc(env(safe-area-inset-top) + 4px)) !important;
         bottom: auto !important;
         left: max(12px, env(safe-area-inset-left)) !important;
         right: max(12px, env(safe-area-inset-right)) !important;
@@ -268,9 +279,17 @@
       }
       #pwa-install-banner #pwa-install-btn { padding: 8px 10px !important; font-size: 12px !important; }
     }
+    @media (min-width: 601px) {
+      /* PC에서는 하단 안전 영역 안에만 배너를 배치합니다. */
+      #pwa-install-banner > div {
+        bottom: max(16px, env(safe-area-inset-bottom)) !important;
+        top: auto !important;
+        transform: translateX(-50%) !important;
+      }
+    }
     @media (max-width: 360px) and (max-height: 700px) {
       #pwa-install-banner > div {
-        top: max(48px, calc(env(safe-area-inset-top) + 44px)) !important;
+        top: max(8px, calc(env(safe-area-inset-top) + 4px)) !important;
         bottom: auto !important;
       }
     }
@@ -885,6 +904,7 @@
         </style>
       `;
       document.body.appendChild(banner);
+      document.body.classList.add('pwa-banner-visible');
 
       document.getElementById('pwa-install-btn').addEventListener('click', async () => {
         if (deferredPrompt) {
@@ -905,6 +925,7 @@
     }
 
     function removeBanner() {
+      document.body.classList.remove('pwa-banner-visible');
       const banner = document.getElementById('pwa-install-banner');
       if (banner) {
         banner.style.opacity = '0';
