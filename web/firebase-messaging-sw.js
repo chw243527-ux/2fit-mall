@@ -42,7 +42,9 @@ messaging.onBackgroundMessage(function(payload) {
     body: payload.notification?.body || data.body || '새로운 알림이 있습니다.',
     icon: '/icons/Icon-192.png',
     badge: '/icons/Icon-192.png',
-    tag: payload.data?.type || 'general',
+    // 같은 tag를 반복 사용하면 Android가 새 알림을 기존 알림으로 합칠 수 있습니다.
+    tag: data.notificationId || data.orderId || data.messageId ||
+      ((data.type || 'general') + '_' + Date.now()),
     data: payload.data || {},
     requireInteraction: false,
     vibrate: [200, 100, 200],
