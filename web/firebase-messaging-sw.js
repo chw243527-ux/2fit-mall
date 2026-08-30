@@ -37,7 +37,16 @@ messaging.onBackgroundMessage(function(payload) {
     mode: 'background',
   });
   console.log('[SW] 백그라운드 메시지 수신:', payload);
-  const notificationTitle = payload.notification?.title || data.title || '2FIT MALL';
+
+  // notification 페이로드는 FCM이 백그라운드에서 자동 표시합니다.
+  // 여기서 다시 showNotification()하면 중복 알림이 생길 수 있으므로,
+  // 수동 표시는 data-only 메시지에만 적용합니다.
+  if (payload.notification) {
+    console.log('[SW] FCM 자동 표시 사용, 수동 표시 생략');
+    return;
+  }
+
+  const notificationTitle = data.title || '2FIT MALL';
   const notificationOptions = {
     body: payload.notification?.body || data.body || '새로운 알림이 있습니다.',
     icon: '/icons/Icon-192.png',
