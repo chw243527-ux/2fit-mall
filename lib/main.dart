@@ -48,6 +48,7 @@ Future<bool> _initializeFirebaseInBackground() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 10));
+    await AuthService.configurePersistentAuth();
     if (kDebugMode) debugPrint('✅ Firebase 초기화 성공');
     return true;
   } catch (e) {
@@ -58,7 +59,7 @@ Future<bool> _initializeFirebaseInBackground() async {
 
 Future<bool>? _firebaseReadyFuture;
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 카카오 SDK는 동기 초기화만 수행하고, 네트워크 초기화는 첫 화면을 막지 않습니다.
@@ -72,16 +73,15 @@ void main() {
     if (kDebugMode) debugPrint('⚠️ KakaoSdk 초기화 오류: $e');
   }
 
-  // Firebase·Hive 초기화가 지연되어도 Flutter 첫 프레임은 즉시 표시합니다.
-  // 인증 복구가 필요할 때만 _firebaseReadyFuture를 기다립니다.
+  // 세션과 사용자별 아이디 저장을 사용하므로 Hive는 첫 프레임 전에 준비합니다.
+  try {
+    await Hive.initFlutter().timeout(const Duration(seconds: 5));
+  } catch (e) {
+    if (kDebugMode) debugPrint('⚠️ Hive 초기화 오류: $e');
+  }
+
+  // Firebase 초기화는 화면을 막지 않되, 인증 복구 시점에는 완료를 기다립니다.
   _firebaseReadyFuture = _initializeFirebaseInBackground();
-  Future<void>(() async {
-    try {
-      await Hive.initFlutter().timeout(const Duration(seconds: 5));
-    } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Hive 초기화 오류: $e');
-    }
-  });
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

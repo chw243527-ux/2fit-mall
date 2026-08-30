@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
@@ -16,7 +17,11 @@ import '../models/models.dart';
 
 class AuthService {
   static const _sessionBox = 'session';
+  static const _sessionVersionKey = 'authSessionVersion';
+  static const _rememberedEmailsKey = 'rememberedEmails';
+  static const _legacyRememberMeEmailKey = 'rememberMeEmail';
   static Completer<Map<String, String>>? _naverMobileCodeWaiter;
+  static Future<AuthResult>? _restoreSessionInFlight;
   static const _naverRedirectUri =
       'https://2fit-mall.co.kr/naver_callback.html';
 
@@ -54,6 +59,17 @@ class AuthService {
   static Future<Box> _getSessionBox() async {
     if (Hive.isBoxOpen(_sessionBox)) return Hive.box(_sessionBox);
     return await Hive.openBox(_sessionBox);
+  }
+
+  /// 웹에서도 Firebase Auth의 로컬 persistence를 명시적으로 사용합니다.
+  /// 앱은 Firebase Auth 네이티브 기본 persistence를 그대로 사용합니다.
+  static Future<void> configurePersistentAuth() async {
+    if (!kIsWeb) return;
+    try {
+      await _auth.setPersistence(Persistence.LOCAL);
+    } catch (e) {
+      if (kDebugMode) debugPrint('웹 로그인 persistence 설정 실패: $e');
+    }
   }
 
   // ────────────────────────────────────────────
@@ -385,7 +401,20 @@ class AuthService {
   // ────────────────────────────────────────────
   // 자동 로그인 (세션 복구)
   // ────────────────────────────────────────────
-  static Future<AuthResult> restoreSession() async {
+  static Future<AuthResult> restoreSession() {
+    final inFlight = _restoreSessionInFlight;
+    if (inFlight != null) return inFlight;
+
+    final future = _restoreSessionInternal();
+    _restoreSessionInFlight = future;
+    return future.whenComplete(() {
+      if (identical(_restoreSessionInFlight, future)) {
+        _restoreSessionInFlight = null;
+      }
+    });
+  }
+
+  static Future<AuthResult> _restoreSessionInternal() async {
     try {
       // 새로고침 직후 Firebase Auth가 IndexedDB 세션을 복원할 때까지 기다립니다.
       User? firebaseUser = _auth.currentUser;
@@ -397,10 +426,15 @@ class AuthService {
           );
         } catch (_) {}
       }
+      // Firebase Auth 복원 결과와 로컬 세션을 함께 기준으로 버전을 확인합니다.
+      if (!await _validateSessionVersion(firebaseUser: firebaseUser)) {
+        return const AuthResult(success: false);
+      }
       if (firebaseUser != null) {
         final user =
             await _loadUser(firebaseUser.uid, firebaseUser.email ?? '');
         if (user != null) {
+          await _saveSession(firebaseUser.uid);
           return AuthResult(success: true, user: user);
         }
       }
@@ -412,7 +446,10 @@ class AuthService {
       if (savedUid != null && activeUid != null && savedUid == activeUid) {
         final email = sessionBox.get('currentEmail') as String? ?? '';
         final user = await _loadUser(savedUid, email);
-        if (user != null) return AuthResult(success: true, user: user);
+        if (user != null) {
+          await _saveSession(savedUid);
+          return AuthResult(success: true, user: user);
+        }
       } else if (savedUid != null && activeUid == null) {
         await sessionBox.deleteAll(['currentUid', 'currentEmail']);
       }
@@ -427,9 +464,12 @@ class AuthService {
   // 로그아웃
   // ────────────────────────────────────────────
   static Future<void> logout() async {
-    await _auth.signOut();
-    final sessionBox = await _getSessionBox();
-    await sessionBox.deleteAll(['currentUid', 'currentEmail']);
+    try {
+      await _auth.signOut();
+    } finally {
+      final sessionBox = await _getSessionBox();
+      await sessionBox.deleteAll(['currentUid', 'currentEmail', 'user']);
+    }
   }
 
   // ────────────────────────────────────────────
@@ -519,19 +559,59 @@ class AuthService {
   // ────────────────────────────────────────────
   // 로그인 상태 유지 (Remember Me)
   // ────────────────────────────────────────────
-  static Future<void> saveRememberMe(String email) async {
+  /// 사용자별로 저장된 아이디 목록을 최근 사용 순서로 반환합니다.
+  static Future<List<String>> getRememberedEmails() async {
     final sessionBox = await _getSessionBox();
-    await sessionBox.put('rememberMeEmail', email.trim().toLowerCase());
+    final stored = sessionBox.get(_rememberedEmailsKey);
+    final emails = stored is List
+        ? stored.whereType<String>().map((e) => e.trim().toLowerCase()).where((e) => e.isNotEmpty).toSet().toList()
+        : <String>[];
+
+    // 기존 버전의 단일 아이디 저장값을 목록으로 한 번만 마이그레이션합니다.
+    final legacy = sessionBox.get(_legacyRememberMeEmailKey) as String?;
+    if (legacy != null && legacy.trim().isNotEmpty && !emails.contains(legacy.trim().toLowerCase())) {
+      emails.insert(0, legacy.trim().toLowerCase());
+    }
+    if (emails.isNotEmpty) {
+      await sessionBox.put(_rememberedEmailsKey, emails);
+    }
+    if (legacy != null) await sessionBox.delete(_legacyRememberMeEmailKey);
+    return emails;
+  }
+
+  static Future<void> saveRememberMe(String email) async {
+    final normalized = email.trim().toLowerCase();
+    if (normalized.isEmpty) return;
+    final emails = await getRememberedEmails();
+    emails.remove(normalized);
+    emails.insert(0, normalized);
+    // 무제한으로 계정 식별자가 쌓이지 않도록 최근 10개만 보관합니다.
+    await (await _getSessionBox()).put(
+      _rememberedEmailsKey,
+      emails.take(10).toList(),
+    );
   }
 
   static Future<String?> getRememberMeEmail() async {
-    final sessionBox = await _getSessionBox();
-    return sessionBox.get('rememberMeEmail') as String?;
+    final emails = await getRememberedEmails();
+    return emails.isEmpty ? null : emails.first;
   }
 
-  static Future<void> clearRememberMe() async {
+  static Future<void> clearRememberMe([String? email]) async {
     final sessionBox = await _getSessionBox();
-    await sessionBox.delete('rememberMeEmail');
+    if (email == null || email.trim().isEmpty) {
+      await sessionBox.delete(_rememberedEmailsKey);
+      await sessionBox.delete(_legacyRememberMeEmailKey);
+      return;
+    }
+    final normalized = email.trim().toLowerCase();
+    final emails = await getRememberedEmails();
+    emails.remove(normalized);
+    if (emails.isEmpty) {
+      await sessionBox.delete(_rememberedEmailsKey);
+    } else {
+      await sessionBox.put(_rememberedEmailsKey, emails);
+    }
   }
 
   // ────────────────────────────────────────────
@@ -615,12 +695,58 @@ class AuthService {
     }
   }
 
+  static const _fallbackAppVersion = '1.0.4+2';
+
+  static Future<String> _currentAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      final version = info.buildNumber.isNotEmpty
+          ? '${info.version}+${info.buildNumber}'
+          : info.version;
+      return version.isEmpty ? _fallbackAppVersion : version;
+    } catch (e) {
+      if (kDebugMode) debugPrint('앱 버전 확인 실패, fallback 사용: $e');
+      return _fallbackAppVersion;
+    }
+  }
+
+  /// 앱/웹 업데이트마다 기존 로그인 세션을 한 번만 폐기합니다.
+  static Future<bool> _validateSessionVersion({User? firebaseUser}) async {
+    final sessionBox = await _getSessionBox();
+    final currentVersion = await _currentAppVersion();
+    final savedVersion = sessionBox.get(_sessionVersionKey) as String?;
+    final hasActiveSession = firebaseUser != null ||
+        _auth.currentUser != null ||
+        sessionBox.get('currentUid') != null ||
+        sessionBox.get('user') is Map;
+
+    if (hasActiveSession &&
+        (savedVersion == null || savedVersion != currentVersion)) {
+      try {
+        await _auth.signOut();
+      } catch (e) {
+        if (kDebugMode) debugPrint('업데이트 후 Firebase 세션 정리 실패: $e');
+      }
+      await signOutGoogle();
+      await signOutKakao();
+      await sessionBox.deleteAll(['currentUid', 'currentEmail', 'user']);
+      await sessionBox.put(_sessionVersionKey, currentVersion);
+      return false;
+    }
+
+    if (savedVersion != currentVersion) {
+      await sessionBox.put(_sessionVersionKey, currentVersion);
+    }
+    return true;
+  }
+
   static Future<void> _saveSession(String uid) async {
     try {
       final sessionBox = await _getSessionBox();
       final email = _auth.currentUser?.email ?? '';
       await sessionBox.put('currentUid', uid);
       await sessionBox.put('currentEmail', email);
+      await sessionBox.put(_sessionVersionKey, await _currentAppVersion());
     } catch (e) {
       if (kDebugMode) debugPrint('세션 저장 오류 (무시): $e');
       // 세션 저장 실패해도 회원가입은 성공으로 처리
@@ -891,6 +1017,7 @@ class AuthService {
       } catch (e) {
         if (kDebugMode) debugPrint('⚠️ 구글 세션 저장 실패 (무시): $e');
       }
+      await _saveSession(user.uid);
       return AuthResult(success: true, user: userModel);
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 구글 로그인 실패: $e');
@@ -1095,6 +1222,7 @@ class AuthService {
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 세션 저장 실패 (무시): $e');
     }
+    await _saveSession(user.uid);
 
     if (kDebugMode) debugPrint('✅ 카카오 로그인 완료: ${userModel.name}');
     return AuthResult(success: true, user: userModel);
@@ -1214,6 +1342,7 @@ class AuthService {
       'orderNotificationsEnabled': userModel.orderNotificationsEnabled,
       'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
     });
+    await _saveSession(firebaseUser.uid);
     return AuthResult(success: true, user: userModel);
   }
 
@@ -1301,6 +1430,7 @@ class AuthService {
         'orderNotificationsEnabled': userModel.orderNotificationsEnabled,
         'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
       });
+      await _saveSession(firebaseUser.uid);
       return AuthResult(success: true, user: userModel);
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 네이버 웹 로그인 실패: $e');
