@@ -127,9 +127,28 @@ exports.sendTestNotification = onRequest(
   try {
     const { token, title, body } = req.body;
     if (!token) { res.status(400).json({ error: 'token required' }); return; }
+    const notificationTitle = title || '테스트 알림';
+    const notificationBody = body || '알림이 정상 작동합니다!';
     await getMessaging().send({
       token,
-      notification: { title: title || '테스트 알림', body: body || '알림이 정상 작동합니다!' },
+      notification: { title: notificationTitle, body: notificationBody },
+      // 웹 FCM이 모바일·PC Service Worker에 표시 정보를 명시적으로 전달하도록 합니다.
+      data: {
+        title: notificationTitle,
+        body: notificationBody,
+        type: 'test',
+      },
+      webpush: {
+        headers: { Urgency: 'high' },
+        notification: {
+          title: notificationTitle,
+          body: notificationBody,
+          icon: 'https://2fit-mall.co.kr/icons/Icon-192.png',
+          badge: 'https://2fit-mall.co.kr/icons/Icon-192.png',
+          tag: '2fit-test-notification',
+        },
+        fcmOptions: { link: 'https://2fit-mall.co.kr/' },
+      },
     });
     res.json({ success: true });
     } catch (e) { res.status(500).json({ error: String(e) }); }
