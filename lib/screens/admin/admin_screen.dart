@@ -28,6 +28,7 @@ import '../../services/wishlist_coupon_service.dart';
 import '../../services/inventory_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 import 'admin_inventory_tab.dart';
 import '../../utils/constants.dart';
 import '../../widgets/image_lightbox.dart';
@@ -638,6 +639,43 @@ class _AdminScreenState extends State<AdminScreen>
     await prefs.setBool('notify_chat', _notifyNewChat);
     await prefs.setBool('notify_order', _notifyNewOrder);
     await prefs.setBool('notify_sms', _notifyChatSms);
+  }
+
+  Future<void> _sendTestPush() async {
+    try {
+      await FcmService.initialize();
+      final token = await FcmService.getToken();
+      final user = FirebaseAuth.instance.currentUser;
+      if (token == null || token.isEmpty || user == null) {
+        throw Exception('기기 알림 권한 또는 로그인 상태를 확인해 주세요.');
+      }
+      final idToken = await user.getIdToken();
+      final response = await http.post(
+        Uri.parse(
+            'https://us-central1-fit-mall.cloudfunctions.net/sendTestNotification'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $idToken',
+        },
+        body: jsonEncode({
+          'token': token,
+          'title': '2FIT 테스트 알림',
+          'body': '푸시 알림이 정상적으로 도착했습니다.',
+        }),
+      );
+      if (!mounted) return;
+      final ok = response.statusCode >= 200 && response.statusCode < 300;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(ok ? '테스트 푸시를 전송했습니다.' : '테스트 푸시 전송에 실패했습니다.'),
+        backgroundColor: ok ? AppColors.success : AppColors.error,
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('테스트 알림을 보낼 수 없습니다: $e'),
+        backgroundColor: AppColors.error,
+      ));
+    }
   }
 
   /// 관리자에서 조작하는 공통 콘텐츠 목록입니다.
@@ -10284,6 +10322,15 @@ class _AdminScreenState extends State<AdminScreen>
                         _saveAdminSettings();
                       },
                       keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _sendTestPush,
+                        icon: const Icon(Icons.notifications_active_outlined),
+                        label: const Text('내 휴대폰으로 테스트 푸시 보내기'),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     // 안내 박스
