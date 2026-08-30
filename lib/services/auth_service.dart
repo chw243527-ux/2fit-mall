@@ -48,14 +48,6 @@ class AuthService {
     });
   }
 
-  // 관리자 이메일 목록 (하드코딩 — Firestore isAdmin 플래그와 병행)
-  static const _adminEmails = [
-    'chw243527@gmail.com',
-    'tbrk2435@naver.com',
-    'admin@2fitkorea.com',
-    'cs@2fitkorea.com',
-  ];
-
   static FirebaseAuth get _auth => FirebaseAuth.instance;
   static FirebaseFirestore get _db => FirebaseFirestore.instance;
 
@@ -334,7 +326,6 @@ class AuthService {
       );
 
       final uid = credential.user!.uid;
-      await _syncLegacyAdminClaim(emailKey);
       final user = await _loadUser(uid, emailKey);
       if (user == null) {
         return const AuthResult(success: false, error: '사용자 정보를 불러올 수 없습니다.');
@@ -507,26 +498,6 @@ class AuthService {
   // ────────────────────────────────────────────
   // 내부 유틸리티
   // ────────────────────────────────────────────
-
-  /// 기존 관리자 계정의 1회 Claims 마이그레이션을 요청합니다.
-  static Future<void> _syncLegacyAdminClaim(String email) async {
-    if (!_adminEmails.contains(email)) return;
-    try {
-      final firebaseUser = _auth.currentUser;
-      final idToken = await firebaseUser?.getIdToken();
-      if (idToken == null || idToken.isEmpty) return;
-      await http.post(
-        Uri.parse('https://us-central1-fit-mall.cloudfunctions.net/syncAdminClaim'),
-        headers: {
-          'Authorization': 'Bearer $idToken',
-          'Content-Type': 'application/json',
-        },
-      ).timeout(const Duration(seconds: 8));
-      await firebaseUser?.getIdTokenResult(true);
-    } catch (e) {
-      if (kDebugMode) debugPrint('관리자 Claims 동기화 건너뜀: $e');
-    }
-  }
 
   /// 현재 Firebase ID 토큰의 관리자 Custom Claim만 확인합니다.
   static Future<bool> _hasAdminClaim({bool forceRefresh = false}) async {
@@ -785,7 +756,6 @@ class AuthService {
         return const AuthResult(success: false, error: '로그인 실패');
 
       final emailKey = (user.email ?? '').toLowerCase();
-      await _syncLegacyAdminClaim(emailKey);
       final isAdmin = await _hasAdminClaim();
 
       // Firestore에 사용자 문서 생성/업데이트 (assertion 에러 시 폴백)
@@ -981,8 +951,6 @@ class AuthService {
       user.updateDisplayName(name).catchError((_) {});
     }
 
-    final emailKey = email.toLowerCase();
-    await _syncLegacyAdminClaim(emailKey);
     final isAdmin = await _hasAdminClaim();
 
     // ── Step 4: Firestore 사용자 문서 생성/업데이트 ──────────
@@ -1166,7 +1134,6 @@ class AuthService {
       return const AuthResult(
           success: false, error: 'Firebase 사용자 정보를 받지 못했습니다.');
     }
-    await _syncLegacyAdminClaim((firebaseUser.email ?? '').toLowerCase());
     final data = (await _db.collection('users').doc(firebaseUser.uid).get()).data() ?? <String, dynamic>{};
     final tier =
         data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
