@@ -269,25 +269,26 @@ class AuthService {
         // Firestore 저장 실패해도 Firebase Auth 계정은 생성됨 → 계속 진행
       }
 
-      final bonusGranted = await _claimWelcomeBonus();
+      final benefits = await _claimWelcomeBenefits();
       final user = UserModel(
         id: uid,
         name: name.trim(),
         email: emailKey,
         phone: phone.trim(),
         isAdmin: isAdmin,
-        points: bonusGranted ? 1000 : 0,
+        points: benefits.pointsGranted ? 1000 : 0,
         createdAt: DateTime.now(),
       );
 
       await _saveSession(uid);
       if (kDebugMode) {
-        debugPrint('✅ Firebase 회원 등록 완료: $emailKey (welcomeBonus=$bonusGranted)');
+        debugPrint('✅ Firebase 회원 등록 완료: $emailKey (welcomePoints=${benefits.pointsGranted}, welcomeCoupon=${benefits.couponGranted})');
       }
       return AuthResult(
         success: true,
         user: user,
-        welcomeBonusGranted: bonusGranted,
+        welcomeBonusGranted: benefits.pointsGranted,
+        welcomeCouponGranted: benefits.couponGranted,
       );
     } on FirebaseAuthException catch (e) {
       return AuthResult(success: false, error: _authError(e.code));
@@ -300,12 +301,14 @@ class AuthService {
     }
   }
 
-  static Future<bool> _claimWelcomeBonus() async {
+  static Future<({bool pointsGranted, bool couponGranted})>
+      _claimWelcomeBenefits() async {
+    const empty = (pointsGranted: false, couponGranted: false);
     try {
       final firebaseUser = _auth.currentUser;
-      if (firebaseUser == null) return false;
+      if (firebaseUser == null) return empty;
       final idToken = await firebaseUser.getIdToken();
-      if (idToken == null || idToken.isEmpty) return false;
+      if (idToken == null || idToken.isEmpty) return empty;
       final response = await http.post(
         Uri.parse(
             'https://us-central1-fit-mall.cloudfunctions.net/claimWelcomeBonus'),
@@ -315,12 +318,16 @@ class AuthService {
         },
         body: jsonEncode({}),
       );
-      if (response.statusCode < 200 || response.statusCode >= 300) return false;
+      if (response.statusCode < 200 || response.statusCode >= 300) return empty;
       final payload = jsonDecode(response.body);
-      return payload is Map && payload['success'] == true;
+      if (payload is! Map || payload['success'] != true) return empty;
+      return (
+        pointsGranted: payload['pointsGranted'] == true,
+        couponGranted: payload['couponGranted'] == true,
+      );
     } catch (e) {
-      if (kDebugMode) debugPrint('가입 축하 포인트 지급 실패: $e');
-      return false;
+      if (kDebugMode) debugPrint('가입 축하 혜택 지급 실패: $e');
+      return empty;
     }
   }
 

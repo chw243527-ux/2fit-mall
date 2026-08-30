@@ -5756,20 +5756,20 @@ class AppLocalizations {
   }
   String get signupBonusGrantedMsg {
     switch (language) {
-      case AppLanguage.english: return 'A 1,000P welcome bonus has been added.';
-      case AppLanguage.japanese: return '入会特典として1,000Pを付与しました。';
-      case AppLanguage.chinese: return '已发放1,000P注册奖励。';
-      case AppLanguage.mongolian: return 'Бүртгэлийн урамшуулал болох 1,000P нэмэгдлээ.';
-      case AppLanguage.korean: return '가입 축하 포인트 1,000P가 지급되었습니다.';
+      case AppLanguage.english: return '1,000P and a 3,000-won welcome coupon have been added.';
+      case AppLanguage.japanese: return '入会特典として1,000Pと3,000ウォン割引クーポンを付与しました。';
+      case AppLanguage.chinese: return '已发放1,000P和3,000韩元注册优惠券。';
+      case AppLanguage.mongolian: return '1,000P болон 3,000 воны бүртгэлийн купон нэмэгдлээ.';
+      case AppLanguage.korean: return '가입 축하 포인트 1,000P와 3,000원 할인 쿠폰이 지급되었습니다.';
     }
   }
   String get signupBonusPendingMsg {
     switch (language) {
-      case AppLanguage.english: return 'Your welcome bonus is being processed.';
-      case AppLanguage.japanese: return '入会特典を処理中です。';
-      case AppLanguage.chinese: return '注册奖励正在处理中。';
-      case AppLanguage.mongolian: return 'Бүртгэлийн урамшууллыг боловсруулж байна.';
-      case AppLanguage.korean: return '가입 축하 포인트 지급을 처리 중입니다.';
+      case AppLanguage.english: return 'Your 1,000P and 3,000-won welcome coupon are being processed.';
+      case AppLanguage.japanese: return '1,000Pと3,000ウォン割引クーポンを処理中です。';
+      case AppLanguage.chinese: return '1,000P和3,000韩元注册优惠券正在处理中。';
+      case AppLanguage.mongolian: return '1,000P болон 3,000 воны купоныг боловсруулж байна.';
+      case AppLanguage.korean: return '가입 축하 포인트와 3,000원 할인 쿠폰 지급을 처리 중입니다.';
     }
   }
   String get signupFailMsg {

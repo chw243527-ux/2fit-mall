@@ -1130,12 +1130,14 @@ class AuthResult {
   final UserModel? user;
   final String? error;
   final bool welcomeBonusGranted;
+  final bool welcomeCouponGranted;
 
   const AuthResult({
     required this.success,
     this.user,
     this.error,
     this.welcomeBonusGranted = false,
+    this.welcomeCouponGranted = false,
   });
 }
 

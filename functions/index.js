@@ -747,8 +747,8 @@ const PAYMENT_INTENT_TTL_MS = 30 * 60 * 1000;
 const SHIPPING_FREE_THRESHOLD = 300000;
 const DEFAULT_SHIPPING_FEE = 4000;
 
-// 신규 회원 가입 축하 포인트: 사용자 본인만 호출할 수 있고,
-// users/{uid}/point_history/welcome_bonus 문서를 멱등 키로 사용합니다.
+// 신규 회원 가입 혜택: 사용자 본인만 호출할 수 있고,
+// 포인트 이력과 고정 쿠폰 문서를 멱등 키로 사용해 재호출에도 중복 지급하지 않습니다.
 exports.claimWelcomeBonus = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method Not Allowed' });
@@ -760,30 +760,54 @@ exports.claimWelcomeBonus = onRequest({ cors: PAYMENT_CORS }, async (req, res) =
   try {
     const userRef = db.collection('users').doc(decoded.uid);
     const bonusRef = userRef.collection('point_history').doc('welcome_bonus');
-    let granted = false;
+    const couponRef = db.collection('user_coupons').doc(decoded.uid)
+      .collection('coupons').doc('welcome_3000');
+    let pointsGranted = false;
+    let couponGranted = false;
 
     await db.runTransaction(async (tx) => {
       const bonusSnap = await tx.get(bonusRef);
-      if (bonusSnap.exists) return;
-
+      const couponSnap = await tx.get(couponRef);
       const userSnap = await tx.get(userRef);
       if (!userSnap.exists) throw new Error('User profile not found');
-      const currentPoints = Number(userSnap.data()?.points || 0);
-      tx.update(userRef, { points: currentPoints + 1000 });
-      tx.set(bonusRef, {
-        action: 'admin',
-        amount: 1000,
-        desc: '회원가입 축하 포인트',
-        createdAt: FieldValue.serverTimestamp(),
-        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-      });
-      granted = true;
+
+      if (!bonusSnap.exists) {
+        const currentPoints = Number(userSnap.data()?.points || 0);
+        tx.update(userRef, { points: currentPoints + 1000 });
+        tx.set(bonusRef, {
+          action: 'admin',
+          amount: 1000,
+          desc: '회원가입 축하 포인트',
+          createdAt: FieldValue.serverTimestamp(),
+          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+        });
+        pointsGranted = true;
+      }
+
+      if (!couponSnap.exists) {
+        tx.set(couponRef, {
+          couponId: 'welcome_3000',
+          code: 'WELCOME3000',
+          name: '신규회원 3,000원 할인 쿠폰',
+          type: 'fixed',
+          value: 3000,
+          minOrderAmount: 60000,
+          isUsed: false,
+          isReserved: false,
+          isStackable: true,
+          isDownloadable: false,
+          downloadCount: 0,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          createdAt: FieldValue.serverTimestamp(),
+        });
+        couponGranted = true;
+      }
     });
 
-    res.json({ success: true, granted, amount: granted ? 1000 : 0 });
+    res.json({ success: true, pointsGranted, couponGranted, amount: pointsGranted ? 1000 : 0 });
   } catch (error) {
-    console.error('claimWelcomeBonus failed:', { code: error?.code || 'welcome-bonus-failed' });
-    res.status(400).json({ error: 'Welcome bonus could not be processed' });
+    console.error('claimWelcomeBonus failed:', { code: error?.code || 'welcome-benefit-failed' });
+    res.status(400).json({ error: 'Welcome benefits could not be processed' });
   }
 });
 
