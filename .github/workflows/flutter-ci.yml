@@ -1,0 +1,145 @@
+name: Flutter CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flutter-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.32.2'
+
+jobs:
+  quality:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ env.FLUTTER_VERSION }}
+
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze Flutter project
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run Flutter tests
+        run: flutter test --coverage
+
+      - name: Upload test coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-coverage-${{ github.run_number }}
+          path: coverage/lcov.info
+          if-no-files-found: ignore
+          retention-days: 14
+
+  build_web:
+    name: Build Flutter Web
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ env.FLUTTER_VERSION }}
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Build Flutter Web
+        run: |
+          flutter build web \
+            --release \
+            --tree-shake-icons \
+            --pwa-strategy=offline-first \
+            --dart-define=BUILD_NUMBER=${{ github.run_number }} \
+            --dart-define=BUILD_SHA=${{ github.sha }}
+
+      - name: Verify web build
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f build/web/index.html
+          test -f build/web/flutter_bootstrap.js
+          echo "Flutter Web build verified"
+
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2fit-mall-web-${{ github.run_number }}
+          path: build/web
+          if-no-files-found: error
+          retention-days: 14
+
+  build_android:
+    name: Build Android debug APK
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ env.FLUTTER_VERSION }}
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Build Android debug APK
+        run: |
+          flutter build apk --debug \
+            --build-number=${{ github.run_number }} \
+            --build-name=ci-${{ github.run_number }}
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2fit-mall-android-debug-${{ github.run_number }}
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
