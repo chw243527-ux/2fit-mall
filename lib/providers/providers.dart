@@ -301,7 +301,13 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> updateUserProfile({String? name, String? phone, String? cashReceiptNum}) async {
+  Future<void> updateUserProfile({
+    String? name,
+    String? phone,
+    String? cashReceiptNum,
+    bool? orderNotificationsEnabled,
+    bool? marketingNotificationsEnabled,
+  }) async {
     if (_user == null) return;
     // cashReceiptNum: '' 전달 시 삭제 처리 (null로 저장)
     final newCashReceipt = (cashReceiptNum != null && cashReceiptNum.isEmpty)
@@ -318,7 +324,13 @@ class UserProvider extends ChangeNotifier {
       memberTier: _user!.memberTier,
       createdAt: _user!.createdAt,
       addresses: _user!.addresses,
+      loginProvider: _user!.loginProvider,
       cashReceiptNum: newCashReceipt,
+      points: _user!.points,
+      orderNotificationsEnabled:
+          orderNotificationsEnabled ?? _user!.orderNotificationsEnabled,
+      marketingNotificationsEnabled:
+          marketingNotificationsEnabled ?? _user!.marketingNotificationsEnabled,
     );
     notifyListeners();
     // Firestore 동기화
@@ -334,6 +346,10 @@ class UserProvider extends ChangeNotifier {
           'cashReceiptNum': cashReceiptNum.isEmpty
               ? FieldValue.delete()
               : cashReceiptNum,
+        if (orderNotificationsEnabled != null)
+          'orderNotificationsEnabled': orderNotificationsEnabled,
+        if (marketingNotificationsEnabled != null)
+          'marketingNotificationsEnabled': marketingNotificationsEnabled,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
@@ -354,6 +370,12 @@ class UserProvider extends ChangeNotifier {
       memberTier: _user!.memberTier,
       createdAt: _user!.createdAt,
       addresses: addresses,
+      profileImageUrl: _user!.profileImageUrl,
+      loginProvider: _user!.loginProvider,
+      cashReceiptNum: _user!.cashReceiptNum,
+      points: _user!.points,
+      orderNotificationsEnabled: _user!.orderNotificationsEnabled,
+      marketingNotificationsEnabled: _user!.marketingNotificationsEnabled,
     );
     notifyListeners();
     // Firestore 동기화 (비동기, 실패해도 UI 즉시 반영)

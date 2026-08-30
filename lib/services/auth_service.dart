@@ -504,6 +504,10 @@ class AuthService {
               (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
           loginProvider: (data['loginProvider'] as String?) ?? 'email',
           cashReceiptNum: data['cashReceiptNum'] as String?,
+          orderNotificationsEnabled:
+              data['orderNotificationsEnabled'] as bool? ?? true,
+          marketingNotificationsEnabled:
+              data['marketingNotificationsEnabled'] as bool? ?? false,
           addresses: (data['addresses'] as List? ?? [])
               .map((a) =>
                   AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
@@ -788,6 +792,10 @@ class AuthService {
         createdAt: DateTime.now(),
         loginProvider: 'google',
         cashReceiptNum: data['cashReceiptNum'] as String?,
+        orderNotificationsEnabled:
+            data['orderNotificationsEnabled'] as bool? ?? true,
+        marketingNotificationsEnabled:
+            data['marketingNotificationsEnabled'] as bool? ?? false,
         addresses: (data['addresses'] as List? ?? [])
             .map((a) =>
                 AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
@@ -808,6 +816,8 @@ class AuthService {
           'loginProvider': userModel.loginProvider,
           if (userModel.cashReceiptNum?.isNotEmpty == true)
             'cashReceiptNum': userModel.cashReceiptNum,
+          'orderNotificationsEnabled': userModel.orderNotificationsEnabled,
+          'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
         });
       } catch (e) {
         if (kDebugMode) debugPrint('⚠️ 구글 세션 저장 실패 (무시): $e');
@@ -986,6 +996,10 @@ class AuthService {
       createdAt: DateTime.now(),
       loginProvider: 'kakao',
       cashReceiptNum: data['cashReceiptNum'] as String?,
+      orderNotificationsEnabled:
+          data['orderNotificationsEnabled'] as bool? ?? true,
+      marketingNotificationsEnabled:
+          data['marketingNotificationsEnabled'] as bool? ?? false,
       addresses: (data['addresses'] as List? ?? [])
           .map(
               (a) => AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
@@ -1007,6 +1021,8 @@ class AuthService {
         'loginProvider': userModel.loginProvider,
         if (userModel.cashReceiptNum?.isNotEmpty == true)
           'cashReceiptNum': userModel.cashReceiptNum,
+        'orderNotificationsEnabled': userModel.orderNotificationsEnabled,
+        'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
       });
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 세션 저장 실패 (무시): $e');
@@ -1106,6 +1122,10 @@ class AuthService {
       createdAt: DateTime.now(),
       loginProvider: 'naver',
       cashReceiptNum: data['cashReceiptNum'] as String?,
+      orderNotificationsEnabled:
+          data['orderNotificationsEnabled'] as bool? ?? true,
+      marketingNotificationsEnabled:
+          data['marketingNotificationsEnabled'] as bool? ?? false,
       addresses: (data['addresses'] as List? ?? const [])
           .map(
               (a) => AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
@@ -1124,6 +1144,8 @@ class AuthService {
       'loginProvider': userModel.loginProvider,
       if (userModel.cashReceiptNum?.isNotEmpty == true)
         'cashReceiptNum': userModel.cashReceiptNum,
+      'orderNotificationsEnabled': userModel.orderNotificationsEnabled,
+      'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
     });
     return AuthResult(success: true, user: userModel);
   }
@@ -1187,6 +1209,10 @@ class AuthService {
         createdAt: DateTime.now(),
         loginProvider: 'naver',
         cashReceiptNum: data['cashReceiptNum'] as String?,
+        orderNotificationsEnabled:
+            data['orderNotificationsEnabled'] as bool? ?? true,
+        marketingNotificationsEnabled:
+            data['marketingNotificationsEnabled'] as bool? ?? false,
         addresses: (data['addresses'] as List? ?? const [])
             .map((a) =>
                 AddressModel.fromJson(Map<String, dynamic>.from(a as Map)))
@@ -1205,6 +1231,8 @@ class AuthService {
         'loginProvider': userModel.loginProvider,
         if (userModel.cashReceiptNum?.isNotEmpty == true)
           'cashReceiptNum': userModel.cashReceiptNum,
+        'orderNotificationsEnabled': userModel.orderNotificationsEnabled,
+        'marketingNotificationsEnabled': userModel.marketingNotificationsEnabled,
       });
       return AuthResult(success: true, user: userModel);
     } catch (e) {

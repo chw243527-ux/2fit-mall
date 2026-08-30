@@ -833,6 +833,8 @@ class UserModel {
   String loginProvider; // email, google, kakao, naver
   String? cashReceiptNum; // 현금영수증 번호 (전화번호 or 사업자번호)
   int points; // 보유 포인트
+  bool orderNotificationsEnabled; // 주문 상태 알림 수신 여부
+  bool marketingNotificationsEnabled; // 마케팅 알림 수신 여부
 
   UserModel({
     required this.id,
@@ -850,6 +852,8 @@ class UserModel {
     this.loginProvider = 'email',
     this.cashReceiptNum,
     this.points = 0,
+    this.orderNotificationsEnabled = true,
+    this.marketingNotificationsEnabled = false,
   }) : grade = grade ?? memberTier;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -875,6 +879,8 @@ class UserModel {
       loginProvider: json['loginProvider'] as String? ?? 'email',
       cashReceiptNum: json['cashReceiptNum'] as String?,
       points: (json['points'] as num?)?.toInt() ?? 0,
+      orderNotificationsEnabled: json['orderNotificationsEnabled'] as bool? ?? true,
+      marketingNotificationsEnabled: json['marketingNotificationsEnabled'] as bool? ?? false,
     );
   }
 
@@ -894,6 +900,8 @@ class UserModel {
       'addresses': addresses.map((a) => a.toJson()).toList(),
       'loginProvider': loginProvider,
       'points': points,
+      'orderNotificationsEnabled': orderNotificationsEnabled,
+      'marketingNotificationsEnabled': marketingNotificationsEnabled,
       if (cashReceiptNum != null && cashReceiptNum!.isNotEmpty)
         'cashReceiptNum': cashReceiptNum,
     };

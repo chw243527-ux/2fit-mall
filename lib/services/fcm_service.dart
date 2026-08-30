@@ -62,6 +62,18 @@ class FcmService {
 
   static Future<String?> getToken() async => _currentToken;
 
+  static Future<bool> _isNotificationEnabled(
+      String userId, String field, bool fallback) async {
+    if (userId.isEmpty) return false;
+    try {
+      final snap = await _db.collection('users').doc(userId).get();
+      return snap.data()?[field] as bool? ?? fallback;
+    } catch (e) {
+      if (kDebugMode) debugPrint('알림 설정 조회 실패: $e');
+      return fallback;
+    }
+  }
+
   // ── FCM 토큰 Firestore 저장 ────────────────────────────
   static Future<void> saveTokenToFirestore(String userId) async {
     if (userId.isEmpty) return;
@@ -95,6 +107,11 @@ class FcmService {
           ? targetOrderId.substring(0, 8)
           : targetOrderId;
       final body = message ?? '주문 #$sid 상태가 "$statusLabel"으로 변경되었습니다';
+      if (!await _isNotificationEnabled(
+          targetUserId, 'orderNotificationsEnabled', true)) {
+        if (kDebugMode) debugPrint('주문 알림 설정이 꺼져 있어 발송하지 않음: $targetUserId');
+        return;
+      }
 
       // Firestore 알림 저장 (앱 내 알림)
       final notifRef = _db.collection('notifications').doc();
@@ -157,6 +174,10 @@ class FcmService {
       for (final doc in wishlistSnap.docs) {
         final targetUserId = doc.data()['userId'] as String? ?? '';
         if (targetUserId.isEmpty) continue;
+        if (!await _isNotificationEnabled(
+            targetUserId, 'orderNotificationsEnabled', true)) {
+          continue;
+        }
 
         final notifRef = _db.collection('notifications').doc();
         await notifRef.set({
@@ -196,6 +217,11 @@ class FcmService {
 
       if (targetUserId != null) {
         // 특정 사용자 대상
+        if (!await _isNotificationEnabled(
+            targetUserId, 'marketingNotificationsEnabled', false)) {
+          if (kDebugMode) debugPrint('마케팅 알림 설정이 꺼져 있어 발송하지 않음: $targetUserId');
+          return true;
+        }
         final notifRef = _db.collection('notifications').doc();
         await notifRef.set({
           'id': notifRef.id,

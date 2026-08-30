@@ -2195,18 +2195,24 @@ class _PcSettingsTab extends StatelessWidget {
                         icon: Icons.notifications_rounded,
                         title: loc.mypageNotifOrder,
                         trailing: Switch(
-                            value: true,
-                            onChanged: (_) {},
-                            thumbColor: const WidgetStatePropertyAll(AppColors
-                                .primary))), // Color + WidgetStatePropertyAll + Switch trailing + _PcSettingItem
+                            value: user?.orderNotificationsEnabled ?? true,
+                            onChanged: user == null
+                                ? null
+                                : (value) => userProvider.updateUserProfile(
+                                    orderNotificationsEnabled: value),
+                            thumbColor: const WidgetStatePropertyAll(
+                                AppColors.primary))),
                     _PcSettingItem(
                         icon: Icons.campaign_rounded,
                         title: loc.mypageNotifMarketing,
                         trailing: Switch(
-                            value: false,
-                            onChanged: (_) {},
-                            thumbColor: const WidgetStatePropertyAll(AppColors
-                                .primary))), // Color + WidgetStatePropertyAll + Switch trailing + _PcSettingItem
+                            value: user?.marketingNotificationsEnabled ?? false,
+                            onChanged: user == null
+                                ? null
+                                : (value) => userProvider.updateUserProfile(
+                                    marketingNotificationsEnabled: value),
+                            thumbColor: const WidgetStatePropertyAll(
+                                AppColors.primary))),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -4490,13 +4496,19 @@ class _MobileSettingsTab extends StatelessWidget {
           _MobileSwitchItem(
               icon: Icons.notifications_rounded,
               title: loc.mypageNotifOrder,
-              value: true,
-              onChanged: (_) {}),
+              value: user?.orderNotificationsEnabled ?? true,
+              onChanged: user == null
+                  ? null
+                  : (value) => userProvider.updateUserProfile(
+                      orderNotificationsEnabled: value)),
           _MobileSwitchItem(
               icon: Icons.campaign_rounded,
               title: loc.mypageNotifMarketing,
-              value: false,
-              onChanged: (_) {}),
+              value: user?.marketingNotificationsEnabled ?? false,
+              onChanged: user == null
+                  ? null
+                  : (value) => userProvider.updateUserProfile(
+                      marketingNotificationsEnabled: value)),
         ]),
         const SizedBox(height: 16),
         _MobileSettingGroup(title: loc.mypageAppSection, items: [
