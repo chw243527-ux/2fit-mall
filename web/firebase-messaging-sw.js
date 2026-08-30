@@ -24,9 +24,19 @@ const messaging = firebase.messaging();
 
 // 백그라운드 메시지 처리
 messaging.onBackgroundMessage(function(payload) {
-  console.log('[SW] 백그라운드 메시지 수신:', payload);
-
+  const receivedAt = new Date().toISOString();
   const data = payload.data || {};
+  const serverSentAt = data.sentAt || null;
+  const deliveryDelayMs = serverSentAt
+    ? Date.parse(receivedAt) - Date.parse(serverSentAt)
+    : null;
+  console.log('[SW] FCM_DELIVERY_TIMING', {
+    serverSentAt,
+    receivedAt,
+    deliveryDelayMs,
+    mode: 'background',
+  });
+  console.log('[SW] 백그라운드 메시지 수신:', payload);
   const notificationTitle = payload.notification?.title || data.title || '2FIT MALL';
   const notificationOptions = {
     body: payload.notification?.body || data.body || '새로운 알림이 있습니다.',

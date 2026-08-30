@@ -67,6 +67,14 @@ class FcmService {
               message.data['title']?.toString() ?? '2FIT MALL';
           final body = message.notification?.body ??
               message.data['body']?.toString() ?? '새로운 알림이 있습니다.';
+          final serverSentAt = message.data['sentAt']?.toString();
+          final receivedAt = DateTime.now().toUtc();
+          final deliveryDelayMs = serverSentAt == null
+              ? null
+              : receivedAt.difference(DateTime.parse(serverSentAt)).inMilliseconds;
+          if (kDebugMode) {
+            debugPrint('FCM_DELIVERY_TIMING mode=foreground serverSentAt=$serverSentAt receivedAt=${receivedAt.toIso8601String()} delayMs=$deliveryDelayMs');
+          }
           if (kIsWeb) {
             // 웹은 포그라운드 수신 시 자동으로 알림창을 띄우지 않으므로 직접 표시합니다.
             web_notif.showBrowserNotification(title, body);
