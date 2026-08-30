@@ -63,8 +63,16 @@ class FcmService {
 
         // 포그라운드 메시지 핸들러
         _messageSubscription ??= FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+          final title = message.notification?.title ??
+              message.data['title']?.toString() ?? '2FIT MALL';
+          final body = message.notification?.body ??
+              message.data['body']?.toString() ?? '새로운 알림이 있습니다.';
+          if (kIsWeb) {
+            // 웹은 포그라운드 수신 시 자동으로 알림창을 띄우지 않으므로 직접 표시합니다.
+            web_notif.showBrowserNotification(title, body);
+          }
           if (kDebugMode) {
-            debugPrint('포그라운드 메시지: ${message.notification?.title}');
+            debugPrint('포그라운드 메시지: $title');
           }
         });
 
