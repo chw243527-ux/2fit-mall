@@ -388,7 +388,7 @@ class OrderExcelService {
     int orderNo = 1;
     for (final order in orders) {
       final opts = order.customOptions ?? {};
-      final isGroup = order.orderType == 'group' || order.orderType == 'additional';
+      final isGroup = order.isGroupOrder;
       final isEven = orderNo % 2 == 0;
       final rowStyle = isEven ? evenRowStyle : oddRowStyle;
 
@@ -403,7 +403,7 @@ class OrderExcelService {
       _setCell(summarySheet, rowIdx, 1, order.id, style: rowStyle);
       _setCell(summarySheet, rowIdx, 2, _fmtFull(order.createdAt), style: rowStyle);
       _setCell(summarySheet, rowIdx, 3,
-          order.orderType == 'additional' ? '추가제작' : (isGroup ? '단체주문' : '개인주문'),
+          order.isAdditionalOrder ? '추가제작' : (isGroup ? '단체주문' : '개인주문'),
           style: rowStyle);
       _setCell(summarySheet, rowIdx, 4,
           opts['teamName']?.toString() ?? order.groupName ?? '-', style: rowStyle);
@@ -1449,7 +1449,7 @@ class OrderExcelService {
       ['원단 종류',       opts['fabricType']?.toString() ?? opts['fabric']?.toString() ?? '-',   false, false],
       ['원단 무게',       opts['fabricWeight']?.toString() ?? opts['weight']?.toString() ?? '-', false, false],
       ['독점디자인',      opts['exclusiveDesign'] == true ? '예' : '아니오',                     false, false],
-      ['추가제작 여부',   order.orderType == 'additional' ? '추가제작주문' : '신규주문',          false, false],
+      ['추가제작 여부',   order.isAdditionalOrder ? '추가제작주문' : '신규주문',          false, false],
       ['주문 상태',       _statusLabel(order.status),                                             false, false],
       ['메모',            opts['memoText']?.toString() ?? order.memo ?? '-',                     false, false],
     ];
@@ -1462,7 +1462,7 @@ class OrderExcelService {
     }
 
     // ── 추가제작 주문인 경우: 기존 주문 정보 별도 섹션 ──
-    if (order.orderType == 'additional') {
+    if (order.isAdditionalOrder) {
       final origOrderId    = opts['originalOrderId']?.toString() ?? '';
       final origOrderDate  = opts['originalOrderDate']?.toString() ?? '';
       final origTeamName   = opts['originalTeamName']?.toString() ?? '';
@@ -1732,7 +1732,7 @@ class OrderExcelService {
       ['추가제작 신청 횟수',    '$addCount회'],
       ['무료 추가제작 마감일',  '${addDeadline.year}.${addDeadline.month.toString().padLeft(2,'0')}.${addDeadline.day.toString().padLeft(2,'0')}'],
       ['추가제작 가능 여부',    canAddFree ? '가능 (마감 전)' : '마감 (새로 주문 필요)'],
-      if (order.orderType == 'additional') ...[
+      if (order.isAdditionalOrder) ...[
         ['원주문 번호',  origOrderId.isNotEmpty   ? origOrderId   : '-'],
         ['원주문 팀명',  origTeamName.isNotEmpty  ? origTeamName  : '-'],
         ['원주문 인원',  origTotalCount.isNotEmpty ? '${origTotalCount}명' : '-'],
@@ -1976,7 +1976,7 @@ class OrderExcelService {
     _writeRow('원단 종류',  opts['fabricType']?.toString() ?? opts['fabric']?.toString() ?? '-');
     _writeRow('원단 무게',  opts['fabricWeight']?.toString() ?? opts['weight']?.toString() ?? '-');
     _writeRow('독점디자인', opts['exclusiveDesign'] == true ? '예' : '아니오');
-    _writeRow('주문 유형',  order.orderType == 'additional' ? '추가제작주문' : '신규주문');
+    _writeRow('주문 유형',  order.isAdditionalOrder ? '추가제작주문' : '신규주문');
     _writeRow('주문 상태',  _statusLabel(order.status));
     _writeRow('메모', opts['memoText']?.toString() ?? order.memo ?? '-');
 
