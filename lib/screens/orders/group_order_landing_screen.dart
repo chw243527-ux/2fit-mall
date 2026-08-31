@@ -32,7 +32,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
 
   static const _kBlack = AppColors.primary;
   static const _kBg = AppColors.background;
-  static const _kBorder = Color(0xFFE8E8E8);
+  static const _kBorder = AppColors.border;
   static const _kGrey4 = AppColors.textSecondary;
   static const _kGrey6 = AppColors.textSecondary;
 
@@ -68,10 +68,11 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       Scaffold(
         backgroundColor: _kBg,
         appBar: AppBar(
-          backgroundColor: _kBlack,
-          foregroundColor: Colors.white,
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.textPrimary,
           elevation: 0,
-          toolbarHeight: 48,
+          scrolledUnderElevation: 0,
+          toolbarHeight: 56,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             onPressed: () => goBackOrHome(context),
@@ -95,9 +96,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       Scaffold(
         backgroundColor: _kBg,
         appBar: AppBar(
-          backgroundColor: _kBlack,
-          foregroundColor: Colors.white,
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.textPrimary,
           elevation: 0,
+          scrolledUnderElevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             onPressed: () => goBackOrHome(context),
@@ -157,11 +159,17 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 헤더 (flat black)
+          // 브랜드 히어로
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            color: _kBlack,
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 24),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: AppColors.heroGradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -183,9 +191,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
                 Text(
                   context.loc.t('단체주문_안내', '단체주문 안내'),
                   style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900),
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.6),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -355,8 +364,11 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   Widget _buildSectionTitle(IconData icon, String title) {
     return Row(children: [
       Container(
-        padding: const EdgeInsets.all(6),
-        color: _kBlack,
+        padding: const EdgeInsets.all(7),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Icon(icon, size: 16, color: Colors.white),
       ),
       const SizedBox(width: 10),
@@ -374,17 +386,24 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   Widget _buildStepCard(String step, String title, String desc,
       {bool isLast = false}) {
     return Container(
-      margin: EdgeInsets.only(bottom: isLast ? 0 : 1),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 8),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _kBorder),
+        boxShadow: const [
+          BoxShadow(color: Color(0x081A1A2E), blurRadius: 12, offset: Offset(0, 4)),
+        ],
       ),
       child: Row(children: [
-        Container(
-          width: 28,
-          height: 28,
-          color: _kBlack,
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(9),
+            ),
           child: Center(
             child: Text(
               step,
@@ -439,8 +458,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _kBorder),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: items.asMap().entries.map((e) {
           final item = e.value;
@@ -482,6 +503,7 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _kBorder),
       ),
       child: Column(
@@ -503,9 +525,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        border: Border(left: BorderSide(color: _kBlack, width: 3)),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGray,
+        borderRadius: BorderRadius.circular(12),
+        border: const Border(left: BorderSide(color: AppColors.accent, width: 3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -537,7 +560,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
   Widget _buildContactCard() {
     return Container(
       padding: const EdgeInsets.all(14),
-      color: _kBlack,
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(14),
+      ),
       child: Column(
         children: [
           Row(children: [
@@ -587,13 +613,20 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: _kBorder),
+          boxShadow: const [
+            BoxShadow(color: Color(0x081A1A2E), blurRadius: 12, offset: Offset(0, 4)),
+          ],
         ),
         child: Row(children: [
           Container(
-            width: 38,
-            height: 38,
-            color: _kBlack,
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(icon, size: 20, color: Colors.white),
           ),
           const SizedBox(width: 14),

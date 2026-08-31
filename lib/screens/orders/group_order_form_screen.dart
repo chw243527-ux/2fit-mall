@@ -1040,9 +1040,10 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
       appBar: AppBar(
         title: Text(title,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
-        backgroundColor: _purple,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
             onPressed: () => goBackOrHome(context)),
@@ -1098,8 +1099,14 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-      color: _purple, // 순블랙
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 26),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: AppColors.heroGradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // 영문 서브타이틀
         Text(
@@ -1118,9 +1125,9 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               : context.loc.t('단체_커스텀_주문', '단체 커스텀 주문'),
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 22,
+            fontSize: 24,
             fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
+            letterSpacing: -0.7,
           ),
         ),
         const SizedBox(height: 4),
@@ -6608,16 +6615,24 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   Widget _card(
       {required String title, required IconData icon, required Widget child}) {
     return Container(
-      margin: const EdgeInsets.only(top: 8),
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      color: Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: const [
+          BoxShadow(color: Color(0x081A1A2E), blurRadius: 14, offset: Offset(0, 5)),
+        ],
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         // 탑텐 스타일 섹션 헤더: 좌측 3px 블랙 보더
         Container(
-          padding: const EdgeInsets.fromLTRB(10, 2, 0, 2),
-          decoration: const BoxDecoration(
-            border:
-                Border(left: BorderSide(color: AppColors.primary, width: 3)),
+          padding: const EdgeInsets.fromLTRB(10, 4, 0, 4),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceGray,
+            borderRadius: BorderRadius.circular(8),
+            border: const Border(left: BorderSide(color: AppColors.accent, width: 3)),
           ),
           child: Row(children: [
             Icon(icon, color: AppColors.primary, size: 16),
