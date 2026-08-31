@@ -11,6 +11,7 @@ import '../admin/admin_screen.dart';
 import '../mypage/size_profile_screen.dart';
 import '../notifications/notification_center_screen.dart';
 import 'signup_screen.dart';
+import 'social_phone_onboarding_screen.dart';
 import '../../utils/navigation_helper.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -1008,6 +1009,19 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
       userProv.setLoading(false);
 
+      if (result.requiresPhoneVerification) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => SocialPhoneOnboardingScreen(
+              name: result.pendingName ?? 'Google 사용자',
+              email: result.pendingEmail ?? '',
+              photoUrl: result.pendingPhotoUrl ?? '',
+              provider: result.pendingProvider ?? 'google',
+            ),
+          ),
+        );
+        return;
+      }
       if (result.success && result.user != null) {
         userProv.login(result.user!);
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
@@ -1053,6 +1067,19 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
       userProv.setLoading(false);
 
+      if (result.requiresPhoneVerification) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => SocialPhoneOnboardingScreen(
+              name: result.pendingName ?? '카카오 사용자',
+              email: result.pendingEmail ?? '',
+              photoUrl: result.pendingPhotoUrl ?? '',
+              provider: result.pendingProvider ?? 'kakao',
+            ),
+          ),
+        );
+        return;
+      }
       if (result.success && result.user != null) {
         userProv.login(result.user!);
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
@@ -1098,6 +1125,19 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
       userProv.setLoading(false);
 
+      if (result.requiresPhoneVerification) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => SocialPhoneOnboardingScreen(
+              name: result.pendingName ?? '네이버 사용자',
+              email: result.pendingEmail ?? '',
+              photoUrl: result.pendingPhotoUrl ?? '',
+              provider: result.pendingProvider ?? 'naver',
+            ),
+          ),
+        );
+        return;
+      }
       if (result.success && result.user != null) {
         userProv.login(result.user!);
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
@@ -1267,6 +1307,19 @@ class _LoginScreenState extends State<LoginScreen>
               );
               userProv.setLoading(false);
               if (!mounted) return;
+              if (result.requiresPhoneVerification) {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (_) => SocialPhoneOnboardingScreen(
+                      name: result.pendingName ?? (isKakao ? '카카오 사용자' : 'Google 사용자'),
+                      email: result.pendingEmail ?? '',
+                      photoUrl: result.pendingPhotoUrl ?? '',
+                      provider: result.pendingProvider ?? (isKakao ? 'kakao' : 'google'),
+                    ),
+                  ),
+                );
+                return;
+              }
               if (result.success && result.user != null) {
                 userProv.login(result.user!);
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);

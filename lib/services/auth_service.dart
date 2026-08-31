@@ -223,10 +223,13 @@ class AuthService {
         verificationId: verificationId,
         smsCode: smsCode.trim(),
       );
-      // 인증된 Firebase 사용자를 유지하고 register()에서 같은 UID에
-      // 이메일 자격증명을 연결합니다. 임시 계정을 삭제하면 인증 사실이
-      // 실제 가입 계정에 남지 않아 클라이언트 상태만 우회할 수 있습니다.
-      final result = await _auth.signInWithCredential(credential);
+      // 소셜 로그인으로 이미 Firebase 사용자가 있으면 새 전화번호 계정을
+      // 만들지 않고 같은 UID에 Phone provider를 연결합니다. 일반 회원가입처럼
+      // 현재 사용자가 없거나 이미 전화번호 계정인 경우에만 signInWithCredential을 사용합니다.
+      final currentUser = _auth.currentUser;
+      final result = currentUser != null && currentUser.phoneNumber == null
+          ? await currentUser.linkWithCredential(credential)
+          : await _auth.signInWithCredential(credential);
       final phoneNumber = result.user?.phoneNumber ?? '';
       if (phoneNumber.isEmpty) {
         return {'status': 'error', 'message': '인증된 전화번호를 확인할 수 없습니다.'};
@@ -247,6 +250,78 @@ class AuthService {
       return {'status': 'error', 'message': msg};
     } catch (e) {
       return {'status': 'error', 'message': '인증 중 오류가 발생했습니다.'};
+    }
+  }
+
+  // 소셜 로그인 최초 가입 완료: 전화번호 인증이 끝난 동일 UID에만 회원 문서를 생성합니다.
+  static Future<AuthResult> completeSocialPhoneOnboarding({
+    required String name,
+    required String email,
+    required String phone,
+    String photoUrl = '',
+    String provider = 'social',
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      final verifiedPhone = user?.phoneNumber?.trim() ?? '';
+      if (user == null || verifiedPhone.isEmpty) {
+        return const AuthResult(
+          success: false,
+          error: '전화번호 본인확인을 먼저 완료해주세요.',
+        );
+      }
+      if (phone.trim() != verifiedPhone) {
+        return const AuthResult(
+          success: false,
+          error: '인증된 전화번호와 입력한 전화번호가 일치하지 않습니다.',
+        );
+      }
+      final emailKey = email.trim().toLowerCase();
+      if (emailKey.isEmpty || name.trim().isEmpty) {
+        return const AuthResult(success: false, error: '회원정보가 올바르지 않습니다.');
+      }
+      final docRef = _db.collection('users').doc(user.uid);
+      final existing = await docRef.get();
+      if (existing.exists) {
+        return const AuthResult(success: false, error: '이미 가입된 계정입니다. 다시 로그인해주세요.');
+      }
+      await user.updateDisplayName(name.trim());
+      await user.getIdToken(true);
+      await docRef.set({
+        'id': user.uid,
+        'name': name.trim(),
+        'email': emailKey,
+        'phone': verifiedPhone,
+        'phoneVerified': true,
+        'phoneVerifiedAt': FieldValue.serverTimestamp(),
+        'isAdmin': false,
+        'grade': 'bronze',
+        'points': 0,
+        'wishlist': <String>[],
+        'createdAt': FieldValue.serverTimestamp(),
+        'loginProvider': provider,
+        if (photoUrl.trim().isNotEmpty) 'profileImageUrl': photoUrl.trim(),
+      });
+      final userModel = UserModel(
+        id: user.uid,
+        name: name.trim(),
+        email: emailKey,
+        phone: verifiedPhone,
+        profileImageUrl: photoUrl,
+        memberTier: 'bronze',
+        grade: 'bronze',
+        isAdmin: await _hasAdminClaim(),
+        createdAt: DateTime.now(),
+        loginProvider: provider,
+      );
+      await _saveSession(user.uid);
+      return AuthResult(success: true, user: userModel);
+    } on FirebaseException catch (e) {
+      if (kDebugMode) debugPrint('소셜 본인확인 온보딩 저장 실패: ${e.code}');
+      return const AuthResult(success: false, error: '회원정보 저장에 실패했습니다. 다시 시도해주세요.');
+    } catch (e) {
+      if (kDebugMode) debugPrint('소셜 본인확인 온보딩 오류: $e');
+      return const AuthResult(success: false, error: '본인확인 가입 중 오류가 발생했습니다.');
     }
   }
 
@@ -1035,6 +1110,18 @@ class AuthService {
         final docRef = _db.collection('users').doc(user.uid);
         final doc = await docRef.get();
         if (!doc.exists) {
+          // 소셜 Auth만 완료된 상태에서는 회원 문서를 만들지 않습니다.
+          // 로그인 화면이 동일 UID의 전화번호 인증 온보딩으로 연결합니다.
+          return AuthResult(
+            success: false,
+            requiresPhoneVerification: true,
+            pendingName: user.displayName ?? googleUser.displayName ?? '회원',
+            pendingEmail: user.email ?? emailKey,
+            pendingPhotoUrl: user.photoURL ?? '',
+            pendingProvider: 'google',
+            error: '전화번호 본인확인을 완료해주세요.',
+          );
+          /*
           await docRef.set({
             'id': user.uid,
             'name': user.displayName ?? googleUser.displayName ?? '회원',
@@ -1059,6 +1146,7 @@ class AuthService {
             'points': 0,
             'wishlist': [],
           };
+          */
         } else {
           docRef.update({
             'lastLoginAt': FieldValue.serverTimestamp(),
@@ -1234,6 +1322,18 @@ class AuthService {
       final docRef = _db.collection('users').doc(user.uid);
       final doc = await docRef.get();
       if (!doc.exists) {
+        // Kakao Auth 성공만으로 회원 문서를 생성하지 않고 동일 UID
+        // 전화번호 인증 온보딩을 먼저 완료하도록 합니다.
+        return AuthResult(
+          success: false,
+          requiresPhoneVerification: true,
+          pendingName: name,
+          pendingEmail: email,
+          pendingPhotoUrl: photoUrl,
+          pendingProvider: 'kakao',
+          error: '전화번호 본인확인을 완료해주세요.',
+        );
+        /*
         await docRef.set({
           'id': user.uid,
           'name': name,
@@ -1259,6 +1359,7 @@ class AuthService {
           'points': 0,
           'wishlist': [],
         };
+        */
       } else {
         // 업데이트 (실패해도 계속)
         docRef.update({
@@ -1406,7 +1507,19 @@ class AuthService {
       return const AuthResult(
           success: false, error: 'Firebase 사용자 정보를 받지 못했습니다.');
     }
-    final data = (await _db.collection('users').doc(firebaseUser.uid).get()).data() ?? <String, dynamic>{};
+    final doc = await _db.collection('users').doc(firebaseUser.uid).get();
+    if (!doc.exists) {
+      return AuthResult(
+        success: false,
+        requiresPhoneVerification: true,
+        pendingName: firebaseUser.displayName ?? '네이버 사용자',
+        pendingEmail: firebaseUser.email ?? '',
+        pendingPhotoUrl: firebaseUser.photoURL ?? '',
+        pendingProvider: 'naver',
+        error: '전화번호 본인확인을 완료해주세요.',
+      );
+    }
+    final data = doc.data() ?? <String, dynamic>{};
     final tier =
         data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
     final userModel = UserModel(
@@ -1493,9 +1606,20 @@ class AuthService {
         return const AuthResult(
             success: false, error: 'Firebase 사용자 정보를 받지 못했습니다.');
       }
-      final doc = await _db.collection('users').doc(firebaseUser.uid).get();
-      final data = doc.data() ?? <String, dynamic>{};
-      final tier =
+    final doc = await _db.collection('users').doc(firebaseUser.uid).get();
+    if (!doc.exists) {
+      return AuthResult(
+        success: false,
+        requiresPhoneVerification: true,
+        pendingName: firebaseUser.displayName ?? '네이버 사용자',
+        pendingEmail: firebaseUser.email ?? '',
+        pendingPhotoUrl: firebaseUser.photoURL ?? '',
+        pendingProvider: 'naver',
+        error: '전화번호 본인확인을 완료해주세요.',
+      );
+    }
+    final data = doc.data() ?? <String, dynamic>{};
+    final tier =
           data['memberTier'] as String? ?? data['grade'] as String? ?? 'bronze';
       final userModel = UserModel(
         id: firebaseUser.uid,

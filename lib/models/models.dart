@@ -1157,6 +1157,12 @@ class AuthResult {
   final String? error;
   final bool welcomeBonusGranted;
   final bool welcomeCouponGranted;
+  // 소셜 Auth는 성공했지만, 회원 문서 생성 전 전화번호 본인확인이 필요한 상태
+  final bool requiresPhoneVerification;
+  final String? pendingName;
+  final String? pendingEmail;
+  final String? pendingPhotoUrl;
+  final String? pendingProvider;
 
   const AuthResult({
     required this.success,
@@ -1164,6 +1170,11 @@ class AuthResult {
     this.error,
     this.welcomeBonusGranted = false,
     this.welcomeCouponGranted = false,
+    this.requiresPhoneVerification = false,
+    this.pendingName,
+    this.pendingEmail,
+    this.pendingPhotoUrl,
+    this.pendingProvider,
   });
 }
 
