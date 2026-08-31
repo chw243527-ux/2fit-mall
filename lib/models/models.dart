@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/app_localizations.dart';
+import '../utils/constants.dart';
 
 class ProductModel {
   final String id;
