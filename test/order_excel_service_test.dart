@@ -27,7 +27,7 @@ void main() {
       );
 
       final sheet = _summarySheet(bytes);
-      expect(_summaryCell(sheet, 1, 0), contains('단체/커스텀: 1건'));
+      expect(_summaryCell(sheet, 0, 1), contains('단체/커스텀: 1건'));
       expect(_summaryCell(sheet, 3, 4), contains('추가제작'));
     });
 
