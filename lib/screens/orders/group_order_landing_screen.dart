@@ -206,10 +206,6 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               ],
             ),
           ),
-          if (widget.product != null) ...[
-            const SizedBox(height: 14),
-            _buildProductOrderCta(),
-          ],
           const SizedBox(height: 20),
 
           // 주문 절차
@@ -277,6 +273,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           _buildSectionTitle(Icons.phone_outlined, context.loc.t('문의', '문의')),
           const SizedBox(height: 12),
           _buildContactCard(),
+          if (widget.product != null) ...[
+            const SizedBox(height: 14),
+            _buildProductOrderCta(),
+          ],
           const SizedBox(height: 20),
 
           const SizedBox(height: 8),
