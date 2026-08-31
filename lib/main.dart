@@ -353,18 +353,10 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 settings: settings,
               );
             case '/admin':
-              // 이메일 링크에서 진입 시 URL 파라미터로 탭 지정
-              // 예: https://2fit-mall.co.kr/#/admin?tab=orders -> 주문관리(탭 1)
-              final args = settings.arguments;
-              int initialTab = 0;
-              if (args is Map<String, dynamic>) {
-                final tab = args['tab'];
-                if (tab == 'orders')
-                  initialTab = 1;
-                else if (tab is int) initialTab = tab;
-              }
+              // 관리자 화면은 딥링크로 직접 생성하지 않습니다.
+              // 관리자 로그인 후의 진입은 Splash의 Custom Claim 검사 경로만 사용합니다.
               return MaterialPageRoute(
-                builder: (_) => AdminScreen(initialTab: initialTab),
+                builder: (_) => const LoginScreen(),
                 settings: settings,
               );
             // 토스페이먼츠 결제 성공 콜백

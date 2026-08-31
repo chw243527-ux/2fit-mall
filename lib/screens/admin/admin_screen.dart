@@ -292,30 +292,59 @@ class _AdminScreenState extends State<AdminScreen>
   // ── 캐시된 초기 데이터 (빠른 로딩용)
   List<OrderModel>? _cachedOrders;
   List<Map<String, dynamic>>? _cachedMembers;
+  bool _adminChecking = true;
+  bool _adminAuthorized = false;
 
   @override
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 18, vsync: this);
+    _verifyAdminAccess();
     // initialTab이 지정된 경우 해당 탭으로 이동
     if (widget.initialTab > 0 && widget.initialTab < 18) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _tabCtrl.animateTo(widget.initialTab);
       });
     }
-    _loadAdminSettings();
-    _loadContentCatalogs();
-    _prefetchData();
-    // 관리자 화면 진입 시 비활성 상품 포함 전체 목록 로드
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<ProductProvider>().loadAdminProducts();
-        // 카테고리 서비스 로드
-        CategoryService.load();
-        // FCM이 권한과 토큰을 관리하므로 별도의 브라우저 권한 안내를 자동 표시하지 않습니다.
-        // 자동 안내가 FCM 전송 성공 메시지와 충돌하는 문제를 방지합니다.
+    // 관리자 데이터는 Custom Claim 확인이 끝난 뒤에만 조회합니다.
+  }
+
+  // 관리자 화면은 UI 진입 시점에도 Firebase Auth Custom Claim을 재검증합니다.
+  // 라우터나 클라이언트 UserProvider 상태만 믿지 않아 직접 객체 생성/딥링크를 방어합니다.
+  Future<void> _verifyAdminAccess() async {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    var authorized = false;
+    if (firebaseUser != null) {
+      try {
+        final token = await firebaseUser.getIdTokenResult(true);
+        authorized = token.claims?['admin'] == true;
+      } catch (_) {
+        authorized = false;
       }
+    }
+    if (!mounted) return;
+    setState(() {
+      _adminChecking = false;
+      _adminAuthorized = authorized;
     });
+    if (authorized) {
+      _loadAdminSettings();
+      _loadContentCatalogs();
+      _prefetchData();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.read<ProductProvider>().loadAdminProducts();
+        CategoryService.load();
+      });
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      });
+    }
   }
 
   // 브라우저 알림 권한 요청 — 관리자 로그인 직후 1회
@@ -843,6 +872,11 @@ class _AdminScreenState extends State<AdminScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_adminChecking || !_adminAuthorized) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     final user = context.watch<UserProvider>().user;
     final width = MediaQuery.of(context).size.width;
     // 태블릿/PC 모두 넓은 화면이면 사이드바 레이아웃 사용

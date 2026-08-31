@@ -150,13 +150,21 @@ class AuthService {
     await _auth.verifyPhoneNumber(
       phoneNumber: phoneNumber,
       timeout: const Duration(seconds: 60),
-      verificationCompleted: (PhoneAuthCredential credential) {
-        // Android 자동 인증 (일부 기기)
-        if (!completer.isCompleted) {
-          completer.complete({
-            'status': 'auto_verified',
-            'credential': credential,
-          });
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // 자동 인증도 인증된 Firebase 사용자를 유지합니다. register()가
+        // 동일 UID에 이메일 자격증명을 연결하여 인증 결과를 결속합니다.
+        try {
+          final signedIn = await _auth.signInWithCredential(credential);
+          if (!completer.isCompleted) {
+            completer.complete({
+              'status': 'auto_verified',
+              'phoneNumber': signedIn.user?.phoneNumber ?? '',
+            });
+          }
+        } catch (_) {
+          if (!completer.isCompleted) {
+            completer.complete({'status': 'error', 'message': '자동 인증에 실패했습니다. 다시 시도해주세요.'});
+          }
         }
       },
       verificationFailed: (FirebaseAuthException e) {
@@ -215,10 +223,15 @@ class AuthService {
         verificationId: verificationId,
         smsCode: smsCode.trim(),
       );
-      // 인증 자격증명 확인 (임시 로그인 후 바로 로그아웃 - 실제 계정 생성 전 검증용)
+      // 인증된 Firebase 사용자를 유지하고 register()에서 같은 UID에
+      // 이메일 자격증명을 연결합니다. 임시 계정을 삭제하면 인증 사실이
+      // 실제 가입 계정에 남지 않아 클라이언트 상태만 우회할 수 있습니다.
       final result = await _auth.signInWithCredential(credential);
-      await result.user?.delete(); // 임시 계정 삭제
-      return {'status': 'verified'};
+      final phoneNumber = result.user?.phoneNumber ?? '';
+      if (phoneNumber.isEmpty) {
+        return {'status': 'error', 'message': '인증된 전화번호를 확인할 수 없습니다.'};
+      }
+      return {'status': 'verified', 'phoneNumber': phoneNumber};
     } on FirebaseAuthException catch (e) {
       String msg;
       switch (e.code) {
@@ -321,14 +334,29 @@ class AuthService {
     }
 
     try {
-      // Firebase Auth 계정 생성
-      final credential = await _auth.createUserWithEmailAndPassword(
-        email: email.trim().toLowerCase(),
-        password: password,
-      );
+      final emailKey = email.trim().toLowerCase();
+      final currentUser = _auth.currentUser;
+      late UserCredential credential;
+      final verifiedPhone = currentUser?.phoneNumber?.trim() ?? '';
+      if (verifiedPhone.isEmpty) {
+        return const AuthResult(
+          success: false,
+          error: '휴대폰 본인확인을 완료한 뒤 가입할 수 있습니다.',
+        );
+      }
+      if (verifiedPhone.isNotEmpty) {
+        // SMS로 인증된 동일 Firebase UID에 이메일 자격증명을 연결합니다.
+        final emailCredential = EmailAuthProvider.credential(
+          email: emailKey,
+          password: password,
+        );
+        credential = await currentUser!.linkWithCredential(emailCredential);
+      }
+      // linked provider와 phone_number가 반영된 최신 ID 토큰으로 Firestore
+      // 규칙의 hasVerifiedPhone() 검사를 통과하도록 갱신합니다.
+      await credential.user!.getIdToken(true);
 
       final uid = credential.user!.uid;
-      final emailKey = email.trim().toLowerCase();
       // 관리자 권한은 서버가 발급한 Custom Claim으로만 결정합니다.
       const isAdmin = false;
 
@@ -341,7 +369,9 @@ class AuthService {
           'id': uid,
           'name': name.trim(),
           'email': emailKey,
-          'phone': phone.trim(),
+          'phone': verifiedPhone.isNotEmpty ? verifiedPhone : phone.trim(),
+          'phoneVerified': verifiedPhone.isNotEmpty,
+          'phoneVerifiedAt': verifiedPhone.isNotEmpty ? FieldValue.serverTimestamp() : null,
           'isAdmin': isAdmin,
           'grade': 'bronze',
           'wishlist': <String>[],
@@ -357,7 +387,7 @@ class AuthService {
         id: uid,
         name: name.trim(),
         email: emailKey,
-        phone: phone.trim(),
+        phone: verifiedPhone.isNotEmpty ? verifiedPhone : phone.trim(),
         isAdmin: isAdmin,
         points: benefits.pointsGranted ? 1000 : 0,
         createdAt: DateTime.now(),

@@ -61,8 +61,18 @@ service cloud.firestore {
       return validStr(data.name, 50)
           && validStr(data.email, 100)
           && (!('phone' in data) || validStr(data.phone, 20))
+          && (!('phoneVerified' in data) || data.phoneVerified is bool)
+          && (!('phoneVerifiedAt' in data) || data.phoneVerifiedAt is timestamp)
           && (!('grade' in data) || data.grade in ['bronze','silver','gold','vip'])
           && (!('isAdmin' in data) || data.isAdmin == false); // 본인이 isAdmin 설정 불가
+    }
+
+    // 전화번호 인증은 클라이언트 플래그가 아니라 Firebase Auth의
+    // 검증된 phone_number 클레임과 사용자 문서의 번호가 일치해야 합니다.
+    function hasVerifiedPhone(data) {
+      return data.phoneVerified == true
+          && data.phone is string
+          && request.auth.token.phone_number == data.phone;
     }
 
     // 리뷰 필드 검증
@@ -90,6 +100,8 @@ service cloud.firestore {
       allow create: if isSignedIn()
           && isOwner(userId)
           && isValidUserData(request.resource.data)
+          && hasVerifiedPhone(request.resource.data)
+          && request.resource.data.email == request.auth.token.email
           && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false)
           && (!('points' in request.resource.data) || request.resource.data.points == 0); // 포인트 임의 설정 금지
 
@@ -98,6 +110,15 @@ service cloud.firestore {
         (isOwner(userId)
           && !('isAdmin' in request.resource.data.diff(resource.data).affectedKeys()) // isAdmin 변경 금지
           && !('points' in request.resource.data.diff(resource.data).affectedKeys())  // 포인트 직접 변경 금지
+          && !('phoneVerified' in request.resource.data.diff(resource.data).affectedKeys())
+          && !('phoneVerifiedAt' in request.resource.data.diff(resource.data).affectedKeys())
+          && !('phone' in request.resource.data.diff(resource.data).affectedKeys())
+          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'name', 'addresses', 'wishlist', 'marketingNotificationsEnabled',
+            'privacyConsent', 'privacyConsentVersion', 'privacyConsentAt',
+            'profileImage', 'isDeleted', 'deletedAt'
+          ])
         ) || isAdmin()
       );
 
