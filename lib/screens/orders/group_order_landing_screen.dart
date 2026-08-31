@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/net_image.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
 import '../../models/models.dart';
