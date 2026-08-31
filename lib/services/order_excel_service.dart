@@ -13,16 +13,8 @@ class OrderExcelService {
   static FirebaseFirestore get _db => FirebaseFirestore.instance;
 
   // ── 단체주문 여부 공통 판별 함수 ──
-  // GRP_/GROUP- ID이거나, orderType이 group/additional이거나,
-  // persons 배열 + teamName 둘 다 있으면 단체주문
-  static bool _isGroupOrder(OrderModel o) {
-    if (o.orderType == 'group' || o.orderType == 'additional') return true;
-    final isGrpId = o.id.startsWith('GRP_') || o.id.startsWith('GROUP-');
-    if (isGrpId) return true;
-    final hasTeamName = (o.customOptions?['teamName'] as String?)?.isNotEmpty == true;
-    final hasPersons = (o.customOptions?['persons'] as List?)?.isNotEmpty == true;
-    return hasTeamName && hasPersons;
-  }
+  // OrderModel의 중앙 판별 기준을 사용해 화면·엑셀 분류를 일치시킨다.
+  static bool _isGroupOrder(OrderModel o) => o.isGroupOrder;
 
   // ── 전날 오후1시 ~ 당일 오후1시 날짜 계산 ──
   // 항상 "오늘 13:00 기준의 직전 24시간 회차"를 반환한다.
@@ -232,9 +224,26 @@ class OrderExcelService {
         // GRP_/GROUP- 접두사 또는 persons+teamName 모두 있으면 단체주문
         final isGrpId = docId.startsWith('GRP_') || docId.startsWith('GROUP-');
         if (isGrpId || (hasPersons && hasTeamName)) {
-          final isAdditional = docId.contains('ADD') ||
+          final optionType = (customOptions['orderType'] ?? '')
+                  .toString()
+                  .trim()
+                  .toLowerCase()
+                  .replaceAll('-', '_');
+          final hasOriginalOrder = (customOptions['originalOrderId'] ??
+                      customOptions['parentOrderId'] ??
+                      customOptions['sourceOrderId'] ??
+                      '')
+                  .toString()
+                  .trim()
+                  .isNotEmpty;
+          final isAdditional = optionType == 'additional' ||
               customOptions['isAdditional'] == true ||
-              data['isAdditionalOrder'] == true;
+              customOptions['isAdditionalOrder'] == true ||
+              customOptions['additionalOrder'] == true ||
+              data['isAdditionalOrder'] == true ||
+              hasOriginalOrder ||
+              RegExp(r'^(?:ADD|ADDITIONAL)(?:[_-]|$)', caseSensitive: false)
+                  .hasMatch(docId);
           resolvedOrderType = isAdditional ? 'additional' : 'group';
         }
       }

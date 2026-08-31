@@ -480,12 +480,50 @@ class OrderModel {
     return DateTime.now().isBefore(designRevisionDeadline!);
   }
 
-  /// 단체주문 여부 (orderType 또는 ID 프리픽스 기준)
+  /// 추가제작 주문 여부.
+  ///
+  /// 신규 주문은 orderType/customOptions.orderType이 authoritative source이며,
+  /// 이전 데이터는 추가제작 플래그·원주문 참조·명확한 ID 프리픽스만 보조 기준으로 사용한다.
+  /// 일반 GRP_ ID 전체를 추가제작으로 간주하지 않아 신규 단체주문 오탐을 방지한다.
+  bool get isAdditionalOrder {
+    final options = customOptions ?? <String, dynamic>{};
+    final normalizedType = orderType.trim().toLowerCase().replaceAll('-', '_');
+    final optionType = (options['orderType'] ?? '')
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replaceAll('-', '_');
+    final explicitFlag = options['isAdditional'] == true ||
+        options['isAdditionalOrder'] == true ||
+        options['additionalOrder'] == true;
+    final originalOrderId = (options['originalOrderId'] ??
+            options['parentOrderId'] ??
+            options['sourceOrderId'] ??
+            '')
+        .toString()
+        .trim();
+    final normalizedId = id.trim().toUpperCase();
+    final explicitId = RegExp(r'^(?:ADD|ADDITIONAL)(?:[_-]|$)')
+            .hasMatch(normalizedId) ||
+        RegExp(r'^(?:GRP|GROUP)[_-].*(?:[_-](?:ADD|ADDITIONAL))(?:[_-]|$)')
+            .hasMatch(normalizedId);
+
+    return normalizedType == 'additional' ||
+        optionType == 'additional' ||
+        explicitFlag ||
+        originalOrderId.isNotEmpty ||
+        explicitId;
+  }
+
+  /// 단체주문 여부 (추가제작 포함)
   bool get isGroupOrder =>
-      orderType == 'group' ||
-      orderType == 'additional' ||
+      isAdditionalOrder ||
+      orderType.trim().toLowerCase() == 'group' ||
       id.startsWith('GRP_') ||
       id.startsWith('GROUP-');
+
+  /// 신규 단체주문 여부 (추가제작 제외)
+  bool get isNewGroupOrder => isGroupOrder && !isAdditionalOrder;
 
   /// 단체주문 디자인수정요청 가능 여부 (단체주문 + 주문대기/확인/제작중 상태 + 2회 미만 + 기간 이내)
   bool get canRequestDesignRevision =>

@@ -706,9 +706,26 @@ query Track($carrierId: ID!, $trackingNumber: String!) {
       // GRP_/GROUP- 접두사이거나, persons+teamName 모두 있으면 단체주문으로 보정
       final isGrpId = resolvedDocId.startsWith('GRP_') || resolvedDocId.startsWith('GROUP-');
       if (isGrpId || (hasPersons && hasTeamName)) {
-        final isAdditional = resolvedDocId.contains('ADD') ||
+        final optionType = (customOptions['orderType'] ?? '')
+                .toString()
+                .trim()
+                .toLowerCase()
+                .replaceAll('-', '_');
+        final hasOriginalOrder = (customOptions['originalOrderId'] ??
+                    customOptions['parentOrderId'] ??
+                    customOptions['sourceOrderId'] ??
+                    '')
+                .toString()
+                .trim()
+                .isNotEmpty;
+        final isAdditional = optionType == 'additional' ||
             customOptions['isAdditional'] == true ||
-            data['isAdditionalOrder'] == true;
+            customOptions['isAdditionalOrder'] == true ||
+            customOptions['additionalOrder'] == true ||
+            data['isAdditionalOrder'] == true ||
+            hasOriginalOrder ||
+            RegExp(r'^(?:ADD|ADDITIONAL)(?:[_-]|$)', caseSensitive: false)
+                .hasMatch(resolvedDocId);
         rawOrderType = isAdditional ? 'additional' : 'group';
       }
     }

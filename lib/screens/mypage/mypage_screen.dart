@@ -1119,12 +1119,7 @@ class _PcEmptyState extends StatelessWidget {
 
 enum _OrderHistoryFilter { all, readyMade, group, additional }
 
-bool _isAdditionalOrder(OrderModel order) {
-  final options = order.customOptions ?? <String, dynamic>{};
-  return order.orderType == 'additional' ||
-      order.id.contains('ADD') ||
-      options['isAdditional'] == true;
-}
+bool _isAdditionalOrder(OrderModel order) => order.isAdditionalOrder;
 
 bool _isGroupOrderForFilter(OrderModel order) =>
     order.isGroupOrder && !_isAdditionalOrder(order);
@@ -2462,7 +2457,7 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
       );
 
   final isGroupOrder = o.isGroupOrder;
-  final isAdditionalOrder = o.orderType == 'additional';
+  final isAdditionalOrder = o.isAdditionalOrder;
   final orderTypeLabel = isAdditionalOrder
       ? context.loc.t('추가제작', '추가제작')
       : (isGroupOrder
