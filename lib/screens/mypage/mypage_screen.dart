@@ -4735,6 +4735,17 @@ class _MobileSettingsTab extends StatelessWidget {
                 title: loc.mypageDeleteAccount,
                 onTap: () => onShowDeleteAccount(context, userProvider),
                 color: AppColors.error),
+          if (user?.isAdmin == true)
+            _MobileSettingItem(
+              icon: Icons.admin_panel_settings_rounded,
+              title: context.loc.t('관리자_페이지', '관리자 페이지'),
+              subtitle: context.loc.t('관리자_대시보드_관리', '상품·주문·회원 관리 대시보드'),
+              color: AppColors.error,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminScreen()),
+              ),
+            ),
         ]),
         const SizedBox(height: 40),
         // ── 관리자 전용: 테스트 데이터 생성 ──
