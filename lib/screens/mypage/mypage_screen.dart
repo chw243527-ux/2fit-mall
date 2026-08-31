@@ -21,6 +21,7 @@ import '../../services/email_service.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../services/point_service.dart';
 import '../../utils/theme.dart';
+import '../../widgets/design_revision_countdown.dart';
 // order_excel_service: 마이페이지 엑셀 기능 제거 — 관리자 대시보드에서만 관리
 import '../../utils/web_utils.dart'
     if (dart.library.html) '../../utils/web_utils_html.dart';
@@ -1549,6 +1550,16 @@ class _PcOrderCard extends StatelessWidget {
               ),
             ),
           ),
+          if (order.isGroupOrder && order.activeDesignRevisionDeadline != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              child: DesignRevisionCountdown(
+                deadline: order.activeDesignRevisionDeadline,
+                revisionCount: order.designRevisionCount,
+                compact: true,
+              ),
+            ),
+          ],
           // ── 버튼 행 (네이버 스타일) ──
           Container(height: 1, color: Colors.grey[100]),
           Padding(
@@ -3856,6 +3867,16 @@ class _MobileOrderCard extends StatelessWidget {
               ),
             ),
           ),
+          if (order.isGroupOrder && order.activeDesignRevisionDeadline != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              child: DesignRevisionCountdown(
+                deadline: order.activeDesignRevisionDeadline,
+                revisionCount: order.designRevisionCount,
+                compact: true,
+              ),
+            ),
+          ],
           // ── 액션 버튼 구분선 ──
           Container(height: 1, color: Colors.grey[100]),
           // ── 버튼 행 (네이버 스타일: 항상 노출) ──
