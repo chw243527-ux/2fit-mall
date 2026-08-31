@@ -765,7 +765,7 @@ class AuthService {
     }
   }
 
-  static const _fallbackAppVersion = '1.0.4';
+  static const _fallbackAppVersion = '1.0.5';
 
   static Future<String> _currentAppVersion() async {
     try {
