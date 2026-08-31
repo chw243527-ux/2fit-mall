@@ -339,6 +339,32 @@ class _CouponCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis),
                         ),
                         const SizedBox(width: 6),
+                        // 중복 사용 허용 배지
+                        if (coupon.isStackable) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE3F2FD),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.layers_rounded,
+                                    size: 10, color: Color(0xFF1565C0)),
+                                SizedBox(width: 3),
+                                Text('중복 허용',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Color(0xFF1565C0),
+                                      fontWeight: FontWeight.w700,
+                                    )),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                         // 다운로드 쿠폰 배지
                         if (coupon.isDownloadable) ...[
                           Container(
@@ -517,6 +543,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
   late DateTime _expiresAt;
   bool _saving = false;
   bool _isDownloadable = true;
+  bool _isStackable = false;
 
   bool get isEdit => widget.existing != null;
 
@@ -540,6 +567,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
     _startsAt = e?.startsAt;
     _expiresAt = e?.expiresAt ?? DateTime.now().add(const Duration(days: 30));
     _isDownloadable = e?.isDownloadable ?? true;
+    _isStackable = e?.isStackable ?? false;
     _limitCtrl = TextEditingController(
         text: e?.downloadLimit != null ? e!.downloadLimit.toString() : '');
   }
@@ -611,6 +639,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
         startsAt: _startsAt,
         expiresAt: _expiresAt,
         isDownloadable: _isDownloadable,
+        isStackable: _isStackable,
         downloadLimit: limit,
       );
     } else {
@@ -624,6 +653,7 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
         startsAt: _startsAt,
         expiresAt: _expiresAt,
         isDownloadable: _isDownloadable,
+        isStackable: _isStackable,
         downloadLimit: limit,
       );
     }
@@ -820,6 +850,54 @@ class _CouponFormDialogState extends State<_CouponFormDialog> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      // ── 중복 사용 허용 토글 ──
+                      Container(
+                        decoration: BoxDecoration(
+                          color: _isStackable
+                              ? const Color(0xFFE3F2FD)
+                              : AppColors.background,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: _isStackable
+                                ? const Color(0xFF1565C0)
+                                : AppColors.border,
+                          ),
+                        ),
+                        child: SwitchListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 2),
+                          title: Row(
+                            children: [
+                              Icon(
+                                Icons.layers_rounded,
+                                size: 16,
+                                color: _isStackable
+                                    ? const Color(0xFF1565C0)
+                                    : Colors.grey,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '중복 사용 허용',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: _isStackable
+                                      ? const Color(0xFF1565C0)
+                                      : Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                          subtitle: const Text(
+                            '이 쿠폰을 다른 중복 허용 쿠폰과 함께 사용 가능',
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                          value: _isStackable,
+                          activeColor: const Color(0xFF1565C0),
+                          onChanged: (v) => setState(() => _isStackable = v),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
                       // ── 다운로드 쿠폰 토글 ──
                       Container(
                         decoration: BoxDecoration(

@@ -111,6 +111,19 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     try {
+      final firebaseReady = await AuthService.waitForFirebaseInitialization();
+      if (!firebaseReady) {
+        if (deepLink != null && deepLink.requiresAuth) {
+          _goToLoginWithRedirect(deepLink);
+        } else if (deepLink != null) {
+          if (mounted)
+            _navigateAfterLogin(deepLink, isLoggedIn: false, isAdmin: false);
+        } else {
+          _goToLogin();
+        }
+        return;
+      }
+
       final result = await AuthService.restoreSession().timeout(
         const Duration(seconds: 5),
         onTimeout: () => const AuthResult(success: false),
@@ -361,7 +374,7 @@ class _SplashScreenState extends State<SplashScreen>
     // 로그인 후 딥링크로 이동할 수 있도록 arguments 전달
     Navigator.of(context, rootNavigator: true).pushReplacement(
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => const LoginScreen(),
+        pageBuilder: (_, __, ___) => LoginScreen(redirectPath: link.path),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 400),

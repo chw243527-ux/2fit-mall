@@ -1,7 +1,7 @@
 name: twofit_mall
 description: 2FIT MALL - Sports & Fitness Shopping App
 publish_to: 'none'
-version: 1.0.3+1
+version: 1.0.6+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -12,6 +12,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   provider: 6.1.5+1
   shared_preferences: 2.5.3
+  package_info_plus: 8.3.1
+  flutter_secure_storage: 9.2.4
   hive: 2.2.3
   hive_flutter: 1.1.0
   http: 1.5.0

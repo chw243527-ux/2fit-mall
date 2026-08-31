@@ -106,6 +106,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen> {
           .toList(),
       deliveryAddress: '',
       paymentMethod: args.selectedPayment,
+      couponIds: args.couponIds,
       couponId: args.couponId,
       usedPoints: args.usedPoints,
     );

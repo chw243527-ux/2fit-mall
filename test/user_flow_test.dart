@@ -133,6 +133,7 @@ CouponModel makeCoupon({
   double value = 10,
   double minOrderAmount = 20000,
   bool isUsed = false,
+  bool isStackable = false,
   DateTime? expiresAt,
 }) =>
     CouponModel(
@@ -143,6 +144,7 @@ CouponModel makeCoupon({
       value: value,
       minOrderAmount: minOrderAmount,
       isUsed: isUsed,
+      isStackable: isStackable,
       expiresAt: expiresAt ?? DateTime.now().add(const Duration(days: 30)),
     );
 
@@ -510,6 +512,40 @@ void main() {
       expect(makeCoupon(type: CouponType.percent, value: 10).typeLabel, '10% 할인');
       expect(makeCoupon(type: CouponType.fixed, value: 3000).typeLabel, '3000원 할인');
       print('  ✅ typeLabel: "10% 할인" / "3000원 할인"');
+    });
+
+    test('중복 사용은 모든 쿠폰이 허용된 경우에만 가능하다', () {
+      final stackableA = makeCoupon(id: 'stack-a', isStackable: true);
+      final stackableB = makeCoupon(id: 'stack-b', isStackable: true);
+      final singleUse = makeCoupon(id: 'single-use');
+
+      expect(CouponModel.canStack([stackableA]), isTrue);
+      expect(CouponModel.canStack([stackableA, stackableB]), isTrue);
+      expect(CouponModel.canStack([stackableA, singleUse]), isFalse);
+      expect(CouponModel.canStack([singleUse]), isTrue);
+    });
+
+    test('중복 허용 쿠폰은 남은 금액에 순차 적용한다', () {
+      final percent = makeCoupon(
+        id: 'stack-percent',
+        value: 10,
+        isStackable: true,
+      );
+      final fixed = makeCoupon(
+        id: 'stack-fixed',
+        type: CouponType.fixed,
+        value: 3000,
+        isStackable: true,
+      );
+      var remaining = 100000.0;
+      var totalDiscount = 0.0;
+      for (final coupon in [percent, fixed]) {
+        final discount = coupon.calculateDiscount(remaining);
+        totalDiscount += discount;
+        remaining -= discount;
+      }
+      expect(totalDiscount, 13000);
+      expect(remaining, 87000);
     });
   });
 

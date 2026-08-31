@@ -7,11 +7,16 @@ import '../../services/auth_service.dart';
 import '../../services/analytics_service.dart';
 import '../../widgets/pc_layout.dart';
 import '../main_screen.dart';
+import '../admin/admin_screen.dart';
+import '../mypage/size_profile_screen.dart';
+import '../notifications/notification_center_screen.dart';
 import 'signup_screen.dart';
 import '../../utils/navigation_helper.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? redirectPath;
+
+  const LoginScreen({super.key, this.redirectPath});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -20,11 +25,27 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+
+  Widget _targetAfterLogin({bool isAdmin = false}) {
+    switch (widget.redirectPath) {
+      case '/mypage':
+        return const MainScreen(initialIndex: 3);
+      case '/size-profile':
+        return const SizeProfileScreen();
+      case '/notifications':
+        return const NotificationCenterScreen();
+      case '/admin':
+        return isAdmin ? const AdminScreen() : const MainScreen();
+      default:
+        return const MainScreen();
+    }
+  }
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _pwCtrl = TextEditingController();
   bool _obscurePw = true;
   bool _rememberMe = false;
+  List<String> _rememberedEmails = [];
   int _logoTapCount = 0;
   DateTime? _lastLogoTap;
 
@@ -49,18 +70,78 @@ class _LoginScreenState extends State<LoginScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animCtrl, curve: Curves.easeOutCubic));
     _animCtrl.forward();
-    // 로그인 상태 유지 자동 입력
+    // 저장된 아이디 자동 입력
     _loadRememberMe();
   }
 
   Future<void> _loadRememberMe() async {
-    final savedEmail = await AuthService.getRememberMeEmail();
-    if (savedEmail != null && mounted) {
+    final savedEmails = await AuthService.getRememberedEmails();
+    if (savedEmails.isNotEmpty && mounted) {
       setState(() {
-        _emailCtrl.text = savedEmail;
+        _rememberedEmails = savedEmails;
+        _emailCtrl.text = savedEmails.first;
         _rememberMe = true;
       });
     }
+  }
+
+  Future<void> _removeRememberedEmail(String email) async {
+    await AuthService.clearRememberMe(email);
+    if (!mounted) return;
+    setState(() {
+      _rememberedEmails.remove(email);
+      if (_emailCtrl.text.trim().toLowerCase() == email) {
+        _rememberMe = false;
+      }
+    });
+  }
+
+  void _selectRememberedEmail(String email) {
+    setState(() {
+      _emailCtrl.text = email;
+      _emailCtrl.selection = TextSelection.collapsed(offset: email.length);
+      _rememberMe = true;
+    });
+  }
+
+  Widget _buildRememberedEmailChips() {
+    if (_rememberedEmails.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.loc.t('저장된_아이디', '저장된 아이디'),
+            style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 5),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: _rememberedEmails
+                .map(
+                  (email) => InputChip(
+                    label: Text(email,
+                        style: const TextStyle(fontSize: 11),
+                        overflow: TextOverflow.ellipsis),
+                    selected:
+                        email == _emailCtrl.text.trim().toLowerCase(),
+                    onSelected: (_) => _selectRememberedEmail(email),
+                    onDeleted: () => _removeRememberedEmail(email),
+                    deleteIconColor: AppColors.textSecondary,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -128,14 +209,19 @@ class _LoginScreenState extends State<LoginScreen>
     if (result.success && result.user != null) {
       userProv.login(result.user!);
       AnalyticsService.logLogin(method: 'email');
-      // 로그인 상태 유지 처리
+      // 아이디 저장 처리: 저장을 해제하면 현재 사용자 아이디만 삭제합니다.
+      final email = _emailCtrl.text.trim();
       if (_rememberMe) {
-        await AuthService.saveRememberMe(_emailCtrl.text.trim());
-        if (!mounted) return;
+        await AuthService.saveRememberMe(email);
+      } else {
+        await AuthService.clearRememberMe(email);
       }
+      if (!mounted) return;
+      _rememberedEmails = await AuthService.getRememberedEmails();
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const MainScreen(),
+          pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
           transitionsBuilder: (_, a, __, child) =>
               FadeTransition(opacity: a, child: child),
           transitionDuration: const Duration(milliseconds: 400),
@@ -226,6 +312,7 @@ class _LoginScreenState extends State<LoginScreen>
                             return null;
                           },
                         ),
+                        _buildRememberedEmailChips(),
                         const SizedBox(height: 16),
 
                         // ── 비밀번호 ──
@@ -289,7 +376,7 @@ class _LoginScreenState extends State<LoginScreen>
                                         : null,
                                   ),
                                   const SizedBox(width: 7),
-                                  Text(loc.rememberMe,
+                                  Text(context.loc.t('아이디_저장', '아이디 저장'),
                                       style: const TextStyle(
                                           fontSize: 13,
                                           color: AppColors.textSecondary)),
@@ -549,6 +636,7 @@ class _LoginScreenState extends State<LoginScreen>
                                       return null;
                                     },
                                   ),
+                                  _buildRememberedEmailChips(),
                                   const SizedBox(height: 16),
                                   _buildLabel(loc.password),
                                   const SizedBox(height: 6),
@@ -612,7 +700,7 @@ class _LoginScreenState extends State<LoginScreen>
                                                   : null,
                                             ),
                                             const SizedBox(width: 7),
-                                            Text(loc.rememberMe,
+                                            Text(context.loc.t('아이디_저장', '아이디 저장'),
                                                 style: const TextStyle(
                                                     fontSize: 13,
                                                     color: AppColors
@@ -925,7 +1013,7 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const MainScreen(),
+            pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
             transitionsBuilder: (_, a, __, child) =>
                 FadeTransition(opacity: a, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -970,7 +1058,7 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const MainScreen(),
+            pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
             transitionsBuilder: (_, a, __, child) =>
                 FadeTransition(opacity: a, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -1015,7 +1103,7 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const MainScreen(),
+            pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
             transitionsBuilder: (_, a, __, child) =>
                 FadeTransition(opacity: a, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -1184,7 +1272,7 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
                 Navigator.of(context).pushReplacement(
                   PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const MainScreen(),
+                    pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
                     transitionsBuilder: (_, a, __, child) =>
                         FadeTransition(opacity: a, child: child),
                     transitionDuration: const Duration(milliseconds: 400),

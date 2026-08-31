@@ -437,6 +437,7 @@ class PaymentCheckoutArgs {
   final String customerPhone;
   final String selectedPayment;
   final String? couponId;
+  final List<String> couponIds;
   final double couponDiscount;
   final int usedPoints;
   final double pointDiscount;
@@ -450,6 +451,7 @@ class PaymentCheckoutArgs {
     required this.customerPhone,
     required this.selectedPayment,
     this.couponId,
+    this.couponIds = const [],
     this.couponDiscount = 0,
     this.usedPoints = 0,
     this.pointDiscount = 0,

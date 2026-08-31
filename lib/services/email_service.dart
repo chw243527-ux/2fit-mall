@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/models.dart';
 import '../utils/constants.dart';
 
@@ -61,7 +62,10 @@ class EmailService {
     required Map<String, dynamic> params,
   }) async {
     try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return false;
       await _db.collection('email_queue').add({
+        'userId': user.uid,
         'templateId': templateId,
         'params': params,
         'status': 'pending',
