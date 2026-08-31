@@ -1117,6 +1117,95 @@ class _PcEmptyState extends StatelessWidget {
   }
 }
 
+enum _OrderHistoryFilter { all, readyMade, group, additional }
+
+bool _isAdditionalOrder(OrderModel order) {
+  final options = order.customOptions ?? <String, dynamic>{};
+  return order.orderType == 'additional' ||
+      order.id.contains('ADD') ||
+      options['isAdditional'] == true;
+}
+
+bool _isGroupOrderForFilter(OrderModel order) =>
+    order.isGroupOrder && !_isAdditionalOrder(order);
+
+bool _isReadyMadeOrderForFilter(OrderModel order) =>
+    !_isGroupOrderForFilter(order) && !_isAdditionalOrder(order);
+
+List<OrderModel> _filterOrderHistory(
+    List<OrderModel> orders, _OrderHistoryFilter filter) {
+  switch (filter) {
+    case _OrderHistoryFilter.readyMade:
+      return orders.where(_isReadyMadeOrderForFilter).toList();
+    case _OrderHistoryFilter.group:
+      return orders.where(_isGroupOrderForFilter).toList();
+    case _OrderHistoryFilter.additional:
+      return orders.where(_isAdditionalOrder).toList();
+    case _OrderHistoryFilter.all:
+      return orders;
+  }
+}
+
+class _OrderHistoryFilterBar extends StatelessWidget {
+  final List<OrderModel> orders;
+  final _OrderHistoryFilter selected;
+  final ValueChanged<_OrderHistoryFilter> onChanged;
+
+  const _OrderHistoryFilterBar({
+    required this.orders,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  int _count(_OrderHistoryFilter filter) =>
+      _filterOrderHistory(orders, filter).length;
+
+  @override
+  Widget build(BuildContext context) {
+    final filters = <(_OrderHistoryFilter, String)>[
+      (_OrderHistoryFilter.all, '전체'),
+      (_OrderHistoryFilter.readyMade, '일반 기성품'),
+      (_OrderHistoryFilter.group, '단체주문'),
+      (_OrderHistoryFilter.additional, '추가제작'),
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      child: Row(
+        children: [
+          for (final filter in filters)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text('${filter.$2} ${_count(filter.$1)}'),
+                selected: selected == filter.$1,
+                onSelected: (_) => onChanged(filter.$1),
+                selectedColor: AppColors.primary,
+                labelStyle: TextStyle(
+                  color: selected == filter.$1
+                      ? Colors.white
+                      : AppColors.textSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+                backgroundColor: Colors.white,
+                side: BorderSide(
+                  color: selected == filter.$1
+                      ? AppColors.primary
+                      : AppColors.border,
+                ),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                showCheckmark: false,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 // ═══════════════════════════════════════════════════════
 // PC 주문 내역 탭
 // ═══════════════════════════════════════════════════════
@@ -1141,6 +1230,7 @@ class _PcOrderHistoryTab extends StatefulWidget {
 
 class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
   bool _initialLoadDone = false;
+  _OrderHistoryFilter _selectedFilter = _OrderHistoryFilter.all;
 
   @override
   void initState() {
@@ -1176,6 +1266,7 @@ class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
 
     final orderProvider = context.watch<OrderProvider>();
     final orders = orderProvider.getUserOrders(user.id);
+    final filteredOrders = _filterOrderHistory(orders, _selectedFilter);
 
     return Column(
       children: [
@@ -1183,23 +1274,36 @@ class _PcOrderHistoryTabState extends State<_PcOrderHistoryTab> {
           icon: Icons.receipt_long_rounded,
           title: widget.loc.myOrders,
           color: AppColors.primary,
-          badge: '${orders.length}',
+          badge: _selectedFilter == _OrderHistoryFilter.all
+              ? '${orders.length}'
+              : '${filteredOrders.length}/${orders.length}',
           onRefresh: () => orderProvider.loadUserOrders(user.id),
         ),
+        if (orders.isNotEmpty)
+          _OrderHistoryFilterBar(
+            orders: orders,
+            selected: _selectedFilter,
+            onChanged: (filter) => setState(() => _selectedFilter = filter),
+          ),
         Expanded(
           child: !_initialLoadDone && orders.isEmpty
               ? const Center(
                   child: CircularProgressIndicator(color: AppColors.primary))
-              : orders.isEmpty
+                  : orders.isEmpty
                   ? _PcEmptyState(
                       icon: Icons.receipt_long_outlined,
                       message: widget.loc.mypageNoOrders,
                       subtitle: widget.loc.mypageFirstOrder)
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(20),
-                      itemCount: orders.length,
-                      itemBuilder: (_, i) => _PcOrderCard(
-                        order: orders[i],
+                  : filteredOrders.isEmpty
+                      ? _PcEmptyState(
+                          icon: Icons.filter_alt_off_rounded,
+                          message: '선택한 주문 구분의 주문이 없습니다.',
+                          subtitle: '다른 필터를 선택해 보세요.')
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(20),
+                          itemCount: filteredOrders.length,
+                          itemBuilder: (_, i) => _PcOrderCard(
+                            order: filteredOrders[i],
                         loc: widget.loc,
                         onAdditionalOrder: widget.onAdditionalOrder,
                         onDesignRevision: widget.onDesignRevision,
@@ -3436,6 +3540,7 @@ class _MobileOrderHistoryTab extends StatefulWidget {
 
 class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
   bool _initialLoadDone = false;
+  _OrderHistoryFilter _selectedFilter = _OrderHistoryFilter.all;
 
   @override
   void initState() {
@@ -3462,6 +3567,7 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
 
     final orderProvider = context.watch<OrderProvider>();
     final orders = orderProvider.getUserOrders(user.id);
+    final filteredOrders = _filterOrderHistory(orders, _selectedFilter);
 
     // 초기 로드 전이고 주문도 없으면 로딩 표시
     if (!_initialLoadDone && orders.isEmpty) {
@@ -3476,19 +3582,35 @@ class _MobileOrderHistoryTabState extends State<_MobileOrderHistoryTab> {
           subtitle: widget.loc.mypageFirstOrder);
     }
 
-    return RefreshIndicator(
-      onRefresh: () => orderProvider.loadUserOrders(user.id),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: orders.length,
-        itemBuilder: (_, i) => _MobileOrderCard(
-          order: orders[i],
-          loc: widget.loc,
-          onAdditionalOrder: widget.onAdditionalOrder,
-          onDesignRevision: widget.onDesignRevision,
-          onDesignConfirm: widget.onDesignConfirm,
+    return Column(
+      children: [
+        _OrderHistoryFilterBar(
+          orders: orders,
+          selected: _selectedFilter,
+          onChanged: (filter) => setState(() => _selectedFilter = filter),
         ),
-      ),
+        Expanded(
+          child: filteredOrders.isEmpty
+              ? _MobileEmptyState(
+                  icon: Icons.filter_alt_off_rounded,
+                  message: '선택한 주문 구분의 주문이 없습니다.',
+                  subtitle: '다른 필터를 선택해 보세요.')
+              : RefreshIndicator(
+                  onRefresh: () => orderProvider.loadUserOrders(user.id),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+                    itemCount: filteredOrders.length,
+                    itemBuilder: (_, i) => _MobileOrderCard(
+                      order: filteredOrders[i],
+                      loc: widget.loc,
+                      onAdditionalOrder: widget.onAdditionalOrder,
+                      onDesignRevision: widget.onDesignRevision,
+                      onDesignConfirm: widget.onDesignConfirm,
+                    ),
+                  ),
+                ),
+        ),
+      ],
     );
   }
 }
