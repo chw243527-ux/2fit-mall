@@ -7,11 +7,16 @@ import '../../services/auth_service.dart';
 import '../../services/analytics_service.dart';
 import '../../widgets/pc_layout.dart';
 import '../main_screen.dart';
+import '../admin/admin_screen.dart';
+import '../mypage/size_profile_screen.dart';
+import '../notifications/notification_center_screen.dart';
 import 'signup_screen.dart';
 import '../../utils/navigation_helper.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? redirectPath;
+
+  const LoginScreen({super.key, this.redirectPath});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -20,6 +25,21 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
+
+  Widget _targetAfterLogin({bool isAdmin = false}) {
+    switch (widget.redirectPath) {
+      case '/mypage':
+        return const MainScreen(initialIndex: 3);
+      case '/size-profile':
+        return const SizeProfileScreen();
+      case '/notifications':
+        return const NotificationCenterScreen();
+      case '/admin':
+        return isAdmin ? const AdminScreen() : const MainScreen();
+      default:
+        return const MainScreen();
+    }
+  }
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _pwCtrl = TextEditingController();
@@ -201,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => const MainScreen(),
+          pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
           transitionsBuilder: (_, a, __, child) =>
               FadeTransition(opacity: a, child: child),
           transitionDuration: const Duration(milliseconds: 400),
@@ -993,7 +1013,7 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const MainScreen(),
+            pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
             transitionsBuilder: (_, a, __, child) =>
                 FadeTransition(opacity: a, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -1038,7 +1058,7 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const MainScreen(),
+            pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
             transitionsBuilder: (_, a, __, child) =>
                 FadeTransition(opacity: a, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -1083,7 +1103,7 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const MainScreen(),
+            pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
             transitionsBuilder: (_, a, __, child) =>
                 FadeTransition(opacity: a, child: child),
             transitionDuration: const Duration(milliseconds: 400),
@@ -1252,7 +1272,7 @@ class _LoginScreenState extends State<LoginScreen>
         context.read<CouponProvider>().loadValidCoupons(result.user!.id);
                 Navigator.of(context).pushReplacement(
                   PageRouteBuilder(
-                    pageBuilder: (_, __, ___) => const MainScreen(),
+                    pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
                     transitionsBuilder: (_, a, __, child) =>
                         FadeTransition(opacity: a, child: child),
                     transitionDuration: const Duration(milliseconds: 400),

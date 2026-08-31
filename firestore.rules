@@ -420,13 +420,19 @@ service cloud.firestore {
           || (isSignedIn() && resource.data.userId == request.auth.uid);
     }
 
-    // 이메일 큐: 인증 사용자만 큐 등록, 처리는 서버/관리자만
+    // 이메일 큐: 본인 계정에 대한 허용 템플릿만 등록할 수 있습니다.
+    // 임의 수신자·임의 템플릿 발송은 서버/관리자 경로에서만 수행합니다.
     match /email_queue/{queueId} {
       allow create: if isSignedIn()
-          && request.resource.data.templateId is string
-          && request.resource.data.templateId.size() > 0
-          && request.resource.data.templateId.size() <= 100
-          && request.resource.data.status == 'pending';
+          && request.resource.data.templateId in ['template_order', 'template_status', 'template_chat_alert']
+          && request.resource.data.status == 'pending'
+          && request.resource.data.params is map
+          && request.resource.data.params.to_email is string
+          && request.resource.data.params.size() <= 30
+          && (isAdmin() || (
+            request.resource.data.userId == request.auth.uid
+            && request.resource.data.params.to_email == request.auth.token.email
+          ));
       allow read, update, delete: if isAdmin();
     }
 
