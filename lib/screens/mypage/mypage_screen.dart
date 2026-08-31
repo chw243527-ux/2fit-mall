@@ -1314,7 +1314,7 @@ class _PcOrderCard extends StatelessWidget {
                       decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8)),
-                      child: Text(loc.groupCustom,
+                      child: Text(order.orderType == 'additional' ? '추가제작' : loc.groupCustom,
                           style: const TextStyle(
                               fontSize: 11,
                               color: AppColors.primary,
@@ -2357,6 +2357,27 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                 color: AppColors.primary)),
       );
 
+  final isGroupOrder = o.isGroupOrder;
+  final isAdditionalOrder = o.orderType == 'additional';
+  final orderTypeLabel = isAdditionalOrder
+      ? context.loc.t('추가제작', '추가제작')
+      : (isGroupOrder
+          ? context.loc.t('단체주문', '단체주문')
+          : context.loc.t('일반 기성품', '일반 기성품'));
+  final orderTypeColor = isAdditionalOrder ? AppColors.warning : AppColors.primary;
+  final orderOptions = o.customOptions ?? <String, dynamic>{};
+  final teamName = (orderOptions['teamName']?.toString().trim().isNotEmpty == true
+          ? orderOptions['teamName']?.toString()
+          : o.groupName)
+      ?.trim();
+  final groupQuantity = o.groupCount ??
+      (orderOptions['totalCount'] is num
+          ? (orderOptions['totalCount'] as num).toInt()
+          : null) ??
+      (isGroupOrder
+          ? o.items.fold<int>(0, (sum, item) => sum + item.quantity)
+          : null);
+
   // 상품명 (여러 개면 첫 번째 + 외 N건)
   String itemSummary = '-';
   if (o.items.isNotEmpty) {
@@ -2422,6 +2443,30 @@ void _showReceiptDialog(BuildContext context, OrderModel o) {
                           fontSize: 12,
                           color: AppColors.success,
                           fontWeight: FontWeight.w700)),
+                ]),
+              ),
+
+              // ── 주문 유형 요약 ───────────────────────────────
+              sectionHeader(context.loc.t('주문 구분', '주문 구분')),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FA),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Column(children: [
+                  row(context.loc.t('주문 유형', '주문 유형'), orderTypeLabel,
+                      bold: true, valueColor: orderTypeColor),
+                  if (isGroupOrder && teamName != null && teamName.isNotEmpty) ...[
+                    divider(),
+                    row(context.loc.t('단체명', '단체명'), teamName,
+                        multiLine: true),
+                  ],
+                  if (isGroupOrder && groupQuantity != null) ...[
+                    divider(),
+                    row(context.loc.t('단체 수량', '단체 수량'), '${groupQuantity}개'),
+                  ],
                 ]),
               ),
 
@@ -3546,7 +3591,7 @@ class _MobileOrderCard extends StatelessWidget {
                       decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6)),
-                      child: Text(loc.groupCustom,
+                      child: Text(order.orderType == 'additional' ? '추가제작' : loc.groupCustom,
                           style: const TextStyle(
                               fontSize: 10,
                               color: AppColors.primary,

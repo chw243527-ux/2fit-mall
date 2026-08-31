@@ -1,7 +1,7 @@
 name: twofit_mall
 description: 2FIT MALL - Sports & Fitness Shopping App
 publish_to: 'none'
-version: 1.0.12+7
+version: 1.0.13+8
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
