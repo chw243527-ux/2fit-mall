@@ -1,0 +1,306 @@
+name: Release and Deploy
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.32.2'
+  NODE_VERSION: '22.x'
+  FIREBASE_CLI_VERSION: 'latest'
+  WRANGLER_VERSION: 'latest'
+  BUILD_DIR: build/web
+  FIREBASE_PROJECT: fit-mall
+  CF_PROJECT: twofit-mall
+
+jobs:
+  quality:
+    name: Analyze and test release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ env.FLUTTER_VERSION }}
+
+      - name: Cache pub packages
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze Flutter project
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run Flutter tests
+        run: flutter test
+
+  release:
+    name: Build and deploy release
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Validate release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          APP_VERSION="$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml | head -1)"
+          if [ -z "${APP_VERSION}" ]; then
+            echo "pubspec.yaml에서 앱 버전을 찾을 수 없습니다."
+            exit 1
+          fi
+          if [ "${TAG_VERSION}" != "${APP_VERSION}" ]; then
+            echo "태그 버전(${TAG_VERSION})과 pubspec 버전(${APP_VERSION})이 일치하지 않습니다."
+            exit 1
+          fi
+          echo "Release tag ${GITHUB_REF_NAME} matches app version ${APP_VERSION}"
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          cache-key: flutter-${{ runner.os }}-${{ env.FLUTTER_VERSION }}
+
+      - name: Cache pub packages
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Validate Firebase configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f firestore.rules
+          test -f storage.rules
+          test -f firebase.json
+          test -f .firebaserc
+          node <<'NODE'
+          const fs = require('fs');
+          const config = JSON.parse(fs.readFileSync('firebase.json', 'utf8'));
+          if (config.firestore?.rules !== 'firestore.rules') throw new Error('Firestore Rules 경로가 올바르지 않습니다.');
+          if (config.storage?.rules !== 'storage.rules') throw new Error('Storage Rules 경로가 올바르지 않습니다.');
+          if (config.functions?.source !== 'functions') throw new Error('Functions source가 올바르지 않습니다.');
+          const project = JSON.parse(fs.readFileSync('.firebaserc', 'utf8'));
+          if (project.projects?.default !== process.env.FIREBASE_PROJECT) throw new Error('Firebase 프로젝트 설정이 올바르지 않습니다.');
+          NODE
+
+      - name: Install Firebase CLI and Functions dependencies
+        run: |
+          npm install --global firebase-tools@${FIREBASE_CLI_VERSION}
+          if [ -f functions/package-lock.json ]; then
+            npm ci --prefix functions
+          else
+            npm install --prefix functions
+          fi
+
+      - name: Authenticate Firebase
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" ]; then
+            echo "GOOGLE_APPLICATION_CREDENTIALS_JSON Secret이 없습니다."
+            exit 1
+          fi
+          umask 077
+          printf '%s' "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" > "${RUNNER_TEMP}/firebase-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/firebase-service-account.json" >> "${GITHUB_ENV}"
+
+      - name: Deploy Firebase Rules and Functions
+        run: |
+          firebase deploy \
+            --only firestore:rules,storage,functions \
+            --project "${FIREBASE_PROJECT}" \
+            --non-interactive \
+            --force
+
+      - name: Build Flutter Web
+        run: |
+          flutter build web \
+            --release \
+            --tree-shake-icons \
+            --pwa-strategy=offline-first \
+            --dart-define=BUILD_NUMBER=${{ github.run_number }} \
+            --dart-define=BUILD_SHA=${{ github.sha }}
+
+      - name: Prepare web service worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f web/firebase-messaging-sw.js
+          cp web/firebase-messaging-sw.js "${BUILD_DIR}/firebase-messaging-sw.js"
+          test -f "${BUILD_DIR}/index.html"
+          test -f "${BUILD_DIR}/flutter_service_worker.js"
+          BUILD_VER="${{ github.run_number }}"
+          SHORT_SHA="$(echo '${{ github.sha }}' | cut -c1-7)"
+          sed -i "s|flutter-app-cache-BUILD_NUMBER|flutter-app-cache-${BUILD_VER}|g" "${BUILD_DIR}/index.html"
+          sed -i "s|main\.dart\.js|main.dart.js?v=${BUILD_VER}|g" "${BUILD_DIR}/flutter_service_worker.js"
+          sed -i "s|'flutter-app-cache'|'flutter-app-cache-${BUILD_VER}'|g" "${BUILD_DIR}/flutter_service_worker.js"
+          sed -i "s|'flutter-temp-cache'|'flutter-temp-cache-${BUILD_VER}'|g" "${BUILD_DIR}/flutter_service_worker.js"
+          printf '\n// release: %s (%s)\n' "${BUILD_VER}" "${SHORT_SHA}" >> "${BUILD_DIR}/flutter_service_worker.js"
+
+      - name: Deploy Flutter Web to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
+            echo "CLOUDFLARE_API_TOKEN 또는 CLOUDFLARE_ACCOUNT_ID Secret이 없습니다."
+            exit 1
+          fi
+          UPLOAD_DIR="${RUNNER_TEMP}/cloudflare-pages-upload"
+          rm -rf "${UPLOAD_DIR}"
+          mkdir -p "${UPLOAD_DIR}"
+          cp -R "${BUILD_DIR}/." "${UPLOAD_DIR}/"
+          cd "${UPLOAD_DIR}"
+          npx --yes wrangler@${WRANGLER_VERSION} pages deploy \
+            . \
+            --no-bundle \
+            --project-name="${CF_PROJECT}" \
+            --branch=main \
+            --commit-dirty=true \
+            --commit-message="release: ${GITHUB_REF_NAME}"
+
+      - name: Purge Cloudflare cache
+        if: success()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_ZONE_ID}" ]; then
+            echo "CLOUDFLARE_ZONE_ID가 없어 캐시 purge를 건너뜁니다."
+            exit 0
+          fi
+          RESPONSE="$(curl --fail-with-body -sS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')"
+          python3 -c 'import json,sys; r=json.loads(sys.argv[1]); assert r.get("success"), r; print("Cloudflare cache purge 성공")' "${RESPONSE}"
+
+      - name: Prepare Android signing files
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "GitHub Secret ${name}이(가) 없습니다."
+              exit 1
+            fi
+          done
+          umask 077
+          printf '%s' "${ANDROID_KEYSTORE_BASE64}" | base64 --decode > android/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          storeFile=../upload-keystore.jks
+          EOF
+
+      - name: Build signed Android App Bundle
+        run: |
+          flutter build appbundle --release \
+            --build-number=${{ github.run_number }} \
+            --build-name=${GITHUB_REF_NAME#v}
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: 2fit-mall-${{ github.ref_name }}
+          path: |
+            build/app/outputs/bundle/release/app-release.aab
+            build/web
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "${GITHUB_REF_NAME}" \
+            build/app/outputs/bundle/release/app-release.aab \
+            --repo "${GITHUB_REPOSITORY}" \
+            --verify-tag \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes
+
+      - name: Remove release credentials and signing files
+        if: always()
+        shell: bash
+        run: rm -f "${RUNNER_TEMP}/firebase-service-account.json" android/key.properties android/upload-keystore.jks
+
+      - name: Release summary
+        if: success()
+        run: |
+          {
+            echo "## Release 배포 완료"
+            echo
+            echo "| 항목 | 값 |"
+            echo "|---|---|"
+            echo "| 태그 | \\`${GITHUB_REF_NAME}\\` |"
+            echo "| 커밋 | \\`$(echo '${{ github.sha }}' | cut -c1-7)\\` |"
+            echo "| Flutter | ${FLUTTER_VERSION} |"
+            echo "| Web | Cloudflare Pages / ${CF_PROJECT} |"
+            echo "| Android | GitHub Release App Bundle |"
+          } >> "${GITHUB_STEP_SUMMARY}"
