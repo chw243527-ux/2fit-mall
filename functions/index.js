@@ -2,7 +2,7 @@
 const { onDocumentCreated, onDocumentUpdated } = require('firebase-functions/v2/firestore');
 const { onRequest } = require('firebase-functions/v2/https');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { defineSecret } = require('firebase-functions/params');
+const { defineSecret, defineString } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
@@ -18,6 +18,13 @@ const ADMIN_TOKENS_DOC = 'admin_config/fcm_tokens';
 const SOLAPI_API_KEY = defineSecret('SOLAPI_API_KEY');
 const SOLAPI_API_SECRET = defineSecret('SOLAPI_API_SECRET');
 const SOLAPI_SENDER_PHONE = '01072276914';
+// 단체주문 접수 알림톡 템플릿은 카카오 검수 승인 후 Secret/환경설정으로 등록합니다.
+const KAKAO_GROUP_ORDER_TEMPLATE_ID = defineString('KAKAO_GROUP_ORDER_TEMPLATE_ID', { default: '' });
+// 이메일 발송은 Resend API를 사용하며 API 키는 Firebase Secret Manager에서만 읽습니다.
+const RESEND_API_KEY = defineSecret('RESEND_API_KEY');
+const RESEND_FROM_EMAIL = defineString('RESEND_FROM_EMAIL', {
+  default: '2FIT MALL <no-reply@2fit-mall.co.kr>',
+});
 // 토스 결제 비밀키는 Firebase Secret Manager에만 저장합니다.
 const TOSS_SECRET_KEY = defineSecret('TOSS_SECRET_KEY');
 // 카카오 알림톡 식별자는 비밀키가 아니지만, 클라이언트에 노출하지 않고 서버에서만 관리합니다.
@@ -39,19 +46,28 @@ const NAVER_ALLOWED_REDIRECTS = new Set([
 // 1) 새 주문 접수 알림 (기존)
 // ══════════════════════════════════════════════════════
 exports.onNewOrder = onDocumentCreated(
-  { document: 'orders/{orderId}', secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET] },
+  {
+    document: 'orders/{orderId}',
+    secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET, RESEND_API_KEY],
+  },
   async (event) => {
   const data = event.data?.data();
   if (!data) return;
   try {
-    const tokens = await _getAdminTokens();
-    if (tokens.length === 0) return;
-    const amount = data.totalAmount ? `${_fmt(data.totalAmount)}원` : '';
-    await _sendMulticast(tokens, {
-      title: '🛒 새 주문 접수',
-      body: `${data.userName || '고객'}님 주문${amount ? ' ' + amount : ''}`,
-      data: { type: 'new_order', orderId: event.params.orderId },
+    // 관리자 FCM 토큰이 없어도 고객용 단체주문 알림은 독립적으로 처리합니다.
+    await _sendGroupOrderReceiptNotifications({
+      orderId: event.params.orderId,
+      data,
     });
+    const tokens = await _getAdminTokens();
+    if (tokens.length > 0) {
+      const amount = data.totalAmount ? `${_fmt(data.totalAmount)}원` : '';
+      await _sendMulticast(tokens, {
+        title: '🛒 새 주문 접수',
+        body: `${data.userName || '고객'}님 주문${amount ? ' ' + amount : ''}`,
+        data: { type: 'new_order', orderId: event.params.orderId },
+      });
+    }
   } catch (e) { console.error('onNewOrder error:', e);   }
 });
 
@@ -1452,6 +1468,128 @@ exports.sendSolapiOrderNotification = onRequest(
     res.status(result.ok ? 200 : 502).json({ success: result.ok, statusCode: result.statusCode });
   },
 );
+
+// ══════════════════════════════════════════════════════
+// 단체주문 고객 접수 알림: 알림톡 + 이메일
+// ══════════════════════════════════════════════════════
+async function _sendGroupOrderReceiptNotifications({ orderId, data }) {
+  // 일반 상품 주문에는 발송하지 않고 단체주문만 대상으로 합니다.
+  const orderType = String(data.orderType || data.customOptions?.orderType || '');
+  if (orderType !== 'group' && orderType !== 'additional') return;
+
+  const phone = String(data.userPhone || data.customOptions?.phone || '').replace(/[^0-9+]/g, '');
+  const email = String(data.userEmail || data.customOptions?.email || '').trim().toLowerCase();
+  const markerRef = db.collection('orders').doc(orderId)
+    .collection('notification_deliveries').doc('group_order_receipt');
+  const now = Date.now();
+
+  // Firestore 트리거 재시도/중복 실행을 방지합니다. 10분이 지나면 실패한 발송을 재시도할 수 있습니다.
+  const claim = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(markerRef);
+    const marker = snap.data() || {};
+    const claimedAt = Number(marker.claimedAtMs || 0);
+    if (marker.status === 'sent' || (claimedAt && now - claimedAt < 10 * 60 * 1000)) {
+      return null;
+    }
+    tx.set(markerRef, {
+      status: 'processing',
+      claimedAtMs: now,
+      attempts: Number(marker.attempts || 0) + 1,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    return marker;
+  });
+  if (claim === null) return;
+
+  const name = String(data.userName || data.customOptions?.manager || '고객').slice(0, 80);
+  const teamName = String(data.groupName || data.customOptions?.teamName || '-').slice(0, 100);
+  const items = Array.isArray(data.items) ? data.items : [];
+  const itemSummary = (items.length ? items.map((item) => item.productName || '상품').join(', ') : '단체주문 상품').slice(0, 160);
+  const quantity = Number(data.groupCount || data.customOptions?.totalCount || items.reduce((sum, item) => sum + Number(item.quantity || 0), 0) || 0);
+  const amount = Number(data.totalAmount || 0).toLocaleString('ko-KR');
+  const orderNumber = String(orderId).slice(0, 80);
+  const templateId = KAKAO_GROUP_ORDER_TEMPLATE_ID.value().trim();
+  const results = {};
+
+  if (templateId && /^\+?[0-9]{8,15}$/.test(phone)) {
+    try {
+      const result = await _sendSolapiAlimtalk({
+        phone,
+        templateId,
+        variables: {
+          '#{고객명}': name,
+          '#{주문번호}': orderNumber,
+          '#{팀명}': teamName,
+          '#{상품명}': itemSummary,
+          '#{수량}': String(quantity),
+          '#{접수일시}': _formatKstTime(new Date()),
+        },
+      });
+      results.alimtalk = result.ok ? 'sent' : `failed_${result.statusCode}`;
+    } catch (error) {
+      console.error('group order alimtalk error:', error);
+      results.alimtalk = 'failed';
+    }
+  } else {
+    results.alimtalk = templateId ? 'skipped_invalid_phone' : 'skipped_template_not_configured';
+  }
+
+  if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    try {
+      const result = await _sendResendEmail({
+        to: email,
+        subject: `[2FIT MALL] 단체주문 접수 완료 (${orderNumber})`,
+        text: `[2FIT MALL] ${name}님, 단체주문이 접수되었습니다.\\n주문번호: ${orderNumber}\\n팀명: ${teamName}\\n상품: ${itemSummary}\\n수량: ${quantity}\\n담당자가 확인 후 연락드리겠습니다.`,
+        html: _groupOrderReceiptEmailHtml({ name, orderNumber, teamName, itemSummary, quantity, amount }),
+      });
+      results.email = result.ok ? 'sent' : `failed_${result.statusCode}`;
+    } catch (error) {
+      console.error('group order email error:', error);
+      results.email = 'failed';
+    }
+  } else {
+    results.email = email ? 'skipped_invalid_email' : 'skipped_no_email';
+  }
+
+  const sent = Object.values(results).some((status) => status === 'sent');
+  await markerRef.set({
+    status: sent ? 'sent' : 'failed',
+    results,
+    // 발송 로그에는 이메일·전화번호 원문을 저장하지 않습니다.
+    updatedAt: FieldValue.serverTimestamp(),
+  }, { merge: true });
+}
+
+function _escapeHtml(value) {
+  return String(value).replace(/[&<>'\"]/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '\"': '&quot;',
+  }[char]));
+}
+
+function _groupOrderReceiptEmailHtml({ name, orderNumber, teamName, itemSummary, quantity, amount }) {
+  return `<!doctype html><html lang="ko"><body style="margin:0;background:#f6f5f2;font-family:Arial,'Apple SD Gothic Neo',sans-serif;color:#172033;">
+  <div style="max-width:600px;margin:0 auto;padding:32px 18px;"><div style="background:#172033;color:#fff;border-radius:18px 18px 0 0;padding:24px 26px;"><div style="font-size:12px;letter-spacing:1.5px;opacity:.75;">2FIT MALL</div><h1 style="font-size:22px;margin:10px 0 0;">단체주문 접수 완료</h1></div>
+  <div style="background:#fff;padding:28px 26px;border-radius:0 0 18px 18px;"><p style="font-size:16px;line-height:1.7;"><strong>${_escapeHtml(name)}님</strong>, 단체주문 신청이 정상적으로 접수되었습니다.</p>
+  <div style="background:#f6f5f2;border-radius:12px;padding:18px;margin:22px 0;line-height:1.9;"><div><b>주문번호</b> ${_escapeHtml(orderNumber)}</div><div><b>팀명</b> ${_escapeHtml(teamName)}</div><div><b>상품</b> ${_escapeHtml(itemSummary)}</div><div><b>수량</b> ${_escapeHtml(quantity)}</div><div><b>예상 금액</b> ${_escapeHtml(amount)}원</div></div>
+  <p style="font-size:14px;line-height:1.7;color:#5d6675;">담당자가 주문 내용을 확인한 뒤 디자인·견적 및 진행 일정을 안내드리겠습니다. 문의사항은 쇼핑몰 문의 채널을 이용해 주세요.</p>
+  <p style="margin-top:28px;font-size:12px;color:#9299a5;">본 메일은 2FIT MALL 단체주문 접수 안내입니다.</p></div></div></body></html>`;
+}
+
+async function _sendResendEmail({ to, subject, text, html }) {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${RESEND_API_KEY.value()}`,
+    },
+    body: JSON.stringify({ from: RESEND_FROM_EMAIL.value(), to: [to], subject, text, html }),
+  });
+  const responseText = await response.text();
+  if (!response.ok) {
+    console.error('Resend email request rejected:', response.status, responseText.slice(0, 500));
+  }
+  return { ok: response.ok, statusCode: response.status };
+}
 
 // ══════════════════════════════════════════════════════
 // 9) 서버 전용 SOLAPI SMS 발송 (관리자만)
