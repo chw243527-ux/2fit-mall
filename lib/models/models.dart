@@ -404,7 +404,7 @@ class OrderModel {
   final int colorEditCount;
   /// 디자인 수정 요청 횟수 (최대 2회)
   final int designRevisionCount;
-  /// 디자인 수정 요청 마감일 (요청 후 3일, null이면 요청 없음)
+  /// 디자인 수정 요청 마감일 저장 필드 (신규 계산은 단계별 activeDesignRevisionDeadline 사용)
   final DateTime? designRevisionDeadline;
   /// 배송완료 날짜 (자동 구매확정 기준)
   final DateTime? deliveredAt;
@@ -473,11 +473,41 @@ class OrderModel {
   /// 남은 디자인 수정 횟수
   int get remainingDesignRevisions => 2 - designRevisionCount;
 
-  /// 디자인수정요청 기간 내 여부 (confirmed 후 3일 이내, designRevisionDeadline 기준)
-  /// designRevisionDeadline이 null이면 기간 미설정 → 요청 가능으로 처리
+  /// 1차 수정 신청 마감일: 주문 시각 기준 7일 이내.
+  DateTime get firstDesignRevisionDeadline =>
+      createdAt.add(const Duration(days: AppConstants.customOrderModifyDays));
+
+  /// 1차 수정본 확인 시각. 관리자 응답 시각을 기준으로 2차 수정 창을 연다.
+  DateTime? get firstRevisionRespondedAt {
+    final request = customOptions?['designRevisionRequest'];
+    if (request is! Map) return null;
+    final value = request['respondedAt'];
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
+  }
+
+  /// 2차 수정 신청 마감일: 1차 수정본 확인 후 7일 이내.
+  DateTime? get secondDesignRevisionDeadline {
+    final respondedAt = firstRevisionRespondedAt;
+    if (respondedAt == null) return null;
+    return respondedAt.add(const Duration(days: AppConstants.customOrderModifyDays));
+  }
+
+  /// 현재 단계에서 적용되는 디자인 수정 마감일.
+  DateTime? get activeDesignRevisionDeadline {
+    if (designRevisionCount <= 0) return firstDesignRevisionDeadline;
+    if (designRevisionCount == 1) return secondDesignRevisionDeadline;
+    return null;
+  }
+
+  /// 현재 단계의 디자인 수정 신청 기간이 열려 있는지 여부.
   bool get isDesignRevisionPeriodActive {
-    if (designRevisionDeadline == null) return true;
-    return DateTime.now().isBefore(designRevisionDeadline!);
+    final deadline = activeDesignRevisionDeadline;
+    if (deadline == null) return false;
+    if (designRevisionCount == 1 && firstRevisionRespondedAt == null) return false;
+    return DateTime.now().isBefore(deadline);
   }
 
   /// 추가제작 주문 여부.
@@ -525,7 +555,8 @@ class OrderModel {
   /// 신규 단체주문 여부 (추가제작 제외)
   bool get isNewGroupOrder => isGroupOrder && !isAdditionalOrder;
 
-  /// 단체주문 디자인수정요청 가능 여부 (단체주문 + 주문대기/확인/제작중 상태 + 2회 미만 + 기간 이내)
+  /// 단체주문 디자인수정요청 가능 여부.
+  /// 1차는 주문 후 7일, 2차는 1차 수정본 확인 후 7일만 허용한다.
   bool get canRequestDesignRevision =>
       isGroupOrder &&
       (status == OrderStatus.pending ||
@@ -534,11 +565,17 @@ class OrderModel {
       canDesignRevision &&
       isDesignRevisionPeriodActive;
 
-  /// 디자인 확정 여부 (3일 경과 후 수정 요청 없음 or 제작 완료 이상)
-  bool get isDesignConfirmed =>
-      (designRevisionDeadline != null && DateTime.now().isAfter(designRevisionDeadline!)) ||
-      (status == OrderStatus.shipped || status == OrderStatus.delivered ||
-       status == OrderStatus.purchaseConfirmed);
+  /// 디자인 확정 여부.
+  /// 현재 단계의 7일 창이 종료되거나 2회 수정이 완료되면 확정한다.
+  bool get isDesignConfirmed {
+    if (designRevisionCount >= 2) return true;
+    final deadline = activeDesignRevisionDeadline;
+    final stageExpired = deadline != null && !DateTime.now().isBefore(deadline) &&
+        (designRevisionCount == 0 || firstRevisionRespondedAt != null);
+    return stageExpired ||
+        (status == OrderStatus.shipped || status == OrderStatus.delivered ||
+         status == OrderStatus.purchaseConfirmed);
+  }
 
   /// 관리자가 업로드한 수정 완료 디자인 이미지 URL
   /// customOptions['designConfirmedImageUrl'] 에 저장됨

@@ -236,10 +236,10 @@ class OrderService {
       if (status == OrderStatus.delivered) {
         updateData['deliveredAt'] = FieldValue.serverTimestamp();
       }
-      // 주문확인(confirmed) 시 디자인수정요청 마감일 = 3일 후로 설정
+      // 주문확인(confirmed) 시 1차 디자인 수정 마감일 = 주문 후 1주일로 설정
       if (status == OrderStatus.confirmed) {
         updateData['designRevisionDeadline'] =
-            DateTime.now().add(const Duration(days: 3)).toIso8601String();
+            DateTime.now().add(const Duration(days: AppConstants.customOrderModifyDays)).toIso8601String();
       }
       await _db.collection('orders').doc(orderId).update(updateData);
       if (kDebugMode) debugPrint('✅ Firestore 주문 상태 업데이트: $orderId → ${status.name}');
@@ -344,13 +344,12 @@ class OrderService {
   // 단체 주문 유틸리티
   // ────────────────────────────────────────────
   static bool canModifyOrder(OrderModel order) {
-    if (order.orderType != 'group') return false;
-    final deadline = order.createdAt.add(const Duration(days: AppConstants.customOrderModifyDays));
-    return DateTime.now().isBefore(deadline);
+    return order.canRequestDesignRevision;
   }
 
   static int getModifyDaysLeft(OrderModel order) {
-    final deadline = order.createdAt.add(const Duration(days: AppConstants.customOrderModifyDays));
+    final deadline = order.activeDesignRevisionDeadline;
+    if (deadline == null) return 0;
     final diff = deadline.difference(DateTime.now());
     return diff.inDays.clamp(0, AppConstants.customOrderModifyDays);
   }

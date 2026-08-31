@@ -11682,7 +11682,7 @@ class _GroupOrderGuideSheetState extends State<_GroupOrderGuideSheet> {
                     title: context.loc.t('제작_기간', '제작 기간'),
                     content: context.loc.t(
                         '주문_확정_후_14_21일_소요됩니다_n_디자인_수정_1회당__ec8820',
-                        '주문 확정 후 14~21일 소요됩니다.\n• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작\n(시즌/물량에 따라 변동될 수 있습니다)'),
+                        '주문 확정 후 14~21일 소요됩니다.\n• 1차 디자인 수정: 주문 후 7일 이내 신청 가능\n• 2차 디자인 수정: 1차 수정본 확인 후 7일 이내 신청 가능\n• 각 단계의 기간이 지나면 디자인이 자동 확정되어 제작이 시작됩니다.\n(시즌/물량에 따라 변동될 수 있습니다)'),
                   ),
                   SizedBox(height: r.h(8)),
                   _infoCardWidget(

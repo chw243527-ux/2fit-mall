@@ -2896,7 +2896,7 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Үйлдвэрлэлийн хугацаа';
   }}
   String get groupOrderProductionPeriodDesc { switch (language) {
-    case AppLanguage.korean:   return '주문 확정 후 14~21일 소요됩니다.\n• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작\n(시즌/물량에 따라 변동될 수 있습니다)';
+    case AppLanguage.korean:   return '주문 확정 후 14~21일 소요됩니다.\n• 1차 디자인 수정: 주문 후 7일 이내 신청 가능\n• 2차 디자인 수정: 1차 수정본 확인 후 7일 이내 신청 가능\n• 각 단계의 기간이 지나면 디자인이 자동 확정되어 제작이 시작됩니다.\n(시즌/물량에 따라 변동될 수 있습니다)';
     case AppLanguage.english:  return '14–21 days after order confirmation.\n• Design revision: If no revision request within 3 days per revision, production starts automatically.\n(May vary by season/volume)';
     case AppLanguage.japanese: return 'ご注文確定後14~21日かかります。\n• デザイン修正：1回につき3日以内に修正依頼がない場合、確定し製作開始\n(シーズン・数量により変動する場合があります)';
     case AppLanguage.chinese:  return '订单确认后需14~21天。\n• 设计修改：每次修改3天内无修改申请则确认并开始制作\n(可能因季节/数量而有所变动)';
@@ -3332,7 +3332,7 @@ class AppLocalizations {
     case AppLanguage.mongolian:return 'Захиалга хүлээн авагдлаа';
   }}
   String get orderCompleteMsg { switch (language) {
-    case AppLanguage.korean:   return '주문 접수 후 영업일 1~2일 이내 견적서를 이메일로 발송해드립니다.\n제작 기간: 주문 확정 후 14~21일 소요됩니다.\n• 디자인 수정: 1회당 3일 이내 수정 요청 없을 시 확정 후 제작 시작';
+    case AppLanguage.korean:   return '주문 접수 후 영업일 1~2일 이내 견적서를 이메일로 발송해드립니다.\n제작 기간: 주문 확정 후 14~21일 소요됩니다.\n• 1차 디자인 수정: 주문 후 7일 이내 신청 가능\n• 2차 디자인 수정: 1차 수정본 확인 후 7일 이내 신청 가능\n• 각 단계의 기간이 지나면 디자인이 자동 확정되어 제작이 시작됩니다.';
     case AppLanguage.english:  return 'A quote will be sent to your email within 1-2 business days after order receipt.\nProduction time: 14-21 days after order confirmation.\n• Design revision: If no revision request within 3 days per revision, production starts automatically.';
     case AppLanguage.japanese: return 'ご注文受付後、1~2営業日以内にメールにて見積書をお送りします。\n製作期間：ご注文確定後、14~21日かかります。\n• デザイン修正：1回につき3日以内に修正依頼がない場合、確定し製作開始。';
     case AppLanguage.chinese:  return '收到订单后1~2个工作日内将通过电子邮件发送报价单。\n制作周期：订单确认后需14~21天。\n• 设计修改：每次修改3天内无修改申请则确认并开始制作。';
@@ -11667,7 +11667,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '修正1回につき3日以内に修正要求がなければデザインが自動確定され製作が開始されます。';
     case AppLanguage.chinese: return '每次修改3天内无修改请求则设计自动确认开始生产。';
     case AppLanguage.mongolian: return 'Нэг засвар тутамд 3 хоногийн дотор засвар хүсэлт ирэхгүй бол дизайн автоматаар баталгаажиж үйлдвэрлэл эхэлнэ.';
-    default: return '디자인 수정은 1회당 3일 이내 수정 요청이 없으면 자동 확정되어 제작이 시작됩니다.';
+    default: return '1차 디자인 수정은 주문 후 7일 이내, 2차 디자인 수정은 1차 수정본 확인 후 7일 이내 신청할 수 있습니다. 각 단계의 기간이 지나면 디자인이 자동 확정되어 제작이 시작됩니다.';
   }}
 
   String get groupFormActualMeasure { switch (language) {
@@ -15338,7 +15338,7 @@ class AppLocalizations {
     case AppLanguage.japanese: return '⚠️ 修正1回につき3日以内に修正依頼がない場合、デザインが確定し製作が開始されます。';
     case AppLanguage.chinese:  return '⚠️ 每次修改3天内未提出修改请求，设计将自动确认并开始制作。';
     case AppLanguage.mongolian:return '⚠️ Нэг засвар тутамд 3 хоногийн дотор засах хүсэлт ирэхгүй бол дизайн баталгаажиж үйлдвэрлэл эхэлнэ.';
-    default: return '⚠️ 디자인 수정은 1회당 3일 이내 수정 요청이 없으면 확정되어 제작이 시작됩니다.';
+    default: return '⚠️ 1차 디자인 수정은 주문 후 7일 이내, 2차 디자인 수정은 1차 수정본 확인 후 7일 이내 신청할 수 있습니다. 각 단계의 기간이 지나면 디자인이 확정되어 제작이 시작됩니다.';
   }}
 
   // ── 추가제작 주문번호 필수 안내 ──────────────────────────────────

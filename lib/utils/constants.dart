@@ -251,8 +251,8 @@ class AppConstants {
   static const int extraColorPrice = 20000; // K/PP 외 색상 추가비용
 
   // ── 단체 커스텀 주문 디자인 확정 기한 ──
-  // 주문 후 2-3일 이내 수정요청 없으면 디자인 확정 → 제작 시작
-  static const int customOrderDesignConfirmDays = 3;
+  // 1차 수정은 주문 후 7일, 2차 수정은 1차 수정본 확인 후 7일 이내
+  static const int customOrderDesignConfirmDays = 7;
   static const int customOrderModifyDays = 7; // 주문 후 7일(1주)
 
   // ── 단체 커스텀 주문 자동 확정 기한 ──

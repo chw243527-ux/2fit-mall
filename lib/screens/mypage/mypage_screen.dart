@@ -1801,7 +1801,7 @@ class _PcOrderCard extends StatelessWidget {
                   color: const Color(0xFFFF8F00),
                   onTap: () => _showWriteReviewFromOrder(btnCtx, order),
                 ));
-              // 단체주문 디자인수정요청 (3일 이내, 2회 미만 + 사용자 미확정)
+              // 단체주문 디자인수정요청 (단계별 7일 이내, 최대 2회 + 사용자 미확정)
               if (isGroup &&
                   order.canRequestDesignRevision &&
                   !order.userDesignApproved)
@@ -1835,7 +1835,7 @@ class _PcOrderCard extends StatelessWidget {
                   color: const Color(0xFF0277BD),
                   onTap: () => onDesignConfirm?.call(order),
                 ));
-              // 단체주문 디자인 확정 표시 (3일 경과 또는 배송 이상)
+              // 단체주문 디자인 확정 표시 (현재 단계 7일 경과 또는 배송 이상)
               if (isGroup &&
                   order.isDesignConfirmed &&
                   !order.canRequestDesignRevision)
@@ -7423,12 +7423,12 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
     return labels[id] ?? context.loc.t('정보 없음', '정보 없음');
   }
 
-  // 3일 자동확정 안내
+  // 현재 단계의 1주일 자동확정 안내
   String get _deadlineText {
-    final deadline = widget.order.designRevisionDeadline;
+    final deadline = widget.order.activeDesignRevisionDeadline;
     if (deadline == null) return '';
     final diff = deadline.difference(DateTime.now()).inDays;
-    if (diff <= 0) return context.loc.t('오늘 자정 확정 예정', '오늘 자정 확정 예정');
+    if (diff <= 0) return context.loc.t('수정 기간 종료', '수정 기간 종료');
     return '$diff일 후 자동 확정';
   }
 
@@ -7444,7 +7444,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
     setState(() => _isSubmitting = true);
     try {
       final db = FirebaseFirestore.instance;
-      final deadline = DateTime.now().add(const Duration(days: 3));
+      final deadline = DateTime.now().add(const Duration(days: 7));
 
       // 변경된 인원별 사이즈 수집
       final personChanges = <Map<String, dynamic>>[];
@@ -7629,8 +7629,8 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ── 3일 자동확정 안내 ──
-                          if (widget.order.designRevisionDeadline != null) ...[
+                          // ── 단계별 1주일 자동확정 안내 ──
+                          if (widget.order.activeDesignRevisionDeadline != null) ...[
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
@@ -7645,7 +7645,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                 const SizedBox(width: 8),
                                 Expanded(
                                     child: Text(
-                                  '관리자 미응답 시 $_deadlineText 디자인이 자동 확정됩니다.',
+                                  '${widget.order.designRevisionCount == 0 ? '1차 수정' : '2차 수정'} 기간 종료 시 디자인이 자동 확정됩니다. ($_deadlineText)',
                                   style: const TextStyle(
                                       fontSize: 12,
                                       color: AppColors.accent,
@@ -8735,8 +8735,8 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                                       '디자인 수정 요청은 총 2회까지 가능합니다',
                                       '디자인 수정 요청은 총 2회까지 가능합니다.')),
                                   _infoRow(context.loc.t(
-                                      '요청 후 3일 이내 관리자 미응답 시 현재 디자인으로 자동 확정됩니다',
-                                      '요청 후 3일 이내 관리자 미응답 시 현재 디자인으로 자동 확정됩니다.')),
+                                      '각 수정 단계의 기한 내 관리자 확인 후, 다음 단계는 1주일 동안 신청할 수 있습니다',
+                                      '각 수정 단계의 기한 내 관리자 확인 후, 다음 단계는 1주일 동안 신청할 수 있습니다.')),
                                   _infoRow(context.loc.t('확정 후에는 추가 수정이 불가합니다',
                                       '확정 후에는 추가 수정이 불가합니다.')),
                                 ]),
@@ -8786,7 +8786,7 @@ class _DesignRevisionSheetState extends State<_DesignRevisionSheet>
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             Text(
-                '주문번호 ${widget.order.id}\n관리자가 확인 후 3일 이내 응답드립니다.\n미응답 시 현재 디자인으로 자동 확정됩니다.',
+                '주문번호 ${widget.order.id}\n관리자가 수정본을 확인하면 다음 수정 단계가 열립니다.\n각 단계의 1주일 기한이 지나면 현재 디자인으로 자동 확정됩니다.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     fontSize: 13, color: AppColors.textSecondary, height: 1.5)),
