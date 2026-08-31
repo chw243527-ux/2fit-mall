@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/models.dart';
 import '../../providers/providers.dart';
 import '../../services/order_service.dart';
+import '../../widgets/design_revision_countdown.dart';
 
 // ─────────────────────────────────────────────
 // 색상 상수
@@ -820,7 +821,14 @@ class _DeliveryCard extends StatelessWidget {
                     // ── 상품 요약
                     const SizedBox(height: 6),
                     _itemSummary(order),
-
+                    if (order.isGroupOrder && order.activeDesignRevisionDeadline != null) ...[
+                      const SizedBox(height: 8),
+                      DesignRevisionCountdown(
+                        deadline: order.activeDesignRevisionDeadline,
+                        revisionCount: order.designRevisionCount,
+                        compact: true,
+                      ),
+                    ],
                     // ── 운송장 정보
                     if (hasTracking) ...[
                       const SizedBox(height: 8),

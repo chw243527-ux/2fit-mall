@@ -6021,6 +6021,13 @@ Future<void> _showUserOrderDetail(
                           context.loc.t('배송지', '배송지'),
                           o.userAddress.isNotEmpty ? o.userAddress : '-'),
                     ]),
+                    if (o.isGroupOrder && o.activeDesignRevisionDeadline != null) ...[
+                      const SizedBox(height: 14),
+                      DesignRevisionCountdown(
+                        deadline: o.activeDesignRevisionDeadline,
+                        revisionCount: o.designRevisionCount,
+                      ),
+                    ],
                     const SizedBox(height: 14),
 
                     // 주문 상품
