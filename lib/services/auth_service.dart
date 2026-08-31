@@ -588,7 +588,12 @@ class AuthService {
         updates['name'] = name.trim();
         await firebaseUser.updateDisplayName(name.trim());
       }
-      if (phone != null) updates['phone'] = phone.trim();
+      if (phone != null && phone.trim().isNotEmpty) {
+        // 전화번호 변경은 기존 본인확인 결과를 무효화할 수 있으므로,
+        // NICE/Firebase 재인증 플로우 없이 일반 프로필 수정으로 변경하지 못하게 합니다.
+        final verifiedPhone = firebaseUser.phoneNumber?.trim() ?? '';
+        if (verifiedPhone.isEmpty || phone.trim() != verifiedPhone) return false;
+      }
 
       if (newPassword != null && newPassword.isNotEmpty) {
         if (currentPassword == null || currentPassword.isEmpty) return false;
