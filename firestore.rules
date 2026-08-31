@@ -75,6 +75,24 @@ service cloud.firestore {
           && request.auth.token.phone_number == data.phone;
     }
 
+    // 소셜 가입 예외는 Firebase Auth 공급자 또는 서버가 발급한
+    // provider Custom Claim으로만 식별합니다. 일반 password 가입자가
+    // loginProvider 필드를 조작해 예외를 얻을 수 없도록 문서 필드는 신뢰하지 않습니다.
+    function isSocialAuth() {
+      return isSignedIn() && (
+        request.auth.token.firebase.sign_in_provider == 'google.com'
+        || request.auth.token.get('provider', '') in ['kakao', 'naver']
+      );
+    }
+
+    function isValidSocialSignup(data) {
+      return isSocialAuth()
+          && data.phone == ''
+          && data.phoneVerified == false
+          && data.email == request.auth.token.email
+          && data.loginProvider in ['google', 'kakao', 'naver'];
+    }
+
     // 리뷰 필드 검증
     function isValidReview(data) {
       return validStr(data.content, 1000)
@@ -100,7 +118,10 @@ service cloud.firestore {
       allow create: if isSignedIn()
           && isOwner(userId)
           && isValidUserData(request.resource.data)
-          && hasVerifiedPhone(request.resource.data)
+          && (
+            hasVerifiedPhone(request.resource.data)
+            || isValidSocialSignup(request.resource.data)
+          )
           && request.resource.data.email == request.auth.token.email
           && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false)
           && (!('points' in request.resource.data) || request.resource.data.points == 0); // 포인트 임의 설정 금지

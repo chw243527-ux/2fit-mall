@@ -493,6 +493,58 @@ exports.exchangeNaverCode = onRequest(
   }
 );
 
+// Kakao OAuth access token을 서버에서 검증하고 provider Custom Claim을 포함한
+// Firebase Custom Token을 발급합니다. 클라이언트가 provider claim을 직접 만들 수 없게 합니다.
+exports.exchangeKakaoToken = onRequest(
+  { cors: [
+    'https://2fit-mall.co.kr',
+    'https://fit-mall.web.app',
+    'http://localhost:5000',
+  ] },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).json({ error: 'Method Not Allowed' });
+      return;
+    }
+    const accessToken = String(req.body?.accessToken || '');
+    if (!accessToken || accessToken.length > 4096) {
+      res.status(400).json({ error: 'Kakao access token is required' });
+      return;
+    }
+    try {
+      const profileResponse = await fetch('https://kapi.kakao.com/v2/user/me', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const profile = await profileResponse.json();
+      const kakaoId = String(profile?.id || '');
+      if (!profileResponse.ok || !kakaoId) {
+        res.status(401).json({ error: 'Kakao authorization failed' });
+        return;
+      }
+      const account = profile.kakao_account || {};
+      const properties = profile.properties || {};
+      const email = String(account.email || `${kakaoId}@kakao.com`).toLowerCase();
+      const name = String(properties.nickname || '카카오 사용자').slice(0, 100);
+      const photoUrl = String(properties.profile_image || '').slice(0, 2000);
+      let user;
+      try {
+        user = await getAuth().getUserByEmail(email);
+      } catch (error) {
+        if (error.code !== 'auth/user-not-found') throw error;
+        user = await getAuth().createUser({ email, displayName: name, photoURL: photoUrl || undefined });
+      }
+      const customToken = await getAuth().createCustomToken(user.uid, {
+        provider: 'kakao',
+        kakaoId,
+      });
+      res.json({ customToken, email, name, photoUrl, kakaoId });
+    } catch (error) {
+      console.error('exchangeKakaoToken error:', error.message);
+      res.status(500).json({ error: 'Kakao login failed' });
+    }
+  }
+);
+
 // ══════════════════════════════════════════════════════
 // 9) 서버 전용 SOLAPI 알림 발송
 // ══════════════════════════════════════════════════════
@@ -1452,6 +1504,7 @@ async function _getOrCreateNaverUser({ naverId, email, name, photoUrl }) {
     name,
     email,
     phone: data.phone || '',
+    phoneVerified: data.phoneVerified === true,
     profileImageUrl: photoUrl || data.profileImageUrl || '',
     grade: data.grade || 'bronze',
     memberTier: data.memberTier || data.grade || 'bronze',

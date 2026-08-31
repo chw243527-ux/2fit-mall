@@ -1110,23 +1110,12 @@ class AuthService {
         final docRef = _db.collection('users').doc(user.uid);
         final doc = await docRef.get();
         if (!doc.exists) {
-          // 소셜 Auth만 완료된 상태에서는 회원 문서를 만들지 않습니다.
-          // 로그인 화면이 동일 UID의 전화번호 인증 온보딩으로 연결합니다.
-          return AuthResult(
-            success: false,
-            requiresPhoneVerification: true,
-            pendingName: user.displayName ?? googleUser.displayName ?? '회원',
-            pendingEmail: user.email ?? emailKey,
-            pendingPhotoUrl: user.photoURL ?? '',
-            pendingProvider: 'google',
-            error: '전화번호 본인확인을 완료해주세요.',
-          );
-          /*
           await docRef.set({
             'id': user.uid,
             'name': user.displayName ?? googleUser.displayName ?? '회원',
             'email': user.email ?? '',
             'phone': '',
+            'phoneVerified': false,
             'profileImageUrl': user.photoURL ?? '',
             'grade': 'bronze',
             'isAdmin': isAdmin,
@@ -1140,13 +1129,13 @@ class AuthService {
             'name': user.displayName ?? '회원',
             'email': user.email ?? '',
             'phone': '',
+            'phoneVerified': false,
             'profileImageUrl': user.photoURL ?? '',
             'grade': 'bronze',
             'isAdmin': isAdmin,
             'points': 0,
             'wishlist': [],
           };
-          */
         } else {
           docRef.update({
             'lastLoginAt': FieldValue.serverTimestamp(),
@@ -1267,36 +1256,31 @@ class AuthService {
       return AuthResult(success: false, error: '카카오 사용자 정보를 가져올 수 없습니다.');
     }
 
-    // ── Step 3: Firebase Auth 계정 연동 ─────────────────────
-    // Auth 상태 변경 시 열려있는 Firestore 스트림이 내부 assertion을
-    // 발생시킬 수 있으므로, Firebase Auth 로그인 결과를 먼저 확보합니다.
-    final fakePassword = 'kakao_${kakaoId}_2fit';
+    // ── Step 3: 서버 검증 후 Firebase Custom Token 로그인 ─────────
+    // Kakao 계정을 일반 password provider와 구분할 수 있도록 access token을
+    // 서버에서 검증하고 provider:kakao Custom Claim을 포함한 토큰을 발급받습니다.
     UserCredential userCred;
     try {
-      userCred = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: fakePassword,
+      final response = await http.post(
+        Uri.parse('https://us-central1-fit-mall.cloudfunctions.net/exchangeKakaoToken'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'accessToken': token.accessToken}),
       );
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        try {
-          userCred = await _auth.signInWithEmailAndPassword(
-            email: email,
-            password: fakePassword,
-          );
-        } catch (e2) {
-          if (kDebugMode) debugPrint('⚠️ Firebase Auth 로그인 실패: $e2');
-          return AuthResult(
-              success: false, error: '카카오 계정 인증에 실패했습니다. 다시 시도해주세요.');
-        }
-      } else {
-        if (kDebugMode) debugPrint('⚠️ Firebase Auth 계정 생성 실패: $e');
+      final payload = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.statusCode < 200 || response.statusCode >= 300) {
         return AuthResult(
-            success: false, error: '카카오 계정 연동에 실패했습니다. 다시 시도해주세요.');
+          success: false,
+          error: payload['error'] as String? ?? '카카오 계정 인증에 실패했습니다.',
+        );
       }
+      final customToken = payload['customToken'] as String?;
+      if (customToken == null || customToken.isEmpty) {
+        return const AuthResult(success: false, error: '카카오 인증 토큰을 받지 못했습니다.');
+      }
+      userCred = await _auth.signInWithCustomToken(customToken);
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firebase Auth 예외: $e');
-      return AuthResult(
+      if (kDebugMode) debugPrint('⚠️ 카카오 서버 인증 실패: $e');
+      return const AuthResult(
           success: false, error: '카카오 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
 
@@ -1322,23 +1306,12 @@ class AuthService {
       final docRef = _db.collection('users').doc(user.uid);
       final doc = await docRef.get();
       if (!doc.exists) {
-        // Kakao Auth 성공만으로 회원 문서를 생성하지 않고 동일 UID
-        // 전화번호 인증 온보딩을 먼저 완료하도록 합니다.
-        return AuthResult(
-          success: false,
-          requiresPhoneVerification: true,
-          pendingName: name,
-          pendingEmail: email,
-          pendingPhotoUrl: photoUrl,
-          pendingProvider: 'kakao',
-          error: '전화번호 본인확인을 완료해주세요.',
-        );
-        /*
         await docRef.set({
           'id': user.uid,
           'name': name,
           'email': email,
           'phone': '',
+          'phoneVerified': false,
           'profileImageUrl': photoUrl,
           'grade': 'bronze',
           'isAdmin': isAdmin,
@@ -1353,13 +1326,13 @@ class AuthService {
           'name': name,
           'email': email,
           'phone': '',
+          'phoneVerified': false,
           'profileImageUrl': photoUrl,
           'grade': 'bronze',
           'isAdmin': isAdmin,
           'points': 0,
           'wishlist': [],
         };
-        */
       } else {
         // 업데이트 (실패해도 계속)
         docRef.update({
