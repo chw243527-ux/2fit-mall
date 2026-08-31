@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -82,6 +85,48 @@ void main() {
       final sheet = _summarySheet(bytes);
       expect(_summaryCell(sheet, 3, 4), contains('단체주문'));
       expect(_summaryCell(sheet, 3, 5), contains('단체주문'));
+    });
+
+    test('디자인 이미지 URL을 실제 엑셀 ZIP 미디어로 삽입한다', () async {
+      final imageBytes = base64Decode(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=');
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      server.listen((request) {
+        request.response.headers.contentType = ContentType('image', 'png');
+        request.response.add(imageBytes);
+        request.response.close();
+      });
+
+      try {
+        final imageUrl = 'http://127.0.0.1:${server.port}/design.png';
+        final bytes = await OrderExcelService.generateGroupOrderExcelAsync(
+          _order(
+            id: 'GRP_1756700000005',
+            orderType: 'group',
+            customOptions: {
+              'orderType': 'group',
+              'teamName': '이미지테스트팀',
+              'productImageUrl': imageUrl,
+              'persons': <Map<String, dynamic>>[
+                {'name': '홍길동', 'gender': '남'},
+              ],
+            },
+          ),
+        );
+
+        final archive = ZipDecoder().decodeBytes(bytes);
+        final mediaFiles = archive.files
+            .where((file) => file.name.startsWith('xl/media/'))
+            .toList();
+        expect(mediaFiles, isNotEmpty);
+        expect(mediaFiles.any((file) => file.content.length > 0), isTrue);
+        expect(archive.files.any((file) =>
+            file.name == 'xl/drawings/drawing1.xml'), isTrue);
+        expect(archive.files.any((file) => file.name.contains(
+            'xl/worksheets/_rels/sheet1.xml.rels')), isTrue);
+      } finally {
+        await server.close(force: true);
+      }
     });
 
     test('일반 기성품은 개인주문으로 분류한다', () async {
