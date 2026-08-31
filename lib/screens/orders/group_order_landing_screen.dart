@@ -206,6 +206,10 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
               ],
             ),
           ),
+          if (widget.product != null) ...[
+            const SizedBox(height: 14),
+            _buildProductOrderCta(),
+          ],
           const SizedBox(height: 20),
 
           // 주문 절차
@@ -276,6 +280,72 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
           const SizedBox(height: 20),
 
           const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProductOrderCta() {
+    final productName = widget.product?.name ?? '';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceGray,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.checkroom_rounded,
+                  color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  context.loc.t('선택한_상품으로_주문서_작성', '선택한 상품으로 주문서 작성'),
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (productName.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              productName,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                height: 1.45,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _goToForm,
+              icon: const Icon(Icons.edit_note_rounded, size: 19),
+              label: Text(context.loc.t('이_상품으로_단체주문서_작성', '이 상품으로 단체주문서 작성')),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
