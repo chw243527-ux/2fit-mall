@@ -38,7 +38,8 @@ class _LoginScreenState extends State<LoginScreen>
       case '/admin':
         return isAdmin ? const AdminScreen() : const MainScreen();
       default:
-        return const MainScreen();
+        // 일반 로그인 화면에서도 관리자 계정은 관리자 대시보드로 이동합니다.
+        return isAdmin ? const AdminScreen() : const MainScreen();
     }
   }
   final _formKey = GlobalKey<FormState>();

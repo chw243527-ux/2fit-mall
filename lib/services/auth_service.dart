@@ -553,7 +553,8 @@ class AuthService {
       );
 
       final uid = credential.user!.uid;
-      final user = await _loadUser(uid, emailKey);
+      // 관리자 custom claim은 로그인 직후 강제 갱신해야 새로 부여된 권한이 반영됩니다.
+      final user = await _loadUser(uid, emailKey, forceRefreshAdminClaim: true);
       if (user == null) {
         return const AuthResult(success: false, error: '사용자 정보를 불러올 수 없습니다.');
       }
@@ -604,7 +605,7 @@ class AuthService {
       }
       if (firebaseUser != null) {
         final user =
-            await _loadUser(firebaseUser.uid, firebaseUser.email ?? '');
+            await _loadUser(firebaseUser.uid, firebaseUser.email ?? '', forceRefreshAdminClaim: true);
         if (user != null) {
           await _saveSession(firebaseUser.uid);
           return AuthResult(success: true, user: user);
@@ -617,7 +618,7 @@ class AuthService {
       final activeUid = _auth.currentUser?.uid;
       if (savedUid != null && activeUid != null && savedUid == activeUid) {
         final email = sessionBox.get('currentEmail') as String? ?? '';
-        final user = await _loadUser(savedUid, email);
+        final user = await _loadUser(savedUid, email, forceRefreshAdminClaim: true);
         if (user != null) {
           await _saveSession(savedUid);
           return AuthResult(success: true, user: user);
@@ -811,14 +812,18 @@ class AuthService {
   }
 
   /// Firestore에서 사용자 정보 읽기
-  static Future<UserModel?> _loadUser(String uid, String email) async {
+  static Future<UserModel?> _loadUser(
+    String uid,
+    String email, {
+    bool forceRefreshAdminClaim = false,
+  }) async {
     try {
       final doc = await _db.collection('users').doc(uid).get();
 
       if (doc.exists) {
         final data = doc.data()!;
         final emailKey = (data['email'] as String?) ?? email;
-        final isAdmin = await _hasAdminClaim();
+        final isAdmin = await _hasAdminClaim(forceRefresh: forceRefreshAdminClaim);
         return UserModel(
           id: uid,
           name: (data['name'] as String?) ?? '회원',
