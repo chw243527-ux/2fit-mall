@@ -287,6 +287,9 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
 
   Widget _buildProductOrderCta() {
     final productName = widget.product?.name ?? '';
+    final imageUrl = widget.product?.images.isNotEmpty == true
+        ? widget.product!.images.first
+        : null;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -298,6 +301,22 @@ class _GroupOrderLandingScreenState extends State<GroupOrderLandingScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (imageUrl != null && imageUrl.isNotEmpty) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: double.infinity,
+                height: 180,
+                child: NetImage(
+                  imageUrl,
+                  width: double.infinity,
+                  height: 180,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
