@@ -49,9 +49,11 @@ Future<bool> _initializeFirebaseInBackground() async {
       options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 10));
     await AuthService.configurePersistentAuth();
+    AuthService.completeFirebaseInitialization(true);
     if (kDebugMode) debugPrint('✅ Firebase 초기화 성공');
     return true;
   } catch (e) {
+    AuthService.completeFirebaseInitialization(false);
     if (kDebugMode) debugPrint('⚠️ Firebase 초기화 오류: $e');
     return false;
   }

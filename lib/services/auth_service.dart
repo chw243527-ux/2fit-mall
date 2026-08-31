@@ -29,6 +29,7 @@ class AuthService {
   static Future<String>? _deviceScopeInFlight;
   static Completer<Map<String, String>>? _naverMobileCodeWaiter;
   static Future<AuthResult>? _restoreSessionInFlight;
+  static final Completer<bool> _firebaseReady = Completer<bool>();
   static const _naverRedirectUri =
       'https://2fit-mall.co.kr/naver_callback.html';
 
@@ -110,6 +111,21 @@ class AuthService {
   static Future<String> _rememberedEmailsStorageKey() async {
     final scope = await _getDeviceScope();
     return '${_rememberedEmailsKeyPrefix}_$scope';
+  }
+
+  /// Firebase 초기화 완료 여부를 Splash와 공유합니다.
+  static void completeFirebaseInitialization(bool ready) {
+    if (!_firebaseReady.isCompleted) _firebaseReady.complete(ready);
+  }
+
+  static Future<bool> waitForFirebaseInitialization({
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
+    try {
+      return await _firebaseReady.future.timeout(timeout);
+    } catch (_) {
+      return false;
+    }
   }
 
   /// 웹에서도 Firebase Auth의 로컬 persistence를 명시적으로 사용합니다.
@@ -749,15 +765,15 @@ class AuthService {
     }
   }
 
-  static const _fallbackAppVersion = '1.0.4+2';
+  static const _fallbackAppVersion = '1.0.4';
 
   static Future<String> _currentAppVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();
-      final version = info.buildNumber.isNotEmpty
-          ? '${info.version}+${info.buildNumber}'
-          : info.version;
-      return version.isEmpty ? _fallbackAppVersion : version;
+      // CI 빌드 번호는 같은 앱 버전에서도 매번 바뀔 수 있으므로
+      // 세션 초기화 기준에는 사용자에게 배포하는 앱 버전만 사용합니다.
+      final version = info.version;
+      return version.isEmpty ? _fallbackAppVersion.split('+').first : version;
     } catch (e) {
       if (kDebugMode) debugPrint('앱 버전 확인 실패, fallback 사용: $e');
       return _fallbackAppVersion;

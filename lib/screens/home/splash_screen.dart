@@ -111,6 +111,19 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     try {
+      final firebaseReady = await AuthService.waitForFirebaseInitialization();
+      if (!firebaseReady) {
+        if (deepLink != null && deepLink.requiresAuth) {
+          _goToLoginWithRedirect(deepLink);
+        } else if (deepLink != null) {
+          if (mounted)
+            _navigateAfterLogin(deepLink, isLoggedIn: false, isAdmin: false);
+        } else {
+          _goToLogin();
+        }
+        return;
+      }
+
       final result = await AuthService.restoreSession().timeout(
         const Duration(seconds: 5),
         onTimeout: () => const AuthResult(success: false),
