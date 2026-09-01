@@ -111,6 +111,7 @@ jobs:
 
   build_android:
     name: Build Android debug APK
+    if: github.event_name == 'workflow_dispatch'
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 30
