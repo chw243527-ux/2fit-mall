@@ -554,7 +554,12 @@ class AuthService {
 
       final uid = credential.user!.uid;
       // 소유자 관리자 계정의 claim이 누락된 경우 서버에서 복구합니다.
-      await _ensureOwnerAdminClaim(credential.user!);
+      // 관리자 claim 복구는 보조 작업입니다. 이 요청이 지연되거나 실패해도
+      // 정상적인 Firebase 이메일 로그인이 화면에서 취소되지 않도록 제한 시간 내에만 기다립니다.
+      await _ensureOwnerAdminClaim(credential.user!).timeout(
+        const Duration(seconds: 8),
+        onTimeout: () {},
+      );
       // 관리자 custom claim은 로그인 직후 강제 갱신해야 새로 부여된 권한이 반영됩니다.
       final user = await _loadUser(uid, emailKey, forceRefreshAdminClaim: true);
       if (user == null) {
@@ -886,21 +891,39 @@ class AuthService {
         createdAt: DateTime.now(),
         loginProvider: 'email',
       );
-      await _db.collection('users').doc(uid).set({
-        'id': uid,
-        'name': displayName,
-        'email': email,
-        'phone': '',
-        'isAdmin': isAdmin,
-        'grade': 'bronze',
-        'wishlist': <String>[],
-        'loginProvider': 'email',
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      try {
+        await _db.collection('users').doc(uid).set({
+          'id': uid,
+          'name': displayName,
+          'email': email,
+          'phone': '',
+          'isAdmin': isAdmin,
+          'grade': 'bronze',
+          'wishlist': <String>[],
+          'loginProvider': 'email',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      } catch (e) {
+        // 인증은 성공했지만 사용자 문서 생성이 일시적으로 실패해도
+        // 기본 사용자로 로그인 흐름을 계속 진행합니다.
+        if (kDebugMode) debugPrint('사용자 문서 생성 생략: $e');
+      }
       return user;
     } catch (e) {
       if (kDebugMode) debugPrint('_loadUser error: $e');
-      return null;
+      // Firebase Auth 인증 자체가 성공한 경우 Firestore 조회 실패만으로
+      // 로그인 화면으로 되돌리지 않도록 최소 프로필을 반환합니다.
+      final current = _auth.currentUser;
+      if (current?.uid != uid) return null;
+      return UserModel(
+        id: uid,
+        name: current?.displayName ?? '회원',
+        email: current?.email ?? email,
+        phone: current?.phoneNumber ?? '',
+        isAdmin: await _hasAdminClaim(),
+        createdAt: DateTime.now(),
+        loginProvider: 'email',
+      );
     }
   }
 
