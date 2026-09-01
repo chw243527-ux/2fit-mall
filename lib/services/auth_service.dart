@@ -578,6 +578,17 @@ class AuthService {
     }
   }
 
+  /// 현재 로그인 계정의 기존 관리자 플래그를 서버에서 Custom Claim으로 동기화합니다.
+  /// 비관리자 계정에는 권한을 부여하지 않으며, 실패해도 일반 로그인은 유지합니다.
+  static Future<void> ensureAdminClaimForCurrentUser() async {
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser == null) return;
+    await _ensureOwnerAdminClaim(firebaseUser).timeout(
+      const Duration(seconds: 8),
+      onTimeout: () {},
+    );
+  }
+
   static Future<void> _ensureOwnerAdminClaim(User firebaseUser) async {
     try {
       final idToken = await firebaseUser.getIdToken();

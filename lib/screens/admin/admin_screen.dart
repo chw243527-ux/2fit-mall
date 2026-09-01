@@ -315,6 +315,9 @@ class _AdminScreenState extends State<AdminScreen>
     final firebaseUser = FirebaseAuth.instance.currentUser;
     var authorized = false;
     if (firebaseUser != null) {
+      // 기존 관리자 계정의 Firestore isAdmin 플래그를 서버에서 Custom Claim으로
+      // 동기화한 뒤 데이터 조회를 시작해야 Firestore Rules가 허용합니다.
+      await AuthService.ensureAdminClaimForCurrentUser();
       try {
         // 1차: Firebase Custom Claim 확인
         final token = await firebaseUser.getIdTokenResult(true);
