@@ -16,8 +16,13 @@ import '../../utils/navigation_helper.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? redirectPath;
+  final bool adminOnly;
 
-  const LoginScreen({super.key, this.redirectPath});
+  const LoginScreen({
+    super.key,
+    this.redirectPath,
+    this.adminOnly = false,
+  });
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -28,6 +33,9 @@ class _LoginScreenState extends State<LoginScreen>
   AppLocalizations get loc => context.watch<LanguageProvider>().loc;
 
   Widget _targetAfterLogin({bool isAdmin = false}) {
+    if (widget.adminOnly) {
+      return isAdmin ? const AdminScreen() : const LoginScreen(adminOnly: true);
+    }
     switch (widget.redirectPath) {
       case '/mypage':
         return const MainScreen(initialIndex: 3);
@@ -168,6 +176,20 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (!mounted) return;
     if (result.success && result.user != null) {
+      if (widget.adminOnly && result.user?.isAdmin != true) {
+        await AuthService.logout();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.loc.t(
+              '관리자 권한이 있는 계정만 로그인할 수 있습니다.',
+              '관리자 권한이 있는 계정만 로그인할 수 있습니다.',
+            )),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        return;
+      }
       userProv.login(result.user!);
       AnalyticsService.logLogin(method: 'email');
       final email = _emailCtrl.text.trim();
@@ -599,6 +621,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   const SizedBox(height: 6),
                                   TextFormField(
                                     controller: _pwCtrl,
+                                    focusNode: _pwFocusNode,
                                     obscureText: _obscurePw,
                                     style: const TextStyle(fontSize: 15),
                                     decoration: _inputDeco(

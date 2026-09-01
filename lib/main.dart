@@ -61,6 +61,9 @@ Future<bool> _initializeFirebaseInBackground() async {
 
 Future<bool>? _firebaseReadyFuture;
 
+// 관리자 전용 Cloudflare Pages 빌드에서만 true가 됩니다.
+const bool adminOnlyBuild = bool.fromEnvironment('ADMIN_ONLY', defaultValue: false);
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -473,7 +476,53 @@ class _AppInitState extends State<_AppInit> {
 
   @override
   Widget build(BuildContext context) {
-    return const SplashScreen();
+    return adminOnlyBuild ? const _AdminAuthGate() : const SplashScreen();
+  }
+}
+
+/// 관리자 전용 웹 빌드의 시작 화면입니다.
+/// Firebase Auth가 복구된 관리자만 대시보드에 들어갈 수 있습니다.
+class _AdminAuthGate extends StatefulWidget {
+  const _AdminAuthGate();
+
+  @override
+  State<_AdminAuthGate> createState() => _AdminAuthGateState();
+}
+
+class _AdminAuthGateState extends State<_AdminAuthGate> {
+  AuthResult? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreAdminSession();
+  }
+
+  Future<void> _restoreAdminSession() async {
+    await (_firebaseReadyFuture ?? Future<bool>.value(false));
+    final result = await AuthService.restoreSession().timeout(
+      const Duration(seconds: 8),
+      onTimeout: () => const AuthResult(success: false),
+    );
+    if (!mounted) return;
+    if (result.success && result.user?.isAdmin == true) {
+      context.read<UserProvider>().login(result.user!);
+    }
+    setState(() => _result = result);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final result = _result;
+    if (result == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (result.success && result.user?.isAdmin == true) {
+      return const AdminScreen();
+    }
+    return const LoginScreen(adminOnly: true);
   }
 }
 

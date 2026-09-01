@@ -1,0 +1,92 @@
+name: Admin Web Deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+  FLUTTER_VERSION: '3.32.2'
+  FIREBASE_CLI_VERSION: 'latest'
+  WRANGLER_VERSION: 'latest'
+  BUILD_DIR: build/admin_build/web
+  FIREBASE_PROJECT: fit-mall
+  CF_ADMIN_PROJECT: twofit-mall-admin
+
+jobs:
+  deploy-admin-web:
+    name: Build and Deploy Admin Web
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Verify Flutter project
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Build administrator-only Flutter Web
+        run: |
+          flutter build web \
+            --release \
+            --tree-shake-icons \
+            --pwa-strategy=offline-first \
+            --target=lib/main.dart \
+            --dart-define=ADMIN_ONLY=true \
+            --dart-define=BUILD_SHA=${{ github.sha }} \
+            --build-dir=build/admin_build
+          test -f "${BUILD_DIR}/index.html"
+
+      - name: Prepare administrator service worker
+        run: |
+          set -euo pipefail
+          test -f web/firebase-messaging-sw.js
+          cp web/firebase-messaging-sw.js "${BUILD_DIR}/firebase-messaging-sw.js"
+          test -f "${BUILD_DIR}/flutter_service_worker.js"
+          sed -i "s|main\.dart\.js|main.dart.js?v=${{ github.sha }}|g" "${BUILD_DIR}/flutter_service_worker.js"
+          sed -i "s|'flutter-app-cache'|'flutter-app-cache-${{ github.sha }}'|g" "${BUILD_DIR}/flutter_service_worker.js"
+          sed -i "s|'flutter-temp-cache'|'flutter-temp-cache-${{ github.sha }}'|g" "${BUILD_DIR}/flutter_service_worker.js"
+
+      - name: Deploy administrator web to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "${CLOUDFLARE_API_TOKEN}"
+          test -n "${CLOUDFLARE_ACCOUNT_ID}"
+          UPLOAD_DIR="${RUNNER_TEMP}/cloudflare-admin-pages-upload"
+          rm -rf "${UPLOAD_DIR}"
+          mkdir -p "${UPLOAD_DIR}"
+          cp -R "${BUILD_DIR}/." "${UPLOAD_DIR}/"
+          cd "${UPLOAD_DIR}"
+          npx --yes wrangler@${WRANGLER_VERSION} pages deploy \
+            . \
+            --no-bundle \
+            --project-name="${CF_ADMIN_PROJECT}" \
+            --branch=main \
+            --commit-dirty=true \
+            --commit-message="admin-web: ${GITHUB_SHA}"
+
+      - name: Cleanup credentials
+        if: always()
+        run: rm -f functions/.env
