@@ -10,7 +10,7 @@ const { getMessaging } = require('firebase-admin/messaging');
 const { getStorage } = require('firebase-admin/storage');
 const crypto = require('crypto');
 // Custom Token 서명 계정을 명시해 Functions 기본 계정 선택 불일치를 방지합니다.
-const FIREBASE_TOKEN_SIGNER = 'fit-mall@appspot.gserviceaccount.com';
+const FIREBASE_TOKEN_SIGNER = 'firebase-adminsdk-fbsvc@fit-mall.iam.gserviceaccount.com';
 initializeApp({ serviceAccountId: FIREBASE_TOKEN_SIGNER });
 const db = getFirestore();
 
