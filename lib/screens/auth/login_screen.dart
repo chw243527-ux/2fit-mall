@@ -167,10 +167,9 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (_logoTapCount >= 5) {
       _logoTapCount = 0;
+      // 관리자 전용 로그인 모드만 활성화합니다. 계정·비밀번호를 소스에
+      // 자동 입력하거나 자동 로그인하지 않아 일반 계정과 보안을 지킵니다.
       _adminLoginRequested = true;
-      _emailCtrl.text = 'chw243527@gmail.com';
-      _pwCtrl.text = 'Admin2fit2024!';
-      setState(() => _obscurePw = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -190,10 +189,7 @@ class _LoginScreenState extends State<LoginScreen>
           duration: const Duration(seconds: 2),
         ),
       );
-      // 자동입력 후 바로 로그인 실행
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) _login();
-      });
+      // 사용자가 관리자 계정의 실제 이메일과 비밀번호를 입력한 뒤 로그인합니다.
     }
   }
 
