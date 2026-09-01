@@ -549,7 +549,9 @@ exports.exchangeNaverCode = onRequest(
 // Kakao OAuth access token을 서버에서 검증하고 provider Custom Claim을 포함한
 // Firebase Custom Token을 발급합니다. 클라이언트가 provider claim을 직접 만들 수 없게 합니다.
 exports.exchangeKakaoToken = onRequest(
-  { cors: [
+  {
+    serviceAccount: '187081765755-compute@developer.gserviceaccount.com',
+    cors: [
     'https://2fit-mall.co.kr',
     'https://fit-mall.web.app',
     'http://localhost:5000',
