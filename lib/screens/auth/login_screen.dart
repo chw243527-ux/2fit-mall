@@ -177,8 +177,12 @@ class _LoginScreenState extends State<LoginScreen>
         if (!mounted) return;
         _rememberedEmails = savedEmails;
       }
-      if (_rememberedEmails.isNotEmpty && _emailCtrl.text.trim().isEmpty) {
+      if (_rememberedEmails.isNotEmpty) {
+        // 5번 클릭은 관리자 진입 동작이므로 기존 입력값이 있어도
+        // 마지막으로 저장된 이메일을 우선 사용합니다.
         _emailCtrl.text = _rememberedEmails.first;
+        _emailCtrl.selection =
+            TextSelection.collapsed(offset: _emailCtrl.text.length);
         _rememberMe = true;
       }
       if (mounted) {
@@ -223,9 +227,10 @@ class _LoginScreenState extends State<LoginScreen>
     if (result.success && result.user != null) {
       userProv.login(result.user!);
       AnalyticsService.logLogin(method: 'email');
-      // 아이디 저장 처리: 저장을 해제하면 현재 사용자 아이디만 삭제합니다.
+      // 관리자 이메일은 비밀번호가 아닌 식별자이므로, 다음 5번 클릭에서
+      // 사용할 수 있도록 항상 저장합니다. 일반 계정은 기존 설정을 따릅니다.
       final email = _emailCtrl.text.trim();
-      if (_rememberMe) {
+      if (result.user?.isAdmin == true || _rememberMe) {
         await AuthService.saveRememberMe(email);
       } else {
         await AuthService.clearRememberMe(email);
