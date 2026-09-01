@@ -1331,20 +1331,31 @@ class AuthService {
       );
       final payload = jsonDecode(response.body) as Map<String, dynamic>;
       if (response.statusCode < 200 || response.statusCode >= 300) {
+        final serverError = payload['error'] as String?;
         return AuthResult(
           success: false,
-          error: payload['error'] as String? ?? '카카오 계정 인증에 실패했습니다.',
+          error: serverError == null || serverError.isEmpty
+              ? '카카오 인증 서버에서 계정을 확인하지 못했습니다.'
+              : '카카오 인증 서버 오류: $serverError',
         );
       }
       final customToken = payload['customToken'] as String?;
       if (customToken == null || customToken.isEmpty) {
         return const AuthResult(success: false, error: '카카오 인증 토큰을 받지 못했습니다.');
       }
-      userCred = await _auth.signInWithCustomToken(customToken);
+      try {
+        userCred = await _auth.signInWithCustomToken(customToken);
+      } on FirebaseAuthException catch (e) {
+        if (kDebugMode) debugPrint('⚠️ 카카오 Firebase 토큰 로그인 실패: ${e.code}');
+        return AuthResult(
+          success: false,
+          error: '카카오 인증은 완료됐지만 쇼핑몰 로그인에 실패했습니다 (${e.code}).',
+        );
+      }
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 카카오 서버 인증 실패: $e');
       return const AuthResult(
-          success: false, error: '카카오 로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
+          success: false, error: '카카오 인증 서버 연결에 실패했습니다. 다시 시도해주세요.');
     }
 
     final user = userCred.user;
