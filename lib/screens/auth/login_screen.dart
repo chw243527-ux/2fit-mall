@@ -45,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _pwCtrl = TextEditingController();
+  final _pwFocusNode = FocusNode();
   bool _obscurePw = true;
   bool _rememberMe = false;
   List<String> _rememberedEmails = [];
@@ -152,11 +153,12 @@ class _LoginScreenState extends State<LoginScreen>
     _animCtrl.dispose();
     _emailCtrl.dispose();
     _pwCtrl.dispose();
+    _pwFocusNode.dispose();
     super.dispose();
   }
 
-  // 로고 5번 연속 탭 → 관리자 계정 자동 입력 + 즉시 로그인
-  void _handleLogoTap() {
+  // 로고 5번 연속 탭 → 저장된 이메일 자동 입력 + 비밀번호 입력란 이동
+  Future<void> _handleLogoTap() async {
     final now = DateTime.now();
     if (_lastLogoTap != null &&
         now.difference(_lastLogoTap!) > const Duration(seconds: 3)) {
@@ -167,9 +169,21 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (_logoTapCount >= 5) {
       _logoTapCount = 0;
-      // 관리자 전용 로그인 모드만 활성화합니다. 계정·비밀번호를 소스에
-      // 자동 입력하거나 자동 로그인하지 않아 일반 계정과 보안을 지킵니다.
+      // 관리자 계정의 비밀번호는 소스에 저장하지 않습니다.
+      // 저장된 이메일만 자동 입력하고 비밀번호 입력란으로 이동합니다.
       _adminLoginRequested = true;
+      if (_rememberedEmails.isEmpty) {
+        final savedEmails = await AuthService.getRememberedEmails();
+        if (!mounted) return;
+        _rememberedEmails = savedEmails;
+      }
+      if (_rememberedEmails.isNotEmpty && _emailCtrl.text.trim().isEmpty) {
+        _emailCtrl.text = _rememberedEmails.first;
+        _rememberMe = true;
+      }
+      if (mounted) {
+        _pwFocusNode.requestFocus();
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -189,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen>
           duration: const Duration(seconds: 2),
         ),
       );
-      // 사용자가 관리자 계정의 실제 이메일과 비밀번호를 입력한 뒤 로그인합니다.
+      // 사용자는 비밀번호를 직접 입력한 뒤 로그인 버튼을 누릅니다.
     }
   }
 
@@ -324,6 +338,7 @@ class _LoginScreenState extends State<LoginScreen>
                         const SizedBox(height: 6),
                         TextFormField(
                           controller: _pwCtrl,
+                          focusNode: _pwFocusNode,
                           obscureText: _obscurePw,
                           style: const TextStyle(fontSize: 15),
                           decoration: _inputDeco(
