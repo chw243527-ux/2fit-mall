@@ -821,9 +821,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               decoration: InputDecoration(
                                 hintText: 'example@email.com',
                                 hintStyle: TextStyle(
-                                    fontSize: 13, color: Colors.grey.shade400),
+                                    fontSize: 13, color: Colors.grey.shade600),
                                 prefixIcon: Icon(Icons.email_outlined,
-                                    size: 18, color: Colors.grey.shade400),
+                                    size: 18, color: AppColors.primary.withValues(alpha: 0.55)),
                                 suffixIcon: _emailAvailable == true
                                     ? const Icon(Icons.check_circle,
                                         color: AppColors.success, size: 20)
@@ -832,10 +832,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             color: AppColors.error, size: 20)
                                         : null,
                                 filled: true,
-                                fillColor: AppColors.surfaceGray,
+                                fillColor: const Color(0xFFF2F3F7),
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14),
-                                    borderSide: BorderSide.none),
+                                    borderSide: const BorderSide(color: Color(0xFFD7D9E2))),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
                                   borderSide: _emailAvailable == true
@@ -994,7 +994,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             ? '90-0000-0000'
                                             : 'Phone number',
                                 hintStyle: TextStyle(
-                                    fontSize: 13, color: Colors.grey.shade400),
+                                    fontSize: 13, color: Colors.grey.shade600),
                                 suffixIcon: _phoneVerified
                                     ? const Icon(Icons.check_circle,
                                         color: AppColors.success, size: 20)
@@ -1002,10 +1002,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 filled: true,
                                 fillColor: _phoneVerified
                                     ? AppColors.success.withValues(alpha: 0.05)
-                                    : AppColors.surfaceGray,
+                                    : const Color(0xFFF2F3F7),
                                 border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(14),
-                                    borderSide: BorderSide.none),
+                                    borderSide: const BorderSide(color: Color(0xFFD7D9E2))),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(14),
                                   borderSide: _phoneVerified
