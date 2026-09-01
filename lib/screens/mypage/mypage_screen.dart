@@ -21,6 +21,7 @@ import '../../services/email_service.dart';
 import '../../services/wishlist_coupon_service.dart';
 import '../../services/point_service.dart';
 import '../../utils/theme.dart';
+import '../../widgets/design_revision_countdown.dart';
 // order_excel_service: 마이페이지 엑셀 기능 제거 — 관리자 대시보드에서만 관리
 import '../../utils/web_utils.dart'
     if (dart.library.html) '../../utils/web_utils_html.dart';
@@ -1549,6 +1550,16 @@ class _PcOrderCard extends StatelessWidget {
               ),
             ),
           ),
+          if (order.isGroupOrder && order.activeDesignRevisionDeadline != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              child: DesignRevisionCountdown(
+                deadline: order.activeDesignRevisionDeadline,
+                revisionCount: order.designRevisionCount,
+                compact: true,
+              ),
+            ),
+          ],
           // ── 버튼 행 (네이버 스타일) ──
           Container(height: 1, color: Colors.grey[100]),
           Padding(
@@ -3856,6 +3867,16 @@ class _MobileOrderCard extends StatelessWidget {
               ),
             ),
           ),
+          if (order.isGroupOrder && order.activeDesignRevisionDeadline != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+              child: DesignRevisionCountdown(
+                deadline: order.activeDesignRevisionDeadline,
+                revisionCount: order.designRevisionCount,
+                compact: true,
+              ),
+            ),
+          ],
           // ── 액션 버튼 구분선 ──
           Container(height: 1, color: Colors.grey[100]),
           // ── 버튼 행 (네이버 스타일: 항상 노출) ──
@@ -4714,6 +4735,17 @@ class _MobileSettingsTab extends StatelessWidget {
                 title: loc.mypageDeleteAccount,
                 onTap: () => onShowDeleteAccount(context, userProvider),
                 color: AppColors.error),
+          if (user?.isAdmin == true)
+            _MobileSettingItem(
+              icon: Icons.admin_panel_settings_rounded,
+              title: context.loc.t('관리자_페이지', '관리자 페이지'),
+              subtitle: context.loc.t('관리자_대시보드_관리', '상품·주문·회원 관리 대시보드'),
+              color: AppColors.error,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AdminScreen()),
+              ),
+            ),
         ]),
         const SizedBox(height: 40),
         // ── 관리자 전용: 테스트 데이터 생성 ──
@@ -4872,10 +4904,20 @@ class _MobileSettingItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, size: 16, color: c),
       ),
-      title: Text(title, style: TextStyle(fontSize: 14, color: c)),
+      isThreeLine: subtitle != null,
+      title: Text(
+        title,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 14, color: c),
+      ),
       subtitle: subtitle != null
-          ? Text(subtitle!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey))
+          ? Text(
+              subtitle!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            )
           : null,
       trailing: trailing ??
           (onTap != null
@@ -6000,6 +6042,13 @@ Future<void> _showUserOrderDetail(
                           context.loc.t('배송지', '배송지'),
                           o.userAddress.isNotEmpty ? o.userAddress : '-'),
                     ]),
+                    if (o.isGroupOrder && o.activeDesignRevisionDeadline != null) ...[
+                      const SizedBox(height: 14),
+                      DesignRevisionCountdown(
+                        deadline: o.activeDesignRevisionDeadline,
+                        revisionCount: o.designRevisionCount,
+                      ),
+                    ],
                     const SizedBox(height: 14),
 
                     // 주문 상품
