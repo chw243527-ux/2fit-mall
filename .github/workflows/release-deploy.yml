@@ -162,7 +162,17 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/firebase-service-account.json" >> "${GITHUB_ENV}"
 
       - name: Deploy Firebase Rules and Functions
+        env:
+          KAKAO_GROUP_ORDER_TEMPLATE_ID: ${{ secrets.KAKAO_GROUP_ORDER_TEMPLATE_ID }}
+          RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
         run: |
+          set -euo pipefail
+          test -n "${KAKAO_GROUP_ORDER_TEMPLATE_ID}" || { echo "KAKAO_GROUP_ORDER_TEMPLATE_ID Secret이 없습니다."; exit 1; }
+          test -n "${RESEND_FROM_EMAIL}" || { echo "RESEND_FROM_EMAIL Secret이 없습니다."; exit 1; }
+          umask 077
+          printf 'KAKAO_GROUP_ORDER_TEMPLATE_ID=%s\nRESEND_FROM_EMAIL=%s\n' \
+            "${KAKAO_GROUP_ORDER_TEMPLATE_ID}" "${RESEND_FROM_EMAIL}" > functions/.env
+          trap 'rm -f functions/.env' EXIT
           firebase deploy \
             --only firestore:rules,storage,functions \
             --project "${FIREBASE_PROJECT}" \
