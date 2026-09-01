@@ -119,7 +119,13 @@ jobs:
           set -euo pipefail
           test -n "${CLOUDFLARE_API_TOKEN}"
           test -n "${CLOUDFLARE_ACCOUNT_ID}"
-          npx --yes wrangler@${WRANGLER_VERSION} pages deploy "${BUILD_DIR}" \
+          UPLOAD_DIR="${RUNNER_TEMP}/cloudflare-pages-upload"
+          rm -rf "${UPLOAD_DIR}"
+          mkdir -p "${UPLOAD_DIR}"
+          cp -R "${BUILD_DIR}/." "${UPLOAD_DIR}/"
+          cd "${UPLOAD_DIR}"
+          npx --yes wrangler@${WRANGLER_VERSION} pages deploy \
+            . \
             --no-bundle \
             --project-name="${CF_PROJECT}" \
             --branch=main \
