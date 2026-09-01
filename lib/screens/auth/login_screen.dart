@@ -235,13 +235,11 @@ class _LoginScreenState extends State<LoginScreen>
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 56),
-                        // ── 로고 (5번 탭 → 관리자 자동 입력) ──
+                        // ── 로고 ──
                         Center(
                           child: Column(
                             children: [
-                              GestureDetector(
-                                onTap: _handleLogoTap,
-                                child: Image.asset(
+                              Image.asset(
                                   'assets/images/2fit_logo.png',
                                   width: 200,
                                   height: 80,
@@ -507,9 +505,8 @@ class _LoginScreenState extends State<LoginScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      GestureDetector(
-                        onTap: _handleLogoTap,
-                        child: Image.asset(
+                                                Image.asset(
+
                           'assets/images/logo_2fit_white.png',
                           width: 180,
                           height: 70,
