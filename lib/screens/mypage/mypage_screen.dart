@@ -4904,10 +4904,20 @@ class _MobileSettingItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, size: 16, color: c),
       ),
-      title: Text(title, style: TextStyle(fontSize: 14, color: c)),
+      isThreeLine: subtitle != null,
+      title: Text(
+        title,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 14, color: c),
+      ),
       subtitle: subtitle != null
-          ? Text(subtitle!,
-              style: const TextStyle(fontSize: 11, color: Colors.grey))
+          ? Text(
+              subtitle!,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            )
           : null,
       trailing: trailing ??
           (onTap != null
