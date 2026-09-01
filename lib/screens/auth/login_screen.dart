@@ -34,7 +34,9 @@ class _LoginScreenState extends State<LoginScreen>
 
   Widget _targetAfterLogin({bool isAdmin = false}) {
     if (widget.adminOnly) {
-      return isAdmin ? const AdminScreen() : const LoginScreen(adminOnly: true);
+      return isAdmin
+          ? const AdminScreen(adminOnly: true)
+          : const LoginScreen(adminOnly: true);
     }
     switch (widget.redirectPath) {
       case '/mypage':
@@ -44,7 +46,9 @@ class _LoginScreenState extends State<LoginScreen>
       case '/notifications':
         return const NotificationCenterScreen();
       case '/admin':
-        return isAdmin ? const AdminScreen() : const MainScreen();
+        return isAdmin
+            ? const AdminScreen(adminOnly: true)
+            : const MainScreen();
       default:
         // 관리자 권한이 확인된 계정은 로그인 직후 관리자 대시보드로 이동합니다.
         return isAdmin ? const AdminScreen() : const MainScreen();

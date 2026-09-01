@@ -356,10 +356,11 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
                 settings: settings,
               );
             case '/admin':
-              // 관리자 화면은 딥링크로 직접 생성하지 않습니다.
-              // 관리자 로그인 후의 진입은 Splash의 Custom Claim 검사 경로만 사용합니다.
               return MaterialPageRoute(
-                builder: (_) => const LoginScreen(),
+                builder: (_) => const LoginScreen(
+                  redirectPath: '/admin',
+                  adminOnly: true,
+                ),
                 settings: settings,
               );
             // 토스페이먼츠 결제 성공 콜백

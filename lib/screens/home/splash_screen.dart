@@ -293,7 +293,10 @@ class _SplashScreenState extends State<SplashScreen>
             else if (tab == 'products')
               initialTab = 2;
             else if (tab == 'users') initialTab = 3;
-            target = AdminScreen(initialTab: initialTab);
+            target = AdminScreen(
+              initialTab: initialTab,
+              adminOnly: true,
+            );
           } else {
             // /admin에서 로그인하면 로그인 성공 후 관리자 대시보드로 이동하도록
             // redirectPath를 반드시 유지합니다. 일반 계정은 LoginScreen에서 차단합니다.

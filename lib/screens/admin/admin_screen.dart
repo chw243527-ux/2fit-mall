@@ -50,7 +50,12 @@ import 'dart:io';
 
 class AdminScreen extends StatefulWidget {
   final int initialTab;
-  const AdminScreen({super.key, this.initialTab = 0});
+  final bool adminOnly;
+  const AdminScreen({
+    super.key,
+    this.initialTab = 0,
+    this.adminOnly = false,
+  });
 
   @override
   State<AdminScreen> createState() => _AdminScreenState();
@@ -362,6 +367,26 @@ class _AdminScreenState extends State<AdminScreen>
         );
       });
     }
+  }
+
+  Future<void> _handleAdminExit() async {
+    if (!widget.adminOnly) {
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      } else {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (r) => false,
+        );
+      }
+      return;
+    }
+    await AuthService.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen(adminOnly: true)),
+      (r) => false,
+    );
   }
 
   // 브라우저 알림 권한 요청 — 관리자 로그인 직후 1회
@@ -1141,20 +1166,11 @@ class _AdminScreenState extends State<AdminScreen>
                           ),
                           icon: const Icon(Icons.arrow_back_ios_new_rounded,
                               size: 14, color: Colors.white70),
-                          label: Text('홈으로 돌아가기',
-                              style: TextStyle(
+                          label: Text(
+                              widget.adminOnly ? '관리자 로그인으로 돌아가기' : '홈으로 돌아가기',
+                              style: const TextStyle(
                                   fontSize: 11, color: Colors.white70)),
-                          onPressed: () {
-                            if (Navigator.canPop(context)) {
-                              Navigator.pop(context);
-                            } else {
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                    builder: (_) => const HomeScreen()),
-                                (r) => false,
-                              );
-                            }
-                          },
+                          onPressed: _handleAdminExit,
                         ),
                       ),
                       const SizedBox(height: 6),
