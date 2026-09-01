@@ -850,9 +850,7 @@ class AuthService {
       if (doc.exists) {
         final data = doc.data()!;
         final emailKey = (data['email'] as String?) ?? email;
-        final claimIsAdmin = await _hasAdminClaim(forceRefresh: forceRefreshAdminClaim);
-        final profileIsAdmin = data['isAdmin'] == true;
-        final isAdmin = claimIsAdmin || profileIsAdmin;
+        final isAdmin = await _hasAdminClaim(forceRefresh: forceRefreshAdminClaim);
         return UserModel(
           id: uid,
           name: (data['name'] as String?) ?? '회원',
