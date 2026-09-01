@@ -592,8 +592,11 @@ exports.exchangeKakaoToken = onRequest(
       });
       res.json({ customToken, email, name, photoUrl, kakaoId });
     } catch (error) {
-      console.error('exchangeKakaoToken error:', error.message);
-      res.status(500).json({ error: 'Kakao login failed' });
+      const errorCode = String(error?.code || error?.name || 'internal-error');
+      console.error('exchangeKakaoToken error:', errorCode, error?.message || error);
+      res.status(500).json({
+        error: `Kakao login failed (${errorCode})`,
+      });
     }
   }
 );
