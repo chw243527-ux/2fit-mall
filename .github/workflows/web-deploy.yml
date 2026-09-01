@@ -77,6 +77,9 @@ jobs:
       - name: Grant Firebase Custom Token signing permission
         run: |
           set -euo pipefail
+          gcloud auth activate-service-account \
+            --key-file="${GOOGLE_APPLICATION_CREDENTIALS}" \
+            --quiet
           # Functions v2 기본 런타임 계정과 기존 App Engine 계정에만
           # Custom Token 서명에 필요한 최소 권한을 부여합니다.
           for service_account in \
