@@ -245,7 +245,6 @@ class _LoginScreenState extends State<LoginScreen>
                                   height: 80,
                                   fit: BoxFit.contain,
                                 ),
-                              ),
                               const SizedBox(height: 16),
                               // ── 언어 선택 버튼 ──
                               const LanguageSelectorWidget(),
@@ -505,13 +504,11 @@ class _LoginScreenState extends State<LoginScreen>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                                                Image.asset(
-
-                          'assets/images/logo_2fit_white.png',
+                      Image.asset(
+                        'assets/images/logo_2fit_white.png',
                           width: 180,
                           height: 70,
                           fit: BoxFit.contain,
-                        ),
                       ),
                       const SizedBox(height: 24),
                       const Text('2FIT MALL',
