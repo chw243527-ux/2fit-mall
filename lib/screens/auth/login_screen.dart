@@ -154,9 +154,6 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  // 로고 탭은 장식용이며 인증정보나 관리자 진입 경로로 사용하지 않습니다.
-  void _handleLogoTap() {}
-
   Future<void> _login() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final userProv = context.read<UserProvider>();
@@ -173,10 +170,8 @@ class _LoginScreenState extends State<LoginScreen>
     if (result.success && result.user != null) {
       userProv.login(result.user!);
       AnalyticsService.logLogin(method: 'email');
-      // 관리자 이메일은 비밀번호가 아닌 식별자이므로, 다음 5번 클릭에서
-      // 사용할 수 있도록 항상 저장합니다. 일반 계정은 기존 설정을 따릅니다.
       final email = _emailCtrl.text.trim();
-      if (result.user?.isAdmin == true || _rememberMe) {
+      if (_rememberMe) {
         await AuthService.saveRememberMe(email);
       } else {
         await AuthService.clearRememberMe(email);
