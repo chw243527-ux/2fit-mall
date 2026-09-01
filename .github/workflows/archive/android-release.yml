@@ -56,8 +56,8 @@ jobs:
       - name: Build signed Android App Bundle
         run: |
           flutter build appbundle --release \
-            --build-number=${{ github.run_number }} \
-            --build-name=1.0.${{ github.run_number }}
+            --build-number=11 \
+            --build-name=1.0.20
 
       - name: Upload Android App Bundle
         uses: actions/upload-artifact@v7
