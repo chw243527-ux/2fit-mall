@@ -382,8 +382,11 @@ exports.ensureOwnerAdminClaim = onRequest(async (req, res) => {
   try {
     const decoded = await getAuth().verifyIdToken(match[1]);
     const email = String(decoded.email || '').trim().toLowerCase();
-    if (email !== OWNER_ADMIN_EMAIL || decoded.email_verified !== true) {
-      res.status(403).json({ error: 'Owner admin account required' });
+    const profileSnap = await db.collection('users').doc(decoded.uid).get();
+    const profileIsAdmin = profileSnap.exists && profileSnap.data()?.isAdmin === true;
+    const ownerIsVerified = email === OWNER_ADMIN_EMAIL && decoded.email_verified === true;
+    if (!profileIsAdmin && !ownerIsVerified) {
+      res.status(403).json({ error: 'Admin account required' });
       return;
     }
     const account = await getAuth().getUser(decoded.uid);
