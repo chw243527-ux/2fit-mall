@@ -553,6 +553,8 @@ class AuthService {
       );
 
       final uid = credential.user!.uid;
+      // 소유자 관리자 계정의 claim이 누락된 경우 서버에서 복구합니다.
+      await _ensureOwnerAdminClaim(credential.user!);
       // 관리자 custom claim은 로그인 직후 강제 갱신해야 새로 부여된 권한이 반영됩니다.
       final user = await _loadUser(uid, emailKey, forceRefreshAdminClaim: true);
       if (user == null) {
@@ -568,6 +570,26 @@ class AuthService {
       if (kDebugMode) debugPrint('⚠️ 로그인 예외: $e');
       return const AuthResult(
           success: false, error: '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+  }
+
+  static Future<void> _ensureOwnerAdminClaim(User firebaseUser) async {
+    try {
+      final idToken = await firebaseUser.getIdToken();
+      if (idToken == null || idToken.isEmpty) return;
+      final response = await http.post(
+        Uri.parse('https://us-central1-fit-mall.cloudfunctions.net/ensureOwnerAdminClaim'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $idToken',
+        },
+        body: jsonEncode({}),
+      );
+      if (response.statusCode == 200) {
+        await firebaseUser.getIdToken(true);
+      }
+    } catch (e) {
+      if (kDebugMode) debugPrint('관리자 권한 확인 생략: $e');
     }
   }
 

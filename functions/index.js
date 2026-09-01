@@ -364,6 +364,40 @@ exports.expireUserPointsDaily = onSchedule('every day 03:10', async () => {
 // ══════════════════════════════════════════════════════
 // HTTP 관리자 인증
 // ══════════════════════════════════════════════════════
+// 관리자 계정의 Custom Claim을 복구할 수 있는 단일 소유자 이메일입니다.
+// 실제 권한 부여는 서버에서 검증된 Firebase ID 토큰과 이메일 인증 상태를 함께 확인합니다.
+const OWNER_ADMIN_EMAIL = 'chw243527@gmail.com';
+
+exports.ensureOwnerAdminClaim = onRequest(async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method Not Allowed' });
+    return;
+  }
+  const header = req.get('authorization') || '';
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  if (!match) {
+    res.status(401).json({ error: 'Missing Firebase ID token' });
+    return;
+  }
+  try {
+    const decoded = await getAuth().verifyIdToken(match[1]);
+    const email = String(decoded.email || '').trim().toLowerCase();
+    if (email !== OWNER_ADMIN_EMAIL || decoded.email_verified !== true) {
+      res.status(403).json({ error: 'Owner admin account required' });
+      return;
+    }
+    const account = await getAuth().getUser(decoded.uid);
+    await getAuth().setCustomUserClaims(decoded.uid, {
+      ...(account.customClaims || {}),
+      admin: true,
+    });
+    res.json({ success: true });
+  } catch (e) {
+    console.error('ensureOwnerAdminClaim error:', e);
+    res.status(401).json({ error: 'Unable to verify administrator account' });
+  }
+});
+
 async function requireAdmin(req, res) {
   const header = req.get('authorization') || '';
   const match = header.match(/^Bearer\s+(.+)$/i);
