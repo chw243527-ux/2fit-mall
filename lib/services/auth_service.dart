@@ -832,7 +832,7 @@ class AuthService {
       final firebaseUser = _auth.currentUser;
       if (firebaseUser == null) return false;
       final token = await firebaseUser.getIdTokenResult(forceRefresh);
-      return token.claims?['admin'] == true;
+      return token.claims?['isAdmin'] == true || token.claims?['admin'] == true;
     } catch (_) {
       return false;
     }
@@ -850,7 +850,9 @@ class AuthService {
       if (doc.exists) {
         final data = doc.data()!;
         final emailKey = (data['email'] as String?) ?? email;
-        final isAdmin = await _hasAdminClaim(forceRefresh: forceRefreshAdminClaim);
+        final isAdmin =
+            data['isAdmin'] == true ||
+            await _hasAdminClaim(forceRefresh: forceRefreshAdminClaim);
         return UserModel(
           id: uid,
           name: (data['name'] as String?) ?? '회원',
