@@ -49,9 +49,6 @@ class _LoginScreenState extends State<LoginScreen>
   bool _obscurePw = true;
   bool _rememberMe = false;
   List<String> _rememberedEmails = [];
-  int _logoTapCount = 0;
-  DateTime? _lastLogoTap;
-  bool _adminLoginRequested = false;
 
   late AnimationController _animCtrl;
   late Animation<double> _fadeAnim;
@@ -157,59 +154,8 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  // 로고 5번 연속 탭 → 저장된 이메일 자동 입력 + 비밀번호 입력란 이동
-  Future<void> _handleLogoTap() async {
-    final now = DateTime.now();
-    if (_lastLogoTap != null &&
-        now.difference(_lastLogoTap!) > const Duration(seconds: 3)) {
-      _logoTapCount = 0;
-    }
-    _lastLogoTap = now;
-    _logoTapCount++;
-
-    if (_logoTapCount >= 5) {
-      _logoTapCount = 0;
-      // 관리자 계정의 비밀번호는 소스에 저장하지 않습니다.
-      // 저장된 이메일만 자동 입력하고 비밀번호 입력란으로 이동합니다.
-      _adminLoginRequested = true;
-      if (_rememberedEmails.isEmpty) {
-        final savedEmails = await AuthService.getRememberedEmails();
-        if (!mounted) return;
-        _rememberedEmails = savedEmails;
-      }
-      if (_rememberedEmails.isNotEmpty) {
-        // 5번 클릭은 관리자 진입 동작이므로 기존 입력값이 있어도
-        // 마지막으로 저장된 이메일을 우선 사용합니다.
-        _emailCtrl.text = _rememberedEmails.first;
-        _emailCtrl.selection =
-            TextSelection.collapsed(offset: _emailCtrl.text.length);
-        _rememberMe = true;
-      }
-      if (mounted) {
-        _pwFocusNode.requestFocus();
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.admin_panel_settings_rounded,
-                  color: Colors.white, size: 18),
-              const SizedBox(width: 8),
-              Text(context.read<LanguageProvider>().loc.loginAdminEntered,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, color: Colors.white)),
-            ],
-          ),
-          backgroundColor: AppColors.primary,
-          behavior: SnackBarBehavior.floating,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      // 사용자는 비밀번호를 직접 입력한 뒤 로그인 버튼을 누릅니다.
-    }
-  }
+  // 로고 탭은 장식용이며 인증정보나 관리자 진입 경로로 사용하지 않습니다.
+  void _handleLogoTap() {}
 
   Future<void> _login() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
@@ -238,10 +184,8 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
       _rememberedEmails = await AuthService.getRememberedEmails();
       if (!mounted) return;
-      final destination = _adminLoginRequested && result.user?.isAdmin == true
-          ? const AdminScreen()
-          : _targetAfterLogin(isAdmin: result.user?.isAdmin == true);
-      _adminLoginRequested = false;
+      final destination =
+          _targetAfterLogin(isAdmin: result.user?.isAdmin == true);
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (_, __, ___) => destination,
