@@ -38,8 +38,8 @@ class _LoginScreenState extends State<LoginScreen>
       case '/admin':
         return isAdmin ? const AdminScreen() : const MainScreen();
       default:
-        // 기본 로그인은 기존 고객 화면으로 이동하고, 관리자에게는 마이페이지의 관리자 페이지 버튼을 제공합니다.
-        return const MainScreen();
+        // 관리자 권한이 확인된 계정은 로그인 직후 관리자 대시보드로 이동합니다.
+        return isAdmin ? const AdminScreen() : const MainScreen();
     }
   }
   final _formKey = GlobalKey<FormState>();
@@ -50,6 +50,7 @@ class _LoginScreenState extends State<LoginScreen>
   List<String> _rememberedEmails = [];
   int _logoTapCount = 0;
   DateTime? _lastLogoTap;
+  bool _adminLoginRequested = false;
 
   late AnimationController _animCtrl;
   late Animation<double> _fadeAnim;
@@ -166,6 +167,7 @@ class _LoginScreenState extends State<LoginScreen>
 
     if (_logoTapCount >= 5) {
       _logoTapCount = 0;
+      _adminLoginRequested = true;
       _emailCtrl.text = 'chw243527@gmail.com';
       _pwCtrl.text = 'Admin2fit2024!';
       setState(() => _obscurePw = false);
@@ -221,9 +223,13 @@ class _LoginScreenState extends State<LoginScreen>
       if (!mounted) return;
       _rememberedEmails = await AuthService.getRememberedEmails();
       if (!mounted) return;
+      final destination = _adminLoginRequested && result.user?.isAdmin == true
+          ? const AdminScreen()
+          : _targetAfterLogin(isAdmin: result.user?.isAdmin == true);
+      _adminLoginRequested = false;
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
-          pageBuilder: (_, __, ___) => _targetAfterLogin(isAdmin: result.user?.isAdmin == true),
+          pageBuilder: (_, __, ___) => destination,
           transitionsBuilder: (_, a, __, child) =>
               FadeTransition(opacity: a, child: child),
           transitionDuration: const Duration(milliseconds: 400),
