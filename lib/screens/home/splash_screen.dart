@@ -97,6 +97,7 @@ class _SplashScreenState extends State<SplashScreen>
           '/login',
           '/payment/success',
           '/payment/fail',
+          '/admin',
         };
         if (publicPathRoutes.contains(pathname)) {
           deepLink = _DeepLink(pathname, query, requiresAuth: false);
@@ -285,6 +286,13 @@ class _SplashScreenState extends State<SplashScreen>
           target = const SignUpScreen();
           break;
         case '/admin':
+          if (isLoggedIn && !isAdmin) {
+            // 고객용 세션이 관리자 주소에 남아 있으면 관리자 로그인 전에 정리합니다.
+            AuthService.logout().whenComplete(() {
+              if (mounted) _goToLoginWithRedirect(link);
+            });
+            return;
+          }
           if (isLoggedIn && isAdmin) {
             final tab = link.query['tab'];
             int initialTab = 0;
