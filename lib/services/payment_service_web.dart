@@ -21,12 +21,12 @@ import 'package:http/http.dart' as http;
 
 // ─── 🔑 키 설정 ────────────────────────────────────────────────
 class TossConfig {
-  static const clientKey = 'test_gck_ORzdMaqN3wyZjLgO7ozbr5AkYXQG';
+  static const clientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
   static const secretKey = ''; // 앱에서 직접 사용 안 함 — CF Pages Function 전용
 
   // ── 간편결제 클라이언트 키 (카카오페이·네이버페이·토스페이) ──
   // 결제위젯 연동 키를 사용하며, gck 키는 위젯에서 지원되는 클라이언트 키입니다.
-  static const easyPayClientKey = 'test_gck_ORzdMaqN3wyZjLgO7ozbr5AkYXQG';
+  static const easyPayClientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
 
   // ── Cloudflare Pages Function URL ───────────────────────────
   static const confirmEdgeFunctionUrl =

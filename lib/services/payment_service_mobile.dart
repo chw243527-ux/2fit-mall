@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class TossConfig {
-  static const clientKey = 'test_ck_ORzdMaqN3wyZjLgO7ozbr5AkYXQG';
+  static const clientKey = 'live_ck_kYG57Eba3GbJ4WOYa1vE8pWDOxmA';
   static const secretKey = '';
-  static const easyPayClientKey = 'test_gck_ORzdMaqN3wyZjLgO7ozbr5AkYXQG';
+  static const easyPayClientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
   static const confirmEdgeFunctionUrl = 'https://2fit-mall.co.kr/api/confirm-payment';
   static const cashReceiptEdgeFunctionUrl = 'https://2fit-mall.co.kr/api/issue-cash-receipt';
   static bool get useEdgeFunction => confirmEdgeFunctionUrl.isNotEmpty;
