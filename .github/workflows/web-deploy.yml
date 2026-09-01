@@ -74,24 +74,6 @@ jobs:
           printf '%s' "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" > "${RUNNER_TEMP}/firebase-service-account.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/firebase-service-account.json" >> "${GITHUB_ENV}"
 
-      - name: Grant Firebase Custom Token signing permission
-        run: |
-          set -euo pipefail
-          gcloud auth activate-service-account \
-            --key-file="${GOOGLE_APPLICATION_CREDENTIALS}" \
-            --quiet
-          # Functions v2 기본 런타임 계정과 기존 App Engine 계정에만
-          # Custom Token 서명에 필요한 최소 권한을 부여합니다.
-          for service_account in \
-            "187081765755-compute@developer.gserviceaccount.com" \
-            "fit-mall@appspot.gserviceaccount.com"; do
-            gcloud iam service-accounts add-iam-policy-binding "${service_account}" \
-              --project="${FIREBASE_PROJECT}" \
-              --member="serviceAccount:${service_account}" \
-              --role="roles/iam.serviceAccountTokenCreator" \
-              --quiet
-          done
-
       - name: Deploy Firebase Rules and Functions
         env:
           KAKAO_GROUP_ORDER_TEMPLATE_ID: ${{ secrets.KAKAO_GROUP_ORDER_TEMPLATE_ID }}
