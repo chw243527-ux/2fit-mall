@@ -1,0 +1,145 @@
+name: Web Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-deploy-main
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.32.2'
+  NODE_VERSION: '22.x'
+  FIREBASE_CLI_VERSION: 'latest'
+  WRANGLER_VERSION: 'latest'
+  BUILD_DIR: build/web
+  FIREBASE_PROJECT: fit-mall
+  CF_PROJECT: twofit-mall
+
+jobs:
+  deploy-web:
+    name: Deploy Firebase and Web
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Verify Flutter project
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Install Firebase CLI and Functions dependencies
+        run: |
+          npm install --global firebase-tools@${FIREBASE_CLI_VERSION}
+          npm ci --prefix functions
+
+      - name: Verify Firebase configuration
+        run: |
+          test -f firestore.rules
+          test -f storage.rules
+          test -f firebase.json
+          test -f .firebaserc
+
+      - name: Authenticate Firebase
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+        run: |
+          set -euo pipefail
+          test -n "${GOOGLE_APPLICATION_CREDENTIALS_JSON}"
+          umask 077
+          printf '%s' "${GOOGLE_APPLICATION_CREDENTIALS_JSON}" > "${RUNNER_TEMP}/firebase-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/firebase-service-account.json" >> "${GITHUB_ENV}"
+
+      - name: Deploy Firebase Rules and Functions
+        env:
+          KAKAO_GROUP_ORDER_TEMPLATE_ID: ${{ secrets.KAKAO_GROUP_ORDER_TEMPLATE_ID }}
+          RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
+        run: |
+          set -euo pipefail
+          test -n "${KAKAO_GROUP_ORDER_TEMPLATE_ID}"
+          test -n "${RESEND_FROM_EMAIL}"
+          umask 077
+          printf 'KAKAO_GROUP_ORDER_TEMPLATE_ID=%s\nRESEND_FROM_EMAIL=%s\n' \
+            "${KAKAO_GROUP_ORDER_TEMPLATE_ID}" "${RESEND_FROM_EMAIL}" > functions/.env
+          trap 'rm -f functions/.env' EXIT
+          firebase deploy \
+            --only firestore:rules,storage,functions \
+            --project "${FIREBASE_PROJECT}" \
+            --non-interactive \
+            --force
+
+      - name: Build Flutter Web
+        run: |
+          flutter build web \
+            --release \
+            --tree-shake-icons \
+            --pwa-strategy=offline-first \
+            --dart-define=BUILD_SHA=${{ github.sha }}
+
+      - name: Prepare web service worker
+        run: |
+          set -euo pipefail
+          test -f web/firebase-messaging-sw.js
+          cp web/firebase-messaging-sw.js "${BUILD_DIR}/firebase-messaging-sw.js"
+          test -f "${BUILD_DIR}/index.html"
+          test -f "${BUILD_DIR}/flutter_service_worker.js"
+          sed -i "s|main\.dart\.js|main.dart.js?v=${{ github.sha }}|g" "${BUILD_DIR}/flutter_service_worker.js"
+          sed -i "s|'flutter-app-cache'|'flutter-app-cache-${{ github.sha }}'|g" "${BUILD_DIR}/flutter_service_worker.js"
+          sed -i "s|'flutter-temp-cache'|'flutter-temp-cache-${{ github.sha }}'|g" "${BUILD_DIR}/flutter_service_worker.js"
+
+      - name: Deploy Flutter Web to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "${CLOUDFLARE_API_TOKEN}"
+          test -n "${CLOUDFLARE_ACCOUNT_ID}"
+          npx --yes wrangler@${WRANGLER_VERSION} pages deploy "${BUILD_DIR}" \
+            --no-bundle \
+            --project-name="${CF_PROJECT}" \
+            --branch=main \
+            --commit-dirty=true \
+            --commit-message="web: ${GITHUB_SHA}"
+
+      - name: Purge Cloudflare cache
+        if: success()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_ZONE_ID}" ]; then exit 0; fi
+          curl --fail-with-body -sS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
+
+      - name: Cleanup credentials
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/firebase-service-account.json" functions/.env
