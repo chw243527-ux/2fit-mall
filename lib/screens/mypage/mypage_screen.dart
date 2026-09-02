@@ -5017,6 +5017,7 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
   late TextEditingController _nicknameCtrl;
   late TextEditingController _phoneCtrl;
   late TextEditingController _phoneOtpCtrl;
+  late FocusNode _phoneOtpFocusNode;
   String? _phoneVerificationId;
   bool _phoneVerified = true;
   bool _phoneSending = false;
@@ -5056,6 +5057,13 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
     setState(() {
       _phoneSending = false;
       _phoneVerificationId = result['verificationId'] as String?;
+      if (result['status'] == 'code_sent' || result['status'] == 'timeout') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _phoneVerificationId != null) {
+            _phoneOtpFocusNode.requestFocus();
+          }
+        });
+      }
       if (result['status'] == 'auto_verified') {
         _phoneVerified = true;
       }
@@ -5109,8 +5117,9 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.user.name);
     _nicknameCtrl = TextEditingController(text: widget.user.nickname);
-        _phoneCtrl = TextEditingController(text: widget.user.phone);
+    _phoneCtrl = TextEditingController(text: widget.user.phone);
     _phoneOtpCtrl = TextEditingController();
+    _phoneOtpFocusNode = FocusNode();
   }
   @override
   void dispose() {
@@ -5118,6 +5127,7 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
     _nicknameCtrl.dispose();
     _phoneCtrl.dispose();
     _phoneOtpCtrl.dispose();
+    _phoneOtpFocusNode.dispose();
     super.dispose();
   }
 
@@ -5191,7 +5201,12 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                 Expanded(
                   child: TextField(
                     controller: _phoneOtpCtrl,
-                    keyboardType: TextInputType.number,
+                    focusNode: _phoneOtpFocusNode,
+                    autofocus: true,
+                    enabled: true,
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: false, signed: false),
+                    textInputAction: TextInputAction.done,
                     maxLength: 6,
                     decoration: InputDecoration(
                       labelText: '인증번호 6자리',

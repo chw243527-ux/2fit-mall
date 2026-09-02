@@ -121,6 +121,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // ignore: unused_field
   int? _resendToken; // 재발송 토큰 (향후 재발송 최적화에 사용)
   final _otpCtrl = TextEditingController();
+  final _otpFocusNode = FocusNode();
   Timer? _otpTimer; // OTP 만료 카운트다운
   int _otpRemaining = 0; // 남은 초 (60초)
   bool _otpSent = false; // OTP 발송 완료 여부
@@ -149,6 +150,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
     _otpCtrl.dispose();
+    _otpFocusNode.dispose();
     _blockTimer?.cancel();
     _otpTimer?.cancel();
     super.dispose();
@@ -348,6 +350,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() {
         _otpSent = true;
         _otpRemaining = 60;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _otpSent && !_phoneVerified) {
+          _otpFocusNode.requestFocus();
+        }
       });
       _startOtpTimer();
       _showSnack(
@@ -1155,7 +1162,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 Expanded(
                                   child: TextFormField(
                                     controller: _otpCtrl,
-                                    keyboardType: TextInputType.number,
+                                    focusNode: _otpFocusNode,
+                                    autofocus: true,
+                                    enabled: true,
+                                    keyboardType: const TextInputType.numberWithOptions(
+                                        decimal: false, signed: false),
+                                    textInputAction: TextInputAction.done,
                                     maxLength: 6,
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly
