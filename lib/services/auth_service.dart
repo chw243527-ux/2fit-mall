@@ -1144,21 +1144,27 @@ class AuthService {
   static Future<AuthResult> signInWithGoogle() async {
     try {
       GoogleSignInAccount? googleUser;
+      late UserCredential userCredential;
+
       if (kIsWeb) {
-        googleUser = await _googleSignIn.signInSilently() ??
-            await _googleSignIn.signIn();
+        // 웹에서는 google_sign_in 플러그인의 별도 세션 대신 Firebase 팝업을
+        // 사용해 OAuth 복귀 후 Firebase 세션이 유지되도록 합니다.
+        final provider = GoogleAuthProvider()
+          ..addScope('email')
+          ..addScope('profile');
+        userCredential = await _auth.signInWithPopup(provider);
       } else {
         googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) {
+          return const AuthResult(success: false, error: '구글 로그인이 취소되었습니다.');
+        }
+        final googleAuth = await googleUser.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        userCredential = await _auth.signInWithCredential(credential);
       }
-      if (googleUser == null) {
-        return const AuthResult(success: false, error: '구글 로그인이 취소되었습니다.');
-      }
-      final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-      final userCredential = await _auth.signInWithCredential(credential);
       final user = userCredential.user;
       if (user == null)
         return const AuthResult(success: false, error: '로그인 실패');
@@ -1175,7 +1181,7 @@ class AuthService {
         if (!doc.exists) {
           await docRef.set({
             'id': user.uid,
-            'name': user.displayName ?? googleUser.displayName ?? '회원',
+            'name': user.displayName ?? googleUser?.displayName ?? '회원',
             'email': user.email ?? '',
             'phone': '',
             'phoneVerified': false,
