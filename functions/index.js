@@ -369,6 +369,48 @@ exports.expireUserPointsDaily = onSchedule('every day 03:10', async () => {
 // 실제 권한 부여는 서버에서 검증된 Firebase ID 토큰과 이메일 인증 상태를 함께 확인합니다.
 const OWNER_ADMIN_EMAIL = 'chw243527@gmail.com';
 
+// 직원 추가·해제는 Firestore isAdmin 필드만 바꾸면 Rules와 실제 토큰이
+// 불일치하므로, 관리자 전용 서버 함수에서 Custom Claim도 함께 갱신합니다.
+exports.setStaffAdminClaim = onRequest({
+  cors: ['https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000'],
+}, async (req, res) => {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method Not Allowed' });
+    return;
+  }
+  if (!(await requireAdmin(req, res))) return;
+  try {
+    const targetUid = String(req.body?.targetUid || '').trim();
+    const grant = req.body?.grant === true;
+    const currentUid = String(req.adminUid || '').trim();
+    if (!targetUid || targetUid === currentUid) {
+      res.status(400).json({ error: 'Invalid target user' });
+      return;
+    }
+    const target = await getAuth().getUser(targetUid);
+    const currentClaims = { ...(target.customClaims || {}) };
+    if (grant) {
+      currentClaims.admin = true;
+    } else {
+      delete currentClaims.admin;
+      delete currentClaims.isAdmin;
+    }
+    await getAuth().setCustomUserClaims(targetUid, currentClaims);
+    const profileRef = db.collection('users').doc(targetUid);
+    await profileRef.update({
+      isAdmin: grant,
+      ...(grant && req.body?.staffRole
+        ? { staffRole: String(req.body.staffRole).trim() }
+        : { staffRole: FieldValue.delete() }),
+      staffRoleUpdatedAt: FieldValue.serverTimestamp(),
+    });
+    res.json({ success: true, grant, targetUid });
+  } catch (e) {
+    console.error('setStaffAdminClaim error:', e);
+    res.status(404).json({ error: 'Target user not found or claim update failed' });
+  }
+});
+
 exports.ensureOwnerAdminClaim = onRequest(async (req, res) => {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method Not Allowed' });
@@ -417,6 +459,7 @@ async function requireAdmin(req, res) {
       res.status(403).json({ error: 'Admin access required' });
       return false;
     }
+    req.adminUid = decoded.uid;
     return true;
   } catch (error) {
     console.error('HTTP admin authentication failed:', error);

@@ -8,6 +8,9 @@ import 'package:excel/excel.dart' hide Border;
 import '../../utils/web_utils.dart'
     if (dart.library.html) '../../utils/web_utils_html.dart';
 import 'dart:typed_data';
+import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -694,6 +697,34 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
     '재고 담당',
   ];
 
+  Future<void> _syncStaffAdminClaim({
+    required String targetUid,
+    required bool grant,
+    String? staffRole,
+  }) async {
+    final current = FirebaseAuth.instance.currentUser;
+    final token = await current?.getIdToken();
+    if (current == null || token == null || token.isEmpty) {
+      throw StateError('관리자 로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+    }
+    final response = await http.post(
+      Uri.parse('https://us-central1-fit-mall.cloudfunctions.net/setStaffAdminClaim'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'targetUid': targetUid,
+        'grant': grant,
+        'currentUid': current.uid,
+        if (staffRole != null) 'staffRole': staffRole,
+      }),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw StateError('관리자 권한 동기화에 실패했습니다.');
+    }
+  }
+
   void _showAddStaffDialog() {
     final emailCtrl = TextEditingController();
     String staffRole = '운영 매니저';
@@ -738,8 +769,9 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
           ElevatedButton(
             onPressed: () async {
-              final email = emailCtrl.text.trim().toLowerCase();
-              if (email.isEmpty) return;
+              try {
+                final email = emailCtrl.text.trim().toLowerCase();
+                if (email.isEmpty) return;
 
               final query = await FirebaseFirestore.instance
                   .collection('users')
@@ -748,11 +780,11 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                   .get();
 
               if (query.docs.isNotEmpty) {
-                await query.docs.first.reference.update({
-                  'isAdmin': true,
-                  'staffRole': staffRole,
-                  'staffRoleUpdatedAt': FieldValue.serverTimestamp(),
-                });
+                await _syncStaffAdminClaim(
+                  targetUid: query.docs.first.id,
+                  grant: true,
+                  staffRole: staffRole,
+                );
                 if (ctx.mounted) Navigator.pop(ctx);
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -765,6 +797,12 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                     SnackBar(content: Text('해당 이메일의 회원을 찾을 수 없습니다')),
                   );
                 }
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('직원 권한 저장에 실패했습니다: $e')),
+                );
               }
             },
             style: ElevatedButton.styleFrom(
@@ -806,18 +844,30 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary, foregroundColor: Colors.white),
               onPressed: () async {
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(staff['id'] as String)
-                    .update({
-                  'staffRole': staffRole,
-                  'staffRoleUpdatedAt': FieldValue.serverTimestamp(),
-                });
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('직급을 $staffRole(으)로 변경했습니다.')),
-                  );
+                try {
+                  final targetUid = staff['id'] as String?;
+                  if (targetUid == null || targetUid.isEmpty) {
+                    throw StateError('직원 계정 식별자가 없습니다.');
+                  }
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(targetUid)
+                      .update({
+                    'staffRole': staffRole,
+                    'staffRoleUpdatedAt': FieldValue.serverTimestamp(),
+                  });
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('직급을 $staffRole(으)로 변경했습니다.')),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('직급 저장에 실패했습니다: $e')),
+                    );
+                  }
                 }
               },
               child: const Text('저장'),
@@ -838,20 +888,28 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text('취소')),
           ElevatedButton(
             onPressed: () async {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(staff['id'] as String?)
-                  .update({
-                'isAdmin': false,
-                'staffRole': FieldValue.delete(),
-                'staffRoleUpdatedAt': FieldValue.serverTimestamp(),
-              });
-              if (ctx.mounted) Navigator.pop(ctx);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                      content: Text('${staff['name']} 님의 관리자 권한이 해제되었습니다')),
+              try {
+                final targetUid = staff['id'] as String?;
+                if (targetUid == null || targetUid.isEmpty) {
+                  throw StateError('직원 계정 식별자가 없습니다.');
+                }
+                await _syncStaffAdminClaim(
+                  targetUid: targetUid,
+                  grant: false,
                 );
+              if (ctx.mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text('${staff['name']} 님의 관리자 권한이 해제되었습니다')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('관리자 권한 해제에 실패했습니다: $e')),
+                  );
+                }
               }
             },
             style: ElevatedButton.styleFrom(
