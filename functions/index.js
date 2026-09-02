@@ -1093,6 +1093,8 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
           paymentStatus: 'paid',
           paymentKey,
           paymentMethod: toss.method || latestData.order.paymentMethod,
+          // 가상계좌 DEPOSIT_CALLBACK의 secret과 대조하기 위해 승인 시 저장합니다.
+          tossPaymentSecret: typeof toss.secret === 'string' ? toss.secret : null,
           paidAt: FieldValue.serverTimestamp(),
           createdAt: FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
@@ -1107,6 +1109,111 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
     res.status(400).json({ error: 'Payment could not be finalized. Please contact support if payment was completed.' });
   }
 });
+
+// 토스 가상계좌 입금 완료 웹훅
+// 입금 이벤트를 받으면 주문번호·secret·결제금액·결제상태를 모두 확인한 뒤 확정합니다.
+exports.tossVirtualAccountWebhook = onRequest(
+  { secrets: [TOSS_SECRET_KEY] },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).send('Method Not Allowed');
+      return;
+    }
+    const payload = req.body && typeof req.body === 'object' ? req.body : {};
+    const eventType = String(payload.eventType || '').trim();
+    const data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
+    const orderId = String(data.orderId || '').trim();
+    const callbackSecret = String(data.secret || '').trim();
+    const status = String(data.status || '').trim().toUpperCase();
+
+    if (eventType && eventType !== 'DEPOSIT_CALLBACK') {
+      res.status(400).send('Unsupported event');
+      return;
+    }
+    if (!orderId || !callbackSecret || !status) {
+      res.status(400).send('Invalid webhook payload');
+      return;
+    }
+
+    try {
+      const orderRef = db.collection('orders').doc(orderId);
+      const orderSnap = await orderRef.get();
+      if (!orderSnap.exists) {
+        // 토스 재전송 대상으로 남기기 위해 404를 반환합니다.
+        res.status(404).send('Order not found');
+        return;
+      }
+      const order = orderSnap.data() || {};
+      const storedSecret = String(order.tossPaymentSecret || '').trim();
+      const sameLength = storedSecret.length === callbackSecret.length;
+      const secretMatches = sameLength && crypto.timingSafeEqual(
+        Buffer.from(storedSecret), Buffer.from(callbackSecret),
+      );
+      if (!storedSecret || !secretMatches) {
+        console.error('Toss webhook secret mismatch', { orderId, status });
+        res.status(401).send('Invalid webhook secret');
+        return;
+      }
+
+      if (status === 'CANCELED' || status === 'CANCELLED') {
+        await db.runTransaction(async (tx) => {
+          const latest = await tx.get(orderRef);
+          const latestData = latest.data() || {};
+          if (!latest.exists || latestData.paymentStatus === 'paid') return;
+          tx.update(orderRef, {
+            paymentStatus: 'cancelled',
+            status: latestData.status === 'pending' ? 'cancelled' : latestData.status,
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+        });
+        res.status(200).send('OK');
+        return;
+      }
+
+      if (status !== 'DONE') {
+        // WAITING_FOR_DEPOSIT 등은 아직 결제완료가 아니므로 확정하지 않습니다.
+        res.status(200).send('OK');
+        return;
+      }
+
+      const secretKey = TOSS_SECRET_KEY.value();
+      const authHeader = `Basic ${Buffer.from(`${secretKey}:`).toString('base64')}`;
+      const tossResponse = await fetch(
+        `https://api.tosspayments.com/v1/payments/orders/${encodeURIComponent(orderId)}`,
+        { headers: { Authorization: authHeader, 'Content-Type': 'application/json' } },
+      );
+      const tossPayment = await tossResponse.json().catch(() => ({}));
+      if (!tossResponse.ok || tossPayment.status !== 'DONE'
+          || Number(tossPayment.totalAmount) !== Number(order.totalAmount)) {
+        console.error('Toss webhook payment verification failed', {
+          orderId,
+          httpStatus: tossResponse.status,
+          tossStatus: tossPayment.status,
+        });
+        res.status(400).send('Payment verification failed');
+        return;
+      }
+
+      await db.runTransaction(async (tx) => {
+        const latest = await tx.get(orderRef);
+        const latestData = latest.data() || {};
+        if (!latest.exists || latestData.paymentStatus === 'paid') return;
+        tx.update(orderRef, {
+          status: 'confirmed',
+          paymentStatus: 'paid',
+          paymentKey: tossPayment.paymentKey || latestData.paymentKey || null,
+          paymentMethod: tossPayment.method || latestData.paymentMethod || '무통장입금',
+          paidAt: latestData.paidAt || FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      });
+      res.status(200).send('OK');
+    } catch (error) {
+      console.error('tossVirtualAccountWebhook failed:', error);
+      res.status(500).send('Webhook processing failed');
+    }
+  },
+);
 
 exports.cancelSecurePayment = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
