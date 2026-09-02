@@ -9,7 +9,7 @@ class AppConstants {
   // ── 사업자 정보 ─────────────────────────────────────────────
   static const String ceoName = '최혜원';
   static const String businessRegNumber = '787-19-02539';
-  static const String ecommerceRegNumber = ''; // 발급 후 입력 (심사 중)
+  static const String ecommerceRegNumber = '제2026-전북남원-0078호';
   static const String companyAddress = '전라북도 남원시 오들1길 97, 205-303';
   static const String companyPostalCode = '55705';
   

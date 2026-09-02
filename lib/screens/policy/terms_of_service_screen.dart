@@ -102,7 +102,7 @@ class _TermsOfServiceScreenState extends State<TermsOfServiceScreen> {
                     _InfoRow(
                         context.loc.t('사업자등록번호', '사업자등록번호'), '787-19-02539'),
                     _InfoRow(context.loc.t('통신판매업신고', '통신판매업신고'),
-                        context.loc.t('심사_중', '심사 중')),
+                        AppConstants.ecommerceRegNumber),
                     _InfoRow(context.loc.t('고객센터', '고객센터'), '010-7227-6914'),
                     _InfoRow(
                         context.loc.t('이메일', '이메일'), 'chw243527@gmail.com'),
