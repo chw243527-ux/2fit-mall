@@ -5,6 +5,7 @@ import '../../utils/app_localizations.dart';
 import '../../providers/providers.dart';
 
 import '../../utils/theme.dart';
+import '../../utils/constants.dart';
 
 class TermsOfServiceScreen extends StatefulWidget {
   const TermsOfServiceScreen({super.key});
