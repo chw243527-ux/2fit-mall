@@ -804,6 +804,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
                   SnackBar(content: Text('직원 권한 저장에 실패했습니다: $e')),
                 );
               }
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
