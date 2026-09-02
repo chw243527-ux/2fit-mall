@@ -42,7 +42,6 @@ class GroupOrderPdfPreview extends StatelessWidget {
       canChangeOrientation: false,
       allowPrinting: true,
       allowSharing: true,
-      allowSave: true,
       maxPageWidth: 900,
       padding: const EdgeInsets.all(16),
       pdfPreviewPageDecoration: BoxDecoration(
