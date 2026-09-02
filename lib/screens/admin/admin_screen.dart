@@ -330,19 +330,6 @@ class _AdminScreenState extends State<AdminScreen>
       } catch (_) {
         authorized = false;
       }
-      if (!authorized) {
-        try {
-          // 기존 관리자 계정 호환: Firestore users/{uid}.isAdmin도 확인합니다.
-          // 실제 데이터 접근은 Firestore Rules/Functions가 다시 보호합니다.
-          final profile = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(firebaseUser.uid)
-              .get();
-          authorized = profile.data()?['isAdmin'] == true;
-        } catch (_) {
-          authorized = false;
-        }
-      }
     }
     if (!mounted) return;
     setState(() {

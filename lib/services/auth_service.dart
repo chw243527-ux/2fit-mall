@@ -861,8 +861,9 @@ class AuthService {
       if (doc.exists) {
         final data = doc.data()!;
         final emailKey = (data['email'] as String?) ?? email;
+        // Firestore Rules와 동일하게 관리자 권한은 Firebase Auth Custom Claim만 신뢰합니다.
+        // users/{uid}.isAdmin은 표시용 레거시 필드이며 권한 판정에 사용하지 않습니다.
         final isAdmin =
-            data['isAdmin'] == true ||
             await _hasAdminClaim(forceRefresh: forceRefreshAdminClaim);
         return UserModel(
           id: uid,
