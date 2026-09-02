@@ -271,7 +271,7 @@ class _MyPageScreenState extends State<MyPageScreen>
                 controller: newCtrl,
                 obscureText: true,
                 decoration: InputDecoration(
-                  labelText: context.loc.t('새_비밀번호__6자_이상', '새 비밀번호 (6자 이상)'),
+                  labelText: context.loc.t('새_비밀번호__8자_이상', '새 비밀번호 (8자 이상)'),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10)),
                   isDense: true,
@@ -318,9 +318,9 @@ class _MyPageScreenState extends State<MyPageScreen>
                             .t('새_비밀번호가_일치하지_않습니다', '새 비밀번호가 일치하지 않습니다.'));
                         return;
                       }
-                      if (newCtrl.text.length < 6) {
+                      if (newCtrl.text.length < 8) {
                         setD(() => errorMsg = context.loc
-                            .t('비밀번호는_6자_이상이어야_합니다', '비밀번호는 6자 이상이어야 합니다.'));
+                            .t('비밀번호는_8자_이상이어야_합니다', '비밀번호는 8자 이상이어야 합니다.'));
                         return;
                       }
                       setD(() {
