@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -5015,20 +5016,108 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
   late TextEditingController _nameCtrl;
   late TextEditingController _nicknameCtrl;
   late TextEditingController _phoneCtrl;
+  late TextEditingController _phoneOtpCtrl;
+  String? _phoneVerificationId;
+  bool _phoneVerified = true;
+  bool _phoneSending = false;
+  bool _phoneVerifying = false;
+
+  String _normalizePhone(String value) {
+    final raw = value.trim().replaceAll(RegExp(r'[^0-9+]'), '');
+    if (raw.startsWith('+')) return raw;
+    if (raw.startsWith('82')) return '+$raw';
+    if (raw.startsWith('0')) return '+82${raw.substring(1)}';
+    return '+$raw';
+  }
+
+  bool _isValidPhone(String value) {
+    final normalized = _normalizePhone(value);
+    return RegExp(r'^\+82[0-9]{9,10}$').hasMatch(normalized);
+  }
+
+  Future<void> _sendPhoneOtp() async {
+    final phone = _normalizePhone(_phoneCtrl.text);
+    if (!_isValidPhone(_phoneCtrl.text)) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('올바른 연락처를 입력해주세요.')),
+      );
+      return;
+    }
+    setState(() {
+      _phoneSending = true;
+      _phoneVerified = false;
+      _phoneVerificationId = null;
+    });
+    final result = await AuthService.sendPhoneVerification(
+      phoneNumber: phone,
+      attachToCurrentUser: true,
+    );
+    if (!mounted) return;
+    setState(() {
+      _phoneSending = false;
+      _phoneVerificationId = result['verificationId'] as String?;
+      if (result['status'] == 'auto_verified') {
+        _phoneVerified = true;
+      }
+    });
+    if (result['status'] == 'code_sent' || result['status'] == 'timeout') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('인증번호를 발송했습니다. 60초 안에 입력해주세요.')),
+      );
+    } else if (result['status'] != 'auto_verified') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] as String? ?? '인증번호 발송에 실패했습니다.')),
+      );
+    }
+  }
+
+  Future<void> _verifyPhoneOtp() async {
+    final verificationId = _phoneVerificationId;
+    final code = _phoneOtpCtrl.text.trim();
+    if (verificationId == null || code.length != 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('인증번호 6자리를 입력해주세요.')),
+      );
+      return;
+    }
+    setState(() => _phoneVerifying = true);
+    final result = await AuthService.updateCurrentUserPhoneFromOtp(
+      verificationId: verificationId,
+      smsCode: code,
+    );
+    if (!mounted) return;
+    setState(() {
+      _phoneVerifying = false;
+      _phoneVerified = result['status'] == 'verified';
+    });
+    if (_phoneVerified) {
+      _phoneVerificationId = null;
+      _phoneOtpCtrl.clear();
+      _phoneCtrl.text = result['phoneNumber'] as String? ?? _phoneCtrl.text;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('연락처 본인인증이 완료되었습니다.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'] as String? ?? '인증에 실패했습니다.')),
+      );
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.user.name);
     _nicknameCtrl = TextEditingController(text: widget.user.nickname);
-    _phoneCtrl = TextEditingController(text: widget.user.phone);
+        _phoneCtrl = TextEditingController(text: widget.user.phone);
+    _phoneOtpCtrl = TextEditingController();
   }
-
   @override
   void dispose() {
     _nameCtrl.dispose();
     _nicknameCtrl.dispose();
     _phoneCtrl.dispose();
+    _phoneOtpCtrl.dispose();
     super.dispose();
   }
 
@@ -5074,21 +5163,70 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
             const SizedBox(height: 4),
             TextField(
                 controller: _phoneCtrl,
+                keyboardType: TextInputType.phone,
+                onChanged: (value) {
+                  final same = _normalizePhone(value) ==
+                      _normalizePhone(widget.user.phone);
+                  if (same != _phoneVerified) {
+                    setState(() {
+                      _phoneVerified = same;
+                      _phoneVerificationId = null;
+                    });
+                  }
+                },
                 decoration: InputDecoration(
                     labelText: context.loc.t('연락처', '연락처'),
-                    border: OutlineInputBorder())),
+                    border: OutlineInputBorder(),
+                    suffixIcon: _normalizePhone(_phoneCtrl.text) ==
+                            _normalizePhone(widget.user.phone)
+                        ? const Icon(Icons.verified, color: Colors.green)
+                        : TextButton(
+                            onPressed: _phoneSending ? null : _sendPhoneOtp,
+                            child: Text(_phoneSending ? '발송 중' : '인증번호 받기'),
+                          )),
+            ),
+            if (!_phoneVerified && _phoneVerificationId != null) ...[
+              const SizedBox(height: 10),
+              Row(children: [
+                Expanded(
+                  child: TextField(
+                    controller: _phoneOtpCtrl,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    decoration: InputDecoration(
+                      labelText: '인증번호 6자리',
+                      counterText: '',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _phoneVerifying ? null : _verifyPhoneOtp,
+                  child: Text(_phoneVerifying ? '확인 중' : '인증 확인'),
+                ),
+              ]),
+            ],
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
                   final userProvider = context.read<UserProvider>();
+                  final normalizedPhone = _normalizePhone(_phoneCtrl.text);
+                  final originalPhone = _normalizePhone(widget.user.phone);
+                  if (normalizedPhone != originalPhone && !_phoneVerified) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('새 연락처 본인인증을 먼저 완료해주세요.')),
+                    );
+                    return;
+                  }
                   final nickname = _nicknameCtrl.text.trim();
                   if (nickname.length > 20) return;
                   await userProvider.updateUserProfile(
                       name: _nameCtrl.text.trim(),
                       nickname: nickname,
-                      phone: _phoneCtrl.text.trim());
+                      phone: normalizedPhone);
                   if (context.mounted) Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(

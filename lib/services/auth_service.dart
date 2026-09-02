@@ -144,6 +144,7 @@ class AuthService {
   // ────────────────────────────────────────────
   static Future<Map<String, dynamic>> sendPhoneVerification({
     required String phoneNumber, // E.164 형식: +821012345678
+    bool attachToCurrentUser = false,
   }) async {
     final completer = Completer<Map<String, dynamic>>();
 
@@ -151,14 +152,21 @@ class AuthService {
       phoneNumber: phoneNumber,
       timeout: const Duration(seconds: 60),
       verificationCompleted: (PhoneAuthCredential credential) async {
-        // 자동 인증도 인증된 Firebase 사용자를 유지합니다. register()가
-        // 동일 UID에 이메일 자격증명을 연결하여 인증 결과를 결속합니다.
+        // 프로필 수정에서는 현재 로그인한 계정을 유지한 채 전화번호를 연결합니다.
+        // 회원가입에서는 기존처럼 전화번호 인증 계정으로 로그인합니다.
         try {
-          final signedIn = await _auth.signInWithCredential(credential);
+          final currentUser = _auth.currentUser;
+          User? verifiedUser;
+          if (attachToCurrentUser && currentUser != null) {
+            await currentUser.updatePhoneNumber(credential);
+            verifiedUser = currentUser;
+          } else {
+            verifiedUser = (await _auth.signInWithCredential(credential)).user;
+          }
           if (!completer.isCompleted) {
             completer.complete({
               'status': 'auto_verified',
-              'phoneNumber': signedIn.user?.phoneNumber ?? '',
+              'phoneNumber': verifiedUser?.phoneNumber ?? '',
             });
           }
         } catch (_) {
@@ -250,6 +258,56 @@ class AuthService {
       return {'status': 'error', 'message': msg};
     } catch (e) {
       return {'status': 'error', 'message': '인증 중 오류가 발생했습니다.'};
+    }
+  }
+
+  // 로그인한 회원의 연락처 변경용 SMS 인증
+  static Future<Map<String, dynamic>> updateCurrentUserPhoneFromOtp({
+    required String verificationId,
+    required String smsCode,
+  }) async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) {
+        return {'status': 'error', 'message': '로그인 상태를 확인해주세요.'};
+      }
+      final credential = PhoneAuthProvider.credential(
+        verificationId: verificationId,
+        smsCode: smsCode.trim(),
+      );
+      await currentUser.updatePhoneNumber(credential);
+      final phoneNumber = currentUser.phoneNumber?.trim() ?? '';
+      if (phoneNumber.isEmpty) {
+        return {'status': 'error', 'message': '인증된 전화번호를 확인할 수 없습니다.'};
+      }
+      await _db.collection('users').doc(currentUser.uid).update({
+        'phone': phoneNumber,
+        'phoneVerified': true,
+        'phoneVerifiedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return {'status': 'verified', 'phoneNumber': phoneNumber};
+    } on FirebaseAuthException catch (e) {
+      String msg;
+      switch (e.code) {
+        case 'invalid-verification-code':
+          msg = '인증번호가 올바르지 않습니다. 다시 확인해주세요.';
+          break;
+        case 'session-expired':
+          msg = '인증번호가 만료되었습니다. 다시 발송해주세요.';
+          break;
+        case 'requires-recent-login':
+          msg = '보안을 위해 다시 로그인한 후 연락처를 변경해주세요.';
+          break;
+        case 'credential-already-in-use':
+          msg = '이미 다른 회원이 사용 중인 전화번호입니다.';
+          break;
+        default:
+          msg = '전화번호 변경 인증에 실패했습니다. 다시 시도해주세요.';
+      }
+      return {'status': 'error', 'message': msg};
+    } catch (_) {
+      return {'status': 'error', 'message': '전화번호 변경 중 오류가 발생했습니다.'};
     }
   }
 
