@@ -34,7 +34,10 @@ class AccountDeletionService {
   static const _functionsBaseUrl =
       'https://us-central1-fit-mall.cloudfunctions.net';
 
-  static Future<AccountDeletionResult> deleteCurrentAccount() async {
+  static Future<AccountDeletionResult> deleteCurrentAccount({
+    required String reason,
+    String? detail,
+  }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       return const AccountDeletionResult.failure(
@@ -60,7 +63,11 @@ class AccountDeletionService {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $idToken',
             },
-            body: jsonEncode({'confirmAccountDeletion': true}),
+            body: jsonEncode({
+              'confirmAccountDeletion': true,
+              'reason': reason,
+              'detail': detail ?? '',
+            }),
           )
           .timeout(const Duration(seconds: 45));
 
@@ -96,6 +103,8 @@ class AccountDeletionService {
         return '보안을 위해 다시 로그인한 뒤 회원 탈퇴를 진행해 주세요.';
       case 'admin-account-protected':
         return '관리자 계정은 고객센터를 통해 탈퇴를 요청해 주세요.';
+      case 'reason-required':
+        return '탈퇴 사유를 선택한 뒤 다시 시도해 주세요.';
       default:
         return serverMessage ?? '회원 탈퇴를 완료하지 못했습니다. 고객센터에 문의해 주세요.';
     }

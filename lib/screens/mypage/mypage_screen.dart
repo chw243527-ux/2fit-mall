@@ -369,6 +369,8 @@ class _MyPageScreenState extends State<MyPageScreen>
   void _showDeleteAccountDialog(BuildContext ctx, UserProvider up) {
     bool isLoading = false;
     String? errorMsg;
+    String? selectedReason;
+    final detailCtrl = TextEditingController();
 
     showDialog(
       context: ctx,
@@ -402,6 +404,45 @@ class _MyPageScreenState extends State<MyPageScreen>
                 style: const TextStyle(
                     fontSize: 12, color: AppColors.textSecondary, height: 1.5),
               ),
+              const SizedBox(height: 16),
+              const Text('탈퇴 사유를 선택해 주세요.',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: selectedReason,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: '탈퇴 사유',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: '상품·서비스 불만', child: Text('상품·서비스가 만족스럽지 않음')),
+                  DropdownMenuItem(value: '이용 빈도 낮음', child: Text('이용 빈도가 낮음')),
+                  DropdownMenuItem(value: '가격 부담', child: Text('가격이 부담됨')),
+                  DropdownMenuItem(value: '개인정보 우려', child: Text('개인정보가 걱정됨')),
+                  DropdownMenuItem(value: '원하는 기능 부족', child: Text('원하는 기능이 없음')),
+                  DropdownMenuItem(value: '기타', child: Text('기타')),
+                ],
+                onChanged: isLoading
+                    ? null
+                    : (value) => setD(() {
+                          selectedReason = value;
+                          if (value != '기타') detailCtrl.clear();
+                        }),
+              ),
+              if (selectedReason == '기타') ...[
+                const SizedBox(height: 8),
+                TextField(
+                  controller: detailCtrl,
+                  maxLength: 300,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: '상세 사유 (선택)',
+                    hintText: '탈퇴 사유를 알려주시면 서비스 개선에 참고하겠습니다.',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
               if (errorMsg != null) ...[
                 const SizedBox(height: 12),
                 Text(errorMsg!,
@@ -422,7 +463,7 @@ class _MyPageScreenState extends State<MyPageScreen>
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
               ),
-              onPressed: isLoading
+              onPressed: isLoading || selectedReason == null
                   ? null
                   : () async {
                       setD(() {
@@ -431,7 +472,10 @@ class _MyPageScreenState extends State<MyPageScreen>
                       });
 
                       final result =
-                          await AccountDeletionService.deleteCurrentAccount();
+                          await AccountDeletionService.deleteCurrentAccount(
+                        reason: selectedReason!,
+                        detail: detailCtrl.text.trim(),
+                      );
                       if (!dialogCtx.mounted) return;
 
                       if (!result.success) {
@@ -471,10 +515,9 @@ class _MyPageScreenState extends State<MyPageScreen>
           ],
         ),
       ),
-    );
+    ).whenComplete(detailCtrl.dispose);
   }
 }
-
 // ═══════════════════════════════════════════════════════════════════
 // PC 버전 마이페이지
 // ═══════════════════════════════════════════════════════════════════

@@ -724,6 +724,12 @@ exports.deleteMyAccount = onRequest(
       res.status(400).json({ error: 'Explicit account deletion confirmation is required' });
       return;
     }
+    const reason = String(req.body?.reason || '').trim();
+    const detail = String(req.body?.detail || '').trim().slice(0, 300);
+    if (!reason || reason.length > 80) {
+      res.status(400).json({ error: 'A valid account deletion reason is required.', code: 'reason-required' });
+      return;
+    }
 
     // 오래된 로그인 토큰만으로 실행되는 실수·탈취 위험을 줄입니다.
     const authTimeMs = Number(decoded.auth_time || 0) * 1000;
@@ -748,6 +754,12 @@ exports.deleteMyAccount = onRequest(
       }
 
       const summary = await _removeAccountData(uid, decoded.email || '');
+      // 탈퇴 사유는 개인 식별자 없이 서비스 개선용 통계 자료로만 보관합니다.
+      await db.collection('account_deletion_feedback').add({
+        reason,
+        detail,
+        createdAt: FieldValue.serverTimestamp(),
+      });
       // 데이터 처리에 성공한 뒤 인증 계정을 마지막에 삭제합니다.
       await getAuth().deleteUser(uid);
       console.log('Account deletion completed:', { summary });
