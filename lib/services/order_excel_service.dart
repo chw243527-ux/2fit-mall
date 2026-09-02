@@ -120,6 +120,12 @@ class OrderExcelService {
     }).toList();
   }
 
+  @visibleForTesting
+  static OrderModel? parseOrderForTesting(
+    Map<String, dynamic> data,
+    String docId,
+  ) => _parseOrder(data, docId);
+
   static OrderModel? _parseOrder(Map<String, dynamic> data, String docId) {
     try {
       final rawItems = data['items'] as List<dynamic>? ?? [];
