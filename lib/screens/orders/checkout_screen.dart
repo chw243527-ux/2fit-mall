@@ -15,6 +15,7 @@ import '../../services/payment_service.dart';
 import '../../services/secure_checkout_service.dart';
 import '../../services/point_service.dart';
 import '../main_screen.dart';
+import '../auth/login_screen.dart';
 import '../../widgets/address_search_widget.dart';
 import '../../widgets/pc_layout.dart';
 import '../../utils/navigation_helper.dart';
@@ -67,6 +68,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     final user = Provider.of<UserProvider>(context, listen: false).user;
+    if (user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => const LoginScreen(redirectPath: '/cart'),
+          ),
+        );
+      });
+      return;
+    }
 
     // 주문 저장 실패 감지 → 사용자 알림
     WidgetsBinding.instance.addPostFrameCallback((_) {

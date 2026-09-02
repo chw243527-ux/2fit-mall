@@ -747,8 +747,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
   }
 
   Future<void> _submitOrder({required bool isBuyNow}) async {
+    final userProvider = context.read<UserProvider>();
+    if (!userProvider.isLoggedIn) {
+      _showSnack(context.loc.t('로그인이_필요합니다', '구매하려면 로그인해 주세요.'));
+      if (mounted) {
+        Navigator.pushNamed(context, '/login');
+      }
+      return;
+    }
     if (!_validate()) return;
-    final user = context.read<UserProvider>().user;
+    final user = userProvider.user;
     // product.price 를 반드시 _unitPrice(기본가+심리스+9부+주머니 포함 인원당 단가)로 고정
     // CartItem.unitPrice = product.price + extraPrice 이므로 extraPrice: 0 과 함께 사용해야 정확
     final src = widget.product;

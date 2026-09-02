@@ -39,6 +39,8 @@ class _LoginScreenState extends State<LoginScreen>
           : const LoginScreen(adminOnly: true);
     }
     switch (widget.redirectPath) {
+      case '/cart':
+        return const MainScreen(initialIndex: 2);
       case '/mypage':
         return const MainScreen(initialIndex: 3);
       case '/size-profile':
