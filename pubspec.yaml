@@ -51,6 +51,7 @@ dependencies:
   # ── 엑셀 다운로드 ────────────────────────────
   csv: ^6.0.0
   excel: ^4.0.6
+  pdf: ^3.11.1
   path_provider: ^2.1.0
 
   # ── 구글 소셜 로그인 ─────────────────────────
@@ -83,3 +84,4 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/fonts/NotoSansKR.ttf

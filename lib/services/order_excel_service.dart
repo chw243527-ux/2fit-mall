@@ -5,6 +5,9 @@ import 'dart:convert';
 import 'package:archive/archive.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' as root_bundle;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../models/models.dart';
@@ -2436,6 +2439,12 @@ class OrderExcelService {
   static String _shortId(String id) =>
       id.length > 20 ? '${id.substring(0, 20)}...' : id;
 
+  static String _formatWon(double amount) {
+    final value = amount.round().toString();
+    final withCommas = value.replaceAllMapped(RegExp(r'(?<!^)(?=(\d{3})+$)'), (m) => ',');
+    return '$withCommas원';
+  }
+
   static String _fmt(DateTime dt) =>
       '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:00';
 
@@ -3601,6 +3610,118 @@ class OrderExcelService {
     if (encoded == null) throw Exception('추가제작 엑셀 생성 실패');
     return Uint8List.fromList(encoded);
   }
+  /// 단체주문 상세 주문서 독립 PDF 생성
+  /// 주문 생성 없이 기존 OrderModel 데이터만 사용하며, 저장된 수정값을 우선 반영한다.
+  static Future<Uint8List> generateGroupOrderPdf(OrderModel order) async {
+    final opts = order.customOptions ?? {};
+    final persons = (opts['persons'] as List<dynamic>?) ?? [];
+    final teamName = _optText(opts, ['teamName', 'groupName'], order.groupName ?? order.userName);
+    final mainColor = _optText(opts, ['mainColor', 'color', 'colorName'], '-');
+    final bottomColor = _optText(opts, ['bottomColorName', 'bottomColor'], '');
+    final colorText = bottomColor.isEmpty ? mainColor : '상의: $mainColor / 하의: $bottomColor';
+    final orderDate = _fmtFull(order.createdAt);
+    final phone = _optText(opts, ['phone', 'contactPhone'], order.userPhone);
+    final email = _optText(opts, ['email', 'contactEmail'], order.userEmail);
+    final address = _optText(opts, ['address', 'deliveryAddress'], order.userAddress);
+    final printType = _optText(opts, ['printType', 'printTypeLabel'], '-');
+    final fabric = _optText(opts, ['fabricType', 'fabricName', 'fabric'], '-');
+    final fabricWeight = _optText(opts, ['fabricWeight', 'weight'], '-');
+    final length = _lengthDisplay(opts);
+    final waistband = _extractWaistbandInfo(opts);
+    final designUrl = _extractDesignImageUrl(order);
+    final designLogoUrl = _optText(opts, ['designLogoUrl']);
+    final waistbandLogoUrl = _optText(opts, ['waistbandLogoUrl']);
+    final designLogoName = _optText(opts, ['designLogoFileName'], '디자인 로고 파일');
+    final waistbandLogoName = _optText(opts, ['waistbandLogoFileName'], '허리밴드 로고 파일');
+    final productImage = await _pdfImage(designUrl);
+    final designLogoImage = await _pdfImage(designLogoUrl);
+    final waistbandLogoImage = await _pdfImage(waistbandLogoUrl);
+    final font = pw.Font.ttf((await root_bundle.rootBundle.load('assets/fonts/NotoSansKR.ttf')));
+    final pdf = pw.Document();
+    final labelStyle = pw.TextStyle(font: font, fontSize: 9, color: PdfColors.grey800);
+    final valueStyle = pw.TextStyle(font: font, fontSize: 9, color: PdfColors.black);
+    final headingStyle = pw.TextStyle(font: font, fontSize: 13, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900);
+    final headerStyle = pw.TextStyle(font: font, fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.white);
+    final cellStyle = pw.TextStyle(font: font, fontSize: 7.5);
+
+    pw.Widget infoRow(String label, String value) => pw.Row(children: [
+      pw.Container(width: 78, padding: const pw.EdgeInsets.all(5), color: PdfColors.indigo50, child: pw.Text(label, style: labelStyle)),
+      pw.Expanded(child: pw.Container(padding: const pw.EdgeInsets.all(5), child: pw.Text(value.isEmpty ? '-' : value, style: valueStyle))),
+    ]);
+    pw.Widget section(String title, pw.Widget child) => pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+      pw.SizedBox(height: 12), pw.Text(title, style: headingStyle), pw.SizedBox(height: 5), child,
+    ]);
+    pw.Widget imageCard(String title, pw.ImageProvider? image) => pw.Container(
+      width: 235, height: 145, padding: const pw.EdgeInsets.all(5),
+      decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey400), borderRadius: pw.BorderRadius.circular(4)),
+      child: image == null ? pw.Center(child: pw.Text('$title\\n이미지 없음', style: cellStyle, textAlign: pw.TextAlign.center)) : pw.Column(children: [pw.Expanded(child: pw.Image(image, fit: pw.BoxFit.contain)), pw.Text(title, style: cellStyle)]),
+    );
+
+    pdf.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 30),
+      theme: pw.ThemeData.withFont(base: font, bold: font),
+      footer: (context) => pw.Align(alignment: pw.Alignment.centerRight, child: pw.Text('2FIT MALL · 단체주문 상세 주문서 · ${context.pageNumber}', style: cellStyle)),
+      build: (context) => [
+        pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+          pw.Text('2FIT MALL 단체주문서', style: pw.TextStyle(font: font, fontSize: 20, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900)),
+          pw.Container(padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4), color: PdfColors.orange100, child: pw.Text('PDF 상세 주문서', style: cellStyle)),
+        ]),
+        pw.SizedBox(height: 4),
+        pw.Text('주문 수정사항과 제작 정보를 포함한 최종 확인용 문서', style: cellStyle),
+        pw.SizedBox(height: 12),
+        pw.Table(border: pw.TableBorder.all(color: PdfColors.orange400), children: [
+          pw.TableRow(children: [infoRow('주문자/담당자', _optText(opts, ['manager', 'managerName'], order.userName)), infoRow('팀명', teamName)]),
+          pw.TableRow(children: [infoRow('이메일', email), infoRow('전화번호', phone)]),
+          pw.TableRow(children: [infoRow('주문날짜', orderDate), infoRow('주문상태', _statusLabel(order.status))]),
+        ]),
+        section('1. 디자인 이미지', pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [imageCard('디자인 시안', productImage), imageCard('업로드 디자인 로고', designLogoImage)])),
+        section('2. 주문 상세 내역', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), columnWidths: {0: const pw.FlexColumnWidth(2.3), 1: const pw.FlexColumnWidth(1.0), 2: const pw.FlexColumnWidth(1.4), 3: const pw.FlexColumnWidth(1.2), 4: const pw.FlexColumnWidth(1.2), 5: const pw.FlexColumnWidth(1.3), 6: const pw.FlexColumnWidth(0.8)}, children: [
+          pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['상품명','색상','인쇄옵션','하의길이','허리밴드','원단','수량'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
+          ...order.items.map((item) => pw.TableRow(children: [item.productName, colorText, printType, length, waistband, '$fabric / $fabricWeight', '${item.quantity}'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList())),
+        ])),
+        section('3. 인원별 상세 사이즈 내역', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
+          pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['번호','이름','성별','상의','하의','하의길이','키','몸무게','허리','허벅지','색상'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
+          ...persons.asMap().entries.map((entry) { final p = entry.value is Map ? Map<String, dynamic>.from(entry.value as Map) : <String, dynamic>{}; final pColor = _optText(p, ['color'], mainColor); final pLength = _optText(p, ['bottomLength'], length); return pw.TableRow(children: [ '${p['index'] ?? entry.key + 1}', _optText(p, ['name'], '-'), _optText(p, ['gender'], '-'), _optText(p, ['topSize'], '-'), _optText(p, ['bottomSize'], '-'), pLength, _optText(p, ['height'], '-'), _optText(p, ['weight'], '-'), _optText(p, ['waist'], '-'), _optText(p, ['thigh'], '-'), pColor].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList()); }),
+        ])),
+        section('4. 업로드 파일 / PDF 확인', pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+          pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+            pw.Text(designLogoName, style: valueStyle),
+            if (designLogoUrl.isNotEmpty) pw.UrlLink(destination: designLogoUrl, child: pw.Text('PDF 열기', style: pw.TextStyle(font: font, fontSize: 9, color: PdfColors.blue))),
+          ]),
+          pw.Divider(color: PdfColors.grey400),
+          pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+            pw.Text(waistbandLogoName, style: valueStyle),
+            if (waistbandLogoUrl.isNotEmpty) pw.UrlLink(destination: waistbandLogoUrl, child: pw.Text('PDF 열기', style: pw.TextStyle(font: font, fontSize: 9, color: PdfColors.blue))),
+          ]),
+          if (waistbandLogoImage != null) pw.Padding(padding: const pw.EdgeInsets.only(top: 6), child: imageCard('허리밴드 로고 미리보기', waistbandLogoImage)),
+        ])),
+        section('5. 엑셀 반영 항목 및 기타 주문 정보', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
+          pw.TableRow(children: [infoRow('주문번호', order.id), infoRow('배송지', address)]),
+          pw.TableRow(children: [infoRow('배송메모', _optText(opts, ['deliveryMemo', 'shippingMemo', 'memoText', 'memo'], order.memo ?? '-')), infoRow('결제수단', order.paymentMethod)]),
+          pw.TableRow(children: [infoRow('독점디자인', _isExclusive(opts) ? '예' : '아니오'), infoRow('남/여 인원', '남 ${_countGender(order, '남')}명 / 여 ${_countGender(order, '여')}명')]),
+          pw.TableRow(children: [infoRow('원단 종류/무게', '$fabric / $fabricWeight'), infoRow('단체주문 메모', _optText(opts, ['memoText', 'memo'], order.memo ?? '-'))]),
+        ])),
+        pw.SizedBox(height: 14),
+        pw.Container(alignment: pw.Alignment.centerRight, child: pw.Text('상품 합계 ${_formatWon(order.totalAmount)}  |  배송비 ${_formatWon(order.shippingFee)}  |  총 결제금액 ${_formatWon(order.totalAmount + order.shippingFee)}', style: pw.TextStyle(font: font, fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.indigo900))),
+      ],
+    ));
+    return Uint8List.fromList(await pdf.save());
+  }
+
+  static Future<Uint8List?> _fetchBytes(String url) async {
+    if (url.isEmpty || !url.startsWith('http')) return null;
+    try {
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 15));
+      return response.statusCode == 200 ? response.bodyBytes : null;
+    } catch (_) { return null; }
+  }
+
+  static Future<pw.ImageProvider?> _pdfImage(String url) async {
+    final bytes = await _fetchBytes(url);
+    return bytes == null ? null : pw.MemoryImage(bytes);
+  }
+
 } // end OrderExcelService
 
 

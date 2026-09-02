@@ -5832,17 +5832,13 @@ class _AdminScreenState extends State<AdminScreen>
                         child: OutlinedButton.icon(
                           onPressed: () {
                             Navigator.pop(context);
-                            if (order.orderType == 'additional') {
-                              _exportAdditionalOrderExcel(order);
-                            } else {
-                              _exportGroupOrderExcel(order);
-                            }
+                            _exportGroupOrderPdf(order);
                           },
                           icon: const Icon(Icons.download_rounded, size: 16),
                           label: Text(
                             order.orderType == 'additional'
-                                ? '추가제작 엑셀'
-                                : '엑셀 내보내기',
+                                ? '추가제작 PDF'
+                                : 'PDF 주문서 다운로드',
                             style: const TextStyle(fontSize: 13),
                           ),
                           style: OutlinedButton.styleFrom(
@@ -6095,6 +6091,48 @@ class _AdminScreenState extends State<AdminScreen>
               content: Text('엑셀 생성 오류: $e'), backgroundColor: AppColors.error),
         );
       }
+    }
+  }
+
+  // ── 단체주문 상세 PDF 내보내기 ──
+  Future<void> _exportGroupOrderPdf(OrderModel order) async {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('단체주문 상세 PDF 생성 중...'),
+        duration: Duration(seconds: 10),
+        backgroundColor: Color(0xFF00897B),
+      ));
+    }
+    try {
+      final bytes = await OrderExcelService.generateGroupOrderPdf(order);
+      final fileName = '단체주문_${_groupOrderFileStem(order)}.pdf';
+      const mimeType = 'application/pdf';
+      if (kIsWeb) {
+        downloadFileWeb(bytes, fileName, mimeType);
+      } else {
+        final dir = await getTemporaryDirectory();
+        final filePath = '${dir.path}/$fileName';
+        await File(filePath).writeAsBytes(bytes, flush: true);
+        if (!mounted) return;
+        await Share.shareXFiles(
+          [XFile(filePath, mimeType: mimeType, name: fileName)],
+          subject: '2FIT 단체주문 상세 주문서',
+          text: fileName,
+        );
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('$fileName 다운로드 완료'),
+          backgroundColor: const Color(0xFF00897B),
+        ));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('PDF 생성 오류: $e'), backgroundColor: AppColors.error,
+      ));
     }
   }
 
