@@ -5,8 +5,8 @@
 // 🔑 연동 구성:
 //   • clientKey  : Toss Payments 결제위젯 연동 키의 클라이언트 키 (gck)
 //   • secretKey  : Cloudflare Pages 환경변수 TOSS_SECRET_KEY (서버 전용)
-//   • 결제 승인   : https://2fit-mall.co.kr/api/confirm-payment (CF Pages Function)
-//   • 현금영수증  : https://2fit-mall.co.kr/api/issue-cash-receipt (CF Pages Function)
+//   • 결제 승인   : Firebase Function confirmSecurePayment (ID 토큰 필수)
+//   • 현금영수증  : Firebase Function issueCashReceiptSecure (ID 토큰 필수)
 //   • SDK        : https://js.tosspayments.com/v2/standard (web/index.html)
 //
 // ⚠️ secretKey는 절대 Git·앱 배포본에 포함하지 마세요.
@@ -18,6 +18,7 @@ import 'dart:html' as html;
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:js' as js;
 import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
 
 // ─── 🔑 키 설정 ────────────────────────────────────────────────
 class TossConfig {
@@ -28,11 +29,11 @@ class TossConfig {
   // 결제위젯 연동 키를 사용하며, gck 키는 위젯에서 지원되는 클라이언트 키입니다.
   static const easyPayClientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
 
-  // ── Cloudflare Pages Function URL ───────────────────────────
+  // ── 인증된 Firebase Functions URL ───────────────────────────
   static const confirmEdgeFunctionUrl =
-      'https://2fit-mall.co.kr/api/confirm-payment';
+      'https://us-central1-fit-mall.cloudfunctions.net/confirmSecurePayment';
   static const cashReceiptEdgeFunctionUrl =
-      'https://2fit-mall.co.kr/api/issue-cash-receipt';
+      'https://us-central1-fit-mall.cloudfunctions.net/issueCashReceiptSecure';
 
   static bool get useEdgeFunction => confirmEdgeFunctionUrl.isNotEmpty;
   static bool get isLiveMode => !clientKey.startsWith('test_');
@@ -142,17 +143,23 @@ class PaymentService {
     }
   }
 
-  // ── Cloudflare Pages Function 경유 승인 (운영 권장) ──
+  // ── 인증된 Firebase Function 경유 승인 (운영 경로) ──
   static Future<PaymentResult> _confirmViaEdgeFunction({
     required String paymentKey,
     required String orderId,
     required int amount,
   }) async {
     try {
+      final user = FirebaseAuth.instance.currentUser;
+      final token = await user?.getIdToken(true);
+      if (user == null || token == null || token.isEmpty) {
+        return PaymentResult(success: false, error: '로그인이 필요합니다.');
+      }
       final response = await http.post(
         Uri.parse(TossConfig.confirmEdgeFunctionUrl),
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
           'paymentKey': paymentKey,
@@ -270,7 +277,7 @@ class PaymentService {
     );
   }
 
-  // ── Cloudflare Pages Function 경유 현금영수증 발급 (운영 권장) ──
+  // ── 인증된 Firebase Function 경유 현금영수증 발급 ──
   static Future<CashReceiptResult> _issueCashReceiptViaEdge({
     required String paymentKey,
     required String customerIdentityNumber,
@@ -278,10 +285,16 @@ class PaymentService {
     required int taxFreeAmount,
   }) async {
     try {
+      final user = FirebaseAuth.instance.currentUser;
+      final token = await user?.getIdToken(true);
+      if (user == null || token == null || token.isEmpty) {
+        return CashReceiptResult(success: false, error: '로그인이 필요합니다.');
+      }
       final response = await http.post(
         Uri.parse(TossConfig.cashReceiptEdgeFunctionUrl),
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
           'paymentKey': paymentKey,

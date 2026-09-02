@@ -1122,6 +1122,65 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
   }
 });
 
+// 인증된 현금영수증 발급
+// 결제키로 주문을 조회해 현재 로그인 사용자의 결제인지 확인한 뒤 토스에 요청합니다.
+exports.issueCashReceiptSecure = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+  const decoded = await requireSignedIn(req, res);
+  if (!decoded) return;
+  if (!(await enforceRateLimit(req, res, `cash-receipt:${decoded.uid}`, { limit: 5, windowMs: 60 * 60 * 1000 }))) return;
+  const paymentKey = String(req.body?.paymentKey || '').trim().slice(0, 200);
+  const identity = String(req.body?.customerIdentityNumber || '').replace(/[^0-9]/g, '');
+  const type = String(req.body?.type || '').trim();
+  const taxFreeAmount = Number(req.body?.taxFreeAmount || 0);
+  if (!paymentKey || !['소득공제', '지출증빙'].includes(type)
+      || !/^([0-9]{10}|[0-9]{11}|[0-9]{13})$/.test(identity)
+      || !Number.isSafeInteger(taxFreeAmount) || taxFreeAmount < 0) {
+    res.status(400).json({ error: 'Invalid cash receipt request' }); return;
+  }
+  try {
+    const orderSnap = await db.collection('orders').where('paymentKey', '==', paymentKey).limit(1).get();
+    const orderDoc = orderSnap.docs[0];
+    const order = orderDoc?.data();
+    if (!orderDoc || !order || order.userId !== decoded.uid || order.paymentStatus !== 'paid') {
+      res.status(403).json({ error: 'Payment does not belong to the signed-in user' }); return;
+    }
+    const secret = TOSS_SECRET_KEY.value();
+    if (!secret) { res.status(503).json({ error: 'Payment service is not configured' }); return; }
+    const tossResponse = await fetch(
+      `https://api.tosspayments.com/v1/payments/${encodeURIComponent(paymentKey)}/cash-receipts`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}`,
+          'Content-Type': 'application/json',
+          'Idempotency-Key': `cash-receipt-${orderDoc.id}-${type}`,
+        },
+        body: JSON.stringify({
+          customerIdentityNumber: identity,
+          type,
+          ...(taxFreeAmount > 0 ? { taxFreeAmount } : {}),
+        }),
+      },
+    );
+    const toss = await tossResponse.json().catch(() => ({}));
+    if (tossResponse.ok || toss.code === 'ALREADY_REGISTERED_CASH_RECEIPT') {
+      res.status(200).json({
+        success: true,
+        alreadyIssued: toss.code === 'ALREADY_REGISTERED_CASH_RECEIPT',
+        receiptKey: toss.receiptKey || null,
+        orderId: toss.orderId || orderDoc.id,
+      });
+      return;
+    }
+    console.warn('Cash receipt request rejected:', { status: tossResponse.status, code: toss.code || 'unknown' });
+    res.status(400).json({ error: 'Cash receipt issuance failed' });
+  } catch (error) {
+    console.error('issueCashReceiptSecure failed:', { code: error?.code || 'cash-receipt-failed' });
+    res.status(400).json({ error: 'Cash receipt issuance failed' });
+  }
+});
+
 // 토스 가상계좌 입금 완료 웹훅
 // 입금 이벤트를 받으면 주문번호·secret·결제금액·결제상태를 모두 확인한 뒤 확정합니다.
 exports.tossVirtualAccountWebhook = onRequest(

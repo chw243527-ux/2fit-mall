@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
 
 class TossConfig {
   static const clientKey = 'live_ck_kYG57Eba3GbJ4WOYa1vE8pWDOxmA';
   static const secretKey = '';
   static const easyPayClientKey = 'live_gck_eqRGgYO1r5yAb12QKyZorQnN2Eya';
-  static const confirmEdgeFunctionUrl = 'https://2fit-mall.co.kr/api/confirm-payment';
-  static const cashReceiptEdgeFunctionUrl = 'https://2fit-mall.co.kr/api/issue-cash-receipt';
+  static const confirmEdgeFunctionUrl = 'https://us-central1-fit-mall.cloudfunctions.net/confirmSecurePayment';
+  static const cashReceiptEdgeFunctionUrl = 'https://us-central1-fit-mall.cloudfunctions.net/issueCashReceiptSecure';
   static bool get useEdgeFunction => confirmEdgeFunctionUrl.isNotEmpty;
   static bool get isLiveMode => !clientKey.startsWith('test_');
 }
@@ -21,7 +22,12 @@ class PaymentService {
 
   static Future<PaymentResult> confirmPayment({required String paymentKey, required String orderId, required int amount}) async {
     try {
-      final response = await http.post(Uri.parse(TossConfig.confirmEdgeFunctionUrl), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'paymentKey': paymentKey, 'orderId': orderId, 'amount': amount})).timeout(const Duration(seconds: 30));
+      final user = FirebaseAuth.instance.currentUser;
+      final token = await user?.getIdToken(true);
+      if (user == null || token == null || token.isEmpty) {
+        return PaymentResult(success: false, error: '로그인이 필요합니다.');
+      }
+      final response = await http.post(Uri.parse(TossConfig.confirmEdgeFunctionUrl), headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'}, body: jsonEncode({'paymentKey': paymentKey, 'orderId': orderId, 'amount': amount})).timeout(const Duration(seconds: 30));
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['success'] == true) {
         return PaymentResult(success: true, paymentKey: data['paymentKey'], orderId: data['orderId'], method: data['method']);
@@ -34,7 +40,12 @@ class PaymentService {
 
   static Future<CashReceiptResult> issueCashReceipt({required String paymentKey, required String customerIdentityNumber, String type = '소득공제', int taxFreeAmount = 0}) async {
     try {
-      final response = await http.post(Uri.parse(TossConfig.cashReceiptEdgeFunctionUrl), headers: {'Content-Type': 'application/json'}, body: jsonEncode({'paymentKey': paymentKey, 'customerIdentityNumber': customerIdentityNumber, 'type': type, 'taxFreeAmount': taxFreeAmount})).timeout(const Duration(seconds: 30));
+      final user = FirebaseAuth.instance.currentUser;
+      final token = await user?.getIdToken(true);
+      if (user == null || token == null || token.isEmpty) {
+        return CashReceiptResult(success: false, error: '로그인이 필요합니다.');
+      }
+      final response = await http.post(Uri.parse(TossConfig.cashReceiptEdgeFunctionUrl), headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'}, body: jsonEncode({'paymentKey': paymentKey, 'customerIdentityNumber': customerIdentityNumber, 'type': type, 'taxFreeAmount': taxFreeAmount})).timeout(const Duration(seconds: 30));
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['success'] == true) return CashReceiptResult(success: true, receiptKey: data['receiptKey'], orderId: data['orderId']);
       return CashReceiptResult(success: false, error: data['message'] ?? '현금영수증 발급에 실패했습니다.');

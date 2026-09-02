@@ -59,6 +59,7 @@ service cloud.firestore {
     // 사용자 필드 검증
     function isValidUserData(data) {
       return validStr(data.name, 50)
+          && (!('nickname' in data) || validStr(data.nickname, 20))
           && validStr(data.email, 100)
           && (!('phone' in data) || validStr(data.phone, 20))
           && (!('phoneVerified' in data) || data.phoneVerified is bool)
@@ -131,12 +132,21 @@ service cloud.firestore {
         (isOwner(userId)
           && !('isAdmin' in request.resource.data.diff(resource.data).affectedKeys()) // isAdmin 변경 금지
           && !('points' in request.resource.data.diff(resource.data).affectedKeys())  // 포인트 직접 변경 금지
-          && !('phoneVerified' in request.resource.data.diff(resource.data).affectedKeys())
-          && !('phoneVerifiedAt' in request.resource.data.diff(resource.data).affectedKeys())
-          && !('phone' in request.resource.data.diff(resource.data).affectedKeys())
+          && (!('phone' in request.resource.data.diff(resource.data).affectedKeys())
+              || (request.resource.data.phone == request.auth.token.phone_number
+                  && request.resource.data.phoneVerified == true
+                  && request.resource.data.phoneVerifiedAt is timestamp))
+          && (!('phoneVerified' in request.resource.data.diff(resource.data).affectedKeys())
+              || (request.resource.data.phoneVerified == true
+                  && request.resource.data.phone == request.auth.token.phone_number))
+          && (!('phoneVerifiedAt' in request.resource.data.diff(resource.data).affectedKeys())
+              || (request.resource.data.phoneVerified == true
+                  && request.resource.data.phone == request.auth.token.phone_number
+                  && request.resource.data.phoneVerifiedAt is timestamp))
           && request.resource.data.email == request.auth.token.email
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'name', 'addresses', 'wishlist', 'marketingNotificationsEnabled',
+            'name', 'nickname', 'phone', 'phoneVerified', 'phoneVerifiedAt',
+            'addresses', 'wishlist', 'marketingNotificationsEnabled',
             'privacyConsent', 'privacyConsentVersion', 'privacyConsentAt',
             'profileImage', 'isDeleted', 'deletedAt'
           ])
