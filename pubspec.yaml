@@ -52,6 +52,7 @@ dependencies:
   csv: ^6.0.0
   excel: ^4.0.6
   pdf: ^3.11.1
+  printing: ^5.13.4
   path_provider: ^2.1.0
 
   # ── 구글 소셜 로그인 ─────────────────────────

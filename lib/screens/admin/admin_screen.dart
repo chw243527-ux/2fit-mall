@@ -32,6 +32,7 @@ import 'package:http/http.dart' as http;
 import 'admin_inventory_tab.dart';
 import '../../utils/constants.dart';
 import '../../widgets/image_lightbox.dart';
+import '../../widgets/group_order_pdf_preview.dart';
 import '../auth/login_screen.dart';
 import '../home/home_screen.dart';
 import '../chat/chat_screen.dart';
@@ -5832,7 +5833,7 @@ class _AdminScreenState extends State<AdminScreen>
                         child: OutlinedButton.icon(
                           onPressed: () {
                             Navigator.pop(context);
-                            _exportGroupOrderPdf(order);
+                            _showGroupOrderPdfPreview(order);
                           },
                           icon: const Icon(Icons.download_rounded, size: 16),
                           label: Text(
@@ -6092,6 +6093,22 @@ class _AdminScreenState extends State<AdminScreen>
         );
       }
     }
+  }
+
+  // ── 단체주문 상세 PDF 미리보기 ──
+  void _showGroupOrderPdfPreview(OrderModel order) {
+    showDialog<void>(
+      context: context,
+      builder: (_) => Dialog(
+        insetPadding: const EdgeInsets.all(16),
+        clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          width: 980,
+          height: MediaQuery.of(context).size.height * 0.92,
+          child: GroupOrderPdfPreview(order: order, showAppBar: false),
+        ),
+      ),
+    );
   }
 
   // ── 단체주문 상세 PDF 내보내기 ──
