@@ -99,14 +99,26 @@ void main() {
       expect(order.items.single.quantity, 20);
       expect(order.items.single.price, 27000);
       expect(options['teamName'], '전북 러닝크루');
+      expect(options['mainColor'], '네이비');
       expect(options['adjustedColorHex'], '#1A237E');
+      expect(options['bottomColorName'], '차콜');
       expect(options['bottomColorHex'], '#333333');
+      expect(options['printType'], '가슴 로고 + 등판 로고');
+      expect(options['maleLength'], '24cm');
+      expect(options['femaleLength'], '22cm');
       expect(options['waistbandOption'], '밴드형');
+      expect(options['fabric'], '기능성 폴리에스터');
+      expect(options['fabricWeight'], '180g');
+      expect(options['designLogoUrl'], 'https://example.com/design.pdf');
+      expect(options['waistbandLogoUrl'], 'https://example.com/waistband.pdf');
+      expect(options['deliveryMemo'], '문 앞 배송');
+      expect(options['exclusive'], isTrue);
       expect(options['designRevisionRequest']['status'], 'responded');
       expect(persons, hasLength(2));
       expect(persons[0]['gender'], '남');
       expect(persons[1]['gender'], '여');
       expect(persons[0]['note'], '기장 1cm 조정');
+      expect(persons.every((p) => !(p as Map<String, dynamic>).containsKey('color')), isTrue);
     });
 
     test('customOptions가 없어도 top-level persons와 groupName을 폴백한다', () {
