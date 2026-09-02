@@ -2136,6 +2136,13 @@ class OrderExcelService {
     return fallback;
   }
 
+    static String _colorWithHex(String colorName, String? explicitHex) {
+    final hex = (explicitHex != null && RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch(explicitHex))
+        ? explicitHex.toUpperCase()
+        : _getColorHex(colorName)?.toUpperCase();
+    return hex == null || hex.isEmpty ? colorName : '$colorName ($hex)';
+  }
+
   static bool _isExclusive(Map<String, dynamic> opts) {
     return opts['exclusiveDesign'] == true || opts['exclusive'] == true;
   }
@@ -3618,7 +3625,9 @@ class OrderExcelService {
     final teamName = _optText(opts, ['teamName', 'groupName'], order.groupName ?? order.userName);
     final mainColor = _optText(opts, ['mainColor', 'color', 'colorName'], '-');
     final bottomColor = _optText(opts, ['bottomColorName', 'bottomColor'], '');
-    final colorText = bottomColor.isEmpty ? mainColor : '상의: $mainColor / 하의: $bottomColor';
+    final colorText = bottomColor.isEmpty
+        ? _colorWithHex(mainColor, opts['adjustedColorHex']?.toString())
+        : '상의: ${_colorWithHex(mainColor, opts['adjustedColorHex']?.toString())} / 하의: ${_colorWithHex(bottomColor, opts['bottomColorHex']?.toString())}';
     final orderDate = _fmtFull(order.createdAt);
     final phone = _optText(opts, ['phone', 'contactPhone'], order.userPhone);
     final email = _optText(opts, ['email', 'contactEmail'], order.userEmail);
@@ -3677,12 +3686,12 @@ class OrderExcelService {
         ]),
         section('1. 디자인 이미지', pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [imageCard('디자인 시안', productImage), imageCard('업로드 디자인 로고', designLogoImage)])),
         section('2. 주문 상세 내역', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), columnWidths: {0: const pw.FlexColumnWidth(2.3), 1: const pw.FlexColumnWidth(1.0), 2: const pw.FlexColumnWidth(1.4), 3: const pw.FlexColumnWidth(1.2), 4: const pw.FlexColumnWidth(1.2), 5: const pw.FlexColumnWidth(1.3), 6: const pw.FlexColumnWidth(0.8)}, children: [
-          pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['상품명','색상','인쇄옵션','하의길이','허리밴드','원단','수량'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
+          pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['상품명','변경을 원하는 색상','인쇄옵션','하의길이','허리밴드','원단','수량'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
           ...order.items.map((item) => pw.TableRow(children: [item.productName, colorText, printType, length, waistband, '$fabric / $fabricWeight', '${item.quantity}'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList())),
         ])),
         section('3. 인원별 상세 사이즈 내역', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
-          pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['번호','이름','성별','상의','하의','하의길이','키','몸무게','허리','허벅지','색상'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
-          ...persons.asMap().entries.map((entry) { final p = entry.value is Map ? Map<String, dynamic>.from(entry.value as Map) : <String, dynamic>{}; final pColor = _optText(p, ['color'], mainColor); final pLength = _optText(p, ['bottomLength'], length); return pw.TableRow(children: [ '${p['index'] ?? entry.key + 1}', _optText(p, ['name'], '-'), _optText(p, ['gender'], '-'), _optText(p, ['topSize'], '-'), _optText(p, ['bottomSize'], '-'), pLength, _optText(p, ['height'], '-'), _optText(p, ['weight'], '-'), _optText(p, ['waist'], '-'), _optText(p, ['thigh'], '-'), pColor].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList()); }),
+          pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['번호','이름','성별','상의','하의','하의길이','키','몸무게','허리','허벅지','변경을 원하는 색상'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
+          ...persons.asMap().entries.map((entry) { final p = entry.value is Map ? Map<String, dynamic>.from(entry.value as Map) : <String, dynamic>{}; final pColor = _colorWithHex(_optText(p, ['color'], mainColor), p['colorHex']?.toString()); final pLength = _optText(p, ['bottomLength'], length); return pw.TableRow(children: [ '${p['index'] ?? entry.key + 1}', _optText(p, ['name'], '-'), _optText(p, ['gender'], '-'), _optText(p, ['topSize'], '-'), _optText(p, ['bottomSize'], '-'), pLength, _optText(p, ['height'], '-'), _optText(p, ['weight'], '-'), _optText(p, ['waist'], '-'), _optText(p, ['thigh'], '-'), pColor].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList()); }),
         ])),
         section('4. 업로드 파일 / PDF 확인', pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
           pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
