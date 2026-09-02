@@ -2,7 +2,9 @@ import '../../utils/theme.dart';
 // admin_delivery_tab.dart — 배송관리 탭
 // 기능: 배송 현황 요약 / 배송중 주문 목록 / 운송장 일괄 입력 / 배송 상태 변경 / 배송 추적 링크
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../utils/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -1399,6 +1401,19 @@ class _TrackingDialogState extends State<_TrackingDialog> {
       };
 }
 
+String _adminCarrierIdFromName(String name) {
+  final n = name.trim().toLowerCase();
+  if (n.contains('cj') || n.contains('대한통운')) return 'kr.cjlogistics';
+  if (n.contains('한진')) return 'kr.hanjin';
+  if (n.contains('롯데') || n.contains('lotte')) return 'kr.lotte';
+  if (n.contains('우체국') || n.contains('epost')) return 'kr.epost';
+  if (n.contains('로젠') || n.contains('logen')) return 'kr.logen';
+  if (n.contains('대신')) return 'kr.daesin';
+  if (n.contains('경동')) return 'kr.kdexp';
+  if (n.contains('일양')) return 'kr.ilyanglogis';
+  return 'kr.cjlogistics';
+}
+
 // ─────────────────────────────────────────────
 // 일괄 운송장 입력 다이얼로그
 // ─────────────────────────────────────────────
@@ -1429,6 +1444,9 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
   late final List<_BulkEntry> _entries;
   late final List<TextEditingController> _ctrls;
   bool _saving = false;
+  bool _validating = false;
+  final Map<int, String> _validationMessages = {};
+  final Set<int> _validatedRows = {};
 
   @override
   void initState() {
@@ -1445,6 +1463,57 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
       c.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _validateAll() async {
+    if (_validating) return;
+    setState(() {
+      _validating = true;
+      _validationMessages.clear();
+      _validatedRows.clear();
+      for (var i = 0; i < _entries.length; i++) {
+        _entries[i].trackingNumber = _ctrls[i].text.trim();
+      }
+    });
+
+    for (var i = 0; i < _entries.length; i++) {
+      final entry = _entries[i];
+      final normalized = entry.trackingNumber.replaceAll(RegExp(r'[- ]'), '');
+      if (!RegExp(r'^\d{8,16}$').hasMatch(normalized)) {
+        _validationMessages[i] = context.loc.t(
+            '운송장번호_형식오류', '송장번호는 숫자 8~16자리여야 합니다.');
+        _validatedRows.add(i);
+        continue;
+      }
+      entry.trackingNumber = normalized;
+      final carrierId = _adminCarrierIdFromName(entry.company);
+      try {
+        final response = await http.post(
+          Uri.parse('https://apis.tracker.delivery/graphql'),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'query': r'''query Track($carrierId: ID!, $trackingNumber: String!) {
+              track(carrierId: $carrierId, trackingNumber: $trackingNumber) {
+                lastEvent { time description status { code text } }
+              }
+            }''',
+            'variables': {'carrierId': carrierId, 'trackingNumber': normalized},
+          }),
+        ).timeout(const Duration(seconds: 10));
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final track = body['data']?['track'];
+        _validationMessages[i] = response.statusCode == 200 && track != null
+            ? context.loc.t('운송장번호_조회가능', '조회 가능한 송장번호입니다.')
+            : context.loc.t('운송장번호_형식정상_배송대기',
+                '형식은 정상입니다. 택배사 등록 전이거나 배송정보를 기다리는 중일 수 있습니다.');
+      } catch (_) {
+        _validationMessages[i] = context.loc.t('운송장번호_형식정상_API확인불가',
+            '형식은 정상입니다. 배송조회 서버 확인은 잠시 후 다시 시도할 수 있습니다.');
+      }
+      _validatedRows.add(i);
+      if (mounted) setState(() {});
+    }
+    if (mounted) setState(() => _validating = false);
   }
 
   @override
@@ -1502,6 +1571,34 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
               ],
             ),
             const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    context.loc.t('저장전_검증안내', '저장 전에 모든 송장번호를 검증해 주세요.'),
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _validating ? null : _validateAll,
+                  icon: _validating
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.verified_outlined, size: 16),
+                  label: Text(context.loc.t('일괄_검증', '일괄 검증')),
+                ),
+              ],
+            ),
+            if (_validationMessages.isNotEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  '${_validationMessages.values.where((m) => !m.contains('오류')).length}/${_entries.length}건 검증 완료',
+                  style: TextStyle(fontSize: 11, color: Colors.green.shade700),
+                ),
+              ),
             const Divider(),
             ConstrainedBox(
               constraints: const BoxConstraints(maxHeight: 350),
@@ -1537,7 +1634,12 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly
                             ],
-                            onChanged: (v) => e.trackingNumber = v,
+                            onChanged: (v) {
+                              e.trackingNumber = v;
+                              _validatedRows.remove(i);
+                              _validationMessages.remove(i);
+                              setState(() {});
+                            },
                           ),
                         ),
                       ],
@@ -1563,13 +1665,27 @@ class _BulkTrackingDialogState extends State<_BulkTrackingDialog> {
             const SizedBox(width: 10),
             Expanded(
               child: ElevatedButton(
-                onPressed: _saving
+                onPressed: _saving || _validating
                     ? null
                     : () async {
-                        setState(() => _saving = true);
-                        for (int i = 0; i < _entries.length; i++) {
+                        for (var i = 0; i < _entries.length; i++) {
                           _entries[i].trackingNumber = _ctrls[i].text.trim();
                         }
+                        if (_validatedRows.length != _entries.length) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(context.loc.t(
+                                '일괄검증먼저', '모든 송장번호를 먼저 일괄 검증해 주세요.'))),
+                          );
+                          return;
+                        }
+                        if (_validationMessages.values.any((m) => m.contains('오류'))) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(context.loc.t(
+                                '송장번호수정필요', '오류가 있는 송장번호를 수정해 주세요.'))),
+                          );
+                          return;
+                        }
+                        setState(() => _saving = true);
                         await widget.onSave(_entries);
                         if (!mounted) return;
                         // ignore: use_build_context_synchronously
