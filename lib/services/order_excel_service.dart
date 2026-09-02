@@ -2271,6 +2271,17 @@ class OrderExcelService {
   }
 
   // ignore: unused_element
+  static String _printTypeLabel(String value) {
+    const labels = {
+      '0': '디자인 유지 + 색상 변경',
+      '1': '디자인 유지 + 단체명 + 색상 변경',
+      '2': '디자인 변경 + 단체명 + 색상 변경',
+      '3': '디자인 유지 + 색상변경 + 단체명 + 이름(후면)',
+      '4': '디자인 변경 + 색상변경 + 단체명 + 이름(후면)',
+    };
+    return labels[value] ?? value;
+  }
+
   static String _buildCustomSummary(Map<String, dynamic> opts) {
     final parts = <String>[];
     final printType = opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '';
@@ -3638,7 +3649,9 @@ class OrderExcelService {
     final phone = _optText(opts, ['phone', 'contactPhone'], order.userPhone);
     final email = _optText(opts, ['email', 'contactEmail'], order.userEmail);
     final address = _optText(opts, ['address', 'deliveryAddress'], order.userAddress);
-    final printType = _optText(opts, ['printType', 'printTypeLabel'], '-');
+    final printType = _printTypeLabel(_optText(opts, ['printType', 'printTypeLabel'], '-'));
+    final refImageUrl = _optText(opts, ['refImageUrl', 'maleRefImageUrl', 'femaleRefImageUrl']);
+    final refImage = await _pdfImage(refImageUrl);
     final fabric = _optText(opts, ['fabricType', 'fabricName', 'fabric'], '-');
     final fabricWeight = _optText(opts, ['fabricWeight', 'weight'], '-');
     final length = _lengthDisplay(opts);
@@ -3690,7 +3703,7 @@ class OrderExcelService {
           pw.TableRow(children: [infoRow('이메일', email), infoRow('전화번호', phone)]),
           pw.TableRow(children: [infoRow('주문날짜', orderDate), infoRow('주문상태', _statusLabel(order.status))]),
         ]),
-        section('1. 디자인 이미지', pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [imageCard('디자인 시안', productImage), imageCard('업로드 디자인 로고', designLogoImage)])),
+        section('1. 디자인 이미지', pw.Wrap(spacing: 8, runSpacing: 8, children: [imageCard('디자인 시안', productImage), imageCard('업로드 디자인 로고', designLogoImage), if (refImage != null) imageCard('참고 이미지', refImage)])),
         section('2. 주문 상세 내역', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), columnWidths: {0: const pw.FlexColumnWidth(2.2), 1: const pw.FlexColumnWidth(1.4), 2: const pw.FlexColumnWidth(0.9), 3: const pw.FlexColumnWidth(1.4), 4: const pw.FlexColumnWidth(1.1), 5: const pw.FlexColumnWidth(1.1), 6: const pw.FlexColumnWidth(1.4), 7: const pw.FlexColumnWidth(0.7), 8: const pw.FlexColumnWidth(1.0), 9: const pw.FlexColumnWidth(1.1)}, children: [
           pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['상품명','변경을 원하는 색상','사이즈','인쇄옵션','하의길이','허리밴드','원단/무게','수량','단가','금액'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
           ...order.items.map((item) => pw.TableRow(children: [item.productName, colorText, '${item.size.isEmpty ? '-' : item.size}', printType, length, waistband, '$fabric / $fabricWeight', '${item.quantity}', _formatWon(item.price), _formatWon(item.price * item.quantity)].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList())),
@@ -3700,7 +3713,7 @@ class OrderExcelService {
           pw.SizedBox(height: 5),
           pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
           pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['번호','이름','성별','사이즈구분','상의','하의','하의길이','키','몸무게','허리','허벅지','비고'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
-          ...persons.asMap().entries.map((entry) { final p = entry.value is Map ? Map<String, dynamic>.from(entry.value as Map) : <String, dynamic>{}; final pLength = _optText(p, ['bottomLength'], length); final pNote = _optText(p, ['note', '비고'], '-'); final pSizeType = _optText(p, ['sizeType'], '성인'); return pw.TableRow(children: [ '${p['index'] ?? entry.key + 1}', _optText(p, ['name'], '-'), _optText(p, ['gender'], '-'), pSizeType, _optText(p, ['topSize'], '-'), _optText(p, ['bottomSize'], '-'), pLength, _optText(p, ['height'], '-'), _optText(p, ['weight'], '-'), _optText(p, ['waist'], '-'), _optText(p, ['thigh'], '-'), pNote].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList()); }),
+          ...persons.asMap().entries.map((entry) { final p = entry.value is Map ? Map<String, dynamic>.from(entry.value as Map) : <String, dynamic>{}; final pLength = _optText(p, ['bottomLength', 'length', '하의길이'], length); final pNote = _optText(p, ['note', '비고'], '-'); final pSizeType = _optText(p, ['sizeType'], '성인'); return pw.TableRow(children: [ '${p['index'] ?? entry.key + 1}', _optText(p, ['name'], '-'), _optText(p, ['gender'], '-'), pSizeType, _optText(p, ['topSize'], '-'), _optText(p, ['bottomSize'], '-'), pLength, _optText(p, ['height'], '-'), _optText(p, ['weight'], '-'), _optText(p, ['waist'], '-'), _optText(p, ['thigh'], '-'), pNote].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList()); }),
           ]),
         ])),
         section('4. 업로드 파일 / PDF 확인', pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
@@ -3721,6 +3734,8 @@ class OrderExcelService {
           pw.TableRow(children: [infoRow('배송메모', _optText(opts, ['deliveryMemo', 'shippingMemo', 'memoText', 'memo'], order.memo ?? '-')), infoRow('결제수단', order.paymentMethod)]),
           pw.TableRow(children: [infoRow('독점디자인', _isExclusive(opts) ? '예' : '아니오'), infoRow('남/여 인원', '남 ${_countGender(order, '남')}명 / 여 ${_countGender(order, '여')}명')]),
           pw.TableRow(children: [infoRow('원단 종류/무게', '$fabric / $fabricWeight'), infoRow('단체주문 메모', _optText(opts, ['memoText', 'memo'], order.memo ?? '-'))]),
+          pw.TableRow(children: [infoRow('주머니', opts['pocket'] == true ? '선택함' : '선택 안 함'), infoRow('색상 밝기', _optText(opts, ['colorTone', 'colorLightness'], '-'))]),
+          pw.TableRow(children: [infoRow('허리밴드 색상코드', _optText(opts, ['waistbandColorHex'], '-')), infoRow('허리밴드 참고이미지', '${(opts['waistbandRefImages'] as List?)?.length ?? 0}장')]),
         ])),
         section('6. 디자인·추가제작·컬러 수정 이력', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
           pw.TableRow(children: [infoRow('디자인 수정 횟수', '${order.designRevisionCount}회 / 최대 2회'), infoRow('최근 수정 상태', _optText(opts, ['designRevisionStatus', 'revisionStatus'], '-'))]),
