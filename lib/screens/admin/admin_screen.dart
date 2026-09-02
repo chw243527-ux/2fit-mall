@@ -6097,14 +6097,20 @@ class _AdminScreenState extends State<AdminScreen>
 
   // ── 단체주문 상세 PDF 미리보기 ──
   void _showGroupOrderPdfPreview(OrderModel order) {
+    final screenSize = MediaQuery.of(context).size;
+    final dialogWidth = screenSize.width > 980
+        ? 980.0
+        : (screenSize.width - 32).clamp(280.0, 980.0);
+    final dialogHeight = (screenSize.height - 32).clamp(420.0, screenSize.height * 0.92);
+
     showDialog<void>(
       context: context,
       builder: (_) => Dialog(
         insetPadding: const EdgeInsets.all(16),
         clipBehavior: Clip.antiAlias,
         child: SizedBox(
-          width: 980,
-          height: MediaQuery.of(context).size.height * 0.92,
+          width: dialogWidth,
+          height: dialogHeight,
           child: GroupOrderPdfPreview(order: order, showAppBar: false),
         ),
       ),
