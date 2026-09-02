@@ -813,8 +813,7 @@ class _AdminStaffTabState extends State<AdminStaffTab> {
           ),
         ],
       ),
-      ),
-    );
+      );
   }
 
   void _showStaffRoleDialog(Map<String, dynamic> staff) {
