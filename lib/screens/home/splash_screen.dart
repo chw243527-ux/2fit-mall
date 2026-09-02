@@ -120,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen>
           if (mounted)
             _navigateAfterLogin(deepLink, isLoggedIn: false, isAdmin: false);
         } else {
-          _goToLogin();
+          _goToPublicHome();
         }
         return;
       }
@@ -148,11 +148,11 @@ class _SplashScreenState extends State<SplashScreen>
           if (mounted)
             _navigateAfterLogin(deepLink, isLoggedIn: false, isAdmin: false);
         } else {
-          _goToLogin();
+          _goToPublicHome();
         }
       }
     } catch (_) {
-      _goToLogin();
+      _goToPublicHome();
     }
   }
 
@@ -245,7 +245,8 @@ class _SplashScreenState extends State<SplashScreen>
     Widget target;
 
     if (link == null) {
-      target = isLoggedIn ? const MainScreen() : const LoginScreen();
+      // 홈은 공개 화면이므로 로그아웃 상태에서도 진입합니다.
+      target = const MainScreen();
     } else {
       switch (link.path) {
         case '/':
@@ -357,13 +358,26 @@ class _SplashScreenState extends State<SplashScreen>
           target = const PaymentFailScreen();
           break;
         default:
-          target = isLoggedIn ? const MainScreen() : const LoginScreen();
+          // 알 수 없는 공개 경로는 홈으로 복귀시킵니다.
+          target = const MainScreen();
       }
     }
 
     Navigator.of(context, rootNavigator: true).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => target,
+        transitionsBuilder: (_, animation, __, child) =>
+            FadeTransition(opacity: animation, child: child),
+        transitionDuration: const Duration(milliseconds: 400),
+      ),
+    );
+  }
+
+  void _goToPublicHome() {
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const MainScreen(),
         transitionsBuilder: (_, animation, __, child) =>
             FadeTransition(opacity: animation, child: child),
         transitionDuration: const Duration(milliseconds: 400),
