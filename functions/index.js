@@ -21,6 +21,9 @@ const SOLAPI_API_SECRET = defineSecret('SOLAPI_API_SECRET');
 const SOLAPI_SENDER_PHONE = '01072276914';
 // 단체주문 접수 알림톡 템플릿은 카카오 검수 승인 후 Secret/환경설정으로 등록합니다.
 const KAKAO_GROUP_ORDER_TEMPLATE_ID = defineString('KAKAO_GROUP_ORDER_TEMPLATE_ID', { default: '' });
+// 1년 독점 만료 7일 전 알림톡 템플릿은 카카오 검수 승인 후 등록합니다.
+// 템플릿이 아직 없으면 앱 알림과 이메일을 먼저 발송합니다.
+const KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID = defineString('KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID', { default: '' });
 // 이메일 발송은 Resend API를 사용하며 API 키는 Firebase Secret Manager에서만 읽습니다.
 const RESEND_API_KEY = defineSecret('RESEND_API_KEY');
 const RESEND_FROM_EMAIL = defineString('RESEND_FROM_EMAIL', {
@@ -1121,6 +1124,139 @@ exports.cleanupExpiredPaymentIntents = onSchedule('every 15 minutes', async () =
   for (const intent of snapshot.docs) {
     if (intent.data().status === 'pending') await _releasePaymentIntent(String(intent.data().userId || ''), intent.id).catch(() => {});
   }
+});
+
+function _asDate(value) {
+  if (!value) return null;
+  if (typeof value.toDate === 'function') return value.toDate();
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+function _kstDateKey(date) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(date);
+}
+function _formatKstDate(date) {
+  return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(date);
+}
+async function _claimExclusiveRenewalNotice(orderId, noticeKey) {
+  const markerRef = db.collection('orders').doc(orderId)
+    .collection('notification_deliveries').doc(`exclusive_renewal_${noticeKey}`);
+  const now = Date.now();
+  const claimed = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(markerRef);
+    const marker = snap.data() || {};
+    const claimedAt = Number(marker.claimedAtMs || 0);
+    if (marker.status === 'sent' ||
+        (marker.status === 'processing' && claimedAt && now - claimedAt < 10 * 60 * 1000)) return false;
+    tx.set(markerRef, {
+      status: 'processing', noticeKey, attempts: Number(marker.attempts || 0) + 1,
+      claimedAtMs: now, updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    return true;
+  });
+  return claimed ? markerRef : null;
+}
+exports.sendExclusiveRenewalNoticesDaily = onSchedule({
+  schedule: 'every day 09:00',
+  timeZone: 'Asia/Seoul',
+  secrets: [SOLAPI_API_KEY, SOLAPI_API_SECRET, RESEND_API_KEY],
+}, async () => {
+  const todayKey = _kstDateKey(new Date());
+  const snapshot = await db.collection('orders').where('status', '==', 'delivered').get();
+  let checked = 0;
+  let sent = 0;
+  for (const orderSnap of snapshot.docs) {
+    const data = orderSnap.data() || {};
+    const opts = data.customOptions || {};
+    const isGroup = data.orderType === 'group' || data.orderType === 'additional' ||
+      opts.orderType === 'group' || opts.orderType === 'additional';
+    const isExclusive = data.exclusiveDesign === true || opts.exclusiveDesign === true;
+    if (!isGroup || !isExclusive) continue;
+    const deliveredAt = _asDate(data.deliveredAt);
+    if (!deliveredAt) continue;
+    checked++;
+    const expiryDate = new Date(deliveredAt);
+    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+    const noticeDate = new Date(expiryDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    // 당일 대상뿐 아니라 일시적 발송 실패로 지난 알림일도 만료 전까지 재시도합니다.
+    if (_kstDateKey(noticeDate) > todayKey || expiryDate <= new Date()) continue;
+
+    const markerRef = await _claimExclusiveRenewalNotice(orderSnap.id, todayKey);
+    if (!markerRef) continue;
+    const userId = String(data.userId || '').trim();
+    const user = userId ? (await db.collection('users').doc(userId).get()).data() || {} : {};
+    const name = String(data.userName || user.name || '고객').slice(0, 80);
+    const phone = String(data.userPhone || user.phone || user.phoneNumber || '')
+      .replace(/[^0-9+]/g, '');
+    const email = String(data.userEmail || user.email || '').trim().toLowerCase();
+    const orderNumber = String(orderSnap.id).slice(0, 80);
+    const expiryText = _formatKstDate(expiryDate);
+    const results = {};
+
+    if (userId) {
+      await db.collection('notifications').add({
+        userId,
+        title: '1년 독점 기간 만료 예정 안내',
+        body: `${name}님의 단체주문 독점 기간이 ${expiryText}에 종료됩니다. 계속 이용을 원하시면 재신청해 주세요.`,
+        type: 'exclusive_renewal', orderId: orderSnap.id, isRead: false,
+        createdAt: FieldValue.serverTimestamp(),
+      }).catch((error) => console.error('exclusive in-app notification failed:', error));
+      results.inApp = 'sent';
+    } else {
+      results.inApp = 'skipped_no_user';
+    }
+
+    const templateId = KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID.value().trim();
+    if (templateId && /^\+?[0-9]{8,15}$/.test(phone)) {
+      try {
+        const result = await _sendSolapiAlimtalk({
+          phone, templateId,
+          variables: {
+            '#{고객명}': name,
+            '#{주문번호}': orderNumber,
+            '#{만료일}': expiryText,
+            '#{재신청URL}': 'https://2fit-mall.co.kr/#/group-order',
+          },
+        });
+        results.alimtalk = result.ok ? 'sent' : `failed_${result.statusCode}`;
+      } catch (error) {
+        console.error('exclusive renewal alimtalk error:', error);
+        results.alimtalk = 'failed';
+      }
+    } else {
+      results.alimtalk = templateId ? 'skipped_invalid_phone' : 'skipped_template_not_configured';
+    }
+
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      try {
+        const result = await _sendResendEmail({
+          to: email,
+          subject: `[2FIT MALL] 1년 독점 기간 만료 예정 안내 (${orderNumber})`,
+          text: `[2FIT MALL] ${name}님, 단체주문 독점 기간이 ${expiryText}에 종료됩니다. 계속 이용을 원하시면 재신청해 주세요. 주문번호: ${orderNumber}`,
+          html: `<p>${name}님, 단체주문 독점 기간이 <strong>${expiryText}</strong>에 종료됩니다.</p><p>계속 이용을 원하시면 2FIT MALL에서 재신청해 주세요.</p><p>주문번호: ${orderNumber}</p>`,
+        });
+        results.email = result.ok ? 'sent' : `failed_${result.statusCode}`;
+      } catch (error) {
+        console.error('exclusive renewal email error:', error);
+        results.email = 'failed';
+      }
+    } else {
+      results.email = 'skipped_no_valid_email';
+    }
+
+    const delivered = Object.values(results).some((status) => status === 'sent');
+    await markerRef.set({
+      status: delivered ? 'sent' : 'failed', results,
+      expiryDate: expiryDate.toISOString(), noticeDate: noticeDate.toISOString(),
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    if (delivered) sent++;
+  }
+  console.log(`exclusive renewal notices: checked=${checked}, sent=${sent}`);
 });
 
 exports.cleanupExpiredBankTransferOrders = onSchedule('every 15 minutes', async () => {
