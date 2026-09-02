@@ -1881,7 +1881,10 @@ class OrderExcelService {
         ?? order.groupCount ?? persons.length;
     final designImgUrl  = _extractDesignImageUrl(order);
     final designFileUrl = opts['designFileUrl']?.toString() ?? opts['maleRefImageUrl']?.toString() ?? '';
-
+    final designLogoUrl = opts['designLogoUrl']?.toString() ?? '';
+    final waistbandLogoUrl = opts['waistbandLogoUrl']?.toString() ?? '';
+    final designLogoName = opts['designLogoFileName']?.toString() ?? '';
+    final waistbandLogoName = opts['waistbandLogoFileName']?.toString() ?? '';
     final imageSlots = <_ImageToInsert>[];
     int rowIdx = 0;
 
@@ -1936,6 +1939,24 @@ class OrderExcelService {
     }
 
     // ── infoRows ──
+    void _writePdfLinkRow(String label, String url, String fileName) {
+      if (url.isEmpty && fileName.isEmpty) return;
+      _setCell(sheet, rowIdx, 0, label, style: labelStyle);
+      sheet.merge(
+        CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIdx),
+        CellIndex.indexByColumnRow(columnIndex: 9, rowIndex: rowIdx),
+      );
+      sheet.setRowHeight(rowIdx, 18);
+      if (url.isNotEmpty) {
+        _setPdfLinkCell(sheet, rowIdx, 1, url,
+            linkText: fileName.isEmpty ? 'PDF 열기' : 'PDF 열기 · $fileName');
+      } else {
+        _setCell(sheet, rowIdx, 1,
+            fileName.isEmpty ? '파일 없음' : '$fileName (열기 링크 없음)',
+            style: valueStyle);
+      }
+      rowIdx++;
+    }
     void _writeRow(String label, dynamic value,
         {bool isColor = false, bool isWaistband = false, bool isNoOption = false}) {
       _setCell(sheet, rowIdx, 0, label, style: labelStyle);
@@ -1979,6 +2000,8 @@ class OrderExcelService {
     _writeRow('주문 유형',  order.isAdditionalOrder ? '추가제작주문' : '신규주문');
     _writeRow('주문 상태',  _statusLabel(order.status));
     _writeRow('메모', opts['memoText']?.toString() ?? order.memo ?? '-');
+    _writePdfLinkRow('디자인 로고 파일', designLogoUrl, designLogoName);
+    _writePdfLinkRow('허리밴드 로고 파일', waistbandLogoUrl, waistbandLogoName);
 
     // ── 인원별 사이즈 섹션 ──
     rowIdx++; // 빈 행
@@ -2375,6 +2398,18 @@ class OrderExcelService {
     cell.cellStyle = border ? _withBorder(style) : (style ?? CellStyle());
   }
 
+  static void _setPdfLinkCell(Sheet sheet, int row, int col, String url,
+      {String linkText = 'PDF 열기', CellStyle? style}) {
+    final cell = sheet.cell(
+        CellIndex.indexByColumnRow(columnIndex: col, rowIndex: row));
+    final safeUrl = url.replaceAll('"', '%22');
+    final safeText = linkText.replaceAll('"', "'");
+    cell.value = FormulaCellValue('HYPERLINK("$safeUrl","$safeText")');
+    cell.cellStyle = _withBorder(style ?? CellStyle(
+      bold: true,
+      fontColorHex: ExcelColor.fromHexString('#1565C0'),
+    ));
+  }
   static String _shortId(String id) =>
       id.length > 20 ? '${id.substring(0, 20)}...' : id;
 
