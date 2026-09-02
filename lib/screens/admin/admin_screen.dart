@@ -5995,6 +5995,24 @@ class _AdminScreenState extends State<AdminScreen>
     );
   }
 
+  // ── 단체주문 다운로드 파일명: 주문날짜_팀명 ──
+  String _groupOrderFileStem(OrderModel order) {
+    final opts = order.customOptions ?? {};
+    final rawTeam = (opts['teamName']?.toString().trim().isNotEmpty == true
+            ? opts['teamName']?.toString()
+            : order.groupName?.trim().isNotEmpty == true
+                ? order.groupName
+                : order.userName.trim().isNotEmpty
+                    ? order.userName
+                    : order.id) ?? order.id;
+    final teamName = rawTeam
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')
+        .replaceAll(RegExp(r'\s+'), '_');
+    final date = order.createdAt;
+    final dateStr = '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+    return '${dateStr}_$teamName';
+  }
+
   // ── 개인 주문 엑셀 내보내기 ──
   Future<void> _exportPersonalOrderExcel(OrderModel order) async {
     if (mounted) {
@@ -6101,12 +6119,10 @@ class _AdminScreenState extends State<AdminScreen>
     }
     try {
       final bytes = await OrderExcelService.generateGroupOrderExcelAsync(order);
-      final teamName =
-          (order.customOptions?['teamName'] as String?)?.replaceAll(' ', '_') ??
-              order.id;
-      final dateStr =
-          '${order.createdAt.month.toString().padLeft(2, '0')}${order.createdAt.day.toString().padLeft(2, '0')}';
-      final fileName = '단체주문_${teamName}_$dateStr.xlsx';
+      final teamName = (order.customOptions?['teamName'] as String?)?.trim().isNotEmpty == true
+          ? (order.customOptions?['teamName'] as String).trim()
+          : (order.groupName?.trim().isNotEmpty == true ? order.groupName! : order.id);
+      final fileName = '단체주문_${_groupOrderFileStem(order)}.xlsx';
       final mimeType =
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
@@ -6186,12 +6202,10 @@ class _AdminScreenState extends State<AdminScreen>
     try {
       final bytes =
           await OrderExcelService.generateAdditionalOrderExcelAsync(order);
-      final teamName =
-          (order.customOptions?['teamName'] as String?)?.replaceAll(' ', '_') ??
-              order.id;
-      final dateStr =
-          '${order.createdAt.month.toString().padLeft(2, '0')}${order.createdAt.day.toString().padLeft(2, '0')}';
-      final fileName = '추가제작_${teamName}_$dateStr.xlsx';
+      final teamName = (order.customOptions?['teamName'] as String?)?.trim().isNotEmpty == true
+          ? (order.customOptions?['teamName'] as String).trim()
+          : (order.groupName?.trim().isNotEmpty == true ? order.groupName! : order.id);
+      final fileName = '추가제작_${_groupOrderFileStem(order)}.xlsx';
       const mimeType =
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 

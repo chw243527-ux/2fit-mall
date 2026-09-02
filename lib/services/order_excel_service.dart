@@ -416,7 +416,7 @@ class OrderExcelService {
           opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '-',
           style: rowStyle);
       _setCell(summarySheet, rowIdx, 10,
-          opts['defaultLength']?.toString() ?? '-', style: rowStyle);
+          _lengthDisplay(opts), style: rowStyle);
       _setWaistbandCell(summarySheet, rowIdx, 11, opts, baseStyle: rowStyle);
       _setCell(summarySheet, rowIdx, 12, totalQty, style: rowStyle);
       _setCell(summarySheet, rowIdx, 13,
@@ -1390,8 +1390,8 @@ class OrderExcelService {
       imgRow++;
     }
 
-    final teamName = opts['teamName']?.toString() ?? order.groupName ?? '-';
-    final mainColor = opts['mainColor']?.toString() ?? '-';
+    final teamName = _optText(opts, ['teamName', 'groupName'], order.groupName ?? '-');
+    final mainColor = _optText(opts, ['mainColor', 'color', 'colorName'], '-');
     final colorInfo = bottomColorName.isNotEmpty
         ? '상의: $mainColor / 하의: $bottomColorName'
         : mainColor;
@@ -1436,22 +1436,22 @@ class OrderExcelService {
       ['주문번호',        order.id,                                                                false, false],
       ['주문날짜',        _fmtFull(order.createdAt),                                              false, false],
       ['단체명/팀명',     teamName,                                                               false, false],
-      ['담당자',          opts['manager']?.toString() ?? opts['managerName']?.toString() ?? order.userName, false, false],
-      ['연락처',          _maskPhone(order.userPhone),                                            false, false],
-      ['이메일',          _maskEmail(order.userEmail),                                            false, false],
-      ['배송지',          order.userAddress,                                                      false, false],
+      ['담당자',          _optText(opts, ['manager', 'managerName'], order.userName),              false, false],
+      ['연락처',          _maskPhone(_optText(opts, ['phone', 'contactPhone'], order.userPhone)),  false, false],
+      ['이메일',          _maskEmail(_optText(opts, ['email', 'contactEmail'], order.userEmail)), false, false],
+      ['배송지',          _optText(opts, ['address', 'deliveryAddress'], order.userAddress),       false, false],
       ['총 인원',         '${opts['totalCount'] ?? order.groupCount ?? 0}명',                    false, false],
       ['남/여 구분',      '남 ${_countGender(order, '남')}명 / 여 ${_countGender(order, '여')}명', false, false],
-      ['인쇄옵션',        opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '-', false, false],
-      ['색상',            colorInfo,                                                              true,  false],
-      ['하의 기본길이',   opts['defaultLength']?.toString() ?? '개별선택',                        false, false],
-      ['허리밴드',        _extractWaistbandInfo(opts),                                            false, true ],
-      ['원단 종류',       opts['fabricType']?.toString() ?? opts['fabric']?.toString() ?? '-',   false, false],
-      ['원단 무게',       opts['fabricWeight']?.toString() ?? opts['weight']?.toString() ?? '-', false, false],
-      ['독점디자인',      opts['exclusiveDesign'] == true ? '예' : '아니오',                     false, false],
+      ['인쇄옵션',        _optText(opts, ['printType', 'printTypeLabel'], '-'),                    false, false],
+      ['색상',            colorInfo,                                                               true,  false],
+      ['하의 기본길이',   _lengthDisplay(opts),                                                     false, false],
+      ['허리밴드',        _extractWaistbandInfo(opts),                                             false, true ],
+      ['원단 종류',       _optText(opts, ['fabricType', 'fabricName', 'fabric'], '-'),             false, false],
+      ['원단 무게',       _optText(opts, ['fabricWeight', 'weight'], '-'),                          false, false],
+      ['독점디자인',      _isExclusive(opts) ? '예' : '아니오',                                     false, false],
       ['추가제작 여부',   order.isAdditionalOrder ? '추가제작주문' : '신규주문',          false, false],
       ['주문 상태',       _statusLabel(order.status),                                             false, false],
-      ['메모',            opts['memoText']?.toString() ?? order.memo ?? '-',                     false, false],
+      ['메모',            _optText(opts, ['memoText', 'memo'], order.memo ?? '-'),                 false, false],
     ];
 
     for (var i = 0; i < infoRows.length; i++) {
@@ -1528,7 +1528,7 @@ class OrderExcelService {
 
     // 제목 행
     _setCell(personSheet, 0, 0,
-        '팀명: $teamName  |  총 ${persons.length}명  |  색상: $colorDisplay  |  하의길이: ${opts['defaultLength'] ?? '개별선택'}',
+        '팀명: $teamName  |  총 ${persons.length}명  |  색상: $colorDisplay  |  하의길이: ${_lengthDisplay(opts)}',
         style: titleStyle);
     personSheet.merge(
         CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0),
@@ -1545,7 +1545,7 @@ class OrderExcelService {
     }
     personSheet.setRowHeight(1, 22);
 
-    final defaultLength = opts['defaultLength']?.toString() ?? '';
+    final defaultLength = _lengthDisplay(opts);
     for (var i = 0; i < persons.length; i++) {
       final p = persons[i] as Map<String, dynamic>;
       final rowStyle = i % 2 == 0 ? evenStyle : valueStyle;
@@ -1758,7 +1758,7 @@ class OrderExcelService {
     final colorRevRows = [
       ['컬러/단체명 수정 횟수', '$colorEditCount회 / 최대 2회'],
       ['남은 수정 가능 횟수',   '${2 - colorEditCount}회'],
-      ['현재 색상',             opts['mainColor']?.toString() ?? '-'],
+      ['현재 색상',             _optText(opts, ['mainColor', 'color', 'colorName'], '-')],
     ];
     for (var i = 0; i < colorRevRows.length; i++) {
       writeRow(histSheet, row, colorRevRows[i][0], colorRevRows[i][1],
@@ -1861,7 +1861,7 @@ class OrderExcelService {
 
     // ── 데이터 추출 ──
     final teamName      = opts['teamName']?.toString() ?? order.groupName ?? sheetName;
-    final mainColor     = opts['mainColor']?.toString() ?? '-';
+    final mainColor     = _optText(opts, ['mainColor', 'color', 'colorName'], '-');
     final bottomColorName = opts['bottomColorName']?.toString() ?? '';
     final colorInfo     = bottomColorName.isNotEmpty
         ? '상의: $mainColor / 하의: $bottomColorName'
@@ -1872,8 +1872,8 @@ class OrderExcelService {
     final colorDisplay  = bottomColorName.isNotEmpty
         ? '상의:$mainColor / 하의:$bottomColorName'
         : mainColor;
-    final printType     = opts['printType']?.toString() ?? opts['printTypeLabel']?.toString() ?? '';
-    final defaultLength = opts['defaultLength']?.toString() ?? '개별선택';
+    final printType     = _optText(opts, ['printType', 'printTypeLabel']);
+    final defaultLength = _lengthDisplay(opts);
     final waistbandInfo = _extractWaistbandInfo(opts);
     final maleCount     = _countGender(order, '남');
     final femaleCount   = _countGender(order, '여');
@@ -1983,10 +1983,10 @@ class OrderExcelService {
     _writeRow('주문번호',   order.id);
     _writeRow('주문날짜',   _fmtFull(order.createdAt));
     _writeRow('단체명/팀명', teamName);
-    _writeRow('담당자', opts['manager']?.toString() ?? opts['managerName']?.toString() ?? order.userName);
-    _writeRow('연락처',     _maskPhone(order.userPhone));
-    _writeRow('이메일',     _maskEmail(order.userEmail));
-    _writeRow('배송지',     order.userAddress);
+    _writeRow('담당자', _optText(opts, ['manager', 'managerName'], order.userName));
+    _writeRow('연락처', _maskPhone(_optText(opts, ['phone', 'contactPhone'], order.userPhone)));
+    _writeRow('이메일', _maskEmail(_optText(opts, ['email', 'contactEmail'], order.userEmail)));
+    _writeRow('배송지', _optText(opts, ['address', 'deliveryAddress'], order.userAddress));
     _writeRow('총 인원', '${totalCount}명  (남 ${maleCount}명 / 여 ${femaleCount}명)');
     _writeRow('인쇄옵션', printType.isNotEmpty ? printType : '인쇄옵션 없음',
         isNoOption: printType.isEmpty);
@@ -1994,12 +1994,12 @@ class OrderExcelService {
     _writeRow('하의길이',   defaultLength);
     _writeRow('허리밴드',   waistbandInfo.isNotEmpty ? waistbandInfo : '없음',
         isWaistband: waistbandInfo.isNotEmpty);
-    _writeRow('원단 종류',  opts['fabricType']?.toString() ?? opts['fabric']?.toString() ?? '-');
-    _writeRow('원단 무게',  opts['fabricWeight']?.toString() ?? opts['weight']?.toString() ?? '-');
-    _writeRow('독점디자인', opts['exclusiveDesign'] == true ? '예' : '아니오');
+    _writeRow('원단 종류',  _optText(opts, ['fabricType', 'fabricName', 'fabric'], '-'));
+    _writeRow('원단 무게',  _optText(opts, ['fabricWeight', 'weight'], '-'));
+    _writeRow('독점디자인', _isExclusive(opts) ? '예' : '아니오');
     _writeRow('주문 유형',  order.isAdditionalOrder ? '추가제작주문' : '신규주문');
     _writeRow('주문 상태',  _statusLabel(order.status));
-    _writeRow('메모', opts['memoText']?.toString() ?? order.memo ?? '-');
+    _writeRow('메모', _optText(opts, ['memoText', 'memo'], order.memo ?? '-'));
     _writePdfLinkRow('디자인 로고 파일', designLogoUrl, designLogoName);
     _writePdfLinkRow('허리밴드 로고 파일', waistbandLogoUrl, waistbandLogoName);
 
@@ -2125,6 +2125,29 @@ class OrderExcelService {
 
   // ── 유틸리티 함수들 ──
 
+  static String _optText(Map<String, dynamic> opts, List<String> keys, [String fallback = '']) {
+    for (final key in keys) {
+      final value = opts[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty && value != 'null') return value;
+    }
+    return fallback;
+  }
+
+  static bool _isExclusive(Map<String, dynamic> opts) {
+    return opts['exclusiveDesign'] == true || opts['exclusive'] == true;
+  }
+
+  static String _lengthDisplay(Map<String, dynamic> opts) {
+    final common = _optText(opts, ['defaultLength', 'bottomLength']);
+    if (common.isNotEmpty) return common;
+    final male = _optText(opts, ['maleLength']);
+    final female = _optText(opts, ['femaleLength']);
+    if (male.isNotEmpty || female.isNotEmpty) {
+      return '남: ${male.isEmpty ? '-' : male} / 여: ${female.isEmpty ? '-' : female}';
+    }
+    return '개별선택';
+  }
+
   /// 주문에서 디자인/상품 이미지 URL 추출
   static String _extractDesignImageUrl(OrderModel order) {
     final opts = order.customOptions ?? {};
@@ -2238,8 +2261,8 @@ class OrderExcelService {
     if (printType.isNotEmpty) parts.add('인쇄:$printType');
     final waistband = opts['waistbandOption']?.toString() ?? opts['waistband']?.toString() ?? '';
     if (waistband.isNotEmpty && waistband != '-') parts.add('허리밴드:$waistband');
-    if (opts['exclusiveDesign'] == true) parts.add('독점디자인');
-    final fabric = opts['fabricType']?.toString() ?? opts['fabric']?.toString() ?? '';
+    if (_isExclusive(opts)) parts.add('독점디자인');
+    final fabric = _optText(opts, ['fabricType', 'fabricName', 'fabric']);
     if (fabric.isNotEmpty && fabric != '-') parts.add('원단:$fabric');
     return parts.join(' / ');
   }
@@ -3162,10 +3185,10 @@ class OrderExcelService {
     }).toList();
 
     final teamName = opts['teamName']?.toString() ?? order.id;
-    final mainColor = opts['mainColor']?.toString() ?? opts['color']?.toString() ?? '-';
+    final mainColor = _optText(opts, ['mainColor', 'color', 'colorName'], '-');
     final mainColorHex = _getColorHex(mainColor);
     final fabricName = opts['fabricName']?.toString() ?? opts['fabric']?.toString() ?? '-';
-    final defaultLength = opts['defaultLength']?.toString() ?? '';
+    final defaultLength = _lengthDisplay(opts);
 
     // ── 스타일 정의 ──
     final purpleTitleStyle = CellStyle(
