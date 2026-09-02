@@ -382,6 +382,7 @@ exports.setStaffAdminClaim = onRequest({
     return;
   }
   if (!(await requireAdmin(req, res))) return;
+  if (!(await enforceRateLimit(req, res, `staff-claim:${req.adminUid}`, { limit: 20, windowMs: 60 * 60 * 1000 }))) return;
   try {
     const targetUid = String(req.body?.targetUid || '').trim();
     const grant = req.body?.grant === true;
@@ -403,9 +404,15 @@ exports.setStaffAdminClaim = onRequest({
     await profileRef.update({
       isAdmin: grant,
       ...(grant && req.body?.staffRole
-        ? { staffRole: String(req.body.staffRole).trim() }
+        ? { staffRole: String(req.body.staffRole).trim().slice(0, 50) }
         : { staffRole: FieldValue.delete() }),
       staffRoleUpdatedAt: FieldValue.serverTimestamp(),
+    });
+    await db.collection('access_logs').add({
+      action: grant ? 'staff_admin_granted' : 'staff_admin_revoked',
+      adminId: req.adminUid,
+      targetUid,
+      createdAt: FieldValue.serverTimestamp(),
     });
     res.json({ success: true, grant, targetUid });
   } catch (e) {
@@ -427,14 +434,11 @@ exports.ensureOwnerAdminClaim = onRequest(async (req, res) => {
   }
   try {
     const decoded = await getAuth().verifyIdToken(match[1]);
-    const email = String(decoded.email || '').trim().toLowerCase();
-    const profileSnap = await db.collection('users').doc(decoded.uid).get();
-    const profileIsAdmin = profileSnap.exists && profileSnap.data()?.isAdmin === true;
-    const ownerIsVerified = email === OWNER_ADMIN_EMAIL && decoded.email_verified === true;
-    if (!profileIsAdmin && !ownerIsVerified) {
-      res.status(403).json({ error: 'Admin account required' });
+    if (decoded.email !== OWNER_ADMIN_EMAIL || decoded.email_verified !== true) {
+      res.status(403).json({ error: 'Owner account required' });
       return;
     }
+    const email = String(decoded.email || '').trim().toLowerCase();
     const account = await getAuth().getUser(decoded.uid);
     await getAuth().setCustomUserClaims(decoded.uid, {
       ...(account.customClaims || {}),

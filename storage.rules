@@ -74,9 +74,10 @@ service firebase.storage {
           && (isAdmin() || (isSignedIn() && request.auth.uid == roomId));
     }
 
-    // 사용자 프로필 이미지
+    // 사용자 프로필 이미지: 개인정보 보호를 위해 본인·관리자만 읽기
     match /users/{userId}/{allPaths=**} {
-      allow read: if true;
+      allow read: if isAdmin()
+          || (isSignedIn() && request.auth.uid == userId);
       allow write: if isSignedIn()
           && request.auth.uid == userId
           && isReasonableUpload();
