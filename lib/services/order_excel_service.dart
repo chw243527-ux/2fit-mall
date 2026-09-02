@@ -3648,10 +3648,13 @@ class OrderExcelService {
     final orderDate = _fmtFull(order.createdAt);
     final phone = _optText(opts, ['phone', 'contactPhone'], order.userPhone);
     final email = _optText(opts, ['email', 'contactEmail'], order.userEmail);
-    final address = _optText(opts, ['address', 'deliveryAddress'], order.userAddress);
+    final addressBase = _optText(opts, ['address', 'deliveryAddress'], order.userAddress);
+    final addressDetail = _optText(opts, ['addressDetail', 'deliveryAddressDetail']);
+    final address = addressDetail.isEmpty || addressBase.contains(addressDetail)
+        ? addressBase
+        : '$addressBase $addressDetail';
     final printType = _printTypeLabel(_optText(opts, ['printType', 'printTypeLabel'], '-'));
     final refImageUrl = _optText(opts, ['refImageUrl', 'maleRefImageUrl', 'femaleRefImageUrl']);
-    final refImage = await _pdfImage(refImageUrl);
     final fabric = _optText(opts, ['fabricType', 'fabricName', 'fabric'], '-');
     final fabricWeight = _optText(opts, ['fabricWeight', 'weight'], '-');
     final length = _lengthDisplay(opts);
@@ -3662,8 +3665,21 @@ class OrderExcelService {
     final designLogoName = _optText(opts, ['designLogoFileName'], '디자인 로고 파일');
     final waistbandLogoName = _optText(opts, ['waistbandLogoFileName'], '허리밴드 로고 파일');
     final productImage = await _pdfImage(designUrl);
-    final designLogoImage = await _pdfImage(designLogoUrl);
-    final waistbandLogoImage = await _pdfImage(waistbandLogoUrl);
+    final designLogoImage = await _pdfImage(designLogoUrl) ??
+        _pdfImageFromBase64(_optText(opts, ['designLogoBase64']));
+    final waistbandLogoImage = await _pdfImage(waistbandLogoUrl) ??
+        _pdfImageFromBase64(_optText(opts, ['waistbandLogoBase64']));
+    final referenceImages = <pw.ImageProvider>[];
+    final referenceImage = await _pdfImage(refImageUrl) ??
+        _pdfImageFromBase64(_optText(opts, ['refImageBase64']));
+    if (referenceImage != null) referenceImages.add(referenceImage);
+    final rawWaistbandRefs = opts['waistbandRefImages'];
+    if (rawWaistbandRefs is List) {
+      for (final rawRef in rawWaistbandRefs) {
+        final image = _pdfImageFromBase64(rawRef.toString());
+        if (image != null) referenceImages.add(image);
+      }
+    }
     final font = pw.Font.ttf((await root_bundle.rootBundle.load('assets/fonts/NotoSansKR.ttf')));
     final pdf = pw.Document();
     final labelStyle = pw.TextStyle(font: font, fontSize: 9, color: PdfColors.grey800);
@@ -3703,7 +3719,7 @@ class OrderExcelService {
           pw.TableRow(children: [infoRow('이메일', email), infoRow('전화번호', phone)]),
           pw.TableRow(children: [infoRow('주문날짜', orderDate), infoRow('주문상태', _statusLabel(order.status))]),
         ]),
-        section('1. 디자인 이미지', pw.Wrap(spacing: 8, runSpacing: 8, children: [imageCard('디자인 시안', productImage), imageCard('업로드 디자인 로고', designLogoImage), if (refImage != null) imageCard('참고 이미지', refImage)])),
+        section('1. 디자인 이미지', pw.Wrap(spacing: 8, runSpacing: 8, children: [imageCard('선택 상품 디자인 이미지', productImage), imageCard('업로드 디자인 로고', designLogoImage), ...referenceImages.asMap().entries.map((entry) => imageCard('참고 이미지 ${entry.key + 1}', entry.value))])),
         section('2. 주문 상세 내역', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), columnWidths: {0: const pw.FlexColumnWidth(2.2), 1: const pw.FlexColumnWidth(1.4), 2: const pw.FlexColumnWidth(0.9), 3: const pw.FlexColumnWidth(1.4), 4: const pw.FlexColumnWidth(1.1), 5: const pw.FlexColumnWidth(1.1), 6: const pw.FlexColumnWidth(1.4), 7: const pw.FlexColumnWidth(0.7), 8: const pw.FlexColumnWidth(1.0), 9: const pw.FlexColumnWidth(1.1)}, children: [
           pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['상품명','변경을 원하는 색상','사이즈','인쇄옵션','하의길이','허리밴드','원단/무게','수량','단가','금액'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
           ...order.items.map((item) => pw.TableRow(children: [item.productName, colorText, '${item.size.isEmpty ? '-' : item.size}', printType, length, waistband, '$fabric / $fabricWeight', '${item.quantity}', _formatWon(item.price), _formatWon(item.price * item.quantity)].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList())),
@@ -3731,9 +3747,9 @@ class OrderExcelService {
         section('5. 엑셀 반영 항목 및 기타 주문 정보', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
           pw.TableRow(children: [infoRow('주문번호', order.id), infoRow('주문자', order.userName)]),
           pw.TableRow(children: [infoRow('주문유형', order.isAdditionalOrder ? '추가제작' : '단체주문'), infoRow('배송지', address)]),
-          pw.TableRow(children: [infoRow('배송메모', _optText(opts, ['deliveryMemo', 'shippingMemo', 'memoText', 'memo'], order.memo ?? '-')), infoRow('결제수단', order.paymentMethod)]),
+          pw.TableRow(children: [infoRow('배송메모', _optText(opts, ['deliveryMemo', 'shippingMemo'], '-')), infoRow('결제수단', order.paymentMethod)]),
           pw.TableRow(children: [infoRow('독점디자인', _isExclusive(opts) ? '예' : '아니오'), infoRow('남/여 인원', '남 ${_countGender(order, '남')}명 / 여 ${_countGender(order, '여')}명')]),
-          pw.TableRow(children: [infoRow('원단 종류/무게', '$fabric / $fabricWeight'), infoRow('단체주문 메모', _optText(opts, ['memoText', 'memo'], order.memo ?? '-'))]),
+          pw.TableRow(children: [infoRow('재봉방법/원단', '$fabric / $fabricWeight'), infoRow('디자인 요청사항 (필수)', order.memo ?? _optText(opts, ['memoText', 'memo'], '-'))]),
           pw.TableRow(children: [infoRow('주머니', opts['pocket'] == true ? '선택함' : '선택 안 함'), infoRow('색상 밝기', _optText(opts, ['colorTone', 'colorLightness'], '-'))]),
           pw.TableRow(children: [infoRow('허리밴드 색상코드', _optText(opts, ['waistbandColorHex'], '-')), infoRow('허리밴드 참고이미지', '${(opts['waistbandRefImages'] as List?)?.length ?? 0}장')]),
         ])),
@@ -3761,6 +3777,16 @@ class OrderExcelService {
   static Future<pw.ImageProvider?> _pdfImage(String url) async {
     final bytes = await _fetchBytes(url);
     return bytes == null ? null : pw.MemoryImage(bytes);
+  }
+
+  static pw.ImageProvider? _pdfImageFromBase64(String raw) {
+    if (raw.isEmpty) return null;
+    try {
+      final encoded = raw.contains(',') ? raw.substring(raw.indexOf(',') + 1) : raw;
+      return pw.MemoryImage(base64Decode(encoded));
+    } catch (_) {
+      return null;
+    }
   }
 
 } // end OrderExcelService
