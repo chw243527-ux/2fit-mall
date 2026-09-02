@@ -83,7 +83,7 @@ jobs:
           test -n "${KAKAO_GROUP_ORDER_TEMPLATE_ID}"
           test -n "${RESEND_FROM_EMAIL}"
           umask 077
-          printf 'KAKAO_GROUP_ORDER_TEMPLATE_ID=%s\nRESEND_FROM_EMAIL=%s\n' \
+          printf 'KAKAO_GROUP_ORDER_TEMPLATE_ID=%s\nKAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID=__UNCONFIGURED__\nRESEND_FROM_EMAIL=%s\n' \
             "${KAKAO_GROUP_ORDER_TEMPLATE_ID}" "${RESEND_FROM_EMAIL}" > functions/.env
           trap 'rm -f functions/.env' EXIT
           firebase deploy \
