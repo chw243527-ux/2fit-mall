@@ -303,6 +303,7 @@ class UserProvider extends ChangeNotifier {
 
   Future<void> updateUserProfile({
     String? name,
+    String? nickname,
     String? phone,
     String? cashReceiptNum,
     bool? orderNotificationsEnabled,
@@ -316,6 +317,7 @@ class UserProvider extends ChangeNotifier {
     _user = UserModel(
       id: _user!.id,
       name: name ?? _user!.name,
+      nickname: nickname ?? _user!.nickname,
       email: _user!.email,
       phone: phone ?? _user!.phone,
       address: _user!.address,
@@ -340,6 +342,7 @@ class UserProvider extends ChangeNotifier {
           .doc(_user!.id)
           .update({
         if (name != null) 'name': name,
+        if (nickname != null) 'nickname': nickname,
         if (phone != null) 'phone': phone,
         // 빈 문자열로 삭제 요청 시 → 필드 자체 삭제
         if (cashReceiptNum != null)
@@ -362,6 +365,7 @@ class UserProvider extends ChangeNotifier {
     _user = UserModel(
       id: _user!.id,
       name: _user!.name,
+      nickname: _user!.nickname,
       email: _user!.email,
       phone: _user!.phone,
       address: _user!.address,

@@ -922,6 +922,7 @@ class AddressModel {
 class UserModel {
   final String id;
   String name;
+  String nickname;
   String email;
   String phone;
   String address;
@@ -941,6 +942,7 @@ class UserModel {
   UserModel({
     required this.id,
     required this.name,
+    this.nickname = '',
     required this.email,
     required this.phone,
     this.address = '',
@@ -963,6 +965,7 @@ class UserModel {
     return UserModel(
       id: json['id'] as String? ?? '',
       name: json['name'] as String? ?? '',
+      nickname: json['nickname'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phone: json['phone'] as String? ?? '',
       address: json['address'] as String? ?? '',
@@ -990,6 +993,7 @@ class UserModel {
     return {
       'id': id,
       'name': name,
+      'nickname': nickname,
       'email': email,
       'phone': phone,
       'address': address,

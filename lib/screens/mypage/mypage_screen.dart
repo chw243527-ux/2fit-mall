@@ -5013,18 +5013,21 @@ class _ProfileEditSheet extends StatefulWidget {
 
 class _ProfileEditSheetState extends State<_ProfileEditSheet> {
   late TextEditingController _nameCtrl;
+  late TextEditingController _nicknameCtrl;
   late TextEditingController _phoneCtrl;
 
   @override
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.user.name);
+    _nicknameCtrl = TextEditingController(text: widget.user.nickname);
     _phoneCtrl = TextEditingController(text: widget.user.phone);
   }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _nicknameCtrl.dispose();
     _phoneCtrl.dispose();
     super.dispose();
   }
@@ -5061,6 +5064,15 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
                     border: OutlineInputBorder())),
             const SizedBox(height: 14),
             TextField(
+                controller: _nicknameCtrl,
+                maxLength: 20,
+                decoration: InputDecoration(
+                    labelText: context.loc.t('닉네임', '닉네임'),
+                    hintText: context.loc.t('닉네임을 입력해주세요', '닉네임을 입력해주세요'),
+                    border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 4),
+            TextField(
                 controller: _phoneCtrl,
                 decoration: InputDecoration(
                     labelText: context.loc.t('연락처', '연락처'),
@@ -5071,8 +5083,12 @@ class _ProfileEditSheetState extends State<_ProfileEditSheet> {
               child: ElevatedButton(
                 onPressed: () async {
                   final userProvider = context.read<UserProvider>();
+                  final nickname = _nicknameCtrl.text.trim();
+                  if (nickname.length > 20) return;
                   await userProvider.updateUserProfile(
-                      name: _nameCtrl.text, phone: _phoneCtrl.text);
+                      name: _nameCtrl.text.trim(),
+                      nickname: nickname,
+                      phone: _phoneCtrl.text.trim());
                   if (context.mounted) Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
