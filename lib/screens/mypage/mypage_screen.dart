@@ -4102,18 +4102,15 @@ class _MobileOrderCard extends StatelessWidget {
                   icon: Icons.local_shipping_outlined,
                   label: context.loc.t('배송조회', '배송조회'),
                   color: const Color(0xFF00838F),
-                  onTap: () {
+                  onTap: () async {
                     final company =
                         (order.customOptions?['shippingCompany'] as String? ??
                                 '')
                             .trim();
-                    showDialog(
+                    await _openTrackingPage(
                       context: btnCtx,
-                      barrierDismissible: true,
-                      builder: (_) => _TrackingDialog(
-                        trackingNumber: trackingNumber,
-                        companyName: company,
-                      ),
+                      companyName: company,
+                      trackingNumber: trackingNumber,
                     );
                   },
                 ));
@@ -10224,6 +10221,26 @@ class _ExchangeRequestDialogState extends State<_ExchangeRequestDialog> {
 // ════════════════════════════════════════════════════════════════
 // 배송 실시간 추적 다이얼로그
 // ════════════════════════════════════════════════════════════════
+
+/// 고객 배송조회 버튼에서 택배사별 통합 추적 페이지를 바로 엽니다.
+Future<void> _openTrackingPage({
+  required BuildContext context,
+  required String companyName,
+  required String trackingNumber,
+}) async {
+  final carrierId = _carrierIdFromName(companyName);
+  final uri = Uri.parse(
+      'https://tracker.delivery/#/$carrierId/${Uri.encodeComponent(trackingNumber)}');
+  final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+  if (!opened && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.loc.t(
+            '배송조회_페이지를_열_수_없습니다', '배송조회 페이지를 열 수 없습니다.')),
+      ),
+    );
+  }
+}
 
 /// 택배사 이름 → tracker.delivery carrierId 매핑
 String _carrierIdFromName(String name) {
