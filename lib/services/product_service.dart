@@ -737,10 +737,13 @@ class ProductService {
       await _persistToLocal();
       return;
     } catch (e) {
-      if (kDebugMode) debugPrint('⚠️ Firestore 상품 로드 실패, 로컬 폴백: $e');
+      if (kDebugMode) debugPrint('⚠️ Firestore 상품 로드 실패: $e');
+      // 웹과 앱이 서로 다른 로컬 상품을 노출하지 않도록 원격 실패 시
+      // 상품 목록을 비우고 화면에서 오류/재시도 상태를 처리한다.
+      _products.clear();
+      _cache.clear();
+      _loaded = true;
     }
-    // Firestore 실패 시만 로컬 캐시 → 더미 데이터 순서로 폴백
-    await _loadFromLocal();
   }
 
   // ── 로컬 캐시 저장 ────────────────────────────────────────────
@@ -771,9 +774,10 @@ class ProductService {
         return;
       }
     } catch (_) {}
-    // 로컬 캐시도 없으면 내장 더미 데이터 사용 (_products는 이미 더미로 초기화됨)
-    _cache = List.from(_products);
-    if (kDebugMode) debugPrint('🧪 내장 더미 데이터 ${_products.length}개 사용');
+    // 원격 상품을 읽지 못한 경우 내장 더미 상품을 사용하지 않는다.
+    _products.clear();
+    _cache.clear();
+    if (kDebugMode) debugPrint('⚠️ 원격 상품 없음: 내장 더미 상품은 노출하지 않음');
   }
 
   // ── 레거시 호환 (기존 코드에서 _persist 호출 시) ──────────────
@@ -1215,13 +1219,11 @@ class ProductService {
     return _cache;
   }
 
-  /// 절대 빈 리스트를 반환하지 않는 동기 접근자.
-  /// 캐시 → 더미 _products 순으로 폴백 → 항상 상품 반환 보장.
+  /// Firestore 로드 결과를 담은 캐시만 반환한다.
+  /// 원격 상품이 없을 때 내장 더미 상품을 섞지 않아 웹·앱 목록을 일치시킨다.
   static List<ProductModel> getAllProductsGuaranteed() {
     _ensureCache();
-    if (_cache.isNotEmpty) return _cache;
-    // 최후 보루: static 더미 리스트 직접 반환
-    return List.from(_products);
+    return List.from(_cache);
   }
 
   static List<ProductModel> getProductsByCategorySync(String category) {

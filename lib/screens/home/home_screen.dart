@@ -942,7 +942,7 @@ class _HomeScreenState extends State<HomeScreen>
     final r = Responsive.of(context);
     final provider = context.watch<ProductProvider>();
     List<ProductModel> allProds = provider.products;
-    if (allProds.isEmpty) allProds = ProductService.getAllProductsSync();
+    // 상품 목록은 ProductProvider가 로드한 Firestore 원본만 사용한다.
 
     final List<ProductModel> products;
     if (isNew) {
@@ -2178,11 +2178,8 @@ class _HomeScreenState extends State<HomeScreen>
   }) {
     final r = Responsive.of(context);
     final provider = context.watch<ProductProvider>();
-    // 로딩 중이더라도 더미 데이터(sync)로 즉시 표시
+    // 로딩 전에는 빈 상태를 유지하고, Firestore 원본이 로드되면 즉시 갱신한다.
     List<ProductModel> allProds = provider.products;
-    if (allProds.isEmpty) {
-      allProds = ProductService.getAllProductsSync();
-    }
     final List<ProductModel> products;
     if (isNew) {
       products = allProds.where((p) => p.isNewActive).toList();
@@ -2499,10 +2496,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildPcGroupOrderSection(AppLocalizations loc) {
     final r = Responsive.of(context);
     List<ProductModel> allProds = context.watch<ProductProvider>().products;
-    // 비어있으면 더미 데이터로 즉시 폴백
-    if (allProds.isEmpty) {
-      allProds = ProductService.getAllProductsSync();
-    }
+    // Firestore 원본이 로드된 상품만 노출한다.
     final groupProducts = allProds.where((p) => p.isGroupOnly).toList();
     if (groupProducts.isEmpty) return const SizedBox.shrink();
     return Container(
@@ -2728,12 +2722,8 @@ class _HomeScreenState extends State<HomeScreen>
     final isMobile = screenW < 600; // <600: 모바일
     final isTablet = screenW >= 600; // 600~899: 태블릿
 
-    // Firestore 로딩 중이면 로컬 캐시에서 즉시 폴백 → 스피너 없이 바로 표시
-    final groupProds = pp.groupOnlyProducts.isNotEmpty
-        ? pp.groupOnlyProducts
-        : ProductService.getAllProductsSync()
-            .where((p) => p.isGroupOnly && p.isActive)
-            .toList();
+    // 단체주문 목록도 ProductProvider가 Firestore에서 읽은 원본만 사용한다.
+    final groupProds = pp.groupOnlyProducts;
 
     final sortedGroupProds = [...groupProds]
       ..sort((a, b) => b.salesCount.compareTo(a.salesCount));
@@ -4021,7 +4011,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildGroupOrderSection(AppLocalizations loc) {
     final r = Responsive.of(context);
     List<ProductModel> allProds = context.watch<ProductProvider>().products;
-    if (allProds.isEmpty) allProds = ProductService.getAllProductsSync();
+    // 상품 목록은 ProductProvider가 로드한 Firestore 원본만 사용한다.
     final groupProducts = allProds.where((p) => p.isGroupOnly).toList();
     if (groupProducts.isEmpty) return const SizedBox.shrink();
     return Container(
@@ -5811,10 +5801,8 @@ class _HomeScreenState extends State<HomeScreen>
     // ① Firestore 로드 완료된 provider 데이터
     final fromProvider = provider.products.where((p) => p.isActive).toList();
     if (fromProvider.isNotEmpty) return fromProvider;
-    // ② 캐시 + 더미 — 절대 빈 리스트 없음
-    final guaranteed = ProductService.getAllProductsGuaranteed();
-    final active = guaranteed.where((p) => p.isActive).toList();
-    return active.isNotEmpty ? active : guaranteed;
+    // 원격 목록이 비어 있으면 임의의 로컬 상품을 대신 노출하지 않는다.
+    return provider.products.where((p) => p.isActive).toList();
   }
 
   // ignore: unused_element

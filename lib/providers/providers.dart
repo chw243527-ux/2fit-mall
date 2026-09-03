@@ -1279,9 +1279,10 @@ class ProductProvider extends ChangeNotifier {
   }
 
   ProductProvider() {
-    // 즉시 더미/캐시 데이터 표시 — 절대 빈 리스트 아님
-    _products = ProductService.getAllProductsGuaranteed();
-    _adminProducts = ProductService.getAllProductsGuaranteed();
+    // 웹과 동일하게 Firestore를 단일 상품 원본으로 사용한다.
+    // 로컬 내장 상품을 먼저 노출하면 앱과 웹의 상품·가격·이미지가 달라질 수 있다.
+    _products = [];
+    _adminProducts = [];
     _loadCategory('전체');
     // 실제 판매 수 집계 비동기 로드
     _loadSalesCounts();
@@ -1333,17 +1334,12 @@ class ProductProvider extends ChangeNotifier {
       // 번역 없는 상품은 백그라운드에서 자동 번역
       _autoTranslateMissingProducts(prods);
     } catch (e) {
-      // Firestore 실패 시 더미 데이터로 폴백
+      // 상품 원본은 Firestore 하나로 고정한다. 오류 시 다른 상품 목록을
+      // 임의로 노출하지 않고 오류 상태를 표시해 웹·앱 데이터 불일치를 막는다.
       _isLoading = false;
-      _error = null;
-      // 항상 폴백 — 기존 products가 더미여도 최신 캐시로 교체
-      final fallback = category == '전체'
-          ? ProductService.getAllProductsSync()
-          : ProductService.getProductsByCategorySync(category);
-      if (_products.isEmpty || fallback.isNotEmpty) {
-        _products = fallback;
-      }
-      notifyListeners(); // ← 반드시 호출해야 UI 갱신
+      _error = '상품 정보를 불러오지 못했습니다. 네트워크를 확인해 주세요.';
+      _products = [];
+      notifyListeners();
       return;
     }
     notifyListeners();
