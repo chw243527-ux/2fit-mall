@@ -31,27 +31,26 @@ class KakaoAddressResult {
 }
 
 Future<KakaoAddressResult?> showKakaoAddressSearch(BuildContext context) {
-  return showModalBottomSheet<KakaoAddressResult>(
+  return showDialog<KakaoAddressResult>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => const _KakaoAddressSheet(),
+    barrierDismissible: true,
+    builder: (_) => const _KakaoAddressDialog(),
   );
 }
 
-class _KakaoAddressSheet extends StatelessWidget {
-  const _KakaoAddressSheet();
+class _KakaoAddressDialog extends StatelessWidget {
+  const _KakaoAddressDialog();
   @override
   Widget build(BuildContext context) {
     final loc = context.watch<LanguageProvider>().loc;
     final h = MediaQuery.of(context).size.height;
-    return Container(
-      height: h * 0.88,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: SizedBox(
+        height: h * 0.82,
+        child: Column(
         children: [
           Container(
             margin: const EdgeInsets.only(top: 12, bottom: 4),
@@ -88,6 +87,7 @@ class _KakaoAddressSheet extends StatelessWidget {
             child: kIsWeb ? const _KakaoWebViewWeb() : const _KakaoWebView(),
           ),
         ],
+        ),
       ),
     );
   }

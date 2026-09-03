@@ -30,31 +30,31 @@ class AddressResult {
   });
 }
 
-/// 주소 검색 BottomSheet 표시
+/// 주소 검색을 화면 중앙 Dialog로 표시합니다.
 Future<AddressResult?> showAddressSearch(BuildContext context) {
-  return showModalBottomSheet<AddressResult>(
+  return showDialog<AddressResult>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => const _AddressSearchSheet(),
+    barrierDismissible: true,
+    builder: (_) => const _AddressSearchDialog(),
   );
 }
 
-// ── BottomSheet 컨테이너 ──
-class _AddressSearchSheet extends StatelessWidget {
-  const _AddressSearchSheet();
+// ── 중앙 Dialog 컨테이너 ──
+class _AddressSearchDialog extends StatelessWidget {
+  const _AddressSearchDialog();
 
   @override
   Widget build(BuildContext context) {
     final h = MediaQuery.of(context).size.height;
-    return Container(
-      height: h * 0.88,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        children: [
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: SizedBox(
+        height: h * 0.82,
+        child: Container(
+          child: Column(
+            children: [
           // 핸들바
           Container(
             margin: const EdgeInsets.only(top: 12, bottom: 4),
@@ -112,7 +112,9 @@ class _AddressSearchSheet extends StatelessWidget {
                     onResult: (r) => Navigator.pop(context, r),
                   ),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
