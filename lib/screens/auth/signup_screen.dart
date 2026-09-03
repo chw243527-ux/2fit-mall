@@ -1470,9 +1470,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     String? Function(String?)? validator,
   }) {
     return TextFormField(
+      // 컨트롤러별 고정 key로 rebuild 중 TextEditingValue/IME 조합을 보존합니다.
+      key: ValueKey<Object>(controller),
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscure,
+      autocorrect: false,
+      enableSuggestions: false,
+      enableInteractiveSelection: true,
       validator: validator,
       inputFormatters: inputFormatters,
       style: const TextStyle(fontSize: 14, color: AppColors.primary),
