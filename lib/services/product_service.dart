@@ -968,14 +968,41 @@ class ProductService {
     return sorted.take(8).toList();
   }
 
-  // ── 실시간 스트림 (로컬 Stream 에뮬레이션) ──────────────────────
+  // ── 실시간 스트림 ───────────────────────────────────────────────
 
-  static Stream<List<ProductModel>> productsStream() async* {
-    yield await getAllProducts();
+  /// Firestore products 컬렉션을 실시간으로 구독한다.
+  /// 상품 추가·수정·삭제 및 활성 상태 변경이 발생하면 새 목록을 방출한다.
+  static Stream<List<ProductModel>> productsStream() {
+    return _db
+        .collection('products')
+        .where('isActive', isEqualTo: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) {
+              final data = Map<String, dynamic>.from(doc.data());
+              data['id'] ??= doc.id;
+              if (data['createdAt'] is Timestamp) {
+                data['createdAt'] =
+                    (data['createdAt'] as Timestamp).toDate().toIso8601String();
+              }
+              return ProductModel.fromJson(data);
+            }).toList());
   }
 
-  static Stream<List<ProductModel>> categoryStream(String category) async* {
-    yield await getProductsByCategory(category);
+  /// 카테고리 필터가 적용된 실시간 상품 스트림.
+  static Stream<List<ProductModel>> categoryStream(String category) {
+    return productsStream().map((products) {
+      if (category == '전체') return products;
+      if (category == '신상품') {
+        return products.where((p) => p.isNewActive).toList();
+      }
+      if (category == '세일') {
+        return products.where((p) => p.isSale).toList();
+      }
+      if (category == '단체주문') {
+        return products.where((p) => p.isGroupOnly).toList();
+      }
+      return products.where((p) => p.category == category).toList();
+    });
   }
 
   // ── 관리자 CRUD ───────────────────────────────────────────────

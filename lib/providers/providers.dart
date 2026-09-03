@@ -1246,6 +1246,7 @@ class ProductProvider extends ChangeNotifier {
   String _currentCategory = '전체';
   /// 상품ID → 실제 판매 수량 캐시
   Map<String, int> _salesCountMap = {};
+  StreamSubscription<List<ProductModel>>? _productsSub;
   /// 판매 수 집계 로드 완료 여부
   bool _salesCountsLoaded = false;
 
@@ -1283,11 +1284,49 @@ class ProductProvider extends ChangeNotifier {
     // 로컬 내장 상품을 먼저 노출하면 앱과 웹의 상품·가격·이미지가 달라질 수 있다.
     _products = [];
     _adminProducts = [];
+    _listenToProducts();
     _loadCategory('전체');
     // 실제 판매 수 집계 비동기 로드
     _loadSalesCounts();
     // 단체주문 전용 상품 로드
     loadGroupOnlyProducts();
+  }
+
+  /// Firestore 상품 변경을 앱 전체에 실시간 반영한다.
+  void _listenToProducts() {
+    _productsSub = ProductService.productsStream().listen(
+      (allProducts) {
+        final active = allProducts.where((p) => p.isActive).toList();
+        _products = _filterProductsForCategory(active, _currentCategory);
+        _groupOnlyProducts =
+            active.where((p) => p.isGroupOnly).toList();
+        ProductService.updateCache(active);
+        _isLoading = false;
+        _error = null;
+        notifyListeners();
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        if (kDebugMode) debugPrint('⚠️ 실시간 상품 스트림 오류: $error');
+        _error = '상품 실시간 동기화에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
+  }
+
+  List<ProductModel> _filterProductsForCategory(
+      List<ProductModel> products, String category) {
+    if (category == '전체') return products;
+    if (category == '신상품') {
+      return products.where((p) => p.isNewActive).toList();
+    }
+    if (category == '세일') {
+      return products.where((p) => p.isSale).toList();
+    }
+    if (category == '단체주문') {
+      return products.where((p) => p.isGroupOnly).toList();
+    }
+    return products.where((p) => p.category == category).toList();
   }
 
   /// 단체주문 전용 상품을 Firestore에서 직접 로드
@@ -1313,6 +1352,12 @@ class ProductProvider extends ChangeNotifier {
   void setCategory(String category) {
     if (_currentCategory == category) return;
     _currentCategory = category;
+    final cached = ProductService.getAllProductsSync();
+    if (cached.isNotEmpty) {
+      _products = _filterProductsForCategory(
+          cached.where((p) => p.isActive).toList(), category);
+      notifyListeners();
+    }
     _loadCategory(category);
   }
 
@@ -1415,6 +1460,12 @@ class ProductProvider extends ChangeNotifier {
     // _loadCategory는 캐시를 그대로 읽어 _products에 세팅하고 notifyListeners() 호출
     await _loadCategory(_currentCategory);
     await _loadSalesCounts();
+  }
+
+  @override
+  void dispose() {
+    _productsSub?.cancel();
+    super.dispose();
   }
 
   /// 카테고리 상세 화면 전용: 항상 '전체' 상품을 Firestore에서 강제 재로드.
