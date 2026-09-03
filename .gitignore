@@ -31,3 +31,5 @@ scripts/
 android/*.jks
 android/key.properties
 android/*.keystore
+release-secret-files/
+release-signing-secret-bundle.txt
