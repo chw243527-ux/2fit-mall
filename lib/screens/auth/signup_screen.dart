@@ -91,6 +91,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  final _phoneFocusNode = FocusNode();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
 
@@ -147,6 +148,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
+    _phoneFocusNode.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
     _otpCtrl.dispose();
@@ -350,6 +352,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       setState(() {
         _otpSent = true;
         _otpRemaining = 60;
+        // OTP 입력 단계에서는 휴대폰 입력 필드가 포커스를 받을 수 없게 합니다.
+        _phoneFocusNode.canRequestFocus = false;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _otpSent && !_phoneVerified) {
@@ -388,6 +392,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         setState(() {
           _otpSent = false;
           _verificationId = null;
+          _phoneFocusNode.canRequestFocus = true;
         });
         _showSnack(context.loc
             .t('인증번호가_만료되었습니다_다시_발송해주세요', '인증번호가 만료되었습니다. 다시 발송해주세요.'));
@@ -974,6 +979,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             width: double.infinity,
                             child: TextFormField(
                               controller: _phoneCtrl,
+                              focusNode: _phoneFocusNode,
                               keyboardType: TextInputType.phone,
                               // 인증번호 발송 후에는 휴대폰 필드를 잠가 숫자가
                               // 휴대폰 번호 뒤에 붙는 오입력을 방지합니다.
@@ -1178,7 +1184,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     keyboardType: TextInputType.phone,
                                     textInputAction: TextInputAction.done,
                                     maxLength: 6,
-                                    onTap: () => _otpFocusNode.requestFocus(),
+                                    onTap: () {
+                                      _phoneFocusNode.unfocus();
+                                      FocusScope.of(context).requestFocus(_otpFocusNode);
+                                    },
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly
                                     ],
