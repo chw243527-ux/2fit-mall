@@ -538,16 +538,15 @@ class _ProductListScreenState extends State<ProductListScreen> {
     ];
     if (_sortBy.isEmpty) _sortBy = sortOptions[0]['label']!;
 
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setModal) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
+      barrierDismissible: true,
+      builder: (ctx) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: StatefulBuilder(
+          builder: (ctx, setModal) => Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // 드래그 핸들
@@ -639,12 +638,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
               // 하단 여백 (iOS 홈 바 대응)
               SizedBox(height: MediaQuery.of(context).padding.bottom + 12),
             ],
-          ),
+                    ),
         ),
       ),
     );
   }
-
   // ── 정렬/필터 바 ──
   Widget _buildSortFilterBar(int count) {
     final sortOptions = [
