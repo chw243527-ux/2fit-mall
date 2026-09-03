@@ -7096,17 +7096,24 @@ $productUrl
 
   void _showReadyMadeOptionSheet(ProductModel product,
       {required bool isBuyNow}) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _ReadyMadeOptionSheet(
-        product: product,
-        isBuyNow: isBuyNow,
-        calcExtraForColor: _calcExtraForColor,
-        onCartUpdated: () {
-          if (mounted) setState(() {});
-        },
+      barrierDismissible: true,
+      builder: (ctx) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.84,
+          child: _ReadyMadeOptionSheet(
+            product: product,
+            isBuyNow: isBuyNow,
+            calcExtraForColor: _calcExtraForColor,
+            onCartUpdated: () {
+              if (mounted) setState(() {});
+            },
+          ),
+        ),
       ),
     );
   }
