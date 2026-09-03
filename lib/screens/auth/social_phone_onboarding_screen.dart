@@ -229,7 +229,7 @@ class _SocialPhoneOnboardingScreenState
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.done,
                 maxLength: 6,
-                inputFormatters: const [
+                inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                 ],
                 onTap: () => _otpFocusNode.requestFocus(),
