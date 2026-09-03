@@ -3676,13 +3676,6 @@ class OrderExcelService {
     final referenceImage = await _pdfImage(refImageUrl) ??
         _pdfImageFromBase64(_optText(opts, ['refImageBase64']));
     if (referenceImage != null) referenceImages.add(referenceImage);
-    final rawWaistbandRefs = opts['waistbandRefImages'];
-    if (rawWaistbandRefs is List) {
-      for (final rawRef in rawWaistbandRefs) {
-        final image = _pdfImageFromBase64(rawRef.toString());
-        if (image != null) referenceImages.add(image);
-      }
-    }
     final font = pw.Font.ttf((await root_bundle.rootBundle.load('assets/fonts/NotoSansKR.ttf')));
     final pdf = pw.Document();
     final labelStyle = pw.TextStyle(font: font, fontSize: 9, color: PdfColors.grey800);
@@ -3753,9 +3746,6 @@ class OrderExcelService {
             if (waistbandLogoUrl.isNotEmpty) pw.UrlLink(destination: waistbandLogoUrl, child: pw.Text('PDF 열기', style: pw.TextStyle(font: font, fontSize: 9, color: PdfColors.blue))),
           ]),
           if (waistbandLogoImage != null) pw.Padding(padding: const pw.EdgeInsets.only(top: 6), child: imageCard('허리밴드 로고 이미지', waistbandLogoImage)),
-          pw.SizedBox(height: 6),
-          pw.Text('허리밴드 디자인 이미지', style: headingStyle),
-          pw.Text('${(opts['waistbandRefImages'] as List?)?.length ?? 0}개 업로드', style: valueStyle),
         ])),
         section('6. 기타 주문 정보', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), children: [
           pw.TableRow(children: [infoRow('주문번호', order.id), infoRow('주문자', order.userName)]),
@@ -3764,7 +3754,7 @@ class OrderExcelService {
           pw.TableRow(children: [infoRow('독점디자인', _isExclusive(opts) ? '예' : '아니오'), infoRow('남/여 인원', '남 ${_countGender(order, '남')}명 / 여 ${_countGender(order, '여')}명')]),
           pw.TableRow(children: [infoRow('재봉방법/원단', '$fabric / $fabricWeight'), infoRow('디자인 요청사항 (필수)', order.memo ?? _optText(opts, ['memoText', 'memo'], '-'))]),
           pw.TableRow(children: [infoRow('주머니', opts['pocket'] == true ? '선택함' : '선택 안 함'), infoRow('색상 밝기', _optText(opts, ['colorTone', 'colorLightness'], '-'))]),
-          pw.TableRow(children: [infoRow('허리밴드 색상코드', _optText(opts, ['waistbandColorHex'], '-')), infoRow('허리밴드 참고이미지', '${(opts['waistbandRefImages'] as List?)?.length ?? 0}장')]),
+          pw.TableRow(children: [infoRow('허리밴드 색상코드', _optText(opts, ['waistbandColorHex'], '-')), infoRow('허리밴드 로고', waistbandLogoName)]),
         ])),
 
         pw.SizedBox(height: 14),
