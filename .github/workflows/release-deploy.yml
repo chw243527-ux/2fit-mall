@@ -278,7 +278,7 @@ jobs:
           done
           umask 077
           KEYSTORE_B64="$(printf '%s' "${ANDROID_KEYSTORE_BASE64}" | tr -d '[:space:]')"
-          if ! printf '%s' "${KEYSTORE_B64}" | base64 --decode --strict > android/upload-keystore.jks; then
+          if ! printf '%s' "${KEYSTORE_B64}" | base64 --decode > android/upload-keystore.jks; then
             echo "ANDROID_KEYSTORE_BASE64가 유효한 Base64 문자열이 아닙니다. keystore 파일을 base64 -w 0으로 변환해 다시 저장하세요."
             exit 1
           fi
