@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:app_links/app_links.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 import 'firebase_options.dart';
@@ -417,6 +418,7 @@ class _AppInit extends StatefulWidget {
 class _AppInitState extends State<_AppInit> {
   Timer? _deliveryCheckTimer;
   StreamSubscription<Uri>? _deepLinkSub;
+  StreamSubscription<RemoteMessage>? _notificationTapSub;
 
   @override
   void initState() {
@@ -424,6 +426,13 @@ class _AppInitState extends State<_AppInit> {
     _restoreSession();
     _deepLinkSub =
         AppLinks().uriLinkStream.listen(AuthService.handleNaverDeepLink);
+    // 알림을 눌러 앱으로 복귀하면 알림센터로 이동합니다.
+    _notificationTapSub = FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      if (!mounted) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) navigatorKey.currentState?.pushNamed('/notifications');
+      });
+    });
     // 앱 시작 후 1분 뒤 첫 번째 배송완료 자동 체크, 이후 30분마다 반복
     Future.delayed(const Duration(minutes: 1), () {
       if (!mounted) return;
@@ -442,6 +451,7 @@ class _AppInitState extends State<_AppInit> {
   void dispose() {
     _deliveryCheckTimer?.cancel();
     _deepLinkSub?.cancel();
+    _notificationTapSub?.cancel();
     super.dispose();
   }
 
@@ -449,6 +459,13 @@ class _AppInitState extends State<_AppInit> {
     try {
       // Firebase 초기화가 완료된 뒤에만 인증 복구를 시도합니다.
       await (_firebaseReadyFuture ?? Future<bool>.value(false));
+      // 종료 상태에서 알림을 눌러 실행된 경우에도 알림센터로 이동합니다.
+      RemoteMessage? initialNotification;
+      try {
+        initialNotification = await FirebaseMessaging.instance.getInitialMessage();
+      } catch (e) {
+        if (kDebugMode) debugPrint('⚠️ 초기 알림 확인 실패: $e');
+      }
       // 3초 안에 안 되면 포기하고 로그인 화면에서 처리
       final result = await AuthService.restoreSession().timeout(
           const Duration(seconds: 3),
@@ -472,6 +489,11 @@ class _AppInitState extends State<_AppInit> {
       }
       // 관리자용 전체 주문 백그라운드 로드
       context.read<OrderProvider>().loadAllOrders();
+      if (initialNotification != null && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) navigatorKey.currentState?.pushNamed('/notifications');
+        });
+      }
     } catch (_) {}
   }
 
