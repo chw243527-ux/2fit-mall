@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../../utils/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -38,6 +40,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _scaleAnim;
   late Animation<double> _progressAnim;
   bool _navigated = false;
+  Timer? _fallbackTimer;
 
   @override
   void initState() {
@@ -66,6 +69,10 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _animController.forward();
+
+    // Firebase/Storage가 응답하지 않아도 스플래시가 무한히 남지 않도록
+    // 안전한 최대 대기 시간을 둡니다.
+    _fallbackTimer = Timer(const Duration(seconds: 15), _fallbackToRoute);
 
     // delay 완전 제거 → Firebase 응답 즉시 전환 (애니메이션은 독립 실행)
     _checkAutoLogin();
@@ -415,8 +422,33 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _fallbackTimer?.cancel();
     _animController.dispose();
     super.dispose();
+  }
+
+  void _fallbackToRoute() {
+    if (!mounted || _navigated) return;
+    _navigated = true;
+
+    _DeepLink? link;
+    if (kIsWeb) {
+      try {
+        final pathname = Uri.base.path;
+        final query = Uri.base.queryParameters;
+        if (pathname != '/' && pathname.isNotEmpty) {
+          link = _DeepLink(pathname, query, requiresAuth: false);
+        } else if (Uri.base.fragment.isNotEmpty) {
+          link = _parseDeepLink(Uri.base.fragment);
+        }
+      } catch (_) {}
+    }
+
+    if (link != null) {
+      _navigateAfterLogin(link, isLoggedIn: false, isAdmin: false);
+    } else {
+      _goToPublicHome();
+    }
   }
 
   @override
