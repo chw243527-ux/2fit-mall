@@ -3673,9 +3673,19 @@ class OrderExcelService {
     final waistbandLogoImage = await _pdfImage(waistbandLogoUrl) ??
         _pdfImageFromBase64(_optText(opts, ['waistbandLogoBase64']));
     final referenceImages = <pw.ImageProvider>[];
+    final waistbandDesignImages = <pw.ImageProvider>[];
     final referenceImage = await _pdfImage(refImageUrl) ??
         _pdfImageFromBase64(_optText(opts, ['refImageBase64']));
     if (referenceImage != null) referenceImages.add(referenceImage);
+    final rawWaistbandOptions = opts['waistbandOptions'];
+    final hasWaistbandDesign = (rawWaistbandOptions is List && rawWaistbandOptions.any((v) => v.toString() == '1')) ||
+        _optText(opts, ['waistbandOption']).contains('디자인');
+    if (hasWaistbandDesign && opts['waistbandRefImages'] is List) {
+      for (final rawRef in opts['waistbandRefImages'] as List) {
+        final image = _pdfImageFromBase64(rawRef.toString());
+        if (image != null) waistbandDesignImages.add(image);
+      }
+    }
     final font = pw.Font.ttf((await root_bundle.rootBundle.load('assets/fonts/NotoSansKR.ttf')));
     final pdf = pw.Document();
     final labelStyle = pw.TextStyle(font: font, fontSize: 9, color: PdfColors.grey800);
@@ -3715,7 +3725,7 @@ class OrderExcelService {
           pw.TableRow(children: [infoRow('이메일', email), infoRow('전화번호', phone)]),
           pw.TableRow(children: [infoRow('주문날짜', orderDate), infoRow('주문상태', _statusLabel(order.status))]),
         ]),
-        section('1. 디자인 이미지', pw.Wrap(spacing: 8, runSpacing: 8, children: [imageCard('선택 상품 디자인 이미지', productImage), imageCard('업로드 디자인 로고', designLogoImage), ...referenceImages.asMap().entries.map((entry) => imageCard('참고 이미지 ${entry.key + 1}', entry.value))])),
+        section('1. 디자인 이미지', pw.Wrap(spacing: 8, runSpacing: 8, children: [imageCard('선택 상품 디자인 이미지', productImage), imageCard('업로드 디자인 로고', designLogoImage), ...referenceImages.asMap().entries.map((entry) => imageCard('디자인 참고 이미지 ${entry.key + 1}', entry.value)), ...waistbandDesignImages.asMap().entries.map((entry) => imageCard('허리밴드 디자인 참고 이미지 ${entry.key + 1}', entry.value))])),
         section('2. 주문 상세 내역', pw.Table(border: pw.TableBorder.all(color: PdfColors.grey400), columnWidths: {0: const pw.FlexColumnWidth(2.2), 1: const pw.FlexColumnWidth(1.4), 2: const pw.FlexColumnWidth(0.9), 3: const pw.FlexColumnWidth(1.4), 4: const pw.FlexColumnWidth(1.1), 5: const pw.FlexColumnWidth(1.1), 6: const pw.FlexColumnWidth(1.4), 7: const pw.FlexColumnWidth(0.7), 8: const pw.FlexColumnWidth(1.0), 9: const pw.FlexColumnWidth(1.1)}, children: [
           pw.TableRow(decoration: const pw.BoxDecoration(color: PdfColors.indigo900), children: ['상품명','변경을 원하는 색상','사이즈','인쇄옵션','하의길이','허리밴드','원단/무게','수량','단가','금액'].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: headerStyle, textAlign: pw.TextAlign.center))).toList()),
           ...order.items.map((item) => pw.TableRow(children: [item.productName, colorText, '${item.size.isEmpty ? '-' : item.size}', printType, length, waistband, '$fabric / $fabricWeight', '${item.quantity}', _formatWon(item.price), _formatWon(item.price * item.quantity)].map((e) => pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(e, style: cellStyle, textAlign: pw.TextAlign.center))).toList())),
@@ -3733,6 +3743,7 @@ class OrderExcelService {
         section('5. 업로드 파일 / PDF 확인', pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
           pw.Text('디자인 참고 이미지 (일반회원 업로드)', style: headingStyle),
           pw.Text(referenceImages.isEmpty ? '업로드된 디자인 참고 이미지 없음' : '업로드된 디자인 참고 이미지 ${referenceImages.length}개', style: valueStyle),
+          if (waistbandDesignImages.isNotEmpty) pw.Text('허리밴드 디자인 참고 이미지 ${waistbandDesignImages.length}개', style: valueStyle),
           pw.Divider(color: PdfColors.grey400),
           pw.Text('상의 로고 이미지', style: headingStyle),
           pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
