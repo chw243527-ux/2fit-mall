@@ -1165,10 +1165,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     focusNode: _otpFocusNode,
                                     autofocus: true,
                                     enabled: true,
-                                    keyboardType: const TextInputType.numberWithOptions(
-                                        decimal: false, signed: false),
+                                    readOnly: false,
+                                    enableInteractiveSelection: true,
+                                    autocorrect: false,
+                                    enableSuggestions: false,
+                                    keyboardType: TextInputType.phone,
                                     textInputAction: TextInputAction.done,
                                     maxLength: 6,
+                                    onTap: () => _otpFocusNode.requestFocus(),
                                     inputFormatters: [
                                       FilteringTextInputFormatter.digitsOnly
                                     ],

@@ -34,6 +34,7 @@ class _SocialPhoneOnboardingScreenState
     extends State<SocialPhoneOnboardingScreen> {
   final _phoneController = TextEditingController();
   final _otpController = TextEditingController();
+  final _otpFocusNode = FocusNode();
   Timer? _timer;
   String? _verificationId;
   int _remaining = 0;
@@ -47,6 +48,7 @@ class _SocialPhoneOnboardingScreenState
     _timer?.cancel();
     _phoneController.dispose();
     _otpController.dispose();
+    _otpFocusNode.dispose();
     super.dispose();
   }
 
@@ -85,6 +87,11 @@ class _SocialPhoneOnboardingScreenState
     if (status == 'code_sent' || status == 'timeout') {
       _verificationId = result['verificationId'] as String?;
       _remaining = 60;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _verificationId != null) {
+          _otpFocusNode.requestFocus();
+        }
+      });
       _timer?.cancel();
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (!mounted) return timer.cancel();
@@ -211,8 +218,20 @@ class _SocialPhoneOnboardingScreenState
               const SizedBox(height: 18),
               TextField(
                 controller: _otpController,
-                keyboardType: TextInputType.number,
+                focusNode: _otpFocusNode,
+                autofocus: true,
+                enabled: true,
+                readOnly: false,
+                enableInteractiveSelection: true,
+                autocorrect: false,
+                enableSuggestions: false,
+                keyboardType: TextInputType.phone,
+                textInputAction: TextInputAction.done,
                 maxLength: 6,
+                inputFormatters: const [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+                onTap: () => _otpFocusNode.requestFocus(),
                 decoration: InputDecoration(
                   labelText: '인증번호',
                   suffixText: '${_remaining}s',
