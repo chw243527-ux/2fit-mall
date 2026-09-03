@@ -11,6 +11,10 @@
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="false"
         android:fullBackupContent="false">
+        <!-- Kakao Flutter SDK Android 앱 키 -->
+        <meta-data
+            android:name="com.kakao.sdk.AppKey"
+            android:value="590de0b0412c1c14f49369bf99268914" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -38,6 +42,15 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="twofitmall" android:host="naver" />
             </intent-filter>
+            <!-- Kakao OAuth 로그인 콜백 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="oauth"
+                    android:scheme="kakao590de0b0412c1c14f49369bf99268914" />
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
@@ -52,6 +65,8 @@
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
+        <!-- Android 11+: 카카오톡 설치 여부 확인 -->
+        <package android:name="com.kakao.talk" />
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
