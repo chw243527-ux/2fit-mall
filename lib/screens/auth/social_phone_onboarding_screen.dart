@@ -200,7 +200,8 @@ class _SocialPhoneOnboardingScreenState
             TextField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
-              enabled: !_verified && !_sending,
+              // OTP 발송 후에는 휴대폰 필드를 잠가 인증번호 오입력을 방지합니다.
+              enabled: !_verified && !_sending && _verificationId == null,
               decoration: const InputDecoration(
                 labelText: '휴대폰 번호',
                 hintText: '010-1234-5678',

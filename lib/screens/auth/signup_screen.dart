@@ -975,7 +975,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             child: TextFormField(
                               controller: _phoneCtrl,
                               keyboardType: TextInputType.phone,
-                              enabled: !_phoneVerified,
+                              // 인증번호 발송 후에는 휴대폰 필드를 잠가 숫자가
+                              // 휴대폰 번호 뒤에 붙는 오입력을 방지합니다.
+                              enabled: !_phoneVerified && !_otpSent,
                               onChanged: (v) {
                                 _onPhoneChanged(v);
                                 if (_otpSent || _phoneVerified) {
@@ -1163,6 +1165,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   child: TextFormField(
                                     key: const ValueKey<String>('signup-otp-field'),
                                     controller: _otpCtrl,
+                                    scrollPadding: const EdgeInsets.only(bottom: 180),
                                     focusNode: _otpFocusNode,
                                     // 발송 후 addPostFrameCallback에서 한 번만 포커스합니다.
                                     // autofocus를 사용하면 카운트다운 setState 때 IME가 재부착될 수 있습니다.
