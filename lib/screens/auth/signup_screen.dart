@@ -1161,9 +1161,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               Row(children: [
                                 Expanded(
                                   child: TextFormField(
+                                    key: const ValueKey<String>('signup-otp-field'),
                                     controller: _otpCtrl,
                                     focusNode: _otpFocusNode,
-                                    autofocus: true,
+                                    // 발송 후 addPostFrameCallback에서 한 번만 포커스합니다.
+                                    // autofocus를 사용하면 카운트다운 setState 때 IME가 재부착될 수 있습니다.
+                                    autofocus: false,
                                     enabled: true,
                                     readOnly: false,
                                     enableInteractiveSelection: true,

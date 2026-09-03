@@ -218,9 +218,11 @@ class _SocialPhoneOnboardingScreenState
             if (_verificationId != null) ...[
               const SizedBox(height: 18),
               TextField(
+                key: const ValueKey<String>('social-otp-field'),
                 controller: _otpController,
                 focusNode: _otpFocusNode,
-                autofocus: true,
+                // 발송 완료 후 명시적으로 한 번만 포커스합니다.
+                autofocus: false,
                 enabled: true,
                 readOnly: false,
                 enableInteractiveSelection: true,
