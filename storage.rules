@@ -12,7 +12,8 @@ service firebase.storage {
     }
 
     function isReasonableUpload() {
-      return request.resource.size <= 10 * 1024 * 1024
+      return request.resource != null
+          && request.resource.size <= 10 * 1024 * 1024
           && request.resource.contentType in [
             'image/jpeg', 'image/png', 'image/webp', 'image/gif',
             'application/pdf'
@@ -22,17 +23,20 @@ service firebase.storage {
     // 상품 이미지·배너·공지사항: 공개 읽기, 관리자만 업로드·수정·삭제
     match /products/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin() && isReasonableUpload();
+      allow create, update: if isAdmin() && isReasonableUpload();
+      allow delete: if isAdmin();
     }
 
     match /banners/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin() && isReasonableUpload();
+      allow create, update: if isAdmin() && isReasonableUpload();
+      allow delete: if isAdmin();
     }
 
     match /notices/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin() && isReasonableUpload();
+      allow create, update: if isAdmin() && isReasonableUpload();
+      allow delete: if isAdmin();
     }
 
     // 일반 주문 첨부파일: 주문 문서의 userId와 로그인 사용자를 비교
@@ -40,17 +44,21 @@ service firebase.storage {
       allow read: if isAdmin()
           || (isSignedIn()
               && firestore.get(/databases/(default)/documents/orders/$(orderId)).data.userId == request.auth.uid);
-      allow write: if isReasonableUpload()
+      allow create, update: if isReasonableUpload()
           && (isAdmin()
               || (isSignedIn()
                   && firestore.get(/databases/(default)/documents/orders/$(orderId)).data.userId == request.auth.uid));
+      allow delete: if isAdmin()
+          || (isSignedIn()
+              && firestore.get(/databases/(default)/documents/orders/$(orderId)).data.userId == request.auth.uid);
     }
 
     // 신규 단체주문 첨부파일: group_orders/{userId}/{orderId}/... 구조만 허용
     match /group_orders/{userId}/{orderId}/{allPaths=**} {
       allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
-      allow write: if isReasonableUpload()
+      allow create, update: if isReasonableUpload()
           && (isAdmin() || (isSignedIn() && request.auth.uid == userId));
+      allow delete: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
     // 기존 userId 없는 단체주문 경로는 소유권 확인이 불가능하므로 차단
@@ -61,8 +69,9 @@ service firebase.storage {
     // 신규 교환·반품 첨부파일: exchange_requests/{userId}/{requestId}/... 구조
     match /exchange_requests/{userId}/{requestId}/{allPaths=**} {
       allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
-      allow write: if isReasonableUpload()
+      allow create, update: if isReasonableUpload()
           && (isAdmin() || (isSignedIn() && request.auth.uid == userId));
+      allow delete: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
     }
 
     // 채팅 첨부파일은 roomId가 사용자 ID인 경우에만 본인 접근 허용.
@@ -70,17 +79,20 @@ service firebase.storage {
     match /chats/{roomId}/{allPaths=**} {
       allow read: if isAdmin()
           || (isSignedIn() && request.auth.uid == roomId);
-      allow write: if isReasonableUpload()
+      allow create, update: if isReasonableUpload()
           && (isAdmin() || (isSignedIn() && request.auth.uid == roomId));
+      allow delete: if isAdmin() || (isSignedIn() && request.auth.uid == roomId);
     }
 
     // 사용자 프로필 이미지: 개인정보 보호를 위해 본인·관리자만 읽기
     match /users/{userId}/{allPaths=**} {
       allow read: if isAdmin()
           || (isSignedIn() && request.auth.uid == userId);
-      allow write: if isSignedIn()
+      allow create, update: if isSignedIn()
           && request.auth.uid == userId
           && isReasonableUpload();
+      allow delete: if isAdmin()
+          || (isSignedIn() && request.auth.uid == userId);
     }
   }
 }
