@@ -459,17 +459,16 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
           '저장된 사이즈 프로필이 없습니다. 마이페이지에서 먼저 저장해 주세요.'));
       return;
     }
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
             width: 36,
             height: 4,
@@ -571,11 +570,11 @@ class _GroupOrderFormScreenState extends State<GroupOrderFormScreen>
               ),
             );
           }),
-        ]),
+                  ]),
+        ),
       ),
     );
   }
-
   // ── 주문 후 내 사이즈 저장 제안 ─────────────────────────────
   void _offerSaveSizeAfterOrder() {
     final user = context.read<UserProvider>().user;
