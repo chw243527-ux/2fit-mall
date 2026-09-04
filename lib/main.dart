@@ -44,11 +44,24 @@ import 'screens/main_screen.dart';
 import 'screens/payment/payment_result_screen.dart';
 import 'screens/payment/payment_checkout_screen.dart';
 
+Future<bool>? _hiveReadyFuture;
+
+Future<bool> _initializeHiveInBackground() async {
+  try {
+    await Hive.initFlutter().timeout(const Duration(seconds: 5));
+    return true;
+  } catch (e) {
+    if (kDebugMode) debugPrint('⚠️ Hive 초기화 오류: $e');
+    return false;
+  }
+}
+
 Future<bool> _initializeFirebaseInBackground() async {
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 10));
+    await (_hiveReadyFuture ?? Future.value(false));
     await AuthService.configurePersistentAuth();
     AuthService.completeFirebaseInitialization(true);
     if (kDebugMode) debugPrint('✅ Firebase 초기화 성공');
@@ -79,14 +92,10 @@ Future<void> main() async {
     if (kDebugMode) debugPrint('⚠️ KakaoSdk 초기화 오류: $e');
   }
 
-  // 세션과 사용자별 아이디 저장을 사용하므로 Hive는 첫 프레임 전에 준비합니다.
-  try {
-    await Hive.initFlutter().timeout(const Duration(seconds: 5));
-  } catch (e) {
-    if (kDebugMode) debugPrint('⚠️ Hive 초기화 오류: $e');
-  }
+  // Hive는 화면 표시를 막지 않도록 백그라운드에서 초기화합니다.
+  _hiveReadyFuture = _initializeHiveInBackground();
 
-  // Firebase 초기화는 화면을 막지 않되, 인증 복구 시점에는 완료를 기다립니다.
+  // Firebase 초기화는 화면을 막지 않되, 인증 복구 시점에는 Hive 완료를 기다립니다.
   _firebaseReadyFuture = _initializeFirebaseInBackground();
 
   SystemChrome.setPreferredOrientations([
