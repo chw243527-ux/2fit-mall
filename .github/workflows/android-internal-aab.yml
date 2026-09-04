@@ -63,7 +63,8 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > android/upload-keystore.jks
           cat > android/key.properties <<EOF
           storePassword=$store_password
-          keyPassword=$key_password
+          # This upload keystore is PKCS12; Android Gradle signing requires the store password for the key password.
+          keyPassword=$store_password
           keyAlias=$key_alias
           storeFile=../upload-keystore.jks
           EOF
