@@ -365,6 +365,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           context.loc.t(
               '인증번호가_발송되었습니다_60초_내에_입력해주세요', '인증번호가 발송되었습니다. 60초 내에 입력해주세요.'),
           isSuccess: true);
+      // 인라인 입력 영역이 모바일 웹에서 가려지는 경우를 대비해
+      // 발송 직후 반드시 입력 가능한 중앙 Dialog를 함께 제공합니다.
+      await _showOtpInputDialog();
     } else if (result['status'] == 'auto_verified') {
       setState(() {
         _phoneVerified = true;
@@ -376,6 +379,68 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _showSnack(result['message'] as String? ??
           context.loc.t('sms_발송에_실패했습니다', 'SMS 발송에 실패했습니다.'));
     }
+  }
+
+  // ─── OTP 입력 Dialog ───
+  Future<void> _showOtpInputDialog() async {
+    if (!mounted || !_otpSent || _phoneVerified) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('인증번호 입력'),
+        content: TextField(
+          controller: _otpCtrl,
+          focusNode: _otpFocusNode,
+          autofocus: true,
+          enabled: true,
+          readOnly: false,
+          showCursor: true,
+          maxLength: 6,
+          keyboardType: const TextInputType.numberWithOptions(
+              decimal: false, signed: false),
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.oneTimeCode],
+          autocorrect: false,
+          enableSuggestions: false,
+          decoration: const InputDecoration(
+            labelText: '문자로 받은 6자리 인증번호',
+            hintText: '000000',
+            counterText: '',
+            border: OutlineInputBorder(),
+          ),
+          onSubmitted: (_) async {
+            await _verifyOtp();
+            if (mounted && _phoneVerified) {
+              Navigator.of(dialogContext).pop();
+            }
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('나중에 입력'),
+          ),
+          FilledButton(
+            onPressed: _otpVerifying
+                ? null
+                : () async {
+                    await _verifyOtp();
+                    if (mounted && _phoneVerified) {
+                      Navigator.of(dialogContext).pop();
+                    }
+                  },
+            child: _otpVerifying
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('확인'),
+          ),
+        ],
+      ),
+    );
   }
 
   // ─── OTP 카운트다운 타이머 ───
