@@ -103,6 +103,22 @@ class CouponService {
         'downloadCount': 0,
         'createdAt': FieldValue.serverTimestamp(),
       });
+      await _db.collection('public_coupons').doc(ref.id).set({
+        'id': ref.id,
+        'code': code.toUpperCase().trim(),
+        'name': name.trim(),
+        'type': type == CouponType.fixed ? 'fixed' : 'percent',
+        'value': value,
+        'minOrderAmount': minOrderAmount,
+        if (maxDiscountAmount != null) 'maxDiscountAmount': maxDiscountAmount,
+        if (startsAt != null) 'startsAt': Timestamp.fromDate(startsAt),
+        'expiresAt': Timestamp.fromDate(expiresAt),
+        'isDownloadable': isDownloadable,
+        'isStackable': isStackable,
+        if (downloadLimit != null) 'downloadLimit': downloadLimit,
+        'downloadCount': 0,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
       return '';
     } catch (e) {
       if (kDebugMode) debugPrint('createCoupon error: $e');
@@ -141,6 +157,19 @@ class CouponService {
         'downloadLimit': downloadLimit ?? FieldValue.delete(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
+      await _db.collection('public_coupons').doc(couponId).set({
+        'name': name.trim(),
+        'type': type == CouponType.fixed ? 'fixed' : 'percent',
+        'value': value,
+        'minOrderAmount': minOrderAmount,
+        'maxDiscountAmount': maxDiscountAmount,
+        'startsAt': startsAt != null ? Timestamp.fromDate(startsAt) : null,
+        'expiresAt': Timestamp.fromDate(expiresAt),
+        'isDownloadable': isDownloadable,
+        'isStackable': isStackable,
+        'downloadLimit': downloadLimit,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
       return '';
     } catch (e) {
       if (kDebugMode) debugPrint('updateCoupon error: $e');
@@ -152,6 +181,7 @@ class CouponService {
   static Future<String> deleteCoupon(String couponId) async {
     try {
       await _db.collection('admin_coupons').doc(couponId).delete();
+      await _db.collection('public_coupons').doc(couponId).delete();
       return '';
     } catch (e) {
       if (kDebugMode) debugPrint('deleteCoupon error: $e');
@@ -165,7 +195,7 @@ class CouponService {
   static Future<CouponModel?> validateCode(String code) async {
     try {
       final snap = await _db
-          .collection('admin_coupons')
+          .collection('public_coupons')
           .where('code', isEqualTo: code.toUpperCase().trim())
           .get();
       if (snap.docs.isEmpty) return null;
@@ -179,7 +209,7 @@ class CouponService {
 
   /// 전체 유효 쿠폰 실시간 스트림 (checkout에서 보유 쿠폰 목록 표시)
   static Stream<List<CouponModel>> watchValidCoupons() {
-    return _db.collection('admin_coupons').snapshots().map((snap) => snap.docs
+    return _db.collection('public_coupons').snapshots().map((snap) => snap.docs
         .map((d) => _parse(d.id, d.data()))
         .where((c) => c.isValid)
         .toList());
@@ -188,7 +218,7 @@ class CouponService {
   /// 다운로드 가능한 공개 쿠폰 스트림 (홈 팝업용)
   static Stream<List<CouponModel>> watchDownloadableCoupons() {
     return _db
-        .collection('admin_coupons')
+        .collection('public_coupons')
         .where('isDownloadable', isEqualTo: true)
         .snapshots()
         .map((snap) => snap.docs

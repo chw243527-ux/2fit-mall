@@ -1751,6 +1751,49 @@ function _safeCheckoutError(error) {
   return allowed.has(error?.message) ? error.message : 'Unable to prepare a secure order';
 }
 
+function _publicCouponData(couponId, coupon) {
+  return {
+    id: couponId,
+    code: String(coupon.code || ''),
+    name: String(coupon.name || ''),
+    type: coupon.type === 'percent' ? 'percent' : 'fixed',
+    value: Math.max(0, Number(coupon.value || 0)),
+    minOrderAmount: Math.max(0, Number(coupon.minOrderAmount || 0)),
+    ...(coupon.maxDiscountAmount != null ? { maxDiscountAmount: Number(coupon.maxDiscountAmount) } : {}),
+    ...(coupon.startsAt ? { startsAt: coupon.startsAt } : {}),
+    ...(coupon.expiresAt ? { expiresAt: coupon.expiresAt } : {}),
+    isDownloadable: coupon.isDownloadable === true,
+    isStackable: coupon.isStackable === true,
+    ...(coupon.downloadLimit != null ? { downloadLimit: Number(coupon.downloadLimit) } : {}),
+    downloadCount: Math.max(0, Number(coupon.downloadCount || 0)),
+  };
+}
+
+// 기존 관리자 쿠폰을 고객 공개용 컬렉션으로 이전하는 관리자 전용 1회성 함수입니다.
+exports.migratePublicCoupons = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+  if (!(await requireAdmin(req, res))) return;
+  if (!(await enforceRateLimit(req, res, `migrate-public-coupons:${req.adminUid}`, { limit: 2, windowMs: 60 * 60 * 1000 }))) return;
+  try {
+    const snap = await db.collection('admin_coupons').get();
+    let batch = db.batch();
+    let count = 0;
+    for (const doc of snap.docs) {
+      batch.set(db.collection('public_coupons').doc(doc.id), _publicCouponData(doc.id, doc.data()), { merge: true });
+      count += 1;
+      if (count % 400 === 0) {
+        await batch.commit();
+        batch = db.batch();
+      }
+    }
+    if (count % 400 !== 0) await batch.commit();
+    res.json({ success: true, migrated: count });
+  } catch (error) {
+    console.error('migratePublicCoupons failed:', { code: error?.code || 'coupon-migration-failed' });
+    res.status(500).json({ error: 'Coupon migration failed' });
+  }
+});
+
 // 쿠폰 할인 조건·다운로드 수·중복 발급을 서버에서 원자적으로 검증합니다.
 exports.downloadSecureCoupon = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
   if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
@@ -1762,6 +1805,7 @@ exports.downloadSecureCoupon = onRequest({ cors: PAYMENT_CORS }, async (req, res
   try {
     const result = await db.runTransaction(async (tx) => {
       const sourceRef = db.collection('admin_coupons').doc(couponId);
+      const publicRef = db.collection('public_coupons').doc(couponId);
       const targetRef = db.collection('user_coupons').doc(decoded.uid).collection('coupons').doc(couponId);
       const source = await tx.get(sourceRef);
       const existing = await tx.get(targetRef);
@@ -1775,6 +1819,21 @@ exports.downloadSecureCoupon = onRequest({ cors: PAYMENT_CORS }, async (req, res
       if (limit !== null && count >= limit) return 'limit_exceeded';
       tx.set(targetRef, { couponId, code: String(coupon.code || ''), name: String(coupon.name || ''), type: coupon.type === 'percent' ? 'percent' : 'fixed', value: Math.max(0, Number(coupon.value || 0)), minOrderAmount: Math.max(0, Number(coupon.minOrderAmount || 0)), ...(coupon.maxDiscountAmount != null ? { maxDiscountAmount: Number(coupon.maxDiscountAmount) } : {}), ...(coupon.startsAt ? { startsAt: coupon.startsAt } : {}), ...(coupon.expiresAt ? { expiresAt: coupon.expiresAt } : {}), isUsed: false, isStackable: coupon.isStackable === true, downloadedAt: FieldValue.serverTimestamp() });
       tx.update(sourceRef, { downloadCount: FieldValue.increment(1) });
+      tx.set(publicRef, {
+        id: couponId,
+        code: String(coupon.code || ''),
+        name: String(coupon.name || ''),
+        type: coupon.type === 'percent' ? 'percent' : 'fixed',
+        value: Math.max(0, Number(coupon.value || 0)),
+        minOrderAmount: Math.max(0, Number(coupon.minOrderAmount || 0)),
+        ...(coupon.maxDiscountAmount != null ? { maxDiscountAmount: Number(coupon.maxDiscountAmount) } : {}),
+        ...(coupon.startsAt ? { startsAt: coupon.startsAt } : {}),
+        ...(coupon.expiresAt ? { expiresAt: coupon.expiresAt } : {}),
+        isDownloadable: coupon.isDownloadable === true,
+        isStackable: coupon.isStackable === true,
+        ...(coupon.downloadLimit != null ? { downloadLimit: Number(coupon.downloadLimit) } : {}),
+        downloadCount: FieldValue.increment(1),
+      }, { merge: true });
       return '';
     });
     res.status(200).json({ success: result === '', result });

@@ -16,8 +16,16 @@ service firebase.storage {
           && request.resource.size <= 10 * 1024 * 1024
           && request.resource.contentType in [
             'image/jpeg', 'image/png', 'image/webp', 'image/gif',
-            'application/pdf'
+            'image/svg+xml', 'application/pdf', 'application/postscript'
           ];
+    }
+
+    // 주문 문서가 아직 생성되지 않은 업로드 단계는 허용하되,
+    // 주문이 확정·제작·배송·취소된 뒤에는 고객의 파일 변경을 차단합니다.
+    function isCustomerOrderFileEditable(orderId) {
+      let orderPath = /databases/(default)/documents/orders/$(orderId);
+      return !firestore.exists(orderPath)
+          || firestore.get(orderPath).data.status in ['pending', 'awaiting_deposit'];
     }
 
     // 상품 이미지·배너·공지사항: 공개 읽기, 관리자만 업로드·수정·삭제
@@ -47,9 +55,11 @@ service firebase.storage {
       allow create, update: if isReasonableUpload()
           && (isAdmin()
               || (isSignedIn()
+                  && isCustomerOrderFileEditable(orderId)
                   && firestore.get(/databases/(default)/documents/orders/$(orderId)).data.userId == request.auth.uid));
       allow delete: if isAdmin()
           || (isSignedIn()
+              && isCustomerOrderFileEditable(orderId)
               && firestore.get(/databases/(default)/documents/orders/$(orderId)).data.userId == request.auth.uid);
     }
 
@@ -57,8 +67,14 @@ service firebase.storage {
     match /group_orders/{userId}/{orderId}/{allPaths=**} {
       allow read: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
       allow create, update: if isReasonableUpload()
-          && (isAdmin() || (isSignedIn() && request.auth.uid == userId));
-      allow delete: if isAdmin() || (isSignedIn() && request.auth.uid == userId);
+          && (isAdmin()
+              || (isSignedIn()
+                  && request.auth.uid == userId
+                  && isCustomerOrderFileEditable(orderId)));
+      allow delete: if isAdmin()
+          || (isSignedIn()
+              && request.auth.uid == userId
+              && isCustomerOrderFileEditable(orderId));
     }
 
     // 기존 userId 없는 단체주문 경로는 소유권 확인이 불가능하므로 차단

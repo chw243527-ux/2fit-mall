@@ -419,14 +419,18 @@ service cloud.firestore {
     // admin_coupons 컬렉션 (관리자가 발행한 쿠폰)
     // ════════════════════════════════════════════════════════
     match /admin_coupons/{couponId} {
-      allow read: if true;           // 누구나 조회 가능 (다운로드 팝업 비로그인 표시)
-      // 발급·수정·삭제는 관리자만. 다운로드 트랜잭션의 카운트 1 증가만 예외 허용
-      allow update: if isAdmin() || (
-        isSignedIn()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['downloadCount'])
-        && request.resource.data.downloadCount == resource.data.get('downloadCount', 0) + 1
-      );
+      // 코드·사용한도·다운로드 통계를 포함한 원본은 관리자만 읽습니다.
+      allow read: if isAdmin();
+      // 발급·수정·다운로드 통계·삭제는 관리자 또는 서버 함수만 수행합니다.
+      // 서버 함수는 Admin SDK로 원자적 다운로드 처리를 수행합니다.
+      allow update: if isAdmin();
       allow create, delete: if isAdmin();
+    }
+
+    // 고객 공개용 쿠폰 정보는 내부 관리 필드를 포함하지 않습니다.
+    match /public_coupons/{couponId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
     }
 
 
