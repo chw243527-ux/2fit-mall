@@ -526,6 +526,7 @@ exports.exchangeNaverCode = onRequest(
       res.status(405).json({ error: 'Method Not Allowed' });
       return;
     }
+    if (!(await enforceRateLimit(req, res, 'naver-token-exchange', { limit: 20, windowMs: 15 * 60 * 1000 }))) return;
     const code = String(req.body?.code || '');
     const state = String(req.body?.state || '');
     const redirectUri = String(req.body?.redirectUri || '');
@@ -612,6 +613,7 @@ exports.exchangeKakaoToken = onRequest(
       res.status(405).json({ error: 'Method Not Allowed' });
       return;
     }
+    if (!(await enforceRateLimit(req, res, 'kakao-token-exchange', { limit: 20, windowMs: 15 * 60 * 1000 }))) return;
     const accessToken = String(req.body?.accessToken || '');
     if (!accessToken || accessToken.length > 4096) {
       res.status(400).json({ error: 'Kakao access token is required' });
