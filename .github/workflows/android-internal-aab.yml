@@ -1,0 +1,98 @@
+name: Android Internal Test AAB
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_name:
+        description: 'Android version name'
+        required: true
+        default: '1.0.26'
+      build_number:
+        description: 'Android version code (must be greater than 15)'
+        required: true
+        default: '16'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-internal-aab
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.32.2'
+
+jobs:
+  build:
+    name: Build signed internal-test AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Prepare existing upload key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "Missing GitHub Secret: ${name}"
+              exit 1
+            fi
+          done
+          umask 077
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=../upload-keystore.jks
+          EOF
+
+      - name: Build signed Release AAB
+        run: |
+          set -euo pipefail
+          flutter build appbundle --release \
+            --build-name="${{ inputs.build_name }}" \
+            --build-number="${{ inputs.build_number }}"
+          test -s build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2fit-mall-internal-${{ inputs.build_name }}-${{ inputs.build_number }}
+          path: build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Cleanup signing files
+        if: always()
+        run: rm -f android/upload-keystore.jks android/key.properties
+
+      - name: Build summary
+        if: success()
+        run: |
+          {
+            echo '## Internal test AAB ready'
+            echo
+            echo '- Version: ${{ inputs.build_name }}+${{ inputs.build_number }}'
+            echo '- Artifact: app-release.aab'
+            echo '- Signed with the existing upload-key GitHub Secrets'
+          } >> "$GITHUB_STEP_SUMMARY"
+      
+      
