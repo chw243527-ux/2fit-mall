@@ -72,6 +72,15 @@ jobs:
           fi
           echo "Firebase project verified: $FIREBASE_PROJECT_ID"
 
+      - name: Configure non-secret Functions parameters
+        run: |
+          set -euo pipefail
+          cat > functions/.env.fit-mall <<'EOF'
+          KAKAO_GROUP_ORDER_TEMPLATE_ID=
+          KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID=__UNCONFIGURED__
+          RESEND_FROM_EMAIL=2FIT MALL <no-reply@2fit-mall.co.kr>
+          EOF
+
       - name: Deploy Functions and Rules
         run: |
           set -euo pipefail
