@@ -402,7 +402,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   // ─── OTP 코드 확인 ───
   Future<void> _verifyOtp() async {
-    final code = _otpCtrl.text.trim();
+    // 웹 IME가 입력 포맷터 단계에서 키 입력을 삼키는 경우를 피하고,
+    // 인증 요청 직전에 숫자만 정제합니다.
+    final code = _otpCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (code.length != 6) {
       _showSnack(context.loc.t('k_6자리_인증번호를_입력해주세요', '6자리 인증번호를 입력해주세요.'));
       return;
@@ -1188,11 +1190,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         decimal: false, signed: false),
                                     textInputAction: TextInputAction.done,
                                     maxLength: 6,
-                                    onChanged: (_) {},
                                     onFieldSubmitted: (_) => _verifyOtp(),
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
-                                    ],
                                     style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w700,
