@@ -15,7 +15,6 @@ import 'mypage/mypage_screen.dart';
 import '../widgets/app_drawer.dart';
 import 'orders/order_guide_screen.dart';
 import 'chat/chat_screen.dart';
-import 'auth/login_screen.dart';
 import '../utils/responsive.dart';
 import '../models/models.dart';
 import '../services/wishlist_coupon_service.dart';
@@ -240,18 +239,8 @@ class MainScreenState extends State<MainScreen> {
       _lastUid = uid; // null→uid 변경은 _lastUid만 갱신, 팝업 재실행 안 함
     }
 
-    // 로그아웃 감지: user가 null이 되면 로그인 화면으로 이동
-    if (userProvider.user == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
-            (route) => false,
-          );
-        }
-      });
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    // 비로그인 사용자도 상품·공지·공개 콘텐츠를 볼 수 있습니다.
+    // 구매·주문·마이페이지의 보호 기능은 각 화면에서 로그인 여부를 확인합니다.
 
     if (isPc) {
       return _PcLayout(
