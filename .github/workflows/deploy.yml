@@ -87,6 +87,7 @@ jobs:
           firebase deploy \
             --project "$FIREBASE_PROJECT_ID" \
             --only functions,firestore:rules,storage \
+            --force \
             --non-interactive
 
       - name: Deployment summary
