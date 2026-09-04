@@ -433,15 +433,18 @@ class _AppInitState extends State<_AppInit> {
   void initState() {
     super.initState();
     _restoreSession();
-    _deepLinkSub =
-        AppLinks().uriLinkStream.listen(AuthService.handleNaverDeepLink);
-    // 알림을 눌러 앱으로 복귀하면 알림센터로 이동합니다.
-    _notificationTapSub = FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      if (!mounted) return;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) navigatorKey.currentState?.pushNamed('/notifications');
+    // AppLinks와 모바일 알림 탭 listener는 웹에서 지원되지 않을 수 있으므로
+    // 웹 첫 프레임을 방해하지 않도록 Android/iOS에서만 등록합니다.
+    if (!kIsWeb) {
+      _deepLinkSub =
+          AppLinks().uriLinkStream.listen(AuthService.handleNaverDeepLink);
+      _notificationTapSub = FirebaseMessaging.onMessageOpenedApp.listen((message) {
+        if (!mounted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) navigatorKey.currentState?.pushNamed('/notifications');
+        });
       });
-    });
+    }
     // 앱 시작 후 1분 뒤 첫 번째 배송완료 자동 체크, 이후 30분마다 반복
     Future.delayed(const Duration(minutes: 1), () {
       if (!mounted) return;
