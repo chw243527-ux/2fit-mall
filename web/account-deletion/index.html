@@ -36,16 +36,16 @@
 
     <section>
       <h2>웹에서 계정 삭제 요청하기</h2>
-      <form action="mailto:chw243527@gmail.com" method="post" enctype="text/plain">
+      <form action="https://us-central1-fit-mall.cloudfunctions.net/requestAccountDeletion" method="post">
         <label for="email">가입 이메일 또는 휴대전화번호</label>
-        <input id="email" name="가입 이메일 또는 휴대전화번호" type="text" required autocomplete="email">
+        <input id="email" name="account" type="text" required autocomplete="email">
         <label for="name">가입자 이름 또는 닉네임</label>
-        <input id="name" name="가입자 이름 또는 닉네임" type="text" required>
+        <input id="name" name="name" type="text" required>
         <label for="reason">삭제 요청 내용</label>
-        <textarea id="reason" name="삭제 요청 내용" required>2FIT MALL 계정 및 관련 데이터 삭제를 요청합니다.</textarea>
+        <textarea id="reason" name="reason" required>2FIT MALL 계정 및 관련 데이터 삭제를 요청합니다.</textarea>
         <button type="submit">계정 삭제 요청 보내기</button>
       </form>
-      <p class="muted">버튼을 누르면 기본 이메일 앱이 열립니다. 이메일 앱이 열리지 않으면 <a href="mailto:chw243527@gmail.com?subject=2FIT%20MALL%20%EA%B3%84%EC%A0%95%20%EB%B0%8F%20%EB%8D%B0%EC%9D%B4%ED%84%B0%20%EC%82%AD%EC%A0%9C%20%EC%9A%94%EC%B2%AD">chw243527@gmail.com</a>으로 같은 내용을 보내 주세요.</p>
+      <p class="muted">요청을 제출하면 서버에 접수되고 본인 확인 후 처리됩니다. 이메일 앱을 사용할 수 없는 경우 <a href="mailto:chw243527@gmail.com?subject=2FIT%20MALL%20%EA%B3%84%EC%A0%95%20%EB%B0%8F%20%EB%8D%B0%EC%9D%B4%ED%84%B0%20%EC%82%AD%EC%A0%9C%20%EC%9A%94%EC%B2%AD">chw243527@gmail.com</a>으로 같은 내용을 보내 주세요.</p>
     </section>
 
     <section>

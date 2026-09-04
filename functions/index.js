@@ -2250,3 +2250,38 @@ function _formatKstTime(date) {
 function _fmt(n) {
   return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
+// 공개 웹페이지에서 로그인 없이 계정 삭제 요청을 접수합니다.
+// 실제 삭제는 가입자 확인 후 운영자가 처리하며, 비밀번호·인증번호는 수집하지 않습니다.
+exports.requestAccountDeletion = onRequest(
+  { region: 'us-central1', cors: true },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ ok: false, message: 'POST 요청만 허용됩니다.' });
+    }
+    const body = req.body || {};
+    if (String(body.website || '').trim()) {
+      return res.status(400).json({ ok: false, message: '잘못된 요청입니다.' });
+    }
+    const account = String(body.account || '').trim().slice(0, 200);
+    const name = String(body.name || '').trim().slice(0, 100);
+    const reason = String(body.reason || '').trim().slice(0, 1000);
+    if (!account || !name || !reason) {
+      return res.status(400).json({ ok: false, message: '가입 이메일 또는 전화번호, 이름, 요청 내용을 입력해 주세요.' });
+    }
+    try {
+      await db.collection('account_deletion_requests').add({
+        account,
+        name,
+        reason,
+        status: 'received',
+        source: 'public_web',
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      return res.status(200).json({ ok: true, message: '계정 삭제 요청이 접수되었습니다. 본인 확인 후 처리 결과를 안내해 드립니다.' });
+    } catch (error) {
+      console.error('requestAccountDeletion error:', error?.message || 'unknown');
+      return res.status(500).json({ ok: false, message: '요청을 접수하지 못했습니다. 잠시 후 다시 시도해 주세요.' });
+    }
+  },
+);
