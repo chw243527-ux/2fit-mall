@@ -35,9 +35,17 @@ jobs:
           set -euo pipefail
           rm -rf dist
           mkdir -p dist
-          wget --mirror --page-requisites --convert-links --adjust-extension \
-            --no-parent --no-host-directories --directory-prefix=dist \
-            https://2fit-mall.co.kr/
+          downloaded=false
+          for source in https://2fit-mall.co.kr/ https://fit-mall.web.app/; do
+            rm -rf dist/*
+            if wget --tries=5 --waitretry=3 --retry-on-host-error --mirror \
+              --page-requisites --convert-links --adjust-extension \
+              --no-parent --no-host-directories --directory-prefix=dist \
+              "${source}"; then
+              if [ -f dist/index.html ]; then downloaded=true; break; fi
+            fi
+          done
+          test "${downloaded}" = true
           test -f dist/index.html
 
       - name: Replace account deletion page
