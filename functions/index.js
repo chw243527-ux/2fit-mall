@@ -2254,11 +2254,15 @@ function _fmt(n) {
 // 공개 웹페이지에서 로그인 없이 계정 삭제 요청을 접수합니다.
 // 실제 삭제는 가입자 확인 후 운영자가 처리하며, 비밀번호·인증번호는 수집하지 않습니다.
 exports.requestAccountDeletion = onRequest(
-  { region: 'us-central1', cors: true },
+  {
+    region: 'us-central1',
+    cors: ['https://2fit-mall.co.kr', 'https://fit-mall.web.app', 'http://localhost:5000'],
+  },
   async (req, res) => {
     if (req.method !== 'POST') {
       return res.status(405).json({ ok: false, message: 'POST 요청만 허용됩니다.' });
     }
+    if (!(await enforceRateLimit(req, res, 'public-account-deletion', { limit: 5, windowMs: 60 * 60 * 1000 }))) return;
     const body = req.body || {};
     if (String(body.website || '').trim()) {
       return res.status(400).json({ ok: false, message: '잘못된 요청입니다.' });
