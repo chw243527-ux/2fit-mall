@@ -81,37 +81,38 @@ const bool adminOnlyBuild = bool.fromEnvironment('ADMIN_ONLY', defaultValue: fal
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 카카오 SDK는 동기 초기화만 수행하고, 네트워크 초기화는 첫 화면을 막지 않습니다.
-  try {
-    kakao.KakaoSdk.init(
-      nativeAppKey: '590de0b0412c1c14f49369bf99268914',
-      javaScriptAppKey: 'cc9800839ee51bb010cd0d7046f4b565',
-    );
-    if (kDebugMode) debugPrint('✅ KakaoSdk 초기화 성공');
-  } catch (e) {
-    if (kDebugMode) debugPrint('⚠️ KakaoSdk 초기화 오류: $e');
-  }
-
-  // Hive는 화면 표시를 막지 않도록 백그라운드에서 초기화합니다.
-  _hiveReadyFuture = _initializeHiveInBackground();
-
-  // Firebase 초기화는 화면을 막지 않되, 인증 복구 시점에는 Hive 완료를 기다립니다.
-  _firebaseReadyFuture = _initializeFirebaseInBackground();
-
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-    ),
-  );
+  // 어떤 SDK나 플랫폼 플러그인도 첫 Flutter 프레임을 막지 않도록
+  // runApp을 가장 먼저 호출합니다. 초기화는 화면 표시 후 백그라운드에서 진행합니다.
   runApp(const TwoFitMallApp());
 
-  // 선택적 네트워크 초기화는 Firebase 완료 후 첫 프레임 뒤 실행합니다.
-  _firebaseReadyFuture!.then((firebaseReady) {
+  Future<void>(() async {
+    // 카카오 SDK는 동기 초기화도 첫 프레임 이후에 수행합니다.
+    try {
+      kakao.KakaoSdk.init(
+        nativeAppKey: '590de0b0412c1c14f49369bf99268914',
+        javaScriptAppKey: 'cc9800839ee51bb010cd0d7046f4b565',
+      );
+      if (kDebugMode) debugPrint('✅ KakaoSdk 초기화 성공');
+    } catch (e) {
+      if (kDebugMode) debugPrint('⚠️ KakaoSdk 초기화 오류: $e');
+    }
+
+    _hiveReadyFuture = _initializeHiveInBackground();
+    _firebaseReadyFuture = _initializeFirebaseInBackground();
+
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    await SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
+
+    // 선택적 네트워크 초기화는 Firebase 완료 후 첫 프레임 뒤 실행합니다.
+    _firebaseReadyFuture!.then((firebaseReady) {
     if (!firebaseReady) return;
     Future<void>(() async {
       try {
@@ -127,6 +128,7 @@ Future<void> main() async {
       } catch (e) {
         if (kDebugMode) debugPrint('⚠️ CategoryService 백그라운드 로드 건너뜀: $e');
       }
+      });
     });
   });
 }
