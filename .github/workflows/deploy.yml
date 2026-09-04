@@ -65,7 +65,7 @@ jobs:
           test -f firestore.rules
           test -f storage.rules
           test -f functions/index.js
-          configured_project="$(node -e "const c=require('./.firebaserc'); process.stdout.write(c.projects.default || '')")"
+          configured_project="$(node -e "const fs=require('fs'); const c=JSON.parse(fs.readFileSync('.firebaserc','utf8')); process.stdout.write(c.projects.default || '')")"
           if [ "$configured_project" != "$FIREBASE_PROJECT_ID" ]; then
             echo "Unexpected Firebase project in .firebaserc: $configured_project"
             exit 1
