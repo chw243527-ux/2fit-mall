@@ -54,7 +54,7 @@ jobs:
 
       - name: Install Firebase CLI and Functions dependencies
         run: |
-          npm install --global firebase-tools@${FIREBASE_CLI_VERSION}
+          npx --yes firebase-tools@${FIREBASE_CLI_VERSION} --version
           npm ci --prefix functions
 
       - name: Verify Firebase configuration
@@ -86,7 +86,7 @@ jobs:
           printf 'KAKAO_GROUP_ORDER_TEMPLATE_ID=%s\nKAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID=__UNCONFIGURED__\nRESEND_FROM_EMAIL=%s\n' \
             "${KAKAO_GROUP_ORDER_TEMPLATE_ID}" "${RESEND_FROM_EMAIL}" > functions/.env
           trap 'rm -f functions/.env' EXIT
-          firebase deploy \
+          npx --yes firebase-tools@${FIREBASE_CLI_VERSION} deploy \
             --only firestore:rules,storage,functions \
             --project "${FIREBASE_PROJECT}" \
             --non-interactive \
