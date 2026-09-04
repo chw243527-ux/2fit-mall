@@ -1,0 +1,78 @@
+name: Account Deletion Page Hotfix
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - web/account-deletion.html
+      - web/account-deletion/index.html
+      - .github/workflows/account-deletion-hotfix.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: account-deletion-hotfix
+  cancel-in-progress: true
+
+env:
+  CF_PROJECT: twofit-mall
+  WRANGLER_VERSION: latest
+
+jobs:
+  deploy:
+    name: Deploy account deletion page without Flutter rebuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download current public site
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          mkdir -p dist
+          wget --mirror --page-requisites --convert-links --adjust-extension \
+            --no-parent --no-host-directories --directory-prefix=dist \
+            https://2fit-mall.co.kr/
+          test -f dist/index.html
+
+      - name: Replace account deletion page
+        run: |
+          set -euo pipefail
+          test -f web/account-deletion/index.html
+          mkdir -p dist/account-deletion
+          cp web/account-deletion/index.html dist/account-deletion/index.html
+          cp web/account-deletion.html dist/account-deletion.html
+          test -f dist/account-deletion/index.html
+
+      - name: Deploy preserved site to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "${CLOUDFLARE_API_TOKEN}"
+          test -n "${CLOUDFLARE_ACCOUNT_ID}"
+          npx --yes wrangler@${WRANGLER_VERSION} pages deploy dist \
+            --no-bundle \
+            --project-name="${CF_PROJECT}" \
+            --branch=main \
+            --commit-dirty=true \
+            --commit-message="hotfix: publish account deletion request form"
+
+      - name: Purge Cloudflare cache
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CLOUDFLARE_ZONE_ID}" ]; then exit 0; fi
+          curl --fail-with-body -sS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'
