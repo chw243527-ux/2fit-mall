@@ -68,6 +68,30 @@ jobs:
           storeFile=../upload-keystore.jks
           EOF
 
+      - name: Validate signing credentials
+        run: |
+          set -euo pipefail
+          store_password="$(printf '%s' '${{ secrets.ANDROID_KEYSTORE_PASSWORD }}' | tr -d '\r\n')"
+          key_password="$(printf '%s' '${{ secrets.ANDROID_KEY_PASSWORD }}' | tr -d '\r\n')"
+          key_alias="$(printf '%s' '${{ secrets.ANDROID_KEY_ALIAS }}' | tr -d '\r\n')"
+          echo "keystore_size=$(wc -c < android/upload-keystore.jks) bytes"
+          echo "store_password_length=${#store_password}"
+          echo "key_password_length=${#key_password}"
+          echo "key_alias=$key_alias"
+          if ! keytool -list -v \
+            -keystore android/upload-keystore.jks \
+            -storepass "$store_password" \
+            -alias "$key_alias" \
+            -keypass "$key_password" \
+            > /tmp/signing-check.txt 2>/tmp/signing-check.err; then
+            echo 'Signing credential validation failed.'
+            echo 'Check that ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_PASSWORD are in the correct fields.'
+            cat /tmp/signing-check.err
+            exit 1
+          fi
+          grep -E 'Alias name:|SHA1:' /tmp/signing-check.txt
+          echo 'Signing credential validation passed.'
+
       - name: Build signed Release AAB
         run: |
           set -euo pipefail
