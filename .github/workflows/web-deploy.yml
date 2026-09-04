@@ -100,6 +100,14 @@ jobs:
             --pwa-strategy=offline-first \
             --dart-define=BUILD_SHA=${{ github.sha }}
 
+      - name: Prepare public account deletion page
+        run: |
+          set -euo pipefail
+          test -f web/account-deletion.html
+          test -d "${BUILD_DIR}"
+          cp web/account-deletion.html "${BUILD_DIR}/account-deletion.html"
+          test -f "${BUILD_DIR}/account-deletion.html"
+
       - name: Prepare web service worker
         run: |
           set -euo pipefail
