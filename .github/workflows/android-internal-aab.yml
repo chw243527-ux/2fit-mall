@@ -56,11 +56,15 @@ jobs:
             fi
           done
           umask 077
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/upload-keystore.jks
+          # Normalize values copied from text files so trailing CR/LF cannot corrupt signing.
+          store_password="$(printf '%s' "$ANDROID_KEYSTORE_PASSWORD" | tr -d '\r\n')"
+          key_password="$(printf '%s' "$ANDROID_KEY_PASSWORD" | tr -d '\r\n')"
+          key_alias="$(printf '%s' "$ANDROID_KEY_ALIAS" | tr -d '\r\n')"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > android/upload-keystore.jks
           cat > android/key.properties <<EOF
-          storePassword=$ANDROID_KEYSTORE_PASSWORD
-          keyPassword=$ANDROID_KEY_PASSWORD
-          keyAlias=$ANDROID_KEY_ALIAS
+          storePassword=$store_password
+          keyPassword=$key_password
+          keyAlias=$key_alias
           storeFile=../upload-keystore.jks
           EOF
 
