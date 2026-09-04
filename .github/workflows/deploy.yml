@@ -1,0 +1,89 @@
+name: Deploy Firebase Backend
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'functions/**'
+      - 'firestore.rules'
+      - 'storage.rules'
+      - 'firebase.json'
+      - '.firebaserc'
+      - '.github/workflows/deploy.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-deploy-main
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22'
+  FIREBASE_PROJECT_ID: 'fit-mall'
+
+jobs:
+  deploy:
+    name: Deploy Functions and Firebase Rules
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Functions dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Validate Functions JavaScript
+        working-directory: functions
+        run: npm test
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FIT_MALL }}
+
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools@latest
+
+      - name: Verify Firebase project
+        run: |
+          set -euo pipefail
+          test -f firebase.json
+          test -f .firebaserc
+          test -f firestore.rules
+          test -f storage.rules
+          test -f functions/index.js
+          configured_project="$(node -e "const c=require('./.firebaserc'); process.stdout.write(c.projects.default || '')")"
+          if [ "$configured_project" != "$FIREBASE_PROJECT_ID" ]; then
+            echo "Unexpected Firebase project in .firebaserc: $configured_project"
+            exit 1
+          fi
+          echo "Firebase project verified: $FIREBASE_PROJECT_ID"
+
+      - name: Deploy Functions and Rules
+        run: |
+          set -euo pipefail
+          firebase deploy \
+            --project "$FIREBASE_PROJECT_ID" \
+            --only functions,firestore:rules,storage \
+            --non-interactive
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "Firebase deployment completed successfully."
+          echo "Project: $FIREBASE_PROJECT_ID"
+          echo "Targets: functions, firestore:rules, storage"
+          echo "Commit: $GITHUB_SHA"
