@@ -105,8 +105,9 @@ jobs:
           set -euo pipefail
           test -f web/account-deletion.html
           test -d "${BUILD_DIR}"
-          cp web/account-deletion.html "${BUILD_DIR}/account-deletion.html"
-          test -f "${BUILD_DIR}/account-deletion.html"
+          mkdir -p "${BUILD_DIR}/account-deletion"
+          cp web/account-deletion/index.html "${BUILD_DIR}/account-deletion/index.html"
+          test -f "${BUILD_DIR}/account-deletion/index.html"
 
       - name: Prepare web service worker
         run: |
