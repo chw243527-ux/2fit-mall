@@ -23,7 +23,7 @@ const SOLAPI_SENDER_PHONE = '01072276914';
 const KAKAO_GROUP_ORDER_TEMPLATE_ID = defineString('KAKAO_GROUP_ORDER_TEMPLATE_ID', { default: '' });
 // 1년 독점 만료 7일 전 알림톡 템플릿은 카카오 검수 승인 후 등록합니다.
 // 템플릿이 아직 없으면 앱 알림과 이메일을 먼저 발송합니다.
-const KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID = defineString('KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID', { default: '__UNCONFIGURED__' });
+const KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID = defineString('KAKAO_EXCLUSIVE_RENEWAL_TEMPLATE_ID', { default: 'KA01TP260902045837018eSUqvyeROrY' });
 // 이메일 발송은 Resend API를 사용하며 API 키는 Firebase Secret Manager에서만 읽습니다.
 const RESEND_API_KEY = defineSecret('RESEND_API_KEY');
 const RESEND_FROM_EMAIL = defineString('RESEND_FROM_EMAIL', {
