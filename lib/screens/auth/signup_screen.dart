@@ -1173,23 +1173,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     controller: _otpCtrl,
                                     scrollPadding: const EdgeInsets.only(bottom: 180),
                                     focusNode: _otpFocusNode,
-                                    // 발송 후 addPostFrameCallback에서 한 번만 포커스합니다.
-                                    // autofocus를 사용하면 카운트다운 setState 때 IME가 재부착될 수 있습니다.
+                                    // 카운트다운 rebuild와 무관하게 IME 입력을 유지합니다.
+                                    // 수동 onTap 포커스 재요청은 모바일 키보드 재부착을 유발할 수 있어 사용하지 않습니다.
                                     autofocus: false,
                                     enabled: true,
                                     readOnly: false,
+                                    showCursor: true,
                                     enableInteractiveSelection: true,
                                     autocorrect: false,
                                     enableSuggestions: false,
-                                    keyboardType: TextInputType.phone,
+                                    textCapitalization: TextCapitalization.none,
+                                    autofillHints: const [AutofillHints.oneTimeCode],
+                                    keyboardType: const TextInputType.numberWithOptions(
+                                        decimal: false, signed: false),
                                     textInputAction: TextInputAction.done,
                                     maxLength: 6,
-                                    onTap: () {
-                                      _phoneFocusNode.unfocus();
-                                      FocusScope.of(context).requestFocus(_otpFocusNode);
-                                    },
+                                    onChanged: (_) {},
+                                    onFieldSubmitted: (_) => _verifyOtp(),
                                     inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly
+                                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))
                                     ],
                                     style: const TextStyle(
                                         fontSize: 18,
