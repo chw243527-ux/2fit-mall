@@ -5,9 +5,8 @@
 
 importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging-compat.js');
-// Flutter PWA 캐시/업데이트 처리도 같은 서비스 워커에서 실행합니다.
-// 별도 root-scope 서비스 워커를 두 개 등록하면 서로 덮어쓸 수 있으므로 통합합니다.
-importScripts('flutter_service_worker.js');
+// Flutter PWA 서비스워커와 분리합니다.
+// Flutter web은 offline-first 캐시를 사용하지 않고, 이 워커는 FCM만 담당합니다.
 
 // Firebase 프로젝트 설정 (fit-mall)
 firebase.initializeApp({

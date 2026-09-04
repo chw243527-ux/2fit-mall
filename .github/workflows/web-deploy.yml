@@ -97,7 +97,7 @@ jobs:
           flutter build web \
             --release \
             --tree-shake-icons \
-            --pwa-strategy=offline-first \
+            --pwa-strategy=none \
             --dart-define=BUILD_SHA=${{ github.sha }}
 
       - name: Prepare public account deletion page
@@ -109,16 +109,12 @@ jobs:
           cp web/account-deletion/index.html "${BUILD_DIR}/account-deletion/index.html"
           test -f "${BUILD_DIR}/account-deletion/index.html"
 
-      - name: Prepare web service worker
+      - name: Prepare FCM service worker
         run: |
           set -euo pipefail
           test -f web/firebase-messaging-sw.js
           cp web/firebase-messaging-sw.js "${BUILD_DIR}/firebase-messaging-sw.js"
           test -f "${BUILD_DIR}/index.html"
-          test -f "${BUILD_DIR}/flutter_service_worker.js"
-          sed -i "s|main\.dart\.js|main.dart.js?v=${{ github.sha }}|g" "${BUILD_DIR}/flutter_service_worker.js"
-          sed -i "s|'flutter-app-cache'|'flutter-app-cache-${{ github.sha }}'|g" "${BUILD_DIR}/flutter_service_worker.js"
-          sed -i "s|'flutter-temp-cache'|'flutter-temp-cache-${{ github.sha }}'|g" "${BUILD_DIR}/flutter_service_worker.js"
 
       - name: Deploy Flutter Web to Cloudflare Pages
         env:
