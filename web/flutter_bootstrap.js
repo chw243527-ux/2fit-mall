@@ -1,7 +1,7 @@
+{{flutter_js}}
 {{flutter_build_config}}
 
-// Flutter loader가 외부 스크립트·서비스워커·브라우저 초기화 순서와 경합할 수 있어
-// 첫 실행에서 flutter-view가 생성되지 않으면 한 번만 안전하게 재시도합니다.
+// Flutter 표준 web bootstrap: 엔진 주입 후 build config를 적용하고 앱을 시작합니다.
 (function () {
   let attempts = 0;
   const maxAttempts = 2;
