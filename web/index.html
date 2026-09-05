@@ -783,14 +783,8 @@
           })
           .catch(function(e) { console.warn('[SW] 등록 실패:', e); });
 
-        // SW가 교체(activate)되면 자동으로 페이지 새로고침
-        var refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', function() {
-          if (!refreshing) {
-            refreshing = true;
-            window.location.reload();
-          }
-        });
+        // SW 교체 시 자동 새로고침은 Flutter 초기화와 충돌할 수 있으므로 사용하지 않습니다.
+        // 다음 페이지 방문 또는 브라우저의 일반 업데이트 주기에 새 워커가 적용됩니다.
       });
     }
 
