@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "187081765755-dserqh21ruadgbb63bupvaiueedhhk3a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.twofit.twofit",
+            "certificate_hash": "09db330db1f44220aac103aea54390d630c93523"
+          }
+        },
+        {
+          "client_id": "187081765755-uscitocp0n061shmmb0m0m373j63v6dm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.twofit.twofit",
+            "certificate_hash": "929cd72b06dff242f54be1b47ca9163e751eec7f"
+          }
+        },
+        {
           "client_id": "187081765755-hbucij2qnqaqsgvah5lnqdofb7ma7d1s.apps.googleusercontent.com",
           "client_type": 3
         }
