@@ -41,8 +41,22 @@ jobs:
       - name: Install Android API 36 SDK
         run: |
           set -euo pipefail
-          yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager "platforms;android-36"
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          if [ -z "$sdk_root" ] || [ ! -d "$sdk_root" ]; then
+            echo 'Android SDK root was not found.'
+            exit 1
+          fi
+          sdkmanager_path="$sdk_root/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$sdkmanager_path" ]; then
+            sdkmanager_path="$(find "$sdk_root/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null || true)"
+          fi
+          if [ -z "$sdkmanager_path" ] || [ ! -x "$sdkmanager_path" ]; then
+            echo "sdkmanager was not found under $sdk_root/cmdline-tools"
+            find "$sdk_root" -maxdepth 4 -type f -name sdkmanager -print || true
+            exit 1
+          fi
+          yes | "$sdkmanager_path" --licenses >/dev/null 2>&1 || true
+          "$sdkmanager_path" "platforms;android-36"
 
       - name: Install Flutter dependencies
         run: flutter pub get
