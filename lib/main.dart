@@ -206,19 +206,28 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
           // Android가 custom scheme을 Flutter 초기 route로 전달하는 경우
           // twofitmall://naver가 앱의 404 화면으로 빠지지 않게 합니다.
           // 실제 code/state 처리는 AppLinks listener가 AuthService로 전달합니다.
+          final lowerRoute = routeName.toLowerCase();
           final isNaverDeepLink =
-              routeName == '/naver' ||
-              routeName.startsWith('/naver?') ||
-              routeName.startsWith('naver?') ||
-              routeName.startsWith('twofitmall://naver');
+              lowerRoute.contains('twofitmall:/naver') ||
+              lowerRoute.startsWith('/naver') ||
+              lowerRoute.startsWith('naver?') ||
+              lowerRoute.contains('naver_callback');
           if (isNaverDeepLink) {
-            // Some Android launch paths expose the custom-scheme intent as a
-            // Flutter route name. Forward its code/state immediately so the
-            // app cannot render the generic 404 screen.
-            final deepLink = routeName.startsWith('twofitmall://')
-                ? Uri.tryParse(routeName)
-                : Uri.tryParse('twofitmall://naver${routeName.substring(routeName.indexOf('naver') + 5)}');
-            if (deepLink != null) {
+            // Android may normalize a custom scheme as twofitmall:/naver,
+            // twofitmall://naver, /naver?..., or a callback route. Normalize
+            // all forms before handing the URI to AuthService so none can
+            // fall through to the generic Flutter 404 screen.
+            var raw = routeName;
+            if (raw.startsWith('twofitmall:/') &&
+                !raw.startsWith('twofitmall://')) {
+              raw = raw.replaceFirst('twofitmall:/', 'twofitmall://');
+            } else if (raw.startsWith('/naver')) {
+              raw = 'twofitmall://naver${raw.substring('/naver'.length)}';
+            } else if (raw.startsWith('naver?')) {
+              raw = 'twofitmall://naver${raw.substring('naver'.length)}';
+            }
+            final deepLink = Uri.tryParse(raw);
+            if (deepLink != null && deepLink.host == 'naver') {
               AuthService.handleNaverDeepLink(deepLink);
             }
             return MaterialPageRoute(
