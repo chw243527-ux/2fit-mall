@@ -109,6 +109,20 @@ jobs:
           cp web/account-deletion/index.html "${BUILD_DIR}/account-deletion/index.html"
           test -f "${BUILD_DIR}/account-deletion/index.html"
 
+      - name: Prepare Naver OAuth callback page
+        run: |
+          set -euo pipefail
+          test -f web/naver_callback.html
+          test -d "${BUILD_DIR}"
+          cp web/naver_callback.html "${BUILD_DIR}/naver_callback.html"
+          # Cloudflare Pages clean-URL handling redirects .html to this path.
+          # Publish an extensionless directory route as well so the OAuth callback
+          # still renders after that redirect.
+          mkdir -p "${BUILD_DIR}/naver_callback"
+          cp web/naver_callback.html "${BUILD_DIR}/naver_callback/index.html"
+          test -f "${BUILD_DIR}/naver_callback.html"
+          test -f "${BUILD_DIR}/naver_callback/index.html"
+
       - name: Prepare FCM service worker
         run: |
           set -euo pipefail
