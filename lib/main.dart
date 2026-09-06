@@ -202,6 +202,17 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
           ),
         ),
         onGenerateRoute: (settings) {
+          final routeName = settings.name ?? '';
+          // Android가 custom scheme을 Flutter 초기 route로 전달하는 경우
+          // twofitmall://naver가 앱의 404 화면으로 빠지지 않게 합니다.
+          // 실제 code/state 처리는 AppLinks listener가 AuthService로 전달합니다.
+          if (routeName == '/naver' ||
+              routeName.startsWith('twofitmall://naver')) {
+            return MaterialPageRoute(
+              builder: (_) => const _AppInit(),
+              settings: settings,
+            );
+          }
           switch (settings.name) {
             case '/login':
               return MaterialPageRoute(
