@@ -206,8 +206,21 @@ class _TwoFitMallAppState extends State<TwoFitMallApp> {
           // Android가 custom scheme을 Flutter 초기 route로 전달하는 경우
           // twofitmall://naver가 앱의 404 화면으로 빠지지 않게 합니다.
           // 실제 code/state 처리는 AppLinks listener가 AuthService로 전달합니다.
-          if (routeName == '/naver' ||
-              routeName.startsWith('twofitmall://naver')) {
+          final isNaverDeepLink =
+              routeName == '/naver' ||
+              routeName.startsWith('/naver?') ||
+              routeName.startsWith('naver?') ||
+              routeName.startsWith('twofitmall://naver');
+          if (isNaverDeepLink) {
+            // Some Android launch paths expose the custom-scheme intent as a
+            // Flutter route name. Forward its code/state immediately so the
+            // app cannot render the generic 404 screen.
+            final deepLink = routeName.startsWith('twofitmall://')
+                ? Uri.tryParse(routeName)
+                : Uri.tryParse('twofitmall://naver${routeName.substring(routeName.indexOf('naver') + 5)}');
+            if (deepLink != null) {
+              AuthService.handleNaverDeepLink(deepLink);
+            }
             return MaterialPageRoute(
               builder: (_) => const _AppInit(),
               settings: settings,
