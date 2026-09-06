@@ -120,8 +120,14 @@ jobs:
           # still renders after that redirect.
           mkdir -p "${BUILD_DIR}/naver_callback"
           cp web/naver_callback.html "${BUILD_DIR}/naver_callback/index.html"
+          # Backward-compatible aliases for older Naver Console callback entries.
+          mkdir -p "${BUILD_DIR}/naver"
+          cp web/naver_callback.html "${BUILD_DIR}/naver/index.html"
+          cp web/naver_callback.html "${BUILD_DIR}/naver.html"
           test -f "${BUILD_DIR}/naver_callback.html"
           test -f "${BUILD_DIR}/naver_callback/index.html"
+          test -f "${BUILD_DIR}/naver/index.html"
+          test -f "${BUILD_DIR}/naver.html"
 
       - name: Prepare FCM service worker
         run: |
