@@ -35,8 +35,16 @@ class AuthService {
       'https://2fit-mall.co.kr/naver_callback';
 
   static void handleNaverDeepLink(Uri uri) {
-    if (uri.scheme != 'twofitmall' || uri.host != 'naver') return;
-    final code = uri.queryParameters['code'] ?? '';
+    // Android/app_links can parse the same intent as either
+    // twofitmall://naver?... (host=naver) or twofitmall:/naver?... (path=/naver).
+    // Normalize both forms before validating the callback.
+    final normalized = uri.host == 'naver'
+        ? uri
+        : (uri.scheme == 'twofitmall' && uri.path.startsWith('/naver')
+            ? Uri.parse('twofitmall://naver${uri.path.substring('/naver'.length)}${uri.hasQuery ? '?${uri.query}' : ''}')
+            : uri);
+    if (normalized.scheme != 'twofitmall' || normalized.host != 'naver') return;
+    final code = normalized.queryParameters['code'] ?? '';
     final state = uri.queryParameters['state'] ?? '';
     if (code.isEmpty || state.isEmpty) {
       final waiter = _naverMobileCodeWaiter;
