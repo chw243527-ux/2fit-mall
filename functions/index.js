@@ -41,8 +41,11 @@ const SOLAPI_ADMIN_PHONE = SOLAPI_SENDER_PHONE;
 const NAVER_CLIENT_ID = 'RTeQb5TSs920qoowhcra';
 const NAVER_CLIENT_SECRET = defineSecret('NAVER_CLIENT_SECRET');
 const NAVER_ALLOWED_REDIRECTS = new Set([
+  'https://2fit-mall.co.kr/naver_callback',
   'https://2fit-mall.co.kr/naver_callback.html',
+  'https://fit-mall.web.app/naver_callback',
   'https://fit-mall.web.app/naver_callback.html',
+  'http://localhost:5000/naver_callback',
   'http://localhost:5000/naver_callback.html',
 ]);
 

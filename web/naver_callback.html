@@ -23,7 +23,7 @@
     var code = query.get('code') || '';
     var state = query.get('state') || '';
     var error = query.get('error') || '';
-    var redirectUri = window.location.origin + '/naver_callback.html';
+    var redirectUri = window.location.origin + '/naver_callback';
     var data = { type: 'NAVER_CODE', code: code, state: state, redirectUri: redirectUri };
     if (error || !code || !state) data.error = error || '네이버 인증 코드가 없습니다.';
     if (window.opener) {

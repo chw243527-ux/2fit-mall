@@ -531,7 +531,7 @@
   <script>
     // 네이버 OAuth 팝업 로그인: Secret은 Firebase Functions 서버에서만 사용
     window.naverOAuthLogin = async function() {
-      var redirectUri = window.location.origin + '/naver_callback.html';
+      var redirectUri = window.location.origin + '/naver_callback';
       var startEndpoint = 'https://us-central1-fit-mall.cloudfunctions.net/startNaverOAuth';
 
       // Open synchronously during the user gesture. iOS Safari can drop

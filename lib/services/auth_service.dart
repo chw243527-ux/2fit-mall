@@ -32,7 +32,7 @@ class AuthService {
   static Future<AuthResult>? _restoreSessionInFlight;
   static final Completer<bool> _firebaseReady = Completer<bool>();
   static const _naverRedirectUri =
-      'https://2fit-mall.co.kr/naver_callback.html';
+      'https://2fit-mall.co.kr/naver_callback';
 
   static void handleNaverDeepLink(Uri uri) {
     if (uri.scheme != 'twofitmall' || uri.host != 'naver') return;
