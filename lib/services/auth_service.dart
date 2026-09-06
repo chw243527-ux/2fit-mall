@@ -28,6 +28,7 @@ class AuthService {
   static String? _deviceScope;
   static Future<String>? _deviceScopeInFlight;
   static Completer<Map<String, String>>? _naverMobileCodeWaiter;
+  static Map<String, String>? _pendingNaverMobileCode;
   static Future<AuthResult>? _restoreSessionInFlight;
   static final Completer<bool> _firebaseReady = Completer<bool>();
   static const _naverRedirectUri =
@@ -35,19 +36,36 @@ class AuthService {
 
   static void handleNaverDeepLink(Uri uri) {
     if (uri.scheme != 'twofitmall' || uri.host != 'naver') return;
-    final waiter = _naverMobileCodeWaiter;
-    if (waiter == null || waiter.isCompleted) return;
     final code = uri.queryParameters['code'] ?? '';
     final state = uri.queryParameters['state'] ?? '';
     if (code.isEmpty || state.isEmpty) {
-      waiter.completeError(StateError('네이버 인증 코드가 없습니다.'));
+      final waiter = _naverMobileCodeWaiter;
+      if (waiter != null && !waiter.isCompleted) {
+        waiter.completeError(StateError('네이버 인증 코드가 없습니다.'));
+      }
       return;
     }
-    waiter.complete(
-        {'code': code, 'state': state, 'redirectUri': _naverRedirectUri});
+    final payload = {
+      'code': code,
+      'state': state,
+      'redirectUri': _naverRedirectUri,
+    };
+    final waiter = _naverMobileCodeWaiter;
+    if (waiter == null || waiter.isCompleted) {
+      // The app can be recreated by Android when the custom scheme is opened.
+      // Keep the one-time callback until the login flow registers its waiter.
+      _pendingNaverMobileCode = payload;
+      return;
+    }
+    waiter.complete(payload);
   }
 
   static Future<Map<String, String>> _waitForNaverMobileCode() {
+    final pending = _pendingNaverMobileCode;
+    if (pending != null) {
+      _pendingNaverMobileCode = null;
+      return Future.value(pending);
+    }
     final waiter = Completer<Map<String, String>>();
     _naverMobileCodeWaiter = waiter;
     return waiter.future

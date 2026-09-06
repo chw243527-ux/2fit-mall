@@ -438,8 +438,13 @@ class _AppInitState extends State<_AppInit> {
     // AppLinks와 모바일 알림 탭 listener는 웹에서 지원되지 않을 수 있으므로
     // 웹 첫 프레임을 방해하지 않도록 Android/iOS에서만 등록합니다.
     if (!kIsWeb) {
-      _deepLinkSub =
-          AppLinks().uriLinkStream.listen(AuthService.handleNaverDeepLink);
+      final appLinks = AppLinks();
+      // Handle a callback that launched/recreated the app before the stream
+      // subscription was attached.
+      appLinks.getInitialLink().then((uri) {
+        if (uri != null) AuthService.handleNaverDeepLink(uri);
+      });
+      _deepLinkSub = appLinks.uriLinkStream.listen(AuthService.handleNaverDeepLink);
       _notificationTapSub = FirebaseMessaging.onMessageOpenedApp.listen((message) {
         if (!mounted) return;
         WidgetsBinding.instance.addPostFrameCallback((_) {
