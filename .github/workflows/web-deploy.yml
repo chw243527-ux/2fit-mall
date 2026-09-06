@@ -128,16 +128,6 @@ jobs:
           test -f "${BUILD_DIR}/naver_callback/index.html"
           test -f "${BUILD_DIR}/naver/index.html"
           test -f "${BUILD_DIR}/naver.html"
-          # Force callback paths to the static page instead of the Flutter SPA
-          # fallback, which otherwise renders the application's 404 screen.
-          cat > "${BUILD_DIR}/_redirects" <<'EOF'
-          /naver_callback.html /naver_callback.html 200
-          /naver_callback /naver_callback.html 200
-          /naver.html /naver_callback.html 200
-          /naver /naver_callback.html 200
-          EOF
-          test -f "${BUILD_DIR}/_redirects"
-
       - name: Prepare FCM service worker
         run: |
           set -euo pipefail
