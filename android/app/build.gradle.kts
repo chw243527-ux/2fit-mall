@@ -19,7 +19,8 @@ if (keyPropertiesFile.exists()) {
 
 android {
     namespace = "com.twofit.twofit"
-    compileSdk = flutter.compileSdkVersion
+    // Google Play API 36 target requirement
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -45,7 +46,8 @@ android {
     defaultConfig {
         applicationId = "com.twofit.twofit"
         minSdk = 23
-        targetSdk = flutter.targetSdkVersion
+        // Google Play API 36 target requirement
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
