@@ -1582,11 +1582,15 @@ class AuthService {
       if (authorizeUrl == null || authorizeUrl.isEmpty) {
         return const AuthResult(success: false, error: '네이버 로그인 주소를 받지 못했습니다.');
       }
+      // Register the deep-link waiter before opening the external browser.
+      // Otherwise a fast Naver callback can reach handleNaverDeepLink while
+      // _naverMobileCodeWaiter is still null and the one-time code is lost.
+      final codeFuture = _waitForNaverMobileCode();
       if (!await launchUrl(Uri.parse(authorizeUrl),
           mode: LaunchMode.externalApplication)) {
         return const AuthResult(success: false, error: '네이버 로그인 화면을 열 수 없습니다.');
       }
-      final info = await _waitForNaverMobileCode();
+      final info = await codeFuture;
       return await _exchangeNaverCodeForFirebase(info);
     } catch (e) {
       if (kDebugMode) debugPrint('⚠️ 네이버 로그인 실패: $e');
