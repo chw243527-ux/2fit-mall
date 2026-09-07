@@ -446,17 +446,6 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 10),
 
-                        // ── 네이버 로그인 (Web + 앱) ──
-                        _buildSocialBtn(
-                          label: context.loc.t('네이버로_로그인', '네이버로 로그인'),
-                          bgColor: const Color(0xFF03C75A),
-                          textColor: Colors.white,
-                          icon: Icons.account_circle_rounded,
-                          iconColor: Colors.white,
-                          onTap: () => _loginWithNaver(),
-                        ),
-                        const SizedBox(height: 10),
-
                         // ── 구글 로그인 ──
                         _buildSocialBtn(
                           label: loc.googleLogin,
@@ -760,16 +749,6 @@ class _LoginScreenState extends State<LoginScreen>
                                       icon: Icons.chat_bubble_rounded,
                                       iconColor: const Color(0xFF3C1E1E),
                                       onTap: () => _loginWithKakao()),
-                                  const SizedBox(height: 10),
-                                  // ── 네이버 로그인 (Web + 앱) ──
-                                  _buildSocialBtn(
-                                      label:
-                                          context.loc.t('네이버로_로그인', '네이버로 로그인'),
-                                      bgColor: const Color(0xFF03C75A),
-                                      textColor: Colors.white,
-                                      icon: Icons.account_circle_rounded,
-                                      iconColor: Colors.white,
-                                      onTap: () => _loginWithNaver()),
                                   const SizedBox(height: 10),
                                   _buildSocialBtn(
                                       label: loc.googleLogin,
