@@ -115,6 +115,29 @@ jobs:
         continue-on-error: true
         run: flutter analyze --no-fatal-infos
 
+      - name: Validate Google Play credentials
+        env:
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          set -euo pipefail
+          if [ -z "$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "Missing GitHub Secret: GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"
+            echo "Create a Google Play service account JSON key and add it to repository Actions Secrets."
+            exit 1
+          fi
+          GOOGLE_PLAY_SERVICE_ACCOUNT_JSON="$GOOGLE_PLAY_SERVICE_ACCOUNT_JSON" python3 - <<'PY'
+          import json, os
+          raw = os.environ['GOOGLE_PLAY_SERVICE_ACCOUNT_JSON']
+          data = json.loads(raw)
+          required = ('type', 'project_id', 'private_key', 'client_email')
+          missing = [key for key in required if not data.get(key)]
+          if missing:
+              raise SystemExit('Google Play service account JSON is missing: ' + ', '.join(missing))
+          if data.get('type') != 'service_account':
+              raise SystemExit('Google Play credential JSON is not a service account key')
+          print('Google Play service account JSON structure validated.')
+          PY
+
       - name: Build signed App Bundle
         run: |
           set -euo pipefail
