@@ -131,7 +131,7 @@ jobs:
           releaseFiles: build/app/outputs/bundle/release/app-release.aab
           track: ${{ inputs.track || 'internal' }}
           status: completed
-          whatsNewDirectory: distribution/whatsnew
+          changesNotSentForReview: true
 
       - name: Cleanup signing files
         if: always()
