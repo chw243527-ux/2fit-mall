@@ -1112,12 +1112,21 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
       res.status(400).json({ error: 'Payment approval failed' }); return;
     }
     tossApproved = true;
+    console.info('confirmSecurePayment toss approved; finalizing order', {
+      uid: decoded.uid,
+      orderId,
+      amount: intent.amount,
+    });
     await db.runTransaction(async (tx) => {
       const latest = await tx.get(intentRef);
       const latestData = latest.data();
       if (!latest.exists || latestData.userId !== decoded.uid) throw new Error('Payment request unavailable');
       if (latestData.status === 'confirmed') return;
-      if (latestData.status !== 'pending') throw new Error('Payment request unavailable');
+      // 승인 요청 직전에 status를 approving으로 바꾸므로, 같은 요청의
+      // 트랜잭션에서는 pending과 approving 모두 정상 상태입니다.
+      if (!['pending', 'approving'].includes(latestData.status)) {
+        throw new Error('Payment request unavailable');
+      }
       const orderRef = db.collection('orders').doc(orderId);
       const existingOrder = await tx.get(orderRef);
       if (!existingOrder.exists) {
@@ -1136,6 +1145,11 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
       }
       await _commitReservedBenefits(tx, decoded.uid, latestData, orderId);
       tx.update(intentRef, { status: 'confirmed', paymentKey, confirmedAt: FieldValue.serverTimestamp() });
+    });
+    console.info('confirmSecurePayment order finalized', {
+      uid: decoded.uid,
+      orderId,
+      paymentMethod: toss.method || '',
     });
     res.status(200).json({ success: true, orderId, paymentKey, method: toss.method || '' });
   } catch (error) {
