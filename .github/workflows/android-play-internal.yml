@@ -1,0 +1,147 @@
+name: Android Play Internal Testing
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/**'
+      - 'android/**'
+      - 'assets/**'
+      - 'web/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/android-play-internal.yml'
+  workflow_dispatch:
+    inputs:
+      build_name:
+        description: 'Android version name (e.g. 1.0.29)'
+        required: false
+        default: ''
+      track:
+        description: 'Google Play track'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - closed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-play-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.32.2'
+  PACKAGE_NAME: 'com.twofit.twofit'
+  VERSION_CODE_BASE: '1000'
+
+jobs:
+  build-and-upload:
+    name: Build and upload Android App Bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install Android API 36 SDK
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          sdkmanager_path="$(find "$sdk_root/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null || true)"
+          if [ -z "$sdkmanager_path" ]; then
+            sdkmanager_path="$(find "$ANDROID_HOME" -type f -name sdkmanager -print -quit 2>/dev/null || true)"
+          fi
+          test -n "$sdkmanager_path"
+          yes | "$sdkmanager_path" --licenses >/dev/null 2>&1 || true
+          "$sdkmanager_path" "platforms;android-36"
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Prepare signing files
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "Missing GitHub Secret: ${name}"
+              exit 1
+            fi
+          done
+          umask 077
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > android/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyPassword=${ANDROID_KEY_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          storeFile=../upload-keystore.jks
+          EOF
+
+      - name: Calculate monotonic Android version
+        id: version
+        env:
+          INPUT_BUILD_NAME: ${{ inputs.build_name }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          build_name="$INPUT_BUILD_NAME"
+          if [ -z "$build_name" ]; then
+            build_name="$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml | head -1)"
+          fi
+          test -n "$build_name"
+          build_number=$((VERSION_CODE_BASE + RUN_NUMBER))
+          echo "build_name=$build_name" >> "$GITHUB_OUTPUT"
+          echo "build_number=$build_number" >> "$GITHUB_OUTPUT"
+          echo "Building ${build_name}+${build_number}"
+
+      - name: Analyze and test
+        run: flutter analyze --no-fatal-infos
+
+      - name: Build signed App Bundle
+        run: |
+          set -euo pipefail
+          flutter build appbundle --release \
+            --build-name="${{ steps.version.outputs.build_name }}" \
+            --build-number="${{ steps.version.outputs.build_number }}"
+          test -s build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PACKAGE_NAME }}
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: ${{ inputs.track || 'internal' }}
+          status: completed
+          whatsNewDirectory: distribution/whatsnew
+
+      - name: Cleanup signing files
+        if: always()
+        run: rm -f android/key.properties android/upload-keystore.jks
+
+      - name: Summary
+        if: success()
+        run: |
+          {
+            echo "## Google Play internal release uploaded"
+            echo
+            echo "- Package: ${{ env.PACKAGE_NAME }}"
+            echo "- Version: ${{ steps.version.outputs.build_name }}+${{ steps.version.outputs.build_number }}"
+            echo "- Track: ${{ inputs.track || 'internal' }}"
+          } >> "$GITHUB_STEP_SUMMARY"
