@@ -8,9 +8,9 @@ on:
         required: true
         default: '1.0.26'
       build_number:
-        description: 'Android version code (must be greater than 15)'
-        required: true
-        default: '16'
+        description: 'Android version code (leave blank for automatic increment)'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -21,6 +21,7 @@ concurrency:
 
 env:
   FLUTTER_VERSION: '3.32.2'
+  VERSION_CODE_BASE: '1000'
 
 jobs:
   build:
@@ -113,18 +114,47 @@ jobs:
           grep -E 'Alias name:|SHA1:' /tmp/signing-check.txt
           echo 'Signing credential validation passed.'
 
+      - name: Calculate automatic Android version
+        id: version
+        env:
+          INPUT_BUILD_NAME: ${{ inputs.build_name }}
+          INPUT_BUILD_NUMBER: ${{ inputs.build_number }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          build_name="$INPUT_BUILD_NAME"
+          if [ -z "$build_name" ]; then
+            build_name="$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml | head -1)"
+          fi
+          test -n "$build_name"
+          if [ -n "$INPUT_BUILD_NUMBER" ]; then
+            build_number="$INPUT_BUILD_NUMBER"
+          else
+            build_number=$((VERSION_CODE_BASE + RUN_NUMBER))
+          fi
+          case "$build_number" in
+            ''|*[!0-9]*) echo 'build_number must be a positive integer.'; exit 1 ;;
+          esac
+          if [ "$build_number" -lt 1 ]; then
+            echo 'build_number must be greater than zero.'
+            exit 1
+          fi
+          echo "build_name=$build_name" >> "$GITHUB_OUTPUT"
+          echo "build_number=$build_number" >> "$GITHUB_OUTPUT"
+          echo "Building ${build_name}+${build_number}"
+
       - name: Build signed Release AAB
         run: |
           set -euo pipefail
           flutter build appbundle --release \
-            --build-name="${{ inputs.build_name }}" \
-            --build-number="${{ inputs.build_number }}"
+            --build-name="${{ steps.version.outputs.build_name }}" \
+            --build-number="${{ steps.version.outputs.build_number }}"
           test -s build/app/outputs/bundle/release/app-release.aab
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 2fit-mall-internal-${{ inputs.build_name }}-${{ inputs.build_number }}
+          name: 2fit-mall-internal-${{ steps.version.outputs.build_name }}-${{ steps.version.outputs.build_number }}
           path: build/app/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 30
@@ -139,7 +169,7 @@ jobs:
           {
             echo '## Internal test AAB ready'
             echo
-            echo '- Version: ${{ inputs.build_name }}+${{ inputs.build_number }}'
+            echo '- Version: ${{ steps.version.outputs.build_name }}+${{ steps.version.outputs.build_number }}'
             echo '- Artifact: app-release.aab'
             echo '- Signed with the existing upload-key GitHub Secrets'
           } >> "$GITHUB_STEP_SUMMARY"
