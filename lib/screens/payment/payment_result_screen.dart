@@ -57,9 +57,18 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
 
       if (result.success) {
         // 주문 확정·쿠폰 사용 처리는 서버 트랜잭션에서 이미 완료되었습니다.
+        // 결제 승인 응답 직후 Firestore 주문을 다시 읽어 마이페이지가
+        // 이전 캐시를 표시하지 않도록 합니다.
+        final user = context.read<UserProvider>().user;
+        if (user != null && user.id.isNotEmpty) {
+          final orderProvider = context.read<OrderProvider>();
+          await orderProvider.loadUserOrders(user.id);
+        }
+
         // 장바구니 비우기
         context.read<CartProvider>().clearCart();
 
+        if (!mounted) return;
         setState(() => _isProcessing = false);
 
         // 주문완료 → 마이페이지로 이동
