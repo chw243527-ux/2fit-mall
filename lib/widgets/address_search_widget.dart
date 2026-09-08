@@ -162,6 +162,7 @@ class _AddressMobileBody extends StatefulWidget {
 class _AddressMobileBodyState extends State<_AddressMobileBody> {
   late final WebViewController _ctrl;
   bool _loading = true;
+  bool _resultSent = false;
 
   static const _html = r'''<!DOCTYPE html>
 <html><head>
@@ -172,15 +173,23 @@ class _AddressMobileBodyState extends State<_AddressMobileBody> {
 <div id="wrap"></div>
 <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 <script>
+function sendAddress(d){
+  var addr=d.userSelectedType==='R'?d.roadAddress:d.jibunAddress;
+  var payload=JSON.stringify({
+    zonecode:String(d.zonecode||''),address:addr||'',
+    roadAddress:d.roadAddress||'',jibunAddress:d.jibunAddress||''
+  });
+  // Android WebView JavaScript channel은 선택 완료 직후 다음 이벤트 루프에서
+  // 호출해야 일부 기기에서 터치 이벤트가 닫힘 처리와 충돌하지 않습니다.
+  window.setTimeout(function(){
+    try { AddrBridge.postMessage(payload); } catch(e) {}
+  }, 0);
+}
 new daum.Postcode({
-  oncomplete:function(d){
-    var addr=d.userSelectedType==='R'?d.roadAddress:d.jibunAddress;
-    AddrBridge.postMessage(JSON.stringify({
-      zonecode:d.zonecode,address:addr,
-      roadAddress:d.roadAddress||'',jibunAddress:d.jibunAddress||''
-    }));
-  },width:'100%',height:'100%',animation:false
-}).embed(document.getElementById('wrap'),{autoClose:false});
+  oncomplete:sendAddress,
+  width:'100%',height:'100%',animation:false,
+  autoClose:true
+}).embed(document.getElementById('wrap'));
 </script></body></html>''';
 
   @override
@@ -201,6 +210,8 @@ new daum.Postcode({
             roadAddress: data['roadAddress']?.toString() ?? '',
             jibunAddress: data['jibunAddress']?.toString() ?? '',
           );
+          if (_resultSent || result.zonecode.isEmpty || result.address.isEmpty) return;
+          _resultSent = true;
           widget.onResult(result);
         } catch (_) {}
       })

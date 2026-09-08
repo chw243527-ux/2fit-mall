@@ -174,7 +174,11 @@ if(document.readyState==='loading'){
             roadAddress: data['roadAddress'] as String? ?? '',
             jibunAddress: data['jibunAddress'] as String? ?? '',
           );
-          if (mounted) Navigator.pop(context, result);
+          if (mounted && result.zonecode.isNotEmpty && result.address.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) Navigator.pop(context, result);
+            });
+          }
         } catch (e) {
           if (kDebugMode)
             debugPrint(context.loc.t('주소 파싱 오류 _', '주소 파싱 오류: $e'));
