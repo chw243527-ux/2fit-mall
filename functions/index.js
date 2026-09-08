@@ -1073,16 +1073,27 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
   if (!paymentKey || !orderId || !Number.isSafeInteger(amount) || amount <= 0) {
     res.status(400).json({ error: 'Invalid payment confirmation request' }); return;
   }
+  let tossApproved = false;
+  let intentRef;
   try {
-    const intentRef = db.collection('payment_intents').doc(orderId);
+    intentRef = db.collection('payment_intents').doc(orderId);
     const intentSnap = await intentRef.get();
     const intent = intentSnap.data();
-    if (!intentSnap.exists || intent.userId !== decoded.uid || intent.status !== 'pending') {
+    if (!intentSnap.exists || intent.userId !== decoded.uid || !['pending', 'approving'].includes(intent.status)) {
       res.status(403).json({ error: 'Payment request is unavailable' }); return;
+    }
+    if (intent.paymentKey && intent.paymentKey !== paymentKey) {
+      res.status(409).json({ error: 'Payment key does not match the payment request' }); return;
     }
     if (intent.expiresAt?.toDate?.().getTime() < Date.now() || intent.amount !== amount) {
       res.status(400).json({ error: 'Payment amount does not match the secure order' }); return;
     }
+    await intentRef.update({
+      status: 'approving',
+      paymentKey,
+      approvalStartedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
     const secret = TOSS_SECRET_KEY.value();
     if (!secret) { res.status(503).json({ error: 'Payment service is not configured' }); return; }
     const tossResponse = await fetch('https://api.tosspayments.com/v1/payments/confirm', {
@@ -1097,8 +1108,10 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
     const toss = await tossResponse.json();
     if (!tossResponse.ok || toss.orderId !== orderId || Number(toss.totalAmount) !== intent.amount) {
       console.warn('Toss payment confirmation rejected:', { status: tossResponse.status, code: toss?.code || 'unknown' });
+      await intentRef.update({ status: 'pending', paymentKey: FieldValue.delete(), lastApprovalError: String(toss?.code || 'approval-rejected').slice(0, 120), updatedAt: FieldValue.serverTimestamp() }).catch(() => {});
       res.status(400).json({ error: 'Payment approval failed' }); return;
     }
+    tossApproved = true;
     await db.runTransaction(async (tx) => {
       const latest = await tx.get(intentRef);
       const latestData = latest.data();
@@ -1127,6 +1140,18 @@ exports.confirmSecurePayment = onRequest({ secrets: [TOSS_SECRET_KEY], cors: PAY
     res.status(200).json({ success: true, orderId, paymentKey, method: toss.method || '' });
   } catch (error) {
     console.error('confirmSecurePayment failed:', { code: error?.code || 'payment-confirmation-failed' });
+    if (tossApproved && intentRef) {
+      await intentRef.update({
+        status: 'recovery_required',
+        recoveryReason: 'Toss approved but order finalization failed',
+        recoveryError: String(error?.message || 'unknown').slice(0, 500),
+        recoveryAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      }).catch(() => {});
+      res.status(202).json({ success: false, recoveryRequired: true, error: '결제는 승인되었으며 주문을 확인 중입니다.' });
+      return;
+    }
+    if (intentRef) await intentRef.update({ status: 'pending', updatedAt: FieldValue.serverTimestamp() }).catch(() => {});
     res.status(400).json({ error: 'Payment could not be finalized. Please contact support if payment was completed.' });
   }
 });
@@ -1303,6 +1328,100 @@ exports.cancelSecurePayment = onRequest({ cors: PAYMENT_CORS }, async (req, res)
   const orderId = String(req.body?.orderId || '');
   try { await _releasePaymentIntent(decoded.uid, orderId); res.status(200).json({ success: true }); }
   catch (_) { res.status(400).json({ error: 'Payment cancellation could not be processed' }); }
+});
+
+async function _fetchTossPayment(paymentKey) {
+  const secret = TOSS_SECRET_KEY.value();
+  if (!secret || !paymentKey) throw new Error('Payment service is not configured');
+  const response = await fetch(`https://api.tosspayments.com/v1/payments/${encodeURIComponent(paymentKey)}`, {
+    headers: { Authorization: `Basic ${Buffer.from(`${secret}:`).toString('base64')}` },
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(`Toss payment lookup failed: ${response.status}`);
+  return data;
+}
+
+async function _finalizeRecoveredPayment(intentId, intent, toss) {
+  if (!intent || toss?.orderId !== intentId || Number(toss.totalAmount) !== Number(intent.amount)) {
+    throw new Error('Recovered payment does not match secure intent');
+  }
+  const intentRef = db.collection('payment_intents').doc(intentId);
+  await db.runTransaction(async (tx) => {
+    const latest = await tx.get(intentRef);
+    const latestData = latest.data() || {};
+    if (!latest.exists || latestData.status === 'confirmed') return;
+    if (!['recovery_required', 'approving'].includes(latestData.status)) throw new Error('Intent is not recoverable');
+    const orderRef = db.collection('orders').doc(intentId);
+    const existingOrder = await tx.get(orderRef);
+    if (!existingOrder.exists) {
+      tx.set(orderRef, {
+        ...latestData.order,
+        status: 'confirmed',
+        paymentStatus: 'paid',
+        paymentKey: latestData.paymentKey,
+        paymentMethod: toss.method || latestData.order?.paymentMethod,
+        tossPaymentSecret: typeof toss.secret === 'string' ? toss.secret : null,
+        paidAt: FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+    }
+    await _commitReservedBenefits(tx, latestData.userId, latestData, intentId);
+    tx.update(intentRef, {
+      status: 'confirmed',
+      tossStatus: toss.status || 'DONE',
+      recoveredAt: FieldValue.serverTimestamp(),
+      confirmedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+}
+
+exports.reconcilePaymentIntents = onSchedule({ schedule: 'every 10 minutes', secrets: [TOSS_SECRET_KEY] }, async () => {
+  const snapshot = await db.collection('payment_intents')
+    .where('status', 'in', ['recovery_required', 'approving'])
+    .limit(50).get();
+  for (const doc of snapshot.docs) {
+    const intent = doc.data() || {};
+    try {
+      if (!intent.paymentKey) continue;
+      const toss = await _fetchTossPayment(intent.paymentKey);
+      if (toss.status === 'DONE') {
+        await _finalizeRecoveredPayment(doc.id, intent, toss);
+      } else if (['CANCELED', 'ABORTED', 'EXPIRED'].includes(toss.status)) {
+        await _releasePaymentIntent(intent.userId, doc.id, true);
+      } else {
+        await doc.ref.update({ tossStatus: toss.status || 'UNKNOWN', lastReconciledAt: FieldValue.serverTimestamp() });
+      }
+    } catch (error) {
+      await doc.ref.update({ lastReconcileError: String(error?.message || 'unknown').slice(0, 500), lastReconciledAt: FieldValue.serverTimestamp() }).catch(() => {});
+      console.error('reconcilePaymentIntents failed:', doc.id, error?.message || error);
+    }
+  }
+});
+
+exports.getPaymentReconciliation = onRequest({ cors: PAYMENT_CORS }, async (req, res) => {
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Method Not Allowed' }); return; }
+  if (!(await requireAdmin(req, res))) return;
+  const orderId = String(req.body?.orderId || '').trim().slice(0, 120);
+  if (!orderId) { res.status(400).json({ error: 'orderId is required' }); return; }
+  const [intentSnap, orderSnap] = await Promise.all([
+    db.collection('payment_intents').doc(orderId).get(),
+    db.collection('orders').doc(orderId).get(),
+  ]);
+  const intent = intentSnap.data() || {};
+  const order = orderSnap.data() || {};
+  res.json({
+    orderId,
+    intentStatus: intent.status || null,
+    orderStatus: order.status || null,
+    paymentStatus: order.paymentStatus || null,
+    amount: Number(intent.amount || order.totalAmount || 0),
+    paymentKey: intent.paymentKey || order.paymentKey || null,
+    tossStatus: intent.tossStatus || null,
+    recoveryRequired: intent.status === 'recovery_required',
+    lastReconcileError: intent.lastReconcileError || null,
+  });
 });
 
 exports.cleanupExpiredPaymentIntents = onSchedule('every 15 minutes', async () => {
@@ -1721,13 +1840,16 @@ async function _commitReservedBenefits(tx, uid, intent, orderId) {
   }
 }
 
-async function _releasePaymentIntent(uid, orderId) {
+async function _releasePaymentIntent(uid, orderId, allowRecovery = false) {
   if (!uid || !orderId) throw new Error('Invalid payment request');
   await db.runTransaction(async (tx) => {
     const intentRef = db.collection('payment_intents').doc(orderId);
     const intentSnap = await tx.get(intentRef);
     const intent = intentSnap.data();
-    if (!intentSnap.exists || intent.userId !== uid || intent.status !== 'pending') return;
+    const releasable = allowRecovery
+      ? ['pending', 'approving', 'recovery_required'].includes(intent?.status)
+      : intent?.status === 'pending';
+    if (!intentSnap.exists || intent.userId !== uid || !releasable) return;
     const couponIds = Array.isArray(intent.couponIds)
       ? intent.couponIds
       : (intent.couponId ? [intent.couponId] : []);
