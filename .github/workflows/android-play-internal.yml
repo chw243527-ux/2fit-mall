@@ -88,7 +88,8 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > android/upload-keystore.jks
           cat > android/key.properties <<EOF
           storePassword=${ANDROID_KEYSTORE_PASSWORD}
-          keyPassword=${ANDROID_KEY_PASSWORD}
+          # 현재 upload keystore는 PKCS12이며 기존 성공 빌드와 동일하게 store password를 사용합니다.
+          keyPassword=${ANDROID_KEYSTORE_PASSWORD}
           keyAlias=${ANDROID_KEY_ALIAS}
           storeFile=../upload-keystore.jks
           EOF
